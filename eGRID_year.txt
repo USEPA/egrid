@@ -1,0 +1,5 @@
+# Enter year to create corresponding eGRID database.
+# Default is set to most recent available year.
+
+# Enter desired year on next line
+2022  
