@@ -19,12 +19,16 @@ download_files <- function(form, year) {
   dest_file <- glue::glue("{new_folder}/{form}.zip")
   
   download_and_unzip <- function(url, dest_file, new_folder) {
-    if (file.exists(dest_file)) {
-      print(paste("File already exists:", dest_file))
-      return(TRUE)  # Return TRUE to indicate success
-    }
+
+      # Check if there are other files in the folder
+      existing_files <- list.files(new_folder)
+      
+      if (length(existing_files) > 1) {
+        print("Files already exist in folder. Stopping")
+        return(TRUE)
+      }
+
     
-    print(paste("Downloading from:", url))
     download.file(url, dest_file, mode = "wb")
     print(paste("Unzipping to:", new_folder))
     unzip_result <- tryCatch({
@@ -37,9 +41,18 @@ download_files <- function(form, year) {
     }, finally = {
       FALSE
     })
+    
+    # Remove the .zip file after successful unzip
+    if (unzip_result) {
+      file.remove(dest_file)
+    }
+    
     return(unzip_result)
   }
   
+
+  
+    
   if (!download_and_unzip(url, dest_file, new_folder) && stringr::str_detect(url, "/archive")) {
     url <- stringr::str_replace(url, "/archive", "")
     if (!download_and_unzip(url, dest_file, new_folder)) {
