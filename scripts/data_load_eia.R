@@ -10,7 +10,7 @@ download_files <- function(form, year) {
     form == "861" ~ glue::glue("https://www.eia.gov/electricity/data/eia861/archive/zip/f861{year}.zip")
   )
   
-  new_folder <- glue::glue("archive/data_archive/download_test/{form}")
+  new_folder <- glue::glue("data/raw_data/{form}")
   
   if (!dir.exists(new_folder)) {
     dir.create(new_folder, recursive = TRUE)
@@ -19,6 +19,11 @@ download_files <- function(form, year) {
   dest_file <- glue::glue("{new_folder}/{form}.zip")
   
   download_and_unzip <- function(url, dest_file, new_folder) {
+    if (file.exists(dest_file)) {
+      print(paste("File already exists:", dest_file))
+      return(TRUE)  # Return TRUE to indicate success
+    }
+    
     print(paste("Downloading from:", url))
     download.file(url, dest_file, mode = "wb")
     print(paste("Unzipping to:", new_folder))
@@ -35,8 +40,8 @@ download_files <- function(form, year) {
     return(unzip_result)
   }
   
-  if (!download_and_unzip(url, dest_file, new_folder) && str_detect(url, "/archive")) {
-    url <- str_replace(url, "/archive", "")
+  if (!download_and_unzip(url, dest_file, new_folder) && stringr::str_detect(url, "/archive")) {
+    url <- stringr::str_replace(url, "/archive", "")
     if (!download_and_unzip(url, dest_file, new_folder)) {
       print(paste("Failed to download or unzip:", dest_file))
     }
@@ -44,8 +49,9 @@ download_files <- function(form, year) {
 }
 
 
+# Now iterating over each file, downloading, and unzipping
 
-map(c("860", "861", "923"), ~ download_files(form = .x, year = "2021"))
+invisible(purrr::map(c("860", "861", "923"), ~ download_files(form = .x, year = Sys.getenv("eGRID_year"))))
 
 
 
