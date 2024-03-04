@@ -53,7 +53,24 @@ Before raw data files are loaded, the eGRID year must be defined. By default, th
 
 ### EIA
 
-As of 2024, the EIA API does not contain the most detailed data available, which is necessary for the construction of eGRID. More detailed data for the EIA forms [923](https://www.eia.gov/electricity/data/eia923/), [860](https://www.eia.gov/electricity/data/eia860/), and [861](https://www.eia.gov/electricity/data/eia861/) are available as zipped excel file downloads on the EIA website. `##_data_eia_load.R` creates a new folder in the project folder called "raw_data". The zip files for each of the forms are downloaded and unzipped within this newly created folder. Each excel file contains several sheets that serve as the raw EIA data sources used to create eGRID. Table <!--# input table name --> EIA Raw Data Sources and File Names lists each of the sheet names and associated raw files names. <!--# Should these be saved as .RDS files? Probably the safest route-->
+As of 2024, the EIA API does not contain the most detailed data available, which is necessary for the construction of eGRID. More detailed data for the EIA forms [923](https://www.eia.gov/electricity/data/eia923/), [860](https://www.eia.gov/electricity/data/eia860/), and [861](https://www.eia.gov/electricity/data/eia861/) are available as zipped excel file downloads on the EIA website. `##_data_eia_load.R` creates a new folder in the project folder called "raw_data". The zip files for each of the forms are downloaded and unzipped within this newly created folder. Each excel file contains several sheets that serve as the raw EIA data sources used to create eGRID.
+
+```{r}
+#| label: data_load_eia
+#| file: "scripts/data_load_eia.R"
+#| warning: FALSE
+#| error: FALSE
+#| echo: fenced
+
+```
+
+```{r}
+ files_923 <- list.files("data/raw_data/923")
+ 
+ knitr::kable(files_923)
+```
+
+Table <!--# input table name --> EIA Raw Data Sources and File Names lists each of the sheet names and associated raw files names. <!--# Should these be saved as .RDS files? Probably the safest route-->
 
 <!--# Need to update this table so each of the different sources are separated out, perhaps, and so we can see which excel file the sheets are coming from -->
 
