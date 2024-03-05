@@ -8,7 +8,9 @@ required_packages <- c("dplyr",
                        "here",
                        "httr",
                        "tidyr",
-                       "knitr"
+                       "knitr",
+                       "gt",
+                       "tibble"
                        )
 
 # Install missing packages
