@@ -109,12 +109,84 @@ tibble(
 
 ```
 
+
+
+
+```{r}
+#| tbl-cap: EIA Sheets
+#| tbl-subcap: ["EIA-923", "EIA-860", "EIA-861"]
+#| layout-ncol: 3
+#| class-output: scrolling
+
+
+library(readxl)
+library(dplyr)
+library(gt)
+
+# function to find all sheet names 
+get_sheets <- function(form){
+  
+  path = glue::glue("data/raw_data/{form}")
+  
+  files <- list.files(path)
+  
+  # Filter only Excel files
+  excel_files <- stringr::str_subset(files, ".xls|.xlsx")
+  
+  # read each sheet and store them in a list
+  sheet_data <- purrr::map(excel_files, ~ readxl::excel_sheets(glue::glue("{path}/{.x}")))
+  
+  # set names for each element based on file name
+  sheet_data_named <- setNames(sheet_data, excel_files)
+  
+  return(sheet_data_named)
+}
+
+
+sheets_923 <- get_sheets("923")
+sheets_860 <- get_sheets("860")
+sheets_861 <- get_sheets("861")
+
+make_sheets_table <- function(sheets, form){
+  
+  gt_table <- 
+    tibble(sheets) %>% 
+    mutate(File = names(sheets)) %>% 
+    relocate(File) %>%
+    tidyr::unnest(sheets) %>% 
+    rename(!!glue::glue("EIA-{form}") := sheets) %>%
+    group_by(File) %>% 
+    gt::gt() %>% 
+    gt::tab_style(
+      style = cell_text(weight = "bold"),
+      locations = cells_row_groups()
+    ) %>% 
+    gt::tab_style(
+      style = cell_text(size = 14, weight = "bold"),
+      locations = cells_column_labels()
+    )
+  
+  return(gt_table)
+  #return(assign(glue::glue("{form}_gt"), gt_table))
+  
+  }
+  
+ make_sheets_table(sheets_923, "923")
+ make_sheets_table(sheets_860, "860")
+ make_sheets_table(sheets_861, "861")
+ 
+```
+
+
+
+
+
 Table <!--# input table name --> EIA Raw Data Sources and File Names lists each of the sheet names and associated raw files names. <!--# Should these be saved as .RDS files? Probably the safest route-->
 
 <!--# Need to update this table so each of the different sources are separated out, perhaps, and so we can see which excel file the sheets are coming from -->
 
 | Input files     | Output files                               | Notes                                       |
-|-------------------|--------------------------|---------------------------|
+|----------------|----------------------------|----------------------------|
 | EIA Excel Files | eia_860_boiler_generator_raw               | 1\. EIA-860 Boiler Generator                |
 |                 | eia_860_boiler_info_design_params_raw      | 2\. EIA-860 Boiler Info & Design Parameters |
 |                 | eia_860_boiler_mercury_raw                 | 3\. EIA-860 Boiler Mercury                  |
@@ -169,7 +241,7 @@ An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-port
 `##_data_cleaning_eia_860.R` loads the raw eia-860 files, fixes formatting error, and standardizes column names. A new file, eia_860_combined_clean, is created by combining the operable, retired, and proposed 860 generators
 
 | Input files                                | Output files                                 | Notes                                                                             |
-|-------------------|--------------------|---------------------------------|
+|-------------------|--------------------|----------------------------------|
 | eia_860_boiler_generator_raw               | eia_860_boiler_generator_clean               |                                                                                   |
 | eia_860_boiler_info_design_params_raw      | eia_860_boiler_info_design_params_clean      |                                                                                   |
 | eia_860_boiler_mercury_raw                 | eia_860_boiler_mercury_clean                 |                                                                                   |
@@ -196,7 +268,7 @@ An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-port
 `##_data_cleaning_eia_923.R` loads the raw eia-923 files, fixes formatting errors, and standardizes column names.
 
 | Input files                               | Output files                                | Notes |
-|--------------------------|---------------------------|-------------------|
+|----------------------------|------------------------------|--------------|
 | eia_923_8c_air_emissions_control_info_raw | eia_923_8c_air_emissions_control_info_clean |       |
 | eia_923_boiler_raw                        | eia_923_boiler_clean                        |       |
 | eia_923_generation_fuel_raw               | eia_923_generation_fuel_clean               |       |
@@ -210,7 +282,7 @@ An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-port
 `##_data_cleaning_eia_861.R` loads the raw EIA-861 files, fixes formatting errors, and standardizes column names.
 
 | Input files                         | Output files                          | Notes |
-|--------------------------|----------------------------|------------------|
+|----------------------------|------------------------------|---------------|
 | eia_861_balancing_authority_raw     | eia_861_balancing_authority_clean     |       |
 | eia_861_sales_ult_cust_raw          | eia_861_sales_ult_cust_clean          |       |
 | eia_861_utility_data_with_count_raw | eia_861_utility_data_with_count_clean |       |
@@ -236,7 +308,7 @@ An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-port
 <!--# Update description here -->
 
 | Input files                    | Output files   | Notes                                     |
-|-----------------------|------------------|-------------------------------|
+|------------------------|-----------------|--------------------------------|
 | eia_860_combined_clean         | generator_file |                                           |
 | eia_860_boiler_generator_clean |                |                                           |
 | eia_923_generator_clean        |                |                                           |
@@ -250,7 +322,7 @@ An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-port
 <!--# Update description here -->
 
 | Input files                                 | Output files | Notes                                        |
-|--------------------------|-------------------|---------------------------|
+|----------------------------|----------------|-----------------------------|
 | camd_edat_clean                             | unit_file    |                                              |
 | camd_unit_type_eia_pm_xwalk                 |              | \* not sure how it's created or if necessary |
 | fuel_code_camd_other_oil_xwalk              |              | \* not sure how it's created or if necessary |
