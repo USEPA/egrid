@@ -64,10 +64,49 @@ As of 2024, the EIA API does not contain the most detailed data available, which
 
 ```
 
+@tbl-eia-unzipped shows each of the unzipped raw files across the three EIA forms.
+
 ```{r}
+#| echo: false
+#| message: false
+#| label: tbl-eia-unzipped
+#| tbl-cap: "List of unzipped EIA files by form"
+
+
+library(gt)
+library(dplyr)
+library(tibble)
+
  files_923 <- list.files("data/raw_data/923")
+ files_860 <- list.files("data/raw_data/860")
+ files_861 <- list.files("data/raw_data/861")
  
- knitr::kable(files_923)
+length1 <- length(files_923)
+length2 <- length(files_860)
+length3 <- length(files_861)
+
+max_length <- max(length1, length2, length3)
+
+`923` <- `length<-`(files_923, max_length)
+`860` <- `length<-`(files_860, max_length)
+`861` <- `length<-`(files_861, max_length)
+
+
+tibble(
+  `923`,
+  `860`,
+  `861`
+) %>% 
+  mutate(across(everything(), ~ if_else(is.na(.x), "", .x))) %>% 
+  gt::gt() %>% 
+  gt::tab_style(
+    style = cell_text(size = 18
+                      , weight = "bold"),
+    locations = cells_column_labels()
+  )
+  # gt::tab_caption(caption = "List of unzipped EIA files by form {#tbl-eia-unzipped}")
+ 
+
 ```
 
 Table <!--# input table name --> EIA Raw Data Sources and File Names lists each of the sheet names and associated raw files names. <!--# Should these be saved as .RDS files? Probably the safest route-->
