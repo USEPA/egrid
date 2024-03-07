@@ -64,60 +64,17 @@ As of 2024, the EIA API does not contain the most detailed data available, which
 
 ```
 
-@tbl-eia-unzipped shows each of the unzipped raw files across the three EIA forms.
-
-```{r}
-#| echo: false
-#| message: false
-#| label: tbl-eia-unzipped
-#| tbl-cap: "List of unzipped EIA files by form"
-
-
-library(gt)
-library(dplyr)
-library(tibble)
-
- files_923 <- list.files("data/raw_data/923")
- files_860 <- list.files("data/raw_data/860")
- files_861 <- list.files("data/raw_data/861")
- 
-length1 <- length(files_923)
-length2 <- length(files_860)
-length3 <- length(files_861)
-
-max_length <- max(length1, length2, length3)
-
-`923` <- `length<-`(files_923, max_length)
-`860` <- `length<-`(files_860, max_length)
-`861` <- `length<-`(files_861, max_length)
-
-
-tibble(
-  `923`,
-  `860`,
-  `861`
-) %>% 
-  mutate(across(everything(), ~ if_else(is.na(.x), "", .x))) %>% 
-  gt::gt() %>% 
-  gt::tab_style(
-    style = cell_text(size = 18
-                      , weight = "bold"),
-    locations = cells_column_labels()
-  )
-  # gt::tab_caption(caption = "List of unzipped EIA files by form {#tbl-eia-unzipped}")
- 
-
-```
-
+@tbl-unzipped-eia shows each of the unzipped raw files across the three EIA forms, including the sheets embedded within.
 
 
 
 ```{r}
-#| tbl-cap: EIA Sheets
+#| label: tbl-unzipped-eia
+#| tbl-cap: List of Unzipped EIA Form files and Sheets
 #| tbl-subcap: ["EIA-923", "EIA-860", "EIA-861"]
 #| layout-ncol: 3
-#| class-output: scrolling
-
+#| message: FALSE
+#| warning: FALSE
 
 library(readxl)
 library(dplyr)
@@ -177,45 +134,6 @@ make_sheets_table <- function(sheets, form){
  
 ```
 
-
-
-
-
-Table <!--# input table name --> EIA Raw Data Sources and File Names lists each of the sheet names and associated raw files names. <!--# Should these be saved as .RDS files? Probably the safest route-->
-
-<!--# Need to update this table so each of the different sources are separated out, perhaps, and so we can see which excel file the sheets are coming from -->
-
-| Input files     | Output files                               | Notes                                       |
-|----------------|----------------------------|----------------------------|
-| EIA Excel Files | eia_860_boiler_generator_raw               | 1\. EIA-860 Boiler Generator                |
-|                 | eia_860_boiler_info_design_params_raw      | 2\. EIA-860 Boiler Info & Design Parameters |
-|                 | eia_860_boiler_mercury_raw                 | 3\. EIA-860 Boiler Mercury                  |
-|                 | eia_860_boiler_nox_raw                     | 4\. EIA-860 Boiler NOx                      |
-|                 | eia_860_boiler_pm_raw                      | 5\. EIA-860 Boiler PM                       |
-|                 | eia_860_boiler_s02_raw                     | 6\. EIA-860 Boiler SO2                      |
-|                 | eia_860_emission_standards_strategies_raw  | 7\. EIA-860 Emission Standards & Strategies |
-|                 | eia\_\_860_emissions_control_equipment_raw | 8\. EIA-860 Emissions Control Equipment     |
-|                 | eia_860_enviro_equip_fgd_raw               | 9\. EIA-860 EnviroEquip – FGD               |
-|                 | eia_860_operable_raw                       | 10\. EIA-860 Operable                       |
-|                 | eia_860_owner_raw                          | 11\. EIA-860 Owner                          |
-|                 | eia_860_plant_raw                          | 12\. EIA-860 Plant                          |
-|                 | eia_860_proposed_raw                       | 13\. EIA-860 Proposed                       |
-|                 | eia_860_retired_canceled_raw               | 14\. EIA-860 Retired and Canceled           |
-|                 | eia_860m_generator_dec_operating_PR_raw    | EIA-860M Generator December Operating PR    |
-|                 | eia_860m_generator_dec_planned_PR_raw      | EIA-860M Generator December Planned PR      |
-|                 | eia_860m_generator_dec_retired_PR_raw      | EIA-860M Generator December Retired PR      |
-|                 | eia_923_8c_air_emissions_control_info_raw  | EIA-923 8C Air Emissions Control Info       |
-|                 | eia_923_boiler_raw                         | EIA-923 Boiler                              |
-|                 | eia_923_generation_fuel_raw                | EIA-923 Generation and Fuel                 |
-|                 | eia_923_generation_fuel_PR_raw             | EIA-923 Generation and Fuel Puerto Rico     |
-|                 | eia_923_generator_raw                      | EIA-923 Generator                           |
-|                 | eia_861_balancing_authority_raw            | EIA-861 Balancing Authority                 |
-|                 | eia_861_sales_ult_cust_raw                 | EIA-861 Sales Ult Cust                      |
-|                 | eia_861_utility_data_with_count_raw        | EIA-861 Utility Data - with count           |
-|                 | camd_edat_raw                              | CAMD EDAT                                   |
-
-: EIA Raw Data Sources and File Names
-
 ### CAMD
 
 The EPA's Clean Air Markets Program (CAMD) contains power plant emissions, compliance, and allowance data. We create and incoporate a composite file from several CAMD sources, containing data about facilities and annual emissions. Specifically, we include data about facility attributes, annual emissions, and annual emissions during ozone months.
@@ -237,125 +155,6 @@ An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-port
 ### EIA-860
 
 <!--# Update description here -->
-
-`##_data_cleaning_eia_860.R` loads the raw eia-860 files, fixes formatting error, and standardizes column names. A new file, eia_860_combined_clean, is created by combining the operable, retired, and proposed 860 generators
-
-| Input files                                | Output files                                 | Notes                                                                             |
-|-------------------|--------------------|----------------------------------|
-| eia_860_boiler_generator_raw               | eia_860_boiler_generator_clean               |                                                                                   |
-| eia_860_boiler_info_design_params_raw      | eia_860_boiler_info_design_params_clean      |                                                                                   |
-| eia_860_boiler_mercury_raw                 | eia_860_boiler_mercury_clean                 |                                                                                   |
-| eia_860_boiler_nox_raw                     | eia_860_boiler_nox_clean                     |                                                                                   |
-| eia_860_boiler_pm_raw                      | eia_860_boiler_pm_clean                      |                                                                                   |
-| eia_860_boiler_s02_raw                     | eia_860_boiler_s02_clean                     |                                                                                   |
-| eia_860_emission_standards_strategies_raw  | eia_860_emission_standards_strategies_clean  |                                                                                   |
-| eia\_\_860_emissions_control_equipment_raw | eia\_\_860_emissions_control_equipment_clean |                                                                                   |
-| eia_860_enviro_equip_fgd_raw               | eia_860_enviro_equip_fgd_clean               |                                                                                   |
-| eia_860_operable_raw                       | eia_860_operable_clean                       |                                                                                   |
-| eia_860_owner_raw                          | eia_860_owner_clean                          |                                                                                   |
-| eia_860_plant_raw                          | eia_860_plant_clean                          |                                                                                   |
-| eia_860_proposed_raw                       | eia_860_proposed_clean                       |                                                                                   |
-| eia_860_retired_canceled_raw               | eia_860_retired_canceled_clean               |                                                                                   |
-| eia_860m_generator_dec_operating_PR_raw    | eia_860m_generator_dec_operating_PR_clean    |                                                                                   |
-| eia_860m_generator_dec_planned_PR_raw      | eia_860m_generator_dec_planned_PR_clean      |                                                                                   |
-| eia_860m_generator_dec_retired_PR_raw      | eia_860m_generator_dec_retired_PR_clean      |                                                                                   |
-|                                            | eia_860_combined_clean                       | This is created by combining the operable, proposed, and retired generator tables |
-
-### EIA-923
-
-<!--# Update description here -->
-
-`##_data_cleaning_eia_923.R` loads the raw eia-923 files, fixes formatting errors, and standardizes column names.
-
-| Input files                               | Output files                                | Notes |
-|----------------------------|------------------------------|--------------|
-| eia_923_8c_air_emissions_control_info_raw | eia_923_8c_air_emissions_control_info_clean |       |
-| eia_923_boiler_raw                        | eia_923_boiler_clean                        |       |
-| eia_923_generation_fuel_raw               | eia_923_generation_fuel_clean               |       |
-| eia_923_generation_fuel_PR_raw            | eia_923_generation_fuel_PR_clean            |       |
-| eia_923_generator_raw                     | eia_923_generator_clean                     |       |
-
-### EIA-861
-
-<!--# Update description here -->
-
-`##_data_cleaning_eia_861.R` loads the raw EIA-861 files, fixes formatting errors, and standardizes column names.
-
-| Input files                         | Output files                          | Notes |
-|----------------------------|------------------------------|---------------|
-| eia_861_balancing_authority_raw     | eia_861_balancing_authority_clean     |       |
-| eia_861_sales_ult_cust_raw          | eia_861_sales_ult_cust_clean          |       |
-| eia_861_utility_data_with_count_raw | eia_861_utility_data_with_count_clean |       |
-
-## CAMD
-
-### CAMD-EDAT
-
-<!--# Update description here -->
-
-`##_data_cleaning_camd.R` loads the raw CAMD-EDAT data, fixes formatting errors, and standardizes column names.
-
-| Input files   | Output files    | Notes |
-|---------------|-----------------|-------|
-| camd_edat_raw | camd_edat_clean |       |
-
-# Create eGRID files
-
-<!--# Update description here -->
-
-## Generator file
-
-<!--# Update description here -->
-
-| Input files                    | Output files   | Notes                                     |
-|------------------------|-----------------|--------------------------------|
-| eia_860_combined_clean         | generator_file |                                           |
-| eia_860_boiler_generator_clean |                |                                           |
-| eia_923_generator_clean        |                |                                           |
-| eia_923_generation_fuel_clean  |                | \*Should include PR eia_923 at this point |
-| oris_eia_xwalk                 |                |                                           |
-| og_fueltype_xwalk              |                |                                           |
-| oris_camd_xwalk                |                |                                           |
-
-## Unit file
-
-<!--# Update description here -->
-
-| Input files                                 | Output files | Notes                                        |
-|----------------------------|----------------|-----------------------------|
-| camd_edat_clean                             | unit_file    |                                              |
-| camd_unit_type_eia_pm_xwalk                 |              | \* not sure how it's created or if necessary |
-| fuel_code_camd_other_oil_xwalk              |              | \* not sure how it's created or if necessary |
-| fuel_code_sother_solid_fuel_xwalk           |              | \* not sure how it's created or if necessary |
-| fuel_code_camd_crosswalk_coal               |              | \* not sure how it's created or if necessary |
-| boiler_firing_type_xwalk                    |              | \* not sure how it's created or if necessary |
-| eia_923_boiler_clean                        |              |                                              |
-| eia_860_boiler_generator_clean              |              |                                              |
-| unit_file_generator_fuel_types_to_change    |              | \* not sure how it's created or if necessary |
-| biomass_units_to_add_to_unit_file           |              | \* not sure how it's created or if necessary |
-| eia_923_generation_fuel_clean               |              |                                              |
-| eia_860_combined_clean                      |              |                                              |
-| camd_plants_to_delete                       |              | \* not sure how it's created or if necessary |
-| eia_860_operable_clean                      |              |                                              |
-| camd_heat_input_to_update_manually          |              | \* not sure how it's created or if necessary |
-| eia_860_boiler_nox_clean                    |              |                                              |
-| eia_923_8c_air_emissions_control_info_clean |              |                                              |
-| eia_860_boiler_s02_clean                    |              |                                              |
-| eia_860_boiler_pm_clean                     |              |                                              |
-| eia_860_boiler_mercury_clean                |              |                                              |
-| eia_860_boiler_control_id_xwalk             |              | \* not sure how it's created or if necessary |
-| camd_eia_unit_id_xwalk                      |              | \* not sure how it's created or if necessary |
-| Efs_table                                   |              | \* not sure how it's created or if necessary |
-| Sulfur Content Defaults - Coal table        |              | \* not sure how it's created or if necessary |
-| C02 CH4 N20 EF                              |              | \* not sure how it's created or if necessary |
-| NREL table                                  |              | \* not sure how it's created or if necessary |
-| Geothermal Geotype OLD table                |              | \* not sure how it's created or if necessary |
-| Geothermal EFs                              |              | \* not sure how it's created or if necessary |
-| ORIS Crosswalk - change CAMD                |              | \* not sure how it's created or if necessary |
-| Units to Remove                             |              | \* not sure how it's created or if necessary |
-| 923 schedule 8c with boiler ID              |              | \* not sure how it's created or if necessary |
-| eia_860_boiler_info_design_params_clean     |              |                                              |
-| Puerto Rico ORIS crosswalk                  |              | \* not sure how it's created or if necessary |
 
 ## Plant file
 
