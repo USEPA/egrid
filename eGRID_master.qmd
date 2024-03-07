@@ -38,10 +38,10 @@ Required packages include: `r required_packages`
 
 Before raw data files are loaded, the eGRID year must be defined. By default, the year value is set to the most recent available year (i.e., the year for which all necessary data is available), which is currently set to 2022. To adjust this value, simply open the file `eGRID_year.txt`, change the year value, and save.
 
-`set_eGRID_year.R` stores the year value defined in `eGRID_year.txt` in the system environment, which is used to define the year in subsequent scripts. Note that `set_eGRID_year.R` needs to be run even if `eGRID_year.txt` is not updated.
+`set_eGRID_year.R` the year value defined in `eGRID_year.txt` in the system environment, which is used to define the year in subsequent scripts. Note that `set_eGRID_year.R` needs to be run even if `eGRID_year.txt` is not updated.
 
 ```{r}
-#| label: set_EGRID_year
+#| label: set_eGRID_year
 #| file: "scripts/set_eGRID_year.R"
 ```
 
@@ -66,7 +66,7 @@ As of 2024, the EIA API does not contain the most detailed data available, which
 
 @tbl-unzipped-eia shows each of the unzipped raw files across the three EIA forms, including the sheets embedded within.
 
-
+<!--# Would be nice to highlight the sheets that will actually be used in eGRID productions... -->
 
 ```{r}
 #| label: tbl-unzipped-eia
@@ -136,11 +136,25 @@ make_sheets_table <- function(sheets, form){
 
 ### CAMD
 
-The EPA's Clean Air Markets Program (CAMD) contains power plant emissions, compliance, and allowance data. We create and incoporate a composite file from several CAMD sources, containing data about facilities and annual emissions. Specifically, we include data about facility attributes, annual emissions, and annual emissions during ozone months.
+The EPA's Clean Air Markets Program (CAMD) contains power plant emissions, compliance, and allowance data. We create and incorporate a composite file from several CAMD sources, containing data about facilities and annual emissions. Specifically, we include data about facility attributes, annual emissions, and annual emissions during ozone months.
 
 These data are available through the [CAMPD API](https://www.epa.gov/power-sector/cam-api-portal#/documentation). `data_camd_api_load.R` connects to the CAMD api, downloads the facility attributes and emissions data for a selected year, and combines them to create a raw camd file that will be used in subsequent steps. For this script to run, an API key is required.
 
 An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-portal#/api-key-signup). Once a key is obtained, paste your key into the file `api_keys/camd_api_key.txt` and save. Once saved, the script `data_camd_api_load.R` will be able to successfully connect to and load data from the CAMPD API.
+
+```{r}
+#| label: load_data_camd
+#| file: "scripts/data_load_camd.R"
+
+```
+
+Three data tables are downloaded from the the CAMD api and stored as .RDS files: `camd_facilities.RDS`, `camd_emissions.RDS`, and `camd_emissions_ozone.RDS`. `camd_facilities.RDS` includes facility attributes. `camd_emissions.RDS` contains annual emissions data. And, `camd_emissions_ozone.RDS` contains annual emissions data for the ozone months.
+
+
+```{r}
+
+```
+
 
 ## Loading Crosswalks
 
