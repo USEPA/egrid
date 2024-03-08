@@ -64,15 +64,11 @@ As of 2024, the EIA API does not contain the most detailed data available, which
 
 ```
 
-@tbl-unzipped-eia shows each of the unzipped raw files across the three EIA forms, including the sheets embedded within.
+The tables within EIA Files and Sheets display each of the unzipped raw files across the three EIA forms, including the sheets embedded within.
 
 <!--# Would be nice to highlight the sheets that will actually be used in eGRID productions... -->
 
 ```{r}
-#| label: tbl-unzipped-eia
-#| tbl-cap: List of Unzipped EIA Form files and Sheets
-#| tbl-subcap: ["EIA-923", "EIA-860", "EIA-861"]
-#| layout-ncol: 3
 #| message: FALSE
 #| warning: FALSE
 
@@ -128,11 +124,39 @@ make_sheets_table <- function(sheets, form){
   
   }
   
- make_sheets_table(sheets_923, "923")
- make_sheets_table(sheets_860, "860")
- make_sheets_table(sheets_861, "861")
+ tab_923 <- make_sheets_table(sheets_923, "923")
+ tab_860 <- make_sheets_table(sheets_860, "860")
+ tab_861 <- make_sheets_table(sheets_861, "861")
  
 ```
+
+#### EIA Files and Sheets {#eia-files-sheets}
+
+::: panel-tabset
+#### EIA-923
+
+```{r}
+#| tbl-cap: "EIA-923 sheets"
+#| echo: false
+tab_923
+```
+
+#### EIA-860
+
+```{r}
+#| tbl-cap: "EIA-860 sheets"
+#| echo: false
+tab_860
+```
+
+#### EIA-861
+
+```{r}
+#| tbl-cap: "EIA-861 sheets"
+#| echo: false
+tab_861
+```
+:::
 
 ### CAMD
 
@@ -150,11 +174,9 @@ An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-port
 
 Three data tables are downloaded from the the CAMD api and stored as .RDS files: `camd_facilities.RDS`, `camd_emissions.RDS`, and `camd_emissions_ozone.RDS`. `camd_facilities.RDS` includes facility attributes. `camd_emissions.RDS` contains annual emissions data. And, `camd_emissions_ozone.RDS` contains annual emissions data for the ozone months.
 
-
 ```{r}
 
 ```
-
 
 ## Loading Crosswalks
 
