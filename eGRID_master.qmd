@@ -75,6 +75,7 @@ The tables within EIA Files and Sheets display each of the unzipped raw files ac
 library(readxl)
 library(dplyr)
 library(gt)
+library(gtExtras)
 
 # function to find all sheet names 
 get_sheets <- function(form){
@@ -120,11 +121,23 @@ make_sheets_table <- function(sheets, form){
     )
   
   return(gt_table)
-  #return(assign(glue::glue("{form}_gt"), gt_table))
   
   }
   
- tab_923 <- make_sheets_table(sheets_923, "923")
+  # highlight_rows <- function(table, colname, vars){
+  #    table %>% 
+  #     tab_style(style = list(
+  #       cell_fill(color = "skyblue")
+  #       ),
+  #       locations = cells_body(
+  #         rows = {{colname}} %in%  vars
+  #       ))
+  #   
+  #     
+  # }
+
+ tab_923 <- make_sheets_table(sheets_923, "923") #%>% highlight_rows(., "EIA-923", "8B Financial Information")
+
  tab_860 <- make_sheets_table(sheets_860, "860")
  tab_861 <- make_sheets_table(sheets_861, "861")
  
@@ -172,11 +185,50 @@ An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-port
 
 ```
 
-Three data tables are downloaded from the the CAMD api and stored as .RDS files: `camd_facilities.RDS`, `camd_emissions.RDS`, and `camd_emissions_ozone.RDS`. `camd_facilities.RDS` includes facility attributes. `camd_emissions.RDS` contains annual emissions data. And, `camd_emissions_ozone.RDS` contains annual emissions data for the ozone months.
+Three data tables are downloaded from the the CAMD api and stored as .RDS files: `camd_facilities.RDS`, `camd_emissions.RDS`, and `camd_emissions_ozone.RDS`. `camd_facilities.RDS` includes facility attributes. `camd_emissions.RDS` contains annual emissions data. And, `camd_emissions_ozone.RDS` contains annual emissions data for the ozone months. See a summary of each of the raw CAMD tables in the tabs below.
+
+#### CAMD Raw Tables
 
 ```{r}
+#| echo: false
+
+source("scripts/functions/function_summary_table.R") # function to create summary table
+
+camd_facilities <- read_rds("data/raw_data/camd/camd_facilities.RDS")
+camd_emissions <- read_rds("data/raw_data/camd/camd_emissions.RDS")
+camd_emissions_ozone <- read_rds("data/raw_data/camd/camd_emissions_ozone.RDS")
+
+table_facilities <- create_summary_table(camd_facilities)
+table_emissions <- create_summary_table(camd_emissions)
+table_emissions_ozone <- create_summary_table(camd_emissions_ozone)
+
 
 ```
+
+::: panel-tabset
+
+#### CAMD facility attributes
+
+```{r}
+#| echo: false
+table_facilities
+```
+
+#### CAMD annual emissions
+```{r}
+#| echo: false
+table_emissions
+```
+
+#### CAMD ozone season emissions
+```{r}
+#| echo: false
+table_emissions_ozone
+```
+
+:::
+
+
 
 ## Loading Crosswalks
 
