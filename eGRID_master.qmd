@@ -26,7 +26,6 @@ Before loading any data or beginning to construct the eGRID database, we install
 
 This project uses the `renv` package to ensure reproducibility. `renv` creates a copy of the R environment, including all installed libraries and their versions, used in the project. Upon opening the R project, `renv` will prompt users to run the command `renv::restore()`, which installs all necessary libraries.
 
-
 ## Set eGRID year
 
 Before raw data files are loaded, the eGRID year must be defined. By default, the year value is set to the most recent available year (i.e., the year for which all necessary data is available), which is currently set to 2022. To adjust this value, simply open the file `eGRID_year.txt`, change the year value, and save.
@@ -199,7 +198,6 @@ table_emissions_ozone <- create_summary_table(camd_emissions_ozone)
 ```
 
 ::: panel-tabset
-
 #### CAMD facility attributes
 
 ```{r}
@@ -208,20 +206,19 @@ table_facilities
 ```
 
 #### CAMD annual emissions
+
 ```{r}
 #| echo: false
 table_emissions
 ```
 
 #### CAMD ozone season emissions
+
 ```{r}
 #| echo: false
 table_emissions_ozone
 ```
-
 :::
-
-
 
 ## Loading Crosswalks
 
@@ -231,12 +228,66 @@ table_emissions_ozone
 
 ## EIA
 
-<!--# Update description here -->
+<!-- Need to document steps here -->
 
-### EIA-860
+```{r}
+#| label: data_clean_eia
+#| file: "scripts/data_load_eia.R"
+```
 
-<!--# Update description here -->
+### Summary tables
 
-## Plant file
+::: panel-tabset
+#### eia_923_gen
 
-<!--# Update with information about Plant File  -->
+```{r}
+source("scripts/functions/function_summary_table.R")
+
+create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_clean.RDS"))
+```
+
+#### eia_923_gen_fuel
+
+```{r}
+source("scripts/functions/function_summary_table.R")
+
+create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_fuel_clean.RDS"))
+```
+
+#### eia_860_combined
+
+```{r}
+source("scripts/functions/function_summary_table.R")
+
+create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_combined_clean.RDS"))
+```
+
+#### eia_860_boil_gen
+
+```{r}
+source("scripts/functions/function_summary_table.R")
+
+create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_boil_gen_clean.RDS"))
+```
+:::
+
+
+## CAMD 
+
+<!-- Need to document steps here -->
+
+```{r}
+#| label: data_clean_camd
+#| file: "scripts/data_clean_camd.R"
+```
+
+
+```{r}
+#| label: camd_summary_table
+
+source("scripts/functions/function_summary_table.R")
+
+create_summary_table(readr::read_rds("data/clean_data/camd/camd_clean.RDS"))
+```
+
+
