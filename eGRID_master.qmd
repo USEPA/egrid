@@ -16,7 +16,7 @@ project:
 
 # Overview
 
-This is a Quarto file that documents and runs the code necessary to create the eGRID database. Along with sequentially executing the necessary scripts used to create the database, the process is documented throughout, including built-in outputs (e.g., counts of rows, variable names, etc.) and QA steps. This document can be used in two ways: First, when using within the RStudio IDE, it serves as an enhanced master script, allowing users to easily perform each step necessary to create the eGRID database from within a single file. Second, when viewing as a rendered file, it provides thorough documentation of the steps involved in creating eGRID. When rendered, this file provides additional information and tools for navigating the project. The table of contents (TOC) provides both a convenient look at the project structure and method for navigating the document. There are also hidden code chunks throughout, marked by a button ("Code" with an arrow next to it). Clicking this button reveals the underlying code from the R script that is being sourced in a given section.
+This is a Quarto file that documents and runs the code necessary to create the eGRID database. Along with sequentially executing the necessary scripts used to create the database, the process is documented throughout, including built-in outputs (e.g., counts of rows, variable names, etc.) and QA steps. This document can be used in two ways: First, when used within an IDE, such as RStudio, it serves as an enhanced master script, allowing users to easily perform each step necessary to create the eGRID database from within a single file. Second, when viewing as a rendered file, it provides thorough documentation of the steps involved in creating eGRID. When rendered, this file provides additional information and tools for navigating the project. The table of contents (TOC) provides both a convenient look at the project structure and method for navigating the document. There are also hidden code chunks throughout, marked by a button ("Code" with an arrow next to it). Clicking this button reveals the underlying code from the R script that is being sourced in a given section.
 
 # Install Libraries and Set Parameters
 
@@ -24,15 +24,8 @@ Before loading any data or beginning to construct the eGRID database, we install
 
 ## Install required libraries
 
-`install_libraries.R` contains a list of all libraries used throughout the creation of eGRID, checks to see if these libraries are already installed, and, if not, installs them.
+This project uses the `renv` package to ensure reproducibility. `renv` creates a copy of the R environment, including all installed libraries and their versions, used in the project. Upon opening the R project, `renv` will prompt users to run the command `renv::restore()`, which installs all necessary libraries.
 
-```{r }
-#| label: install_libraries
-#| file: "scripts/install_libraries.R"
-#| echo: TRUE
-```
-
-Required packages include: `r required_packages`
 
 ## Set eGRID year
 
