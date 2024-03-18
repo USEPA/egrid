@@ -1,6 +1,6 @@
 # eGRID
 
-This repository includes R scripts to create the Emissions & Generation Resource Integrated Database (eGRID).
+This repository includes all necessary scripts and documentation to create the Emissions & Generation Resource Integrated Database (eGRID). 
 
 ## Background
 
@@ -26,83 +26,8 @@ The final eGRID database includes eight levels of data aggregation:
 
 -   US
 
-## Data Sources
+## Creating eGRID
 
-### CAMD's Power Sector Emissions Data (EPA/CAMD)
-
-CAMD’s Power Sector Emissions Data (EPA/CAMD): this includes data reported to EPA by 
-electric generating units to comply with the regulations in 40 CFR Part 75 and 40 CFR Part 
-63. Data include annual emissions of CO2, NOx, SO2, and Hg; ozone season emissions of 
-NOX; and annual and ozone season generation and heat input.
-
-### EIA-860
-
-This includes data reported to EIA on electric generators. Data include nameplate 
-capacity, prime mover, primary fuel type, and indication of whether the generator is a 
-combined-heat-and-power unit.
-
-+----------------------------------------------+
-| EIA-860 Tables                               |
-+==============================================+
-| EIA-860 Boiler Generator                     |
-+----------------------------------------------+
-| EIA-860 Boiler Info & Design Parameters      |
-+----------------------------------------------+
-| EIA-860 Boiler Mercury                       |
-+----------------------------------------------+
-| EIA-860 Boiler NOx                           |
-+----------------------------------------------+
-| EIA-860 Boiler PM                            |
-+----------------------------------------------+
-| EIA-860 Boiler SO2                           |
-+----------------------------------------------+
-| EIA-860 Emission Standards & Strategies      |
-+----------------------------------------------+
-| EIA-860 Emissions Control Equipment          |
-+----------------------------------------------+
-| EIA-860 EnviroEquip - FGD                    |
-+----------------------------------------------+
-| EIA-860 Operable                             |
-+----------------------------------------------+
-| EIA-860 Owner                                |
-+----------------------------------------------+
-| EIA-860 Plant                                |
-+----------------------------------------------+
-| EIA-860 Proposed                            |
-+----------------------------------------------+
-| EIA-860 Retired and Canceled                 |
-+----------------------------------------------+
-| Puerto Rico Data                             |
-|                                              |
-| -   EIA-860M Generator December Operating PR |
-|                                              |
-| -   EIA-860M Generator December Planned PR   |
-|                                              |
-| -   EIA-860M Generator December Retired PR   |
-+----------------------------------------------+
+This project is structured as an R Studio project. To ensure that all scripts run correctly, we highly recommend loading the `eGRID_R.Rproj` within RStudio to enable the project environment. `eGRID_master.qmd` is a Quarto document that serves as a master script (i.e., it runs all necessary scripts in the correct order), while also providing documentation for the scripts and steps performed therein. To create eGRID, simply execute all code chunks in `eGRID_master.qmd`, which can be accomplished by running each chunk individually or by selecting "Run all" within the "Run" drop down menu in RStudio. To get the most out of `eGRID_master.qmd`, we recommend rendering it as an html document.
 
 
-### EIA-923 
-
-This includes data reported to EIA on fuel consumption and generation. Data 
-include monthly generation and heat input at the unit or generator level for a subset of units 
-and generators, and at the prime mover level for all plants.
-
-
-| EIA-923 Tables                          |
-|-----------------------------------------|
-| EIA-923 8C Air Emissions Control Info   |
-| EIA-923 Boiler                          |
-| EIA-923 Generation and Fuel             |
-| EIA-923 Generation and Fuel Puerto Rico |
-| EIA-923 Generator                       |
-
-| EIA-861 Tables                    |
-|-----------------------------------|
-| EIA-861 Balancing Authority       |
-| EIA-861 Sales Ult Cust            |
-| EIA-861 Utility Data - with count |
-
-
-
-## Output

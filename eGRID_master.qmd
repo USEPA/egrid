@@ -165,9 +165,9 @@ tab_861
 
 ### CAMD
 
-The EPA's Clean Air Markets Program (CAMD) contains power plant emissions, compliance, and allowance data. We create and incorporate a composite file from several CAMD sources, containing data about facilities and annual emissions. Specifically, we include data about facility attributes, annual emissions, and annual emissions during ozone months.
+The EPA's Clean Air Markets Division (CAMD) contains power plant emissions, compliance, and allowance data. We create and incorporate a composite file from several CAMD sources, containing data about facilities and annual emissions. Specifically, we include data about facility attributes, annual emissions, and annual emissions during ozone months.
 
-These data are available through the [CAMPD API](https://www.epa.gov/power-sector/cam-api-portal#/documentation). `data_camd_api_load.R` connects to the CAMD api, downloads the facility attributes and emissions data for a selected year, and combines them to create a raw camd file that will be used in subsequent steps. For this script to run, an API key is required.
+These data are available through the [CAMPD API](https://www.epa.gov/power-sector/cam-api-portal#/documentation). `data_camd_api_load.R` connects to the CAMD api, downloads the facility attributes and emissions data for a selected year. These raw files will be combined and cleaned in subsequent steps. For this script to run, an API key is required.
 
 An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-portal#/api-key-signup). Once a key is obtained, paste your key into the file `api_keys/camd_api_key.txt` and save. Once saved, the script `data_camd_api_load.R` will be able to successfully connect to and load data from the CAMPD API.
 
@@ -241,6 +241,7 @@ table_emissions_ozone
 #### eia_923_gen
 
 ```{r}
+#| echo: false
 source("scripts/functions/function_summary_table.R")
 
 create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_clean.RDS"))
@@ -249,6 +250,7 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_clean.RDS"
 #### eia_923_gen_fuel
 
 ```{r}
+#| echo: false
 source("scripts/functions/function_summary_table.R")
 
 create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_fuel_clean.RDS"))
@@ -257,6 +259,7 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_fuel_clean
 #### eia_860_combined
 
 ```{r}
+#| echo: false
 source("scripts/functions/function_summary_table.R")
 
 create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_combined_clean.RDS"))
@@ -265,6 +268,7 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_combined_clean
 #### eia_860_boil_gen
 
 ```{r}
+#| echo: false
 source("scripts/functions/function_summary_table.R")
 
 create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_boil_gen_clean.RDS"))
@@ -277,12 +281,14 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_boil_gen_clean
 <!-- Need to document steps here -->
 
 ```{r}
+#| echo: false
 #| label: data_clean_camd
 #| file: "scripts/data_clean_camd.R"
 ```
 
 
 ```{r}
+#| echo: false
 #| label: camd_summary_table
 
 source("scripts/functions/function_summary_table.R")
