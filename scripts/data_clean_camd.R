@@ -70,7 +70,7 @@ if(!dir.exists("data/clean_data/camd")){
 
 
 
-readr::write_rds(camd_combined, "data/clean_data/camd/camd_clean.RDS")
+readr::write_rds(camd_combined_r, "data/clean_data/camd/camd_clean.RDS")
 
 if(file.exists("data/clean_data/camd/camd_clean.RDS")){
   print("File camd_clean.RDS successfully written to folder data/clean_data/camd")
