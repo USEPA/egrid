@@ -50,7 +50,8 @@ camd_combined_r <-
   ) %>%
   mutate(operating_status = case_when(
     operating_status == "Operating" ~ "OP",
-    operating_status == "Retiring" ~ "RE",
+    startsWith(operating_status, "Operating") ~ "OP", # Units that started operating in current year have "Operating" plus the date of operattion.
+    operating_status == "Retired" ~ "RE",
     TRUE ~ NA_character_
   )) 
   # left_join(camd_eia_xwalk,
