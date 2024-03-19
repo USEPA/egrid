@@ -28,6 +28,6 @@ The final eGRID database includes eight levels of data aggregation:
 
 ## Creating eGRID
 
-This project is structured as an R Studio project. To ensure that all scripts run correctly, we highly recommend loading the `eGRID_R.Rproj` within RStudio to enable the project environment. `eGRID_master.qmd` is a Quarto document that serves as a master script (i.e., it runs all necessary scripts in the correct order), while also providing documentation for the scripts and steps performed therein. To create eGRID, simply execute all code chunks in `eGRID_master.qmd`, which can be accomplished by running each chunk individually or by selecting "Run all" within the "Run" drop down menu in RStudio. To get the most out of `eGRID_master.qmd`, we recommend rendering it as an html document.
+This project is structured as an R Studio project. To ensure that all scripts run correctly, load the `eGRID_R.Rproj` within RStudio to enable the project environment. `eGRID_master.qmd` is a Quarto document that serves as a master script (i.e., it runs all necessary scripts in the correct order), while also providing documentation for the scripts and steps performed therein. To create eGRID, simply execute all code chunks in `eGRID_master.qmd`, which can be accomplished by running each chunk individually or by selecting "Run all" within the "Run" drop down menu in RStudio. To get the most out of `eGRID_master.qmd`, we recommend rendering it as an html document.
 
 
