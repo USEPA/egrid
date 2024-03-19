@@ -1,6 +1,9 @@
 ---
 title: "eGRID Production"
-author: "Sean Bock, Abt Associates"
+author: 
+  - "Sean Bock, Abt Global"
+  - "Claire Lay, Abt Global"
+  - "Justin Stein, Abt Global"
 format: 
   html:
     toc: true
@@ -12,6 +15,7 @@ format:
 editor: visual
 project: 
   execute_dir: project
+#css: style.css # specific branding/styling can be added here
 ---
 
 # Overview
@@ -242,7 +246,6 @@ table_emissions_ozone
 
 ```{r}
 #| echo: false
-source("scripts/functions/function_summary_table.R")
 
 create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_clean.RDS"))
 ```
@@ -251,7 +254,6 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_clean.RDS"
 
 ```{r}
 #| echo: false
-source("scripts/functions/function_summary_table.R")
 
 create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_fuel_clean.RDS"))
 ```
@@ -260,7 +262,6 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_fuel_clean
 
 ```{r}
 #| echo: false
-source("scripts/functions/function_summary_table.R")
 
 create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_combined_clean.RDS"))
 ```
@@ -269,7 +270,6 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_combined_clean
 
 ```{r}
 #| echo: false
-source("scripts/functions/function_summary_table.R")
 
 create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_boil_gen_clean.RDS"))
 ```
@@ -281,7 +281,7 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_boil_gen_clean
 <!-- Need to document steps here -->
 
 ```{r}
-#| echo: false
+#| message: false
 #| label: data_clean_camd
 #| file: "scripts/data_clean_camd.R"
 ```
@@ -291,7 +291,6 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_boil_gen_clean
 #| echo: false
 #| label: camd_summary_table
 
-source("scripts/functions/function_summary_table.R")
 
 create_summary_table(readr::read_rds("data/clean_data/camd/camd_clean.RDS"))
 ```
