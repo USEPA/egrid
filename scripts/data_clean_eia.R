@@ -1,5 +1,5 @@
 
-# Note: Need to update with additional raw data sources. Also need to revisit choices aobut variables types across files (SB: 3/15/24)
+# Note: Need to update with additional raw data sources. Also need to revisit choices about variables types across files (SB: 3/15/24)
 
 
 
@@ -125,6 +125,12 @@ eia_860_boil_gen <-
 
 
 # Writing cleaned files
+
+if(!dir.exists("data/clean_data")){
+  dir.create("data/clean_data")
+} else{
+  print("Folder data/clean_data already exists.")
+}
 
 
 if(!dir.exists("data/clean_data/eia")){

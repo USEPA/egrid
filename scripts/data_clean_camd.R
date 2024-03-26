@@ -63,6 +63,15 @@ print(glue::glue("{nrow(camd_combined) - nrow(camd_combined_r)} rows removed bec
 # saving clean camd file
 
 # creating folder if not already present
+
+
+# if(!dir.exists("data/clean_data")){
+#   dir.create("data/clean_data")
+# } else{
+#   print("Folder data/clean_data already exists.")
+# }
+
+
 if(!dir.exists("data/clean_data/camd")){
   dir.create("data/clean_data/camd")
 } else{
