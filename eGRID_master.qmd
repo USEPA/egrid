@@ -57,7 +57,6 @@ As of 2024, the EIA API does not contain the most detailed data available, which
 #| warning: FALSE
 #| error: FALSE
 #| echo: fenced
-
 ```
 
 The tables within EIA Files and Sheets display each of the unzipped raw files across the three EIA forms, including the sheets embedded within.
@@ -67,6 +66,7 @@ The tables within EIA Files and Sheets display each of the unzipped raw files ac
 ```{r}
 #| message: FALSE
 #| warning: FALSE
+#| label: create_eia_sheets_list
 
 library(readxl)
 library(dplyr)
@@ -147,6 +147,7 @@ make_sheets_table <- function(sheets, form){
 ```{r}
 #| tbl-cap: "EIA-923 sheets"
 #| echo: false
+#| label: print_eia_923_sheets
 tab_923
 ```
 
@@ -155,6 +156,7 @@ tab_923
 ```{r}
 #| tbl-cap: "EIA-860 sheets"
 #| echo: false
+#| label: print_eia_860_sheets
 tab_860
 ```
 
@@ -163,6 +165,7 @@ tab_860
 ```{r}
 #| tbl-cap: "EIA-861 sheets"
 #| echo: false
+#| label: print_eia_861_sheets
 tab_861
 ```
 :::
@@ -187,6 +190,7 @@ Three data tables are downloaded from the the CAMD api and stored as .RDS files:
 
 ```{r}
 #| echo: false
+#| label: create_camd_tables
 
 source("scripts/functions/function_summary_table.R") # function to create summary table
 
@@ -206,6 +210,7 @@ table_emissions_ozone <- create_summary_table(camd_emissions_ozone)
 
 ```{r}
 #| echo: false
+#| label: print_camd_tab_facilities
 table_facilities
 ```
 
@@ -213,6 +218,7 @@ table_facilities
 
 ```{r}
 #| echo: false
+#| label: print_camd_tab_emissions
 table_emissions
 ```
 
@@ -220,6 +226,7 @@ table_emissions
 
 ```{r}
 #| echo: false
+#| label: print_camd_tab_emissions_ozone
 table_emissions_ozone
 ```
 :::
@@ -232,12 +239,83 @@ table_emissions_ozone
 
 ## EIA
 
-<!-- Need to document steps here -->
-
 ```{r}
 #| label: data_clean_eia
-#| file: "scripts/data_load_eia.R"
+#| message: FALSE
+#| warning: FALSE
+#| file: "scripts/data_clean_eia.R"
 ```
+
+From the raw Excel downloads, we load, clean, and save select files that are used in eGRID production. Four "clean" EIA files are ultimately created:
+
+-   `eia_860_boil_gen_clean.RDS`
+
+-   `eia_860_combined_clean.RDS`
+
+-   `eia_923_gen_clean.RDS`
+
+-   `eia_923_gen_fuel_clean.RDS`
+
+There are several procedures that are applied to each of the raw EIA files:
+
+-   Handling Excel format
+
+    -   Each Excel file contains header rows of varying lengths. These rows are skipped when read in.
+
+    -   Files contain various missing value characters, including: " ", "X", and ".". These characters are converted to explicit missing values (i.e., "NA")
+
+-   Variable name standardization
+
+    -   All variable names are converted to snake case (e.g., "snake_case").
+
+    -   Each form includes identifiers such as a given plant name, prime mover, fuel type, etc., but the assigned column names are inconsistent. To faciliate data operations (e.g., joins) and reduce confusion, we use a common naming scheme across all files (including EIA and CAMD).
+
+        -   `plant_id`
+
+        -   `plant_name`
+
+        -   `plant_state`
+
+        -   `prime_mover`
+
+        -   `fuel_type`
+
+        -   `generator_id`
+
+        -   `boiler_id`
+
+        -   `nameplate_capacity`
+
+Below we list out the raw files and an outline of the specific cleaning steps used to create the cleaned files.
+
+### eia_860_boil_gen_clean
+
+-   `r glue::glue("data/raw_data/860/6_1_EnviroAssoc_Y{egrid_year}.xlsx")`
+
+    -   "Boiler Generator"
+
+### eia_860_combined_clean
+
+-   `r glue::glue("data/raw_data/860/3_1_Generator_Y{egrid_year}.xlsx")`
+
+    -   "Operable"
+    -   "Retired and Canceled"
+    -   "Proposed"
+
+### eia_923_gen_clean
+
+-   `r glue::glue("EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final.xlsx")`
+
+    -   "Page 4 Generator Data'
+
+### eia_923_gen_fuel_clean
+
+-   `r glue::glue("EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final.xlsx")`
+
+    -   "Page 1 Generation and Fuel Data'
+    -   "Page 1 Puerto Rico"
+
+### 
 
 ### Summary tables
 
@@ -246,6 +324,7 @@ table_emissions_ozone
 
 ```{r}
 #| echo: false
+#| label: create_summary_tab_923_gen
 
 create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_clean.RDS"))
 ```
@@ -254,6 +333,7 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_clean.RDS"
 
 ```{r}
 #| echo: false
+#| label: create_summary_tab_923_gen_feul
 
 create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_fuel_clean.RDS"))
 ```
@@ -262,6 +342,7 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_fuel_clean
 
 ```{r}
 #| echo: false
+#| label: create_summary_tab_860_combined
 
 create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_combined_clean.RDS"))
 ```
@@ -270,13 +351,13 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_combined_clean
 
 ```{r}
 #| echo: false
+#| label: create_summary_tab_860_boil_gen
 
 create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_boil_gen_clean.RDS"))
 ```
 :::
 
-
-## CAMD 
+## CAMD
 
 <!-- Need to document steps here -->
 
@@ -286,13 +367,10 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_boil_gen_clean
 #| file: "scripts/data_clean_camd.R"
 ```
 
-
 ```{r}
 #| echo: false
-#| label: camd_summary_table
+#| label: create_camd_summary_table
 
 
 create_summary_table(readr::read_rds("data/clean_data/camd/camd_clean.RDS"))
 ```
-
-
