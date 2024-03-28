@@ -76,47 +76,84 @@ library(gtExtras)
 # function to find all sheet names 
 get_sheets <- function(form){
   
-  path = glue::glue("data/raw_data/{form}")
+  path <- glue::glue("data/raw_data/{form}")
   
-  files <- list.files(path)
-  
-  # Filter only Excel files
-  excel_files <- stringr::str_subset(files, ".xls|.xlsx")
-  
-  # read each sheet and store them in a list
-  sheet_data <- purrr::map(excel_files, ~ readxl::excel_sheets(glue::glue("{path}/{.x}")))
-  
-  # set names for each element based on file name
-  sheet_data_named <- setNames(sheet_data, excel_files)
-  
-  return(sheet_data_named)
+  if(form != "860m") {
+    
+    files <- list.files(path)
+    
+    # Filter only Excel files
+    excel_files <- stringr::str_subset(files, ".xls|.xlsx")
+    
+    # read each sheet and store them in a list
+    sheet_data <- purrr::map(excel_files, ~ readxl::excel_sheets(glue::glue("{path}/{.x}")))
+    
+    # set names for each element based on file name
+    sheet_data_named <- setNames(sheet_data, excel_files)
+    
+    return(sheet_data_named)
+    
+  } else{
+    
+    sheet_data <- readxl::excel_sheets(glue::glue("{path}.xlsx"))
+    
+    return(sheet_data)
+    
+  }
 }
 
 
 sheets_923 <- get_sheets("923")
 sheets_860 <- get_sheets("860")
 sheets_861 <- get_sheets("861")
+sheets_860m <- get_sheets("860m")
 
 make_sheets_table <- function(sheets, form){
   
-  gt_table <- 
-    tibble(sheets) %>% 
-    mutate(File = names(sheets)) %>% 
-    relocate(File) %>%
-    tidyr::unnest(sheets) %>% 
-    rename(!!glue::glue("EIA-{form}") := sheets) %>%
-    group_by(File) %>% 
-    gt::gt() %>% 
-    gt::tab_style(
-      style = cell_text(weight = "bold"),
-      locations = cells_row_groups()
-    ) %>% 
-    gt::tab_style(
-      style = cell_text(size = 14, weight = "bold"),
-      locations = cells_column_labels()
-    )
+  if(form != "860m") {
   
-  return(gt_table)
+      gt_table <- 
+        tibble(sheets) %>% 
+        mutate(File = names(sheets)) %>% 
+        relocate(File) %>%
+        tidyr::unnest(sheets) %>% 
+        rename(!!glue::glue("EIA-{form}") := sheets) %>%
+        group_by(File) %>% 
+        gt::gt() %>% 
+        gt::tab_style(
+          style = cell_text(weight = "bold"),
+          locations = cells_row_groups()
+        ) %>% 
+        gt::tab_style(
+          style = cell_text(size = 14, weight = "bold"),
+          locations = cells_column_labels()
+        )
+      
+      return(gt_table)
+      
+  } else{
+    
+      gt_table <- 
+        tibble(sheets) %>% 
+        # mutate(File = names(sheets)) %>% 
+        # relocate(File) %>%
+        # tidyr::unnest(sheets) %>% 
+        rename(!!glue::glue("EIA-{form}") := sheets) %>%
+        # group_by(File) %>% 
+        gt::gt() %>% 
+        gt::tab_style(
+          style = cell_text(weight = "bold"),
+          locations = cells_row_groups()
+        ) %>% 
+        gt::tab_style(
+          style = cell_text(size = 14, weight = "bold"),
+          locations = cells_column_labels()
+        )
+      
+      return(gt_table)
+    
+    
+  }
   
   }
   
@@ -136,6 +173,7 @@ make_sheets_table <- function(sheets, form){
 
  tab_860 <- make_sheets_table(sheets_860, "860")
  tab_861 <- make_sheets_table(sheets_861, "861")
+ tab_860m <- make_sheets_table(sheets_860m, "860m")
  
 ```
 
@@ -167,6 +205,15 @@ tab_860
 #| echo: false
 #| label: print_eia_861_sheets
 tab_861
+```
+
+#### EIA-861m
+
+```{r}
+#| tbl-cap: "EIA-860m sheets"
+#| echo: false
+#| label: print_eia_860m_sheets
+tab_861m
 ```
 :::
 
@@ -268,7 +315,7 @@ There are several procedures that are applied to each of the raw EIA files:
 
     -   All variable names are converted to snake case (e.g., "snake_case").
 
-    -   Each form includes identifiers such as a given plant name, prime mover, fuel type, etc., but the assigned column names are inconsistent. To faciliate data operations (e.g., joins) and reduce confusion, we use a common naming scheme across all files (including EIA and CAMD).
+    -   Each form includes identifiers such as a given plant name, prime mover, fuel type, etc., but the assigned column names are inconsistent. To facilitate data operations (e.g., joins) and reduce confusion, we use a common naming scheme across all files (including EIA and CAMD).
 
         -   `plant_id`
 
