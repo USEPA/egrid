@@ -16,6 +16,9 @@ download_files <- function(form, year) {
     dir.create(new_folder, recursive = TRUE)
   }
   
+  
+  
+  
   dest_file <- glue::glue("{new_folder}/{form}.zip")
   
   download_and_unzip <- function(url, dest_file, new_folder) {
@@ -66,6 +69,12 @@ download_files <- function(form, year) {
 
 invisible(purrr::map(c("860", "861", "923"), ~ download_files(form = .x, year = Sys.getenv("eGRID_year"))))
 
+# Downloading Puerto Rico .xls file separately since it isn't zipped
 
+url_860m  <- glue::glue("https://www.eia.gov/electricity/data/eia860m/archive/xls/december_generator{Sys.getenv('eGRID_year')}.xlsx")
 
+path_860m <- glue::glue("data/raw_data/860m.xlsx")
+
+download.file(url = url_860m,
+              destfile = path_860m)
 
