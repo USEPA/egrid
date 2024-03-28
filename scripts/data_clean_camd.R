@@ -20,6 +20,39 @@ camd_emissions_ozone <- readr::read_rds("data/raw_data/camd/camd_emissions_ozone
 
 # Combining files and standardizing variables names to match eia data
 
+rename_cols <- # standardizing variable names across files
+  c("plant_state" = "state_code", 
+    "plant_name" = "facility_name",
+    "plant_id" = "facility_id",
+    "primary_fuel_type" = "primary_fuel_info",
+    "secondary_fuel_type" = "secondary_fuel_info")
+
+unit_abbs <- # abbreviation crosswalk for unit types 
+  c(
+    "Arch-fired boiler" = "AF",
+    "Bubbling fluidized bed boiler" = "BFB",
+    "Cyclone boiler" = "C",
+    "Cell burner boiler" = "CB",
+    "Combined cycle" = "CC",
+    "Circulating fluidized bed boiler" = "CFB",
+    "Combustion turbine" = "CT",
+    "Dry bottom wall-fired boiler" = "DB",
+    "Dry bottom turbo-fired boiler" = "DTF",
+    "Dry bottom vertically-fired boiler" = "DVF",
+    "Internal combustion engine" = "ICE",
+    "Integrated gasification combined cycle" = "IGC",
+    "Cement Kiln" = "KLN",
+    "Other boiler" = "OB",
+    "Other turbine" = "OT",
+    "Pressurized fluidized bed boiler" = "PFB",
+    "Process Heater" = "PRH",
+    "Stoker" = "S",
+    "Tangentially-fired" = "T",
+    "Wet bottom wall-fired boiler" = "WBF",
+    "Wet bottom turbo-fired boiler" = "WBT",
+    "Wet bottom vertically-fired boiler" = "WVF"
+  )
+
 
 camd_combined <- 
   camd_facilities %>% 
@@ -27,11 +60,7 @@ camd_combined <-
   left_join(camd_emissions_ozone) %>%
   janitor::clean_names() %>% 
   rename_with(~ stringr::str_replace(.x, "o2", "o2_")) %>% # clean_names() doesn't add underscore after numeric values. Adding in to keep snake case.
-  rename("plant_state" = state_code, # renaming to matching eia
-         "plant_name" = facility_name,
-         "plant_id" = facility_id,
-         "primary_fuel_type" = primary_fuel_info,
-         "secondary_fuel_type" = secondary_fuel_info) 
+  rename(any_of(rename_cols)) 
 
 camd_combined_r <-
   camd_combined %>% 
@@ -44,19 +73,19 @@ camd_combined_r <-
     nox_oz_source = if_else(is.na(nox_mass_oz), NA_character_, "EPA/CAMD"),
     so2_source = if_else(is.na(so2_mass), NA_character_, "EPA/CAMD"),
     co2_source = if_else(is.na(co2_mass), NA_character_, "EPA/CAMD"),
-    #hg_source = if_else(is.na(hg_mass), NA_character_, "EPA/CAMD"), #* Need to find mercury mass field
+    #hg_source = if_else(is.na(hg_mass), NA_character_, "EPA/CAMD"), # Mercury mass field needs to come from separate bulk api (SB 3/28/2024)
     year = egrid_year,
     camd = if_else(nox_source == "EPA/CAMD" , "Yes", NA_character_)
   ) %>%
   mutate(operating_status = case_when(
     operating_status == "Operating" ~ "OP",
-    startsWith(operating_status, "Operating") ~ "OP", # Units that started operating in current year have "Operating" plus the date of operattion.
+    startsWith(operating_status, "Operating") ~ "OP", # Units that started operating in current year have "Operating" plus the date of operation.
     operating_status == "Retired" ~ "RE",
-    TRUE ~ NA_character_
-  )) 
-  # left_join(camd_eia_xwalk,
-  #           by = c("Unit Type" = "CAMD Unit Type"))  ## Need to double check why this is needed and where abb. unit type comes from
-
+    TRUE ~ NA_character_),
+    unit_type = str_replace(unit_type, "\\(.*?\\)", "") %>% str_trim(), # removing notes about start dates and getting rid of extra white space
+    unit_type_abb = recode(unit_type, !!!unit_abbs) ## Recoding values based on lookup table. need to looking into cases with multipe types (SB 3/28/2024)
+  )
+ 
 print(glue::glue("{nrow(camd_combined) - nrow(camd_combined_r)} rows removed because units have status of future, retired, long-term cold storage, or the plant ID is > 80,000."))
 
 
