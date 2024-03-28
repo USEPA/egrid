@@ -93,7 +93,10 @@ eia_860_retired <-
          across(contains("capacity"), ~ as.numeric(.x))) %>% # changing types to matched eia_860_operable
   filter(retirement_year == egrid_year) # only plants retiring in current year are added to 860 combined file
 
-eia_860_proposed <-
+
+camd_clean <- readr::read_rds("data/clean_data/camd/camd_clean.RDS") # need camd plants to filter 860 proposed file
+
+eia_860_proposed <- # are units in camd supposed to be removed here? 
   read_excel(glue("data/raw_data/860/3_1_Generator_Y{egrid_year}.xlsx"), 
              sheet =  "Proposed",
              guess_max = 4000,
@@ -102,8 +105,91 @@ eia_860_proposed <-
   janitor::clean_names() %>%  
   rename(any_of(rename_cols_860)) %>% 
   mutate(across(c("utility_id"), ~ as.numeric(.x)),
-         across(contains("capacity"), ~ as.numeric(.x))) # changing types to matched eia_860_operable
+         across(contains("capacity"), ~ as.numeric(.x))) %>%  # changing types to matched eia_860_operable
+  filter(plant_id %in% camd_clean$plant_id, # filtering to operable plants in CAMD
+         !plant_id %in% eia_860_operable$plant_id) # removing plants that are already in 860 operable
+## 860 PR files ------------------ 
+
+names_860_PR_op <- 
+  c("Utility ID" = "Entity ID",
+    "Utility Name" = "Entity Name",
+    "Plant Code" = "Plant ID",
+    "Plant Name" = "Plant Name",
+    "Sector Name" = "Sector",
+    "State" = "Plant State",
+    "Generator ID" = "Generator ID",
+    "Unit Code" = "Unit Code",
+    "Nameplate Capacity (MW)" = "Nameplate Capacity (MW)",
+    "Summer Capacity (MW)" = "Net Summer Capacity (MW)",
+    "Winter Capacity (MW)" = "Net Winter Capacity (MW)",
+    "Technology" = "Technology",
+    "Energy Source 1" = "Energy Source Code",
+    "Prime Mover" = "Prime Mover Code",
+    "Operating Month" = "Operating Month",
+    "Operating Year" = "Operating Year",
+    "Planned Retirement Month" = "Planned Retirement Month",
+    "Planned Retirement Year" = "Planned Retirement Year",
+    "Status" = "Status",
+    "Planned Derate Year" = "Planned Derate Year",
+    "Planned Derate Month" = "Planned Derate Month",
+    "Planned Net Summer Capacity Derate (MW)" = "Planned Derate of Summer Capacity (MW)",
+    "Planned Uprate Year" = "Planned Uprate Year",
+    "Planned Uprate Month" = "Planned Uprate Month",
+    "Planned Net Summer Capacity Uprate (MW)" = "Planned Uprate of Summer Capacity (MW)",
+    "County" = "County")
+
+names_860_PR_ret <-
+  c(
+    "Utility ID" = "Entity ID",
+    "Utility Name" = "Entity Name",
+    "Plant Code" = "Plant ID",
+    "Plant Name" = "Plant Name",
+    "Sector Name" = "Sector",
+    "State" = "Plant State",
+    "Generator ID" = "Generator ID",
+    "Unit Code" = "Unit Code",
+    "Nameplate Capacity (MW)" = "Nameplate Capacity (MW)",
+    "Summer Capacity (MW)" = "Net Summer Capacity (MW)",
+    "Winter Capacity (MW)" = "Net Winter Capacity (MW)",
+    "Technology" = "Technology",
+    "Energy Source 1" = "Energy Source Code",
+    "Prime Mover" = "Prime Mover Code",
+    "Retirement Month" = "Retirement Month",
+    "Retirement Year" = "Retirement Year",
+    "Operating Month" = "Operating Month",
+    "Operating Year" = "Operating Year",
+    "County" = "County",
+    "Status" = "Status")
+
+
+
+eia_860_PR_op <-
+  read_excel(glue("data/raw_data/860m.xlsx"), 
+             sheet =  "Operating_PR",
+             guess_max = 4000,
+             na = c(".","X"), 
+             skip = 2) %>% 
+  rename(any_of(names_860_PR_op)) %>% # applying variable name crosswalk between normal 860 and monthly PR file
+  janitor::clean_names() %>%  
+  rename(any_of(rename_cols_860)) %>% # standardizing names
+  mutate(across(c("utility_id"), ~ as.numeric(.x)),
+         across(contains("capacity"), ~ as.numeric(.x))) %>% # changing types to matched eia_860_operable
+  select(any_of(names(eia_860_operable))) # keeping only columns that are in 860 operable
   
+eia_860_PR_ret <- 
+  read_excel(glue("data/raw_data/860m.xlsx"), 
+             sheet =  "Retired_PR",
+             guess_max = 4000,
+             na = c(".","X"), 
+             skip = 2) %>% 
+  rename(any_of(names_860_PR_ret)) %>% # applying variable name crosswalk between normal 860 and monthly PR file
+  janitor::clean_names() %>%  
+  rename(any_of(rename_cols_860)) %>% # standardizing names
+  mutate(across(c("utility_id"), ~ as.numeric(.x)),
+         across(contains("capacity"), ~ as.numeric(.x))) %>%  # changing types to matched eia_860_operable
+  filter(retirement_year == egrid_year) %>% # I believe this condition is required. Need to confirm (SB 3/28/24)
+  select(any_of(names(eia_860_operable)))
+
 
 # eia combined includes op, retired, and proposed, but filters out some plants based on camd. Need to check this logic.  
 # There also two files loaded for Puerto Rico from the monthly December data? I don't see this documented anywhere, so need to check.
@@ -111,8 +197,10 @@ eia_860_proposed <-
 eia_860_combined <-
   eia_860_operable %>% 
   bind_rows(eia_860_retired) %>% 
-  bind_rows(eia_860_proposed)  # There are some conditions that need to be added to this file.            
-
+  bind_rows(eia_860_proposed) %>% # There are some conditions that need to be added to this file.             
+  bind_rows(eia_860_PR_op) #
+  bind_rows(eia_860_PR_ret) # is this supposed to be included? Should proposed be included? (SB 3/28/2024)
+## boil generator file ---------
 eia_860_boil_gen <-
   read_excel(glue("data/raw_data/860/6_1_EnviroAssoc_Y{egrid_year}.xlsx"), 
              sheet =  "Boiler Generator",
@@ -124,7 +212,7 @@ eia_860_boil_gen <-
   rename(any_of(rename_cols_860))
 
 
-# Writing cleaned files
+# Writing cleaned files------
 
 if(!dir.exists("data/clean_data")){
   dir.create("data/clean_data")
