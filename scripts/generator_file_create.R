@@ -199,5 +199,70 @@ generators_combined <-
   gen_distributed %>% 
   mutate(id = paste0(plant_id,prime_mover,generator_id)) %>%
   filter(!id %in% december_and_overwritten$id) %>%  #filtering out observations that are in modified df
-  bind_rows(december_and_overwritten$id)
+  bind_rows(december_and_overwritten)
 
+
+# Final modifications to generator file -----------
+
+xwalk_fuel_codes <- # this is xwalk for specific changes made to certain generator xwalks
+  read_csv("data/xwalks/xwalk_fuel_type.csv") %>% 
+  mutate(id = paste0(plant_id, prime_mover, unit_id)) %>% # creating id to facilitate join
+  select(id, fuel_code)
+
+# creating lookup tables based on xwalk to use with recode() 
+lookup_fuel_codes <- with(xwalk_fuel_codes, setNames(fuel_code, id))
+
+xwalk_eia_camd <- # xwalk for updating certain plants to camd plant names and ids
+  read_csv("data/xwalks/xwalk_oris_camd.csv") %>%
+  mutate(across(everything(), ~ as.character(.x))) # changing all columns to character values
+
+
+lookup_eia_id_camd_id <- with(xwalk_eia_camd, setNames(camd_plant_id, eia_plant_id))
+lookup_camd_id_name <- with(xwalk_eia_camd, setNames(camd_plant_name, camd_plant_id))
+  
+
+generators_edits <- 
+  generators_combined %>% 
+  mutate(fuel_code = recode(id, !!!lookup_fuel_codes, .default = energy_source_1), # creating fuel_code based on lookup table and energy_source_1 if not in lookup table. recode() essentially matches on id, then replaces with key value ? Should the camd ids be updated before fuel codes are? (SB: 4/4/2024)
+         plant_id = as.character(plant_id), ## remove
+         plant_id = recode(plant_id, !!!lookup_eia_id_camd_id), # updating plant_id to corresponding camd ids with lookup table
+         plant_name = recode(plant_id, !!!lookup_camd_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
+         gen_data_source = if_else(is.na(generation_ann), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
+         year = Sys.getenv("eRID_year"),
+         cfact = generation_ann/(nameplate_capacity * 8760)) %>%  # calculating cfact
+  left_join(eia_860_boiler_count)
+
+# creating named vector of final variable order and variable name included in generator file
+final_vars <-
+    c("SEQGEN" = "seqgen",
+      "YEAR" = "year",
+      "PSTATABB" = "plant_state",
+      "PNAME" = "plant_name",
+      "ORISPL" = "plant_id",
+       "GENID" = "generator_id",
+      "NUMBLR" = "n_boilers",
+     "GENSTAT" = "status",
+     "PRMVR" =  "prime_mover",
+      "FUELG1" = "fuel_code",
+      "NAMEPCAP" = "nameplate_capacity",
+      "CFACT" = "cfact",
+      "GENNTAN" = "generation_ann",
+      "GENNTOZ" = "generation_oz",
+      "GENERSRC" = "gen_data_source",
+      "GENYRONL" = "operating_year",
+      "GENYRRET" = "retirement_year")
+
+generators_formatted <-
+  generators_edits %>%
+  arrange(plant_state, plant_name) %>% 
+  mutate(seqgen = row_number(),
+         across(c("cfact", "generation_ann", "generation_oz"), ~ round(.x, 3))) %>% 
+  select(as_tibble(final_vars)$value) # keeping columns with tidy names for QA steps
+
+
+
+  
+  
+  
+
+  
