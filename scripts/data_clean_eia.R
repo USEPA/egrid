@@ -211,6 +211,17 @@ eia_860_boil_gen <-
   filter(!if_all(everything(), is.na)) %>% 
   rename(any_of(rename_cols_860))
 
+# standardizing variable types -------
+
+dfs <- # creating list of dfs to iterate over
+    list("eia_923_gen" = eia_923_gen, 
+         "eia_923_gen_fuel" = eia_923_gen_fuel_combined,
+         "eia_860_combined" = eia_860_combined,
+         "eia_860_boil_gen" = eia_860_boil_gen)
+
+dfs_r <- 
+  map(dfs, ~.x %>% mutate(across(ends_with("id"), ~ as.character(.x)))) 
+  
 
 # Writing cleaned files------
 
@@ -228,10 +239,10 @@ if(!dir.exists("data/clean_data/eia")){
 }
   
 
-readr::write_rds(eia_923_gen, file = "data/clean_data/eia/eia_923_gen_clean.RDS")
-readr::write_rds(eia_923_gen_fuel_combined, file = "data/clean_data/eia/eia_923_gen_fuel_clean.RDS")
-readr::write_rds(eia_860_combined, file = "data/clean_data/eia/eia_860_combined_clean.RDS")
-readr::write_rds(eia_860_boil_gen, file = "data/clean_data/eia/eia_860_boil_gen_clean.RDS")
+readr::write_rds(dfs_r$eia_923_gen, file = "data/clean_data/eia/eia_923_gen_clean.RDS")
+readr::write_rds(dfs_r$eia_923_gen_fuel, file = "data/clean_data/eia/eia_923_gen_fuel_clean.RDS")
+readr::write_rds(dfs_r$eia_860_combined, file = "data/clean_data/eia/eia_860_combined_clean.RDS")
+readr::write_rds(dfs_r$eia_860_boil_gen, file = "data/clean_data/eia/eia_860_boil_gen_clean.RDS")
 
 clean_files <- list.files("data/clean_data/eia")
 
