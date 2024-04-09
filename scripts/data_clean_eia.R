@@ -18,11 +18,11 @@ rename_cols_923 <- c("prime_mover" = "reported_prime_mover", # creating characte
                       "fuel_type" = "reported_fuel_type_code")
 
 # getting sheet names to use as sheet filter 
-sheet_names_923 <- excel_sheets(glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final.xlsx")) # get vector of sheet names
+sheet_names_923 <- excel_sheets(glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final_Revision.xlsx")) # get vector of sheet names
 
 
 eia_923_gen <- 
-  read_excel(glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final.xlsx"),
+  read_excel(glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final_Revision.xlsx"),
              sheet = sheet_names_923[str_detect(sheet_names_923, "Generator Data")], # names change year to year, so can't rely on name or position
              skip = 5, # Removing intro header rows
              na = ".", # Convert periods to missing
@@ -31,7 +31,7 @@ eia_923_gen <-
   rename(any_of(rename_cols_923)) # renaming columns if present
 
 eia_923_gen_fuel <- 
-  read_excel(glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final.xlsx"),
+  read_excel(glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final_Revision.xlsx"),
              sheet = sheet_names_923[str_detect(sheet_names_923, "Generation and Fuel")], 
              skip = 5, 
              na = ".",
@@ -41,7 +41,7 @@ eia_923_gen_fuel <-
 
 
 eia_923_gen_fuel_PR <- 
-  read_excel(glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final.xlsx"), 
+  read_excel(glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final_Revision.xlsx"), 
              sheet =  sheet_names_923[!str_detect(sheet_names_923, "Plant Frame") &
                                         str_detect(sheet_names_923, "Puerto Rico")],
              na = ".", 
