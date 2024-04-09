@@ -9,7 +9,7 @@ format:
     toc: true
     toc-expand: true
     toc-location: left
-    
+    html-table-processing: none
     code-fold: true
 
 editor: visual
@@ -169,8 +169,7 @@ make_sheets_table <- function(sheets, form){
   #     
   # }
 
- tab_923 <- make_sheets_table(sheets_923, "923") #%>% highlight_rows(., "EIA-923", "8B Financial Information")
-
+ tab_923 <- make_sheets_table(sheets_923, "923") #%>% highlight_rows(., "EIA-923", "8B Financial Information"
  tab_860 <- make_sheets_table(sheets_860, "860")
  tab_861 <- make_sheets_table(sheets_861, "861")
  tab_860m <- make_sheets_table(sheets_860m, "860m")
@@ -204,16 +203,17 @@ tab_860
 #| tbl-cap: "EIA-861 sheets"
 #| echo: false
 #| label: print_eia_861_sheets
+
 tab_861
 ```
 
-#### EIA-861m
+#### EIA-860m
 
 ```{r}
 #| tbl-cap: "EIA-860m sheets"
 #| echo: false
 #| label: print_eia_860m_sheets
-tab_861m
+tab_860m
 ```
 :::
 
@@ -421,3 +421,29 @@ create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_boil_gen_clean
 
 create_summary_table(readr::read_rds("data/clean_data/camd/camd_clean.RDS"))
 ```
+
+# Generator File
+
+```{r}
+#| label: generator_file_create
+#| file: "scripts/generator_file_create.R"
+#| message: false
+
+```
+
+```{r}
+#| label: generator_file_table
+
+
+library(gt)
+library(gtExtras)
+
+generator_file <- readr::read_rds("data/output/generator_file.RDS")
+
+generator_file %>% 
+  gt::gt() %>%
+  gt::opt_interactive(use_search = TRUE) # enable interactivity
+
+```
+
+
