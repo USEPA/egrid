@@ -14,7 +14,18 @@ eia_923_gen_fuel <- read_rds("data/clean_data/eia/eia_923_gen_fuel_clean.RDS")
 
 eia_860_boiler <- read_rds("data/clean_data/eia/eia_860_boil_gen_clean.RDS")
 
-eia_860_combined <- read_rds("data/clean_data/eia/eia_860_combined_clean.RDS")
+eia_860_combined <- 
+  read_rds("data/clean_data/eia/eia_860_combined_clean.RDS") %>%
+  select(plant_id, # keeping only necessary files for joins 
+         plant_name, 
+         plant_state, 
+         generator_id, 
+         prime_mover, 
+         status, 
+         energy_source_1, 
+         nameplate_capacity,
+         retirement_year,
+         operating_year)
 
 
 # Create modified dfs that will be used to calculate generation values ---------
@@ -73,9 +84,12 @@ ozone_months_gen <-
 
 eia_gen_generation <-
   eia_860_combined %>% 
-  left_join(eia_923_gen_r) %>% # joins on plant_id, plant_name, plant_state, generator_id, prime_mover, and sector_name
-  mutate(generation_oz = rowSums(pick(all_of(ozone_months)), na.rm = TRUE),
-         gen_data_source = if_else(is.na(net_generation_year_to_date), NA_character_, "EIA-923 Generator File"))
+  left_join(eia_923_gen_r %>% 
+              select(plant_id, generator_id, starts_with("net")), # keeping only necessary columns
+            by = c("plant_id", "generator_id")) %>% 
+  mutate(generation_oz = rowSums(pick(all_of(ozone_months_gen)), na.rm = TRUE),
+         gen_data_source = if_else(is.na(net_generation_year_to_date), NA_character_, "EIA-923 Generator File"),
+         generation_ann = net_generation_year_to_date)
 
 
 
@@ -99,23 +113,26 @@ eia_gen_fuel_generation_sum <-
   mutate(generation_oz = rowSums(pick(all_of(ozone_months_gen_fuel)), na.rm = TRUE)) %>% # summing generation across ozone months
   ungroup() %>% 
   group_by(plant_id, prime_mover) %>% 
-  summarize(tot_generation_oz_fuel = sum(generation_oz), # ozone months total
-            tot_generation_ann_fuel = sum(net_generation_megawatthours)) # annual total
+  summarize(tot_generation_oz_fuel = sum(generation_oz, na.rm = TRUE), # ozone months total
+            tot_generation_ann_fuel = sum(net_generation_megawatthours, na.rm = TRUE)) # annual total
 
 gen_distributed <- 
   eia_gen_generation %>% 
-  left_join(eia_gen_fuel_generation_sum) %>%
-  filter(is.na(gen_data_source)) %>%
   group_by(plant_id, prime_mover) %>% 
-  mutate(tot_generation_ann = sum(net_generation_year_to_date, na.rm = TRUE),
-         tot_generation_oz = sum(generation_oz),
-         generation_ann_diff = tot_generation_ann_fuel - tot_generation_ann,
+  summarize(tot_generation_ann = sum(generation_ann, na.rm = TRUE), # summing generation at plant/pm level
+            tot_generation_oz = sum(generation_oz, na.rm = TRUE)) %>% 
+  ungroup() %>%
+  left_join(eia_gen_fuel_generation_sum) %>% # joining with gen fuel file to compare totals
+  mutate(generation_ann_diff = tot_generation_ann_fuel - tot_generation_ann, # calculating difference between gen and gen fuel file
          generation_oz_diff = tot_generation_oz_fuel - tot_generation_oz) %>% 
-  ungroup() %>% 
+  select(plant_id, prime_mover, generation_ann_diff, generation_oz_diff) %>% 
+  right_join(eia_gen_generation) %>% # joining back in other columns
+  filter(is.na(gen_data_source)) %>% # filtering to only generators with missing source
+  group_by(plant_id, prime_mover) %>%
   mutate(tot_nameplate_capacity = sum(nameplate_capacity),
-         prop = nameplate_capacity/tot_nameplate_capacity) %>% 
+         prop = nameplate_capacity/tot_nameplate_capacity) %>% # creating proportion based on nameplate_capacity used to distribute generation across generators
   ungroup() %>% 
-  mutate(generation_ann = generation_ann_diff * prop,
+  mutate(generation_ann = generation_ann_diff * prop, # multiplying differences by proportion value
          generation_oz = generation_oz_diff * prop,
          gen_data_source = "Distributed from 923 Generation and Fuel") %>% 
   bind_rows(eia_gen_generation %>% filter(!is.na(gen_data_source))) # adding back 923 Generation source rows
@@ -125,14 +142,15 @@ gen_distributed <-
 eia_gen_genfuel_diff <- 
   gen_distributed %>% 
   group_by(plant_id, prime_mover) %>% 
-  summarize(tot_generation_ann_gen = sum(net_generation_year_to_date, na.rm = TRUE), # summing generation to plant/pm level to compare to gen_fuel file
+  summarize(tot_generation_ann_gen = sum(generation_ann, na.rm = TRUE), # summing generation to plant/pm level to compare to gen_fuel file
             tot_generation_oz_gen = sum(generation_oz, na.rm = TRUE)) %>% 
+  ungroup() %>% 
   left_join(eia_gen_fuel_generation_sum) %>% # joing with gen_fuel file
   mutate(abs_diff_generation_ann = abs(tot_generation_ann_fuel - tot_generation_ann_gen), # calculating absolute differences between generation values
          abs_diff_generation_oz = abs(tot_generation_oz_fuel - tot_generation_oz_gen),
          perc_diff_generation_ann = if_else(abs_diff_generation_ann == 0, 0, abs_diff_generation_ann/tot_generation_ann_fuel), # calculating the percentage of the difference over the fuel levels in gen_fuel file
          perc_diff_generation_oz = if_else(abs_diff_generation_oz == 0, 0, abs_diff_generation_oz/tot_generation_oz_fuel),
-         overwrite = if_else(perc_diff_generation_ann > .001, "overwrite", "EIA-923 Generator File"))
+         overwrite = if_else(perc_diff_generation_ann > 0.001, "overwrite", "EIA-923 Generator File"))
 
 ## Where overwrite == overwrite, we distribute the the generation figures in the Gen and Fuel file and 
 ## create a DF of generators that have large differences between EIA-923 Generator file and EIA-923 Generation and Fuel file 
@@ -228,7 +246,7 @@ generators_edits <-
          plant_id = recode(plant_id, !!!lookup_eia_id_camd_id), # updating plant_id to corresponding camd ids with lookup table
          plant_name = recode(plant_id, !!!lookup_camd_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
          gen_data_source = if_else(is.na(generation_ann), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
-         year = Sys.getenv("eRID_year"),
+         year = Sys.getenv("eGRID_year"),
          cfact = generation_ann/(nameplate_capacity * 8760)) %>%  # calculating cfact
   left_join(eia_860_boiler_count)
 
@@ -239,10 +257,10 @@ final_vars <-
       "PSTATABB" = "plant_state",
       "PNAME" = "plant_name",
       "ORISPL" = "plant_id",
-       "GENID" = "generator_id",
+      "GENID" = "generator_id",
       "NUMBLR" = "n_boilers",
-     "GENSTAT" = "status",
-     "PRMVR" =  "prime_mover",
+      "GENSTAT" = "status",
+      "PRMVR" =  "prime_mover",
       "FUELG1" = "fuel_code",
       "NAMEPCAP" = "nameplate_capacity",
       "CFACT" = "cfact",
@@ -260,8 +278,22 @@ generators_formatted <-
   select(as_tibble(final_vars)$value) # keeping columns with tidy names for QA steps
 
 
+# generator_file <- # creating version with final generator file names for eGRID. (Note: This may be done differently when create final excel file)
+#   generators_formatted %>% 
+#   rename(all_of(final_vars))
 
-  
+
+# Export generator file -----------
+
+if(dir.exists("data/output")) {
+  print("Folder output already exists.")
+}else{
+  dir.create("data/output")
+}
+
+print("Printing generator file to folder data/output/")
+
+write_rds(generators_formatted, "data/output/generator_file.RDS")
   
   
 
