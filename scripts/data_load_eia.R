@@ -75,6 +75,10 @@ url_860m  <- glue::glue("https://www.eia.gov/electricity/data/eia860m/archive/xl
 
 path_860m <- glue::glue("data/raw_data/860m.xlsx")
 
-download.file(url = url_860m,
-              destfile = path_860m)
+if(!file.exists(path_860m)){
+    download.file(url = url_860m,
+                  destfile = path_860m)
+}else{
+  print("Stopping. File 860m.xlsx already downloaded.")
+}
 
