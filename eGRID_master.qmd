@@ -337,30 +337,38 @@ Below we list out the raw files and an outline of the specific cleaning steps us
 
 ### eia_860_boil_gen_clean
 
--   `r glue::glue("data/raw_data/860/6_1_EnviroAssoc_Y{egrid_year}.xlsx")`
+<!-- -   `r glue::glue("data/raw_data/860/6_1_EnviroAssoc_Y{egrid_year}.xlsx")` -->
 
-    -   "Boiler Generator"
+```         
+-   "Boiler Generator"
+```
 
 ### eia_860_combined_clean
 
--   `r glue::glue("data/raw_data/860/3_1_Generator_Y{egrid_year}.xlsx")`
+<!-- -   `r glue::glue("data/raw_data/860/3_1_Generator_Y{egrid_year}.xlsx")` -->
 
-    -   "Operable"
-    -   "Retired and Canceled"
-    -   "Proposed"
+```         
+-   "Operable"
+-   "Retired and Canceled"
+-   "Proposed"
+```
 
 ### eia_923_gen_clean
 
--   `r glue::glue("EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final.xlsx")`
+<!-- -   `r glue::glue("EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final.xlsx")` -->
 
-    -   "Page 4 Generator Data'
+```         
+-   "Page 4 Generator Data'
+```
 
 ### eia_923_gen_fuel_clean
 
--   `r glue::glue("EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final.xlsx")`
+<!-- -   `r glue::glue("EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final.xlsx")` -->
 
-    -   "Page 1 Generation and Fuel Data'
-    -   "Page 1 Puerto Rico"
+```         
+-   "Page 1 Generation and Fuel Data'
+-   "Page 1 Puerto Rico"
+```
 
 ### 
 
@@ -446,4 +454,59 @@ generator_file %>%
 
 ```
 
+## QA/QC
 
+::: panel-tabset
+## Data Summary
+
+```{r}
+#| label: gen_file_summary
+#| message: false
+#| warning: false
+
+library(gtExtras)
+
+gtExtras::gt_plt_summary(generator_file, title = "Generator File")
+```
+
+## Generation distributions (overall)
+
+```{r}
+#| label: gen_file_distributions 
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_gen_ann <- 
+  generator_file %>% 
+  ggplot(aes(x = generation_ann)) + 
+  geom_boxplot() +
+  #ggiraph::geom_boxplot_interactive() + 
+  theme_minimal() +
+  labs(title = "Annual Generation")
+
+plot_gen_oz <-
+  generator_file %>% 
+  ggplot(aes(x = generation_oz)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Ozone Months Generation")
+
+plot_gen_ann_source <-
+  generator_file %>% 
+  ggplot(aes(x = gen_data_source, y = generation_ann)) +
+  ggiraph::geom_boxplot_interactive() + 
+  theme_minimal() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  labs(title = "Annual Generation by Data Source") 
+
+
+  (plot_gen_ann + plot_gen_oz) / plot_gen_ann_source
+```
+:::
