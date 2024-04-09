@@ -220,7 +220,7 @@ dfs <- # creating list of dfs to iterate over
          "eia_860_boil_gen" = eia_860_boil_gen)
 
 dfs_r <- 
-  map(dfs, ~.x %>% mutate(across(ends_with("id"), ~ as.character(.x)))) 
+  purrr::map(dfs, ~.x %>% mutate(across(ends_with("id"), ~ as.character(.x)))) 
   
 
 # Writing cleaned files------
