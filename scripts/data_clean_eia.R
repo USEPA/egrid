@@ -172,8 +172,9 @@ eia_860_PR_op <-
   rename(any_of(names_860_PR_op)) %>% # applying variable name crosswalk between normal 860 and monthly PR file
   janitor::clean_names() %>%  
   rename(any_of(rename_cols_860)) %>% # standardizing names
-  mutate(across(c("utility_id"), ~ as.numeric(.x)),
-         across(contains("capacity"), ~ as.numeric(.x))) %>% # changing types to matched eia_860_operable
+  mutate(across(c("utility_id"), ~ as.numeric(.x)), # changing types to matched eia_860_operable
+         across(contains("capacity"), ~ as.numeric(.x)),
+         status = str_extract(status, "(?<=\\().*?(?=\\))")) %>% # extracting abb. codes inside parentheses to match other files
   select(any_of(names(eia_860_operable))) # keeping only columns that are in 860 operable
   
 eia_860_PR_ret <- 
