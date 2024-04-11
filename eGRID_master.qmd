@@ -457,7 +457,7 @@ generator_file %>%
 ## QA/QC
 
 ::: panel-tabset
-## Data Summary
+### Data Summary
 
 ```{r}
 #| label: gen_file_summary
@@ -469,7 +469,7 @@ library(gtExtras)
 gtExtras::gt_plt_summary(generator_file, title = "Generator File")
 ```
 
-## Generation distributions (overall)
+### Generation distributions (overall)
 
 ```{r}
 #| label: gen_file_distributions 
@@ -486,7 +486,6 @@ plot_gen_ann <-
   generator_file %>% 
   ggplot(aes(x = generation_ann)) + 
   geom_boxplot() +
-  #ggiraph::geom_boxplot_interactive() + 
   theme_minimal() +
   labs(title = "Annual Generation")
 
@@ -509,4 +508,36 @@ plot_gen_ann_source <-
 
   (plot_gen_ann + plot_gen_oz) / plot_gen_ann_source
 ```
+
+### Distribution of generator data sources
+
+```{r}
+#| label: generator_file_data_source_dists
+
+
+generator_file %>% 
+  count(gen_data_source) %>% 
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = gen_data_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of generation data sources",
+    y = "Share of generators",
+    x = NULL
+  )
+  
+
+```
 :::
+
+
+# Unit File 
+
+
+
