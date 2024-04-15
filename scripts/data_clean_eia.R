@@ -49,7 +49,7 @@ air_emissions_control_info <-
   janitor::clean_names() 
 
 
-## Combining 923 files 
+## Combining 923 files ------------
 
 rename_cols_923 <- c("prime_mover" = "reported_prime_mover", # creating character vector to rename selected columns in 923 files
                      "fuel_type" = "reported_fuel_type_code")
@@ -57,11 +57,12 @@ rename_cols_923 <- c("prime_mover" = "reported_prime_mover", # creating characte
 dfs_923 <- c(sched_2_3_4_5_m_12_dfs,
              "air_emissions_control_info" = list(air_emissions_control_info),
              "generation_and_fuel_combined" = list(gen_fuel_combined)) %>% 
-  purrr:::map(., ~ .x %>%  # standardizing column types across all dfs
-                mutate(across(ends_with("id"), ~ as.character(.x)),
-                       across(contains("capacity"), ~ as.numeric(.x)),
-                       across(contains(c("month", "year")), ~ as.character(.x))) %>% 
+             purrr:::map(., ~ .x %>%  # standardizing column types across all dfs
                 rename(any_of(rename_cols_923)) %>% # standardizing col names to match other files
+                mutate(across(ends_with("id"), ~ as.character(.x)),
+                       across(contains(c("capacity", "generation", "netgen")), ~ as.numeric(.x)),
+                       across(starts_with(c("month", "year")), ~ as.character(.x)),
+                       across(ends_with(c("moth", "year")))) %>% 
                 filter(!if_all(everything(), is.na)))
 
 
@@ -102,7 +103,7 @@ generator_dfs_mod <-
                 ~ .x %>% 
                   filter(plant_code %in% camd_clean$plant_id,
                          !plant_code %in% generator_dfs$operable$plant_code)) %>% 
-  purrr::map_at("retired and canceled", # retaining only plants retired in eGRID year
+  purrr::map_at("retired_and_canceled", # retaining only plants retired in eGRID year
                 ~ .x %>% 
                   filter(retirement_year == Sys.getenv("eGRID_year")))
 
@@ -250,13 +251,13 @@ rename_cols_860 <- c("plant_id" = "plant_code",
 
 
 dfs_860 <-
-  c(generator_dfs,
+  c(generator_dfs_mod,
     enviro_assoc_dfs,
     enviro_equip_dfs,
-    "plant" = list(plant),
+    "plant" = list(plant_df),
     puerto_rico_dfs_mod) %>% 
   purrr:::map(., ~ .x %>%  # standardizing column types across all dfs
-                mutate(across(ends_with("id"), ~ as.character(.x)),
+                mutate(across(ends_with(c("id","code")), ~ as.character(.x)),
                        across(contains("capacity"), ~ as.numeric(.x)),
                        across(contains(c("month", "year")), ~ as.character(.x))) %>% 
                 rename(any_of(rename_cols_860)) %>% # standardizing col names to match other files
@@ -271,7 +272,7 @@ eia_860_combined <-
             dfs_860$retired_and_canceled,
             dfs_860$operating_pr,
             dfs_860$retired_pr) %>% 
-  select(any_of(names(dfs_860$operable))) # keeping only columns in operable file
+  select(any_of(names(dfs_860$operable)), retirement_year) # keeping only columns in operable file and retirement year from retired and canceled
 
 
 dfs_860_final <-
