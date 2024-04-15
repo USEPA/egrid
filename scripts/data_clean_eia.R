@@ -1,114 +1,164 @@
-
-# Note: Need to update with additional raw data sources. Also need to revisit choices about variables types across files (SB: 3/15/24)
-
-
-
 library(dplyr)
-library(readxl)
+library(readr)
+library(tidyr)
+library(purrr)
 library(glue)
-library(stringr)
-library(janitor)
-
-egrid_year <- Sys.getenv("eGRID_year") # define year
 
 
-# 923 files ----------------
+
+# EIA-923 ------------
+
+## 923 Schedules_2_3_4_5_M_12 --------
+
+sheets_923_1 <- c("Page 1 Generation and Fuel Data",
+                  "Page 1 Puerto Rico",
+                  "Page 3 Boiler Fuel Data",
+                  "Page 4 Generator Data")
+
+
+sched_2_3_4_5_m_12_dfs <- 
+  purrr::map2(sheets_923_1, 
+              c(5,6,5,5),
+             ~ read_excel(glue::glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{Sys.getenv('eGRID_year')}_Final_Revision.xlsx"),
+                          sheet = .x,
+                          skip = .y,
+                          na = ".",
+                          guess_max = 4000)) %>%
+  purrr::map(., ~ janitor::clean_names(.x)) %>%
+  setNames(., janitor::make_clean_names(str_replace_all(sheets_923_1, "Page \\d+ ", ""))) %>% # storing df names without Page #s
+  purrr::map_at("puerto_rico",
+                ~ .x %>% 
+                  rename("reserved" = "reserved_10", # fixing issue of two "Reserved" columns. Need to figure out better way in case they're not 10 and 17
+                         "balancing_authority_code" = "reserved_17"))
+
+### Adding Puerto Rico data to Gen and fuel ----
+
+gen_fuel_combined <-
+  bind_rows(sched_2_3_4_5_m_12_dfs$generation_and_fuel_data,
+            sched_2_3_4_5_m_12_dfs$puerto_rico)
+
+
+## EIA923_Schedule_8_Annual_Environmental_Information ------
+
+
+air_emissions_control_info <- 
+ read_excel(glue::glue("data/raw_data/923/EIA923_Schedule_8_Annual_Environmental_Information_{Sys.getenv('eGRID_year')}_Final_Revision.xlsx"),
+                           sheet = "8C Air Emissions Control Info",
+                           skip = 4,
+                           guess_max = 4000) %>%
+  janitor::clean_names() 
+
+
+## Combining 923 files 
 
 rename_cols_923 <- c("prime_mover" = "reported_prime_mover", # creating character vector to rename selected columns in 923 files
-                      "fuel_type" = "reported_fuel_type_code")
+                     "fuel_type" = "reported_fuel_type_code")
 
-# getting sheet names to use as sheet filter 
-sheet_names_923 <- excel_sheets(glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final_Revision.xlsx")) # get vector of sheet names
-
-
-eia_923_gen <- 
-  read_excel(glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final_Revision.xlsx"),
-             sheet = sheet_names_923[str_detect(sheet_names_923, "Generator Data")], # names change year to year, so can't rely on name or position
-             skip = 5, # Removing intro header rows
-             na = ".", # Convert periods to missing
-             guess_max = 4000) %>% # increased # of rows to guess type
-  janitor::clean_names() %>% # remove white space, formatting characters, and convert to snake case
-  rename(any_of(rename_cols_923)) # renaming columns if present
-
-eia_923_gen_fuel <- 
-  read_excel(glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final_Revision.xlsx"),
-             sheet = sheet_names_923[str_detect(sheet_names_923, "Generation and Fuel")], 
-             skip = 5, 
-             na = ".",
-             guess_max = 4000) %>% 
-  janitor::clean_names() %>% 
-  rename(any_of(rename_cols_923))
-
-
-eia_923_gen_fuel_PR <- 
-  read_excel(glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final_Revision.xlsx"), 
-             sheet =  sheet_names_923[!str_detect(sheet_names_923, "Plant Frame") &
-                                        str_detect(sheet_names_923, "Puerto Rico")],
-             na = ".", 
-             guess_max = 4000,
-             skip = 6) %>% 
-  janitor::clean_names() %>%  
-  rename("reserved" = "reserved_10", # fixing issue of two "Reserved" columns. Need to figure out better way in case they're not 10 and 17
-         "balancing_authority_code" = "reserved_17",
-         any_of(rename_cols_923))
-
-## 923 combined files ----------
-
-eia_923_gen_fuel_combined <-
-  eia_923_gen_fuel %>% 
-  bind_rows(eia_923_gen_fuel_PR)
-
-# 860 files -----------------
-
-rename_cols_860 <- c("plant_id" = "plant_code",
-                     "plant_state" = "state",
-                     "nameplate_capacity" = "nameplate_capacity_mw")
-
-sheet_names_860 <- excel_sheets(glue("data/raw_data/860/3_1_Generator_Y{egrid_year}.xlsx")) # get vector of sheet names
-
-
-eia_860_operable <-
-  read_excel(glue("data/raw_data/860/3_1_Generator_Y{egrid_year}.xlsx"), 
-             sheet =  "Operable",
-             na = c(".","X"), # Xs used as missing, for 860 files
-             guess_max = 4000,
-             skip = 1) %>% 
-  janitor::clean_names() %>% 
-  filter(!if_all(everything(), is.na)) %>% # this table includes a note, which turns into complete row of NAs. Removing where all columns are missing. 
-  rename(any_of(rename_cols_860)) %>% 
-  mutate(across(contains("capacity"), ~ as.numeric(.x))) # transforming any capacity variables to numeric
+dfs_923 <- c(sched_2_3_4_5_m_12_dfs,
+             "air_emissions_control_info" = list(air_emissions_control_info),
+             "generation_and_fuel_combined" = list(gen_fuel_combined)) %>% 
+  purrr:::map(., ~ .x %>%  # standardizing column types across all dfs
+                mutate(across(ends_with("id"), ~ as.character(.x)),
+                       across(contains("capacity"), ~ as.numeric(.x)),
+                       across(contains(c("month", "year")), ~ as.character(.x))) %>% 
+                rename(any_of(rename_cols_923)) %>% # standardizing col names to match other files
+                filter(!if_all(everything(), is.na)))
 
 
 
+## Saving 923 Files --------
 
-eia_860_retired <-
-  read_excel(glue("data/raw_data/860/3_1_Generator_Y{egrid_year}.xlsx"), 
-             sheet =  "Retired and Canceled",
-             na = c(".","X"), 
-             guess_max = 4000,
-             skip = 1) %>% 
-  janitor::clean_names() %>% 
-  rename(any_of(rename_cols_860)) %>% 
-  mutate(across(c("operating_month", "operating_year", "utility_id"), ~ as.numeric(.x)),
-         across(contains("capacity"), ~ as.numeric(.x))) %>% # changing types to matched eia_860_operable
-  filter(retirement_year == egrid_year) # only plants retiring in current year are added to 860 combined file
+write_rds(dfs_923, "data/clean_data/eia_923_clean.RDS")
 
+# printing confirmation message
+print(glue::glue("File eia_923_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_923), sep = ', ', last = ', and ')}, written to folder data/clean_data."))
+
+
+# EIA-860 ----------------
+
+## 860 3_1_Generator -------
+
+generator_sheets <- c("Operable",
+                      "Proposed",
+                      "Retired and Canceled")
+
+generator_dfs <- 
+  purrr::map(generator_sheets, 
+             ~ read_excel(glue::glue("data/raw_data/860/3_1_Generator_Y{Sys.getenv('eGRID_year')}.xlsx"),
+                          sheet = .x,
+                          skip = 1,
+                          na = c(".", "X"),
+                          guess_max = 4000)) %>%
+  purrr::map(., ~ janitor::clean_names(.x)) %>%
+  setNames(., janitor::make_clean_names(generator_sheets)) 
+
+### Modifying 860 generator files ---------
 
 camd_clean <- readr::read_rds("data/clean_data/camd/camd_clean.RDS") # need camd plants to filter 860 proposed file
 
-eia_860_proposed <- # are units in camd supposed to be removed here? 
-  read_excel(glue("data/raw_data/860/3_1_Generator_Y{egrid_year}.xlsx"), 
-             sheet =  "Proposed",
-             guess_max = 4000,
-             na = c(".","X"), 
-             skip = 1) %>% 
-  janitor::clean_names() %>%  
-  rename(any_of(rename_cols_860)) %>% 
-  mutate(across(c("utility_id"), ~ as.numeric(.x)),
-         across(contains("capacity"), ~ as.numeric(.x))) %>%  # changing types to matched eia_860_operable
-  filter(plant_id %in% camd_clean$plant_id, # filtering to operable plants in CAMD
-         !plant_id %in% eia_860_operable$plant_id) # removing plants that are already in 860 operable
-## 860 PR files ------------------ 
+generator_dfs_mod <-
+  generator_dfs %>% 
+  purrr::map_at("proposed", # only keeping proposed plants in camd and removing if already in operable
+                ~ .x %>% 
+                  filter(plant_code %in% camd_clean$plant_id,
+                         !plant_code %in% generator_dfs$operable$plant_code)) %>% 
+  purrr::map_at("retired and canceled", # retaining only plants retired in eGRID year
+                ~ .x %>% 
+                  filter(retirement_year == Sys.getenv("eGRID_year")))
+
+
+
+
+## 860 6_1_EnviroAssoc files ----
+enviro_assoc_sheets <- c("Boiler Generator",
+                         "Boiler NOx",
+                         "Boiler SO2",
+                         "Boiler Mercury",
+                         "Boiler Particulate Matter",
+                         "Emissions Control Equipment")
+
+enviro_assoc_dfs <- 
+    purrr::map(enviro_assoc_sheets, 
+      ~ read_excel(glue::glue("data/raw_data/860/6_1_EnviroAssoc_Y{Sys.getenv('eGRID_year')}.xlsx"),
+        sheet = .x,
+        skip = 1,
+        na = ".",
+        guess_max = 4000)) %>%
+    purrr::map(., ~ janitor::clean_names(.x)) %>%
+    setNames(., janitor::make_clean_names(enviro_assoc_sheets))
+
+## 860 6_2_EnviroEquip --------
+
+enviro_equip_sheets <- c("Emission Standards & Strategies",
+                        "Boiler Info & Design Parameters",
+                        "FGD")
+
+enviro_equip_dfs <- 
+  purrr::map(enviro_equip_sheets, 
+           ~ read_excel(glue::glue("data/raw_data/860/6_2_EnviroEquip_Y{Sys.getenv('eGRID_year')}.xlsx"),
+                        sheet = .x,
+                        skip = 1,
+                        na = ".",
+                        guess_max = 4000)) %>%
+  purrr::map(., ~ janitor::clean_names(.x)) %>%
+  setNames(., janitor::make_clean_names(enviro_equip_sheets))
+
+
+## 860 2__Plant_ -------
+
+plant_df <- 
+  read_excel(glue::glue("data/raw_data/860/2___Plant_Y{Sys.getenv('eGRID_year')}.xlsx"),
+                        sheet = "Plant",
+                        skip = 1,
+                        na = ".",
+                        guess_max = 4000) %>% 
+  clean_names()
+
+
+## 860m -------------
+
+pr_sheets <- c("Operating_PR",
+               "Retired_PR")
 
 names_860_PR_op <- 
   c("Utility ID" = "Entity ID",
@@ -162,89 +212,144 @@ names_860_PR_ret <-
     "Status" = "Status")
 
 
+puerto_rico_dfs <- 
+  purrr::map(pr_sheets, 
+             ~ read_excel(glue::glue("data/raw_data/860m.xlsx"),
+                          sheet = .x,
+                          skip = 2,
+                          na = c(".", "X"),
+                          guess_max = 4000)) %>%
+  #purrr::map(., ~ janitor::clean_names(.x)) %>%
+  setNames(., janitor::make_clean_names(pr_sheets))
 
-eia_860_PR_op <-
-  read_excel(glue("data/raw_data/860m.xlsx"), 
-             sheet =  "Operating_PR",
-             guess_max = 4000,
-             na = c(".","X"), 
-             skip = 2) %>% 
-  rename(any_of(names_860_PR_op)) %>% # applying variable name crosswalk between normal 860 and monthly PR file
-  janitor::clean_names() %>%  
-  rename(any_of(rename_cols_860)) %>% # standardizing names
-  mutate(across(c("utility_id"), ~ as.numeric(.x)), # changing types to matched eia_860_operable
-         across(contains("capacity"), ~ as.numeric(.x)),
-         status = str_extract(status, "(?<=\\().*?(?=\\))")) %>% # extracting abb. codes inside parentheses to match other files
-  select(any_of(names(eia_860_operable))) # keeping only columns that are in 860 operable
+
+### 860m modifications ------------
+
+puerto_rico_dfs_mod <- 
+  puerto_rico_dfs %>%
+  purrr::map_at("operating_pr", # modifying optaring pr df
+                ~ .x %>% 
+                  mutate(Status = str_extract(Status, "(?<=\\().*?(?=\\))")) %>% # updating status variable to match other files (extracting abb. inside of parantheses).
+                  rename(any_of(names_860_PR_op))) %>% # renaming columns to match other forms based on lookup table
+  purrr::map_at("retired_pr", # modifying retired pr data
+                ~ .x %>% 
+                  filter("Retirement Year" == Sys.getenv("eGRID_year")) %>% # filtering to only plants retired in eGRID year
+                  rename(any_of(names_860_PR_ret))) %>% # renaming columns to match other 860 files.
+  purrr::map(., ~ clean_names(.x)) # converting column names in both files to snake_case and lower
+
+
+## create 860 combined file -------------
+
   
-eia_860_PR_ret <- 
-  read_excel(glue("data/raw_data/860m.xlsx"), 
-             sheet =  "Retired_PR",
-             guess_max = 4000,
-             na = c(".","X"), 
-             skip = 2) %>% 
-  rename(any_of(names_860_PR_ret)) %>% # applying variable name crosswalk between normal 860 and monthly PR file
-  janitor::clean_names() %>%  
-  rename(any_of(rename_cols_860)) %>% # standardizing names
-  mutate(across(c("utility_id"), ~ as.numeric(.x)),
-         across(contains("capacity"), ~ as.numeric(.x))) %>%  # changing types to matched eia_860_operable
-  filter(retirement_year == egrid_year) %>% # I believe this condition is required. Need to confirm (SB 3/28/24)
-  select(any_of(names(eia_860_operable)))
-
-
-# eia combined includes op, retired, and proposed, but filters out some plants based on camd. Need to check this logic.  
-# There also two files loaded for Puerto Rico from the monthly December data? I don't see this documented anywhere, so need to check.
-
-eia_860_combined <-
-  eia_860_operable %>% 
-  bind_rows(eia_860_retired) %>% 
-  bind_rows(eia_860_proposed) %>% # There are some conditions that need to be added to this file.             
-  bind_rows(eia_860_PR_op) #
-  bind_rows(eia_860_PR_ret) # is this supposed to be included? Should proposed be included? (SB 3/28/2024)
-## boil generator file ---------
-eia_860_boil_gen <-
-  read_excel(glue("data/raw_data/860/6_1_EnviroAssoc_Y{egrid_year}.xlsx"), 
-             sheet =  "Boiler Generator",
-             guess_max = 4000,
-             na = c(".","X"), 
-             skip = 1) %>% 
-  janitor::clean_names() %>% 
-  filter(!if_all(everything(), is.na)) %>% 
-  rename(any_of(rename_cols_860))
-
-# standardizing variable types -------
-
-dfs <- # creating list of dfs to iterate over
-    list("eia_923_gen" = eia_923_gen, 
-         "eia_923_gen_fuel" = eia_923_gen_fuel_combined,
-         "eia_860_combined" = eia_860_combined,
-         "eia_860_boil_gen" = eia_860_boil_gen)
-
-dfs_r <- 
-  purrr::map(dfs, ~.x %>% mutate(across(ends_with("id"), ~ as.character(.x)))) 
   
+## Combining 860 files ---------
 
-# Writing cleaned files------
-
-if(!dir.exists("data/clean_data")){
-  dir.create("data/clean_data")
-} else{
-  print("Folder data/clean_data already exists.")
-}
+rename_cols_860 <- c("plant_id" = "plant_code",
+                     "plant_state" = "state",
+                     "nameplate_capacity" = "nameplate_capacity_mw")
 
 
-if(!dir.exists("data/clean_data/eia")){
-  dir.create("data/clean_data/eia")
-} else{
-  print("Folder data/clean_data/eia already exists.")
-}
+dfs_860 <-
+  c(generator_dfs,
+    enviro_assoc_dfs,
+    enviro_equip_dfs,
+    "plant" = list(plant),
+    puerto_rico_dfs_mod) %>% 
+  purrr:::map(., ~ .x %>%  # standardizing column types across all dfs
+                mutate(across(ends_with("id"), ~ as.character(.x)),
+                       across(contains("capacity"), ~ as.numeric(.x)),
+                       across(contains(c("month", "year")), ~ as.character(.x))) %>% 
+                rename(any_of(rename_cols_860)) %>% # standardizing col names to match other files
+                filter(!if_all(everything(), is.na))) # removing empty rows
+
+
+
+### creating 860 combined file -----------
+
+eia_860_combined <- 
+  bind_rows(dfs_860$operable,
+            dfs_860$retired_and_canceled,
+            dfs_860$operating_pr,
+            dfs_860$retired_pr) %>% 
+  select(any_of(names(dfs_860$operable))) # keeping only columns in operable file
+
+
+dfs_860_final <-
+  c(dfs_860,
+    "combined" = list(eia_860_combined))
+
+## Saving 860 files ----------
+
+write_rds(dfs_860_final, "data/clean_data/eia_860_clean.RDS")
+
+# printing confirmation message
+print(glue::glue("File eia_860_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_860_final), sep = ', ', last = ', and ')}, written to folder data/clean_data."))
+
+
+
+# EIA-861 -------------
+
+## 861 Balancing authority  ----------
+
+rename_cols_861 <- # creating list of variable name mappings
+  c("year" = "data_year")
+
+balancing_authority <-  
+  read_excel(glue::glue("data/raw_data/861/Balancing_Authority_{Sys.getenv('eGRID_year')}.xlsx"), 
+             sheet = "Balancing Authority",
+             guess_max = 4000,
+             na = "."
+             ) %>% 
+  clean_names() 
+
+## 861 Sales Ult Cust --------
+
+sales_ult_cust <-
+  read_excel(glue::glue("data/raw_data/861/Sales_Ult_Cust_{Sys.getenv('eGRID_year')}.xlsx"),
+             sheet = "States",
+             skip = 2,
+             guess_max = 4000,
+             na = "."
+             ) %>% 
+  clean_names() %>% 
+  select(1:ba_code) %>% # removing all columns after ba_code
+  rename("data_type" = contains("data_type")) # renaming long col name that contains "data_type" to just "data_type"
+
+
   
+## 861 Utility Data ---------
 
-readr::write_rds(dfs_r$eia_923_gen, file = "data/clean_data/eia/eia_923_gen_clean.RDS")
-readr::write_rds(dfs_r$eia_923_gen_fuel, file = "data/clean_data/eia/eia_923_gen_fuel_clean.RDS")
-readr::write_rds(dfs_r$eia_860_combined, file = "data/clean_data/eia/eia_860_combined_clean.RDS")
-readr::write_rds(dfs_r$eia_860_boil_gen, file = "data/clean_data/eia/eia_860_boil_gen_clean.RDS")
+utility_data <-
+  read_excel(glue::glue("data/raw_data/861/Utility_Data_{Sys.getenv('eGRID_year')}.xlsx"),
+             sheet = "States",
+             skip = 1,
+             guess_max = 4000,
+             na = "."
+  ) %>% 
+  clean_names() %>% 
+  mutate(across(caiso:other, ~ if_else(is.na(.x), 0, 1)), # creating count of ISORTO territories
+         isorto_total = rowSums(pick(caiso:other)),
+         isorto_count = case_when(
+           isorto_total == 0 ~ "0",
+           isorto_total == 1 ~ "1",
+           isorto_total == 2 ~ "2",
+           TRUE ~ NA_character_
+         )) %>% 
+  select(data_year:nerc_region, isorto_count)  # keeping necessary columns
 
-clean_files <- list.files("data/clean_data/eia")
 
-print(glue::glue("Files {glue::glue_collapse(clean_files, sep = ', ', last = ', and ')} written to folder data/clean_data/eia."))
+
+## Combining 861 data ----------
+
+dfs_861 <-
+  c("balancing_authority" = list(balancing_authority),
+    "sales_ult_cust" = list(sales_ult_cust),
+    "utility_data" = list(utility_data)) %>% 
+  purrr::map(., ~ .x %>% rename(any_of(rename_cols_861)))
+
+## Saving 861 Files -----------
+
+write_rds(dfs_861, "data/clean_data/eia_861_clean.RDS")
+
+# printing confirmation message
+print(glue::glue("File eia_861_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_861), sep = ', ', last = ', and ')}, written to folder data/clean_data."))
