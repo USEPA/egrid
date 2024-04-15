@@ -6,17 +6,16 @@ library(stringr)
 library(glue)
 
 
-# Load in 923 and 860 files ----------
+# Load in necessary 923 and 860 files ----------
 
-eia_923_gen <- read_rds("data/clean_data/eia/eia_923_gen_clean.RDS")
+eia_923_files <- read_rds("data/clean_data/eia_923_clean.RDS") # read in all 923 files
+eia_860_files <- read_rds("data/clean_data/eia_860_clean.RDS") # read in all 860 files
 
-eia_923_gen_fuel <- read_rds("data/clean_data/eia/eia_923_gen_fuel_clean.RDS")
-
-eia_860_boiler <- read_rds("data/clean_data/eia/eia_860_boil_gen_clean.RDS")
-
-eia_860_combined <- 
-  read_rds("data/clean_data/eia/eia_860_combined_clean.RDS") %>%
-  select(plant_id, # keeping only necessary files for joins 
+eia_923_gen <- eia_923_files$generator_data
+eia_923_gen_fuel <- eia_923_files$generation_and_fuel_combined
+eia_860_boiler <- eia_860_files$boiler_generator
+eia_860_combined <- eia_860_files$combined %>% 
+  select(plant_id, # keeping only necessary files for to streamline joins
          plant_name, 
          plant_state, 
          generator_id, 
@@ -291,7 +290,7 @@ if(dir.exists("data/output")) {
   dir.create("data/output")
 }
 
-print("Printing generator file to folder data/output/")
+print("Saving generator file to folder data/output/")
 
 write_rds(generators_formatted, "data/output/generator_file.RDS")
   
