@@ -282,7 +282,28 @@ table_emissions_ozone
 
 <!--# [Insert info about crosswalks and static tables used here]-->
 
+
+
 # Cleaning Raw Data Files
+
+## CAMD
+
+<!-- Need to document steps here -->
+
+```{r}
+#| message: false
+#| label: data_clean_camd
+#| file: "scripts/data_clean_camd.R"
+```
+
+```{r}
+#| echo: false
+#| label: create_camd_summary_table
+
+
+create_summary_table(readr::read_rds("data/clean_data/camd/camd_clean.RDS"))
+```
+
 
 ## EIA
 
@@ -293,15 +314,15 @@ table_emissions_ozone
 #| file: "scripts/data_clean_eia.R"
 ```
 
-From the raw Excel downloads, we load, clean, and save select files that are used in eGRID production. Four "clean" EIA files are ultimately created:
+From the raw Excel downloads, we load, clean, and save select files that are used in eGRID production. Three "clean" EIA files are ultimately created:
 
--   `eia_860_boil_gen_clean.RDS`
+-   `eia_923_clean.RDS`
 
--   `eia_860_combined_clean.RDS`
+-   `eia_860_clean.RDS`
 
--   `eia_923_gen_clean.RDS`
+-   `eia_861_clean.RDS`
 
--   `eia_923_gen_fuel_clean.RDS`
+Each of these .RDS files contains lists of the relevant tables (stored as dataframes) from each EIA form.
 
 There are several procedures that are applied to each of the raw EIA files:
 
@@ -333,102 +354,83 @@ There are several procedures that are applied to each of the raw EIA files:
 
         -   `nameplate_capacity`
 
-Below we list out the raw files and an outline of the specific cleaning steps used to create the cleaned files.
 
-### eia_860_boil_gen_clean
+```{r}
+#| label: load_eia_clean_files
+#| echo: false
 
-<!-- -   `r glue::glue("data/raw_data/860/6_1_EnviroAssoc_Y{egrid_year}.xlsx")` -->
-
-```         
--   "Boiler Generator"
+eia_923_files <- read_rds("data/clean_data/eia_923_clean.RDS")
+eia_860_files <- read_rds("data/clean_data/eia_860_clean.RDS")
+eia_861_files <- read_rds("data/clean_data/eia_861_clean.RDS")
 ```
 
-### eia_860_combined_clean
 
-<!-- -   `r glue::glue("data/raw_data/860/3_1_Generator_Y{egrid_year}.xlsx")` -->
-
-```         
--   "Operable"
--   "Retired and Canceled"
--   "Proposed"
-```
-
-### eia_923_gen_clean
-
-<!-- -   `r glue::glue("EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final.xlsx")` -->
-
-```         
--   "Page 4 Generator Data'
-```
-
-### eia_923_gen_fuel_clean
-
-<!-- -   `r glue::glue("EIA923_Schedules_2_3_4_5_M_12_{egrid_year}_Final.xlsx")` -->
-
-```         
--   "Page 1 Generation and Fuel Data'
--   "Page 1 Puerto Rico"
-```
-
-### 
-
-### Summary tables
 
 ::: panel-tabset
-#### eia_923_gen
+
+### EIA-923 
 
 ```{r}
+#| results: asis
+#| label: eia_923_summary_tabs
 #| echo: false
-#| label: create_summary_tab_923_gen
 
-create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_clean.RDS"))
+tabs_923 <- 
+  eia_923_files %>% 
+  map(., ~ create_summary_table(.x))
+
+purrr::iwalk(tabs_923, ~ {
+  cat('### ', .y, '\n\n')
+  
+  print(.x)
+  
+  cat('\n\n')
+} )
 ```
 
-#### eia_923_gen_fuel
+### EIA-860 
 
 ```{r}
+#| results: asis
+#| label: eia_860_summary_tabs
 #| echo: false
-#| label: create_summary_tab_923_gen_feul
 
-create_summary_table(readr::read_rds("data/clean_data/eia/eia_923_gen_fuel_clean.RDS"))
+tabs_860 <- 
+  eia_860_files %>% 
+  map(., ~ create_summary_table(.x))
+
+purrr::iwalk(tabs_860, ~ {
+  cat('### ', .y, '\n\n')
+  
+  print(.x)
+  
+  cat('\n\n')
+} )
 ```
 
-#### eia_860_combined
+### EIA-861 
 
 ```{r}
+#| results: asis
+#| label: eia_861_summary_tabs
 #| echo: false
-#| label: create_summary_tab_860_combined
+tabs_861 <- 
+  eia_861_files %>% 
+  map(., ~ create_summary_table(.x))
 
-create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_combined_clean.RDS"))
+purrr::iwalk(tabs_861, ~ {
+  cat('### ', .y, '\n\n')
+  
+  print(.x)
+  
+  cat('\n\n')
+} )
 ```
 
-#### eia_860_boil_gen
 
-```{r}
-#| echo: false
-#| label: create_summary_tab_860_boil_gen
-
-create_summary_table(readr::read_rds("data/clean_data/eia/eia_860_boil_gen_clean.RDS"))
-```
 :::
 
-## CAMD
 
-<!-- Need to document steps here -->
-
-```{r}
-#| message: false
-#| label: data_clean_camd
-#| file: "scripts/data_clean_camd.R"
-```
-
-```{r}
-#| echo: false
-#| label: create_camd_summary_table
-
-
-create_summary_table(readr::read_rds("data/clean_data/camd/camd_clean.RDS"))
-```
 
 # Generator File
 
