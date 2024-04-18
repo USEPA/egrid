@@ -10,23 +10,23 @@ library(glue)
 
 ## 923 Schedules_2_3_4_5_M_12 --------
 
-sheets_923_1 <- c("Page 1 Generation and Fuel Data",
+sheets_923_1 <- c("Page 1 Generation and Fuel Data", # defining list of sheets to iterate over and extract from excel file
                   "Page 1 Puerto Rico",
                   "Page 3 Boiler Fuel Data",
                   "Page 4 Generator Data")
 
 
 sched_2_3_4_5_m_12_dfs <- 
-  purrr::map2(sheets_923_1, 
-              c(5,6,5,5),
+  purrr::map2(sheets_923_1, # .x, defining sheets to iterate over
+              c(5,6,5,5),   # y, adding second argument to define the number of rows to skip (differs between files)
              ~ read_excel(glue::glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{Sys.getenv('eGRID_year')}_Final_Revision.xlsx"),
                           sheet = .x,
                           skip = .y,
-                          na = ".",
-                          guess_max = 4000)) %>%
-  purrr::map(., ~ janitor::clean_names(.x)) %>%
-  setNames(., janitor::make_clean_names(str_replace_all(sheets_923_1, "Page \\d+ ", ""))) %>% # storing df names without Page #s
-  purrr::map_at("puerto_rico",
+                          na = ".", # converting "." to NAs
+                          guess_max = 4000)) %>% # expanding length of rows for R to check to guess data type
+  purrr::map(., ~ janitor::clean_names(.x)) %>% # this lower cases and converts to snake_case
+  setNames(., janitor::make_clean_names(str_replace_all(sheets_923_1, "Page \\d+ ", ""))) %>% # This assigns cleaned sheets names name values for list of dataframes. Storing df names without Page #s
+  purrr::map_at("puerto_rico", # modifing puert0_rico tab only
                 ~ .x %>% 
                   rename("reserved" = "reserved_10", # fixing issue of two "Reserved" columns. Need to figure out better way in case they're not 10 and 17
                          "balancing_authority_code" = "reserved_17"))
