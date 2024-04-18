@@ -4,6 +4,7 @@ author:
   - "Sean Bock, Abt Global"
   - "Claire Lay, Abt Global"
   - "Justin Stein, Abt Global"
+freeze: true
 format: 
   html:
     toc: true
@@ -15,7 +16,7 @@ format:
 editor: visual
 project: 
   execute_dir: project
-#css: style.css # specific branding/styling can be added here
+css: style.css # specific branding/styling can be added here
 ---
 
 # Overview
@@ -60,6 +61,20 @@ As of 2024, the EIA API does not contain the most detailed data available, which
 ```
 
 The tables within EIA Files and Sheets display each of the unzipped raw files across the three EIA forms, including the sheets embedded within.
+
+
+```{r}
+#| echo: false
+#| label: custom_gt_print
+
+library(knitr)
+knit_print.gt <- function(x, ...) {
+  stringr::str_c("<div style='all:initial;'>\n", gt::as_raw_html(x), "\n</div>") %>%
+    knitr::asis_output()
+}
+registerS3method("knit_print", 'gt_tbl', knit_print.gt, envir = asNamespace("gt"))
+
+```
 
 <!--# Would be nice to highlight the sheets that will actually be used in eGRID productions... -->
 
@@ -365,10 +380,8 @@ eia_861_files <- read_rds("data/clean_data/eia_861_clean.RDS")
 ```
 
 
-
+### EIA-923
 ::: panel-tabset
-
-### EIA-923 
 
 ```{r}
 #| results: asis
@@ -380,15 +393,18 @@ tabs_923 <-
   map(., ~ create_summary_table(.x))
 
 purrr::iwalk(tabs_923, ~ {
-  cat('### ', .y, '\n\n')
+  cat('#### ', .y, '\n\n')
   
   print(.x)
   
   cat('\n\n')
 } )
 ```
+:::
 
 ### EIA-860 
+
+::: panel-tabset 
 
 ```{r}
 #| results: asis
@@ -400,15 +416,17 @@ tabs_860 <-
   map(., ~ create_summary_table(.x))
 
 purrr::iwalk(tabs_860, ~ {
-  cat('### ', .y, '\n\n')
+  cat('#### ', .y, '\n\n')
   
   print(.x)
   
   cat('\n\n')
 } )
 ```
+:::
 
 ### EIA-861 
+::: panel-tabset
 
 ```{r}
 #| results: asis
@@ -419,15 +437,13 @@ tabs_861 <-
   map(., ~ create_summary_table(.x))
 
 purrr::iwalk(tabs_861, ~ {
-  cat('### ', .y, '\n\n')
+  cat('#### ', .y, '\n\n')
   
   print(.x)
   
   cat('\n\n')
 } )
 ```
-
-
 :::
 
 
@@ -443,6 +459,7 @@ purrr::iwalk(tabs_861, ~ {
 
 ```{r}
 #| label: generator_file_table
+#| include: false
 
 
 library(gt)
