@@ -11,17 +11,13 @@ egrid_year <- Sys.getenv("eGRID_year")
 
 # Reading raw camd files
 
-camd_facilities <- readr::read_rds("data/raw_data/camd/camd_facilities.RDS")
-camd_emissions <- readr::read_rds("data/raw_data/camd/camd_emissions.RDS")
-camd_emissions_ozone <- readr::read_rds("data/raw_data/camd/camd_emissions_ozone.RDS") %>% # adding "ozone" prefix to non-id cols
-  rename_with(.cols = -c("stateCode", "facilityName", "facilityId","unitId", "associatedStacks", "year"),
-              ~ paste0(.x, "_", "oz"))
-  
+camd_raw <- readr::read_rds("data/raw_data/camd/camd_raw.RDS")
 
-# Combining files and standardizing variables names to match eia data
+
+# standardizing variables names to match eia data and removing retired and inactive plants
 
 rename_cols <- # standardizing variable names across files
-  c("plant_state" = "state_code", 
+  c("plant_state" = "state", 
     "plant_name" = "facility_name",
     "plant_id" = "facility_id",
     "primary_fuel_type" = "primary_fuel_info",
@@ -54,51 +50,58 @@ unit_abbs <- # abbreviation crosswalk for unit types
   )
 
 
-camd_combined <- 
-  camd_facilities %>% 
-  left_join(camd_emissions) %>%
-  left_join(camd_emissions_ozone) %>%
-  janitor::clean_names() %>% 
-  rename_with(~ stringr::str_replace(.x, "o2", "o2_")) %>% # clean_names() doesn't add underscore after numeric values. Adding in to keep snake case.
-  rename(any_of(rename_cols)) 
-
-camd_combined_r <-
-  camd_combined %>% 
+camd_r <- 
+  camd_raw %>% 
+  rename(any_of(rename_cols)) %>%
   filter(!operating_status %in% c("Future", "Retired", "Long-term Cold Storage"), # removing plants that are listed as future, retired, or long-term cold storage
          plant_id < 80000) %>% # removing plant with plant ids above 80,000
   mutate(
-    heat_input_source = if_else(is.na(heat_input), NA_character_, "EPA/CAMD"), # creating source variables based on emissions data
-    heat_input_oz_source = if_else(is.na(heat_input_oz), NA_character_, "EPA/CAMD"),
-    nox_source = if_else(is.na(nox_mass), NA_character_, "EPA/CAMD"),
-    nox_oz_source = if_else(is.na(nox_mass_oz), NA_character_, "EPA/CAMD"),
-    so2_source = if_else(is.na(so2_mass), NA_character_, "EPA/CAMD"),
-    co2_source = if_else(is.na(co2_mass), NA_character_, "EPA/CAMD"),
-    #hg_source = if_else(is.na(hg_mass), NA_character_, "EPA/CAMD"), # Mercury mass field needs to come from separate bulk api (SB 3/28/2024)
+    heat_input_source = if_else(is.na(heat_input_mmbtu), NA_character_, "EPA/CAMD"), # creating source variables based on emissions data
+    heat_input_oz_source = if_else(is.na(heat_input_mmbtu_ozone), NA_character_, "EPA/CAMD"),
+    nox_source = if_else(is.na(nox_mass_short_tons), NA_character_, "EPA/CAMD"),
+    nox_oz_source = if_else(is.na(nox_mass_short_tons_ozone), NA_character_, "EPA/CAMD"),
+    so2_source = if_else(is.na(so2_mass_short_tons), NA_character_, "EPA/CAMD"),
+    co2_source = if_else(is.na(co2_mass_short_tons), NA_character_, "EPA/CAMD"),
+    hg_source = if_else(is.na(hg_mass_lbs), NA_character_, "EPA/CAMD"), # Mercury mass field needs to come from separate bulk api (SB 3/28/2024)
     year = egrid_year,
-    camd = if_else(nox_source == "EPA/CAMD" , "Yes", NA_character_)
-  ) %>%
-  mutate(operating_status = case_when(
-    operating_status == "Operating" ~ "OP",
-    startsWith(operating_status, "Operating") ~ "OP", # Units that started operating in current year have "Operating" plus the date of operation.
-    operating_status == "Retired" ~ "RE",
-    TRUE ~ NA_character_),
+    camd = if_else(nox_source == "EPA/CAMD" , "Yes", NA_character_),
+    operating_status = case_when(
+      operating_status == "Operating" ~ "OP",
+      startsWith(operating_status, "Operating") ~ "OP", # Units that started operating in current year have "Operating" plus the date of operation.
+      operating_status == "Retired" ~ "RE",
+      TRUE ~ NA_character_),
     unit_type = str_replace(unit_type, "\\(.*?\\)", "") %>% str_trim(), # removing notes about start dates and getting rid of extra white space
-    unit_type_abb = recode(unit_type, !!!unit_abbs) ## Recoding values based on lookup table. need to looking into cases with multipe types (SB 3/28/2024)
-  )
+    unit_type_abb = recode(unit_type, !!!unit_abbs), ## Recoding values based on lookup table. need to looking into cases with multipe types (SB 3/28/2024)
+    generator_ids = str_extract_all(associated_generators_nameplate_capacity_mwe, "\\S+(?= \\()"), # extracting associated generators
+    nameplate_capacity = (str_extract_all(associated_generators_nameplate_capacity_mwe, "(?<=\\()\\d+\\.\\d+(?=\\))")), # extracting nameplate capacity values
+    associated_generators = map_chr(generator_ids, ~ paste(.x, collapse = ", ")), # pasting togther associated generators
+    nameplate_capacity = map_dbl(nameplate_capacity, ~ sum(as.numeric(.x), na.rm = TRUE)) # summing nameplate capacity from associated generators
+    )
  
-print(glue::glue("{nrow(camd_combined) - nrow(camd_combined_r)} rows removed because units have status of future, retired, long-term cold storage, or the plant ID is > 80,000."))
+print(glue::glue("{nrow(camd_raw) - nrow(camd_r)} rows removed because units have status of future, retired, long-term cold storage, or the plant ID is > 80,000."))
 
+
+camd_final <- # removing unnecessary columns and final renames
+  camd_r %>% 
+  select(starts_with("plant"),
+         unit_id,
+         year,
+         latitude,
+         longitude,
+         associated_stacks,
+         program_code,
+         ends_with("_region"),
+         nameplate_capacity,
+         associated_generators,
+         ends_with("_type"),
+         starts_with(c("heat","s02", "co2", "nox", "hg")),
+         contains("operating_time"),
+         -contains("rate"))
 
 # saving clean camd file
 
 # creating folder if not already present
 
-
-# if(!dir.exists("data/clean_data")){
-#   dir.create("data/clean_data")
-# } else{
-#   print("Folder data/clean_data already exists.")
-# }
 
 
 if(!dir.exists("data/clean_data/camd")){
@@ -109,7 +112,7 @@ if(!dir.exists("data/clean_data/camd")){
 
 
 
-readr::write_rds(camd_combined_r, "data/clean_data/camd/camd_clean.RDS")
+readr::write_rds(camd_final, "data/clean_data/camd/camd_clean.RDS")
 
 if(file.exists("data/clean_data/camd/camd_clean.RDS")){
   print("File camd_clean.RDS successfully written to folder data/clean_data/camd")
