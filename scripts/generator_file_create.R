@@ -181,7 +181,8 @@ gen_overwrite <-
          gen_data_source = "Data from EIA-923 Generator File overwritten with distributed data from EIA-923 Generation and Fuel") %>% 
   select(any_of(key_columns), overwrite) # reducing columns for clarity and to facilitate QA
 
-# find plants in the EIA-923 Generator file that are using the same net generation amount in December and redistribute using GenFuel file
+## December generation ------
+# find plants in the EIA-923 Generator file that are using the same net generation amount in December and redistribute using GenFuel file 
 
 december_netgen <- 
   gen_distributed %>% 
