@@ -1,7 +1,6 @@
 
 library(dplyr)
 library(readxl)
-library(glue)
 library(stringr)
 library(janitor)
 library(purrr)
@@ -92,11 +91,14 @@ camd_final <- # removing unnecessary columns and final renames
          program_code,
          ends_with("_region"),
          nameplate_capacity,
+         operating_status,
          associated_generators,
          ends_with("_type"),
-         starts_with(c("heat","s02", "co2", "nox", "hg")),
+         unit_type_abb,
+         starts_with(c("heat","so2", "co2", "nox", "hg")),
          contains("operating_time"),
-         -contains("rate"))
+         -contains("rate"),
+         commercial_operation_date)
 
 # saving clean camd file
 
