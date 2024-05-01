@@ -98,8 +98,8 @@ emissions_data_r <-
   summarize(across(cols_to_sum, ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first
   ungroup() %>% 
   group_by(facility_id, unit_id, primary_fuel_type, unit_type) %>% 
-  mutate(n_months = n(),
-         reporting_frequency = if_else(n_months == 12, "Q", "OS")) %>% 
+  mutate(n_months = n(), # counting months to determine reporting frequency
+         reporting_frequency = if_else(n_months == 12, "Q", "OS")) %>% # 12 months identifies Q reporters
   group_by(pick(-all_of(cols_to_sum), -c(month, n_months, reporting_frequency))) %>% 
   mutate(across(cols_to_sum, ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual")) %>% # calculating annual emissions
   filter(month %in% ozone_months) %>% # filtering to only ozone months 
@@ -155,9 +155,21 @@ mats_data_r <-
 
 ## joining facility, emissions, and MATS data --------
 
+# Custom function to coalesce .x and .y variables. Some units have NA values in one source for a variable that matches.
+# This function identifies the non-missing values and keeps that after join.
+coalesce_join_vars <- function(df) {
+  df %>%
+    mutate(across(ends_with(".x"), ~ coalesce(., get(str_replace(cur_column(), ".x$", ".y"))))) %>% # take .x column and find corresponding .y column and coalesce values. ".x$" ensures that ".x" is at the end of column name
+    rename_with(~ str_replace(., ".x$", ""), ends_with(".x")) %>% 
+    select(-ends_with(".y"))
+}
+
+
 camd_data_combined <- 
   facility_df %>% 
-  left_join(emissions_data_r) %>% 
+  left_join(emissions_data_r,
+            by = c("facility_id", "unit_id", "primary_fuel_type")) %>% 
+  coalesce_join_vars() %>% 
   left_join(mats_data_r) %>% 
   arrange(facility_id, unit_id)
   
