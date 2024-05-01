@@ -97,12 +97,15 @@ emissions_data_r <-
   group_by(pick(-c(all_of(cols_to_sum)))) %>% 
   summarize(across(cols_to_sum, ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first
   ungroup() %>% 
-  group_by(pick(-all_of(cols_to_sum), -month)) %>% 
+  group_by(facility_id, unit_id, primary_fuel_type, unit_type) %>% 
+  mutate(n_months = n(),
+         reporting_frequency = if_else(n_months == 12, "Q", "OS")) %>% 
+  group_by(pick(-all_of(cols_to_sum), -c(month, n_months, reporting_frequency))) %>% 
   mutate(across(cols_to_sum, ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual")) %>% # calculating annual emissions
   filter(month %in% ozone_months) %>% # filtering to only ozone months 
   mutate(across(cols_to_sum, ~ sum(.x, na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
   select(-month) %>% # removing month so distinct() will aggregate to unit level
-  select(-all_of(cols_to_sum)) %>% 
+  select(-all_of(cols_to_sum), n_months, reporting_frequency) %>% 
   rename_with(.cols = contains("_annual"), # removing annual suffix
               .fn = ~ str_remove(.x, "_annual")) %>% 
   ungroup() %>% 
