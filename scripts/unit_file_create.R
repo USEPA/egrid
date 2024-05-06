@@ -109,9 +109,9 @@ camd_3 <-
     primary_fuel_type == "Wood" ~ "WDS",
     TRUE ~ NA_character_ )) %>% 
   left_join(eia_923$generation_and_fuel_combined %>%  # joining generation and fuel file, based on max fuel consumption by plant
-              select(plant_id, prime_mover, fuel_type, total_fuel_consumption_mm_btu) %>%
+              select(plant_id, prime_mover, fuel_type, total_fuel_consumption_mmbtu) %>%
               group_by(plant_id) %>%
-              slice_max(total_fuel_consumption_mm_btu, n = 1, with_ties = FALSE) %>% # identify fuel type associate with max fuel consumption by plant
+              slice_max(total_fuel_consumption_mmbtu, n = 1, with_ties = FALSE) %>% # identify fuel type associate with max fuel consumption by plant
               select(plant_id, fuel_type),
             by = c("plant_id")) %>% 
   mutate(primary_fuel_type = if_else(is.na(primary_fuel_type), fuel_type, primary_fuel_type)) %>% # filling missing primary_fuel_types with 923 value
@@ -178,38 +178,50 @@ camd_6 <- # updating units where available
 # a.	Some CAMD plants are “ozone season reporters” – which means that they only report data during the ozone season, which is May to September each year. 
 # b.	These plants are listed in the CAMD data with a frequency variable of “OS” instead of “Q” (quarterly)
 # c.	We gap fill the missing months (January, February, March, April, October, November, and December) with EIA data. 
+# d.  A subset of ozone season reporters also report data for April. These plants are flagged so that their April data can be included.
 
 
-### Fill for OS and Q reporters ----------
+### Gap Fill for OS and Q reporters ----------
 
 camd_oz_reporters <- 
   camd_6 %>% 
   filter(reporting_frequency == "OS")
+
 
 oz_and_q_ids <- # identifying plant that report quarterly AND in ozone months only
   camd_6 %>% 
   count(plant_id, reporting_frequency) %>% 
   count(plant_id) %>% 
   filter(n > 1) %>% 
-  pull(plant_id)
+  pull(plant_id) %>% 
+  unique(.)
+
+## create flag here to identify ozone + april reporters. But is this a unit level thing? 
+## Need to add step here to include ozone + April reporters
+# camd_6 %>% 
+#   filter(reporting_frequency == "OS" & heat_input != heat_input_oz) 
+#   
 
 
 ### calculating heat input values by plant/prime mover in 923 gen fuel data 
 
-heat_923_oz_months <- paste0("tot_mm_btu_", tolower(month.name)[5:9]) # creating vector of monthly heat columns for 923 gen and fuel
-heat_923_non_oz_months <- paste0("tot_mm_btu_", tolower(month.name)[c(1:4,10:12)]) # creating vector of monthly heat columns for 923 gen and fuel
+heat_923_oz_months <- paste0("tot_mmbtu_", tolower(month.name)[5:9]) # creating vector of monthly heat columns for 923 gen and fuel
+heat_923_nonoz_months <- paste0("tot_mmbtu_", tolower(month.name)[c(1:4,10:12)]) # creating vector of monthly heat columns for 923 gen and fuel
+
 
 
 heat_sum_923 <- 
   eia_923$generation_and_fuel_combined %>% 
-  mutate(tot_non_oz = rowSums(pick(all_of(heat_923_non_oz_months)), na.rm = TRUE), # summing non-ozone month heat
+  mutate(tot_nonoz = rowSums(pick(all_of(heat_923_nonoz_months)), na.rm = TRUE), # summing non-ozone month heat
          tot_oz = rowSums(pick(all_of(heat_923_oz_months)), na.rm = TRUE)) %>%  # summing ozone month heat
   group_by(plant_id, prime_mover) %>% 
-  summarize(heat_input_nonoz_923 = sum(tot_non_oz, na.rm = TRUE), # Now summing all to plant/pm level
+  summarize(heat_input_nonoz_923 = sum(tot_nonoz, na.rm = TRUE), # Now summing all to plant/pm level
             heat_input_oz_923 = sum(tot_oz, na.rm = TRUE),
-            total_fuel_consumption_923 = sum(total_fuel_consumption_mm_btu, na.rm = TRUE))
+            total_fuel_consumption_923 = sum(total_fuel_consumption_mmbtu, na.rm = TRUE))
   
-camd_oz_q_reporters <- 
+
+
+camd_oz_q_reporters_dist <- 
   camd_6 %>% 
   filter(plant_id %in% oz_and_q_ids) %>% # Q and OS reports only
   group_by(plant_id, prime_mover) %>% 
@@ -220,15 +232,81 @@ camd_oz_q_reporters <-
          annual_heat_diff_wout_oz = annual_heat_diff - heat_input_oz_923) %>% # calculating difference - ozone month totals
   ungroup() %>% 
   group_by(plant_id, prime_mover, unit_id, botfirty) %>% 
-  mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>%  # is this necessary? 
+  mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>%  # summing to unit/firing type level 
   ungroup() %>% 
   group_by(plant_id, prime_mover) %>% 
-  mutate(tot_heat_input_oz = sum(sum_heat_input_oz),
-         prop = sum_heat_input_oz/tot_heat_input_oz) %>% 
+  mutate(tot_heat_input_oz = sum(sum_heat_input_oz), # summing to plant/prime_mover level
+         prop = sum_heat_input_oz/tot_heat_input_oz) %>% # determining proportional heat input for distribution
   ungroup() %>%
-  mutate(heat_input_non_oz = ratio * annual_heat_diff_wout_oz,
-         heat_input_source = "EIA non-ozone season distributed and EPA/CAMD ozone season")
+  mutate(heat_input_nonoz = prop * annual_heat_diff_wout_oz,
+         heat_input = if_else(is.na(heat_input_nonoz), heat_input_oz, heat_input_oz + heat_input_nonoz), # now adding calculated non-ozone months heat input with the ozone months to estimate annual heat_input
+         heat_input_source = if_else(is.na(heat_input_nonoz), "EPA/CAMD", "EIA non-ozone season distributed and EPA/CAMD ozone season"))
   
+
+### Gap fill heat input for OS only reporters  -----
+
+
+  
+camd_oz_reporters_dist <-   
+  camd_oz_reporters %>% 
+  filter(!plant_id %in% oz_and_q_ids) %>% # keeping plant that are OS reporters only
+  group_by(plant_id, prime_mover) %>%
+  mutate(sum_heat_input_oz = sum(heat_input_oz)) %>% # summing ozone heat input to plant/pm level to calculate distributional proportion
+  ungroup() %>% 
+  mutate(prop = heat_input_oz/sum_heat_input_oz) %>% # determine plant/pm proportion for unit
+  left_join(heat_sum_923) %>% # joining with 923 heat sum for distribution
+  mutate(heat_input_nonoz = sum_heat_input_oz * prop,
+         heat_input = if_else(is.na(heat_input_nonoz), heat_input_oz, heat_input_oz + heat_input_nonoz),
+         heat_input_source = if_else(is.na(heat_input_nonoz), "EPA/CAMD","EIA non-ozone season distributed and EPA/CAMD ozone season"))
+
+# now combining all distributed OS reporters
+
+camd_oz_reporters_dist_combined <-
+  camd_oz_reporters_dist %>% 
+  bind_rows(camd_oz_q_reporters_dist)
+
+
+### Gap fill NOx emissions ozone season reporters -----------
+
+#### NOx Rate ---------
+
+# where available, NOx rates are used to estimates NOx emissions
+# ? Something is missing in this part Or maybe this should be handled differently.
+
+nox_rates <- # calculating nox emission rates used to estimtae NOx emissions
+  eia_923$air_emissions_control_info %>% 
+  left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, boiler_id),
+            by = c("plant_id", "nox_control_id")) %>% 
+  group_by(plant_id, boiler_id) %>%
+  summarize(nox_rate_ann = max(nox_emission_rate_entire_year_lbs_mmbtu),
+            nox_rate_oz = max(nox_emission_rate_may_through_september_lbs_mmbtu)) 
+
+camd_oz_reporters_dist_combined_2 <- 
+ camd_oz_reporters_dist_combined %>%
+  inner_join(nox_rates,
+            by = c("plant_id", "unit_id" = "boiler_id")) %>%
+  mutate(nox = (heat_input_nonoz * nox_rate_ann)/ 2000,
+         nox_source = if_else(is.na(nox), nox_source ,"Estimated based on unit-level NOx emission rates and EPA/CAMD ozone season emissions"))
+
+#### NOx EF ------
+  
+# for remaining units, we use emission factors ---
+
+consum_923_nonoz_months <- paste0("quantity","_", tolower(month.name)[c(1:4,10:12)])
+
+
+eia_fuel_consum_pm <- # summing fuel and consum to pm level
+  eia_923$generation_and_fuel_combined %>%
+  mutate(unit_heat_nonoz = rowSums(pick(all_of(heat_923_non_oz_months)), na.rm = TRUE),
+         unit_consum_nonoz = rowSums(pick(all_of(consum_923_nonoz_months)), na.rm = TRUE)) %>%
+  group_by(plant_id, prime_mover, fuel_type) %>%
+  summarize(heat_input_nonoz_923 = sum(unit_heat_nonoz),
+            fuel_consum_nonoz_923 = sum(unit_consum_nonoz))
+
+
+
+
+
 
 
 ### OS only reporters ----------------
