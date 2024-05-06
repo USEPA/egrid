@@ -2,7 +2,7 @@ library(dplyr)
 library(readr)
 library(tidyr)
 library(purrr)
-library(glue)
+
 
 
 
@@ -24,7 +24,9 @@ sched_2_3_4_5_m_12_dfs <-
                           skip = .y,
                           na = ".", # converting "." to NAs
                           guess_max = 4000)) %>% # expanding length of rows for R to check to guess data type
-  purrr::map(., ~ janitor::clean_names(.x)) %>% # this lower cases and converts to snake_case
+  purrr::map(., ~ .x %>% 
+               rename_with(tolower) %>% 
+               janitor::clean_names()) %>% # this lower cases and converts to snake_case
   setNames(., janitor::make_clean_names(str_replace_all(sheets_923_1, "Page \\d+ ", ""))) %>% # This assigns cleaned sheets names name values for list of dataframes. Storing df names without Page #s
   purrr::map_at("puerto_rico", # modifing puert0_rico tab only
                 ~ .x %>% 
@@ -45,7 +47,9 @@ air_emissions_control_info <-
  read_excel(glue::glue("data/raw_data/923/EIA923_Schedule_8_Annual_Environmental_Information_{Sys.getenv('eGRID_year')}_Final_Revision.xlsx"),
                            sheet = "8C Air Emissions Control Info",
                            skip = 4,
+                           na = ".",
                            guess_max = 4000) %>%
+  rename_with(tolower) %>%
   janitor::clean_names() 
 
 
@@ -90,7 +94,9 @@ generator_dfs <-
                           skip = 1,
                           na = c(".", "X"),
                           guess_max = 4000)) %>%
-  purrr::map(., ~ janitor::clean_names(.x)) %>%
+  purrr::map(., ~ .x %>% 
+               rename_with(tolower) %>% # lowercasing before applying clean_names() to avoid splitting on capital letters
+               janitor::clean_names()) %>%
   setNames(., janitor::make_clean_names(generator_sheets)) 
 
 ### Modifying 860 generator files ---------
@@ -125,8 +131,10 @@ enviro_assoc_dfs <-
         skip = 1,
         na = ".",
         guess_max = 4000)) %>%
-    purrr::map(., ~ janitor::clean_names(.x)) %>%
-    setNames(., janitor::make_clean_names(enviro_assoc_sheets))
+    purrr::map(., ~ .x %>% 
+                 rename_with(tolower) %>% 
+                 janitor::clean_names()) %>%
+    setNames(., janitor::make_clean_names(tolower(enviro_assoc_sheets)))
 
 ## 860 6_2_EnviroEquip --------
 
@@ -141,7 +149,9 @@ enviro_equip_dfs <-
                         skip = 1,
                         na = ".",
                         guess_max = 4000)) %>%
-  purrr::map(., ~ janitor::clean_names(.x)) %>%
+  purrr::map(., ~ .x %>% 
+               rename_with(tolower) %>%
+               janitor::clean_names()) %>%
   setNames(., janitor::make_clean_names(enviro_equip_sheets))
 
 
@@ -153,6 +163,7 @@ plant_df <-
                         skip = 1,
                         na = ".",
                         guess_max = 4000) %>% 
+  rename_with(tolower) %>%
   clean_names()
 
 
@@ -220,7 +231,6 @@ puerto_rico_dfs <-
                           skip = 2,
                           na = c(".", "X"),
                           guess_max = 4000)) %>%
-  #purrr::map(., ~ janitor::clean_names(.x)) %>%
   setNames(., janitor::make_clean_names(pr_sheets))
 
 
@@ -236,7 +246,9 @@ puerto_rico_dfs_mod <-
                 ~ .x %>% 
                   filter("Retirement Year" == Sys.getenv("eGRID_year")) %>% # filtering to only plants retired in eGRID year
                   rename(any_of(names_860_PR_ret))) %>% # renaming columns to match other 860 files.
-  purrr::map(., ~ clean_names(.x)) # converting column names in both files to snake_case and lower
+  purrr::map(., ~ .x %>% 
+               rename_with(tolower) %>% 
+               clean_names()) # converting column names in both files to snake_case and lower
 
 
 ## create 860 combined file -------------
@@ -301,6 +313,7 @@ balancing_authority <-
              guess_max = 4000,
              na = "."
              ) %>% 
+  rename_with(tolower) %>%
   clean_names() 
 
 ## 861 Sales Ult Cust --------
@@ -312,6 +325,7 @@ sales_ult_cust <-
              guess_max = 4000,
              na = "."
              ) %>% 
+  rename_with(tolower) %>%
   clean_names() %>% 
   select(1:ba_code) %>% # removing all columns after ba_code
   rename("data_type" = contains("data_type")) # renaming long col name that contains "data_type" to just "data_type"
@@ -327,6 +341,7 @@ utility_data <-
              guess_max = 4000,
              na = "."
   ) %>% 
+  rename_with(tolower) %>%
   clean_names() %>% 
   mutate(across(caiso:other, ~ if_else(is.na(.x), 0, 1)), # creating count of ISORTO territories
          isorto_total = rowSums(pick(caiso:other)),
