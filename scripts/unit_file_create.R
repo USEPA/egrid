@@ -178,92 +178,75 @@ camd_6 <- # updating units where available
 # a.	Some CAMD plants are “ozone season reporters” – which means that they only report data during the ozone season, which is May to September each year. 
 # b.	These plants are listed in the CAMD data with a frequency variable of “OS” instead of “Q” (quarterly)
 # c.	We gap fill the missing months (January, February, March, April, October, November, and December) with EIA data. 
-# d.  A subset of ozone season reporters also report data for April. These plants are flagged so that their April data can be included.
 
 
-### Gap Fill for OS and Q reporters ----------
+### Gap fill heat input for OS reporters --------------
 
-camd_oz_reporters <- 
+
+camd_oz_reporter_plants <- # getting list of plant ids that include ozone season reporters. Note that some plants include both OS only and OS and Annual reporters.
   camd_6 %>% 
-  filter(reporting_frequency == "OS")
+  filter(reporting_frequency == "OS") %>% 
+  pull(plant_id)
 
 
-oz_and_q_ids <- # identifying plant that report quarterly AND in ozone months only
-  camd_6 %>% 
-  count(plant_id, reporting_frequency) %>% 
-  count(plant_id) %>% 
-  filter(n > 1) %>% 
-  pull(plant_id) %>% 
-  unique(.)
-
-## create flag here to identify ozone + april reporters. But is this a unit level thing? 
-## Need to add step here to include ozone + April reporters
-# camd_6 %>% 
-#   filter(reporting_frequency == "OS" & heat_input != heat_input_oz) 
-#   
+# camd_oz_q_reporters <- # not sure this is necessary to identify. Commenting out for now
+#   camd_6 %>% 
+#   count(plant_id, reporting_frequency) %>% 
+#   count(plant_id) %>% 
+#   filter(n > 1) %>% 
+#   pull(plant_id) %>%
+#   unique(.)
 
 
-### calculating heat input values by plant/prime mover in 923 gen fuel data 
+camd_oz_reporters <- # creating dataframe with all plants and associated units that include "OS" reporters.
+  camd_6 %>%
+  filter(plant_id %in% camd_oz_reporter_plants)
+
+
+### summing heat input values in the 923 gen and fuel file. These totals will be used to distribute heat for the non-ozone months in the camd data.
+### We also add consumption totals here, which will be used later when estimating NOx emissions.
 
 heat_923_oz_months <- paste0("tot_mmbtu_", tolower(month.name)[5:9]) # creating vector of monthly heat columns for 923 gen and fuel
 heat_923_nonoz_months <- paste0("tot_mmbtu_", tolower(month.name)[c(1:4,10:12)]) # creating vector of monthly heat columns for 923 gen and fuel
+consum_923_nonoz_months <- paste0("quantity","_", tolower(month.name)[c(1:4,10:12)]) # creating vector of monthly consumption
+consum_923_oz_months <- paste0("quantity","_", tolower(month.name)[5:9])
 
+eia_fuel_consum_pm <- # summing fuel and consum to pm level
+  eia_923$generation_and_fuel_combined %>%
+  mutate(unit_heat_nonoz = rowSums(pick(all_of(heat_923_nonoz_months)), na.rm = TRUE),
+         unit_heat_oz = rowSums(pick(all_of(heat_923_oz_months)), na.rm = TRUE),
+         unit_consum_nonoz = rowSums(pick(all_of(consum_923_nonoz_months)), na.rm = TRUE),
+         unit_consum_oz = rowSums(pick(all_of(consum_923_oz_months)), na.rm = TRUE)) %>%
+  group_by(plant_id, prime_mover) %>%
+  summarize(heat_input_nonoz_923 = sum(unit_heat_nonoz, na.rm = TRUE),
+            heat_input_oz_923 = sum(unit_heat_oz, na.rm = TRUE),
+            heat_input_ann_923 = sum(total_fuel_consumption_mmbtu, na.rm = TRUE), # consumption in mmbtus is referred to as "heat input"
+            fuel_consum_nonoz_923 = sum(unit_consum_nonoz, na.rm = TRUE),
+            fuel_consum_oz_923 = sum(unit_consum_oz, na.rm = TRUE),
+            fuel_consum_ann_923 = sum(total_fuel_consumption_quantity, na.rm = TRUE) # consumption in quantity is referred to as "fuel consumpsion"
+            )
 
+# (SB: 5/8/2024 -- For now, I am doing this very differently than what has occurred in the past. Something seems either off or overly complicated with how this section was handled )
 
-heat_sum_923 <- 
-  eia_923$generation_and_fuel_combined %>% 
-  mutate(tot_nonoz = rowSums(pick(all_of(heat_923_nonoz_months)), na.rm = TRUE), # summing non-ozone month heat
-         tot_oz = rowSums(pick(all_of(heat_923_oz_months)), na.rm = TRUE)) %>%  # summing ozone month heat
-  group_by(plant_id, prime_mover) %>% 
-  summarize(heat_input_nonoz_923 = sum(tot_nonoz, na.rm = TRUE), # Now summing all to plant/pm level
-            heat_input_oz_923 = sum(tot_oz, na.rm = TRUE),
-            total_fuel_consumption_923 = sum(total_fuel_consumption_mmbtu, na.rm = TRUE))
-  
-
-
-camd_oz_q_reporters_dist <- 
-  camd_6 %>% 
-  filter(plant_id %in% oz_and_q_ids) %>% # Q and OS reports only
+camd_oz_reporters_dist <- 
+  camd_oz_reporters %>%
   group_by(plant_id, prime_mover) %>% 
   mutate(tot_heat_input = sum(heat_input, na.rm = TRUE)) %>%
-  left_join(heat_sum_923, 
+  left_join(eia_fuel_consum_pm, 
             by = c("plant_id", "prime_mover")) %>% 
-  mutate(annual_heat_diff = total_fuel_consumption_923 - tot_heat_input, # calculating difference between
-         annual_heat_diff_wout_oz = annual_heat_diff - heat_input_oz_923) %>% # calculating difference - ozone month totals
-  ungroup() %>% 
-  group_by(plant_id, prime_mover, unit_id, botfirty) %>% 
-  mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>%  # summing to unit/firing type level 
-  ungroup() %>% 
-  group_by(plant_id, prime_mover) %>% 
-  mutate(tot_heat_input_oz = sum(sum_heat_input_oz), # summing to plant/prime_mover level
-         prop = sum_heat_input_oz/tot_heat_input_oz) %>% # determining proportional heat input for distribution
   ungroup() %>%
-  mutate(heat_input_nonoz = prop * annual_heat_diff_wout_oz,
-         heat_input = if_else(is.na(heat_input_nonoz), heat_input_oz, heat_input_oz + heat_input_nonoz), # now adding calculated non-ozone months heat input with the ozone months to estimate annual heat_input
-         heat_input_source = if_else(is.na(heat_input_nonoz), "EPA/CAMD", "EIA non-ozone season distributed and EPA/CAMD ozone season"))
-  
-
-### Gap fill heat input for OS only reporters  -----
-
-
-  
-camd_oz_reporters_dist <-   
-  camd_oz_reporters %>% 
-  filter(!plant_id %in% oz_and_q_ids) %>% # keeping plant that are OS reporters only
-  group_by(plant_id, prime_mover) %>%
-  mutate(sum_heat_input_oz = sum(heat_input_oz)) %>% # summing ozone heat input to plant/pm level to calculate distributional proportion
+  #mutate(annual_heat_diff = heat_input_ann_923 - tot_heat_input) %>% # calculating annual heat difference # SB: This is old method, but I'm not sure this part works correctly or is necessary
+         #annual_heat_diff_wout_oz = annual_heat_diff - heat_input_oz_923) %>% # calculating difference - ozone month totals to get the leftover nonozone heat input
+  group_by(plant_id, prime_mover) %>% # sum to plant/pm/ for distributional proportion 
+  mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>%
   ungroup() %>% 
-  mutate(prop = heat_input_oz/sum_heat_input_oz) %>% # determine plant/pm proportion for unit
-  left_join(heat_sum_923) %>% # joining with 923 heat sum for distribution
-  mutate(heat_input_nonoz = sum_heat_input_oz * prop,
-         heat_input = if_else(is.na(heat_input_nonoz), heat_input_oz, heat_input_oz + heat_input_nonoz),
-         heat_input_source = if_else(is.na(heat_input_nonoz), "EPA/CAMD","EIA non-ozone season distributed and EPA/CAMD ozone season"))
+  mutate(prop = heat_input_oz/sum_heat_input_oz) %>%  # determining distributional proportion
+  ungroup() %>% 
+  mutate(heat_input_nonoz = heat_input_nonoz_923 * prop, # distributing nonoz
+         heat_input = if_else(reporting_frequency == "Q", heat_input, heat_input_oz + heat_input_nonoz), # If unit is Q reporter, we use the heat input from CAMD. If OS reporter, we add distributed non-oz heat and ozone heat
+         heat_input_source = if_else(reporting_frequency == "Q", "EPA/CAMD", "EIA non-ozone season distributed and EPA/CAMD ozone season"))
+  
 
-# now combining all distributed OS reporters
-
-camd_oz_reporters_dist_combined <-
-  camd_oz_reporters_dist %>% 
-  bind_rows(camd_oz_q_reporters_dist)
 
 
 ### Gap fill NOx emissions ozone season reporters -----------
