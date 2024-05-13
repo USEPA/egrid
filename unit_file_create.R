@@ -139,45 +139,43 @@ print(glue::glue("{nrow(missing_fuel_types)} units having missing primary fuel t
 # Checking for missing after update
 # Each of these that are still missing were not included in unit file, so will get removed at some point, apparently (SB 7/3/2023)
 
-#camd_r3 %>% 
-# filter(is.na(`Unit primary fuel`)) %>% View()
-
-## Updating CAMD boiler firing type -----
-# CAMD/EPA = Unit Type
 
 
-`Unit File 3.5` <- 
-  `Unit File 3` %>% 
-  left_join(boiler_firing_type_xwalk,
-            by = c("Unit Type" = "CAMD/EPA")) %>%
-  mutate(BOTFIRTY = eGRID) %>%
-  select(any_of(unit_columns))
+### Add boiler firing type ------------
+# A crosswalk is used to create a boiler firing type variable, based on unit type. 
+# some units have more specific boiler firing types available in the 860 boiler info file
+# and these are used where available
 
-# Need to add intermediate dfs here to check for units that have matches in eia_860_boiler_info
-xtra_codes <- 
-  eia_860_boiler_info %>% 
-  select("ORIS Code" = "Plant Code",
-         "UNIT ID" = "Boiler ID",
-         `Firing Type 1`) %>%
-  inner_join(boiler_firing_type_xwalk,
-             by = c("Firing Type 1" = "EIA-860")) %>% 
-  select(`ORIS Code`, `UNIT ID`, eGRID)
+xwalk_botfirty <- read_csv("data/static_tables/boiler_firing_type_xwalk.csv")
+
+camd_5 <- 
+  camd_4 %>% 
+  left_join(xwalk_botfirty,
+            by = c("unit_type" = "CAMD/EPA")) %>% 
+  mutate(botfirty = eGRID) %>% 
+  select(-any_of(names(xwalk_botfirty)))
 
 
-BOTFIRTY_to_update <- 
-  `Unit File 3.5` %>% 
-  inner_join(xtra_codes,
-             by = c("ORIS Code", "UNIT ID")) %>% 
-  filter(BOTFIRTY %in% c("OTHER BOILER", "OTHER TURBINE", NA_character_)) %>%
-  select(`ORIS Code`, `UNIT ID`, eGRID)
+
+botfirty_to_update <- # matching with 860 data to see if more specific botfirty type exists
+  camd_5 %>% 
+  select(plant_id, unit_id, botfirty) %>% 
+  filter(botfirty %in% c("OTHER BOILER", "OTHER TURBINE", NA_character_)) %>% 
+  left_join(eia_860$boiler_info_design_parameters %>% 
+              select(plant_id,
+                     "unit_id" = boiler_id,
+                     firing_type_1)) %>%
+  left_join(xwalk_botfirty %>% select(`EIA-860`, eGRID) %>% filter(!is.na(`EIA-860`)),
+            by = c("firing_type_1" = "EIA-860")) %>% 
+  filter(!is.na(eGRID)) %>% 
+  select(plant_id, unit_id, eGRID)
 
 
-`Unit File 4` <- # updating BOTFIRTY for Units that have more accurate BOTFIRTY info in 860
-  `Unit File 3.5` %>% 
-  left_join(BOTFIRTY_to_update,
-            by = c("ORIS Code", "UNIT ID")) %>% 
-  mutate(BOTFIRTY = if_else(!is.na(eGRID), eGRID, BOTFIRTY)) %>% 
-  select(any_of(unit_columns))
+camd_6 <- # updating units where available
+  camd_5 %>% 
+  left_join(botfirty_to_update) %>% 
+  mutate(botfirty = if_else(!is.na(eGRID), eGRID, botfirty)) %>% 
+  select(-eGRID) 
 
 
 
