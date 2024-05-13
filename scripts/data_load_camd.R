@@ -39,7 +39,7 @@ bulk_files <- fromJSON(rawToChar(res$content))
 facility_path <- 
   bulk_files %>% 
   unnest(cols = metadata) %>% 
-  filter(year == 2021,
+  filter(year == Sys.getenv("eGRID_year"),
          dataType == "Facility" ) %>% 
   pull(s3Path)
 
