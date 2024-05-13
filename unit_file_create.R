@@ -179,250 +179,78 @@ camd_6 <- # updating units where available
 
 
 
-
-## CAMD Ozone season reporters ----------
+## Gap fill CAMD ozone season reporters with EIA data ----------
 
 # a.	Some CAMD plants are “ozone season reporters” – which means that they only report data during the ozone season, which is May to September each year. 
 # b.	These plants are listed in the CAMD data with a frequency variable of “OS” instead of “Q” (quarterly)
 # c.	We gap fill the missing months (January, February, March, April, October, November, and December) with EIA data. 
 
 
-`CAMD ozone season reporters` <- # 2u028 - getting all OS reporters
-  `Unit File 4` %>% 
-  inner_join(camd_r,
-             by = c("UNIT ID", "ORIS Code")) %>%
-  remove_suffix() %>% 
-  filter(`Reporting Frequency` == "OS",
-         `ORIS Code` < 80000,
-         !is.na("Heat Input (mmBtu)"))  %>% 
-  rename(`Oz Seas SO2 Mass` = `OS SO2 Mass emissions (tons)`,
-         `Oz Seas CO2 Mass` = `OS CO2 Mass emissions (tons)`)
+### Gap fill heat input for OS reporters --------------
 
 
-
-`CAMD ozone season reporters - heat input and emissions to update` <- #2u029 
-  `CAMD ozone season reporters` %>% 
-  mutate(`Fuel Type` = NA_character_,
-         `Heat Input non-oz` = NaN,
-         CO2 = NaN,
-         NOx = NaN,
-         SO2 = NaN,
-         `Heat input source` = NA_character_,
-         `CO2 source` = NA_character_,
-         `NOx source` = NA_character_,
-         `SO2 source` = NA_character_) %>% 
-  distinct(`ORIS Code`,
-           `UNIT ID`,
-           `State`,
-           `Fuel Type`,
-           `Heat Input non-oz`,
-           CO2,
-           NOx,
-           SO2,
-           `Heat input source`,
-           `CO2 source`,
-           `NOx source`,
-           `SO2 source`,
-           BOTFIRTY,
-           `PrimeMover`,
-           `Oz Seas Heat Input`,
-           `Oz Seas NOx Mass`,
-           `Oz Seas SO2 Mass`,
-           `Oz Seas CO2 Mass`) 
+camd_oz_reporter_plants <- # getting list of plant ids that include ozone season reporters. Note that some plants include both OS only and OS and Annual reporters.
+  camd_6 %>% 
+  filter(reporting_frequency == "OS") %>% 
+  pull(plant_id)
 
 
-# Identify which plants have units that are all OS reporters and which are a mix of OS and Q reporters
-
-AandQ_reporters_list <- # 2u031a-2u031e: creating vector of IDS for plants that report both OS and Q
-  camd_r %>% 
-  filter(`ORIS Code` %in% `CAMD ozone season reporters`$`ORIS Code`) %>% 
-  select(`ORIS Code`, `UNIT ID`, `Reporting Frequency`) %>% 
-  count(`ORIS Code`,`Reporting Frequency`) %>% 
-  count(`ORIS Code`) %>% 
-  filter(n > 1) %>% 
-  pull(`ORIS Code`)  
+# camd_oz_q_reporters <- # not sure this is necessary to identify. Commenting out for now
+#   camd_6 %>% 
+#   count(plant_id, reporting_frequency) %>% 
+#   count(plant_id) %>% 
+#   filter(n > 1) %>% 
+#   pull(plant_id) %>%
+#   unique(.)
 
 
-`CAMD ozone season reporters - plants w/ annual and OZ reporters` <- # 2u031e-2u031f
-  camd_r %>% 
-  filter(`ORIS Code` %in% AandQ_reporters_list) %>% 
-  select(`Reporting Frequency`,
-         `State`,
-         `Facility Name`,
-         `ORIS Code`,
-         `UNIT ID`) %>% # 2u031f add PM, but not clear why this can't be included here
-  left_join(`Unit File 4` %>% 
-              select(`UNIT ID`, "PrimeMover", "ORIS Code"),
-            by = c("UNIT ID", "ORIS Code"))
-
-# 2u031i: Grouping OS and Q reporters by ORIS and PM.
-`Plants with annual and oz - grouped ORIS` <-  
-  `CAMD ozone season reporters - plants w/ annual and OZ reporters` %>% 
-  distinct(`ORIS Code`, `PrimeMover`)
-
-# distributing heat input for plants with both OS and Q reporters: 2u032-
-
-# 2u035
-
-# setting ozone and non-ozone months for heat input
-nonoz_heat <- c("TOTJAN", "TOTFEB", "TOTMAR", "TOTAPR", "TOTOCT","TOTNOV","TOTDEC")
-oz_heat <- c("TOTMAY", "TOTJUN", "TOTJUL", "TOTAUG", "TOTSEP") 
-
-# getting ozone and non ozone total from 923
-`Plants with annual and oz - 923 heat input` <- # 2u035
-  eia_923_gen_fuel %>% 
-  select(PSTATEABB,
-         PNAME,
-         ORISPL,
-         PRMVR,
-         TOTFCONS,
-         all_of(nonoz_heat),
-         all_of(oz_heat)) %>% 
-  inner_join(`Plants with annual and oz - grouped ORIS`,
-             by = c("ORISPL" = "ORIS Code", "PRMVR" = "PrimeMover")) %>% 
-  mutate(tot_nonoz = rowSums(pick(nonoz_heat), na.rm = TRUE),
-         tot_oz = rowSums(pick(oz_heat), na.rm = TRUE)) %>%
-  group_by(PSTATEABB, PNAME, ORISPL, PRMVR) %>% # not sure if this should be grouped by prime mover or not
-  summarize(`Non-oz hti` = sum(tot_nonoz, na.rm = TRUE),
-            `oz hti` = sum(tot_oz, na.rm = TRUE),
-            `SumOfTotal Fuel ConsumptionMMBtu` = sum(TOTFCONS, na.rm = TRUE)) %>% 
-  arrange(ORISPL) %>% 
-  rename("PrimeMover" = PRMVR)
+camd_oz_reporters <- # creating dataframe with all plants and associated units that include "OS" reporters.
+  camd_6 %>%
+  filter(plant_id %in% camd_oz_reporter_plants)
 
 
-`Plants with annual and CAMD annual sum` <- #2u036
-  `Plants with annual and oz - grouped ORIS` %>% 
-  inner_join(`Unit File 4`, 
-             by = c("ORIS Code", "PrimeMover")) %>%
-  group_by(`ORIS Code`, `PrimeMover`) %>% 
-  summarize(`SumOfAnnual Heat Input` = sum(`Annual Heat Input`))
+### summing heat input values in the 923 gen and fuel file. These totals will be used to distribute heat for the non-ozone months in the camd data.
+### We also add consumption totals here, which will be used later when estimating NOx emissions.
 
+heat_923_oz_months <- paste0("tot_mmbtu_", tolower(month.name)[5:9]) # creating vector of monthly heat columns for 923 gen and fuel
+heat_923_nonoz_months <- paste0("tot_mmbtu_", tolower(month.name)[c(1:4,10:12)]) # creating vector of monthly heat columns for 923 gen and fuel
+consum_923_nonoz_months <- paste0("quantity","_", tolower(month.name)[c(1:4,10:12)]) # creating vector of monthly consumption
+consum_923_oz_months <- paste0("quantity","_", tolower(month.name)[5:9])
 
-`Plants with annual and oz - diff in 923 and CAMD` <- #2u037
-  `Plants with annual and oz - 923 heat input` %>% 
-  inner_join(`Plants with annual and CAMD annual sum`,
-             by = c("ORISPL" = "ORIS Code", "PrimeMover")) %>% 
-  select(`ORIS Code` = ORISPL, 
-         PrimeMover, 
-         `923 hti` = "SumOfTotal Fuel ConsumptionMMBtu",
-         `CAMD hti` = "SumOfAnnual Heat Input",
-         `oz hti`) %>%
-  mutate(`Annual Diff` = `923 hti` - `CAMD hti`,
-         `Annual Diff without oz` = `Annual Diff` - `oz hti`) %>% 
-  select(-`oz hti`)
+eia_fuel_consum_pm <- # summing fuel and consum to pm level
+  eia_923$generation_and_fuel_combined %>%
+  mutate(unit_heat_nonoz = rowSums(pick(all_of(heat_923_nonoz_months)), na.rm = TRUE),
+         unit_heat_oz = rowSums(pick(all_of(heat_923_oz_months)), na.rm = TRUE),
+         unit_consum_nonoz = rowSums(pick(all_of(consum_923_nonoz_months)), na.rm = TRUE),
+         unit_consum_oz = rowSums(pick(all_of(consum_923_oz_months)), na.rm = TRUE)) %>%
+  group_by(plant_id, prime_mover) %>%
+  summarize(heat_input_nonoz_923 = sum(unit_heat_nonoz, na.rm = TRUE),
+            heat_input_oz_923 = sum(unit_heat_oz, na.rm = TRUE),
+            heat_input_ann_923 = sum(total_fuel_consumption_mmbtu, na.rm = TRUE), # consumption in mmbtus is referred to as "heat input"
+            fuel_consum_nonoz_923 = sum(unit_consum_nonoz, na.rm = TRUE),
+            fuel_consum_oz_923 = sum(unit_consum_oz, na.rm = TRUE),
+            fuel_consum_ann_923 = sum(total_fuel_consumption_quantity, na.rm = TRUE) # consumption in quantity is referred to as "fuel consumpsion"
+  )
 
-
-## Determine the ratio for distriubtion
-
-`Ratio to distribute - part 3 annual and oz` <- # 2u038c
-  `Unit File 4` %>% 
-  filter(`ORIS Code` %in% AandQ_reporters_list) %>% 
-  group_by(`ORIS Code`, 
-           `PrimeMover`,
-           `UNIT ID`,
-           BOTFIRTY) %>% 
-  summarize(`SumOfOz Seas Heat Input` = sum(`Oz Seas Heat Input`)) %>%
+camd_oz_reporters_dist <- 
+  camd_oz_reporters %>%
+  group_by(plant_id, prime_mover) %>% 
+  mutate(tot_heat_input = sum(heat_input, na.rm = TRUE)) %>%
+  left_join(eia_fuel_consum_pm, 
+            by = c("plant_id", "prime_mover")) %>% 
+  ungroup() %>%
+  #mutate(annual_heat_diff = heat_input_ann_923 - tot_heat_input) %>% # calculating annual heat difference # SB: This is old method, but I'm not sure this part works correctly or is necessary
+  #annual_heat_diff_wout_oz = annual_heat_diff - heat_input_oz_923) %>% # calculating difference - ozone month totals to get the leftover nonozone heat input
+  group_by(plant_id, prime_mover) %>% # sum to plant/pm/ for distributional proportion 
+  mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>%
   ungroup() %>% 
-  group_by(`ORIS Code`, `PrimeMover`) %>% 
-  mutate(`Tot SumOfOz Seas Heat Input` = sum(`SumOfOz Seas Heat Input`),
-         ratio = `SumOfOz Seas Heat Input` / `Tot SumOfOz Seas Heat Input`) 
-
-
-## ** need to check this, because big differences
-
-## Use ratio to distribute heat input
-`CAMD ozone season reporters - plants annual and oz hti distrib` <- # 2u038d & 2u039
-  `Ratio to distribute - part 3 annual and oz` %>%
-  inner_join(`Plants with annual and oz - diff in 923 and CAMD`,
-             by = c("ORIS Code", "PrimeMover")) %>% 
-  remove_suffix() %>% 
-  mutate(`Non-oz hti` = ratio * `Annual Diff without oz`) %>% 
-  filter(`Annual Diff without oz` > 0) %>% 
-  select(`ORIS Code`,
-         `UNIT ID`,
-         `PrimeMover`,
-         ratio,
-         `Annual Diff without oz`,
-         `Non-oz hti`
-  )  %>% 
-  mutate(`source_QandOS` = TRUE)
-
-
-## updating intermediate table with input values 
-`CAMD ozone season reporters - heat input and emissions to update 2` <- 
-  `CAMD ozone season reporters - heat input and emissions to update` %>% 
-  left_join(`CAMD ozone season reporters - plants annual and oz hti distrib` %>%
-              select(`ORIS Code`, `UNIT ID`, `Non-oz hti`, source_QandOS),
-            by = c("ORIS Code", "UNIT ID")) %>% 
-  remove_suffix() %>% 
-  mutate(`Heat input non-oz` = `Non-oz hti`,
-         `Heat input source` = if_else(source_QandOS == TRUE,
-                                       "EIA non-ozone season distributed and EPA/CAMD ozone season", 
-                                       `Heat input source`))
-
-
-# Distribute heat input to the OS only reporters - 2u040 - 
-
-
-nonoz_consum <- c("QJAN","QFEB","QMAR","QAPR","QOCT","QNOV","QDEC")
-
-`EIA 923 grouped by PM` <- #2u040 
-  eia_923_gen_fuel %>% 
-  rename(`PrimeMover` = PRMVR,
-         `ORIS Code` = ORISPL) %>% 
-  mutate(`Unit Heat Input non-oz` = rowSums(pick(all_of(nonoz_heat))),
-         `Unit Fuel consump non-oz` = rowSums(pick(all_of(nonoz_consum)))) %>%
-  group_by(`ORIS Code`,
-           `PrimeMover`,
-           FUELG1) %>% 
-  summarize(`Heat Input non-oz` = sum(`Unit Heat Input non-oz`),
-            `Fuel consump non-oz` = sum(`Unit Fuel consump non-oz`))
-
-
-OS_only_plants <- 
-  `CAMD ozone season reporters` %>% 
-  distinct(`ORIS Code`) %>% 
-  filter(!`ORIS Code` %in% `CAMD ozone season reporters - plants w/ annual and OZ reporters`$`ORIS Code` ) %>% 
-  pull()
-
-
-`EIA-923 Gen and Fuel hti non-ozone grouped to plant` <- #2u043 **there is a xwalk used, not sure why. And do we need PM here?
-  `EIA 923 grouped by PM` %>% 
-  filter(`ORIS Code` %in% OS_only_plants) %>% 
-  group_by(`ORIS Code`, `PrimeMover`) %>% 
-  summarize(`SumOfHeat Input non-oz` = sum(`Heat Input non-oz`),
-            `SumOfFuel consump non-oz` = sum(`Fuel consump non-oz`))
-
-# Determine ratio for distribution  
-
-`Ratio to distribute - all oz` <- # 2u034
-  `CAMD ozone season reporters` %>% 
-  filter(`ORIS Code` %in% OS_only_plants) %>%
-  group_by(`ORIS Code`, `PrimeMover`) %>% 
-  mutate(`Sum Oz Seas Heat Input` = sum(`Oz Seas Heat Input`)) %>% 
+  mutate(prop = heat_input_oz/sum_heat_input_oz) %>%  # determining distributional proportion
   ungroup() %>% 
-  mutate(ratio = `Oz Seas Heat Input`/`Sum Oz Seas Heat Input`) %>% 
-  select(`ORIS Code`, `UNIT ID`, `PrimeMover`, ratio, BOTFIRTY)
+  mutate(heat_input_nonoz = heat_input_nonoz_923 * prop, # distributing nonoz
+         heat_input = if_else(reporting_frequency == "Q", heat_input, heat_input_oz + heat_input_nonoz), # If unit is Q reporter, we use the heat input from CAMD. If OS reporter, we add distributed non-oz heat and ozone heat
+         heat_input_source = if_else(reporting_frequency == "Q", "EPA/CAMD", "EIA non-ozone season distributed and EPA/CAMD ozone season"))
 
-### Use ratio to distribute heat input 
 
-`CAMD ozone season reporters - heat input diff to distribute` <- # 2u044
-  `EIA-923 Gen and Fuel hti non-ozone grouped to plant` %>% 
-  inner_join(`Ratio to distribute - all oz`,
-             by = c("ORIS Code", "PrimeMover")) %>% 
-  mutate(`HTI non-oz to distribute` = `SumOfHeat Input non-oz` * ratio, 
-         source_OS = TRUE) %>% 
-  select(`ORIS Code`, `UNIT ID`, `PrimeMover`, `SumOfHeat Input non-oz`, ratio, `HTI non-oz to distribute`, source_OS)
-
-#### Update intermediate table
-
-`CAMD ozone season reporters - heat input and emissions to update 3` <- # 2u045b **creating second version for saftey
-  `CAMD ozone season reporters - heat input and emissions to update 2` %>% 
-  left_join(`CAMD ozone season reporters - heat input diff to distribute`,
-            by = c("ORIS Code", "UNIT ID", "PrimeMover")) %>% 
-  remove_suffix() %>% 
-  mutate(`Heat Input non-oz` = `HTI non-oz to distribute`,
-         `Heat input source` = if_else(source_OS == "TRUE", "EIA non-ozone season distributed and EPA/CAMD ozone season", `Heat input source`)) 
 
 
 # NOx emissions -------
