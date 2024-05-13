@@ -15,6 +15,7 @@ library(stringr)
 
 eia_860 <- read_rds("data/clean_data/eia_860_clean.RDS")
 eia_923 <- read_rds("data/clean_data/eia_923_clean.RDS")
+# note: eia-923 generation and fuel = generation_and_fuel_combined
 
 ## lower-level eGRID files ------------
 
@@ -38,11 +39,11 @@ clean_names <- # renaming column names to match naming conventions used in other
     "operating_hours" = "HRSOP",
     "heat_input" = "HTIAN",
     "heat_input_oz" = "HTIOZ",
-    "nox" = "NOXAN",
+    "nox_mass" = "NOXAN",
     "nox_oz" = "NOXOZ",
-    "so2" = "SO2AN",
-    "co2" = "CO2AN",
-    "hg" = "HGAN",
+    "so2_mass" = "SO2AN",
+    "co2_mass" = "CO2AN",
+    "hg_mass" = "HGAN",
     "heat_input_source" = "HTIANSRC",
     "heat_input_oz_source" = "HTIOZSRC",
     "nox_source" = "NOXANSRC",
