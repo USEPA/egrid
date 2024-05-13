@@ -57,174 +57,83 @@ eia_860 <- read_rds("data/clean_data/eia_860_clean.RDS")
 eia_923 <- read_rds("data/clean_data/eia_923_clean.RDS")
 
 
-# Cleaning CAMD file ----
+# Modifying CAMD data ---------
 
-## Updating fuel codes -----
+## Harmonizing fields with EIA ----------
 
-`Unit File 1`<- # 2u001a
-  camd_r %>% 
-  mutate(
-    "Sequence number" = NA_character_,
-    "PrimeMover" = NA_character_,
-    "BOTFIRTY" = NA_character_,
-    "NUMGEN" = NaN,
-    "HGCTLDV" = NA_character_,
-    "CAMDFLAG" = if_else(!is.na(`Program`), "Yes", NA_character_),
-    "Heat Input Source" = if_else(is.na(`Annual Heat Input`), NA_character_, "EPA/CAMD"),
-    "Heat Input OZ Source" = if_else(is.na(`Oz Seas Heat Input`), NA_character_, "EPA/CAMD"),
-    "NOx Source" = if_else(is.na(`Annual NOx Mass`), NA_character_, "EPA/CAMD"),
-    "NOx OZ Source" = if_else(is.na(`Oz Seas NOx Mass`), NA_character_, "EPA/CAMD"),
-    "SO2 Source" = if_else(is.na(`Annual SO2 Mass`), NA_character_, "EPA/CAMD"),
-    "CO2 Source" = if_else(is.na(`Annual CO2 Mass`), NA_character_, "EPA/CAMD"),
-    "Hg Source" = if_else(is.na(`Mercury Mass (lbs)`), NA_character_, "EPA/CAMD"),
-    "Year online" = lubridate::year(`Commercial Operation Date`)
-  ) %>% 
-  select(
-    "Sequence number", 
-    "Unit Type", ## needed for join with EIA crosswalk
-    "State", 
-    "Facility Name", 
-    "ORIS Code", 
-    "UNIT ID", 
-    "PrimeMover", 
-    "Op Status",  
-    "CAMDFLAG", 
-    "Program", 
-    "BOTFIRTY", 
-    "NUMGEN", 
-    "Fuel Type (Primary)", 
-    "Annual Sum Op Time",  
-    "Annual Heat Input",  
-    "Oz Seas Heat Input", 
-    "Annual NOx Mass", 
-    "Oz Seas NOx Mass", 
-    "Annual SO2 Mass", 
-    "Annual CO2 Mass", 
-    "Mercury Mass (lbs)",
-    "Heat Input Source", 
-    "Heat Input OZ Source", 
-    "NOx Source", 
-    "NOx OZ Source", 
-    "SO2 Source", 
-    "CO2 Source", 
-    "Hg Source", 
-    "SO2 Controls", 
-    "NOX Controls",
-    "HGCTLDV", 
-    "Year online"
-  ) %>% 
-  filter(!`Op Status` %in% c("Future", "Retired", "Long-term Cold Storage"),
-         `ORIS Code` < 80000) %>% # keeping only plant codes below 80000
-  mutate(CAMDFLAG = if_else(is.na(`Heat Input Source`) & `NOx Source` == "EPA/CAMD", "Yes", CAMDFLAG), #2u001c
-         Program = if_else(is.na(CAMDFLAG), NA_character_, Program)) %>% #2u001d
-  left_join(camd_eia_xwalk,
-            by = c("Unit Type" = "CAMD Unit Type")) %>% 
-  mutate(PrimeMover = if_else(is.na(PrimeMover), `EIA PM`, PrimeMover), #2u002
-         `Op Status` = case_when(
-           `Op Status` == "Operating" ~ "OP",
-           `Op Status` == "Retired" ~ "RE",
-           TRUE ~ NA_character_
-         )) %>% 
-  select(-c(`CAMD Unit Type Full Name`, `EIA PM`)) # removing unnecessary columns
+# vectors of unit types matched to their respective EIA prime mover values
+pm_st <- c("BFB", "C", "CB", "CFB", "DB", "DTF", "DVF", "IGC", "KLN", "OB", "PRH", "S", "T", "WBF", "WBT")
+pm_gt <- c("AF", "CT")
+pm_ct <- c("CC")
+pm_ot <- c("OT")
 
 
-# Identifying null plants 
-# ? ** looks like Access didn't handle certain missing values correctly (e.g., -00), so plants with annual values that included that aren't included
-
-`CAMD null plants` <-
-  `Unit File 1` %>% 
-  filter(`Op Status` == "OP") %>%
-  group_by(`ORIS Code`, `Op Status`) %>%
-  summarise(
-    `SumOfAnnual Heat Input` = sum(`Annual Heat Input`, na.rm = TRUE),
-    `SumOfOz Seas Heat Input` = sum(`Oz Seas Heat Input`, na.rm = TRUE),
-    `SumOfAnnual NOx Mass` = sum(`Annual NOx Mass`, na.rm = TRUE),
-    `SumOfOz Seas NOx Mass` = sum(`Oz Seas NOx Mass`, na.rm = TRUE),
-    `SumOfAnnual SO2 Mass` = sum(`Annual SO2 Mass`, na.rm = TRUE),
-    `SumOfAnnual CO2 Mass` = sum(`Annual CO2 Mass`, na.rm = TRUE),
-    `SumOfAnnual Sum Op Time` = sum(`Annual Sum Op Time`, na.rm = TRUE)) %>%
-  filter(
-    `SumOfAnnual Heat Input` == 0 | is.na(`SumOfAnnual Heat Input`),
-    `SumOfOz Seas Heat Input` == 0 | is.na(`SumOfOz Seas Heat Input`),
-    `SumOfAnnual NOx Mass` == 0 | is.na(`SumOfAnnual NOx Mass`),
-    `SumOfOz Seas NOx Mass` == 0 | is.na(`SumOfOz Seas NOx Mass`),
-    `SumOfAnnual SO2 Mass` == 0 | is.na(`SumOfAnnual SO2 Mass`),
-    `SumOfAnnual CO2 Mass` == 0 | is.na(`SumOfAnnual CO2 Mass`),
-    (`SumOfAnnual Sum Op Time` == 0 | is.na(`SumOfAnnual Sum Op Time`))
-  ) 
+camd_2 <- 
+  camd %>% 
+  mutate(prime_mover = case_when( # creating prime_mover based on mapping above
+    unit_type %in% pm_st ~ "ST",
+    unit_type %in% pm_gt ~ "GT",
+    unit_type %in% pm_ct ~ "CT",
+    unit_type %in% pm_ot ~ "OT",
+    TRUE ~ "EIA PM"),
+    operating_status = if_else(operating_status == "Operating", "OP", NA_character_) # Abbreviating operating status
+  )
 
 
-# Removing null plants from Unit File 
+### Updating fuel types ---------
 
-# `Unit File 2` <- # This step isn't happening in ACCESS..
-#   `Unit File 1` %>% 
-#   filter(!`ORIS Code` %in% `CAMD null plants`$`ORIS Code`)  # removing plants in null list
-
-unit_columns <- names(`Unit File 1`)
-
-# updating fuel types to eia codes for oil, other solid fuel, and coal # 2u007-2u025
+# updating fuel types to eia codes for oil, other solid fuel, and coal 
 # When there is match in 860, we take the eia fuel code. For non-matches, we check 923 genfuel file
 # and take the primary fuel from each plant (i.e., the fuel code of the plant/prime mover with the highest fuel consumption).
 # There are some left over, resulting from a) `UNIT ID` and GENID not matching and b) 0 fuel consumption values in the GenFuel file.
-# These cases may require individual updates once identified. 
-
-##:: the eia code comes from eia_860$ENERGY1
-# SB: Do any of these crosswalks need to be separate excel sheets or exist at all?
-# SB: So if not in 860, look in 923_genfuel
-
-
-`Unit File 2` <-
-  `Unit File 1` %>%
-  left_join(eia_860,
-            by = c("ORIS Code" = "ORISPL","Facility Name" =  "PNAME","State" = "PSTATABB", "UNIT ID" = "GENID")) %>%
-  mutate(`Unit primary fuel` = case_when(
-    `Fuel Type (Primary)` %in% c("Other Oil", "Other Solid Fuel", "Coal") ~ ENERGY1,
-    `Fuel Type (Primary)` == "Diesel Oil" ~ "DFO", # Check where this is coming from
-    `Fuel Type (Primary)` == "Natural Gas" ~ "NG",
-    `Fuel Type (Primary)` == "Pipeline Natural Gas" ~ "NG",
-    `Fuel Type (Primary)` == "Other Gas" ~ "OG",
-    `Fuel Type (Primary)` == "Petroleum Coke" ~ "PC",
-    `Fuel Type (Primary)` == "Process Gas" ~ "PRG",
-    `Fuel Type (Primary)` == "Residual Oil" ~ "RFO",
-    `Fuel Type (Primary)` == "Tire Derived Fuel" ~ "TDF",
-    `Fuel Type (Primary)` == "Coal Refuse" ~ "WC",
-    `Fuel Type (Primary)` == "Wood" ~ "WDS",
-    TRUE ~ NA_character_ )) %>%  
-  relocate(`Unit primary fuel`, .before = c(`Fuel Type (Primary)`)) %>% 
-  left_join(eia_923_gen_fuel %>%  # joining GenFuel, based on Max fuel consumption by plant
-              select(ORISPL, PRMVR, FUELG1, TOTFCONS) %>%
-              filter(TOTFCONS != 0) %>% # removing 0s, otherwise max will return multiple rows per plant.
-              group_by(ORISPL) %>%
-              slice_max(TOTFCONS, n = 1) %>%
-              select(ORISPL, FUELG1),
-            by = c("ORIS Code" = "ORISPL")) %>% 
-  mutate(`Unit primary fuel` = if_else(is.na(`Unit primary fuel`), FUELG1, `Unit primary fuel`)) %>%
-  select(all_of(unit_columns), `Unit primary fuel`) # selecting only columns that are in final unit file, as per Access steps
-
-# Identifying units with missing Unit primary fuel values 
-#? ** these don't return anything. Need to double check to make sure these steps are still needed 
-no_fuel <- 
-  `Unit File 2` %>% 
-  filter(is.na(`Unit primary fuel`)) 
-
-no_fuel_match860 <-
-  eia_860 %>% 
-  filter(ORISPL %in% no_fuel$`ORIS Code`) 
+# These cases may require individual updates once identified.
 
 
 
-# Manual update  for certain plants
+camd_3 <-
+  camd_2 %>%
+  left_join(eia_860$combined %>% # joining with 860_combined to get EIA primary fuel codes
+              distinct(plant_id, plant_name, generator_id, energy_source_1),
+            by = c("plant_id", "plant_name", "unit_id" = "generator_id")) %>% 
+  mutate(primary_fuel_type = case_when(
+    primary_fuel_type %in% c("Other Oil", "Other Solid Fuel", "Coal") ~ energy_source_1,
+    primary_fuel_type == "Diesel Oil" ~ "DFO",
+    primary_fuel_type == "Natural Gas" ~ "NG",
+    primary_fuel_type == "Pipeline Natural Gas" ~ "NG",
+    primary_fuel_type == "Other Gas" ~ "OG",
+    primary_fuel_type == "Petroleum Coke" ~ "PC",
+    primary_fuel_type == "Process Gas" ~ "PRG",
+    primary_fuel_type == "Residual Oil" ~ "RFO",
+    primary_fuel_type == "Tire Derived Fuel" ~ "TDF",
+    primary_fuel_type == "Coal Refuse" ~ "WC",
+    primary_fuel_type == "Wood" ~ "WDS",
+    TRUE ~ NA_character_ )) %>% 
+  left_join(eia_923$generation_and_fuel_combined %>%  # joining generation and fuel file, based on max fuel consumption by plant
+              select(plant_id, prime_mover, fuel_type, total_fuel_consumption_mmbtu) %>%
+              group_by(plant_id) %>%
+              slice_max(total_fuel_consumption_mmbtu, n = 1, with_ties = FALSE) %>% # identify fuel type associate with max fuel consumption by plant
+              select(plant_id, fuel_type),
+            by = c("plant_id")) %>% 
+  mutate(primary_fuel_type = if_else(is.na(primary_fuel_type), fuel_type, primary_fuel_type)) %>% # filling missing primary_fuel_types with 923 value
+  select(-fuel_type)
 
-`Unit File 3` <- 
-  `Unit File 2` %>% 
-  mutate(`Unit primary fuel` = case_when(
-    `ORIS Code` == 10075 & `UNIT ID` == "1" ~ "SUB" ,
-    `ORIS Code` == 10075 & `UNIT ID` == "2" ~ "SUB",
-    `ORIS Code` == 10849 & `UNIT ID` == "PB1" ~ "SUB" ,
-    `ORIS Code` == 10849 & `UNIT ID` == "PB2" ~ "SUB",
-    `ORIS Code` == 54748 & `UNIT ID` == "GT1" ~ "NG",
-    TRUE ~ `Unit primary fuel`
+camd_4 <- # These units require manual updates (Note: Need to check to see if this is required each year (SB 4/24/24))
+  camd_3 %>% 
+  mutate(primary_fuel_type = case_when(
+    plant_id == 10075 & unit_id == "1" ~ "SUB" ,
+    plant_id == 10075 & unit_id == "2" ~ "SUB",
+    plant_id == 10849 & unit_id == "PB1" ~ "SUB" ,
+    plant_id == 10849 & unit_id == "PB2" ~ "SUB",
+    plant_id == 54748 & unit_id == "GT1" ~ "NG",
+    TRUE ~ primary_fuel_type
   ))
+
+## identify units remaining with missing primary_fuel_types
+missing_fuel_types <- 
+  camd_4 %>% 
+  filter(is.na(camd_4$primary_fuel_type))
+
+print(glue::glue("{nrow(missing_fuel_types)} units having missing primary fuel types."))
 
 
 # Checking for missing after update
