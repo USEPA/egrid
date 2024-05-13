@@ -12,7 +12,8 @@ format:
     toc-location: left
     html-table-processing: none
     code-fold: true
-
+params:
+  eGRID_year: "2021"
 editor: visual
 project: 
   execute_dir: project
@@ -31,18 +32,11 @@ Before loading any data or beginning to construct the eGRID database, we install
 
 This project uses the `renv` package to ensure reproducibility. `renv` creates a copy of the R environment, including all installed libraries and their versions, used in the project. Upon opening the R project, `renv` will prompt users to run the command `renv::restore()`, which installs all necessary libraries.
 
-## Set eGRID year
+## Defining eGRID year
 
-Before raw data files are loaded, the eGRID year must be defined. By default, the year value is set to the most recent available year (i.e., the year for which all necessary data is available), which is currently set to 2022. To adjust this value, simply open the file `eGRID_year.txt`, change the year value, and save.
+The year of eGRID specified as the parameter "eGRID_year" within the YAML of the Quarto document. When a year value needs to be specified (e.g., when pulling relevant data from the CAMPD API), it is done so by calling `params$eGRID_year`.
 
-`set_eGRID_year.R` the year value defined in `eGRID_year.txt` in the system environment, which is used to define the year in subsequent scripts. Note that `set_eGRID_year.R` needs to be run even if `eGRID_year.txt` is not updated.
-
-```{r}
-#| label: set_eGRID_year
-#| file: "scripts/set_eGRID_year.R"
-```
-
-**Current year setting: `r Sys.getenv("eGRID_year")`**
+**Current year setting: `r params$eGRID_year`**
 
 # Loading Data
 
@@ -61,6 +55,8 @@ As of 2024, the EIA API does not contain the most detailed data available, which
 ```
 
 The tables within EIA Files and Sheets display each of the unzipped raw files across the three EIA forms, including the sheets embedded within.
+
+
 
 
 ```{r}
@@ -457,6 +453,10 @@ purrr::iwalk(tabs_861, ~ {
 
 ```
 
+## Combining EIA sources 
+
+
+
 ```{r}
 #| label: generator_file_table
 #| include: false
@@ -557,6 +557,10 @@ generator_file %>%
 
 
 # Unit File 
+
+
+
+# Plant File 
 
 
 

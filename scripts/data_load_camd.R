@@ -39,7 +39,7 @@ bulk_files <- fromJSON(rawToChar(res$content))
 facility_path <- 
   bulk_files %>% 
   unnest(cols = metadata) %>% 
-  filter(year == Sys.getenv("eGRID_year"),
+  filter(year == params$eGRID_year,
          dataType == "Facility" ) %>% 
   pull(s3Path)
 
@@ -57,7 +57,7 @@ emissions_files <-
   tidyr::unnest(cols = metadata) %>% 
   filter(dataType == "Emissions",
          dataSubType == "Daily",
-         year == Sys.getenv("eGRID_year"),
+         year == params$eGRID_year,
          !is.na(quarter)) %>% # this identifies quarterly aggregations
   mutate(file_path = paste0(bucket_url_base,s3Path)) 
 
@@ -118,7 +118,7 @@ mats_files <-
   bulk_files %>% 
   tidyr::unnest(cols = metadata) %>% # unnesting bulk data for easier filtering
   filter(dataType == "Mercury and Air Toxics Emissions (MATS)", # only MATS data
-         year == Sys.getenv("eGRID_year"), # setting year
+         year == params$eGRID_year, # setting year
          dataSubType == "Hourly") %>% # Hourly data contains the quarterly aggregations
   mutate(file_path = paste0(bucket_url_base,s3Path)) # creating file path for reading in data
 
