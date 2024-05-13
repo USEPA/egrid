@@ -1,83 +1,61 @@
 
-#-----------------------------------------------------------------------------------
-# Info ----
 
-# Author(s): Sean Bock, Abt Associates
-# Date created: 7/11/2023
-# Description:
-# Updates: 
-
-#------------------------------------------------------------------------------------
-
-# Libraries ----
+# Load libraries  ----
 
 
 library(dplyr)
 library(tidyr)
 library(readr)
 library(readxl)
-library(writexl)
 library(stringr)
-library(here)
-library(glue)
-library(tidyplus)
-library(lubridate)
-
-source("scripts/generator_code.R") # running generator code first
-# Parameters -----
 
 
-# Function to remove duplicated columns from joins. 
-# This removes .y columns and removes .x suffix from remaining columns, thus keeping original columns from A df in join
-remove_suffix <- 
-  function(data) {
+# Load necessary data ------
+
+## camd ------
+camd_vars_to_keep <- 
+  c("year",
+    "plant_state",
+    "plant_name",
+    "plant_id",
+    "unit_id",
+    "operating_status",
+    "reporting_frequency",
+    "program_code",
+    "primary_fuel_type",
+    "unit_type" = "unit_type_abb",
+    "operating_hours" = "operating_time_count",
+    "heat_input" = "heat_input_mmbtu",
+    "heat_input_oz" = "heat_input_mmbtu_ozone",
+    "nox_mass" = "nox_mass_short_tons",
+    "nox_mass_oz" = "nox_mass_short_tons_ozone",
+    "so2_mass" = "so2_mass_short_tons",
+    "so2_mass_oz" = "so2_mass_short_tons_ozone",
+    "co2_mass" = "co2_mass_short_tons",
+    "hg_mass" = "hg_mass_lbs",
+    "heat_input_source",
+    "heat_input_oz_source",
+    "nox_source",
+    "so2_source",
+    "co2_source",
+    "hg_source",
+    "so2_controls",
+    "nox_controls",
+    "hg_controls",
+    "year_online"
     
-    data %>% 
-      select(-ends_with(".y"))  %>% 
-      rename_with(~ str_remove(.x, "\\.x"))
-    
-  }
-
-
-# Load data ---------
-
-## Not sure which variables I need at this point. 
-
-camd <- 
-  read_xlsx(glue("data/raw_data/EPA CAMD/2021/CAMD 2021 Data (10-12-2022).xlsx"),
-            sheet = "Export Worksheet")
-
-camd_r <-
-  camd %>% 
-  rename(
-    "ORIS Code" = "Orispl Code", 
-    "UNIT ID" = "Unit Id", 
-    "Op Status" = "Unit Op Status (AMPD)", 
-    "Program" = "Program Code", 
-    "Fuel Type (Primary)" = "Primary Fuel Type", 
-    "Annual Sum Op Time" = "Total Op Time",
-    "Annual Heat Input" = "Heat Input (mmBtu)", 
-    "Oz Seas Heat Input" = "OS Heat Input (mmBtu)", 
-    "Annual NOx Mass" = "NOx Mass emissions (tons)", 
-    "Oz Seas NOx Mass" = "OS NOx Mass emissions (tons)", 
-    "Annual SO2 Mass" = "SO2 Mass emissions (tons)", 
-    "Annual CO2 Mass" = "CO2 Mass emissions (tons)", 
-    "NOX Controls" = "NOx Controls"
   )
 
 
-camd_eia_xwalk <- read_xlsx("data/xwalks/camd_eia_PM_xwalk.xlsx")
+camd <- 
+  read_rds("data/clean_data/camd/camd_clean.RDS") %>%
+  select(all_of(camd_vars_to_keep)) # keeping only necessary variables
 
-boiler_firing_type_xwalk <- read_xlsx("data/xwalks/boiler_firing_type_xwalk.xlsx")
+## eia ------------
 
-eia_860_boiler_info <- read_excel("data/raw_data/EIA-860/2021/6_2_EnviroEquip_Y2021.xlsx", 
-                                  sheet = "Boiler Info & Design Parameters",
-                                  skip = 1)
+eia_860 <- read_rds("data/clean_data/eia_860_clean.RDS")
+eia_923 <- read_rds("data/clean_data/eia_923_clean.RDS")
 
-eia_923_gen_fuel <- read_rds("data/clean_data/eia_923_gen_fuel.RDS")
-
-# removing certain cases (112 rows removed)
-# file names are different? 
 
 # Cleaning CAMD file ----
 
