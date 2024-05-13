@@ -252,31 +252,29 @@ camd_oz_reporters_dist <-
 
 
 
+### Gap fill NOx emissions ozone season reporters -----------
 
-# NOx emissions -------
+#### NOx Rate ---------
 
-## Using NOx Rate ---------
-
-
-# *** need to add code to create NOx table here, or do it elsewhere..... ****
-
-`NOx rates` <- 
-  read_excel("data/raw_data/static_tables/NOx Rates.xlsx") %>% 
-  rename("ORIS Code" = `Plant ID`,
-         "UNIT ID" = "Boiler ID") %>% 
-  mutate(source_NOx = TRUE)
+# where available, NOx rates are used to estimates NOx emissions
 
 
-`CAMD ozone season reporters - heat input and emissions to update 4` <- # 2u047
-  `CAMD ozone season reporters - heat input and emissions to update 3` %>% 
-  left_join(`NOx rates` %>% 
-              select(`ORIS Code`, `UNIT ID`, `NOxRate`, source_NOx),
-            by = c("ORIS Code", "UNIT ID")) %>%
-  remove_suffix() %>% 
-  mutate(NOx = (`Heat Input non-oz` * NOxRate) / 2000,
-         `NOx source` = if_else(source_NOx == TRUE, 
-                                "Estimated based on unit-level NOx emission rates and EPA/CAMD ozone season emissions", 
-                                `NOx source`))
+nox_rates <- # calculating nox emission rates used to estimtae NOx emissions
+  eia_923$air_emissions_control_info %>% 
+  left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, boiler_id),
+            by = c("plant_id", "nox_control_id")) %>% 
+  group_by(plant_id, boiler_id) %>%
+  summarize(nox_rate_ann = max(nox_emission_rate_entire_year_lbs_mmbtu),
+            nox_rate_oz = max(nox_emission_rate_may_through_september_lbs_mmbtu)) 
+
+camd_oz_reporters_dist_nox_rates <- 
+  camd_oz_reporters_dist_combined %>%
+  inner_join(nox_rates,
+             by = c("plant_id", "unit_id" = "boiler_id")) %>%
+  mutate(nox_mass_nonoz = (heat_input_nonoz * nox_rate_ann)/ 2000, 
+         nox_mass = if_else(reporting_frequency == "OS", nox_mass + nox_mass_nonoz, nox_mass), # I think there should be a reporting frequency condition here. 
+         nox_source = if_else(is.na(nox_mass) | reporting_frequency == "Q", nox_source ,"Estimated based on unit-level NOx emission rates and EPA/CAMD ozone season emissions"))
+
 
 
 # Using NOx Ef  
