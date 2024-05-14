@@ -66,7 +66,7 @@ dfs_923 <- c(sched_2_3_4_5_m_12_dfs,
                 mutate(across(ends_with("id"), ~ as.character(.x)),
                        across(contains(c("capacity", "generation", "netgen")), ~ as.numeric(.x)),
                        across(starts_with(c("month", "year")), ~ as.character(.x)),
-                       across(ends_with(c("moth", "year")))) %>% 
+                       across(ends_with(c("month", "year")))) %>% 
                 filter(!if_all(everything(), is.na)))
 
 
