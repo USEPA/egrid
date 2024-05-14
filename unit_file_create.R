@@ -245,10 +245,11 @@ camd_oz_reporters_dist <-
   mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>%
   ungroup() %>% 
   mutate(prop = heat_input_oz/sum_heat_input_oz) %>%  # determining distributional proportion
+  filter(reporting_frequency == "OS") %>% # Annual reporting units can be removed now
   ungroup() %>% 
   mutate(heat_input_nonoz = heat_input_nonoz_923 * prop, # distributing nonoz
-         heat_input = if_else(reporting_frequency == "Q", heat_input, heat_input_oz + heat_input_nonoz), # If unit is Q reporter, we use the heat input from CAMD. If OS reporter, we add distributed non-oz heat and ozone heat
-         heat_input_source = if_else(reporting_frequency == "Q", "EPA/CAMD", "EIA non-ozone season distributed and EPA/CAMD ozone season"))
+         heat_input = heat_input_oz + heat_input_nonoz, # annual heat input =   distributed non-oz heat + ozone heat
+         heat_input_source = if_else(is.na(heat_input), "EPA/CAMD", "EIA non-ozone season distributed and EPA/CAMD ozone season"))
 
 
 
@@ -259,7 +260,7 @@ camd_oz_reporters_dist <-
 # where available, NOx rates are used to estimates NOx emissions
 
 
-nox_rates <- # calculating nox emission rates used to estimtae NOx emissions
+nox_rates <- # calculating nox emission rates used to estimate NOx emissions
   eia_923$air_emissions_control_info %>% 
   left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, boiler_id),
             by = c("plant_id", "nox_control_id")) %>% 
@@ -267,250 +268,73 @@ nox_rates <- # calculating nox emission rates used to estimtae NOx emissions
   summarize(nox_rate_ann = max(nox_emission_rate_entire_year_lbs_mmbtu),
             nox_rate_oz = max(nox_emission_rate_may_through_september_lbs_mmbtu)) 
 
-camd_oz_reporters_dist_nox_rates <- 
-  camd_oz_reporters_dist_combined %>%
+camd_oz_reporters_dist_nox_rates <- # filling annual nox mass with nox_rates where available
+  camd_oz_reporters_dist %>%
   inner_join(nox_rates,
              by = c("plant_id", "unit_id" = "boiler_id")) %>%
   mutate(nox_mass_nonoz = (heat_input_nonoz * nox_rate_ann)/ 2000, 
-         nox_mass = if_else(reporting_frequency == "OS", nox_mass + nox_mass_nonoz, nox_mass), # I think there should be a reporting frequency condition here. 
-         nox_source = if_else(is.na(nox_mass) | reporting_frequency == "Q", nox_source ,"Estimated based on unit-level NOx emission rates and EPA/CAMD ozone season emissions"))
+         nox_mass = nox_mass_nonoz + nox_mass_oz, # I think there should be a reporting frequency condition here. 
+         nox_source = if_else(is.na(nox_mass), nox_source ,"Estimated based on unit-level NOx emission rates and EPA/CAMD ozone season emissions"))
+
+nox_rates_ids <- # creating unique ids to filter out later
+  camd_oz_reporters_dist_nox_rates %>% 
+  mutate(id = paste0(plant_id,prime_mover,unit_id)) %>% 
+  pull(id)
+
+#### NOx Ef   -----------------
+
+emission_factors <- read_csv("data/static_tables/emission_factors.csv") # load in emission_factors data
 
 
+# Joining EFs df with camd ozone reporters to calculate non-ozone NOx mass
 
-# Using NOx Ef  
+camd_oz_reporters_dist_nox_ef <-
+  camd_oz_reporters_dist %>% 
+  filter(!paste0(plant_id,prime_mover,unit_id) %in% nox_rates_ids) %>% # removing units that were filled with nox_rates
+  left_join(emission_factors %>%
+              filter(nox_unit_flag == "PhysicalUnits") %>% # (SB: This doesn't happen in access but I think is necessary) 
+              select(prime_mover, botfirty, primary_fuel_type, nox_ef) %>% 
+              distinct()) %>% # there are duplicates based on other columns in the emission_factors data. Getting distinct rows.
+  mutate(fuel_consum_nonoz = fuel_consum_nonoz_923 * prop, # calculating distributed non-ozone fuel consumption (SB: Need to check if this needs to be calculated at a different level)
+         nox_mass_nonoz = fuel_consum_nonoz * nox_ef/2000,
+         nox_mass = nox_mass_oz + nox_mass_nonoz,
+         nox_source = if_else(is.na(nox_mass), "EPA/CAMD", "Estimated using emissions factor and EIA data for non-ozone season and EPA/CAMD ozone season emissions")) 
 
+# Combing two dataframes with distributed annual NOx mass to join back with rest of CAMD
 
-`923 fuel consumption for ozone season reporters` <- #2u048a
-  `CAMD ozone season reporters` %>% 
-  distinct(`ORIS Code`, `Reporting Frequency`) %>% 
-  inner_join(eia_923_gen_fuel,
-             by = c("ORIS Code" = "ORISPL")) %>% 
-  mutate(`Non-oz consump` = rowSums(pick(all_of(nonoz_consum)))) %>%
-  select(`ORIS Code`,
-         FUELG1,
-         "PrimeMover" = "PRMVR",
-         PHYSUNIT,
-         `Non-oz consump`,
-         TOTFCONSQ,
-         `Reporting Frequency`
-  ) 
+distinct_cols <- c("plant_id", "unit_id", "heat_input", "heat_input_source", "nox_mass", "nox_source")
 
+camd_oz_reporters_dist_final <- # combinging all distributed ozone season reporters and keeping only necessary columns 
+  camd_oz_reporters_dist_nox_rates %>% 
+  distinct(pick(distinct_cols)) %>%
+  bind_rows(camd_oz_reporters_dist_nox_ef %>% 
+              distinct(pick(distinct_cols)))
 
-## don't know exactly what's happening in 2u048b. It results in 257 rows in Access, which is bizarre
+print(glue::glue("There are {nrow(camd_oz_reporters_dist)} total OS reporting units. The dataframe with distributed values contains {nrow(camd_oz_reporters_dist_final)}"))
 
-`distribute fuel consump to ozone season units just oz` <- # 2u048b *Introduces some weird multiple matches*
-  `Ratio to distribute - all oz` %>% 
-  inner_join(`CAMD ozone season reporters - heat input and emissions to update 4` %>% 
-               select("UNIT ID", "ORIS Code"),
-             by = c("ORIS Code", "UNIT ID")) %>% 
-  inner_join(`923 fuel consumption for ozone season reporters` %>% 
-               select("ORIS Code", FUELG1, `PrimeMover`, PHYSUNIT, `Non-oz consump`, TOTFCONSQ),
-             by = c("ORIS Code", "PrimeMover")) %>% 
-  mutate(`Non-oz consump to distribute` = `Non-oz consump` * ratio) %>% 
-  select("ORIS Code",
-         "UNIT ID",
-         FUELG1,
-         BOTFIRTY,
-         `PrimeMover`,
-         `Non-oz consump to distribute`,
-         `PHYSUNIT`) 
+if(nrow(camd_oz_reporters_dist) < nrow(camd_oz_reporters_dist_final)) {
+  print(glue::glue("There are {nrow(camd_oz_reporters_dist)} total OS reporting units. The dataframe with distributed values contains {nrow(camd_oz_reporters_dist_final)}"))
+  
+  dupe_ids <- 
+  camd_oz_reporters_dist_final %>%
+    count(plant_id, unit_id, sort =  TRUE) %>% 
+    filter(n > 1) %>% 
+    mutate(plant_unit = glue::glue("Plant :{plant_id}, Unit: {unit_id}")) %>% 
+    pull(plant_unit) %>% 
+    str_c(., collapse = "\n")
+  
+  stop(glue::glue("There are more rows than there should be in the distributed dataframe. There are multiple rows for the following units: {\n dupe_ids}.\n Check for possible sources of duplicate unit_ids."))
+} else{
+  "The number of rows in the distrubted dataframe matches the total OS-reporting units."
+}
+  
 
+# Updating heat input and emissions for OS reporters in full CAMD dataframe
 
-`distribute fuel consump to ozone season units ann oz`<- # 2u048c 
-  `Ratio to distribute - part 3 annual and oz` %>% 
-  inner_join(`CAMD ozone season reporters - heat input and emissions to update 4` %>% 
-               select("UNIT ID", "ORIS Code"),
-             by = c("ORIS Code", "UNIT ID")) %>% 
-  inner_join(`923 fuel consumption for ozone season reporters` %>% 
-               select("ORIS Code", FUELG1, `PrimeMover`, PHYSUNIT, `Non-oz consump`, TOTFCONSQ),
-             by = c("ORIS Code", "PrimeMover")) %>% 
-  mutate(`Non-oz consump to distribute` = `Non-oz consump` * ratio) %>% 
-  select("ORIS Code",
-         "UNIT ID",
-         FUELG1,
-         BOTFIRTY,
-         `PrimeMover`,
-         `Non-oz consump to distribute`,
-         `PHYSUNIT`) 
-
-
-EFs <- read_excel("data/raw_data/static_tables/EFs.xlsx")
-
-
-`calculate NOx non ozone season emissions just oz` <- #2u049a
-  `distribute fuel consump to ozone season units just oz` %>% 
-  inner_join(EFs,
-             by = c("PrimeMover",
-                    "BOTFIRTY",
-                    "FUELG1" = "Fuel Type (Primary)")) %>% 
-  mutate(`NOx non-oz` = (`Non-oz consump to distribute` * NOxEF) / 2000) %>% 
-  select("ORIS Code",
-         "UNIT ID",
-         FUELG1,
-         BOTFIRTY,
-         PrimeMover,
-         `Non-oz consump to distribute`,
-         `NOx non-oz`,
-         PHYSUNIT,
-         NOxEFdenom) 
-
-
-`calculate NOx non ozone season emissions ann oz` <- #2u049c 
-  `distribute fuel consump to ozone season units ann oz` %>% 
-  inner_join(EFs,
-             by = c("PrimeMover",
-                    "BOTFIRTY",
-                    "FUELG1" = "Fuel Type (Primary)")) %>% 
-  mutate(`NOx non-oz` = (`Non-oz consump to distribute` * NOxEF) / 2000) %>% 
-  select("ORIS Code",
-         "UNIT ID",
-         FUELG1,
-         BOTFIRTY,
-         `PrimeMover`,
-         `Non-oz consump to distribute`,
-         `NOx non-oz`,
-         PHYSUNIT,
-         NOxEFdenom) 
-
-
-`sum NOx emissions to unit unit level for oz seas reporters` <- #2u050a
-  `calculate NOx non ozone season emissions just oz` %>% 
-  group_by(`ORIS Code`,
-           `UNIT ID`,
-           BOTFIRTY,
-           `PrimeMover`) %>% 
-  summarize(`SumOfNon-oz consump to distribute` = sum(`Non-oz consump to distribute`),
-            `SumOfNOx non-oz` = sum(`NOx non-oz`))
-
-`sum NOx emissions to unit unit level for oz seas reporters ann oz` <- #2u050c 
-  `calculate NOx non ozone season emissions ann oz` %>% 
-  group_by(`ORIS Code`,
-           `UNIT ID`,
-           BOTFIRTY,
-           `PrimeMover`) %>% 
-  summarize(`SumOfNon-oz consump to distribute` = sum(`Non-oz consump to distribute`),
-            `SumOfNOx non-oz` = sum(`NOx non-oz`))
-
-
-`CAMD ozone season reporters - NOx emissions to Update` <- # 2u051a Sum of annual NOx for ozone season reporters
-  `sum NOx emissions to unit unit level for oz seas reporters` %>% 
-  inner_join(`CAMD ozone season reporters`,
-             by = c("ORIS Code", "UNIT ID", "BOTFIRTY", "PrimeMover")) %>% 
-  mutate(`Annual NOx` = `SumOfNOx non-oz` + `Annual NOx Mass`,
-         source_annNOx = TRUE) %>% 
-  select(`ORIS Code`,
-         `UNIT ID`,
-         BOTFIRTY,
-         `PrimeMover`,
-         `Annual NOx`,
-         source_annNOx)
-
-# ? Not sure why these steps involve the joins & why the sums couldn't be done earlier
-`CAMD ozone season reporters - NOx emissions to Update ann oz` <- # 2u051c Sum of annual NOx for ozone season reporters ann oz
-  `sum NOx emissions to unit unit level for oz seas reporters ann oz` %>% 
-  inner_join(`CAMD ozone season reporters`,
-             by = c("ORIS Code", "UNIT ID", "BOTFIRTY", "PrimeMover")) %>% 
-  mutate(`Annual NOx` = `SumOfNOx non-oz` + `Annual NOx Mass`,
-         source_annozNOx = TRUE) %>% 
-  select(`ORIS Code`,
-         `UNIT ID`,
-         BOTFIRTY,
-         `PrimeMover`,
-         `Annual NOx`)
-
-# Combining tables needed for 2u052a-2u05c
-
-`CAMD ozone season reporters - NOx emissions to Update combined` <-
-  `CAMD ozone season reporters - NOx emissions to Update` %>%
-  bind_rows(`CAMD ozone season reporters - NOx emissions to Update ann oz`) %>%
-  mutate(source_NOxEF = TRUE)
-
-## ?* I don't understand what's happening here in access #2u052a
-
-# `CAMD ozone season reporters - heat input and emissions to update 6` <-
-#   `CAMD ozone season reporters - heat input and emissions to update 4` %>% 
-#   left_join(`CAMD ozone season reporters - NOx emissions to Update` %>% 
-#                ungroup() %>% 
-#                select("ORIS Code", "UNIT ID", "Annual NOx", source_annNOx),
-#             by = c("UNIT ID", "ORIS Code")) %>% 
-#   mutate(NOx = if_else(source_annNOx == TRUE, `Annual NOx`, NOx),
-#          `NOx source` = if_else(source_annNOx == TRUE, 
-#                                 "Estimated using emissions factor and EIA data for non-ozone season and EPA/CAMD ozone season emissions", 
-#                                 `NOx source`)) 
-
-# Updating the heat and emissions intermediate table
-
-
-
-`CAMD ozone season reporters - heat input and emissions to update 5` <- #2u052a & 2u052c
-  `CAMD ozone season reporters - heat input and emissions to update 4` %>% 
-  left_join(`CAMD ozone season reporters - NOx emissions to Update combined`,
-            by = c("ORIS Code", "UNIT ID")) %>%
-  remove_suffix() %>%
-  mutate(`NOx source` = if_else(source_NOxEF == TRUE, 
-                                "Estimated using emissions factor and EIA data for non-ozone season and EPA/CAMD ozone season emissions", 
-                                `NOx source`),
-         `NOx` = if_else(source_NOxEF == TRUE, `Annual NOx`, NOx),
-         source_updated = TRUE) %>% 
-  select(`ORIS Code`,
-         `UNIT ID`,
-         `State`,
-         `Fuel Type`,
-         `Heat Input non-oz`,
-         CO2,
-         NOx,
-         SO2,
-         `Heat input source`,
-         `CO2 source`,
-         `NOx source`,
-         `BOTFIRTY`,
-         `PrimeMover`,
-         `Oz Seas Heat Input`,
-         `Oz Seas NOx Mass`,
-         `Oz Seas SO2 Mass`,
-         `Oz Seas CO2 Mass`
-  ) 
-
-
-
-
-## Update the Unit file with the heat input and NOx emissions -----
-
-# Updating `Annual Heat Input`, `Oz Seas Heat Input`, `Heat Input Source`, 
-
-# `Annual heat input` =  If `Heat Input non-oz` is null, Oz Seas Heat Input, non-oz + oz 
-# Heat input source = if (heat input non-oz is null), "EPA/CAMD", Heat input source
-
-
-heat_and_NOx_to_add <- #  creating intermediate df for updating Unit File
-  `CAMD ozone season reporters - heat input and emissions to update 5` %>%
-  mutate(`Annual Heat Input` = if_else(is.na(`Heat Input non-oz`), `Oz Seas Heat Input`, `Heat Input non-oz` + `Oz Seas Heat Input`),
-         `Heat Input Source` = if_else(is.na(`Heat Input non-oz`), "EPA/CAMD", `Heat input source`),
-         `Annual NOx Mass` = if_else(is.na(NOx), `Oz Seas NOx Mass`, `NOx` + `Oz Seas NOx Mass`),
-         `NOx Source` = if_else(is.na(NOx),
-                                "EPA/CAMD",
-                                `NOx source`)) %>%
-  select(`ORIS Code`,
-         "UNIT ID",
-         `Annual Heat Input`,
-         `Heat Input Source`,
-         `Annual NOx Mass`,
-         `NOx Source`) %>% 
-  mutate(update = TRUE)
-
-
-## updating heat and NOx values
-`Unit File 5` <- # 2u053- 54
-  `Unit File 4` %>% 
-  left_join(heat_and_NOx_to_add,
-            by = c("ORIS Code", 
-                   "UNIT ID")) %>% 
-  mutate( `Annual Heat Input` = if_else(is.na(update), `Annual Heat Input.x`, `Annual Heat Input.y`), # .y values represent estimated values from heat_andNOx_to_add
-          `Heat Input Source` = if_else(is.na(update), `Heat Input Source.x`, `Heat Input Source.y`),
-          `Annual NOx Mass` = if_else(is.na(update), `Annual NOx Mass.x`, `Annual NOx Mass.y`),
-          `NOx Source` = if_else(is.na(update), `NOx Source.x`, `NOx Source.y`)) %>% 
-  select(any_of(unit_columns)) # removing unnecessary columns
-
+camd_7 <- # Updated with gap-filled OS reporters
+  camd_6 %>% 
+  rows_update(camd_oz_reporters_dist_final, # Updating os reporters with new distributed heat inputs, nox_mass, and the source variables for both
+              by = c("plant_id","unit_id"))
 
 
 # Add in EIA boilers (2u056a - 2u067b) ----------
