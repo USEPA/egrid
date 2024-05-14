@@ -336,176 +336,70 @@ camd_7 <- # Updated with gap-filled OS reporters
   rows_update(camd_oz_reporters_dist_final, # Updating os reporters with new distributed heat inputs, nox_mass, and the source variables for both
               by = c("plant_id","unit_id"))
 
+# Add in units (generators and boilers) from EIA -----------
 
-# Add in EIA boilers (2u056a - 2u067b) ----------
-
-eia_923_boilers <- 
-  read_excel("data/raw_data/EIA-923/2021/EIA923_Schedules_2_3_4_5_M_12_2021_Final.xlsx", 
-             sheet = "Page 3 Boiler Fuel Data", skip = 5) %>% 
-  rename_with( ~str_replace(.,"\r\n","")) %>%  # removing formatting characters 
-  mutate(across(starts_with(c("Quantity","MMbtu", "Sulfur", "Ash")), ~ as.numeric(.x)),
-         across(starts_with(c("Quantity","MMbtu", "Sulfur", "Ash")), ~ if_else(is.na(.x), 0, .x))) # Not sure this is good idea
+## Add in EIA boilers ----------
 
 eia_923_boilers <- 
+  eia_923$boiler_fuel_data %>% 
+  mutate(across( # calculating monthly unit heat input, based on correponding consumption and mmbtu_per_unit
+                .cols = starts_with("quantity_of_fuel_consumed_"),
+                .fns = ~ . * get(str_replace(cur_column(), "quantity_of_fuel_consumed_", "mmbtu_per_unit_")), # identifies corresponding mmbtu_per_unit and multiplies by quantity column
+                .names = "heat_input_{str_replace(.col, 'quantity_of_fuel_consumed_','')}"),
+         heat_input = rowSums(pick(all_of(starts_with("heat_input")))), # getting annual heat_input, summing across all monthly heat columns
+         heat_input_oz = rowSums(pick(all_of(paste0("heat_input_",tolower(month.name[5:9])))))) %>%  # summing across ozone months
+  select(plant_id, prime_mover, boiler_id, fuel_type, heat_input, heat_input_oz)  
+
+
+eia_923_boilers_grouped <- 
   eia_923_boilers %>% 
-  mutate(across(starts_with(c("Quantity","MMbtu", "Sulfur", "Ash")), ~ as.numeric(.x)),
-         across(starts_with(c("Quantity","MMbtu", "Sulfur", "Ash")), ~ if_else(is.na(.x), 0, .x))) # Not sure this is good idea
+  group_by(plant_id,
+           prime_mover,
+           fuel_type) %>% 
+  mutate(heat_input = sum(heat_input),
+         heat_input_oz = sum(heat_input_oz))
 
 
-`EIA boilers grouped` <- # 2u056a
+# read in co2 emissions table
+
+co2_ef <- 
+  read_csv("data/static_tables/co2_ch4_n2o_ef.csv")
+
+
+# Manually step that happens in Access: `FirstOfPrime Mover` = if_else(`FirstOfPrime Mover` == "CT" & `Plant Id` == "50973", "CA", `FirstOfPrime Mover`
+
+eia_923_boilers_heat_co2 <- 
   eia_923_boilers %>% 
-  group_by(`Plant Id`, 
-           `Boiler Id`,
-           `Plant Name`,
-           `Plant State`) %>% 
-  summarize(
-    `FirstOfPrime Mover` = first(`ReportedPrime Mover`), ## ?? *? It may make more sense to figure out main prime mover, or something. This results in arbitrary PM attached
-    HeatInput1 = sum(
-      `Quantity Of Fuel ConsumedJanuary` * `MMbtu Per UnitJanuary` + 
-        `Quantity Of Fuel ConsumedFebruary` * `MMbtu Per UnitFebruary` +
-        `Quantity Of Fuel ConsumedMarch` * `MMbtu Per UnitMarch` +
-        `Quantity Of Fuel ConsumedApril` * `MMbtu Per UnitApril` +
-        `Quantity Of Fuel ConsumedMay` * `MMbtu Per UnitMay` +
-        `Quantity Of Fuel ConsumedJune` * `MMbtu Per UnitJune` 
-    ),
-    HeatInput2 = sum(
-      `Quantity Of Fuel ConsumedJuly` * `MMbtu Per UnitJuly` +
-        `Quantity Of Fuel ConsumedAugust` * `MMbtu Per UnitAugust` +
-        `Quantity Of Fuel ConsumedSeptember` * `MMbtu Per UnitSeptember` +
-        `Quantity Of Fuel ConsumedOctober` * `MMbtu Per UnitOctober` +
-        `Quantity Of Fuel ConsumedNovember` * `MMbtu Per UnitNovember` +
-        `Quantity Of Fuel ConsumedDecember` * `MMbtu Per UnitDecember` 
-    ),
-    HeatInput = HeatInput1 + HeatInput2,
-    HeatInputOZ = sum(
-      `Quantity Of Fuel ConsumedMay` * `MMbtu Per UnitMay` +
-        `Quantity Of Fuel ConsumedJune` * `MMbtu Per UnitJune` +
-        `Quantity Of Fuel ConsumedJuly` * `MMbtu Per UnitJuly` +
-        `Quantity Of Fuel ConsumedAugust` * `MMbtu Per UnitAugust` +
-        `Quantity Of Fuel ConsumedSeptember` * `MMbtu Per UnitSeptember` 
-    )
-  )    
+  left_join(co2_ef %>% 
+              select(eia_fuel_code, co2_ef),
+            by = c("fuel_type" = "eia_fuel_code")) %>% 
+  mutate(co2_emissions = heat_input * co2_ef) %>% 
+  group_by(plant_id, prime_mover, boiler_id) %>% 
+  summarize(heat_input = sum(heat_input),
+            heat_input_oz = sum(heat_input_oz),
+            co2_emissions = sum(co2_emissions)) 
+
+# We only want to keep 923 boilers that are: 
+# 1) from plants that are not already in CAMD
+# 2) matches in the EIA-860 combined file
+# 3) matches to plant/gen_id in the eia-860 combined
+
+# getting vectors of ids for 860 tables to filter on
+eia_860_boil_gen_ids <- eia_860$boiler_generator %>% mutate(id = paste0(plant_id, boiler_id)) %>% pull(id)
+eia_860_combined_ids <- eia_860$combined %>% mutate(id = paste0(plant_id, generator_id)) %>% pull(id)
 
 
-`Group CAMD by ORIS` <- # 2u056b
-  camd_r %>% 
-  distinct(`ORIS Code`, 
-           `Facility Name`,
-           State)
 
+eia_boilers_to_add <- 
+  eia_923_boilers_heat_co2 %>% 
+  mutate(id = paste0(plant_id, boiler_id)) %>%
+  filter(!plant_id %in% camd_7$plant_id) %>% 
+  filter(id %in% eia_860_boil_gen_ids | id %in% eia_860_combined_ids)
 
-`EIA boilers grouped by fuel type` <- # 2u057
-  eia_923_boilers %>% 
-  group_by(`Plant Id`, 
-           `Boiler Id`,
-           `Plant Name`,
-           `Plant State`,
-           `ReportedFuel Type Code`) %>% 
-  summarize(
-    `FirstOfPrime Mover` = first(`ReportedPrime Mover`), ## ?***not sure if this is correct, because it removes primes movers** Ask Marissa about this in future
-    HeatInput1 = sum(
-      `Quantity Of Fuel ConsumedJanuary` * `MMbtu Per UnitJanuary` + 
-        `Quantity Of Fuel ConsumedFebruary` * `MMbtu Per UnitFebruary` +
-        `Quantity Of Fuel ConsumedMarch` * `MMbtu Per UnitMarch` +
-        `Quantity Of Fuel ConsumedApril` * `MMbtu Per UnitApril` +
-        `Quantity Of Fuel ConsumedMay` * `MMbtu Per UnitMay` +
-        `Quantity Of Fuel ConsumedJune` * `MMbtu Per UnitJune` 
-    ),
-    HeatInput2 = sum(
-      `Quantity Of Fuel ConsumedJuly` * `MMbtu Per UnitJuly` +
-        `Quantity Of Fuel ConsumedAugust` * `MMbtu Per UnitAugust` +
-        `Quantity Of Fuel ConsumedSeptember` * `MMbtu Per UnitSeptember` +
-        `Quantity Of Fuel ConsumedOctober` * `MMbtu Per UnitOctober` +
-        `Quantity Of Fuel ConsumedNovember` * `MMbtu Per UnitNovember` +
-        `Quantity Of Fuel ConsumedDecember` * `MMbtu Per UnitDecember` 
-    ),
-    HeatInput = HeatInput1 + HeatInput2,
-    HeatInputOZ = sum(
-      `Quantity Of Fuel ConsumedMay` * `MMbtu Per UnitMay` +
-        `Quantity Of Fuel ConsumedJune` * `MMbtu Per UnitJune` +
-        `Quantity Of Fuel ConsumedJuly` * `MMbtu Per UnitJuly` +
-        `Quantity Of Fuel ConsumedAugust` * `MMbtu Per UnitAugust` +
-        `Quantity Of Fuel ConsumedSeptember` * `MMbtu Per UnitSeptember` 
-    )
-  )   
+print(glue::glue("{nrow(eia_923_boilers_heat_co2) - nrow(eia_boilers_to_add)} EIA-923 boilers removed because:\n 
+                  1) plant_id is already in CAMD, or\n
+                  2) boiler does not match plant/boiler in EIA-860 files (EIA-860 Boiler Generator, EIA-860 Combined"))
 
-
-# ? `C02 CH4 N20 EF table` -- not sure where this comes from
-
-`C02 CH4 N20 EF table` <- 
-  read_excel("data/raw_data/static_tables/CO2 CH4 N2O EF table.xlsx")
-
-`923 boiler file CO2 emissions by fuel type` <- # 2u058
-  `C02 CH4 N20 EF table` %>% 
-  inner_join(`EIA boilers grouped by fuel type`,
-             by = c("EIA Fuel Code" = "ReportedFuel Type Code")) %>% 
-  mutate(`CO2 emissions` = HeatInput * `CO2 EF`) %>% 
-  select(`Plant Id`,
-         `Boiler Id`,
-         `Plant Name`,
-         `Plant State`,
-         `FirstOfPrime Mover`, ## ??again, not sure if this is correct
-         `Fuel Type`,
-         `CO2 emissions`) %>% 
-  mutate(`FirstOfPrime Mover` = if_else(`FirstOfPrime Mover` == "CT" & `Plant Id` == "50973", "CA", `FirstOfPrime Mover`)) %>% ## 2u058b
-  arrange(`Plant Id`, `Boiler Id`) 
-
-`boiler file CO2 emissions summed to boiler level` <- # 2u059
-  `EIA boilers grouped` %>% 
-  inner_join(`923 boiler file CO2 emissions by fuel type`,
-             by = c("Plant Id", 
-                    "Boiler Id", 
-                    "Plant Name",
-                    "Plant State",
-                    "FirstOfPrime Mover")) %>% 
-  group_by(`Plant Id`,
-           `Boiler Id`,
-           `Plant Name`,
-           `Plant State`,
-           `FirstOfPrime Mover`,
-           `HeatInput`,
-           `HeatInputOZ`) %>% 
-  summarize(SumOfCO2emissions = sum(`CO2 emissions`)) %>% 
-  mutate(id = paste0(`Plant Id`, "_", `Boiler Id`)) # creating unique ID for filtering later on
-
-`EIA-860 Operable` <-
-  read_excel("data/raw_data/EIA-860/2021/3_1_Generator_Y2021.xlsx",
-             sheet = "Operable", skip = 1)
-
-`EIA-860 Retired and Canceled` <-
-  read_excel("data/raw_data/EIA-860/2021/3_1_Generator_Y2021.xlsx",
-             sheet = "Retired and Canceled", skip = 1)
-
-`EIA-860 Combined` <-
-  `EIA-860 Operable` %>%
-  bind_rows(`EIA-860 Retired and Canceled` %>%
-              filter(`Retirement Year` == 2021)) %>%
-  mutate(id = paste0(`Plant Code`,"_",`Generator ID`)) # creating unique ID for subsequent filtering
-
-`EIA-860 Boiler Generator` <- 
-  read_excel("data/raw_data/EIA-860/2021/6_1_EnviroAssoc_Y2021.xlsx", 
-             sheet = "Boiler Generator", skip = 1)  %>% 
-  mutate(id_boiler = paste0(`Plant Code`,"_",`Boiler ID`),
-         id_gen = paste0(`Plant Code`,"_",`Generator ID`))
-
-`EIA boilers matched to generators` <- #2u060 #? # not sure if I need this step
-  `boiler file CO2 emissions summed to boiler level` %>% 
-  left_join(`EIA-860 Boiler Generator`,
-            by = c("Plant Id" = "Plant Code", "Boiler Id" = "Boiler ID")) %>% 
-  remove_suffix() %>% 
-  distinct(`Plant Id`,
-           `Boiler Id`,
-           `Plant Name`,
-           `Plant State`,
-           `FirstOfPrime Mover`,
-           `HeatInput`,
-           `HeatInputOZ`,
-           `SumOfCO2emissions`) %>% 
-  mutate(id = paste0(`Plant Id`,"_",`Boiler Id`))
-
-## 2u061 ? **This is the query that would always end up not actually changing anything. Skipping for now and flagging to ask about in the future.  
-
-# I think this ends up being same as results of 2u060-2u061
 
 
 ## Adding EIA boilers to unit file #2u061b
@@ -563,7 +457,7 @@ eia_923_boilers <-
 
 
 
-# Add in EIA generators (2u067 - 2u072) -----
+## Add in EIA generators (2u067 - 2u072) -----
 
 #*?? Something is going on here with the 860-combined table but not mentioned in instructions.
 # There is a list of generators to be added, but none of them end up in final Unit File. Skipping for 
