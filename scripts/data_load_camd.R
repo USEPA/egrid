@@ -155,15 +155,6 @@ mats_data_r <-
 
 ## joining facility, emissions, and MATS data --------
 
-# Custom function to coalesce .x and .y variables. Some units have NA values in one source for a variable that matches.
-# This function identifies the non-missing values and keeps that after join.
-coalesce_join_vars <- function(df) {
-  df %>%
-    mutate(across(ends_with(".x"), ~ coalesce(., get(str_replace(cur_column(), ".x$", ".y"))))) %>% # take .x column and find corresponding .y column and coalesce values. ".x$" ensures that ".x" is at the end of column name
-    rename_with(~ str_replace(., ".x$", ""), ends_with(".x")) %>% 
-    select(-ends_with(".y"))
-}
-
 
 camd_data_combined <- 
   facility_df %>% 
