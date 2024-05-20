@@ -336,7 +336,7 @@ camd_7 <- # Updated with gap-filled OS reporters
   rows_update(camd_oz_reporters_dist_final, # Updating os reporters with new distributed heat inputs, nox_mass, and the source variables for both
               by = c("plant_id","unit_id"))
 
-# Add in units (generators and boilers) from EIA -----------
+# Add in EIA units (generators and boilers) -----------
 
 ## Add in EIA boilers ----------
 
@@ -348,7 +348,7 @@ eia_923_boilers <-
                 .names = "heat_input_{str_replace(.col, 'quantity_of_fuel_consumed_','')}"),
          heat_input = rowSums(pick(all_of(starts_with("heat_input")))), # getting annual heat_input, summing across all monthly heat columns
          heat_input_oz = rowSums(pick(all_of(paste0("heat_input_",tolower(month.name[5:9])))))) %>%  # summing across ozone months
-  select(plant_id, prime_mover, boiler_id, fuel_type, heat_input, heat_input_oz)  
+  select(plant_id, plant_name, plant_state, prime_mover, boiler_id, fuel_type, heat_input, heat_input_oz)  
 
 
 eia_923_boilers_grouped <- 
@@ -371,15 +371,27 @@ co2_ef <-
 
 eia_923_boilers_heat_co2 <- 
   eia_923_boilers %>% 
-  
   left_join(co2_ef %>% 
               select(eia_fuel_code, co2_ef),
             by = c("fuel_type" = "eia_fuel_code")) %>% 
   mutate(co2_emissions = heat_input * co2_ef) %>% 
-  group_by(plant_id, prime_mover, boiler_id) %>% 
+  group_by(pick(starts_with("plant")), prime_mover, boiler_id) %>% 
   summarize(heat_input = sum(heat_input),
             heat_input_oz = sum(heat_input_oz),
             co2_emissions = sum(co2_emissions)) 
+
+## Determining primary fuel type for 923 boilers based on type of unit with max fuel consumption 
+
+primary_fuel_types_923_boilers <-  # this will be joined with final dataframe of boilers to be added 
+  eia_923_boilers_grouped %>% 
+  group_by(plant_id, boiler_id) %>%
+  slice_max(heat_input, # identifying row with highest heat input to get primary_fuel_type
+            n = 1, 
+            with_ties = FALSE) %>% # only retain first row
+  select(plant_id, 
+         boiler_id,
+         "primary_fuel_type" = fuel_type) %>% 
+  ungroup()
 
 # We only want to keep 923 boilers that are: 
 # 1) from plants that are not already in CAMD
@@ -387,151 +399,67 @@ eia_923_boilers_heat_co2 <-
 # 3) matches to plant/gen_id in the eia-860 combined
 
 # getting vectors of ids for 860 tables to filter on
-eia_860_boil_gen_ids <- eia_860$boiler_generator %>% mutate(id = paste0(plant_id, boiler_id)) %>% pull(id)
-eia_860_combined_ids <- eia_860$combined %>% mutate(id = paste0(plant_id, generator_id)) %>% pull(id)
+eia_860_boil_gen_ids <- eia_860$boiler_generator %>% mutate(id = paste0(plant_id, "_", boiler_id)) %>% pull(id)
+eia_860_combined_ids <- eia_860$combined %>% mutate(id = paste0(plant_id, "_", generator_id)) %>% pull(id)
 
 
 
 eia_boilers_to_add <- 
   eia_923_boilers_heat_co2 %>% 
-  mutate(id = paste0(plant_id, boiler_id)) %>%
-  filter(!plant_id %in% camd_7$plant_id) %>% 
-  filter(id %in% eia_860_boil_gen_ids | id %in% eia_860_combined_ids)
+  mutate(id = paste0(plant_id, "_", boiler_id)) %>%
+  filter(!plant_id %in% camd_7$plant_id) %>%  # removing boilers that are in plants in CAMD
+  filter(id %in% eia_860_boil_gen_ids | id %in% eia_860_combined_ids) %>%  # keeping only boilers that are in 860, under boiler or unit id
+  mutate(heat_input_source = "EIA Unit-Level Data",
+         heat_input_oz_source = "EIA Unit-Level Data",
+         co2_source = "Estimated using emissions factor") %>% 
+  left_join(primary_fuel_types_923_boilers) # adding primary fuel type as determined by fuel type of max heat input of boiler 
 
 print(glue::glue("{nrow(eia_923_boilers_heat_co2) - nrow(eia_boilers_to_add)} EIA-923 boilers removed because:\n 
                   1) plant_id is already in CAMD, or\n
-                  2) boiler does not match plant/boiler in EIA-860 files (EIA-860 Boiler Generator, EIA-860 Combined"))
+                  2) boiler does not match plant/boiler in EIA-860 files (EIA-860 Boiler Generator, EIA-860 Combined)"))
 
 
 
-## Adding EIA boilers to unit file #2u061b
+## Add in EIA generators -----
+
+### EIA-860 Generators ------
+# We add additional generators from the EIA-860 (combined file). 
+# We remove certain generators: 
+  # 1) Generators from plants already included from CAMD, unless it is a renewable EIA generator that is not included in CAMD
+  # 3) Generators that are included within eia 923 boilers. These are identified using the EIA-860 Boiler Generator file, which serves as a crosswalk between associated boiler and generator ids
+
+# creating unique ids for plant/boiler and plant/generator combos. These will be used to identify units already included from 923 boiler file 
+eia_860_boil_gen <- 
+  eia_860$boiler_generator %>%
+    mutate(id_gen = paste0(plant_id, "_", generator_id), # creating unique id for generator ids
+           id_boil = paste0(plant_id, "_", boiler_id)) # creating unique id for boiler id
+
+eia_860_gens_to_remove <-
+  eia_860_boil_gen %>%
+    filter(id_boil %in% eia_boilers_to_add$id) %>%
+    pull(id_gen)
 
 
-`EIA boilers to add to Unit File` <- # 2u061 & 2u062a ***there are NA values for Unit IDs in the 923 boiler file. Need to make these explicit
-  `boiler file CO2 emissions summed to boiler level` %>% # 923 boilers, all units
-  ungroup() %>% 
-  filter(!`Plant Id` %in% camd_r$`ORIS Code`, # removing units from plants in CAMD
-         (id %in% `EIA-860 Boiler Generator`$id_boiler) | (id %in% `EIA-860 Combined`$id)) %>% # plant/units matching in 860 Boiler Generator or EIA-860 Combined
-  select("ORIS Code" = `Plant Id`,
-         "UNIT ID" = `Boiler Id`,
-         "Facility Name" = `Plant Name`,
-         "State" = `Plant State`,
-         "PrimeMover" = `FirstOfPrime Mover`,
-         "Annual Heat Input" = `HeatInput`,
-         "Oz Seas Heat Input" = `HeatInputOZ`,
-         "Annual CO2 Mass" = `SumOfCO2emissions`,
-         id) %>% 
-  mutate(`Heat Input Source` = "EIA Unit-Level Data",
-         `Heat Input OZ Source` = "EIA Unit-Level Data",
-         `CO2 Source` = "Estimated using emissions factor") 
-
-
-
-## Determining primary fuel type for 923 boilers based on type of unit with max fuel consumption 
-## **? this is quite different than in access, so should spot check correct primary fuels.
-##**? Double check because I think there may be some duplicates added
-
-`Updated 923 fuel types` <- 
-  `EIA boilers grouped by fuel type` %>% 
-  group_by(`Plant State`, `Plant Name`, `Plant Id`, `Boiler Id`) %>%
-  slice_max(HeatInput, # identifying row with highest heat input
-            n = 1, 
-            with_ties = FALSE) %>% # setting this to match access, but need to figure out if this is what is wanted
-  ungroup() %>% 
-  select("ORIS Code" = `Plant Id`,
-         "UNIT ID" = `Boiler Id`,
-         "PrimeMover" = `FirstOfPrime Mover`,
-         `Fuel Type (Primary)` = `ReportedFuel Type Code`) 
-
-`EIA boilers to add to Unit File 2` <- # Adding primary fuel type to 923 boilers to add
-  `EIA boilers to add to Unit File` %>% 
-  left_join(`Updated 923 fuel types`,
-            by = c("ORIS Code", "UNIT ID", "PrimeMover")) 
-
-## ** Units with missing heat input values seem to be removed here** 12/13
-
-
-# Binding EIA boilers to unit file
-`Unit File 6` <-
-  `Unit File 5` %>%
-  bind_rows(`EIA boilers to add to Unit File 2` %>% 
-              select(-id))
-
-
-
-## Add in EIA generators (2u067 - 2u072) -----
-
-#*?? Something is going on here with the 860-combined table but not mentioned in instructions.
-# There is a list of generators to be added, but none of them end up in final Unit File. Skipping for 
-# now until we can get some clarity on what's happening in 2u067, 2u067b, 2u068, 2u069, and 2u069b
-
-## 2u067b is adding a ton of generators
-
-
-
-unit6_ids <- # creating list of unique ids already in unit file to remove from added generators
-  `Unit File 6` %>% 
-  mutate(id = paste0(`ORIS Code`, "_", `UNIT ID`)) %>% 
-  pull()
-
-
-gen860_ids <- # creating unique ID based on Generator to identify units that come from 860-combined
-  `EIA-860 Boiler Generator` %>%
-  mutate(id = paste0(`Plant Code`,"_",`Generator ID`),
-         match = if_else(`Boiler ID` == `Generator ID`, 1, 0)) %>% # identyfing cases where Boiler and Gen ids match to not include
-  filter(match == 0) %>% 
+# identify EIA renewable units from plants in CAMD. These will be excluded when filtering out CAMD plants below
+renewable_ids <- 
+  eia_860$combined %>% 
+  filter(plant_id %in% camd_7$plant_id, # only plants in CAMD
+         energy_source_1 %in% c("SUN", "WAT", "WND")) %>% # identifying renewable sources
+  mutate(id = paste0(plant_id, "_", generator_id)) %>%
   pull(id)
-
-
-
-# Finding units in 860 Boiler Generator File that were already added and finding their associated Gen Ids. Resutling plant/IDs will 
-# be removed from EIA-860 Combined before adding to Unit File. 
-
-`EIA Boilers matched to Generators 2` <- # This number of rows is too high
-  `EIA-860 Boiler Generator` %>% 
-  filter(id_boiler %in% `EIA boilers to add to Unit File 2`$id)
-
-
-
-`EIA generators to add to Unit File` <- #2u068 # 
-  `EIA-860 Combined` %>% # 24,872 units
-  filter(!`Plant Code` %in% camd_r$`ORIS Code`) %>%  # removing plants from CAMD. 20,007 units
-  filter(!id %in% unit6_ids) %>% # removing plant/unit combos already added to unit file. 19,737
-  filter(!id %in% `EIA Boilers matched to Generators 2`$id_gen) %>%  # 19,110 removing units already added based on associated generator IDs. About 100 off?
-  select(State,
-         "Facility Name" = `Plant Name`,
-         "ORIS Code" = `Plant Code`,
-         "UNIT ID" = `Generator ID`,
-         "PrimeMover" = `Prime Mover`,
-         "Fuel Type (Primary)" = `Energy Source 1`,
-         "Op Status" = Status,
-         id)
-
-
-`Unit File 7` <- # 2u068 adding generators. 24642 units total at this point.
-  `Unit File 6` %>% 
-  bind_rows(`EIA generators to add to Unit File` %>% 
-              select(-id))
-
-
-
-## Add in renewable EIA generators -----
-EIA_renewable_generators <- #2u072
-  `EIA-860 Combined` %>% 
-  filter(`Plant Code` %in% camd_r$`ORIS Code`,
-         `Energy Source 1` %in% c("SUN", "WAT", "WND")) %>% 
-  select(State,
-         `Plant Name`,
-         "ORIS Code" = `Plant Code`,
-         "UNIT ID" = `Generator ID`,
-         "PrimeMover" = `Prime Mover`,
-         "Fuel Type (Primary)" = `Energy Source 1`,
-         "Op Status" = Status)
-
-# Adding renewable generators to unit file
-`Unit File 8` <- #2u072
-  `Unit File 7` %>%
-  bind_rows(EIA_renewable_generators)
+  
+eia_860_generators_to_add <- 
+  eia_860$combined %>% 
+  mutate(id = paste0(plant_id, "_", generator_id)) %>% 
+  filter(!plant_id %in% camd_7$plant_id & !id %in% renewable_ids, # removing generators from plants in CAMD, unless it is a renewable generator
+         !id %in% eia_860_gens_to_remove)  %>%
+  select(plant_id, 
+         plant_state, 
+         generator_id, 
+         prime_mover,
+         "operating_status" = status,
+         "primary_fuel_type" = energy_source_1)
+  
 
 # Add in additional biomass units ------
 
