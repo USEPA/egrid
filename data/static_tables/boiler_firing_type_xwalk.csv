@@ -1,0 +1,26 @@
+CAMD full description,CAMD/EPA,EIA-860,eGRID,Description
+,,VF,VERTICAL/ARCH,Vertical or arch firing
+,,WF,WALL,Wall-fired
+Stoker,S,SS,STOKER,"Stoker, spreader, vibrating gate, or slinger boiler"
+,PRH,,PROCESS,Refinery process heater
+,ICE,,ENGINE,Internal combustion engine
+Combined cycle,CC,,CC,Combined cycle
+Dry bottom wall-fired boiler,DB,,WALL,Dry bottom wall-fired boiler
+Combustion turbine,CT,,CT,Comubstion turbine
+,,DB,DUCTBURNER,Duct burner
+Cement Kiln,KLN,,KILN,Cement Kiln
+Other boiler,OB,OT,OTHER BOILER,Other boiler
+Integrated gasification combined cycle,IGC,,IGC,Intergrated gasification combined cycle
+,AF,,ARCH,Arch-fired boiler
+Dry bottom vertically-fired boiler,DVF,,VERTICAL,Dry bottom vertically-fired boiler
+Circulating fluidized bed boiler,CFB,,FLUIDIZED,"Fluidized bed firing (circulating, bubbling, or pressurized fluidized bed)"
+Other turbine,OT,,OTHER TURBINE,Other turbine
+Dry bottom turbo-fired boiler,DTF,,TURBO,Dry bottom turbo-fired boiler
+,PFB,,FLUIDIZED,"Fluidized bed firing (circulating, bubbling, or pressurized fluidized bed)"
+Tangentially-fired,T,TF,TANGENTIAL,"Tangential, concentric, or corner fired boiler"
+Wet bottom wall-fired boiler,WBF,,WALL,Wet bottom wall-fired boiler
+Cell burner boiler,CB,CB,CELL,Cell burner boiler
+Wet bottom vertically-fired boiler,WVF,,VERTICAL,Wet bottom vertically-fired boiler
+Wet bottom turbo-fired boiler,WBT,,TURBO,Wet bottom tubo-fired boiler
+Bubbling fluidized bed boiler,BFB,FB,FLUIDIZED,"Fluidized bed firing (circulating, bubbling, or pressurized fluidized bed)"
+Cyclone boiler,C,CY,CYCLONE,Cyclone firing
