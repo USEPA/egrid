@@ -22,7 +22,34 @@ css: style.css # specific branding/styling can be added here
 
 # Overview
 
-This is a Quarto file that documents and runs the code necessary to create the eGRID database. Along with sequentially executing the necessary scripts used to create the database, the process is documented throughout, including built-in outputs (e.g., counts of rows, variable names, etc.) and QA steps. This document can be used in two ways: First, when used within an IDE, such as RStudio, it serves as an enhanced master script, allowing users to easily perform each step necessary to create the eGRID database from within a single file. Second, when viewing as a rendered file, it provides thorough documentation of the steps involved in creating eGRID. When rendered, this file provides additional information and tools for navigating the project. The table of contents (TOC) provides both a convenient look at the project structure and method for navigating the document. There are also hidden code chunks throughout, marked by a button ("Code" with an arrow next to it). Clicking this button reveals the underlying code from the R script that is being sourced in a given section.
+This project includes all necessary scripts and documentation to create the Emissions & Generation Resource Integrated Database (eGRID). 
+
+# Background
+
+eGRID is a comprehensive source of data from EPA's Clean Air Markets Division on the environmental characteristics of almost all electric power generated in the United States. The preeminent source of emissions data for the electric power sector, eGRID is based on available plant-specific data for all U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, but are not limited to, net electric generation; resource mix (for renewable and nonrenewable generation); mass emissions of carbon dioxide (CO2), nitrogen oxides (NOx), sulfur dioxide (SO2), methane (CH4), nitrous oxide (N2O), and mercury (Hg); emission rates for CO2, NOx, SO2, CH4, and N2O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for NOx) at different levels of aggregation.
+
+The data includes emissions, emission rates, generation, heat input, resource mix, and many other attributes. eGRID is typically used for greenhouse gas registries and inventories, carbon footprints, consumer information disclosure, emission inventories and standards, power market changes, and avoided emission estimates.
+
+The final eGRID database includes eight levels of data aggregation:
+
+-   Unit
+
+-   Generator
+
+-   Plant
+
+-   State
+
+-   Balancing authority
+
+-   eGRID subregion
+
+-   NERC region
+
+-   US
+
+## Using the .qmd file
+This is a Quarto (.qmd) file that documents and runs the code necessary to create the eGRID database. Along with sequentially executing the necessary scripts used to create the database, the process is documented throughout, including built-in outputs (e.g., counts of rows, variable names, etc.) and QA steps. This document can be used in two ways: First, when used within an IDE, such as RStudio, it serves as an enhanced master script, allowing users to easily perform each step necessary to create the eGRID database from within a single file. Second, when viewing as a rendered file, it provides thorough documentation of the steps involved in creating eGRID. When rendered, this file provides additional information and tools for navigating the project. The table of contents (TOC) provides both a convenient look at the project structure and method for navigating the document. There are also hidden code chunks throughout, marked by a button ("Code" with an arrow next to it). Clicking this button reveals the underlying code from the R script that is being sourced in a given section.
 
 # Install Libraries and Set Parameters
 
@@ -30,7 +57,13 @@ Before loading any data or beginning to construct the eGRID database, we install
 
 ## Install required libraries
 
-This project uses the `renv` package to ensure reproducibility. `renv` creates a copy of the R environment, including all installed libraries and their versions, used in the project. Upon opening the R project, `renv` will prompt users to run the command `renv::restore()`, which installs all necessary libraries.
+The script `install_libraries.R` detects all necessary libraries within the project using `renv::dependencies()`, checks for installation, and installs (if needed) and loads into the workspace. 
+
+```{r}
+#| label: install_libraries.R
+#| file: "scripts/install_libraries.R"
+```
+
 
 ## Defining eGRID year
 
@@ -84,106 +117,17 @@ library(dplyr)
 library(gt)
 library(gtExtras)
 
-# function to find all sheet names 
-get_sheets <- function(form){
-  
-  path <- glue::glue("data/raw_data/{form}")
-  
-  if(form != "860m") {
-    
-    files <- list.files(path)
-    
-    # Filter only Excel files
-    excel_files <- stringr::str_subset(files, ".xls|.xlsx")
-    
-    # read each sheet and store them in a list
-    sheet_data <- purrr::map(excel_files, ~ readxl::excel_sheets(glue::glue("{path}/{.x}")))
-    
-    # set names for each element based on file name
-    sheet_data_named <- setNames(sheet_data, excel_files)
-    
-    return(sheet_data_named)
-    
-  } else{
-    
-    sheet_data <- readxl::excel_sheets(glue::glue("{path}.xlsx"))
-    
-    return(sheet_data)
-    
-  }
-}
-
 
 sheets_923 <- get_sheets("923")
 sheets_860 <- get_sheets("860")
 sheets_861 <- get_sheets("861")
 sheets_860m <- get_sheets("860m")
 
-make_sheets_table <- function(sheets, form){
-  
-  if(form != "860m") {
-  
-      gt_table <- 
-        tibble(sheets) %>% 
-        mutate(File = names(sheets)) %>% 
-        relocate(File) %>%
-        tidyr::unnest(sheets) %>% 
-        rename(!!glue::glue("EIA-{form}") := sheets) %>%
-        group_by(File) %>% 
-        gt::gt() %>% 
-        gt::tab_style(
-          style = cell_text(weight = "bold"),
-          locations = cells_row_groups()
-        ) %>% 
-        gt::tab_style(
-          style = cell_text(size = 14, weight = "bold"),
-          locations = cells_column_labels()
-        )
-      
-      return(gt_table)
-      
-  } else{
-    
-      gt_table <- 
-        tibble(sheets) %>% 
-        # mutate(File = names(sheets)) %>% 
-        # relocate(File) %>%
-        # tidyr::unnest(sheets) %>% 
-        rename(!!glue::glue("EIA-{form}") := sheets) %>%
-        # group_by(File) %>% 
-        gt::gt() %>% 
-        gt::tab_style(
-          style = cell_text(weight = "bold"),
-          locations = cells_row_groups()
-        ) %>% 
-        gt::tab_style(
-          style = cell_text(size = 14, weight = "bold"),
-          locations = cells_column_labels()
-        )
-      
-      return(gt_table)
-    
-    
-  }
-  
-  }
-  
-  # highlight_rows <- function(table, colname, vars){
-  #    table %>% 
-  #     tab_style(style = list(
-  #       cell_fill(color = "skyblue")
-  #       ),
-  #       locations = cells_body(
-  #         rows = {{colname}} %in%  vars
-  #       ))
-  #   
-  #     
-  # }
 
- tab_923 <- make_sheets_table(sheets_923, "923") #%>% highlight_rows(., "EIA-923", "8B Financial Information"
- tab_860 <- make_sheets_table(sheets_860, "860")
- tab_861 <- make_sheets_table(sheets_861, "861")
- tab_860m <- make_sheets_table(sheets_860m, "860m")
+tab_923 <- make_sheets_table(sheets_923, "923") 
+tab_860 <- make_sheets_table(sheets_860, "860")
+tab_861 <- make_sheets_table(sheets_861, "861")
+tab_860m <- make_sheets_table(sheets_860m, "860m")
  
 ```
 
