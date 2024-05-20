@@ -1,5 +1,17 @@
 
+
+
 create_summary_table <- function(data) {
+  
+    #' create_summary_table
+    #' 
+    #' Takes a dataframe and returns a summary GT summary table, similar to what is produced with the glimpse function.
+    #' @param data A dataframe
+    #' @return GT table object
+    #' @example
+    #' create_summary_table(eia_923$generation_and_fuel_data)
+  
+  
     if(nrow(data) == 0 ){
       print("This dataframe is empty. No summary table to create.")
     } else {
