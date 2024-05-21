@@ -336,9 +336,9 @@ camd_7 <- # Updated with gap-filled OS reporters
   rows_update(camd_oz_reporters_dist_final, # Updating os reporters with new distributed heat inputs, nox_mass, and the source variables for both
               by = c("plant_id","unit_id"))
 
-# Add in EIA units (generators and boilers) -----------
+# Identify EIA units to add (generators and boilers) -----------
 
-## Add in EIA boilers ----------
+## EIA boilers ----------
 
 eia_923_boilers <- 
   eia_923$boiler_fuel_data %>% 
@@ -420,9 +420,8 @@ print(glue::glue("{nrow(eia_923_boilers_heat_co2) - nrow(eia_boilers_to_add)} EI
 
 
 
-## Add in EIA generators -----
+## EIA generators -----
 
-### EIA-860 Generators ------
 # We add additional generators from the EIA-860 (combined file). 
 # We remove certain generators: 
   # 1) Generators from plants already included from CAMD, unless it is a renewable EIA generator that is not included in CAMD
@@ -461,21 +460,15 @@ eia_860_generators_to_add <-
          "primary_fuel_type" = energy_source_1)
   
 
-# Add in additional biomass units ------
+# Include additional biomass units ------
 
-biomass_units_toadd <- 
-  read_excel("data/raw_data/static_tables/Biomass units to add to unit file.xlsx") %>%
-  select(State,
-         `Facility Name` = `Plant Name`,
-         `ORIS Code` = `Plant Code`,
-         `UNIT ID` = `Unit ID`,
-         `PrimeMover` = `Prime Mover`,
-         `Fuel Type (Primary)` = `Fuel Type`)
+# We include additional biomass units. This is a static table that is created each year after the plant file.
+# (SB: not sure if these should be added to EIA generators/boilers, or what)
 
+biomass_units <- 
+  read_csv("data/static_tables/biomass_units_to_add_to_unit_file.csv") %>%
+  rename("primary_fuel_type" = fuel_type)
 
-`Unit File 9`<-
-  `Unit File 8` %>%
-  bind_rows(biomass_units_toadd) ## adding additioanl biomass units to Unit File
 
 
 # Update fuel types where mismatch between EIA sources (2u073b)
