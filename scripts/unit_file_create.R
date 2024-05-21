@@ -458,7 +458,40 @@ eia_860_generators_to_add <-
          prime_mover,
          "operating_status" = status,
          "primary_fuel_type" = energy_source_1)
-  
+
+### Update fuel types where mismatch between EIA sources -----
+
+
+gen_fuel_types_to_update <- 
+  eia_923$generation_and_fuel_combined %>% 
+  group_by(plant_id) %>% 
+  slice_max(n = 1, total_fuel_consumption_quantity) %>% # identifying primary fuel
+  ungroup() %>%
+  filter(total_fuel_consumption_quantity !=0, # where max fuel isn't 0
+         !is.na(total_fuel_consumption_quantity)) %>% 
+  select(plant_id, total_fuel_consumption_quantity, fuel_type) %>% 
+  inner_join(
+    (eia_860_generators_to_add %>% # finding primary fuels in 860
+       select(plant_id,
+              generator_id,
+              fuel_type_860 = primary_fuel_type) %>%
+       group_by(plant_id) %>% 
+       mutate(n_gens = n()) %>% 
+       filter(n_gens == 1)), # only for plants with 1 generator
+    by = "plant_id") %>% 
+  mutate(diffs = if_else(fuel_type != fuel_type_860, TRUE, FALSE)) %>%  # identfying discrepencies
+  filter(diffs == TRUE) %>% 
+  mutate(primary_fuel_type = fuel_type) %>%
+  select(plant_id, 
+         generator_id, 
+         primary_fuel_type)
+
+# update primary fuel types 
+
+eia_860_generators_to_add_2 <- 
+  eia_860_generators_to_add %>%
+  rows_update(gen_fuel_types_to_update, # updating with new fuel codes
+            by = c("plant_id", "generator_id")) 
 
 # Include additional biomass units ------
 
@@ -468,42 +501,6 @@ eia_860_generators_to_add <-
 biomass_units <- 
   read_csv("data/static_tables/biomass_units_to_add_to_unit_file.csv") %>%
   rename("primary_fuel_type" = fuel_type)
-
-
-
-# Update fuel types where mismatch between EIA sources (2u073b)
-
-`Unit file generator fuel types to change` <-
-  eia_923_gen_fuel %>% 
-  group_by(ORISPL) %>% 
-  slice_max(n = 1, TOTFCONS) %>% # identifying primary fuel
-  filter(TOTFCONS !=0, # where max fuel isn't 0
-         !is.na(TOTFCONS)) %>% 
-  select(ORISPL, TOTFCONS, FUELG1 ) %>% 
-  inner_join(
-    (`EIA-860 Combined` %>% # finding primary fuels in 860
-       select(`Plant Code`,
-              `Generator ID`,
-              `Energy Source 1`) %>%
-       group_by(`Plant Code`) %>% 
-       mutate(n_gens = n()) %>% 
-       filter(n_gens == 1)), # only for plants with 1 generator
-    by = c("ORISPL" = "Plant Code")) %>% 
-  mutate(diffs = if_else(FUELG1 != `Energy Source 1`, TRUE, FALSE)) %>%  # identfying discrepencies
-  filter(diffs == TRUE) %>% 
-  mutate(update_fuel = TRUE) %>% 
-  select(`ORIS Code` = ORISPL, 
-         `UNIT ID` = `Generator ID`,
-         new_fueltype = `FUELG1`,
-         update_fuel)
-
-
-`Unit File 10` <- # updating Unit File | updating fuel types where mismatches between EIA
-  `Unit File 9` %>% 
-  left_join(`Unit file generator fuel types to change`,
-            by = c("ORIS Code", "UNIT ID")) %>%
-  mutate(`Fuel Type (Primary)` = if_else(is.na(update_fuel), `Fuel Type (Primary)`, new_fueltype)) %>% 
-  select(-c(new_fueltype, update_fuel))
 
 
 # DC CAMD plants (queries 2u074 through 2u077b) ----
