@@ -272,7 +272,8 @@ final_vars <-
 
 generators_formatted <-
   generators_edits %>%
-  distinct() %>% 
+  group_by(plant_id, generator_id, fuel_code) %>% 
+  slice(1) %>% # Some generators are duplicated due to combined_heat_and_power_plant field and associated differences in generatation value. This is short-term fix until confirmation on how to handle.
   arrange(plant_state, plant_name) %>% 
   mutate(seqgen = row_number(),
          across(c("cfact", "generation_ann", "generation_oz"), ~ round(.x, 3))) %>% 
