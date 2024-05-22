@@ -336,7 +336,7 @@ camd_7 <- # Updated with gap-filled OS reporters
   rows_update(camd_oz_reporters_dist_final, # Updating os reporters with new distributed heat inputs, nox_mass, and the source variables for both
               by = c("plant_id","unit_id"))
 
-# Identify EIA units to add (generators and boilers) -----------
+# Including EIA units (generators and boilers) -----------
 
 ## EIA boilers ----------
 
@@ -435,8 +435,10 @@ eia_860_boil_gen <-
 
 eia_860_gens_to_remove <-
   eia_860_boil_gen %>%
-    filter(id_boil %in% eia_boilers_to_add$id) %>%
-    pull(id_gen)
+  filter(id_boil %in% eia_boilers_to_add$id) %>%
+  pull(id_gen) %>%
+  c(.,eia_boilers_to_add$id) # adding additional units that are in eia_boilers but not in 860_boiler_generator file
+
 
 
 # identify EIA renewable units from plants in CAMD. These will be excluded when filtering out CAMD plants below
@@ -503,97 +505,72 @@ biomass_units <-
   rename("primary_fuel_type" = fuel_type)
 
 
-# DC CAMD plants (queries 2u074 through 2u077b) ----
+# Fill missing heat inputs for all units --------
 
-oz_months_923 <- c("TOTMAY", "TOTJUN", "TOTJUL", "TOTAUG", "TOTSEP")
+# Now we combine all units, and fill heat inputs where missing with various approaches
 
-# calculating heat ratio and distributed to heat for generators based on nameplate capacity using 923 and generator file.
+## Combine all units ------
 
+all_units <- # binding all units together, and adding a source column to track row origins
+  bind_rows((camd_7 %>% mutate(source = "CAMD")),
+            (eia_boilers_to_add %>% mutate(source = "923 boilers") %>% rename("unit_id" = boiler_id)),
+            (eia_860_generators_to_add_2 %>% mutate(source = "860 generators") %>% rename("unit_id" = generator_id)))
 
-`heat_sum_923` <- #2u074
-  eia_923_gen_fuel %>% 
-  group_by(PSTATEABB, PNAME, ORISPL, PRMVR) %>% 
-  mutate(heat_oz = rowSums(pick(oz_months_923))) %>%
-  summarize(HeatInput = sum(TOTFCONS),
-            HeatInputOZ = sum(heat_oz)
-  ) %>% 
-  arrange(ORISPL, PSTATEABB) %>% 
-  ungroup()
+units_missing_heat <- # creating separate dataframe of units with missing heat input to update
+  all_units %>% 
+  filter(is.na(heat_input))
 
 
+print(glue::glue("{nrow(units_missing_heat)} units with missing heat inputs to update."))
+
+## Update heat input with EIA prime-mover level data --------
+
+# We calculate a distributional proportion to distribute heat to generators based on nameplate capacity using 923 gen and fuel and generator file.
 
 # calculating ratio from generator file based on nameplate capacity to distribute heat
-gen_file <- 
-  read_excel("output/Generator_file.xlsx")
 
-ratio_for_distribution <- #2u077b
+gen_file <- # load generator file
+  read_rds("data/outputs/generator_file.RDS")
+
+
+dist_props_923 <- # determining distributional proportions to distribute heat 
   gen_file %>% 
-  filter(((GENSTAT %in% c("OP", "SB", "OS", "OA")) & (!is.na(GENNTAN) | GENNTAN != 0)) | (GENSTAT == "RE") & GENYRRET == 2021 & (!is.na(GENNTAN) | GENNTAN != 0)) %>% 
-  group_by(ORISPL, PRMVR, GENID, GENSTAT, GENYRRET) %>% 
-  mutate(sum_namecap = sum(NAMEPCAP),
-         sum_genntan = sum(GENNTAN)) %>% 
+  select(plant_id, prime_mover, generator_id, nameplate_capacity) %>%
+  group_by(plant_id, prime_mover) %>% 
+  mutate(sum_namecap = sum(nameplate_capacity)) %>%
   ungroup() %>% 
-  group_by(ORISPL, PRMVR) %>% 
-  mutate(sum_namecap_pm = sum(sum_namecap)) %>% 
-  mutate(ratio = sum_namecap/sum_namecap_pm) %>% # ? There is an if_else statement here about missing nameplate capacity involing 860--notsure why that file is invovled
-  #select(ORISPL, PRMVR, GENID, ratio, sum_genntan) %>% 
-  arrange(ORISPL)  %>% 
-  select(ORISPL, 
-         GENID,
-         PRMVR,
-         ratio,
-         "netgen" = sum_genntan)
+  mutate(proportion = nameplate_capacity/sum_namecap) %>% # ? There is an if_else statement here about missing nameplate capacity involing 860--notsure why that file is invovled
+  select(plant_id, prime_mover, generator_id, proportion)
 
+distributed_heat_input <- 
+  dist_props_923 %>% 
+  left_join(eia_fuel_consum_pm %>% select(plant_id, prime_mover, heat_input_ann_923, heat_input_oz_923)) %>% 
+  mutate(heat_input = proportion * heat_input_ann_923,
+         heat_input_oz = proportion * heat_input_oz_923) %>% 
+  select(plant_id, 
+         prime_mover, 
+         generator_id, 
+         heat_input, 
+         heat_input_oz) %>% 
+  filter(!is.na(heat_input), # keeping only heat inputs that aren't missing or aren't 0
+         heat_input != 0) 
+  
+
+units_heat_updated_pm_data <- # dataframe with units having heat input updated by 923 gen and fuel file
+  units_missing_heat %>% 
+  rows_update(y = distributed_heat_input %>% rename("unit_id" = generator_id, -prime_mover), # updating heat input and source columns where available
+              by = c("plant_id", "unit_id"),
+              unmatched = "ignore") %>% # ignore rows in distributed_heat_input that aren't in units_missing_heat
+  filter(!is.na(heat_input)) %>% 
+  mutate(heat_input_source = "EIA Prime Mover-level Data",
+         heat_input_oz_source = "EIA Prime Mover-level Data")
+
+print(glue::glue("{nrow(units_heat_updated_pm_data)} units updated with EIA Prime Mover-level Data. {nrow(units_missing_heat) - nrow(units_heat_updated_pm_data)} with missing heat input remain."))
 
 
 # 2u078 is a specific query regarding DC CAMD plant to update hti and emissions. Criteria is unit 5c from CAMD file. Not sure what this is about
 
-HeatInputToDistribute <- # 2u079 | * Getting many more rows here than in access (24,177 vs. 22,942 in access)
-  ratio_for_distribution %>% 
-  left_join(heat_sum_923,
-            by = c("ORISPL", "PRMVR")) %>% 
-  mutate(HeatInputDistributed = HeatInput * ratio,
-         HeatInputOZDistributed = HeatInputOZ * ratio) %>% 
-  select(ORISPL, 
-         GENID,
-         PRMVR,
-         HeatInputDistributed,
-         HeatInputOZDistributed,
-         netgen)
-
-
-# Update Heat Input in Unit File  ----
-#2u079b Some big discrepancies stemming from this because the critera for updating heat values depends on missing values for source, etc,
-# and many of those fields are incorrectly coded as "0" instead of missing in access, so aren't being updated in Access.
-
-distributed_units <- # creating separate df of units that have been updated
-  `Unit File 10` %>% 
-  filter(is.na(`Annual Heat Input`),
-         is.na(`Oz Seas Heat Input`),
-         is.na(`Heat Input Source`),
-         is.na(`Heat Input OZ Source`),
-         is.na(`Annual Sum Op Time`),
-  ) %>% 
-  left_join(HeatInputToDistribute,
-            by = c("ORIS Code" = "ORISPL" , "UNIT ID" = "GENID")) %>% 
-  ungroup() %>% 
-  mutate(`Annual Heat Input` = HeatInputDistributed,
-         `Oz Seas Heat Input` = HeatInputOZDistributed,
-         `Heat Input Source` = "EIA Prime Mover-level",
-         `Heat Input OZ Source` = "EIA Prime Mover-level") %>% 
-  select(all_of(unit_columns)) 
-
-unique_id <-  function(df) paste0(df$`ORIS Code`, df$`UNIT ID`, df$PrimeMover) # function to create unique ids for filtering ** should use this in other parts
-
-
-`Unit File 11` <- 
-  `Unit File 10` %>% 
-  filter(! unique_id(.) %in% unique_id(distributed_units)) %>% # removing units from distributed units df
-  bind_rows(distributed_units) %>% 
-  arrange(`ORIS Code`, `UNIT ID`)
-
-
-# Update heat input for direct boiler matches - 2u080a-1-4 ------------------
+## Update heat input for direct boiler matches ------
 
 
 ## match unit file to eia-923 boiler file on plant and boiler id ---
