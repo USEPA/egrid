@@ -223,7 +223,7 @@ generators_combined <-
 # Final modifications to generator file -----------
 
 xwalk_fuel_codes <- # this is xwalk for specific changes made to certain generator xwalks
-  read_csv("data/xwalks/xwalk_fuel_type.csv") %>% 
+  read_csv("data/static_tables/xwalk_fuel_type.csv") %>% 
   mutate(id = paste0(plant_id, prime_mover, unit_id)) %>% # creating id to facilitate join
   select(id, fuel_code)
 
@@ -231,7 +231,7 @@ xwalk_fuel_codes <- # this is xwalk for specific changes made to certain generat
 lookup_fuel_codes <- with(xwalk_fuel_codes, setNames(fuel_code, id))
 
 xwalk_eia_camd <- # xwalk for updating certain plants to camd plant names and ids
-  read_csv("data/xwalks/xwalk_oris_camd.csv") %>%
+  read_csv("data/static_tables/xwalk_oris_camd.csv") %>%
   mutate(across(everything(), ~ as.character(.x))) # changing all columns to character values
 
 
@@ -272,6 +272,7 @@ final_vars <-
 
 generators_formatted <-
   generators_edits %>%
+  distinct() %>% 
   arrange(plant_state, plant_name) %>% 
   mutate(seqgen = row_number(),
          across(c("cfact", "generation_ann", "generation_oz"), ~ round(.x, 3))) %>% 
@@ -285,15 +286,15 @@ generators_formatted <-
 
 # Export generator file -----------
 
-if(dir.exists("data/output")) {
+if(dir.exists("data/outputs")) {
   print("Folder output already exists.")
 }else{
-  dir.create("data/output")
+  dir.create("data/outputs")
 }
 
-print("Saving generator file to folder data/output/")
+print("Saving generator file to folder data/outputs/")
 
-write_rds(generators_formatted, "data/output/generator_file.RDS")
+write_rds(generators_formatted, "data/outputs/generator_file.RDS")
   
   
 
