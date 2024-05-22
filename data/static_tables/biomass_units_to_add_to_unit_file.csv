@@ -1,0 +1,27 @@
+plant_code,unit_id,prime_mover,fuel_type,plant_state,plant_name
+50188,RB,ST,BLQ,NC,Weyerhaeuser - New Bern
+50244,10REC,ST,BLQ,NC,Blue Ridge Paper Products Inc.
+50244,11REC,ST,BLQ,NC,Blue Ridge Paper Products Inc.
+50244,EPB,ST,NG,NC,Blue Ridge Paper Products Inc.
+50244,WPB,ST,NG,NC,Blue Ridge Paper Products Inc.
+50254,4PB,ST,NG,NC,"WestRock Kraft Paper, LLC"
+50254,7RB,ST,BLQ,NC,"WestRock Kraft Paper, LLC"
+50296,R1,ST,BLQ,TN,Packaging Corporation of America
+50296,R2,ST,BLQ,TN,Packaging Corporation of America
+50296,R3,ST,BLQ,TN,Packaging Corporation of America
+50397,5PB036,ST,WDS,PA,Pixelle Specialty Solutions
+50397,REC037,ST,BLQ,PA,Pixelle Specialty Solutions
+50472,BLR3,ST,MSW,NY,Covanta Niagara
+50472,BLR4,ST,MSW,NY,Covanta Niagara
+50806,PB4,ST,WDS,SC,"WestRock CP, LLC Florence Mill"
+50806,PB1,ST,WDS,SC,"WestRock CP, LLC Florence Mill"
+50806,RBF,ST,BLQ,SC,"WestRock CP, LLC Florence Mill"
+50806,PB3,ST,NG,SC,"WestRock CP, LLC Florence Mill"
+50900,2RB,ST,BLQ,VA,WestRock Virginia Corp Covington Ops
+50900,1PB,ST,WDS,VA,WestRock Virginia Corp Covington Ops
+50900,1RB,ST,NG,VA,WestRock Virginia Corp Covington Ops
+52151,RF1,ST,BLQ,SC,International Paper-Eastover Mill
+52151,RF2,ST,BLQ,SC,International Paper-Eastover Mill
+54238,N64514,ST,WDS,CA,DTE Stockton
+54238,N64516,ST,WDS,CA,DTE Stockton
+54638,RB01,ST,BLQ,PA,"Domtar Paper Company, LLC"
