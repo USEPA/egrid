@@ -348,7 +348,7 @@ eia_923_boilers <-
                 .names = "heat_input_{str_replace(.col, 'quantity_of_fuel_consumed_','')}"),
          heat_input = rowSums(pick(all_of(starts_with("heat_input")))), # getting annual heat_input, summing across all monthly heat columns
          heat_input_oz = rowSums(pick(all_of(paste0("heat_input_",tolower(month.name[5:9])))))) %>%  # summing across ozone months
-  select(plant_id, plant_name, plant_state, prime_mover, boiler_id, fuel_type, heat_input, heat_input_oz)  
+  select(plant_id, plant_name, plant_state, prime_mover, boiler_id, fuel_type, heat_input, heat_input_oz, total_fuel_consumption_quantity)  
 
 
 eia_923_boilers_grouped <- 
@@ -563,78 +563,51 @@ units_heat_updated_pm_data <- # dataframe with units having heat input updated b
               unmatched = "ignore") %>% # ignore rows in distributed_heat_input that aren't in units_missing_heat
   filter(!is.na(heat_input)) %>% 
   mutate(heat_input_source = "EIA Prime Mover-level Data",
-         heat_input_oz_source = "EIA Prime Mover-level Data")
+         heat_input_oz_source = "EIA Prime Mover-level Data") # (SB: there might need to be a condition here)
 
 print(glue::glue("{nrow(units_heat_updated_pm_data)} units updated with EIA Prime Mover-level Data. {nrow(units_missing_heat) - nrow(units_heat_updated_pm_data)} with missing heat input remain."))
 
+
+units_missing_heat_2 <- # creating updated dataframe with remaining missing heat inputs
+  units_missing_heat %>% 
+  anti_join(units_heat_updated_pm_data, # removing units that were updated with PM data.
+            by = c("plant_id", "unit_id"))
 
 # 2u078 is a specific query regarding DC CAMD plant to update hti and emissions. Criteria is unit 5c from CAMD file. Not sure what this is about
 
 ## Update heat input for direct boiler matches ------
 
+## Match units eia-923 boiler file on plant and boiler id ---
 
-## match unit file to eia-923 boiler file on plant and boiler id ---
-
-# ??identifying the max fuel consumption for each plant/unit. That max unit is used to determine which rows to update in the unite file?
-
-
-# Not clear why "max" fuel is being used???
-
-max_tot_fuel <- 
-  `Unit File 11` %>% 
-  inner_join(eia_923_boilers %>% select("Plant Id","Boiler Id", "Total Fuel ConsumptionQuantity", starts_with(c("Quantity", "MMbtu"))),
-             by = c("ORIS Code" = "Plant Id", "UNIT ID" = "Boiler Id"),
-  ) %>% 
-  group_by(`ORIS Code`,
-           `UNIT ID`) %>% 
-  slice_max(`Total Fuel ConsumptionQuantity`, n =1 ) %>% 
-  mutate(heat_january = `Quantity Of Fuel ConsumedJanuary` * `MMbtu Per UnitJanuary`, # calculating monthly heat input
-         heat_february = `Quantity Of Fuel ConsumedFebruary` * `MMbtu Per UnitFebruary`,
-         heat_march = `Quantity Of Fuel ConsumedMarch` * `MMbtu Per UnitMarch`,
-         heat_april = `Quantity Of Fuel ConsumedApril` * `MMbtu Per UnitApril`,
-         heat_may = `Quantity Of Fuel ConsumedMay` * `MMbtu Per UnitMay`,
-         heat_june = `Quantity Of Fuel ConsumedJune` * `MMbtu Per UnitJune`,
-         heat_july = `Quantity Of Fuel ConsumedJuly` * `MMbtu Per UnitJuly`,
-         heat_august = `Quantity Of Fuel ConsumedAugust` * `MMbtu Per UnitAugust`,
-         heat_september = `Quantity Of Fuel ConsumedSeptember` * `MMbtu Per UnitSeptember`,
-         heat_october = `Quantity Of Fuel ConsumedOctober` * `MMbtu Per UnitOctober`,
-         heat_november = `Quantity Of Fuel ConsumedNovember` * `MMbtu Per UnitNovember`,
-         heat_december = `Quantity Of Fuel ConsumedDecember` * `MMbtu Per UnitDecember`,
-         heat_input = rowSums(pick(starts_with("heat_"))),
-         heat_input_oz = rowSums(pick(c("heat_may","heat_june","heat_july","heat_august","heat_september")))) %>% 
-  select(`ORIS Code`,
-         `UNIT ID`,
-         PrimeMover,
-         `Fuel Type (Primary)`,
-         total_fuel_con = `Total Fuel ConsumptionQuantity`,
+units_heat_updated_boiler_matches <- 
+  units_missing_heat_2 %>% 
+  inner_join(eia_923_boilers %>% select(plant_id, boiler_id, "total_fuel_consumption_quantity", heat_input, heat_input_oz),
+             by = c("plant_id", "unit_id" = "boiler_id")) %>% 
+  group_by(plant_id,
+           unit_id) %>% 
+  slice_max(total_fuel_consumption_quantity, n = 1) %>% # taking unit row with highest fuel consumption
+  ungroup() %>% 
+  filter(!is.na(heat_input.y)) %>% #keeping only non-missing heat input values 
+  mutate(heat_input = heat_input.y, # replacing heat input with value from 923 boilers
+         heat_input_oz = if_else(!is.na(heat_input_oz.x), heat_input_oz.x, heat_input_oz.y), # if ozone heat is missing, use eia_923_boilers
+         heat_input_source = "EIA Unit-level Data",
+         heat_input_oz_source = if_else(!is.na(heat_input_oz_source), heat_input_oz_source, "EIA Unit-level Data")) %>% 
+  select(plant_id, 
+         unit_id, 
          heat_input,
-         heat_input_oz)
+         heat_input_oz,
+         heat_input_source,
+         heat_input_oz_source) 
+
+units_missing_heat_3 <- 
+  units_missing_heat_2 %>% 
+  anti_join(units_heat_updated_boiler_matches)
+
+print(glue::glue("{nrow(units_heat_updated_boiler_matches)} units updated with EIA Unit-level Data from direct matches in EIA 923 boiler file. {nrow(units_missing_heat_3)} with missing heat input remain."))
 
 
-update_direct_boiler_matches <- 
-  `Unit File 11` %>% 
-  left_join(max_tot_fuel, 
-            by = c("ORIS Code", "UNIT ID", "PrimeMover", "Fuel Type (Primary)")) %>%
-  filter(!is.na(heat_input),
-         is.na(`Annual Heat Input`),
-         heat_input != 0) %>% 
-  mutate(`Annual Heat Input` = heat_input,
-         `Oz Seas Heat Input` = heat_input_oz,
-         `Heat Input Source` = "EIA Unit-level Data",
-         `Heat Input Oz Source` = "EIA Unit-level Data") %>% 
-  select(all_of(unit_columns))
 
-
-# updating unit file with direct match boiler heat inputs
-
-`Unit File 12` <- 
-  `Unit File 11` %>% 
-  filter(!unique_id(.) %in% unique_id(update_direct_boiler_matches)) %>% 
-  bind_rows(update_direct_boiler_matches) %>% 
-  arrange(-`ORIS Code`)
-
-
-# Distribute heat input to boilers 2u080b-1 through g ----------------
+## Update heat input with distributed heat to boilers ----------
 
 boiler_923_ratios <-     
   eia_923_boilers %>%
