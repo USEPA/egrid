@@ -62,6 +62,8 @@ The script `install_libraries.R` detects all necessary libraries within the proj
 ```{r}
 #| label: install_libraries.R
 #| file: "scripts/install_libraries.R"
+#| echo: false
+#| message: false
 ```
 
 
@@ -70,6 +72,21 @@ The script `install_libraries.R` detects all necessary libraries within the proj
 The year of eGRID specified as the parameter "eGRID_year" within the YAML of the Quarto document. When a year value needs to be specified (e.g., when pulling relevant data from the CAMPD API), it is done so by calling `params$eGRID_year`.
 
 **Current year setting: `r params$eGRID_year`**
+
+## Load all helper functions
+
+There are a set of helper functions used throughout the project. These are defined in the folder `scripts/functions`. The `docstring` package is used to provide documentation for functions, similar to typical package documentation. To view the documentation for a given function, run `docstring({function_name})`
+
+```{r}
+#| label: load_functions
+#| echo: false
+#| message: false
+
+# sourcing each file in functions folder
+walk(paste0("scripts/functions/",list.files('scripts/functions')),source)
+
+```
+
 
 # Loading Data
 
@@ -409,13 +426,13 @@ purrr::iwalk(tabs_861, ~ {
 library(gt)
 library(gtExtras)
 
-generator_file <- readr::read_rds("data/output/generator_file.RDS")
+generator_file <- readr::read_rds("data/outputs/generator_file.RDS")
 
-generator_file %>% 
-  gt::gt() %>%
-  gt::opt_interactive(use_search = TRUE) # enable interactivity
-
+# generator_file %>% 
+#   gt::gt() %>%
+#   gt::opt_interactive(use_search = TRUE) # enable interactivity
 ```
+
 
 ## QA/QC
 
@@ -429,7 +446,8 @@ generator_file %>%
 
 library(gtExtras)
 
-gtExtras::gt_plt_summary(generator_file, title = "Generator File")
+create_summary_table(generator_file)
+
 ```
 
 ### Generation distributions (overall)
