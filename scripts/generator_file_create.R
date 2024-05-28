@@ -246,7 +246,7 @@ generators_edits <-
          plant_id = recode(plant_id, !!!lookup_eia_id_camd_id), # updating plant_id to corresponding camd ids with lookup table
          plant_name = recode(plant_id, !!!lookup_camd_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
          gen_data_source = if_else(is.na(generation_ann), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
-         year = Sys.getenv("eGRID_year"),
+         year = params$eGRID_year,
          cfact = generation_ann/(nameplate_capacity * 8760)) %>%  # calculating cfact
   left_join(eia_860_boiler_count)
 
@@ -274,6 +274,7 @@ generators_formatted <-
   generators_edits %>%
   group_by(plant_id, generator_id, fuel_code) %>% 
   slice(1) %>% # Some generators are duplicated due to combined_heat_and_power_plant field and associated differences in generatation value. This is short-term fix until confirmation on how to handle.
+  ungroup() %>%
   arrange(plant_state, plant_name) %>% 
   mutate(seqgen = row_number(),
          across(c("cfact", "generation_ann", "generation_oz"), ~ round(.x, 3))) %>% 

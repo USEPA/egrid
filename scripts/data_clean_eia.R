@@ -19,7 +19,7 @@ sheets_923_1 <- c("Page 1 Generation and Fuel Data", # defining list of sheets t
 sched_2_3_4_5_m_12_dfs <- 
   purrr::map2(sheets_923_1, # .x, defining sheets to iterate over
               c(5,6,5,5),   # y, adding second argument to define the number of rows to skip (differs between files)
-             ~ read_excel(glue::glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{Sys.getenv('eGRID_year')}_Final_Revision.xlsx"),
+             ~ read_excel(glue::glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{params$eGRID_year}_Final_Revision.xlsx"),
                           sheet = .x,
                           skip = .y,
                           na = ".", # converting "." to NAs
@@ -44,7 +44,7 @@ gen_fuel_combined <-
 
 
 air_emissions_control_info <- 
- read_excel(glue::glue("data/raw_data/923/EIA923_Schedule_8_Annual_Environmental_Information_{Sys.getenv('eGRID_year')}_Final_Revision.xlsx"),
+ read_excel(glue::glue("data/raw_data/923/EIA923_Schedule_8_Annual_Environmental_Information_{params$eGRID_year}_Final_Revision.xlsx"),
                            sheet = "8C Air Emissions Control Info",
                            skip = 4,
                            na = ".",
@@ -89,7 +89,7 @@ generator_sheets <- c("Operable",
 
 generator_dfs <- 
   purrr::map(generator_sheets, 
-             ~ read_excel(glue::glue("data/raw_data/860/3_1_Generator_Y{Sys.getenv('eGRID_year')}.xlsx"),
+             ~ read_excel(glue::glue("data/raw_data/860/3_1_Generator_Y{params$eGRID_year}.xlsx"),
                           sheet = .x,
                           skip = 1,
                           na = c(".", "X"),
@@ -126,7 +126,7 @@ enviro_assoc_sheets <- c("Boiler Generator",
 
 enviro_assoc_dfs <- 
     purrr::map(enviro_assoc_sheets, 
-      ~ read_excel(glue::glue("data/raw_data/860/6_1_EnviroAssoc_Y{Sys.getenv('eGRID_year')}.xlsx"),
+      ~ read_excel(glue::glue("data/raw_data/860/6_1_EnviroAssoc_Y{params$eGRID_year}.xlsx"),
         sheet = .x,
         skip = 1,
         na = ".",
@@ -144,7 +144,7 @@ enviro_equip_sheets <- c("Emission Standards & Strategies",
 
 enviro_equip_dfs <- 
   purrr::map(enviro_equip_sheets, 
-           ~ read_excel(glue::glue("data/raw_data/860/6_2_EnviroEquip_Y{Sys.getenv('eGRID_year')}.xlsx"),
+           ~ read_excel(glue::glue("data/raw_data/860/6_2_EnviroEquip_Y{params$eGRID_year}.xlsx"),
                         sheet = .x,
                         skip = 1,
                         na = ".",
@@ -158,7 +158,7 @@ enviro_equip_dfs <-
 ## 860 2__Plant_ -------
 
 plant_df <- 
-  read_excel(glue::glue("data/raw_data/860/2___Plant_Y{Sys.getenv('eGRID_year')}.xlsx"),
+  read_excel(glue::glue("data/raw_data/860/2___Plant_Y{params$eGRID_year}.xlsx"),
                         sheet = "Plant",
                         skip = 1,
                         na = ".",
@@ -308,7 +308,7 @@ rename_cols_861 <- # creating list of variable name mappings
   c("year" = "data_year")
 
 balancing_authority <-  
-  read_excel(glue::glue("data/raw_data/861/Balancing_Authority_{Sys.getenv('eGRID_year')}.xlsx"), 
+  read_excel(glue::glue("data/raw_data/861/Balancing_Authority_{params$eGRID_year}.xlsx"), 
              sheet = "Balancing Authority",
              guess_max = 4000,
              na = "."
@@ -319,7 +319,7 @@ balancing_authority <-
 ## 861 Sales Ult Cust --------
 
 sales_ult_cust <-
-  read_excel(glue::glue("data/raw_data/861/Sales_Ult_Cust_{Sys.getenv('eGRID_year')}.xlsx"),
+  read_excel(glue::glue("data/raw_data/861/Sales_Ult_Cust_{params$eGRID_year}.xlsx"),
              sheet = "States",
              skip = 2,
              guess_max = 4000,
@@ -335,7 +335,7 @@ sales_ult_cust <-
 ## 861 Utility Data ---------
 
 utility_data <-
-  read_excel(glue::glue("data/raw_data/861/Utility_Data_{Sys.getenv('eGRID_year')}.xlsx"),
+  read_excel(glue::glue("data/raw_data/861/Utility_Data_{params$eGRID_year}.xlsx"),
              sheet = "States",
              skip = 1,
              guess_max = 4000,
