@@ -538,7 +538,7 @@ biomass_units <-
 all_units <- # binding all units together, and adding a source column to track row origins
   bind_rows((camd_7 %>% mutate(source = "CAMD")),
             (eia_boilers_to_add %>% mutate(source = "923 boilers") %>% rename("unit_id" = boiler_id)),
-            (eia_860_generators_to_add_2 %>% mutate(source = "860 generators") %>% rename("unit_id" = generator_id)))
+            (eia_860_generators_to_add_3 %>% mutate(source = "860 generators") %>% rename("unit_id" = generator_id)))
 
 units_missing_heat <- # creating separate dataframe of units with missing heat input to update
   all_units %>% 
@@ -687,53 +687,6 @@ units_missing_heat_4 <-
 
 print(glue::glue("{nrow(units_heat_updated_boiler_distributed)} units updated with EIA Prime Mover-level Data, distributed from 923 Generation and Fuel File. {nrow(units_missing_heat_4)} with missing heat input remain."))
 
-
-# Add in NUC and GEO EIA generators (2u082a -2u084) ------------
-
-## !!? Not sure what is supposed to happen here. Instructions indicate that we find units from EIA-860 Combined to add, but that's not what's happening in access...
-
-nuc_geo_gens <- #why is this happening?
-  `EIA-860 Combined` %>% 
-  inner_join(camd_r,
-             by = c("Plant Code" = "ORIS Code")) %>% 
-  filter(`Energy Source 1` %in% c("NUC", "GEO")) %>% 
-  distinct(`Plant Code`,
-           `Generator ID`,
-           `Prime Mover`,
-           `Energy Source 1`)
-
-
-
-# ?! what is being distributed? It's just adding up fuel consumption from 923. And if that's the case, why are the EIA-860 combined and camd files necessary?
-
-
-# is this calculated the 
-nuc_geo_units_to_update <- 
-  `Unit File 13` %>% 
-  inner_join(eia_923_gen_fuel %>% 
-               filter(`FUELG1` %in% c("NUC", "GEO")) %>% 
-               mutate(FUELG1 = as.character(FUELG1), # changing to match
-                      NUCUNITID = as.character(NUCUNITID)),
-             by = c("ORIS Code" = "ORISPL", "UNIT ID" = "NUCUNITID", "PrimeMover" = "PRMVR", "Fuel Type (Primary)" = "FUELG1" )) %>% 
-  mutate(`Annual Heat Input` = rowSums(pick(oz_heat)),
-         `Oz Seas Heat Input` = TOTFCONS,
-         `Heat Input Source` = "EIA Prime Mover-level Data",
-         `Heat Input OZ Source` = "EIA Prime Mover-level Data") %>% 
-  select(all_of(unit_columns)) 
-
-
-# update in Unit File
-
-`Unit File 14` <- 
-  `Unit File 13` %>% 
-  filter(! unique_id(.) %in% unique_id(nuc_geo_units_to_update)) %>% 
-  bind_rows(nuc_geo_units_to_update) %>% 
-  arrange(`ORIS Code`)
-
-
-# Update plant 50489 heat input (2u085) ---------
-
-# skipping individual plant update for now
 
 # Delete plants from EIA that are in CAMD (2u086a) -------------
 
