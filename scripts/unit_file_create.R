@@ -585,9 +585,8 @@ units_heat_updated_boiler_matches <-
              by = c("plant_id", "unit_id" = "boiler_id")) %>% 
   group_by(plant_id,
            unit_id) %>% 
+  filter(!is.na(heat_input.y) & heat_input.y != 0) %>%  #keeping only non-missing heat input values and non-zero values
   slice_max(total_fuel_consumption_quantity, n = 1) %>% # taking unit row with highest fuel consumption
-  ungroup() %>% 
-  filter(!is.na(heat_input.y)) %>% #keeping only non-missing heat input values 
   mutate(heat_input = heat_input.y, # replacing heat input with value from 923 boilers
          heat_input_oz = if_else(!is.na(heat_input_oz.x), heat_input_oz.x, heat_input_oz.y), # if ozone heat is missing, use eia_923_boilers
          heat_input_source = "EIA Unit-level Data",
@@ -609,63 +608,59 @@ print(glue::glue("{nrow(units_heat_updated_boiler_matches)} units updated with E
 
 ## Update heat input with distributed heat to boilers ----------
 
-boiler_923_ratios <-     
+# here we estimate heat to be distributed to boilers based on differences between pm level heat we have included and what is in 923 gen and fuel 
+
+
+boiler_dist_props <-  # determining distributional proportions for 923 boilers 
   eia_923_boilers %>%
-  group_by(`Plant Id`,
-           `Boiler Id`,
-           `ReportedPrime Mover`) %>% 
-  slice_max(`Total Fuel ConsumptionQuantity`, 
+  group_by(plant_id,
+           boiler_id,
+           prime_mover) %>% 
+  slice_max(total_fuel_consumption_quantity, 
             n = 1,
             with_ties = FALSE) %>%  # This is done automatically in Access. Need to check
-  select(`Plant Id`, `Boiler Id`, `ReportedPrime Mover`, `Total Fuel ConsumptionQuantity`) %>% 
-  group_by(`Plant Id`, `ReportedPrime Mover`) %>% 
-  mutate(sum_totfuel = sum(`Total Fuel ConsumptionQuantity`),
-         ratio = `Total Fuel ConsumptionQuantity`/sum_totfuel)
+  ungroup() %>%
+  group_by(plant_id, prime_mover) %>% 
+  mutate(sum_totfuel = sum(total_fuel_consumption_quantity),
+         proportion = total_fuel_consumption_quantity/sum_totfuel) %>% 
+  select(plant_id, prime_mover, boiler_id, proportion)
+
+heat_differences <- # calculating prime mover-level heat differences between units included in unit file and 923 gen&fuel file
+  all_units %>% 
+  rows_update(units_heat_updated_pm_data, by = c("plant_id", "unit_id")) %>% 
+  rows_update(units_heat_updated_boiler_matches, by = c("plant_id", "unit_id")) %>% 
+  group_by(plant_id, prime_mover) %>% 
+  summarize(across(c("heat_input", "heat_input_oz"), ~ sum(.x, na.rm = TRUE))) %>% 
+  left_join(eia_fuel_consum_pm %>% select(plant_id, prime_mover, starts_with("heat"))) %>% 
+  mutate(heat_diff = heat_input_ann_923 - heat_input,
+         heat_oz_diff = heat_input_oz_923 - heat_input_oz) %>% 
+  filter(heat_diff > 0) %>% # keeping only differences where 923 values are greater than boiler values
+  select(plant_id, prime_mover, ends_with("diff"))
 
 
-sum_unit_heat <- 
-  `Unit File 12` %>% 
-  group_by(`ORIS Code`, PrimeMover) %>% 
-  summarize(sum_heat = sum(`Annual Heat Input`, na.rm = TRUE),
-            sum_heat_oz = sum(`Oz Seas Heat Input`, na.rm = TRUE))
+units_heat_updated_boiler_distributed <- 
+  units_missing_heat_3 %>% 
+  select(plant_id, unit_id) %>%
+  inner_join(boiler_dist_props, # now joining missing heat units with boiler dist group to keep boilers where we have a distributional proportion
+            by = c("plant_id", "unit_id" = "boiler_id")) %>% 
+  filter(!is.na(proportion)) %>%
+  left_join(heat_differences) %>%
+  filter(!is.na(heat_diff)) %>% 
+  mutate(heat_input = heat_diff * proportion,
+         heat_input_oz = heat_oz_diff * proportion,
+         heat_input_source = "EIA Prime Mover-level data",
+         heat_input_oz_source = "EIA Prime Mover-level data") %>%
+  select(plant_id, 
+         unit_id, 
+         starts_with("heat_input"),
+         ends_with("source"))
 
-hti_diffs_to_distribute <- 
-  heat_sum_923 %>% 
-  inner_join(sum_unit_heat,
-             by = c("ORISPL" = "ORIS Code", "PRMVR" = "PrimeMover")) %>% 
-  mutate(diff_heat = HeatInput - sum_heat,
-         diff_heat_oz = HeatInputOZ - sum_heat_oz)
+units_missing_heat_4 <- 
+  units_missing_heat_3 %>% 
+  anti_join(units_heat_updated_boiler_distributed)
 
-heat_input_to_distributed_boilers <-   
-  boiler_923_ratios %>% 
-  inner_join(hti_diffs_to_distribute,
-             by = c("Plant Id" = "ORISPL", "ReportedPrime Mover" = "PRMVR")) %>% 
-  filter(diff_heat > 0 ) %>% 
-  mutate(heat_dist= diff_heat * ratio,
-         heat_oz_dist = diff_heat_oz *ratio) %>% 
-  select(
-    "ORIS Code" = `Plant Id`, 
-    "UNIT ID" = `Boiler Id`, 
-    PrimeMover = `ReportedPrime Mover`, 
-    heat_dist, 
-    heat_oz_dist)
+print(glue::glue("{nrow(units_heat_updated_boiler_distributed)} units updated with EIA Prime Mover-level Data, distributed from 923 Generation and Fuel File. {nrow(units_missing_heat_4)} with missing heat input remain."))
 
-# Update the Unit file with distributed heat
-
-dis_units_to_update <- 
-  `Unit File 12` %>% 
-  inner_join(heat_input_to_distributed_boilers,
-             by = c("ORIS Code", "UNIT ID", "PrimeMover")) %>% 
-  filter(is.na(`Annual Heat Input`),
-         is.na(`Oz Seas Heat Input`),
-         is.na(`Heat Input Source`),
-         is.na(`Heat Input OZ Source`))
-
-`Unit File 13` <-
-  `Unit File 12` %>% 
-  filter(! unique_id(.) %in% unique_id(dis_units_to_update)) %>% 
-  bind_rows(dis_units_to_update) %>% 
-  arrange(-`ORIS Code`)
 
 # Add in NUC and GEO EIA generators (2u082a -2u084) ------------
 
