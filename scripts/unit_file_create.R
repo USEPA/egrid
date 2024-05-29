@@ -481,7 +481,7 @@ gen_fuel_types_to_update <-
        mutate(n_gens = n()) %>% 
        filter(n_gens == 1)), # only for plants with 1 generator
     by = "plant_id") %>% 
-  mutate(diffs = if_else(fuel_type != fuel_type_860, TRUE, FALSE)) %>%  # identfying discrepencies
+  mutate(diffs = if_else(fuel_type != fuel_type_860, TRUE, FALSE)) %>%  # identifying discrepancies
   filter(diffs == TRUE) %>% 
   mutate(primary_fuel_type = fuel_type) %>%
   select(plant_id, 
@@ -494,6 +494,30 @@ eia_860_generators_to_add_2 <-
   eia_860_generators_to_add %>%
   rows_update(gen_fuel_types_to_update, # updating with new fuel codes
             by = c("plant_id", "generator_id")) 
+
+### Add NUC and GEO generators ----
+# some generators that are type "NUC" and "GEO" are in 860 but not included in CAMD. These don't get added above because their associated plant_ids are in CAMD. 
+# We add these and distribute heat from 923 file 
+
+nuc_geo_gens_to_add <- 
+  eia_860$combined %>% 
+  filter(plant_id %in% camd$plant_id,
+         energy_source_1 %in% c("NUC", "GEO")) %>% 
+  left_join(eia_923$generation_and_fuel_combined %>% select(plant_id, nuclear_unit_id, prime_mover, starts_with("tot"), total_fuel_consumption_mmbtu),
+            by = c("plant_id", "generator_id" = "nuclear_unit_id", "prime_mover")) %>% 
+  mutate(heat_input = total_fuel_consumption_mmbtu,
+         heat_input_oz = rowSums(pick(all_of(heat_923_oz_months)), na.rm = TRUE)) %>% 
+  select(plant_id,
+         generator_id,
+         prime_mover,
+         primary_fuel_type = energy_source_1,
+         operating_status = status,
+         heat_input,
+         heat_input_oz)
+
+eia_860_generators_to_add_3 <-
+  eia_860_generators_to_add_2 %>%
+  bind_rows(nuc_geo_gens_to_add)
 
 # Include additional biomass units ------
 
@@ -524,6 +548,8 @@ units_missing_heat <- # creating separate dataframe of units with missing heat i
 print(glue::glue("{nrow(units_missing_heat)} units with missing heat inputs to update."))
 
 ## Update heat input with EIA prime-mover level data --------
+
+
 
 # We calculate a distributional proportion to distribute heat to generators based on nameplate capacity using 923 gen and fuel and generator file.
 
