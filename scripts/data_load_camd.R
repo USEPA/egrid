@@ -5,6 +5,7 @@ library(jsonlite)
 library(stringr)
 library(readr)
 library(dplyr)
+library(lubridate)
 
 
 # Set your API key here
@@ -48,7 +49,13 @@ facility_df <-
   read_csv(paste0(bucket_url_base,facility_path)) %>% 
   rename_with(tolower) %>% # this protects NoX rates from getting split with clean_names()
   janitor::clean_names() %>% 
-  mutate(year = as.character(year))
+  mutate(
+    generator_ids = str_extract_all(associated_generators_nameplate_capacity_mwe, "\\S+(?= \\()"), # extracting associated generators
+    nameplate_capacity_char = (str_extract_all(associated_generators_nameplate_capacity_mwe, "(?<=\\()\\d+(\\.\\d+)?(?=\\))")), # extracting nameplate capacity values
+    associated_generators = map_chr(generator_ids, ~ paste(.x, collapse = ", ")), # pasting togther associated generators
+    nameplate_capacity = map_dbl(nameplate_capacity_char, ~ sum(as.numeric(.x), na.rm = TRUE)),
+    year = as.character(year)) %>% # summing nameplate capacity from associated generators)
+  select(-"nameplate_capacity_char")
 
 
 ## emissions data -------
