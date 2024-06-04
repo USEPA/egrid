@@ -4,6 +4,7 @@ author:
   - "Sean Bock, Abt Global"
   - "Claire Lay, Abt Global"
   - "Justin Stein, Abt Global"
+  - "Teagan Goforth, Abt Global"
 freeze: true
 format: 
   html:
@@ -22,7 +23,7 @@ css: style.css # specific branding/styling can be added here
 
 # Overview
 
-This project includes all necessary scripts and documentation to create the Emissions & Generation Resource Integrated Database (eGRID). 
+This project includes all necessary scripts and documentation to create the Emissions & Generation Resource Integrated Database (eGRID).
 
 # Background
 
@@ -49,6 +50,7 @@ The final eGRID database includes eight levels of data aggregation:
 -   US
 
 ## Using the .qmd file
+
 This is a Quarto (.qmd) file that documents and runs the code necessary to create the eGRID database. Along with sequentially executing the necessary scripts used to create the database, the process is documented throughout, including built-in outputs (e.g., counts of rows, variable names, etc.) and QA steps. This document can be used in two ways: First, when used within an IDE, such as RStudio, it serves as an enhanced master script, allowing users to easily perform each step necessary to create the eGRID database from within a single file. Second, when viewing as a rendered file, it provides thorough documentation of the steps involved in creating eGRID. When rendered, this file provides additional information and tools for navigating the project. The table of contents (TOC) provides both a convenient look at the project structure and method for navigating the document. There are also hidden code chunks throughout, marked by a button ("Code" with an arrow next to it). Clicking this button reveals the underlying code from the R script that is being sourced in a given section.
 
 # Install Libraries and Set Parameters
@@ -57,7 +59,7 @@ Before loading any data or beginning to construct the eGRID database, we install
 
 ## Install required libraries
 
-The script `install_libraries.R` detects all necessary libraries within the project using `renv::dependencies()`, checks for installation, and installs (if needed) and loads into the workspace. 
+The script `install_libraries.R` detects all necessary libraries within the project using `renv::dependencies()`, checks for installation, and installs (if needed) and loads into the workspace.
 
 ```{r}
 #| label: install_libraries.R
@@ -65,7 +67,6 @@ The script `install_libraries.R` detects all necessary libraries within the proj
 #| echo: false
 #| message: false
 ```
-
 
 ## Defining eGRID year
 
@@ -87,7 +88,6 @@ walk(paste0("scripts/functions/",list.files('scripts/functions')),source)
 
 ```
 
-
 # Loading Data
 
 ## Loading data from raw sources
@@ -105,9 +105,6 @@ As of 2024, the EIA API does not contain the most detailed data available, which
 ```
 
 The tables within EIA Files and Sheets display each of the unzipped raw files across the three EIA forms, including the sheets embedded within.
-
-
-
 
 ```{r}
 #| echo: false
@@ -254,8 +251,6 @@ table_emissions_ozone
 
 <!--# [Insert info about crosswalks and static tables used here]-->
 
-
-
 # Cleaning Raw Data Files
 
 ## CAMD
@@ -275,7 +270,6 @@ table_emissions_ozone
 
 create_summary_table(readr::read_rds("data/clean_data/camd/camd_clean.RDS"))
 ```
-
 
 ## EIA
 
@@ -326,7 +320,6 @@ There are several procedures that are applied to each of the raw EIA files:
 
         -   `nameplate_capacity`
 
-
 ```{r}
 #| label: load_eia_clean_files
 #| echo: false
@@ -336,10 +329,9 @@ eia_860_files <- read_rds("data/clean_data/eia_860_clean.RDS")
 eia_861_files <- read_rds("data/clean_data/eia_861_clean.RDS")
 ```
 
-
 ### EIA-923
-::: panel-tabset
 
+::: panel-tabset
 ```{r}
 #| results: asis
 #| label: eia_923_summary_tabs
@@ -359,10 +351,9 @@ purrr::iwalk(tabs_923, ~ {
 ```
 :::
 
-### EIA-860 
+### EIA-860
 
-::: panel-tabset 
-
+::: panel-tabset
 ```{r}
 #| results: asis
 #| label: eia_860_summary_tabs
@@ -382,9 +373,9 @@ purrr::iwalk(tabs_860, ~ {
 ```
 :::
 
-### EIA-861 
-::: panel-tabset
+### EIA-861
 
+::: panel-tabset
 ```{r}
 #| results: asis
 #| label: eia_861_summary_tabs
@@ -403,8 +394,6 @@ purrr::iwalk(tabs_861, ~ {
 ```
 :::
 
-
-
 # Generator File
 
 ```{r}
@@ -414,9 +403,7 @@ purrr::iwalk(tabs_861, ~ {
 
 ```
 
-## Combining EIA sources 
-
-
+## Combining EIA sources
 
 ```{r}
 #| label: generator_file_table
@@ -432,7 +419,6 @@ generator_file <- readr::read_rds("data/outputs/generator_file.RDS")
 #   gt::gt() %>%
 #   gt::opt_interactive(use_search = TRUE) # enable interactivity
 ```
-
 
 ## QA/QC
 
@@ -517,12 +503,6 @@ generator_file %>%
 ```
 :::
 
+# Unit File
 
-# Unit File 
-
-
-
-# Plant File 
-
-
-
+# Plant File
