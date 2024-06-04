@@ -23,6 +23,7 @@ camd_vars_to_keep <-
     "reporting_frequency",
     "program_code",
     "primary_fuel_type",
+    "nameplate_capacity",
     "unit_type" = "unit_type_abb",
     "operating_hours" = "operating_time_count",
     "heat_input" = "heat_input_mmbtu",
@@ -687,6 +688,19 @@ units_missing_heat_4 <-
 
 print(glue::glue("{nrow(units_heat_updated_boiler_distributed)} units updated with EIA Prime Mover-level Data, distributed from 923 Generation and Fuel File. {nrow(units_missing_heat_4)} with missing heat input remain."))
 
+
+## Update heat input for null CAMD plants ----------
+
+  units_missing_heat_4 %>% 
+  select(plant_id, unit_id) %>% 
+  inner_join(camd_7,
+             by = c("plant_id", "unit_id")) %>% 
+  mutate(primary_fuel_type = if_else(primary_fuel_type == "PRG", "OG", primary_fuel_type)) %>% # need to temporarily change this to match 923
+  group_by(plant_id, prime_mover) %>% 
+  mutate(sum_nameplate = sum(nameplate_capacity),
+         sum_op_hours = sum(operating_hours)) %>% 
+  select(plant_id, unit_id, primary_fuel_type, nameplate_capacity, operating_hours, sum_nameplate, sum_op_hours) %>% filter(plant_id == 10865)
+  
 
 # Delete plants from EIA that are in CAMD (2u086a) -------------
 
