@@ -5,7 +5,7 @@ library(stringr)
 library(janitor)
 library(purrr)
 
-egrid_year <- Sys.getenv("eGRID_year")
+egrid_year <- params$eGRID_year
 
 
 # Reading raw camd files
