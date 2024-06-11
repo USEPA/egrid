@@ -6,7 +6,7 @@ library(tidyr)
 library(readr)
 library(readxl)
 library(stringr)
-
+library(here)
 
 
 # Load necessary data ----------
@@ -58,18 +58,19 @@ clean_names <- # renaming column names to match naming conventions used in other
 
 
 unit_file <- # using unit file from Access production for now
-  read_excel("archive/eGRID_2021.xlsx", 
+  read_excel(here("data/raw_data/eGRID_2021.xlsx"), 
              sheet = "UNT21",
              skip = 1) %>% 
   rename(all_of(clean_names)) # rename columns based on named vector above
 
 library(tidyverse)
 
-# 0. create a file to string concatenate unique values that are not NA
+# 0. create a file to string concatenate unique values that are not NA ----------
 
 paste_concat <- function(l, number = FALSE){
   l <- l[!is.na(l)]
   l <- l[l!="NA" & l!=""]
+  l[order(l)]
   txt <- paste0(unique(l), collapse = ", ")
   
   if(number){return(as.numeric(txt)) # convert to numeric if it can
@@ -77,58 +78,114 @@ paste_concat <- function(l, number = FALSE){
 }
 
 
-## 1. aggregate unit file to plant level ------------------------
- 
+# 1. aggregate unit file to plant level ------------------------
       # SQL steps group by State, Facility Name, and ORIS code
       # for this reason I included plant name and state in summarise
 unit <- unit_file %>% group_by(plant_id) %>%
   summarise(plant_name = paste_concat(plant_name),
             plant_state = paste_concat(plant_state),
+            year = paste_concat(year),
+            #prime_mover = paste_concat(prime_mover),
             num_units = length(unique(unit_id)), # count
-            heat_input = sum(heat_input, na.rm = TRUE), # MMBtu
-            heat_input_oz = sum(heat_input_oz, na.rm = TRUE), # MMBtu 
-            nox_mass = sum(nox_mass, na.rm = TRUE), # tons
-            noz_oz = sum(nox_oz, na.rm = TRUE),# tons
-            so2_mass = sum(so2_mass, na.rm = TRUE), # tons
-            co2_mass = sum(co2_mass), na.rm = TRUE) %>% # tons
-  mutate(plant_id = as.character(plant_id))
+            num_units_op = sum(unique(data.frame(unit_id, operating_status))$operating_status == "OP",na.rm = TRUE), # count operational
+            unadj_heat_input = sum(heat_input, na.rm = TRUE), # MMBtu
+            unadj_heat_input_source = paste_concat(heat_input_source),
+            unadj_heat_input_oz = sum(heat_input_oz, na.rm = TRUE), # MMBtu 
+            unadj_heat_input_oz_source = paste_concat(heat_input_oz_source),
+            unadj_nox_mass = sum(nox_mass, na.rm = TRUE), # tons
+            unadj_nox_source = paste_concat(nox_source),
+            unadj_nox_oz = sum(nox_oz, na.rm = TRUE),# tons
+            unadj_nox_oz_source = paste_concat(nox_oz_source),
+            unadj_so2_mass = sum(so2_mass, na.rm = TRUE), # tons
+            unadj_so2_source = paste_concat(so2_source),
+            unadj_co2_mass = sum(co2_mass, na.rm = TRUE),# tons
+            unadj_co2_source = paste_concat(co2_source)) %>% 
+  mutate(plant_id = as.numeric(plant_id)) 
 
-## 2. aggregate gen file to plant level----------------------------
+ 
+
+# steps added from reviewing DD
+unit_by_plant_by_fuel <- unit_file %>% group_by(plant_id, primary_fuel_type) %>% summarise(heat_input = sum(heat_input)) %>%
+  mutate(heat_input = ifelse(is.na(heat_input),0,heat_input), # replace NA with 0 so rows with only NA do not get filtered out
+         coal_flag = ifelse(primary_fuel_type %in% c("BIT", "COG", "LIG", "RC", "SGC", "SUB", "WC") & heat_input > 0,1,0)) 
+
+unit_primary_fuel <- unit_by_plant_by_fuel %>% ungroup %>% group_by(plant_id) %>% 
+  mutate(coal_flag = max(coal_flag)) %>% # expand coal_flag to all rows of a plant_id
+  filter(heat_input == max(heat_input)  ) %>% select(-heat_input) %>% # filter to primary fuel
+  mutate(primary_fuel_category = case_when(primary_fuel_type %in% c("BIT", "COG", "LIG", "RC", "SGC", "SUB", "WC") ~ "COAL",
+                                           primary_fuel_type %in% c("DFO", "JF", "KER", "PC", "RFO", "WO") ~ "OIL",
+                                           primary_fuel_type %in% c("NG", "PG") ~ "GAS",
+                                           primary_fuel_type %in% c("BFG", "OG", "TDF") ~ "OFSL", # other fossil fuel
+                                           primary_fuel_type %in% c("NUC") ~ "NUCLEAR",
+                                           primary_fuel_type %in% c("WAT") ~ "HYDRO",
+                                           primary_fuel_type %in% c("SUN") ~ "SOLAR",
+                                           primary_fuel_type %in% c("WND") ~ "WIND",
+                                           primary_fuel_type %in% c("GEO") ~ "GEOTHERMAL",
+                                           primary_fuel_type %in% c("H", "MWH", "OTH", "PRG", "PUR", "WH") ~ "OTHF", # derived from waste heat/hydrogen/purchased/unknown
+                                           primary_fuel_type %in% c("AB", "BLQ", "LFG", "MSW", "OBG", "OBL", "OBS", "SLW", "WDL", "WDS") ~ "BIOMASS")) 
+unit <- unit %>% full_join(unit_primary_fuel)
+rm(unit_by_plant_by_fuel, unit_primary_fuel)
+
+# 2. aggregate gen file to plant level----------------------------
 
       # No list of variables provided, so refenced the SQL steps
       # also added in Name and State for consistency
+
 gen <- generator_file %>% group_by(plant_id) %>%
   summarise(plant_name = paste_concat(plant_name),
             plant_state = paste_concat(plant_state),
+            year = paste_concat(year),
             num_gen = length(unique(generator_id)), # count
+            num_gen_op = sum(unique(data.frame(generator_id, status))$status == "OP",na.rm = TRUE), # count operational
             nameplate_capacity = sum(nameplate_capacity, na.rm = TRUE), # units?
             generation_ann = sum(generation_ann, na.rm = TRUE), # units?
-            generation_oz = sum(generation_oz, na.rm = TRUE)) # units?
+            generation_oz = sum(generation_oz, na.rm = TRUE), # units?
+            fuel_code = paste_concat(fuel_code))%>% 
+  mutate(plant_id = as.numeric(plant_id)) 
 
-## 3. Pull in info from the EIA-860 Plant file - suppressed -------------------------------
-      # joins by plant_id, plant_statem and plant_name
-      # not using any eia_860 columns yet
-#plant_file_gen <-plant_file_gen %>% left_join(eia_860$plant)
+# 3. Pull in info from the EIA-860 Plant file  -------------------------------
+      # joins by plant_id, plant_state and plant_name
+eia_860_use <- eia_860$plant %>% select(plant_id, 
+                                        county, latitude, longitude,
+                                        utility_name, utility_id,
+                                   transmission_or_distribution_system_owner, 
+                                   transmission_or_distribution_system_owner_id,
+                                   balancing_authority_name,
+                                   balancing_authority_code,
+                                   sector_name, nerc_region) %>%
+  rename(system_owner = transmission_or_distribution_system_owner ,
+         system_owner_id = transmission_or_distribution_system_owner_id,
+         sector = sector_name,
+         ba_name = balancing_authority_name,
+         ba_id = balancing_authority_code,
+         nerc = nerc_region,
+         lat = latitude, lon = longitude) %>% unique() %>%
+  mutate(plant_id = as.numeric(plant_id))
 
-#if(any( grepl('not in file|Not in file', plant_file$county))){
- # plant_file_gen <- plant_file_gen %>% mutate(county = ifelse(grepl('not in file|Not in file', county),NA,county ))
-#}
+gen_860 <-gen %>% left_join(eia_860_use)
+
+if(any( grepl('not in file|Not in file', gen_860$county))){
+  gen_860 <- gen_860 %>% mutate(county = ifelse(grepl('not in file|Not in file', county),NA,county ))
+}
 
 ## 4.	Combustion heat input ---------------------------------------
 
-generator_file <- generator_file %>% left_join(unit)
+generator_file <- generator_file %>% 
+  mutate(plant_id = as.numeric(plant_id)) %>% left_join(unit, by = "plant_id")
 
-heat_input_table = generator_file %>% group_by(fuel_code, prime_mover, plant_id) %>%
+heat_input_table = generator_file %>% group_by(fuel_code, prime_mover, plant_id) %>% #why by prime mover?
     summarise(heat_input = sum(heat_input, na.rm = TRUE),
               heat_input_oz = sum(heat_input_oz, na.rm = TRUE))
 
         # filter to combustable fuels
 heat_input_table <- heat_input_table %>% 
-  filter(fuel_code %in% c("AB","BFG","BIT","BLQ","COG","DFO","H","JF","KER","LFG","LIG","MSW","MWH","NG","OBG","OBL","OBS","OG","OTH","PC","PG","PRG","PUR","RC","RFO","SGC","SLW","SUB","TDF","WC","WDL","WDS","WD","WO"))
+  filter(fuel_code %in% c("AB","BFG","BIT","BLQ","COG","DFO","H","JF","KER","LFG","LIG","MSW","MWH","NG","OBG","OBL","OBS","OG","OTH","PC","PG","PRG","PUR","RC","RFO","SGC","SLW","SUB","TDF","WC","WDL","WDS","WD","WO")) %>%
+  ungroup %>% group_by(plant_id) %>% summarise(unadj_combust_heat_input = sum(heat_input, na.rm = TRUE),
+                                               unadj_combust_heat_input_oz = sum(heat_input_oz, na.rm = TRUE))
+
         # join with aggregated generator file
-gen <- gen %>% left_join(heat_input_table)  
-        # drop columns from unit for smoother joining later
-unit <- unit %>% select(-heat_input, - heat_input_oz) 
+gen_860 <- gen_860 %>% left_join(heat_input_table)  
+
 
 ## 5.	Update capacity factor  -----------------------------------------------
 gen <- gen %>% mutate(capfac = ifelse(generation_ann*8760 < 0, 0, generation_ann*8760))
@@ -140,26 +197,111 @@ emissions_CH4_N2O <- read_csv("data/static_tables/co2_ch4_n2o_ef.csv") %>% filte
   select(eia_fuel_code, ch4_ef, n2o_ef)
     
 if(any( (!gen$fuel_code %in% emissions_CH4_N2O$eia_fuel_code )& !is.na(gen$fuel_code))) { 
-  print(paste0(unique(gen$fuel_code[which(!gen$fuel_code %in% emissions_CH4_N2O$eia_fuel_code& !is.na(gen$fuel_code))]), " is not in emissions data!"))
+  print(paste0(unique(gen_860$fuel_code[which(!gen_860$fuel_code %in% emissions_CH4_N2O$eia_fuel_code& !is.na(gen$fuel_code))]), " is not in emissions data!"))
 }
     # join with eia to calculate at plant level
     
 eia_CH4_N2O <- eia_923$generation_and_fuel_combined %>% filter(prime_mover != "FC")%>% select(plant_id, total_fuel_consumption_mmbtu, fuel_type) %>%
   left_join(emissions_CH4_N2O, by = c("fuel_type" = "eia_fuel_code")) %>%
-  mutate( CH4 = ch4_ef * total_fuel_consumption_mmbtu,
-          N2O = n2o_ef * total_fuel_consumption_mmbtu) %>%
+  mutate( unadj_ch4_mass = ch4_ef * total_fuel_consumption_mmbtu,
+          unadj_n2o_mass = n2o_ef * total_fuel_consumption_mmbtu,
+          plant_id = as.numeric(plant_id)) %>%
   group_by(plant_id) %>%
   summarise(CH4 = sum(CH4, na.rm = TRUE),
             N2O = sum(N2O, na.rm = TRUE))
   
 
-plant_file <- gen %>% full_join(unit)
+plant_file <- gen_860 %>% full_join(unit)
 plant_file <- plant_file %>% left_join(eia_CH4_N2O) 
 
-#
 
 
-  
+
+
+
+
+
+
+
+
+## This can't be run until we add code to create adjusted variables from the unadj_ columns
+
+
+## I Calculate CO2 equivalent ----------------------------------------
+
+plant_file = plant_file %>% mutate(co2_equivalent = co2_mass + (25*ch4_mass/2000) + (298*n2o_mass/2000))  
     
+## II Calculate Output Emissions Rates ----------------------------------------
 
+plant_file = plant_file %>% mutate(nox_out_emission_rate = 2000 * nox_mass / generation_ann,
+                                  nox_out_emission_rate_oz = 2000 * nox_oz / generation_oz,
+                                  so2_out_emission_rate = 2000 * so2_mass / generation_ann,
+                                  co2_out_emission_rate = 2000 * co2_mass / generation_ann,
+                                  ch4_out_emission_rate = 2000 * ch4_mass / generation_ann,
+                                  n2o_out_emission_rate = 2000 * n2o_mass / generation_ann,
+                                  co2_equiv_out_emission_rate = 2000 * co2_equivalent / generation_ann)  
+
+## III Calculate Input Emissions Rates ----------------------------------------
+
+plant_file = plant_file %>% mutate(nox_in_emission_rate = 2000 * nox_mass / heat_input,
+                                  nox_in_emission_rate_oz = 2000 * nox_oz / heat_input_oz,
+                                  so2_in_emission_rate = 2000 * so2_mass / heat_input,
+                                  co2_in_emission_rate = 2000 * co2_mass / heat_input,
+                                  ch4_in_emission_rate = 2000 * ch4_mass / heat_input,
+                                  n2o_in_emission_rate = 2000 *  n2o_mass / heat_input,
+                                  co2_equiv_in_emission_rate = 2000 * co2_equivalent / heat_input)  
+# IV Calculate Annual Generation by Fuel Code and Percentages
+
+ann_gen_by_fuel = generator_file %>% group_by(fuel_code, plant_id) %>% #why by prime mover?
+  summarise(ann_gen = sum(generation_ann, na.rm = TRUE),
+            ann_gen_oz = sum(generation_oz, na.rm = TRUE)) %>% ungroup %>% group_by(plant_id) %>%
+  summarise(ann_gen = sum(ann_gen, na.rm = TRUE),
+            ann_gen_coal = sum(ann_gen[which(fuel_code %in% c("BIT", "COG", "LIG", "RC", "SGC","SC", "SUB", "WC"))], na.rm = TRUE),
+            ann_gen_oil = sum(ann_gen[which(fuel_code %in% c("DFO", "JF", "KER","OO", "PC", "RFO", "WO"))], na.rm = TRUE),
+            ann_gen_gas = sum(ann_gen[which(fuel_code %in% c("NG", "PG"))], na.rm = TRUE),
+            ann_gen_nuclear = sum(ann_gen[which(fuel_code %in% c("NUC"))], na.rm = TRUE),
+            ann_gen_hydro = sum(ann_gen[which(fuel_code %in% c("WAT"))], na.rm = TRUE),
+            ann_gen_biomass = sum(ann_gen[which(fuel_code %in% c("AB", "BLQ", "DG", "LFG", "ME", "MSW", "OBG", "OBL", "OBS","PP", "SLW", "WDL", "WDS"))], na.rm = TRUE),
+            ann_gen_wind = sum(ann_gen[which(fuel_code %in% c("WND"))], na.rm = TRUE),
+            ann_gen_solar = sum(ann_gen[which(fuel_code %in% c("SUN"))], na.rm = TRUE),
+            ann_gen_geothermal = sum(ann_gen[which(fuel_code %in% c("GEO"))], na.rm = TRUE),
+            ann_gen_other_ff = sum(ann_gen[which(fuel_code %in% c("BFG", "HY", "LB", "MH", "MSF", "OG", "TDF"))], na.rm = TRUE),
+            ann_gen_other = sum(ann_gen[which(fuel_code %in% c("H", "MWH", "OTH", "PRG", "PUR", "WH"))], na.rm = TRUE),
+    
+  ) %>% mutate(ann_gen_non_renew = ann_gen_coal + ann_gen_oil + ann_gen_gas + ann_gen_other_ff + ann_gen_nuclear + ann_gen_other,
+               ann_gen_renew = ann_gen_biomass + ann_gen_wind + ann_gen_solar + ann_gen_geothermal + ann_gen_hydro,
+               ann_gen_renew_nonhydro = ann_gen_biomass + ann_gen_wind + ann_gen_solar + ann_gen_geothermal ,
+               ann_gen_combust = ann_gen_coal + ann_gen_oil + ann_gen_gas + ann_gen_other_ff + ann_gen_biomass + ann_gen_other,
+               ann_gen_non_combust = ann_gen_nuclear + ann_gen_wind + ann_gen_solar + ann_gen_geothermal + ann_gen_hydro
+  ) %>% mutate(perc_ann_gen_coal = 100 * ann_gen_coal / ann_gen,
+               perc_ann_gen_oil = 100 * ann_gen_oil / ann_gen,
+               perc_ann_gen_gas = 100 * ann_gen_gas / ann_gen,
+               perc_ann_gen_nuclear = 100 * ann_gen_nuclear / ann_gen,
+               perc_ann_gen_hydro = 100 * ann_gen_hydro / ann_gen,
+               perc_ann_gen_biomass = 100 * ann_gen_biomass / ann_gen,
+               perc_ann_gen_wind = 100 * ann_gen_wind / ann_gen,
+               perc_ann_gen_solar = 100 * ann_gen_solar / ann_gen,
+               perc_ann_gen_geothermal = 100 * ann_gen_geothermal / ann_gen,
+               perc_ann_gen_solar = 100 * ann_gen_solar / ann_gen,
+               perc_ann_gen_other_ff = 100 * ann_gen_other_ff / ann_gen,
+               perc_ann_gen_other = 100 * ann_gen_other / ann_gen,
+               perc_ann_gen_non_renew = 100 * ann_gen_non_renew / ann_gen,
+               perc_ann_gen_renew = 100 * ann_gen_renew / ann_gen,
+               perc_ann_gen_renew_non_hydro = 100 * ann_gen_renew_nonhydro / ann_gen,
+               perc_ann_gen_combust = 100 * ann_gen_combust / ann_gen,
+               perc_ann_gen_non_combust = 100 * ann_gen_combust / ann_gen,)
+    
+  
+plant_file <- plant_file %>% full_join(ann_gen_by_fuel)
+
+
+## V Calculate Combustion Output Emissions Rates ----------------------------------------
+
+plant_file = plant_file %>% mutate(nox_combust_out_emission_rate = 2000 * nox_mass / ann_gen_combust,
+                                   nox_combust_out_emission_rate_oz = 2000 * nox_oz / ( ann_gen_combust * (generation_oz/generation_ann)),
+                                   so2_combust_out_emission_rate = 2000 * so2_mass / ann_gen_combust,
+                                   co2_combust_out_emission_rate = 2000 * co2_mass / ann_gen_combust,
+                                   ch4_combust_out_emission_rate = 2000 * ch4_mass / ann_gen_combust,
+                                   n2o_combust_out_emission_rate = 2000 * n2o_mass / ann_gen_combust,
+                                   co2_combust_equiv_out_emission_rate = 2000 * co2_equivalent / ann_gen_combust)  
 
