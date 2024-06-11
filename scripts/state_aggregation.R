@@ -9,12 +9,21 @@ library(readxl)
 library(stringr)
 
 
-### missing: CH4, N2O, CO2e emissions mass (does this come from plant file typically?)
-###         non-baseload %
-###         are flags (combustion, RE, etc.) created in plant file? 
+### notes: 
+###     CH4, N2O, CO2e emissions mass need to be added still 
+###     non-baseload % to be added 
+###     are flags (combustion, RE, etc.) created in plant file? 
+###     is there already an energy source crosswalk? (coal = LIG, ANT etc.)
+###     comparison to 2021 eGRID - overestimating across all states 
+###     reading in unit and generator files potentially not necessary once plant file is ready
 
 
 # Load and clean necessary data ------
+
+# fuel type / energy source crosswalk (includes combustion and RE flags) 
+
+xwalk_energy_source <- read_csv("data/static_tables/xwalk_energy_source.csv")
+
 
 # unit file 
 
@@ -24,7 +33,7 @@ unit <- read_rds("data/outputs/unit_file_2021.RDS") # need to generalize for any
 
 plant_emissions_heat_rate <- 
   unit %>% 
-  group_by(plant_state, plant_name, plant_id, primary_fuel_type, unit_id) %>% 
+  group_by(plant_state, plant_name, plant_id, primary_fuel_type) %>% 
   summarize(plant_nox = sum(nox_mass), 
             plant_nox_oz = sum(nox_oz), 
             plant_so2 = sum(so2_mass), 
@@ -37,14 +46,13 @@ plant_emissions_heat_rate <-
 
 generator <- read_rds("data/outputs/generator_file.RDS") # need to generalize for any year
 
-# fuel type / energy source crosswalk (includes combustion and RE flags) 
-
-xwalk_energy_source <- read_csv("data/static_tables/xwalk_energy_source.csv")
 
 # calculate plant level net generation by prime mover and primary fuel type
 
-# issue (?) - assuming generation is split by NP capacity across generators (by looking at file)
-# I summed this to get total plant generation, is this correct? 
+# check: assuming generation is split by NP capacity across generators (by looking at file)
+# I summed this to get total plant generation, check if correct? 
+
+# check: check if fuel type and fuel code need to be matched 
 
 plant_generation <-
   generator %>% 
@@ -67,7 +75,8 @@ plant_combined <-
   plant %>% 
   left_join(plant_emissions_heat_rate, by = c("plant_id", "plant_name")) %>% 
   left_join(plant_generation, by = "plant_id") %>% 
-  left_join(xwalk_energy_source, by = "primary_fuel_type")
+  left_join(xwalk_energy_source, by = "primary_fuel_type") 
+
 
 # State level aggregation ------
 
@@ -130,8 +139,6 @@ state_combustion_rates <-
 # issues/notes here: 
 # applied case_when to only calculate rates when generation > 0
 # should rate values with gen <= 0 be NA or 0? 
-
-# need to calculate fossil fuel rates 
 
 state_fuel_type <-
   plant_combined %>% 
@@ -283,12 +290,13 @@ state_gen_formatted <-
     names_from = energy_source, 
     values_from = c(gen_fuel, 
                     pct_gen_fuel)
-  )  
+  ) 
+  
 
 
 ### Renewable and non-renewable generation (MWh and percentage) -----
 
-# issue: what is included in RE? 
+# issue: what fuel types are included in RE? 
 
 # RE including hydro
 
@@ -351,7 +359,7 @@ state_non_combustion <-
 ### Non-baseload generation by fuel type (MWh and percentage) -----
 
 
-# Create final dataframe -----
+# Create final data frame -----
 
 state_final <- 
   state %>% 
@@ -363,7 +371,8 @@ state_final <-
   left_join(state_re, by = c("plant_state")) %>% # re generation (MWh and %)
   left_join(state_re_no_hydro, by = c("plant_state")) %>%  # re no hydro generation (MWh and %)
   left_join(state_combustion, by = c("plant_state")) %>%  # combustion generation (MWh and %)
-  left_join(state_non_combustion, by = c("plant_state"))   # non-combustion generation (MWh and %)
+  left_join(state_non_combustion, by = c("plant_state")) %>%  # non-combustion generation (MWh and %)
+  mutate(across(where(is.numeric), ~replace_na(., 0))) # fill NAs with 0
   
 state_formatted <- 
   state_final %>% 
@@ -380,7 +389,7 @@ if(dir.exists("data/outputs")) {
 
 print("Saving state aggregation file to folder data/outputs/")
 
-write_rds(state_formatted, "data/outputs/state_aggregation.RDS")
+write_csv(state_formatted, "data/outputs/state_aggregation.csv")
 
 
 
