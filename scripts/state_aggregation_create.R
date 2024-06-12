@@ -63,7 +63,6 @@ generator <- read_rds("data/outputs/generator_file.RDS") # need to generalize fo
 
 plant_generation <-
   generator %>% 
-  mutate_at("plant_id", as.numeric) %>% 
   # important to match fuel type to fuel codes? ignoring for now - there were many-to-many merge issues
   #left_join(xwalk_fuel_type, by = c("plant_id", "generator_id", "prime_mover", "fuel_code")) 
   group_by(plant_id) %>% 
@@ -80,6 +79,7 @@ plant <- read_rds("data/outputs/plant_file_2021.RDS") # need to generalize for a
 
 plant_combined <- 
   plant %>% 
+  mutate(plant_id = as.character("plant_id")) %>% 
   left_join(plant_emissions_heat_rate, by = c("plant_id", "plant_name")) %>% 
   left_join(plant_generation, by = "plant_id") %>% 
   left_join(xwalk_energy_source, by = "primary_fuel_type") 
