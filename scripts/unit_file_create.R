@@ -772,9 +772,28 @@ all_units_2 <-
 
 # Additional updates before emissions ------
 
+all_units_2 %>% 
+  filter(is.na(so2_controls)) %>% 
+  left_join(eia_8)
+
+
+eia_860$emissions_control_equipment %>% filter(plant_id == 1250, so2_control_id == "4N") %>% 
+  select(plant_id, so2_control_id) %>% 
+  inner_join(eia_860$boiler_so2 %>% select(plant_id, so2_control_id, boiler_id),
+             by = c("plant_id", "so2_control_id")) %>% 
+  filter(plant_id == 1250)
+  count(plant_id, boiler_id, sort = TRUE)
+
+
+all_units_2 %>% 
+  mutate(primary_fuel_type = if_else(primary_fuel_type == "MSB", "MSW", "MSB")) %>% # Changing "MSB" fuel codes to "MSW"
+  
+
 ## Change MSB to MSW 
 
 ## Update NOx controls from EIA-860
+  
+## Update S02 controls from EIA-860
 
 # Update null firing types
 
