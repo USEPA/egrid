@@ -35,7 +35,7 @@ unit <- read_rds("data/outputs/unit_file_2021.RDS") # need to generalize for any
 
 plant_emissions_heat_rate <- 
   unit %>% 
-  group_by(balancing_authority_name, balancing_authority_code, plant_name, plant_id, primary_fuel_type) %>% 
+  group_by(plant_name, plant_id, primary_fuel_type) %>% 
   summarize(plant_nox = sum(nox_mass), 
             plant_nox_oz = sum(nox_oz), 
             plant_so2 = sum(so2_mass), 
@@ -76,7 +76,7 @@ plant_combined <-
 
 egrid <- 
   plant_combined %>% 
-  group_by(year, balancing_authority_name, balancing_authority_code) %>% 
+  group_by(year, sub_region) %>% 
   summarize(egrid_nameplate_capacity = sum(plant_nameplate_capacity, na.rm = TRUE), 
             egrid_nox = sum(plant_nox, na.rm = TRUE), 
             egrid_nox_oz = sum(plant_nox_oz, na.rm = TRUE), 
@@ -103,16 +103,21 @@ egrid_emission_rates <-
          egrid_input_so2_rate = 2000*egrid_so2/egrid_heat_input,
          egrid_input_co2_rate = 2000*egrid_co2/egrid_heat_input,
          egrid_input_hg_rate = 2000*egrid_hg/egrid_heat_input) %>% 
-  select(balancing_authority_name, balancing_authority_code, contains("rate")) # include necessary data only
+  select(sub_region, contains("rate")) # include necessary data only
 
 ### Combustion emission rates -----
 
 # check: once plant file is complete, combustion techs may be identified already
 
+combustion_fuels <- c("coal", 
+                      "oil", 
+                      "gas", 
+                      "biomass")
+
 egrid_combustion_rates <- 
   plant_combined %>% 
-  filter(combustion_flag == 1) %>%  # combustion flag identified in xwalk_energy_source.csv
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  filter(energy_source %in% combustion_fuels) %>%  # combustion flag identified in xwalk_energy_source.csv
+  group_by(sub_region) %>% 
   summarize(egrid_nox_comb = sum(plant_nox, na.rm = TRUE), 
             egrid_nox_oz_comb = sum(plant_nox_oz, na.rm = TRUE), 
             egrid_so2_comb = sum(plant_so2, na.rm = TRUE), 
@@ -127,7 +132,7 @@ egrid_combustion_rates <-
          egrid_output_so2_rate_comb = 2000*egrid_so2_comb/egrid_gen_ann_comb,
          egrid_output_co2_rate_comb = 2000*egrid_co2_comb/egrid_gen_ann_comb,
          egrid_output_hg_rate_comb = 2000*egrid_hg_comb/egrid_gen_ann_comb) %>% 
-  select(balancing_authority_name, balancing_authority_code, contains("output")) # include necessary data only
+  select(sub_region, contains("output")) # include necessary data only
 
 
 ### Output and input emission rates by fuel type (lb/MWh) -----
@@ -142,7 +147,7 @@ fossil_fuels <- c("coal",
 
 egrid_fuel_type <-
   plant_combined %>% 
-  group_by(balancing_authority_name, balancing_authority_code, energy_source) %>% 
+  group_by(sub_region, energy_source) %>% 
   filter(energy_source %in% fossil_fuels) %>% # only calculate these energy sources 
   summarize(egrid_nox_fuel = sum(plant_nox, na.rm = TRUE), 
             egrid_nox_oz_fuel = sum(plant_nox_oz, na.rm = TRUE), 
@@ -186,15 +191,18 @@ egrid_fuel_type <-
       egrid_heat_input_fuel <= 0 ~ 0),
     egrid_input_hg_rate_fuel = case_when(
       egrid_heat_input_fuel > 0 ~ 2000*egrid_hg_fuel/egrid_heat_input_fuel, 
-      egrid_heat_input_fuel <= 0 ~ 0)) %>% 
-  select(balancing_authority_name, balancing_authority_code, energy_source, contains("rate")) # include only necessary columns
+      egrid_heat_input_fuel <= 0 ~ 0)) 
+
+egrid_fuel_type_rates <-
+  egrid_fuel_type %>% 
+  select(sub_region, energy_source, contains("rate")) # include only necessary columns
 
 # calculate fossil fuel rate
 
 egrid_fossil_rate <-
   plant_combined %>% 
   filter(energy_source %in% fossil_fuels) %>% # only calculate these energy sources
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  group_by(sub_region) %>% 
   summarize(egrid_nox_fossil = sum(plant_nox, na.rm = TRUE), 
             egrid_nox_oz_fossil = sum(plant_nox_oz, na.rm = TRUE), 
             egrid_so2_fossil = sum(plant_so2, na.rm = TRUE), 
@@ -238,13 +246,13 @@ egrid_fossil_rate <-
     egrid_input_hg_rate_fossil = case_when(
       egrid_heat_input_fossil > 0 ~ 2000*egrid_hg_fossil/egrid_heat_input_fossil, 
       egrid_heat_input_fossil <= 0 ~ 0)) %>% 
-  select(balancing_authority_name, balancing_authority_code, contains("rate")) # include only necessary columns
+  select(sub_region, contains("rate")) # include only necessary columns
 
 
 # format for final data frame 
 
-egrid_fuel_type_wider <-
-  egrid_fuel_type %>% 
+egrid_fuel_type_rates_wider <-
+  egrid_fuel_type_rates %>% 
   pivot_wider(
     names_from = energy_source, 
     values_from = c(egrid_output_nox_rate_fuel, 
@@ -258,7 +266,7 @@ egrid_fuel_type_wider <-
                     egrid_input_co2_rate_fuel,
                     egrid_input_hg_rate_fuel)
   ) %>% 
-  left_join(egrid_fossil_rate, by = c("balancing_authority_name", "balancing_authority_code")) 
+  left_join(egrid_fossil_rate, by = c("sub_region")) 
 
 ### Non-baseload output emission rates (lb/MWh) -----
 
@@ -269,11 +277,10 @@ egrid_fuel_type_wider <-
 
 egrid_gen <- 
   egrid_fuel_type %>% 
-  left_join(egrid, by = c("balancing_authority_name", "balancing_authority_code")) %>% 
-  left_join(xwalk_energy_source, by = c("primary_fuel_type")) %>% 
-  select(balancing_authority_name, balancing_authority_code, primary_fuel_type, energy_source, egrid_gen_ann_fuel, egrid_gen_oz_fuel, 
+  left_join(egrid, by = c("sub_region")) %>% 
+  select(sub_region, energy_source, egrid_gen_ann_fuel, egrid_gen_oz_fuel, 
          egrid_gen_ann, egrid_gen_oz) %>% 
-  group_by(balancing_authority_name, balancing_authority_code, energy_source) %>% 
+  group_by(sub_region, energy_source) %>% 
   summarize(gen_fuel = sum(egrid_gen_ann_fuel), 
             pct_gen_fuel= sum(egrid_gen_ann_fuel)/egrid_gen_ann) %>% 
   distinct()
@@ -304,8 +311,8 @@ re_fuels <- c("biomass",
 egrid_re <- 
   plant_combined %>% 
   filter(primary_fuel_type %in% re_fuels) %>% 
-  left_join(egrid, by = c("balancing_authority_name", "balancing_authority_code")) %>% 
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  left_join(egrid, by = c("sub_region")) %>% 
+  group_by(sub_region) %>% 
   summarize(gen_re = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_re = sum(plant_gen_ann, na.rm = TRUE)/egrid_gen_ann) %>% 
   distinct()
@@ -320,8 +327,8 @@ re_fuels_no_hydro <- c("biomass",
 egrid_re_no_hydro <- 
   plant_combined %>% 
   filter(energy_source %in% re_fuels_no_hydro) %>% 
-  left_join(egrid, by = c("balancing_authority_name", "balancing_authority_code")) %>% 
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  left_join(egrid, by = c("sub_region")) %>% 
+  group_by(sub_region) %>% 
   summarize(gen_re_no_hydro = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_re_no_hydro = sum(plant_gen_ann, na.rm = TRUE)/egrid_gen_ann) %>% 
   distinct()
@@ -331,8 +338,8 @@ egrid_re_no_hydro <-
 egrid_non_re <- 
   plant_combined %>% 
   filter(! primary_fuel_type %in% re_fuels) %>% 
-  left_join(egrid, by = c("balancing_authority_name", "balancing_authority_code")) %>% 
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  left_join(egrid, by = c("sub_region")) %>% 
+  group_by(sub_region) %>% 
   summarize(gen_non_re = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_re = sum(plant_gen_ann, na.rm = TRUE)/egrid_gen_ann) %>% 
   distinct()
@@ -350,8 +357,8 @@ combustion_fuels <- c("coal",
 egrid_combustion <- 
   plant_combined %>% 
   filter(energy_source %in% combustion_fuels) %>% 
-  left_join(egrid, by = c("balancing_authority_name", "balancing_authority_code")) %>% 
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  left_join(egrid, by = c("sub_region")) %>% 
+  group_by(sub_region) %>% 
   summarize(gen_combustion = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_combustion = sum(plant_gen_ann, na.rm = TRUE)/egrid_gen_ann) %>% 
   distinct()
@@ -361,8 +368,8 @@ egrid_combustion <-
 egrid_non_combustion <- 
   plant_combined %>% 
   filter(! energy_source %in% combustion_fuels) %>% 
-  left_join(egrid, by = c("balancing_authority_name", "balancing_authority_code")) %>% 
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  left_join(egrid, by = c("sub_region")) %>% 
+  group_by(sub_region) %>% 
   summarize(gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE)/egrid_gen_ann) %>% 
   distinct()
@@ -375,15 +382,15 @@ egrid_non_combustion <-
 
 egrid_final <- 
   egrid %>% 
-  left_join(egrid_emission_rates, by = c("balancing_authority_name", "balancing_authority_code")) %>% # output/input emission rates
-  left_join(egrid_combustion_rates, by = c("balancing_authority_name", "balancing_authority_code")) %>% # combustion emission rates 
-  left_join(egrid_fuel_type_wider, by = c("balancing_authority_name", "balancing_authority_code")) %>% # fuel specific emission rates
-  left_join(egrid_gen_wider, by = c("balancing_authority_name", "balancing_authority_code")) %>% # generation values and percent by fuel type
-  left_join(egrid_non_re, by = c("balancing_authority_name", "balancing_authority_code")) %>% # non-re generation (MWh and %)
-  left_join(egrid_re, by = c("balancing_authority_name", "balancing_authority_code")) %>% # re generation (MWh and %)
-  left_join(egrid_re_no_hydro, by = c("balancing_authority_name", "balancing_authority_code")) %>%  # re no hydro generation (MWh and %)
-  left_join(egrid_combustion, by = c("balancing_authority_name", "balancing_authority_code")) %>%  # combustion generation (MWh and %)
-  left_join(egrid_non_combustion, by = c("balancing_authority_name", "balancing_authority_code")) %>%  # non-combustion generation (MWh and %)
+  left_join(egrid_emission_rates, by = c("sub_region")) %>% # output/input emission rates
+  left_join(egrid_combustion_rates, by = c("sub_region")) %>% # combustion emission rates 
+  left_join(egrid_fuel_type_rates_wider, by = c("sub_region")) %>% # fuel specific emission rates
+  left_join(egrid_gen_wider, by = c("sub_region")) %>% # generation values and percent by fuel type
+  left_join(egrid_non_re, by = c("sub_region")) %>% # non-re generation (MWh and %)
+  left_join(egrid_re, by = c("sub_region")) %>% # re generation (MWh and %)
+  left_join(egrid_re_no_hydro, by = c("sub_region")) %>%  # re no hydro generation (MWh and %)
+  left_join(egrid_combustion, by = c("sub_region")) %>%  # combustion generation (MWh and %)
+  left_join(egrid_non_combustion, by = c("sub_region")) %>%  # non-combustion generation (MWh and %)
   mutate(across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
   select(-contains("fuel_NA"), -egrid_input_hg_rate_fuel_gas, 
          -egrid_input_hg_rate_fuel_oil) # remove unnecessary columns
@@ -403,7 +410,7 @@ if(dir.exists("data/outputs")) {
 
 print("Saving eGRID subregion aggregation file to folder data/outputs/")
 
-write_csv(egrid_rounded, "data/outputs/egrid_aggregation.csv")
+write_csv(egrid_rounded, "data/outputs/egrid_subregion_aggregation.csv")
 
 
 

@@ -33,7 +33,8 @@ unit <- read_rds("data/outputs/unit_file_2021.RDS") # need to generalize for any
 
 plant_emissions_heat_rate <- 
   unit %>% 
-  group_by(balancing_authority_name, balancing_authority_code, plant_name, plant_id, primary_fuel_type) %>% 
+  mutate(plant_id = as.character(plant_id)) %>%
+  group_by(plant_name, plant_id, primary_fuel_type) %>% 
   summarize(plant_nox = sum(nox_mass), 
             plant_nox_oz = sum(nox_oz), 
             plant_so2 = sum(so2_mass), 
@@ -50,7 +51,7 @@ generator <- read_rds("data/outputs/generator_file.RDS") # need to generalize fo
 
 plant_generation <-
   generator %>% 
-  mutate_at("plant_id", as.numeric) %>% 
+  mutate(plant_id = as.character(plant_id)) %>% 
   group_by(plant_id) %>% 
   summarize(plant_gen_ann = sum(generation_ann),
             plant_gen_oz = sum(generation_oz),
@@ -60,6 +61,9 @@ plant_generation <-
 
 plant <- read_rds("data/outputs/plant_file_2021.RDS") # need to generalize for any year
 
+plant <- 
+  plant %>% 
+  mutate(plant_id = as.character(plant_id)) 
 
 # Combine data ------
 
@@ -73,7 +77,7 @@ plant_combined <-
 
 nerc <- 
   plant_combined %>% 
-  group_by(year, balancing_authority_name, balancing_authority_code) %>% 
+  group_by(year, nerc) %>% 
   summarize(nerc_nameplate_capacity = sum(plant_nameplate_capacity, na.rm = TRUE), 
             nerc_nox = sum(plant_nox, na.rm = TRUE), 
             nerc_nox_oz = sum(plant_nox_oz, na.rm = TRUE), 
@@ -100,16 +104,21 @@ nerc_emission_rates <-
          nerc_input_so2_rate = 2000*nerc_so2/nerc_heat_input,
          nerc_input_co2_rate = 2000*nerc_co2/nerc_heat_input,
          nerc_input_hg_rate = 2000*nerc_hg/nerc_heat_input) %>% 
-  select(balancing_authority_name, balancing_authority_code, contains("rate")) # include necessary data only
+  select(nerc, contains("rate")) # include necessary data only
 
 ### Combustion emission rates -----
 
 # check: once plant file is complete, combustion techs may be identified already
 
+combustion_fuels <- c("coal", 
+                      "oil", 
+                      "gas", 
+                      "biomass")
+
 nerc_combustion_rates <- 
   plant_combined %>% 
-  filter(combustion_flag == 1) %>%  # combustion flag identified in xwalk_energy_source.csv
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  filter(energy_source %in% combustion_fuels) %>%  # combustion flag identified in xwalk_energy_source.csv
+  group_by(nerc) %>% 
   summarize(nerc_nox_comb = sum(plant_nox, na.rm = TRUE), 
             nerc_nox_oz_comb = sum(plant_nox_oz, na.rm = TRUE), 
             nerc_so2_comb = sum(plant_so2, na.rm = TRUE), 
@@ -124,7 +133,7 @@ nerc_combustion_rates <-
          nerc_output_so2_rate_comb = 2000*nerc_so2_comb/nerc_gen_ann_comb,
          nerc_output_co2_rate_comb = 2000*nerc_co2_comb/nerc_gen_ann_comb,
          nerc_output_hg_rate_comb = 2000*nerc_hg_comb/nerc_gen_ann_comb) %>% 
-  select(balancing_authority_name, balancing_authority_code, contains("output")) # include necessary data only
+  select(nerc, contains("output")) # include necessary data only
 
 
 ### Output and input emission rates by fuel type (lb/MWh) -----
@@ -139,7 +148,7 @@ fossil_fuels <- c("coal",
 
 nerc_fuel_type <-
   plant_combined %>% 
-  group_by(balancing_authority_name, balancing_authority_code, energy_source) %>% 
+  group_by(nerc, energy_source) %>% 
   filter(energy_source %in% fossil_fuels) %>% # only calculate these energy sources 
   summarize(nerc_nox_fuel = sum(plant_nox, na.rm = TRUE), 
             nerc_nox_oz_fuel = sum(plant_nox_oz, na.rm = TRUE), 
@@ -183,15 +192,18 @@ nerc_fuel_type <-
       nerc_heat_input_fuel <= 0 ~ 0),
     nerc_input_hg_rate_fuel = case_when(
       nerc_heat_input_fuel > 0 ~ 2000*nerc_hg_fuel/nerc_heat_input_fuel, 
-      nerc_heat_input_fuel <= 0 ~ 0)) %>% 
-  select(balancing_authority_name, balancing_authority_code, energy_source, contains("rate")) # include only necessary columns
+      nerc_heat_input_fuel <= 0 ~ 0)) 
+  
+nerc_fuel_type_rates <- 
+  nerc_fuel_type %>% 
+  select(nerc, energy_source, contains("rate")) # include only necessary columns
 
 # calculate fossil fuel rate
 
 nerc_fossil_rate <-
   plant_combined %>% 
   filter(energy_source %in% fossil_fuels) %>% # only calculate these energy sources
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  group_by(nerc) %>% 
   summarize(nerc_nox_fossil = sum(plant_nox, na.rm = TRUE), 
             nerc_nox_oz_fossil = sum(plant_nox_oz, na.rm = TRUE), 
             nerc_so2_fossil = sum(plant_so2, na.rm = TRUE), 
@@ -235,13 +247,13 @@ nerc_fossil_rate <-
     nerc_input_hg_rate_fossil = case_when(
       nerc_heat_input_fossil > 0 ~ 2000*nerc_hg_fossil/nerc_heat_input_fossil, 
       nerc_heat_input_fossil <= 0 ~ 0)) %>% 
-  select(balancing_authority_name, balancing_authority_code, contains("rate")) # include only necessary columns
+  select(nerc, contains("rate")) # include only necessary columns
 
 
 # format for final data frame 
 
 nerc_fuel_type_wider <-
-  nerc_fuel_type %>% 
+  nerc_fuel_type_rates %>% 
   pivot_wider(
     names_from = energy_source, 
     values_from = c(nerc_output_nox_rate_fuel, 
@@ -255,7 +267,7 @@ nerc_fuel_type_wider <-
                     nerc_input_co2_rate_fuel,
                     nerc_input_hg_rate_fuel)
   ) %>% 
-  left_join(nerc_fossil_rate, by = c("balancing_authority_name", "balancing_authority_code")) 
+  left_join(nerc_fossil_rate, by = c("nerc")) 
 
 ### Non-baseload output emission rates (lb/MWh) -----
 
@@ -266,14 +278,13 @@ nerc_fuel_type_wider <-
 
 nerc_gen <- 
   nerc_fuel_type %>% 
-  left_join(nerc, by = c("balancing_authority_name", "balancing_authority_code")) %>% 
-  left_join(xwalk_energy_source, by = c("primary_fuel_type")) %>% 
-  select(balancing_authority_name, balancing_authority_code, primary_fuel_type, energy_source, nerc_gen_ann_fuel, nerc_gen_oz_fuel, 
+  left_join(nerc, by = c("nerc")) %>% 
+  select(nerc, energy_source, nerc_gen_ann_fuel, nerc_gen_oz_fuel, 
          nerc_gen_ann, nerc_gen_oz) %>% 
-  group_by(balancing_authority_name, balancing_authority_code, energy_source) %>% 
+  group_by(nerc, energy_source) %>% 
   summarize(gen_fuel = sum(nerc_gen_ann_fuel), 
-            pct_gen_fuel= sum(nerc_gen_ann_fuel)/nerc_gen_ann) %>% 
-  distinct()
+            pct_gen_fuel= sum(nerc_gen_ann_fuel)/nerc_gen_ann) 
+
 
 # format for final data frame (pivot wider)
 
@@ -300,9 +311,9 @@ re_fuels <- c("biomass",
 
 nerc_re <- 
   plant_combined %>% 
-  filter(primary_fuel_type %in% re_fuels) %>% 
-  left_join(nerc, by = c("balancing_authority_name", "balancing_authority_code")) %>% 
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  filter(energy_source %in% re_fuels) %>% 
+  left_join(nerc, by = c("nerc")) %>% 
+  group_by(nerc) %>% 
   summarize(gen_re = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_re = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
   distinct()
@@ -317,8 +328,8 @@ re_fuels_no_hydro <- c("biomass",
 nerc_re_no_hydro <- 
   plant_combined %>% 
   filter(energy_source %in% re_fuels_no_hydro) %>% 
-  left_join(nerc, by = c("balancing_authority_name", "balancing_authority_code")) %>% 
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  left_join(nerc, by = c("nerc")) %>% 
+  group_by(nerc) %>% 
   summarize(gen_re_no_hydro = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_re_no_hydro = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
   distinct()
@@ -327,9 +338,9 @@ nerc_re_no_hydro <-
 
 nerc_non_re <- 
   plant_combined %>% 
-  filter(! primary_fuel_type %in% re_fuels) %>% 
-  left_join(nerc, by = c("balancing_authority_name", "balancing_authority_code")) %>% 
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  filter(! energy_source %in% re_fuels) %>% 
+  left_join(nerc, by = c("nerc")) %>% 
+  group_by(nerc) %>% 
   summarize(gen_non_re = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_re = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
   distinct()
@@ -347,8 +358,8 @@ combustion_fuels <- c("coal",
 nerc_combustion <- 
   plant_combined %>% 
   filter(energy_source %in% combustion_fuels) %>% 
-  left_join(nerc, by = c("balancing_authority_name", "balancing_authority_code")) %>% 
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  left_join(nerc, by = c("nerc")) %>% 
+  group_by(nerc) %>% 
   summarize(gen_combustion = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_combustion = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
   distinct()
@@ -358,8 +369,8 @@ nerc_combustion <-
 nerc_non_combustion <- 
   plant_combined %>% 
   filter(! energy_source %in% combustion_fuels) %>% 
-  left_join(nerc, by = c("balancing_authority_name", "balancing_authority_code")) %>% 
-  group_by(balancing_authority_name, balancing_authority_code) %>% 
+  left_join(nerc, by = c("nerc")) %>% 
+  group_by(nerc) %>% 
   summarize(gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
   distinct()
@@ -372,15 +383,15 @@ nerc_non_combustion <-
 
 nerc_final <- 
   nerc %>% 
-  left_join(nerc_emission_rates, by = c("balancing_authority_name", "balancing_authority_code")) %>% # output/input emission rates
-  left_join(nerc_combustion_rates, by = c("balancing_authority_name", "balancing_authority_code")) %>% # combustion emission rates 
-  left_join(nerc_fuel_type_wider, by = c("balancing_authority_name", "balancing_authority_code")) %>% # fuel specific emission rates
-  left_join(nerc_gen_wider, by = c("balancing_authority_name", "balancing_authority_code")) %>% # generation values and percent by fuel type
-  left_join(nerc_non_re, by = c("balancing_authority_name", "balancing_authority_code")) %>% # non-re generation (MWh and %)
-  left_join(nerc_re, by = c("balancing_authority_name", "balancing_authority_code")) %>% # re generation (MWh and %)
-  left_join(nerc_re_no_hydro, by = c("balancing_authority_name", "balancing_authority_code")) %>%  # re no hydro generation (MWh and %)
-  left_join(nerc_combustion, by = c("balancing_authority_name", "balancing_authority_code")) %>%  # combustion generation (MWh and %)
-  left_join(nerc_non_combustion, by = c("balancing_authority_name", "balancing_authority_code")) %>%  # non-combustion generation (MWh and %)
+  left_join(nerc_emission_rates, by = c("nerc")) %>% # output/input emission rates
+  left_join(nerc_combustion_rates, by = c("nerc")) %>% # combustion emission rates 
+  left_join(nerc_fuel_type_wider, by = c("nerc")) %>% # fuel specific emission rates
+  left_join(nerc_gen_wider, by = c("nerc")) %>% # generation values and percent by fuel type
+  left_join(nerc_non_re, by = c("nerc")) %>% # non-re generation (MWh and %)
+  left_join(nerc_re, by = c("nerc")) %>% # re generation (MWh and %)
+  left_join(nerc_re_no_hydro, by = c("nerc")) %>%  # re no hydro generation (MWh and %)
+  left_join(nerc_combustion, by = c("nerc")) %>%  # combustion generation (MWh and %)
+  left_join(nerc_non_combustion, by = c("nerc")) %>%  # non-combustion generation (MWh and %)
   mutate(across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
   select(-contains("fuel_NA"), -nerc_input_hg_rate_fuel_gas, 
          -nerc_input_hg_rate_fuel_oil) # remove unnecessary columns
@@ -398,7 +409,7 @@ if(dir.exists("data/outputs")) {
   dir.create("data/outputs")
 }
 
-print("Saving nerc aggregation file to folder data/outputs/")
+print("Saving NERC aggregation file to folder data/outputs/")
 
 write_csv(nerc_rounded, "data/outputs/nerc_aggregation.csv")
 
