@@ -32,6 +32,7 @@ xwalk_energy_source <- read_csv("data/static_tables/xwalk_energy_source.csv")
 
 
 # unit file 
+# this will not be necessary when plant file is ready
 
 unit <- read_rds("data/outputs/unit_file_2021.RDS") # need to generalize for any year
 
