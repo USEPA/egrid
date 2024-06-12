@@ -772,28 +772,33 @@ all_units_2 <-
 
 # Additional updates before emissions ------
 
+
+
+controls_860 <- # creating df with 860 nox and so2 controls, with values concatenated when applicable
+  eia_860$emissions_control_equipment %>% 
+  filter(status == "OP") %>%
+  group_by(plant_id, so2_control_id) %>% 
+  mutate(so2_controls_860 = if_else(!is.na(so2_control_id), paste(equipment_type, collapse = ", "), NA_character_)) %>% 
+  ungroup() %>% 
+  group_by(plant_id, nox_control_id) %>%
+  mutate(nox_controls_860 = if_else(!is.na(nox_control_id), paste(equipment_type, collapse = ", "), NA_character_)) %>% 
+  select(plant_id, equipment_type, so2_control_id, so2_controls_860, nox_control_id, nox_controls_860) %>%
+  distinct(plant_id, so2_control_id, so2_controls_860, nox_control_id, nox_controls_860) %>%
+  ungroup() %>% 
+  left_join(eia_860$boiler_so2 %>% select(plant_id, boiler_id, so2_control_id)) %>% # adding matching boiler ids for so2
+  left_join(eia_860$boiler_nox %>% select(plant_id, boiler_id, nox_control_id)) # adding matching boiler ids for nox
+
+
 all_units_2 %>% 
-  filter(is.na(so2_controls)) %>% 
-  left_join(eia_8)
-
-
-eia_860$emissions_control_equipment %>% filter(plant_id == 1250, so2_control_id == "4N") %>% 
-  select(plant_id, so2_control_id) %>% 
-  inner_join(eia_860$boiler_so2 %>% select(plant_id, so2_control_id, boiler_id),
-             by = c("plant_id", "so2_control_id")) %>% 
-  filter(plant_id == 1250)
-  count(plant_id, boiler_id, sort = TRUE)
-
-
-all_units_2 %>% 
+  left_join(controls_860, # joining with 860 controls info to update where missing
+            by = c("plant_id","unit_id" = "boiler_id")) %>%
+  mutate(so2_controls = if_else(is.na(so2_controls), so2_controls_860, so2_controls),  
+         nox_controls = if_else(is.na(nox_controls), nox_controls_860, nox_controls)) %>% 
+  select(-ends_with("controls_860")) %>% # removing 860 controls variable
   mutate(primary_fuel_type = if_else(primary_fuel_type == "MSB", "MSW", "MSB")) %>% # Changing "MSB" fuel codes to "MSW"
   
 
-## Change MSB to MSW 
 
-## Update NOx controls from EIA-860
-  
-## Update S02 controls from EIA-860
 
 # Update null firing types
 
