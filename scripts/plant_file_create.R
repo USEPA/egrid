@@ -9,6 +9,7 @@ library(stringr)
 library(here)
 
 
+
 # Load necessary data ----------
 
 ## eia ------------
@@ -63,7 +64,7 @@ unit_file <- # using unit file from Access production for now
              skip = 1) %>% 
   rename(all_of(clean_names)) # rename columns based on named vector above
 
-library(tidyverse)
+
 
 # 0. create a file to string concatenate unique values that are not NA ----------
 
