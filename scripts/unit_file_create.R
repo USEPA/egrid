@@ -627,7 +627,8 @@ units_heat_updated_boiler_matches <-
 
 units_missing_heat_3 <- 
   units_missing_heat_2 %>% 
-  anti_join(units_heat_updated_boiler_matches)
+  anti_join(units_heat_updated_boiler_matches,
+            by = c("plant_id", "unit_id"))
 
 print(glue::glue("{nrow(units_heat_updated_boiler_matches)} units updated with EIA Unit-level Data from direct matches in EIA 923 boiler file. {nrow(units_missing_heat_3)} with missing heat input remain."))
 
@@ -684,46 +685,126 @@ units_heat_updated_boiler_distributed <-
 
 units_missing_heat_4 <- 
   units_missing_heat_3 %>% 
-  anti_join(units_heat_updated_boiler_distributed)
+  anti_join(units_heat_updated_boiler_distributed,
+            by = c("plant_id", "unit_id"))
 
 print(glue::glue("{nrow(units_heat_updated_boiler_distributed)} units updated with EIA Prime Mover-level Data, distributed from 923 Generation and Fuel File. {nrow(units_missing_heat_4)} with missing heat input remain."))
 
 
 ## Update heat input for null CAMD plants ----------
 
+# SB 6/10/24: skipping step here to fill in missing fuel types. Need to address at some point.
+
+camd_missing_props <-   
   units_missing_heat_4 %>% 
   select(plant_id, unit_id) %>% 
   inner_join(camd_7,
              by = c("plant_id", "unit_id")) %>% 
+  filter(!is.na(operating_hours), # removing units that were not operating in year
+         operating_hours != 0) %>% 
   mutate(primary_fuel_type = if_else(primary_fuel_type == "PRG", "OG", primary_fuel_type)) %>% # need to temporarily change this to match 923
-  group_by(plant_id, prime_mover) %>% 
-  mutate(sum_nameplate = sum(nameplate_capacity),
-         sum_op_hours = sum(operating_hours)) %>% 
-  select(plant_id, unit_id, primary_fuel_type, nameplate_capacity, operating_hours, sum_nameplate, sum_op_hours) %>% filter(plant_id == 10865)
+  group_by(plant_id, prime_mover, primary_fuel_type) %>% 
+  mutate(sum_nameplate = sum(nameplate_capacity)) %>%
+  ungroup() %>%
+  select(plant_id, unit_id, primary_fuel_type, nameplate_capacity, sum_nameplate) %>%
+  mutate(prop = nameplate_capacity/sum_nameplate) %>% 
+  filter(!is.na(prop))
+
+  
+  
+eia_923_heat_fuel_type <- # summing fuel to fuel type level
+  eia_923$generation_and_fuel_combined %>%
+  mutate(unit_heat_nonoz = rowSums(pick(all_of(heat_923_nonoz_months)), na.rm = TRUE),
+         unit_heat_oz = rowSums(pick(all_of(heat_923_oz_months)), na.rm = TRUE)) %>% 
+  group_by(plant_id, prime_mover, fuel_type) %>%
+  summarize(heat_input_nonoz_923 = sum(unit_heat_nonoz, na.rm = TRUE),
+            heat_input_oz_923 = sum(unit_heat_oz, na.rm = TRUE),
+            heat_input_ann_923 = sum(total_fuel_consumption_mmbtu, na.rm = TRUE)) # consumption in mmbtus is referred to as "heat input"
+
+
+units_heat_updated_camd <- 
+  camd_7 %>% 
+  filter(plant_id %in% camd_missing_props$plant_id) %>% 
+  mutate(primary_fuel_type = if_else(primary_fuel_type == "PRG", "OG", primary_fuel_type)) %>% # need to temporarily change this to match 923
+  group_by(plant_id, prime_mover, primary_fuel_type) %>% 
+  summarize(across(c("heat_input","heat_input_oz"), ~ sum(.x, na.rm = TRUE))) %>% 
+  ungroup() %>% 
+  left_join(eia_923_heat_fuel_type,
+            by = c("plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>%
+  mutate(heat_diff_annual = heat_input_ann_923 - heat_input,
+         heat_diff_oz = heat_input_oz_923 - heat_input_oz) %>%
+  filter(heat_diff_annual > 0,
+         !is.na(heat_diff_annual)) %>% 
+  select(plant_id, prime_mover, primary_fuel_type, heat_diff_annual, heat_diff_oz) %>% 
+  right_join(camd_missing_props) %>% 
+  mutate(heat_input = prop * heat_diff_annual,
+         heat_input_oz = prop * heat_diff_oz,
+         heat_input_source = "EIA Prime Mover-level Data",
+         heat_input_oz_source = "EIA Prime Mover-level Data") %>% 
+  select(plant_id, unit_id, prime_mover, heat_input, heat_input_oz) %>% 
+  filter(!is.na(heat_input))
+
+
+units_missing_heat_5 <-
+  units_missing_heat_4 %>%
+  anti_join(units_heat_updated_camd,
+            by = c("plant_id", "unit_id"))
+
+
+print(glue::glue("{nrow(units_heat_updated_camd)} null CAMD units updated with EIA Prime Mover-level Data, distributed from 923 Generation and Fuel File. {nrow(units_missing_heat_5)} with missing heat input remain."))
+
+
+## Updating all units with filled heat input
+
+filled_heat_inputs <- 
+  bind_rows(units_heat_updated_pm_data, 
+            units_heat_updated_boiler_matches, 
+            units_heat_updated_boiler_distributed, 
+            units_heat_updated_camd) %>% 
+  select(plant_id, unit_id, heat_input, heat_input_oz, heat_input_source, heat_input_oz_source)
+
+
+all_units_2 <- 
+  all_units %>% 
+  rows_update(filled_heat_inputs,
+              by = c("plant_id", "unit_id"))
+
+
+# Additional updates before emissions ------
+
+
+
+controls_860 <- # creating df with 860 nox and so2 controls, with values concatenated when applicable
+  eia_860$emissions_control_equipment %>% 
+  filter(status == "OP") %>%
+  group_by(plant_id, so2_control_id) %>% 
+  mutate(so2_controls_860 = if_else(!is.na(so2_control_id), paste(equipment_type, collapse = ", "), NA_character_)) %>% 
+  ungroup() %>% 
+  group_by(plant_id, nox_control_id) %>%
+  mutate(nox_controls_860 = if_else(!is.na(nox_control_id), paste(equipment_type, collapse = ", "), NA_character_)) %>% 
+  select(plant_id, equipment_type, so2_control_id, so2_controls_860, nox_control_id, nox_controls_860) %>%
+  distinct(plant_id, so2_control_id, so2_controls_860, nox_control_id, nox_controls_860) %>%
+  ungroup() %>% 
+  left_join(eia_860$boiler_so2 %>% select(plant_id, boiler_id, so2_control_id)) %>% # adding matching boiler ids for so2
+  left_join(eia_860$boiler_nox %>% select(plant_id, boiler_id, nox_control_id)) # adding matching boiler ids for nox
+
+
+all_units_2 %>% 
+  left_join(controls_860, # joining with 860 controls info to update where missing
+            by = c("plant_id","unit_id" = "boiler_id")) %>%
+  mutate(so2_controls = if_else(is.na(so2_controls), so2_controls_860, so2_controls),  
+         nox_controls = if_else(is.na(nox_controls), nox_controls_860, nox_controls)) %>% 
+  select(-ends_with("controls_860")) %>% # removing 860 controls variable
+  mutate(primary_fuel_type = if_else(primary_fuel_type == "MSB", "MSW", "MSB")) %>% # Changing "MSB" fuel codes to "MSW"
   
 
-# Delete plants from EIA that are in CAMD (2u086a) -------------
-
-# removing plants from EIA that are in CAMD based on ORIS crosswalk
 
 
-# Delete plants from CAMD (2u086b) ----------------
+# Update null firing types
 
-## This is based on a table create manually based on notes from EPA
+## update prime mover
 
+## Update Hg Congrols flag
 
-# Change MSB to MSW (2u087) -----------------
-
-`Unit File 15` <- 
-  `Unit File 14` %>% 
-  mutate(`Fuel Type (Primary)` = if_else(`Fuel Type (Primary)` == "MSW", "MSB", `Fuel Type (Primary)`))
-
-
-# Update So2 controls from EIA-860 (2u088) --------------------
-
-# This invovles single PR plant with manual table -- holding off on this 
-
-# Update NOx controls from EIA-860  (2u089) -------------------------
-
-# * need to import boiler nox cross walk table
+## Calculate number of generators 
 

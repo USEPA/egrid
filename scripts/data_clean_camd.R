@@ -71,10 +71,6 @@ camd_r <-
       TRUE ~ NA_character_),
     unit_type = str_replace(unit_type, "\\(.*?\\)", "") %>% str_trim(), # removing notes about start dates and getting rid of extra white space
     unit_type_abb = recode(unit_type, !!!unit_abbs), ## Recoding values based on lookup table. need to looking into cases with multipe types (SB 3/28/2024)
-    generator_ids = str_extract_all(associated_generators_nameplate_capacity_mwe, "\\S+(?= \\()"), # extracting associated generators
-    nameplate_capacity = (str_extract_all(associated_generators_nameplate_capacity_mwe, "(?<=\\()\\d+\\.\\d+(?=\\))")), # extracting nameplate capacity values
-    associated_generators = map_chr(generator_ids, ~ paste(.x, collapse = ", ")), # pasting togther associated generators
-    nameplate_capacity = map_dbl(nameplate_capacity, ~ sum(as.numeric(.x), na.rm = TRUE)), # summing nameplate capacity from associated generators
     year_online = lubridate::year(commercial_operation_date)
     )
  
