@@ -24,6 +24,19 @@ library(stringr)
 
 xwalk_energy_source <- read_csv("data/static_tables/xwalk_energy_source.csv")
 
+# factor energy sources ordering for final eGRID output
+xwalk_energy_source$energy_source <- factor(xwalk_energy_source$energy_source, 
+                                            levels = c("coal", 
+                                                       "oil", 
+                                                       "gas", 
+                                                       "nuclear", 
+                                                       "hydro", 
+                                                       "biomass", 
+                                                       "wind", 
+                                                       "solar", 
+                                                       "geothermal", 
+                                                       "other"))
+
 
 # unit file 
 # this will not be necessary when plant file is ready

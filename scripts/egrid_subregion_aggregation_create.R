@@ -24,6 +24,18 @@ library(stringr)
 
 xwalk_energy_source <- read_csv("data/static_tables/xwalk_energy_source.csv")
 
+# factor energy sources ordering for final eGRID output
+xwalk_energy_source$energy_source <- factor(xwalk_energy_source$energy_source, 
+                                            levels = c("coal", 
+                                                       "oil", 
+                                                       "gas", 
+                                                       "nuclear", 
+                                                       "hydro", 
+                                                       "biomass", 
+                                                       "wind", 
+                                                       "solar", 
+                                                       "geothermal", 
+                                                       "other"))
 
 # unit file 
 # this will not be necessary when plant file is ready
@@ -263,14 +275,13 @@ egrid_fuel_type_rates_wider <-
 
 ### Generation by fuel type (MWh) and resource mix (percentage) -----
 
+# net generation by energy_source
+
 egrid_gen <- 
-  egrid_fuel_type %>% 
-  left_join(egrid, by = c("sub_region")) %>% 
-  select(sub_region, energy_source, egrid_gen_ann_fuel, egrid_gen_oz_fuel, 
-         egrid_gen_ann, egrid_gen_oz) %>% 
-  group_by(sub_region, energy_source) %>% 
-  summarize(gen_fuel = sum(egrid_gen_ann_fuel), 
-            pct_gen_fuel= sum(egrid_gen_ann_fuel)/egrid_gen_ann) %>% 
+  plant_combined %>% 
+  group_by(year, sub_region, energy_source) %>% 
+  mutate(gen_fuel = sum(plant_gen_ann, na.rm = TRUE)) %>% 
+  select(year, sub_region, energy_source, gen_fuel) %>% 
   distinct()
 
 # format for final data frame (pivot wider)
@@ -279,10 +290,26 @@ egrid_gen_wider <-
   egrid_gen %>% 
   pivot_wider(
     names_from = energy_source, 
-    values_from = c(gen_fuel, 
-                    pct_gen_fuel)
-  ) 
+    values_from = gen_fuel, 
+    names_prefix = "gen_") 
 
+
+# resource mix (%) by energy_source
+
+egrid_gen_pct <- 
+  egrid_gen %>% 
+  left_join(egrid, by = c("year", "sub_region")) %>% 
+  summarize(pct_gen_fuel = sum(gen_fuel, na.rm = TRUE)/state_gen_ann) %>% 
+  distinct()
+
+# format for final data frame (pivot wider)
+
+egrid_gen_pct_wider <-
+  egrid_gen_pct %>% 
+  pivot_wider(
+    names_from = energy_source, 
+    values_from = pct_gen_fuel, 
+    names_prefix = "pct_gen_") 
 
 ### Renewable and non-renewable generation (MWh and percentage) -----
 
@@ -390,12 +417,6 @@ egrid_rounded <-
   egrid_final %>% 
   mutate(across(where(is.numeric), \(x) round(x, 3))) # round to three decimals
 
-
-# format to egrid output 
-
-egrid_formatted <- 
-  egrid_rounded %>% 
-  relocate()
 
 # Export eGRID aggregation file -----------
 

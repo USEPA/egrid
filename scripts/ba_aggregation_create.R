@@ -24,6 +24,19 @@ library(stringr)
 
 xwalk_energy_source <- read_csv("data/static_tables/xwalk_energy_source.csv")
 
+# factor energy sources ordering for final eGRID output
+xwalk_energy_source$energy_source <- factor(xwalk_energy_source$energy_source, 
+                                            levels = c("coal", 
+                                                       "oil", 
+                                                       "gas", 
+                                                       "nuclear", 
+                                                       "hydro", 
+                                                       "biomass", 
+                                                       "wind", 
+                                                       "solar", 
+                                                       "geothermal", 
+                                                       "other"))
+
 
 # unit file 
 
@@ -263,25 +276,41 @@ ba_fuel_type_wider <-
 
 ### Generation by fuel type (MWh) and resource mix (percentage) -----
 
-ba_gen_fuel <- 
-  ba_fuel_type %>% 
-  left_join(ba, by = c("year", "balance_authority_name", "balance_authority_code")) %>% 
-  select(year, balance_authority_name, balance_authority_code, energy_source, ba_gen_ann_fuel, ba_gen_oz_fuel, 
-         ba_gen_ann, ba_gen_oz) %>% 
-  group_by(year, balance_authority_name, balance_authority_code, energy_source) %>% 
-  summarize(gen_fuel = sum(ba_gen_ann_fuel), 
-            pct_gen_fuel= sum(ba_gen_ann_fuel)/ba_gen_ann) %>% 
+# net generation by energy_source
+
+ba_gen <- 
+  plant_combined %>% 
+  group_by(year, balance_authority_code, balance_authority_name, energy_source) %>% 
+  mutate(gen_fuel = sum(plant_gen_ann, na.rm = TRUE)) %>% 
+  select(year, balance_authority_code, balance_authority_name, energy_source, gen_fuel) %>% 
   distinct()
 
 # format for final data frame (pivot wider)
 
-ba_gen_fuel_wider <-
-  ba_gen_fuel %>% 
+ba_gen_wider <-
+  ba_gen %>% 
   pivot_wider(
     names_from = energy_source, 
-    values_from = c(gen_fuel, 
-                    pct_gen_fuel)
-  ) 
+    values_from = gen_fuel, 
+    names_prefix = "gen_") 
+
+
+# resource mix (%) by energy_source
+
+ba_gen_pct <- 
+  ba_gen %>% 
+  left_join(ba, by = c("year", "plant_state")) %>% 
+  summarize(pct_gen_fuel = sum(gen_fuel, na.rm = TRUE)/state_gen_ann) %>% 
+  distinct()
+
+# format for final data frame (pivot wider)
+
+ba_gen_pct_wider <-
+  ba_gen_pct %>% 
+  pivot_wider(
+    names_from = energy_source, 
+    values_from = pct_gen_fuel, 
+    names_prefix = "pct_gen_") 
 
 
 

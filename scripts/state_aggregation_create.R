@@ -32,6 +32,20 @@ library(stringr)
 xwalk_energy_source <- read_csv("data/static_tables/xwalk_energy_source.csv")
 
 
+# factor energy sources ordering for final eGRID output
+xwalk_energy_source$energy_source <- factor(xwalk_energy_source$energy_source, 
+                                                levels = c("coal", 
+                                                         "oil", 
+                                                         "gas", 
+                                                         "nuclear", 
+                                                         "hydro", 
+                                                         "biomass", 
+                                                         "wind", 
+                                                         "solar", 
+                                                         "geothermal", 
+                                                         "other"))
+
+
 # unit file 
 # this will not be necessary when plant file is ready
 
@@ -43,12 +57,12 @@ plant_emissions_heat_rate <-
   unit %>% 
   mutate(plant_id = as.character(plant_id)) %>%
   group_by(plant_state, plant_name, plant_id, primary_fuel_type) %>% 
-  summarize(plant_nox = sum(nox_mass), 
+  summarize(plant_heat_input = sum(heat_input), 
+            plant_heat_input_oz = sum(heat_input_oz),
+            plant_nox = sum(nox_mass), 
             plant_nox_oz = sum(nox_oz), 
             plant_so2 = sum(so2_mass), 
-            plant_co2 = sum(co2_mass),
-            plant_heat_input = sum(heat_input), 
-            plant_heat_input_oz = sum(heat_input_oz))
+            plant_co2 = sum(co2_mass))
 
 # generator file 
 
@@ -91,14 +105,14 @@ state <-
   plant_combined %>% 
   group_by(year, plant_state) %>% 
   summarize(state_nameplate_capacity = sum(plant_nameplate_capacity, na.rm = TRUE), 
+            state_heat_input = sum(plant_heat_input, na.rm = TRUE), 
+            state_heat_input_oz = sum(plant_heat_input_oz, na.rm = TRUE),
+            state_gen_ann = sum(plant_gen_ann, na.rm = TRUE), 
+            state_gen_oz = sum(plant_gen_oz, na.rm = TRUE),
             state_nox = sum(plant_nox, na.rm = TRUE), 
             state_nox_oz = sum(plant_nox_oz, na.rm = TRUE), 
             state_so2 = sum(plant_so2, na.rm = TRUE), 
-            state_co2 = sum(plant_co2, na.rm = TRUE), 
-            state_gen_ann = sum(plant_gen_ann, na.rm = TRUE), 
-            state_gen_oz = sum(plant_gen_oz, na.rm = TRUE), 
-            state_heat_input = sum(plant_heat_input, na.rm = TRUE), 
-            state_heat_input_oz = sum(plant_heat_input_oz, na.rm = TRUE)) %>% 
+            state_co2 = sum(plant_co2, na.rm = TRUE)) %>% 
   mutate(state_hg = "--") %>% 
   ungroup()
 
@@ -145,7 +159,11 @@ state_combustion_rates <-
          state_output_so2_rate_comb = 2000*state_so2_comb/state_gen_ann_comb,
          state_output_co2_rate_comb = 2000*state_co2_comb/state_gen_ann_comb,
          state_output_hg_rate_comb = "--") %>% 
-  select(year, plant_state, contains("output")) # include necessary data only
+  select(year, 
+         plant_state, 
+         state_heat_input_comb, 
+         state_heat_input_oz_comb,
+         contains("output")) # include necessary data only
   
 
 ### Output and input emission rates by fuel type (lb/MWh) -----
@@ -155,10 +173,10 @@ state_combustion_rates <-
 # should rate values with gen <= 0 be NA or 0? 
 
 fossil_fuels <- c("coal", 
-                  "gas", 
-                  "oil")
+                  "oil",
+                  "gas")
 
-state_fuel_type <-
+state_fuel_type_fossil <-
   plant_combined %>% 
   group_by(year, plant_state, energy_source) %>% 
   filter(energy_source %in% fossil_fuels) %>% # only calculate these energy sources 
@@ -202,7 +220,7 @@ state_fuel_type <-
          state_input_hg_rate_fuel = "--") 
 
 state_fuel_type_rates <- 
-  state_fuel_type %>% 
+  state_fuel_type_fossil %>% 
   select(year, plant_state, energy_source, contains("rate")) # include only necessary columns
 
 # calculate fossil fuel rate
@@ -278,14 +296,13 @@ state_fuel_type_wider <-
 
 ### Generation by fuel type (MWh) and resource mix (percentage) -----
 
+# net generation by energy_source
+
 state_gen <- 
-  state_fuel_type %>% 
-  left_join(state, by = c("year", "plant_state")) %>% 
-  select(year, plant_state, energy_source, state_gen_ann_fuel, state_gen_oz_fuel, 
-         state_gen_ann, state_gen_oz) %>% 
+  plant_combined %>% 
   group_by(year, plant_state, energy_source) %>% 
-  summarize(gen_fuel = sum(state_gen_ann_fuel), 
-            pct_gen_fuel= sum(state_gen_ann_fuel)/state_gen_ann) %>% 
+  mutate(gen_fuel = sum(plant_gen_ann, na.rm = TRUE)) %>% 
+  select(year, plant_state, energy_source, gen_fuel) %>% 
   distinct()
 
 # format for final data frame (pivot wider)
@@ -294,12 +311,28 @@ state_gen_wider <-
   state_gen %>% 
   pivot_wider(
     names_from = energy_source, 
-    values_from = c(gen_fuel, 
-                    pct_gen_fuel)
-  ) 
+    values_from = gen_fuel, 
+    names_prefix = "gen_") 
+
+
+# resource mix (%) by energy_source
+
+state_gen_pct <- 
+  state_gen %>% 
+  left_join(state, by = c("year", "plant_state")) %>% 
+  summarize(pct_gen_fuel = sum(gen_fuel, na.rm = TRUE)/state_gen_ann) %>% 
+  distinct()
+
+# format for final data frame (pivot wider)
+
+state_gen_pct_wider <-
+  state_gen_pct %>% 
+  pivot_wider(
+    names_from = energy_source, 
+    values_from = pct_gen_fuel, 
+    names_prefix = "pct_gen_") 
+
   
-
-
 ### Renewable and non-renewable generation (MWh and percentage) -----
 
 # check: what fuel types are included in RE? 
@@ -389,20 +422,39 @@ state_final <-
   left_join(state_emission_rates, by = c("year", "plant_state")) %>% # output/input emission rates
   left_join(state_combustion_rates, by = c("year", "plant_state")) %>% # combustion emission rates 
   left_join(state_fuel_type_wider, by = c("year", "plant_state")) %>% # fuel specific emission rates
-  left_join(state_gen_wider, by = c("year", "plant_state")) %>% # generation values and percent by fuel type
+  left_join(state_gen_wider, by = c("year", "plant_state")) %>% # generation values by energy source
   left_join(state_non_re, by = c("year", "plant_state")) %>% # non-re generation (MWh and %)
   left_join(state_re, by = c("year", "plant_state")) %>% # re generation (MWh and %)
   left_join(state_re_no_hydro, by = c("year", "plant_state")) %>%  # re no hydro generation (MWh and %)
   left_join(state_combustion, by = c("year", "plant_state")) %>%  # combustion generation (MWh and %)
   left_join(state_non_combustion, by = c("year", "plant_state")) %>%  # non-combustion generation (MWh and %)
+  left_join(state_gen_pct_wider, by = c("year", "plant_state")) %>% # generation percentages by energy source)
   mutate(across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
-  select(-contains("fuel_NA"), -state_input_hg_rate_fuel_gas, 
-           -state_input_hg_rate_fuel_oil) # remove unnecessary columns
+  select(-contains("fuel_NA"), 
+         -state_input_hg_rate_fuel_gas, 
+         -state_input_hg_rate_fuel_oil, 
+         -state_output_hg_rate_fuel_gas, 
+         -state_output_hg_rate_fuel_oil) # remove unnecessary columns
   
 state_rounded <- 
   state_final %>% 
   mutate(across(where(is.numeric), \(x) round(x, 3))) # round to three decimals
   
+
+# format to eGRID output 
+
+state_formatted <- 
+  state_rounded %>% 
+  relocate(state_heat_input_comb, state_heat_input_oz_comb, .after = state_nameplate_capacity) %>% 
+  relocate(state_output_nox_rate_fossil, .after = state_output_nox_rate_fuel_gas) %>% 
+  relocate(state_output_nox_oz_rate_fossil, .after = state_output_nox_oz_rate_fuel_gas) %>% 
+  relocate(state_output_so2_rate_fossil, .after = state_output_so2_rate_fuel_gas) %>% 
+  relocate(state_output_co2_rate_fossil, .after = state_output_co2_rate_fuel_gas) %>% 
+  relocate(state_input_nox_rate_fossil, .after = state_input_nox_rate_fuel_gas) %>% 
+  relocate(state_input_nox_oz_rate_fossil, .after = state_input_nox_oz_rate_fuel_gas) %>% 
+  relocate(state_input_so2_rate_fossil, .after = state_input_so2_rate_fuel_gas) %>% 
+  relocate(state_input_co2_rate_fossil, .after = state_input_co2_rate_fuel_gas) 
+
 
 # Export state aggregation file -----------
 
