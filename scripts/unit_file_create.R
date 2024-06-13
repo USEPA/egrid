@@ -805,6 +805,14 @@ botfirty_eia <-
             by = c("firing_type_1" = "EIA-860")) %>%
   select(-firing_type_1)
 
+## 860 Boiler Prime Movers
+
+pm_860 <- 
+  eia_923$boiler_fuel_data %>% 
+  select(plant_id, boiler_id) %>% 
+  inner_join(eia_860$operable %>% select(plant_id, generator_id, prime_mover),
+             by = c( "plant_id","boiler_id" = "generator_id")) %>% 
+  distinct()
 
 ## Updating units with available values ------
   
@@ -821,6 +829,9 @@ botfirty_eia <-
   rows_patch(botfirty_eia %>% 
                rename("unit_id" = "boiler_id", 
                       "botfirty" = eGRID),
+             by = c("plant_id", "unit_id"),
+             unmatched = "ignore") %>%
+  rows_patch(pm_860 %>% rename("unit_id" = "boiler_id"), # updating missing prime movers
              by = c("plant_id", "unit_id"),
              unmatched = "ignore")
 
