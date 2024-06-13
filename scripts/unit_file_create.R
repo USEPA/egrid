@@ -773,30 +773,58 @@ all_units_2 <-
 # Additional updates before emissions ------
 
 
+## 860 NOx and SO2 controls -----
 
-controls_860 <- # creating df with 860 nox and so2 controls, with values concatenated when applicable
+so2_controls_860 <- # creating DF of so2_controls to update where available
   eia_860$emissions_control_equipment %>% 
   filter(status == "OP") %>%
-  group_by(plant_id, so2_control_id) %>% 
-  mutate(so2_controls_860 = if_else(!is.na(so2_control_id), paste(equipment_type, collapse = ", "), NA_character_)) %>% 
+  select(plant_id, so2_control_id, equipment_type) %>% 
+  inner_join(eia_860$boiler_so2 %>% select(plant_id, boiler_id, so2_control_id)) %>%  # adding matching boiler ids for so2
+  group_by(plant_id, boiler_id) %>% 
+  mutate(so2_controls = paste(equipment_type, collapse =  ", ")) %>% 
   ungroup() %>% 
-  group_by(plant_id, nox_control_id) %>%
-  mutate(nox_controls_860 = if_else(!is.na(nox_control_id), paste(equipment_type, collapse = ", "), NA_character_)) %>% 
-  select(plant_id, equipment_type, so2_control_id, so2_controls_860, nox_control_id, nox_controls_860) %>%
-  distinct(plant_id, so2_control_id, so2_controls_860, nox_control_id, nox_controls_860) %>%
+  distinct(plant_id, boiler_id, so2_controls)
+
+nox_controls_860 <- # creating DF of no2_controls to update where available
+  eia_860$emissions_control_equipment %>% 
+  filter(status == "OP") %>%
+  select(plant_id, nox_control_id, equipment_type) %>% 
+  inner_join(eia_860$boiler_nox %>% select(plant_id, boiler_id, nox_control_id)) %>%  # adding matching boiler ids for so2
+  group_by(plant_id, boiler_id) %>% 
+  mutate(nox_controls = paste(equipment_type, collapse =  ", ")) %>% 
   ungroup() %>% 
-  left_join(eia_860$boiler_so2 %>% select(plant_id, boiler_id, so2_control_id)) %>% # adding matching boiler ids for so2
-  left_join(eia_860$boiler_nox %>% select(plant_id, boiler_id, nox_control_id)) # adding matching boiler ids for nox
+  distinct(plant_id, boiler_id, nox_controls)
+
+## 860 firing types ------------
+
+botfirty_eia <- 
+  eia_860$boiler_info_design_parameters %>% 
+  select(plant_id, boiler_id, firing_type_1) %>%
+  filter(!is.na(firing_type_1)) %>%
+  left_join(xwalk_botfirty %>% select("EIA-860", eGRID),
+            by = c("firing_type_1" = "EIA-860")) %>%
+  select(-firing_type_1)
 
 
-all_units_2 %>% 
-  left_join(controls_860, # joining with 860 controls info to update where missing
-            by = c("plant_id","unit_id" = "boiler_id")) %>%
-  mutate(so2_controls = if_else(is.na(so2_controls), so2_controls_860, so2_controls),  
-         nox_controls = if_else(is.na(nox_controls), nox_controls_860, nox_controls)) %>% 
-  select(-ends_with("controls_860")) %>% # removing 860 controls variable
-  mutate(primary_fuel_type = if_else(primary_fuel_type == "MSB", "MSW", "MSB")) %>% # Changing "MSB" fuel codes to "MSW"
+## Updating units with available values ------
   
+  all_units_2 %>% 
+  rows_patch(so2_controls_860 %>% # updating with available 860 so2 controls
+               rename("unit_id" = "boiler_id"),
+            by = c("plant_id","unit_id"),
+            unmatched = "ignore") %>%
+  rows_patch(nox_controls_860 %>%  # updating with available 860 nox controls
+               rename("unit_id" = "boiler_id"),
+             by = c("plant_id", "unit_id"),
+             unmatched = "ignore") %>%
+  mutate(primary_fuel_type = if_else(primary_fuel_type == "MSB", "MSW", "MSB")) %>% # Changing "MSB" fuel codes to "MSW"
+  rows_patch(botfirty_eia %>% 
+               rename("unit_id" = "boiler_id", 
+                      "botfirty" = eGRID),
+             by = c("plant_id", "unit_id"),
+             unmatched = "ignore")
+
+
 
 
 
