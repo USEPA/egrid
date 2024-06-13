@@ -40,7 +40,6 @@ plant_emissions_heat_rate <-
             plant_nox_oz = sum(nox_oz), 
             plant_so2 = sum(so2_mass), 
             plant_co2 = sum(co2_mass),
-            plant_hg = sum(hg_mass),
             plant_heat_input = sum(heat_input), 
             plant_heat_input_oz = sum(heat_input_oz))
 
@@ -84,11 +83,11 @@ us <-
             us_nox_oz = sum(plant_nox_oz, na.rm = TRUE), 
             us_so2 = sum(plant_so2, na.rm = TRUE), 
             us_co2 = sum(plant_co2, na.rm = TRUE), 
-            us_hg = sum(plant_hg, na.rm = TRUE), 
             us_gen_ann = sum(plant_gen_ann, na.rm = TRUE), 
             us_gen_oz = sum(plant_gen_oz, na.rm = TRUE), 
             us_heat_input = sum(plant_heat_input, na.rm = TRUE), 
             us_heat_input_oz = sum(plant_heat_input_oz, na.rm = TRUE)) %>% 
+  mutate(us_hg = "--") %>% 
   ungroup()
 
 ### Output and input emission rates -----
@@ -99,12 +98,12 @@ us_emission_rates <-
          us_output_nox_oz_rate = 2000*us_nox_oz/us_gen_oz,
          us_output_so2_rate = 2000*us_so2/us_gen_ann,
          us_output_co2_rate = 2000*us_co2/us_gen_ann,
-         us_output_hg_rate = 2000*us_hg/us_gen_ann,
+         us_output_hg_rate = "--",
          us_input_nox_rate = 2000*us_nox/us_heat_input, # input emissions rate (lb/MMBtu)
          us_input_nox_oz_rate = 2000*us_nox/us_heat_input_oz,
          us_input_so2_rate = 2000*us_so2/us_heat_input,
          us_input_co2_rate = 2000*us_co2/us_heat_input,
-         us_input_hg_rate = 2000*us_hg/us_heat_input) %>% 
+         us_input_hg_rate = "--") %>% 
   select(year, contains("rate")) # include necessary data only
 
 ### Combustion emission rates -----
@@ -125,7 +124,6 @@ us_combustion_rates <-
             us_nox_oz_comb = sum(plant_nox_oz, na.rm = TRUE), 
             us_so2_comb = sum(plant_so2, na.rm = TRUE), 
             us_co2_comb = sum(plant_co2, na.rm = TRUE), 
-            us_hg_comb = sum(plant_hg, na.rm = TRUE), 
             us_gen_ann_comb = sum(plant_gen_ann, na.rm = TRUE), 
             us_gen_oz_comb = sum(plant_gen_oz, na.rm = TRUE), 
             us_heat_input_comb = sum(plant_heat_input, na.rm = TRUE), 
@@ -134,7 +132,7 @@ us_combustion_rates <-
          us_output_nox_oz_rate_comb = 2000*us_nox_oz_comb/us_gen_oz_comb,
          us_output_so2_rate_comb = 2000*us_so2_comb/us_gen_ann_comb,
          us_output_co2_rate_comb = 2000*us_co2_comb/us_gen_ann_comb,
-         us_output_hg_rate_comb = 2000*us_hg_comb/us_gen_ann_comb) #%>% 
+         us_output_hg_rate_comb = "--") #%>% 
   select(year, contains("output")) # include necessary data only
 
 
@@ -156,7 +154,6 @@ us_fuel_type <-
             us_nox_oz_fuel = sum(plant_nox_oz, na.rm = TRUE), 
             us_so2_fuel = sum(plant_so2, na.rm = TRUE), 
             us_co2_fuel = sum(plant_co2, na.rm = TRUE), 
-            us_hg_fuel = sum(plant_hg, na.rm = TRUE), 
             us_gen_ann_fuel = sum(plant_gen_ann, na.rm = TRUE), 
             us_gen_oz_fuel = sum(plant_gen_oz, na.rm = TRUE), 
             us_heat_input_fuel = sum(plant_heat_input, na.rm = TRUE), 
@@ -175,9 +172,7 @@ us_fuel_type <-
     us_output_co2_rate_fuel = case_when(
       us_gen_ann_fuel > 0 ~ 2000*us_co2_fuel/us_gen_ann_fuel, 
       us_gen_ann_fuel <= 0 ~ 0),
-    us_output_hg_rate_fuel = case_when(
-      us_gen_ann_fuel > 0 ~ 2000*us_hg_fuel/us_gen_ann_fuel, 
-      us_gen_ann_fuel <= 0 ~ 0), 
+    us_output_hg_rate_fuel = "--", 
     
     # input emission rates (lb/MMBtu)
     us_input_nox_rate_fuel = case_when(    
@@ -192,9 +187,7 @@ us_fuel_type <-
     us_input_co2_rate_fuel = case_when(
       us_heat_input_fuel > 0 ~ 2000*us_co2_fuel/us_heat_input_fuel, 
       us_heat_input_fuel <= 0 ~ 0),
-    us_input_hg_rate_fuel = case_when(
-      us_heat_input_fuel > 0 ~ 2000*us_hg_fuel/us_heat_input_fuel, 
-      us_heat_input_fuel <= 0 ~ 0)) 
+    us_input_hg_rate_fuel = "--") 
 
 us_fuel_type_rates <- 
   us_fuel_type %>% 
@@ -210,7 +203,6 @@ us_fossil_rate <-
             us_nox_oz_fossil = sum(plant_nox_oz, na.rm = TRUE), 
             us_so2_fossil = sum(plant_so2, na.rm = TRUE), 
             us_co2_fossil = sum(plant_co2, na.rm = TRUE), 
-            us_hg_fossil = sum(plant_hg, na.rm = TRUE), 
             us_gen_ann_fossil = sum(plant_gen_ann, na.rm = TRUE), 
             us_gen_oz_fossil = sum(plant_gen_oz, na.rm = TRUE), 
             us_heat_input_fossil = sum(plant_heat_input, na.rm = TRUE), 
@@ -229,9 +221,7 @@ us_fossil_rate <-
     us_output_co2_rate_fossil = case_when(
       us_gen_ann_fossil > 0 ~ 2000*us_co2_fossil/us_gen_ann_fossil, 
       us_gen_ann_fossil <= 0 ~ 0),
-    us_output_hg_rate_fossil = case_when(
-      us_gen_ann_fossil > 0 ~ 2000*us_hg_fossil/us_gen_ann_fossil, 
-      us_gen_ann_fossil <= 0 ~ 0), 
+    us_output_hg_rate_fossil = "--", 
     
     # input emission rates (lb/MMBtu)
     us_input_nox_rate_fossil = case_when(    
@@ -246,9 +236,7 @@ us_fossil_rate <-
     us_input_co2_rate_fossil = case_when(
       us_heat_input_fossil > 0 ~ 2000*us_co2_fossil/us_heat_input_fossil, 
       us_heat_input_fossil <= 0 ~ 0),
-    us_input_hg_rate_fossil = case_when(
-      us_heat_input_fossil > 0 ~ 2000*us_hg_fossil/us_heat_input_fossil, 
-      us_heat_input_fossil <= 0 ~ 0)) %>% 
+    us_input_hg_rate_fossil = "--") %>% 
   select(year, contains("rate")) # include only necessary columns
 
 
