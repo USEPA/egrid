@@ -98,9 +98,12 @@ ba <-
             ba_gen_oz = sum(plant_gen_oz, na.rm = TRUE), 
             ba_heat_input = sum(plant_heat_input, na.rm = TRUE), 
             ba_heat_input_oz = sum(plant_heat_input_oz, na.rm = TRUE)) %>% 
-  mutate(ba_hg = "--")
+  mutate(ba_hg = "--") %>% 
   ungroup()
 
+  
+## Calculate emission rates -----  
+  
 ### Output and input emission rates -----
 
 ba_emission_rates <- 
@@ -143,7 +146,12 @@ ba_combustion_rates <-
          ba_output_so2_rate_comb = 2000*ba_so2_comb/ba_gen_ann_comb,
          ba_output_co2_rate_comb = 2000*ba_co2_comb/ba_gen_ann_comb,
          ba_output_hg_rate_comb = "--") %>% 
-  select(year, balance_authority_name, balance_authority_code, contains("output")) # include necessary data only
+  select(year, 
+         balance_authority_name, 
+         balance_authority_code, 
+         ba_heat_input_comb, 
+         ba_heat_input_oz_comb,
+         contains("output")) # include necessary data only
 
 
 ### Output and input emission rates by fuel type (lb/MWh) -----
@@ -208,7 +216,7 @@ ba_fuel_type_rates <-
 ba_fossil_rate <-
   plant_combined %>% 
   filter(energy_source %in% fossil_fuels) %>% # only calculate these energy sources
-  group_by(balance_authority_name, balance_authority_code) %>% 
+  group_by(year, balance_authority_name, balance_authority_code) %>% 
   summarize(ba_nox_fossil = sum(plant_nox, na.rm = TRUE), 
             ba_nox_oz_fossil = sum(plant_nox_oz, na.rm = TRUE), 
             ba_so2_fossil = sum(plant_so2, na.rm = TRUE), 
@@ -267,12 +275,15 @@ ba_fuel_type_wider <-
                     ba_input_co2_rate_fuel,
                     ba_input_hg_rate_fuel)
   ) %>% 
-  left_join(ba_fossil_rate, by = c("balance_authority_name", "balance_authority_code")) 
+  left_join(ba_fossil_rate, by = c("year", "balance_authority_name", "balance_authority_code")) 
 
 ### Non-baseload output emission rates (lb/MWh) -----
 
 # missing data from plant file ... 
 
+
+
+## Calculate net generation and resource mix -----
 
 ### Generation by fuel type (MWh) and resource mix (percentage) -----
 
@@ -299,8 +310,8 @@ ba_gen_wider <-
 
 ba_gen_pct <- 
   ba_gen %>% 
-  left_join(ba, by = c("year", "plant_state")) %>% 
-  summarize(pct_gen_fuel = sum(gen_fuel, na.rm = TRUE)/state_gen_ann) %>% 
+  left_join(ba, by = c("year", "balance_authority_name", "balance_authority_code")) %>% 
+  summarize(pct_gen_fuel = sum(gen_fuel, na.rm = TRUE)/ba_gen_ann) %>% 
   distinct()
 
 # format for final data frame (pivot wider)
@@ -398,27 +409,44 @@ ba_non_combustion <-
 
 # Create final data frame -----
 
-ba_final <- 
+ba_merged <- 
   ba %>% 
   left_join(ba_emission_rates, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # output/input emission rates
   left_join(ba_combustion_rates, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # combustion emission rates 
   left_join(ba_fuel_type_wider, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # fuel specific emission rates
-  left_join(ba_gen_fuel_wider, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # generation values and percent by fuel type
+  left_join(ba_gen_wider, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # generation values and percent by fuel type
   left_join(ba_non_re, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # non-re generation (MWh and %)
   left_join(ba_re, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # re generation (MWh and %)
   left_join(ba_re_no_hydro, by = c("year", "balance_authority_name", "balance_authority_code")) %>%  # re no hydro generation (MWh and %)
   left_join(ba_combustion, by = c("year", "balance_authority_name", "balance_authority_code")) %>%  # combustion generation (MWh and %)
   left_join(ba_non_combustion, by = c("year", "balance_authority_name", "balance_authority_code")) %>%  # non-combustion generation (MWh and %)
-  mutate(across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
+  left_join(ba_gen_pct_wider, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # resource mix by energy source (%)
+  mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
+         across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
   select(-contains("fuel_NA"), 
+         -contains("gen_NA"), 
          -ba_input_hg_rate_fuel_gas, 
          -ba_input_hg_rate_fuel_oil, 
          -ba_output_hg_rate_fuel_gas, 
          -ba_output_hg_rate_fuel_oil) # remove unnecessary columns
 
 ba_rounded <- 
-  ba_final %>% 
+  ba_merged %>% 
   mutate(across(where(is.numeric), \(x) round(x, 3))) # round to three decimals
+
+
+# relocate columns to eGRID final output
+ba_formatted <- 
+  ba_rounded %>% 
+  relocate(ba_heat_input_comb, ba_heat_input_oz_comb, .after = ba_nameplate_capacity) %>% 
+  relocate(ba_output_nox_rate_fossil, .after = ba_output_nox_rate_fuel_gas) %>% 
+  relocate(ba_output_nox_oz_rate_fossil, .after = ba_output_nox_oz_rate_fuel_gas) %>% 
+  relocate(ba_output_so2_rate_fossil, .after = ba_output_so2_rate_fuel_gas) %>% 
+  relocate(ba_output_co2_rate_fossil, .after = ba_output_co2_rate_fuel_gas) %>% 
+  relocate(ba_input_nox_rate_fossil, .after = ba_input_nox_rate_fuel_gas) %>% 
+  relocate(ba_input_nox_oz_rate_fossil, .after = ba_input_nox_oz_rate_fuel_gas) %>% 
+  relocate(ba_input_so2_rate_fossil, .after = ba_input_so2_rate_fuel_gas) %>% 
+  relocate(ba_input_co2_rate_fossil, .after = ba_input_co2_rate_fuel_gas) 
 
 
 # Export ba aggregation file -----------

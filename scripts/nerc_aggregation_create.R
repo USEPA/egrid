@@ -102,6 +102,9 @@ nerc <-
   mutate(nerc_hg = "--") %>% 
   ungroup()
 
+
+## Calculate emission rates -----
+
 ### Output and input emission rates -----
 
 nerc_emission_rates <- 
@@ -144,7 +147,11 @@ nerc_combustion_rates <-
          nerc_output_so2_rate_comb = 2000*nerc_so2_comb/nerc_gen_ann_comb,
          nerc_output_co2_rate_comb = 2000*nerc_co2_comb/nerc_gen_ann_comb,
          nerc_output_hg_rate_comb = "--") %>% 
-  select(nerc, contains("output")) # include necessary data only
+  select(year, 
+         nerc, 
+         nerc_heat_input_comb, 
+         nerc_heat_input_oz_comb, 
+         contains("output")) # include necessary data only
 
 
 ### Output and input emission rates by fuel type (lb/MWh) -----
@@ -275,6 +282,8 @@ nerc_fuel_type_wider <-
 # missing data from plant file ... 
 
 
+## Calculate net generation and resource mix -----
+
 ### Generation by fuel type (MWh) and resource mix (percentage) -----
 
 # net generation by energy_source
@@ -300,8 +309,8 @@ nerc_gen_wider <-
 
 nerc_gen_pct <- 
   nerc_gen %>% 
-  left_join(nerc, by = c("year", "plant_state")) %>% 
-  summarize(pct_gen_fuel = sum(gen_fuel, na.rm = TRUE)/state_gen_ann) %>% 
+  left_join(nerc, by = c("year", "nerc")) %>% 
+  summarize(pct_gen_fuel = sum(gen_fuel, na.rm = TRUE)/nerc_gen_ann) %>% 
   distinct()
 
 # format for final data frame (pivot wider)
@@ -399,7 +408,7 @@ nerc_non_combustion <-
 
 # Create final data frame -----
 
-nerc_final <- 
+nerc_merged <- 
   nerc %>% 
   left_join(nerc_emission_rates, by = c("year", "nerc")) %>% # output/input emission rates
   left_join(nerc_combustion_rates, by = c("year", "nerc")) %>% # combustion emission rates 
@@ -410,17 +419,32 @@ nerc_final <-
   left_join(nerc_re_no_hydro, by = c("year", "nerc")) %>%  # re no hydro generation (MWh and %)
   left_join(nerc_combustion, by = c("year", "nerc")) %>%  # combustion generation (MWh and %)
   left_join(nerc_non_combustion, by = c("year", "nerc")) %>%  # non-combustion generation (MWh and %)
-  mutate(across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
+  left_join(nerc_gen_pct_wider, by = c("year", "nerc")) %>% # resource mix by energy source (%)
+  mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
+         across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
   select(-contains("fuel_NA"), 
+         -contains("gen_NA"), 
          -nerc_input_hg_rate_fuel_gas, 
          -nerc_input_hg_rate_fuel_oil, 
          -nerc_output_hg_rate_fuel_gas, 
          -nerc_output_hg_rate_fuel_oil) # remove unnecessary columns
 
 nerc_rounded <- 
-  nerc_final %>% 
+  nerc_merged %>% 
   mutate(across(where(is.numeric), \(x) round(x, 3))) # round to three decimals
 
+# relocate columns to eGRID final output
+nerc_formatted <- 
+  nerc_rounded %>% 
+  relocate(nerc_heat_input_comb, nerc_heat_input_oz_comb, .after = nerc_nameplate_capacity) %>% 
+  relocate(nerc_output_nox_rate_fossil, .after = nerc_output_nox_rate_fuel_gas) %>% 
+  relocate(nerc_output_nox_oz_rate_fossil, .after = nerc_output_nox_oz_rate_fuel_gas) %>% 
+  relocate(nerc_output_so2_rate_fossil, .after = nerc_output_so2_rate_fuel_gas) %>% 
+  relocate(nerc_output_co2_rate_fossil, .after = nerc_output_co2_rate_fuel_gas) %>% 
+  relocate(nerc_input_nox_rate_fossil, .after = nerc_input_nox_rate_fuel_gas) %>% 
+  relocate(nerc_input_nox_oz_rate_fossil, .after = nerc_input_nox_oz_rate_fuel_gas) %>% 
+  relocate(nerc_input_so2_rate_fossil, .after = nerc_input_so2_rate_fuel_gas) %>% 
+  relocate(nerc_input_co2_rate_fossil, .after = nerc_input_co2_rate_fuel_gas) 
 
 # Export NERC aggregation file -----------
 

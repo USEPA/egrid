@@ -18,10 +18,9 @@ library(stringr)
 ###     check: which fuels included in combustion, fossil fuel, RE etc. 
 ###     issue: overestimating nameplate capacity at state level
 ###     issue: overestimating generation, emissions, heat input --> underestimation of rates
-###     check: overestimating issues may be addressed in plant file
-###     check: reading in unit and generator files potentially not necessary once plant file is ready
+###     check: overestimating issues may be addressed in plant file through adjustments
+###     check: reading in unit and generator files not necessary once plant file is ready
 ###     need to distinguish between "other fossil" and "other unknown/purchased" groups
-###     check: order of output columns == final egrid output? 
 
 
 # Load and clean necessary data ------
@@ -115,6 +114,9 @@ state <-
             state_co2 = sum(plant_co2, na.rm = TRUE)) %>% 
   mutate(state_hg = "--") %>% 
   ungroup()
+
+
+## Calculate emission rates ------
 
 ### Output and input emission rates -----
 
@@ -289,10 +291,13 @@ state_fuel_type_wider <-
   ) %>% 
   left_join(state_fossil_rate, by = c("year", "plant_state")) 
 
+
 ### Non-baseload output emission rates (lb/MWh) -----
 
 # missing data from plant file ... 
 
+
+## Calculate net generation and resource mix -----
 
 ### Generation by fuel type (MWh) and resource mix (percentage) -----
 
@@ -417,7 +422,7 @@ state_non_combustion <-
 
 # Create final data frame -----
 
-state_final <- 
+state_merged <- 
   state %>% 
   left_join(state_emission_rates, by = c("year", "plant_state")) %>% # output/input emission rates
   left_join(state_combustion_rates, by = c("year", "plant_state")) %>% # combustion emission rates 
@@ -429,15 +434,17 @@ state_final <-
   left_join(state_combustion, by = c("year", "plant_state")) %>%  # combustion generation (MWh and %)
   left_join(state_non_combustion, by = c("year", "plant_state")) %>%  # non-combustion generation (MWh and %)
   left_join(state_gen_pct_wider, by = c("year", "plant_state")) %>% # generation percentages by energy source)
-  mutate(across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
+  mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
+         across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
   select(-contains("fuel_NA"), 
+         -contains("gen_NA"), 
          -state_input_hg_rate_fuel_gas, 
          -state_input_hg_rate_fuel_oil, 
          -state_output_hg_rate_fuel_gas, 
          -state_output_hg_rate_fuel_oil) # remove unnecessary columns
   
 state_rounded <- 
-  state_final %>% 
+  state_merged %>% 
   mutate(across(where(is.numeric), \(x) round(x, 3))) # round to three decimals
   
 

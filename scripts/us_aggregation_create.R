@@ -146,7 +146,10 @@ us_combustion_rates <-
          us_output_so2_rate_comb = 2000*us_so2_comb/us_gen_ann_comb,
          us_output_co2_rate_comb = 2000*us_co2_comb/us_gen_ann_comb,
          us_output_hg_rate_comb = "--") #%>% 
-  select(year, contains("output")) # include necessary data only
+  select(year, 
+         us_heat_input_comb, 
+         us_heat_input_oz_comb, 
+         contains("output")) # include necessary data only
 
 
 ### Output and input emission rates by fuel type (lb/MWh) -----
@@ -279,14 +282,13 @@ us_fuel_type_wider <-
 
 ### Generation by fuel type (MWh) and resource mix (percentage) -----
 
+# net generation by energy_source
+
 us_gen <- 
-  us_fuel_type %>% 
-  left_join(us, by = c("year")) %>% 
-  select(year, energy_source, us_gen_ann_fuel, us_gen_oz_fuel, 
-         us_gen_ann, us_gen_oz) %>% 
+  plant_combined %>% 
   group_by(year, energy_source) %>% 
-  summarize(gen_fuel = sum(us_gen_ann_fuel), 
-            pct_gen_fuel= sum(us_gen_ann_fuel)/us_gen_ann) %>% 
+  mutate(gen_fuel = sum(plant_gen_ann, na.rm = TRUE)) %>% 
+  select(year, energy_source, gen_fuel) %>% 
   distinct()
 
 # format for final data frame (pivot wider)
@@ -295,10 +297,26 @@ us_gen_wider <-
   us_gen %>% 
   pivot_wider(
     names_from = energy_source, 
-    values_from = c(gen_fuel, 
-                    pct_gen_fuel)
-  ) 
+    values_from = gen_fuel, 
+    names_prefix = "gen_") 
 
+
+# resource mix (%) by energy_source
+
+us_gen_pct <- 
+  us_gen %>% 
+  left_join(us, by = c("year")) %>% 
+  summarize(pct_gen_fuel = sum(gen_fuel, na.rm = TRUE)/state_gen_ann) %>% 
+  distinct()
+
+# format for final data frame (pivot wider)
+
+us_gen_pct_wider <-
+  us_gen_pct %>% 
+  pivot_wider(
+    names_from = energy_source, 
+    values_from = pct_gen_fuel, 
+    names_prefix = "pct_gen_") 
 
 
 ### Renewable and non-renewable generation (MWh and percentage) -----
@@ -396,8 +414,11 @@ us_final <-
   left_join(us_re_no_hydro, by = c("year")) %>%  # re no hydro generation (MWh and %)
   left_join(us_combustion, by = c("year")) %>%  # combustion generation (MWh and %)
   left_join(us_non_combustion, by = c("year")) %>%  # non-combustion generation (MWh and %)
-  mutate(across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
+  left_join(us_gen_pct_wider, by = c("year")) %>% # resource mix by energy source (%)
+  mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
+         across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
   select(-contains("fuel_NA"), 
+         -contains("gen_NA"), 
          -us_input_hg_rate_fuel_gas, 
          -us_input_hg_rate_fuel_oil,
          -us_output_hg_rate_fuel_gas, 

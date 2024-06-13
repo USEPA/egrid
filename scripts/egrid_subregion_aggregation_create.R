@@ -49,12 +49,12 @@ plant_emissions_heat_rate <-
   unit %>% 
   mutate(plant_id = as.character(plant_id)) %>% 
   group_by(plant_name, plant_id, primary_fuel_type) %>% 
-  summarize(plant_nox = sum(nox_mass), 
+  summarize(plant_heat_input = sum(heat_input), 
+            plant_heat_input_oz = sum(heat_input_oz),
+            plant_nox = sum(nox_mass), 
             plant_nox_oz = sum(nox_oz), 
             plant_so2 = sum(so2_mass), 
-            plant_co2 = sum(co2_mass),
-            plant_heat_input = sum(heat_input), 
-            plant_heat_input_oz = sum(heat_input_oz))
+            plant_co2 = sum(co2_mass))
 
 # generator file 
 
@@ -90,25 +90,31 @@ egrid <-
   plant_combined %>% 
   group_by(year, sub_region) %>% 
   summarize(egrid_nameplate_capacity = sum(plant_nameplate_capacity, na.rm = TRUE), 
+            egrid_heat_input = sum(plant_heat_input, na.rm = TRUE), 
+            egrid_heat_input_oz = sum(plant_heat_input_oz, na.rm = TRUE),
+            egrid_gen_ann = sum(plant_gen_ann, na.rm = TRUE), 
+            egrid_gen_oz = sum(plant_gen_oz, na.rm = TRUE),
             egrid_nox = sum(plant_nox, na.rm = TRUE), 
             egrid_nox_oz = sum(plant_nox_oz, na.rm = TRUE), 
             egrid_so2 = sum(plant_so2, na.rm = TRUE), 
-            egrid_co2 = sum(plant_co2, na.rm = TRUE), 
-            egrid_gen_ann = sum(plant_gen_ann, na.rm = TRUE), 
-            egrid_gen_oz = sum(plant_gen_oz, na.rm = TRUE), 
-            egrid_heat_input = sum(plant_heat_input, na.rm = TRUE), 
-            egrid_heat_input_oz = sum(plant_heat_input_oz, na.rm = TRUE)) %>% 
+            egrid_co2 = sum(plant_co2, na.rm = TRUE)) %>% 
   ungroup()
+
+
+## Calculate emission rates -----
 
 ### Output and input emission rates -----
 
 egrid_emission_rates <- 
   egrid %>% 
-  mutate(egrid_output_nox_rate = 2000*egrid_nox/egrid_gen_ann, # output emissions rates (lb/MWh)
+  mutate(# output emission rates
+         egrid_output_nox_rate = 2000*egrid_nox/egrid_gen_ann, # output emissions rates (lb/MWh)
          egrid_output_nox_oz_rate = 2000*egrid_nox_oz/egrid_gen_oz,
          egrid_output_so2_rate = 2000*egrid_so2/egrid_gen_ann,
          egrid_output_co2_rate = 2000*egrid_co2/egrid_gen_ann,
          egrid_output_hg_rate = "--",
+         
+         # input emission rates
          egrid_input_nox_rate = 2000*egrid_nox/egrid_heat_input, # input emissions rate (lb/MMBtu)
          egrid_input_nox_oz_rate = 2000*egrid_nox/egrid_heat_input_oz,
          egrid_input_so2_rate = 2000*egrid_so2/egrid_heat_input,
@@ -142,7 +148,11 @@ egrid_combustion_rates <-
          egrid_output_so2_rate_comb = 2000*egrid_so2_comb/egrid_gen_ann_comb,
          egrid_output_co2_rate_comb = 2000*egrid_co2_comb/egrid_gen_ann_comb,
          egrid_output_hg_rate_comb = "--") %>% 
-  select(year, sub_region, contains("output")) # include necessary data only
+  select(year, 
+         sub_region, 
+         egrid_heat_input_comb, 
+         egrid_heat_input_oz_comb, 
+         contains("output")) # include necessary data only
 
 
 ### Output and input emission rates by fuel type (lb/MWh) -----
@@ -168,46 +178,47 @@ egrid_fuel_type <-
             egrid_heat_input_fuel = sum(plant_heat_input, na.rm = TRUE), 
             egrid_heat_input_oz_fuel = sum(plant_heat_input_oz, na.rm = TRUE)) %>% 
   mutate(
-    # output emission rates 
-    egrid_output_nox_rate_fuel = case_when(    
-      egrid_gen_ann_fuel > 0 ~ 2000*egrid_nox_fuel/egrid_gen_ann_fuel, 
-      egrid_gen_ann_fuel <= 0 ~ 0),
-    egrid_output_nox_oz_rate_fuel = case_when(
-      egrid_gen_oz_fuel > 0 ~ 2000*egrid_nox_oz_fuel/egrid_gen_oz_fuel, 
-      egrid_gen_oz_fuel <= 0 ~ 0),
-    egrid_output_so2_rate_fuel = case_when(
-      egrid_gen_ann_fuel > 0 ~ 2000*egrid_so2_fuel/egrid_gen_ann_fuel, 
-      egrid_gen_ann_fuel <= 0 ~ 0),
-    egrid_output_co2_rate_fuel = case_when(
-      egrid_gen_ann_fuel > 0 ~ 2000*egrid_co2_fuel/egrid_gen_ann_fuel, 
-      egrid_gen_ann_fuel <= 0 ~ 0),
-    egrid_output_hg_rate_fuel = "--", 
-    
-    # input emission rates (lb/MMBtu)
-    egrid_input_nox_rate_fuel = case_when(    
-      egrid_heat_input_fuel > 0 ~ 2000*egrid_nox_fuel/egrid_heat_input_fuel, 
-      egrid_heat_input_fuel <= 0 ~ 0),
-    egrid_input_nox_oz_rate_fuel = case_when(
-      egrid_heat_input_oz_fuel > 0 ~ 2000*egrid_nox_oz_fuel/egrid_heat_input_oz_fuel, 
-      egrid_heat_input_oz_fuel <= 0 ~ 0),
-    egrid_input_so2_rate_fuel = case_when(
-      egrid_heat_input_fuel > 0 ~ 2000*egrid_so2_fuel/egrid_heat_input_fuel, 
-      egrid_heat_input_fuel <= 0 ~ 0),
-    egrid_input_co2_rate_fuel = case_when(
-      egrid_heat_input_fuel > 0 ~ 2000*egrid_co2_fuel/egrid_heat_input_fuel, 
-      egrid_heat_input_fuel <= 0 ~ 0),
-    egrid_input_hg_rate_fuel = "--") 
+        # output emission rates by fuel (lb/MMBtu)
+        egrid_output_nox_rate_fuel = case_when(    
+          egrid_gen_ann_fuel > 0 ~ 2000*egrid_nox_fuel/egrid_gen_ann_fuel, 
+          egrid_gen_ann_fuel <= 0 ~ 0),
+        egrid_output_nox_oz_rate_fuel = case_when(
+          egrid_gen_oz_fuel > 0 ~ 2000*egrid_nox_oz_fuel/egrid_gen_oz_fuel, 
+          egrid_gen_oz_fuel <= 0 ~ 0),
+        egrid_output_so2_rate_fuel = case_when(
+          egrid_gen_ann_fuel > 0 ~ 2000*egrid_so2_fuel/egrid_gen_ann_fuel, 
+          egrid_gen_ann_fuel <= 0 ~ 0),
+        egrid_output_co2_rate_fuel = case_when(
+          egrid_gen_ann_fuel > 0 ~ 2000*egrid_co2_fuel/egrid_gen_ann_fuel, 
+          egrid_gen_ann_fuel <= 0 ~ 0),
+        egrid_output_hg_rate_fuel = "--", 
+        
+        # input emission rates by fuel (lb/MMBtu)
+        egrid_input_nox_rate_fuel = case_when(    
+          egrid_heat_input_fuel > 0 ~ 2000*egrid_nox_fuel/egrid_heat_input_fuel, 
+          egrid_heat_input_fuel <= 0 ~ 0),
+        egrid_input_nox_oz_rate_fuel = case_when(
+          egrid_heat_input_oz_fuel > 0 ~ 2000*egrid_nox_oz_fuel/egrid_heat_input_oz_fuel, 
+          egrid_heat_input_oz_fuel <= 0 ~ 0),
+        egrid_input_so2_rate_fuel = case_when(
+          egrid_heat_input_fuel > 0 ~ 2000*egrid_so2_fuel/egrid_heat_input_fuel, 
+          egrid_heat_input_fuel <= 0 ~ 0),
+        egrid_input_co2_rate_fuel = case_when(
+          egrid_heat_input_fuel > 0 ~ 2000*egrid_co2_fuel/egrid_heat_input_fuel, 
+          egrid_heat_input_fuel <= 0 ~ 0),
+        egrid_input_hg_rate_fuel = "--") 
 
 egrid_fuel_type_rates <-
   egrid_fuel_type %>% 
   select(year, sub_region, energy_source, contains("rate")) # include only necessary columns
 
-# calculate fossil fuel rate
+
+# calculate fossil fuel emission rates
 
 egrid_fossil_rate <-
   plant_combined %>% 
   filter(energy_source %in% fossil_fuels) %>% # only calculate these energy sources
-  group_by(sub_region) %>% 
+  group_by(year, sub_region) %>% 
   summarize(egrid_nox_fossil = sum(plant_nox, na.rm = TRUE), 
             egrid_nox_oz_fossil = sum(plant_nox_oz, na.rm = TRUE), 
             egrid_so2_fossil = sum(plant_so2, na.rm = TRUE), 
@@ -273,6 +284,9 @@ egrid_fuel_type_rates_wider <-
 # missing data from plant file ... 
 
 
+
+## Calculate net generation and resource mix -----
+
 ### Generation by fuel type (MWh) and resource mix (percentage) -----
 
 # net generation by energy_source
@@ -299,7 +313,7 @@ egrid_gen_wider <-
 egrid_gen_pct <- 
   egrid_gen %>% 
   left_join(egrid, by = c("year", "sub_region")) %>% 
-  summarize(pct_gen_fuel = sum(gen_fuel, na.rm = TRUE)/state_gen_ann) %>% 
+  summarize(pct_gen_fuel = sum(gen_fuel, na.rm = TRUE)/egrid_gen_ann) %>% 
   distinct()
 
 # format for final data frame (pivot wider)
@@ -352,7 +366,7 @@ egrid_re_no_hydro <-
 
 egrid_non_re <- 
   plant_combined %>% 
-  filter(! primary_fuel_type %in% re_fuels) %>% 
+  filter(! energy_source %in% re_fuels) %>% 
   left_join(egrid, by = c("year", "sub_region")) %>% 
   group_by(year, sub_region) %>% 
   summarize(gen_non_re = sum(plant_gen_ann, na.rm = TRUE), 
@@ -389,13 +403,14 @@ egrid_non_combustion <-
             pct_gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE)/egrid_gen_ann) %>% 
   distinct()
 
+
 ### Non-baseload generation by fuel type (MWh and percentage) -----
 
 
 
 # Create final data frame -----
 
-egrid_final <- 
+egrid_merged <- 
   egrid %>% 
   left_join(egrid_emission_rates, by = c("year", "sub_region")) %>% # output/input emission rates
   left_join(egrid_combustion_rates, by = c("year", "sub_region")) %>% # combustion emission rates 
@@ -406,16 +421,33 @@ egrid_final <-
   left_join(egrid_re_no_hydro, by = c("year", "sub_region")) %>%  # re no hydro generation (MWh and %)
   left_join(egrid_combustion, by = c("year", "sub_region")) %>%  # combustion generation (MWh and %)
   left_join(egrid_non_combustion, by = c("year", "sub_region")) %>%  # non-combustion generation (MWh and %)
-  mutate(across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
-  select(-contains("fuel_NA"), 
+  left_join(egrid_gen_pct_wider, by = c("year", "sub_region")) %>% # resource mix by energy source (%)
+  mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
+         across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0 
+  select(-contains("fuel_NA"),
+         -contains("gen_NA"), 
          -egrid_input_hg_rate_fuel_gas, 
          -egrid_input_hg_rate_fuel_oil, 
          -egrid_output_hg_rate_fuel_gas, 
          -egrid_output_hg_rate_fuel_oil) # remove unnecessary columns
 
 egrid_rounded <- 
-  egrid_final %>% 
+  egrid_merged %>% 
   mutate(across(where(is.numeric), \(x) round(x, 3))) # round to three decimals
+
+
+# relocate columns to eGRID final output
+egrid_formatted <- 
+  egrid_rounded %>% 
+  relocate(egrid_heat_input_comb, egrid_heat_input_oz_comb, .after = egrid_nameplate_capacity) %>% 
+  relocate(egrid_output_nox_rate_fossil, .after = egrid_output_nox_rate_fuel_gas) %>% 
+  relocate(egrid_output_nox_oz_rate_fossil, .after = egrid_output_nox_oz_rate_fuel_gas) %>% 
+  relocate(egrid_output_so2_rate_fossil, .after = egrid_output_so2_rate_fuel_gas) %>% 
+  relocate(egrid_output_co2_rate_fossil, .after = egrid_output_co2_rate_fuel_gas) %>% 
+  relocate(egrid_input_nox_rate_fossil, .after = egrid_input_nox_rate_fuel_gas) %>% 
+  relocate(egrid_input_nox_oz_rate_fossil, .after = egrid_input_nox_oz_rate_fuel_gas) %>% 
+  relocate(egrid_input_so2_rate_fossil, .after = egrid_input_so2_rate_fuel_gas) %>% 
+  relocate(egrid_input_co2_rate_fossil, .after = egrid_input_co2_rate_fuel_gas) 
 
 
 # Export eGRID aggregation file -----------
@@ -428,8 +460,6 @@ if(dir.exists("data/outputs")) {
 
 print("Saving eGRID subregion aggregation file to folder data/outputs/")
 
-write_csv(egrid_rounded, "data/outputs/egrid_subregion_aggregation.csv")
-
-
+write_csv(egrid_formatted, "data/outputs/egrid_subregion_aggregation.csv")
 
 
