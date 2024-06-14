@@ -359,6 +359,15 @@ state_re <-
             pct_gen_re = sum(plant_gen_ann, na.rm = TRUE)/state_gen_ann) %>% 
   distinct()
 
+# format for final egrid output
+state_re_gen <- 
+  state_re %>% 
+  select(year, plant_state, gen_re)
+
+state_re_pct <- 
+  state_re %>% 
+  select(year, plant_state, pct_gen_re)
+
 # RE non hydro
 
 re_fuels_no_hydro <- c("biomass", 
@@ -375,6 +384,16 @@ state_re_no_hydro <-
             pct_gen_re_no_hydro = sum(plant_gen_ann, na.rm = TRUE)/state_gen_ann) %>% 
   distinct()
 
+# format for final egrid output
+state_re_no_hydro_gen <- 
+  state_re_no_hydro %>% 
+  select(year, plant_state, gen_re_no_hydro)
+
+state_re_no_hydro_pct <- 
+  state_re_no_hydro %>% 
+  select(year, plant_state, pct_gen_re_no_hydro)
+
+
 # non-RE
 
 state_non_re <- 
@@ -385,6 +404,15 @@ state_non_re <-
   summarize(gen_non_re = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_re = sum(plant_gen_ann, na.rm = TRUE)/state_gen_ann) %>% 
   distinct()
+
+# format for final egrid output
+state_non_re_gen <- 
+  state_non_re %>% 
+  select(year, plant_state, gen_non_re)
+
+state_non_re_pct <- 
+  state_non_re %>% 
+  select(year, plant_state, pct_gen_non_re)
 
 
 ### Combustion and non-combustion generation (MWh) and resource mix (percent) -----
@@ -405,6 +433,16 @@ state_combustion <-
             pct_gen_combustion = sum(plant_gen_ann, na.rm = TRUE)/state_gen_ann) %>% 
   distinct()
 
+# format for final egrid output
+state_combustion_gen <- 
+  state_combustion %>% 
+  select(year, plant_state, gen_combustion)
+
+state_combustion_pct <- 
+  state_combustion %>% 
+  select(year, plant_state, pct_gen_combustion)
+
+
 # generation from non-combustion sources
 
 state_non_combustion <- 
@@ -415,6 +453,16 @@ state_non_combustion <-
   summarize(gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE)/state_gen_ann) %>% 
   distinct()
+
+# format for final egrid output
+state_non_combustion_gen <- 
+  state_non_combustion %>% 
+  select(year, plant_state, gen_non_combustion)
+
+state_non_combustion_pct <- 
+  state_non_combustion %>% 
+  select(year, plant_state, pct_gen_non_combustion)
+
 
 ### Non-baseload generation by fuel type (MWh and percentage) -----
 
@@ -428,12 +476,17 @@ state_merged <-
   left_join(state_combustion_rates, by = c("year", "plant_state")) %>% # combustion emission rates 
   left_join(state_fuel_type_wider, by = c("year", "plant_state")) %>% # fuel specific emission rates
   left_join(state_gen_wider, by = c("year", "plant_state")) %>% # generation values by energy source
-  left_join(state_non_re, by = c("year", "plant_state")) %>% # non-re generation (MWh and %)
-  left_join(state_re, by = c("year", "plant_state")) %>% # re generation (MWh and %)
-  left_join(state_re_no_hydro, by = c("year", "plant_state")) %>%  # re no hydro generation (MWh and %)
-  left_join(state_combustion, by = c("year", "plant_state")) %>%  # combustion generation (MWh and %)
-  left_join(state_non_combustion, by = c("year", "plant_state")) %>%  # non-combustion generation (MWh and %)
-  left_join(state_gen_pct_wider, by = c("year", "plant_state")) %>% # generation percentages by energy source)
+  left_join(state_non_re_gen, by = c("year", "plant_state")) %>% # non-re generation (MWh)
+  left_join(state_re_gen, by = c("year", "plant_state")) %>% # re generation (MWh)
+  left_join(state_re_no_hydro_gen, by = c("year", "plant_state")) %>%  # re no hydro generation (MWh)
+  left_join(state_combustion_gen, by = c("year", "plant_state")) %>%  # combustion generation (MWh)
+  left_join(state_non_combustion_gen, by = c("year", "plant_state")) %>%  # non-combustion generation (MWh)
+  left_join(state_gen_pct_wider, by = c("year", "plant_state")) %>% # generation % by energy source)
+  left_join(state_non_re_pct, by = c("year", "plant_state")) %>% # non-re generation (%)
+  left_join(state_re_pct, by = c("year", "plant_state")) %>% # re generation (%)
+  left_join(state_re_no_hydro_pct, by = c("year", "plant_state")) %>%  # re no hydro generation (%)
+  left_join(state_combustion_pct, by = c("year", "plant_state")) %>%  # combustion generation (%)
+  left_join(state_non_combustion_pct, by = c("year", "plant_state")) %>%  # non-combustion generation (%)
   mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
          across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
   select(-contains("fuel_NA"), 
@@ -457,10 +510,12 @@ state_formatted <-
   relocate(state_output_nox_oz_rate_fossil, .after = state_output_nox_oz_rate_fuel_gas) %>% 
   relocate(state_output_so2_rate_fossil, .after = state_output_so2_rate_fuel_gas) %>% 
   relocate(state_output_co2_rate_fossil, .after = state_output_co2_rate_fuel_gas) %>% 
+  relocate(state_output_hg_rate_fossil, .after = state_output_hg_rate_fuel_coal) %>% 
   relocate(state_input_nox_rate_fossil, .after = state_input_nox_rate_fuel_gas) %>% 
   relocate(state_input_nox_oz_rate_fossil, .after = state_input_nox_oz_rate_fuel_gas) %>% 
   relocate(state_input_so2_rate_fossil, .after = state_input_so2_rate_fuel_gas) %>% 
-  relocate(state_input_co2_rate_fossil, .after = state_input_co2_rate_fuel_gas) 
+  relocate(state_input_co2_rate_fossil, .after = state_input_co2_rate_fuel_gas) %>% 
+  relocate(state_input_hg_rate_fossil, .after = state_input_hg_rate_fuel_coal)
 
 
 # Export state aggregation file -----------
@@ -475,7 +530,7 @@ print("Saving state aggregation file to folder data/outputs/")
 
 # check: output file type 
 
-write_csv(state_rounded, "data/outputs/state_aggregation.csv")
+write_csv(state_formatted, "data/outputs/state_aggregation.csv")
 
 
 

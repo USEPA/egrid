@@ -345,6 +345,16 @@ nerc_re <-
             pct_gen_re = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
   distinct()
 
+# format for final egrid output
+nerc_re_gen <- 
+  nerc_re %>% 
+  select(year, nerc, gen_re)
+
+nerc_re_pct <- 
+  nerc_re %>% 
+  select(year, nerc, pct_gen_re)
+
+
 # RE non hydro
 
 re_fuels_no_hydro <- c("biomass", 
@@ -361,6 +371,16 @@ nerc_re_no_hydro <-
             pct_gen_re_no_hydro = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
   distinct()
 
+# format for final egrid output
+nerc_re_no_hydro_gen <- 
+  nerc_re_no_hydro %>% 
+  select(year, nerc, gen_re_no_hydro)
+
+nerc_re_no_hydro_pct <- 
+  nerc_re_no_hydro %>% 
+  select(year, nerc, pct_gen_re_no_hydro)
+
+
 # non-RE
 
 nerc_non_re <- 
@@ -371,6 +391,15 @@ nerc_non_re <-
   summarize(gen_non_re = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_re = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
   distinct()
+
+# format for final egrid output
+nerc_non_re_gen <- 
+  nerc_non_re %>% 
+  select(year, nerc, gen_non_re)
+
+nerc_non_re_pct <- 
+  nerc_non_re %>% 
+  select(year, nerc, pct_gen_non_re)
 
 
 ### Combustion and non-combustion generation (MWh) and resource mix (percent) -----
@@ -391,6 +420,16 @@ nerc_combustion <-
             pct_gen_combustion = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
   distinct()
 
+# format for final egrid output
+nerc_combustion_gen <- 
+  nerc_combustion %>% 
+  select(year, nerc, gen_combustion)
+
+nerc_combustion_pct <- 
+  nerc_combustion %>% 
+  select(year, nerc, pct_gen_combustion)
+
+
 # generation from non-combustion sources
 
 nerc_non_combustion <- 
@@ -401,6 +440,16 @@ nerc_non_combustion <-
   summarize(gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
   distinct()
+
+# format for final egrid output
+nerc_non_combustion_gen <- 
+  nerc_non_combustion %>% 
+  select(year, nerc, gen_non_combustion)
+
+nerc_non_combustion_pct <- 
+  nerc_non_combustion %>% 
+  select(year, nerc, pct_gen_non_combustion)
+
 
 ### Non-baseload generation by fuel type (MWh and percentage) -----
 
@@ -414,12 +463,17 @@ nerc_merged <-
   left_join(nerc_combustion_rates, by = c("year", "nerc")) %>% # combustion emission rates 
   left_join(nerc_fuel_type_wider, by = c("year", "nerc")) %>% # fuel specific emission rates
   left_join(nerc_gen_wider, by = c("year", "nerc")) %>% # generation values and percent by fuel type
-  left_join(nerc_non_re, by = c("year", "nerc")) %>% # non-re generation (MWh and %)
-  left_join(nerc_re, by = c("year", "nerc")) %>% # re generation (MWh and %)
-  left_join(nerc_re_no_hydro, by = c("year", "nerc")) %>%  # re no hydro generation (MWh and %)
-  left_join(nerc_combustion, by = c("year", "nerc")) %>%  # combustion generation (MWh and %)
-  left_join(nerc_non_combustion, by = c("year", "nerc")) %>%  # non-combustion generation (MWh and %)
-  left_join(nerc_gen_pct_wider, by = c("year", "nerc")) %>% # resource mix by energy source (%)
+  left_join(nerc_non_re_gen, by = c("year", "nerc")) %>% # non-re generation (MWh)
+  left_join(nerc_re_gen, by = c("year", "nerc")) %>% # re generation (MWh)
+  left_join(nerc_re_no_hydro_gen, by = c("year", "nerc")) %>%  # re no hydro generation (MWh)
+  left_join(nerc_combustion_gen, by = c("year", "nerc")) %>%  # combustion generation (MWh)
+  left_join(nerc_non_combustion_gen, by = c("year", "nerc")) %>%  # non-combustion generation (MWh)
+  left_join(nerc_gen_pct_wider, by = c("year", "nerc")) %>% # generation % by energy source)
+  left_join(nerc_non_re_pct, by = c("year", "nerc")) %>% # non-re generation (%)
+  left_join(nerc_re_pct, by = c("year", "nerc")) %>% # re generation (%)
+  left_join(nerc_re_no_hydro_pct, by = c("year", "nerc")) %>%  # re no hydro generation (%)
+  left_join(nerc_combustion_pct, by = c("year", "nerc")) %>%  # combustion generation (%)
+  left_join(nerc_non_combustion_pct, by = c("year", "nerc")) %>%  # non-combustion generation (%)
   mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
          across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
   select(-contains("fuel_NA"), 
@@ -441,10 +495,12 @@ nerc_formatted <-
   relocate(nerc_output_nox_oz_rate_fossil, .after = nerc_output_nox_oz_rate_fuel_gas) %>% 
   relocate(nerc_output_so2_rate_fossil, .after = nerc_output_so2_rate_fuel_gas) %>% 
   relocate(nerc_output_co2_rate_fossil, .after = nerc_output_co2_rate_fuel_gas) %>% 
+  relocate(nerc_output_hg_rate_fossil, .after = nerc_output_hg_rate_fuel_coal) %>% 
   relocate(nerc_input_nox_rate_fossil, .after = nerc_input_nox_rate_fuel_gas) %>% 
   relocate(nerc_input_nox_oz_rate_fossil, .after = nerc_input_nox_oz_rate_fuel_gas) %>% 
   relocate(nerc_input_so2_rate_fossil, .after = nerc_input_so2_rate_fuel_gas) %>% 
-  relocate(nerc_input_co2_rate_fossil, .after = nerc_input_co2_rate_fuel_gas) 
+  relocate(nerc_input_co2_rate_fossil, .after = nerc_input_co2_rate_fuel_gas) %>% 
+  relocate(nerc_input_hg_rate_fossil, .after = nerc_input_hg_rate_fuel_coal)
 
 # Export NERC aggregation file -----------
 
@@ -456,7 +512,7 @@ if(dir.exists("data/outputs")) {
 
 print("Saving NERC aggregation file to folder data/outputs/")
 
-write_csv(nerc_rounded, "data/outputs/nerc_aggregation.csv")
+write_csv(nerc_formatted, "data/outputs/NERC_aggregation.csv")
 
 
 

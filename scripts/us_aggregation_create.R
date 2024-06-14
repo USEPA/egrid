@@ -16,7 +16,6 @@ library(stringr)
 ###     check: which fuels included in combustion, fossil fuel, RE etc. 
 ###     need to distinguish between "other fossil" and "other unknown/purchased" groups
 
-
 # Load and clean necessary data ------
 
 # fuel type / energy source crosswalk 
@@ -35,7 +34,7 @@ xwalk_energy_source$energy_source <- factor(xwalk_energy_source$energy_source,
                                                        "wind", 
                                                        "solar", 
                                                        "geothermal", 
-                                                       "other"))
+                                                       "other")) # other fossil and unknown need to be included here
 
 
 # unit file 
@@ -92,14 +91,14 @@ us <-
   plant_combined %>% 
   group_by(year) %>% 
   summarize(us_nameplate_capacity = sum(plant_nameplate_capacity, na.rm = TRUE), 
+            us_heat_input = sum(plant_heat_input, na.rm = TRUE), 
+            us_heat_input_oz = sum(plant_heat_input_oz, na.rm = TRUE), 
+            us_gen_ann = sum(plant_gen_ann, na.rm = TRUE), 
+            us_gen_oz = sum(plant_gen_oz, na.rm = TRUE), 
             us_nox = sum(plant_nox, na.rm = TRUE), 
             us_nox_oz = sum(plant_nox_oz, na.rm = TRUE), 
             us_so2 = sum(plant_so2, na.rm = TRUE), 
-            us_co2 = sum(plant_co2, na.rm = TRUE), 
-            us_gen_ann = sum(plant_gen_ann, na.rm = TRUE), 
-            us_gen_oz = sum(plant_gen_oz, na.rm = TRUE), 
-            us_heat_input = sum(plant_heat_input, na.rm = TRUE), 
-            us_heat_input_oz = sum(plant_heat_input_oz, na.rm = TRUE)) %>% 
+            us_co2 = sum(plant_co2, na.rm = TRUE)) %>% 
   mutate(us_hg = "--") %>% 
   ungroup()
 
@@ -145,7 +144,7 @@ us_combustion_rates <-
          us_output_nox_oz_rate_comb = 2000*us_nox_oz_comb/us_gen_oz_comb,
          us_output_so2_rate_comb = 2000*us_so2_comb/us_gen_ann_comb,
          us_output_co2_rate_comb = 2000*us_co2_comb/us_gen_ann_comb,
-         us_output_hg_rate_comb = "--") #%>% 
+         us_output_hg_rate_comb = "--") %>% 
   select(year, 
          us_heat_input_comb, 
          us_heat_input_oz_comb, 
@@ -289,6 +288,7 @@ us_gen <-
   group_by(year, energy_source) %>% 
   mutate(gen_fuel = sum(plant_gen_ann, na.rm = TRUE)) %>% 
   select(year, energy_source, gen_fuel) %>% 
+  arrange(energy_source) %>% 
   distinct()
 
 # format for final data frame (pivot wider)
@@ -306,7 +306,7 @@ us_gen_wider <-
 us_gen_pct <- 
   us_gen %>% 
   left_join(us, by = c("year")) %>% 
-  summarize(pct_gen_fuel = sum(gen_fuel, na.rm = TRUE)/state_gen_ann) %>% 
+  summarize(pct_gen_fuel = sum(gen_fuel, na.rm = TRUE)/us_gen_ann) %>% 
   distinct()
 
 # format for final data frame (pivot wider)
@@ -340,6 +340,17 @@ us_re <-
             pct_gen_re = sum(plant_gen_ann, na.rm = TRUE)/us_gen_ann) %>% 
   distinct()
 
+
+# separate generation and pct values for final formatting
+us_re_gen <- 
+  us_re %>% 
+  select(year, gen_re)
+
+us_re_pct <- 
+  us_re %>% 
+  select(year, pct_gen_re)
+
+
 # RE non hydro
 
 re_fuels_no_hydro <- c("biomass", 
@@ -356,6 +367,17 @@ us_re_no_hydro <-
             pct_gen_re_no_hydro = sum(plant_gen_ann, na.rm = TRUE)/us_gen_ann) %>% 
   distinct()
 
+
+# separate generation and pct values for final formatting
+us_re_no_hydro_gen <- 
+  us_re_no_hydro %>% 
+  select(year, gen_re_no_hydro)
+
+us_re_no_hydro_pct <- 
+  us_re_no_hydro %>% 
+  select(year, pct_gen_re_no_hydro)
+
+
 # non-RE
 
 us_non_re <- 
@@ -366,6 +388,16 @@ us_non_re <-
   summarize(gen_non_re = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_re = sum(plant_gen_ann, na.rm = TRUE)/us_gen_ann) %>% 
   distinct()
+
+
+# separate generation and pct values for final formatting
+us_non_re_gen <- 
+  us_non_re %>% 
+  select(year, gen_non_re)
+
+us_non_re_pct <- 
+  us_non_re %>% 
+  select(year, pct_gen_non_re)
 
 
 ### Combustion and non-combustion generation (MWh) and resource mix (percent) -----
@@ -386,16 +418,35 @@ us_combustion <-
             pct_gen_combustion = sum(plant_gen_ann, na.rm = TRUE)/us_gen_ann) %>% 
   distinct()
 
+# separate generation and pct values for final formatting
+us_combustion_gen <- 
+  us_combustion %>% 
+  select(year, gen_combustion)
+
+us_combustion_pct <- 
+  us_combustion %>% 
+  select(year, pct_gen_combustion)
+
+
 # generation from non-combustion sources
 
 us_non_combustion <- 
   plant_combined %>% 
   filter(! energy_source %in% combustion_fuels) %>% 
-  left_join(us, by = c("year")) %>% ### figure out how to merge at us level
+  left_join(us, by = c("year")) %>% 
   group_by(year) %>% 
   summarize(gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE)/us_gen_ann) %>% 
   distinct()
+
+# separate generation and pct values for final formatting
+us_non_combustion_gen <- 
+  us_non_combustion %>% 
+  select(year, gen_non_combustion)
+
+us_non_combustion_pct <- 
+  us_non_combustion %>% 
+  select(year, pct_gen_non_combustion)
 
 ### Non-baseload generation by fuel type (MWh and percentage) -----
 
@@ -408,15 +459,20 @@ us_final <-
   left_join(us_emission_rates, by = c("year")) %>% # output/input emission rates
   left_join(us_combustion_rates, by = c("year")) %>% # combustion emission rates 
   left_join(us_fuel_type_wider, by = c("year")) %>% # fuel specific emission rates
-  left_join(us_gen_wider, by = c("year")) %>% # generation values and percent by fuel type
-  left_join(us_non_re, by = c("year")) %>% # non-re generation (MWh and %)
-  left_join(us_re, by = c("year")) %>% # re generation (MWh and %)
-  left_join(us_re_no_hydro, by = c("year")) %>%  # re no hydro generation (MWh and %)
-  left_join(us_combustion, by = c("year")) %>%  # combustion generation (MWh and %)
-  left_join(us_non_combustion, by = c("year")) %>%  # non-combustion generation (MWh and %)
+  left_join(us_gen_wider, by = c("year")) %>% # generation values 
+  left_join(us_non_re_gen, by = c("year")) %>% # non-re generation (MWh)
+  left_join(us_re_gen, by = c("year")) %>% # re generation (MWh)
+  left_join(us_re_no_hydro_gen, by = c("year")) %>%  # re no hydro generation (MWh)
+  left_join(us_combustion_gen, by = c("year")) %>%  # combustion generation (MWh)
+  left_join(us_non_combustion_gen, by = c("year")) %>%  # non-combustion generation (MWh)
   left_join(us_gen_pct_wider, by = c("year")) %>% # resource mix by energy source (%)
+  left_join(us_non_re_pct, by = c("year")) %>% # non-re generation (%)
+  left_join(us_re_pct, by = c("year")) %>% # re generation (%)
+  left_join(us_re_no_hydro_pct, by = c("year")) %>%  # re no hydro generation (%)
+  left_join(us_combustion_pct, by = c("year")) %>%  # combustion generation (%)
+  left_join(us_non_combustion_pct, by = c("year")) %>%  # non-combustion generation (%)
   mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
-         across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
+         across(where(is.numeric), ~replace_na(., 0))) %>% # fill all other NAs with 0
   select(-contains("fuel_NA"), 
          -contains("gen_NA"), 
          -us_input_hg_rate_fuel_gas, 
@@ -428,6 +484,22 @@ us_rounded <-
   us_final %>% 
   mutate(across(where(is.numeric), \(x) round(x, 3))) # round to three decimals
 
+
+# format to eGRID output 
+
+us_formatted <- 
+  us_rounded %>% 
+  relocate(us_heat_input_comb, us_heat_input_oz_comb, .after = us_nameplate_capacity) %>% 
+  relocate(us_output_nox_rate_fossil, .after = us_output_nox_rate_fuel_gas) %>% 
+  relocate(us_output_nox_oz_rate_fossil, .after = us_output_nox_oz_rate_fuel_gas) %>% 
+  relocate(us_output_so2_rate_fossil, .after = us_output_so2_rate_fuel_gas) %>% 
+  relocate(us_output_co2_rate_fossil, .after = us_output_co2_rate_fuel_gas) %>% 
+  relocate(us_output_hg_rate_fossil, .after = us_output_hg_rate_fuel_coal) %>% 
+  relocate(us_input_nox_rate_fossil, .after = us_input_nox_rate_fuel_gas) %>% 
+  relocate(us_input_nox_oz_rate_fossil, .after = us_input_nox_oz_rate_fuel_gas) %>% 
+  relocate(us_input_so2_rate_fossil, .after = us_input_so2_rate_fuel_gas) %>% 
+  relocate(us_input_co2_rate_fossil, .after = us_input_co2_rate_fuel_gas) %>% 
+  relocate(us_input_hg_rate_fossil, .after = us_input_hg_rate_fuel_coal)
 
 # Export state aggregation file -----------
 
@@ -441,8 +513,6 @@ print("Saving US aggregation file to folder data/outputs/")
 
 # check: output file type 
 
-write_csv(us_rounded, "data/outputs/US_aggregation.csv")
-
-
+write_csv(us_formatted, "data/outputs/US_aggregation.csv")
 
 

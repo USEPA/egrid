@@ -90,14 +90,14 @@ ba <-
   plant_combined %>% 
   group_by(year, balance_authority_name, balance_authority_code) %>% 
   summarize(ba_nameplate_capacity = sum(plant_nameplate_capacity, na.rm = TRUE), 
+            ba_heat_input = sum(plant_heat_input, na.rm = TRUE), 
+            ba_heat_input_oz = sum(plant_heat_input_oz, na.rm = TRUE), 
+            ba_gen_ann = sum(plant_gen_ann, na.rm = TRUE), 
+            ba_gen_oz = sum(plant_gen_oz, na.rm = TRUE),
             ba_nox = sum(plant_nox, na.rm = TRUE), 
             ba_nox_oz = sum(plant_nox_oz, na.rm = TRUE), 
             ba_so2 = sum(plant_so2, na.rm = TRUE), 
-            ba_co2 = sum(plant_co2, na.rm = TRUE), 
-            ba_gen_ann = sum(plant_gen_ann, na.rm = TRUE), 
-            ba_gen_oz = sum(plant_gen_oz, na.rm = TRUE), 
-            ba_heat_input = sum(plant_heat_input, na.rm = TRUE), 
-            ba_heat_input_oz = sum(plant_heat_input_oz, na.rm = TRUE)) %>% 
+            ba_co2 = sum(plant_co2, na.rm = TRUE)) %>% 
   mutate(ba_hg = "--") %>% 
   ungroup()
 
@@ -346,6 +346,16 @@ ba_re <-
             pct_gen_re = sum(plant_gen_ann, na.rm = TRUE)/ba_gen_ann) %>% 
   distinct() 
 
+# format for final egrid output
+ba_re_gen <- 
+  ba_re %>% 
+  select(year, balance_authority_name, balance_authority_code, gen_re)
+
+ba_re_pct <- 
+  ba_re %>% 
+  select(year, balance_authority_name, balance_authority_code, pct_gen_re)
+
+
 # RE non hydro
 
 re_fuels_no_hydro <- c("biomass", 
@@ -362,6 +372,16 @@ ba_re_no_hydro <-
             pct_gen_re_no_hydro = sum(plant_gen_ann, na.rm = TRUE)/ba_gen_ann) %>% 
   distinct()
 
+# format for final egrid output
+ba_re_no_hydro_gen <- 
+  ba_re_no_hydro %>% 
+  select(year, balance_authority_name, balance_authority_code, gen_re_no_hydro)
+
+ba_re_no_hydro_pct <- 
+  ba_re_no_hydro %>% 
+  select(year, balance_authority_name, balance_authority_code, pct_gen_re_no_hydro)
+
+
 # non-RE
 
 ba_non_re <- 
@@ -372,6 +392,15 @@ ba_non_re <-
   summarize(gen_non_re = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_re = sum(plant_gen_ann, na.rm = TRUE)/ba_gen_ann) %>% 
   distinct()
+
+# format for final egrid output
+ba_non_re_gen <- 
+  ba_non_re %>% 
+  select(year, balance_authority_name, balance_authority_code, gen_non_re)
+
+ba_non_re_pct <- 
+  ba_non_re %>% 
+  select(year, balance_authority_name, balance_authority_code, pct_gen_non_re)
 
 
 ### Combustion and non-combustion generation (MWh) and resource mix (percent) -----
@@ -392,6 +421,16 @@ ba_combustion <-
             pct_gen_combustion = sum(plant_gen_ann, na.rm = TRUE)/ba_gen_ann) %>% 
   distinct()
 
+# format for final egrid output
+ba_combustion_gen <- 
+  ba_combustion %>% 
+  select(year, balance_authority_name, balance_authority_code, gen_combustion)
+
+ba_combustion_pct <- 
+  ba_combustion %>% 
+  select(year, balance_authority_name, balance_authority_code, pct_gen_combustion)
+
+
 # generation from non-combustion sources
 
 ba_non_combustion <- 
@@ -402,6 +441,16 @@ ba_non_combustion <-
   summarize(gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE)/ba_gen_ann) %>% 
   distinct()
+
+# format for final egrid output
+ba_non_combustion_gen <- 
+  ba_non_combustion %>% 
+  select(year, balance_authority_name, balance_authority_code, gen_non_combustion)
+
+ba_non_combustion_pct <- 
+  ba_non_combustion %>% 
+  select(year, balance_authority_name, balance_authority_code, pct_gen_non_combustion)
+
 
 ### Non-baseload generation by fuel type (MWh and percentage) -----
 
@@ -415,12 +464,17 @@ ba_merged <-
   left_join(ba_combustion_rates, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # combustion emission rates 
   left_join(ba_fuel_type_wider, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # fuel specific emission rates
   left_join(ba_gen_wider, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # generation values and percent by fuel type
-  left_join(ba_non_re, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # non-re generation (MWh and %)
-  left_join(ba_re, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # re generation (MWh and %)
-  left_join(ba_re_no_hydro, by = c("year", "balance_authority_name", "balance_authority_code")) %>%  # re no hydro generation (MWh and %)
-  left_join(ba_combustion, by = c("year", "balance_authority_name", "balance_authority_code")) %>%  # combustion generation (MWh and %)
-  left_join(ba_non_combustion, by = c("year", "balance_authority_name", "balance_authority_code")) %>%  # non-combustion generation (MWh and %)
-  left_join(ba_gen_pct_wider, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # resource mix by energy source (%)
+  left_join(ba_non_re_gen, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # non-re generation (MWh)
+  left_join(ba_re_gen, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # re generation (MWh)
+  left_join(ba_re_no_hydro_gen, by = c("year", "balance_authority_name", "balance_authority_code")) %>%  # re no hydro generation (MWh)
+  left_join(ba_combustion_gen, by = c("year", "balance_authority_name", "balance_authority_code")) %>%  # combustion generation (MWh)
+  left_join(ba_non_combustion_gen, by = c("year", "balance_authority_name", "balance_authority_code")) %>%  # non-combustion generation (MWh)
+  left_join(ba_gen_pct_wider, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # generation % by energy source)
+  left_join(ba_non_re_pct, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # non-re generation (%)
+  left_join(ba_re_pct, by = c("year", "balance_authority_name", "balance_authority_code")) %>% # re generation (%)
+  left_join(ba_re_no_hydro_pct, by = c("year", "balance_authority_name", "balance_authority_code")) %>%  # re no hydro generation (%)
+  left_join(ba_combustion_pct, by = c("year", "balance_authority_name", "balance_authority_code")) %>%  # combustion generation (%)
+  left_join(ba_non_combustion_pct, by = c("year", "balance_authority_name", "balance_authority_code")) %>%  # non-combustion generation (%)
   mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
          across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
   select(-contains("fuel_NA"), 
@@ -459,7 +513,7 @@ if(dir.exists("data/outputs")) {
 
 print("Saving BA aggregation file to folder data/outputs/")
 
-write_csv(ba_rounded, "data/outputs/ba_aggregation.csv")
+write_csv(ba_formatted, "data/outputs/BA_aggregation.csv")
 
 
 

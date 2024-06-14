@@ -346,6 +346,16 @@ egrid_re <-
             pct_gen_re = sum(plant_gen_ann, na.rm = TRUE)/egrid_gen_ann) %>% 
   distinct()
 
+# format for final egrid output
+egrid_re_gen <- 
+  egrid_re %>% 
+  select(year, sub_region, gen_re)
+
+egrid_re_pct <- 
+  egrid_re %>% 
+  select(year, sub_region, pct_gen_re)
+
+
 # RE non hydro
 
 re_fuels_no_hydro <- c("biomass", 
@@ -362,6 +372,16 @@ egrid_re_no_hydro <-
             pct_gen_re_no_hydro = sum(plant_gen_ann, na.rm = TRUE)/egrid_gen_ann) %>% 
   distinct()
 
+# format for final egrid output
+egrid_re_no_hydro_gen <- 
+  egrid_re_no_hydro %>% 
+  select(year, sub_region, gen_re_no_hydro)
+
+egrid_re_no_hydro_pct <- 
+  egrid_re_no_hydro %>% 
+  select(year, sub_region, pct_gen_re_no_hydro)
+
+
 # non-RE
 
 egrid_non_re <- 
@@ -372,6 +392,15 @@ egrid_non_re <-
   summarize(gen_non_re = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_re = sum(plant_gen_ann, na.rm = TRUE)/egrid_gen_ann) %>% 
   distinct()
+
+# format for final egrid output
+egrid_non_re_gen <- 
+  egrid_non_re %>% 
+  select(year, sub_region, gen_non_re)
+
+egrid_non_re_pct <- 
+  egrid_non_re %>% 
+  select(year, sub_region, pct_gen_non_re)
 
 
 ### Combustion and non-combustion generation (MWh) and resource mix (percent) -----
@@ -392,6 +421,16 @@ egrid_combustion <-
             pct_gen_combustion = sum(plant_gen_ann, na.rm = TRUE)/egrid_gen_ann) %>% 
   distinct()
 
+# format for final egrid output
+egrid_combustion_gen <- 
+  egrid_combustion %>% 
+  select(year, sub_region, gen_combustion)
+
+egrid_combustion_pct <- 
+  egrid_combustion %>% 
+  select(year, sub_region, pct_gen_combustion)
+
+
 # generation from non-combustion sources
 
 egrid_non_combustion <- 
@@ -402,6 +441,15 @@ egrid_non_combustion <-
   summarize(gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE), 
             pct_gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE)/egrid_gen_ann) %>% 
   distinct()
+
+# format for final egrid output
+egrid_non_combustion_gen <- 
+  egrid_non_combustion %>% 
+  select(year, sub_region, gen_non_combustion)
+
+egrid_non_combustion_pct <- 
+  egrid_non_combustion %>% 
+  select(year, sub_region, pct_gen_non_combustion)
 
 
 ### Non-baseload generation by fuel type (MWh and percentage) -----
@@ -416,12 +464,17 @@ egrid_merged <-
   left_join(egrid_combustion_rates, by = c("year", "sub_region")) %>% # combustion emission rates 
   left_join(egrid_fuel_type_rates_wider, by = c("year", "sub_region")) %>% # fuel specific emission rates
   left_join(egrid_gen_wider, by = c("year", "sub_region")) %>% # generation values and percent by fuel type
-  left_join(egrid_non_re, by = c("year", "sub_region")) %>% # non-re generation (MWh and %)
-  left_join(egrid_re, by = c("year", "sub_region")) %>% # re generation (MWh and %)
-  left_join(egrid_re_no_hydro, by = c("year", "sub_region")) %>%  # re no hydro generation (MWh and %)
-  left_join(egrid_combustion, by = c("year", "sub_region")) %>%  # combustion generation (MWh and %)
-  left_join(egrid_non_combustion, by = c("year", "sub_region")) %>%  # non-combustion generation (MWh and %)
-  left_join(egrid_gen_pct_wider, by = c("year", "sub_region")) %>% # resource mix by energy source (%)
+  left_join(egrid_non_re_gen, by = c("year", "sub_region")) %>% # non-re generation (MWh)
+  left_join(egrid_re_gen, by = c("year", "sub_region")) %>% # re generation (MWh)
+  left_join(egrid_re_no_hydro_gen, by = c("year", "sub_region")) %>%  # re no hydro generation (MWh)
+  left_join(egrid_combustion_gen, by = c("year", "sub_region")) %>%  # combustion generation (MWh)
+  left_join(egrid_non_combustion_gen, by = c("year", "sub_region")) %>%  # non-combustion generation (MWh)
+  left_join(egrid_gen_pct_wider, by = c("year", "sub_region")) %>% # generation % by energy source)
+  left_join(egrid_non_re_pct, by = c("year", "sub_region")) %>% # non-re generation (%)
+  left_join(egrid_re_pct, by = c("year", "sub_region")) %>% # re generation (%)
+  left_join(egrid_re_no_hydro_pct, by = c("year", "sub_region")) %>%  # re no hydro generation (%)
+  left_join(egrid_combustion_pct, by = c("year", "sub_region")) %>%  # combustion generation (%)
+  left_join(egrid_non_combustion_pct, by = c("year", "sub_region")) %>%  # non-combustion generation (%)
   mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
          across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0 
   select(-contains("fuel_NA"),
@@ -444,10 +497,12 @@ egrid_formatted <-
   relocate(egrid_output_nox_oz_rate_fossil, .after = egrid_output_nox_oz_rate_fuel_gas) %>% 
   relocate(egrid_output_so2_rate_fossil, .after = egrid_output_so2_rate_fuel_gas) %>% 
   relocate(egrid_output_co2_rate_fossil, .after = egrid_output_co2_rate_fuel_gas) %>% 
+  relocate(egrid_output_hg_rate_fossil, .after = egrid_output_hg_rate_fuel_coal) %>% 
   relocate(egrid_input_nox_rate_fossil, .after = egrid_input_nox_rate_fuel_gas) %>% 
   relocate(egrid_input_nox_oz_rate_fossil, .after = egrid_input_nox_oz_rate_fuel_gas) %>% 
   relocate(egrid_input_so2_rate_fossil, .after = egrid_input_so2_rate_fuel_gas) %>% 
-  relocate(egrid_input_co2_rate_fossil, .after = egrid_input_co2_rate_fuel_gas) 
+  relocate(egrid_input_co2_rate_fossil, .after = egrid_input_co2_rate_fuel_gas) %>% 
+  relocate(egrid_input_hg_rate_fossil, .after = egrid_input_hg_rate_fuel_coal) 
 
 
 # Export eGRID aggregation file -----------
@@ -460,6 +515,6 @@ if(dir.exists("data/outputs")) {
 
 print("Saving eGRID subregion aggregation file to folder data/outputs/")
 
-write_csv(egrid_formatted, "data/outputs/egrid_subregion_aggregation.csv")
+write_csv(egrid_formatted, "data/outputs/eGRID_subregion_aggregation.csv")
 
 
