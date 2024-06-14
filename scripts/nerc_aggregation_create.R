@@ -90,15 +90,15 @@ plant_combined <-
 nerc <- 
   plant_combined %>% 
   group_by(year, nerc) %>% 
-  summarize(nerc_nameplate_capacity = sum(plant_nameplate_capacity, na.rm = TRUE), 
+  summarize(nerc_nameplate_capacity = sum(plant_nameplate_capacity, na.rm = TRUE),
+            nerc_heat_input = sum(plant_heat_input, na.rm = TRUE), 
+            nerc_heat_input_oz = sum(plant_heat_input_oz, na.rm = TRUE),
+            nerc_gen_ann = sum(plant_gen_ann, na.rm = TRUE), 
+            nerc_gen_oz = sum(plant_gen_oz, na.rm = TRUE), 
             nerc_nox = sum(plant_nox, na.rm = TRUE), 
             nerc_nox_oz = sum(plant_nox_oz, na.rm = TRUE), 
             nerc_so2 = sum(plant_so2, na.rm = TRUE), 
-            nerc_co2 = sum(plant_co2, na.rm = TRUE), 
-            nerc_gen_ann = sum(plant_gen_ann, na.rm = TRUE), 
-            nerc_gen_oz = sum(plant_gen_oz, na.rm = TRUE), 
-            nerc_heat_input = sum(plant_heat_input, na.rm = TRUE), 
-            nerc_heat_input_oz = sum(plant_heat_input_oz, na.rm = TRUE)) %>% 
+            nerc_co2 = sum(plant_co2, na.rm = TRUE)) %>% 
   mutate(nerc_hg = "--") %>% 
   ungroup()
 
