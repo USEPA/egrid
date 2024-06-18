@@ -834,6 +834,23 @@ hg_flags_to_update <- # boilers that have strategy == "ACI" get mercury controls
   distinct() %>%
   mutate(hg_controls_device = "Yes")
 
+
+## Update OG fuel types  --------
+
+og_fuel_types_update <- 
+  read_csv("data/static_tables/og_oth_units_to_change_fuel_type.csv") %>% 
+  mutate(across(everything(), ~ as.character(.x))) %>%
+  select(plant_id, unit_id,  fuel_code)
+
+## Schedule 8c updates ------
+
+eia_923$air_emissions_control_info %>%
+  left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, boiler_id) %>% distinct(),
+            by = c("plant_id","nox_control_id")) %>% 
+  rows_patch(eia_860$boiler_so2 %>% select(plant_id, so2_control_id, boiler_id) %>% distinct(),
+             by = c("plant_id","so2_control_id"))
+
+
 ## Updating units with available values ------
 
 all_units_3 <-  
@@ -858,7 +875,10 @@ all_units_3 <-
   left_join(num_gens_860, # Adding num_generators variable from 860 boiler generator file
             by = c("plant_id", "unit_id" = "boiler_id")) %>%
   left_join(hg_flags_to_update, # Adding HG flag variable
-            by = c("unit_id" = "boiler_id", "plant_id"))
+            by = c("unit_id" = "boiler_id", "plant_id")) %>%
+  rows_update(og_fuel_types_update %>% rename("primary_fuel_type" = "fuel_code"), # updating fuel codes for "OG" primary fuel types
+              by = c("plant_id", "unit_id"),
+              unmatched = "ignore")
 
 
 
