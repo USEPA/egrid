@@ -317,7 +317,7 @@ state_gen_wider <-
   pivot_wider(
     names_from = energy_source, 
     values_from = gen_fuel, 
-    names_prefix = "gen_") 
+    names_prefix = "state_gen_") 
 
 
 # resource mix (%) by energy_source
@@ -335,7 +335,7 @@ state_gen_pct_wider <-
   pivot_wider(
     names_from = energy_source, 
     values_from = pct_gen_fuel, 
-    names_prefix = "pct_gen_") 
+    names_prefix = "state_pct_gen_") 
 
   
 ### Renewable and non-renewable generation (MWh and percentage) -----
