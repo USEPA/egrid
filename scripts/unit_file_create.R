@@ -805,7 +805,7 @@ botfirty_eia <-
             by = c("firing_type_1" = "EIA-860")) %>%
   select(-firing_type_1)
 
-## 860 Boiler Prime Movers
+## 860 Boiler Prime Movers --------
 
 pm_860 <- 
   eia_923$boiler_fuel_data %>% 
@@ -814,8 +814,46 @@ pm_860 <-
              by = c( "plant_id","boiler_id" = "generator_id")) %>% 
   distinct()
 
+## Calculate number of generators -------
+
+num_gens_860 <- # determining count of generator per boiler 
+  eia_860$boiler_generator %>% 
+  group_by(plant_id, boiler_id) %>% 
+  mutate(num_generators = n()) %>% 
+  ungroup() %>% 
+  distinct(plant_id,
+           boiler_id,
+           num_generators)
+
+## Update Hg Controls Flag -------
+
+hg_flags_to_update <- # boilers that have strategy == "ACI" get mercury controls updated to "Yes" 
+  eia_860$emission_standards_strategies %>%
+  filter(mercury_control_existing_strategy_1 == "ACI") %>% 
+  select(plant_id, boiler_id) %>% 
+  distinct() %>%
+  mutate(hg_controls_device = "Yes")
+
+
+## Update OG fuel types  --------
+
+og_fuel_types_update <- 
+  read_csv("data/static_tables/og_oth_units_to_change_fuel_type.csv") %>% 
+  mutate(across(everything(), ~ as.character(.x))) %>%
+  select(plant_id, unit_id,  fuel_code)
+
+## Schedule 8c updates ------
+
+eia_923$air_emissions_control_info %>%
+  left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, boiler_id) %>% distinct(),
+            by = c("plant_id","nox_control_id")) %>% 
+  rows_patch(eia_860$boiler_so2 %>% select(plant_id, so2_control_id, boiler_id) %>% distinct(),
+             by = c("plant_id","so2_control_id"))
+
+
 ## Updating units with available values ------
-  
+
+all_units_3 <-  
   all_units_2 %>% 
   rows_patch(so2_controls_860 %>% # updating with available 860 so2 controls
                rename("unit_id" = "boiler_id"),
@@ -833,7 +871,15 @@ pm_860 <-
              unmatched = "ignore") %>%
   rows_patch(pm_860 %>% rename("unit_id" = "boiler_id"), # updating missing prime movers
              by = c("plant_id", "unit_id"),
-             unmatched = "ignore")
+             unmatched = "ignore") %>% 
+  left_join(num_gens_860, # Adding num_generators variable from 860 boiler generator file
+            by = c("plant_id", "unit_id" = "boiler_id")) %>%
+  left_join(hg_flags_to_update, # Adding HG flag variable
+            by = c("unit_id" = "boiler_id", "plant_id")) %>%
+  rows_update(og_fuel_types_update %>% rename("primary_fuel_type" = "fuel_code"), # updating fuel codes for "OG" primary fuel types
+              by = c("plant_id", "unit_id"),
+              unmatched = "ignore")
+
 
 
 
