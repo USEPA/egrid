@@ -900,15 +900,57 @@ all_units_3 <-
               unmatched = "ignore")
 
 
+# Calculating emissions -----------
+  
+## SO2 emissions - sulfur content --------
+  
+### Determine default sulfur content -------
+
+avg_sulfur_content <- 
+  eia_923$boiler_fuel_data %>% 
+    group_by(plant_id, boiler_id, fuel_type, physical_unit_label) %>% 
+    summarize(across(c(starts_with(c("quantity", "mmbtu_")), "total_fuel_consumption_quantity"), ~ sum(.x, na.rm = TRUE)),
+              across(starts_with("sulfur_content"), ~ max(.x))) %>% 
+    ungroup() %>% 
+    mutate(across( # calculating monthly boiler heat input, based on correponding consumption and mmbtu_per_unit
+                .cols = starts_with("quantity_of_fuel_consumed_"),
+                .fns = ~ . * get(str_replace(cur_column(), "quantity_of_fuel_consumed_", "mmbtu_per_unit_")), # identifies corresponding mmbtu_per_unit and multiplies by quantity column
+                .names = "heat_input_{str_replace(.col, 'quantity_of_fuel_consumed_','')}"),
+           across( # calculating monthly boiler heat input, based on correponding consumption and mmbtu_per_unit
+             .cols = starts_with("quantity_of_fuel_consumed_"),
+             .fns = ~ . * get(str_replace(cur_column(), "quantity_of_fuel_consumed_", "sulfur_content_")), # identifies corresponding mmbtu_per_unit and multiplies by quantity column
+             .names = "sulfur_content_{str_replace(.col, 'quantity_of_fuel_consumed_','')}"),
+           total_heat_input = rowSums(pick(starts_with("heat_input")), na.rm = TRUE),
+           avg_sulfur_content = if_else(total_fuel_consumption_quantity > 0, # calculating avg sulfar content with condition to ignore if i total_fuel_consumption is 0
+                                        rowSums(pick(starts_with("sulfur_content")), na.rm = TRUE)/total_fuel_consumption_quantity, 
+                                        rowSums(pick(starts_with("sulfur_content")), na.rm = TRUE)/1)) %>%
+    arrange(as.numeric(plant_id)) %>%
+    select(plant_id, 
+           boiler_id,
+           fuel_type,
+           physical_unit_label,
+           avg_sulfur_content,
+           total_heat_input,
+           total_fuel_consumption_quantity
+           )
+  
+avg_sulfur_content_fuel <- # avg sulfur content grouped by fuel type
+  avg_sulfur_content %>%
+  filter(avg_sulfur_content > 0) %>%
+  group_by(fuel_type) %>% 
+  summarize(avg_sulfur_content = mean(avg_sulfur_content, na.rm = TRUE),
+            sd_sulfur_content = sd(avg_sulfur_content, na.rm = TRUE),
+            min_sulfur_content = min(avg_sulfur_content),
+            max_sufur_content = max(avg_sulfur_content)) %>% 
+  arrange(fuel_type)
 
 
+  
+### Estimate SO2 emissions ---------
 
+## SO2 emissions - physical units ----------
+  
+### Estimate SO2 emissions ---------
+  
 
-# Update null firing types
-
-## update prime mover
-
-## Update Hg Congrols flag
-
-## Calculate number of generators 
-
+  
