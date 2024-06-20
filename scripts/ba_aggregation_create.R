@@ -303,7 +303,7 @@ ba_gen_wider <-
   pivot_wider(
     names_from = energy_source, 
     values_from = gen_fuel, 
-    names_prefix = "gen_") 
+    names_prefix = "ba_gen_") 
 
 
 # resource mix (%) by energy_source
@@ -321,7 +321,7 @@ ba_gen_pct_wider <-
   pivot_wider(
     names_from = energy_source, 
     values_from = pct_gen_fuel, 
-    names_prefix = "pct_gen_") 
+    names_prefix = "ba_pct_gen_") 
 
 
 
