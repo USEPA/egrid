@@ -862,9 +862,9 @@ schedule_8c_updates <-
   rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"nox_control_id" =  `860_nox_control_id`),
              by = c("plant_id", "nox_control_id")) %>% 
   rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"so2_control_id" =  `860_so2_control_id`),
-             by = c("plant_id", "so2_control_id")) 
+             by = c("plant_id", "so2_control_id")) %>%
   rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"pm_control_id" =  `860_pm_control_id`),
-             by = c("plant_id", "pm_control_id")) 
+             by = c("plant_id", "pm_control_id")) %>% 
   rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"hg_control_id" =  `860_hg_control_id`),
              by = c("plant_id", "hg_control_id")) 
     
