@@ -844,12 +844,31 @@ og_fuel_types_update <-
 
 ## Schedule 8c updates ------
 
-eia_923$air_emissions_control_info %>%
-  left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, boiler_id) %>% distinct(),
-            by = c("plant_id","nox_control_id")) %>% 
-  rows_patch(eia_860$boiler_so2 %>% select(plant_id, so2_control_id, boiler_id) %>% distinct(),
-             by = c("plant_id","so2_control_id"))
+xwalk_control_ids <- # xwalk to add additional boiler ids
+  read_csv("data/static_tables/xwalk_860_boiler_control_id.csv") %>% 
+  mutate(across(everything(), as.character))
+  
 
+schedule_8c_updates <- 
+  eia_923$air_emissions_control_info %>%
+  left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, boiler_id) %>% distinct(), ## SB: causes m:m join
+            by = c("plant_id","nox_control_id")) %>% 
+  rows_patch(eia_860$boiler_so2 %>% select(plant_id, so2_control_id, boiler_id) %>% distinct(), ## causes m:m join
+             by = c("plant_id","so2_control_id")) %>% 
+  rows_patch(eia_860$boiler_particulate_matter %>% select(plant_id, "pm_control_id" = particulate_matter_control_id, boiler_id) %>% distinct(),
+             by = c("plant_id", "pm_control_id")) %>% 
+  rows_patch(eia_860$boiler_mercury %>% select(plant_id, boiler_id, "mercury_control" = mercury_control_id),
+             by = c("plant_id", "mercury_control")) %>% 
+  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"nox_control_id" =  `860_nox_control_id`),
+             by = c("plant_id", "nox_control_id")) %>% 
+  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"so2_control_id" =  `860_so2_control_id`),
+             by = c("plant_id", "so2_control_id")) 
+  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"pm_control_id" =  `860_pm_control_id`),
+             by = c("plant_id", "pm_control_id")) 
+  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"hg_control_id" =  `860_hg_control_id`),
+             by = c("plant_id", "hg_control_id")) 
+    
+    
 
 ## Updating units with available values ------
 
