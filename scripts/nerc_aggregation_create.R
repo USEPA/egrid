@@ -9,498 +9,399 @@ library(readxl)
 library(stringr)
 
 
-### notes: 
-###     overall: will need to coordinate with plant file output once complete
-###     CH4, N2O, CO2e emissions to be added 
-###     non-baseload % to be added 
-###     energy source from plant file to be added
-###     need to distinguish between "other fossil" and "other unknown/purchased" groups
-
-
 # Load and clean necessary data ------
 
-# fuel type / energy source crosswalk 
-# this will be unnecessary once plant file is ready
+# rename columns 
 
-xwalk_energy_source <- read_csv("data/static_tables/xwalk_energy_source.csv")
+columns_to_keep <- 
+  c("year", 
+    "state" = "pstatabb", 
+    "state_fips_code" = "fipsst", 
+    "plant_name", 
+    "plant_id", 
+    "nerc", 
+    "sub_region", 
+    "sub_region_name" = "srname",
+    "balance_authority_name", 
+    "balance_authority_code",
+    "primary_fuel_type" = "plprmfl", 
+    "primary_fuel_category" = "plfuelct", 
+    "plant_nameplate_capacity" = "namepcap", 
+    "capacity_factor" = "capfac", 
+    "nonbaseload_factor" = "nbfactor", 
+    "plant_heat_input_comb" = "plhtian", 
+    "plant_heat_input_comb_oz" = "plhtioz", 
+    "plant_heat_input_ann" = "plhtiant", 
+    "plant_heat_input_oz" = "plhtiozt", 
+    "plant_gen_ann" = "plngenan", 
+    "plant_gen_oz" = "plngenoz", 
+    "plant_nox_mass" = "plnoxan", 
+    "plant_nox_oz_mass" = "plnoxoz", 
+    "plant_so2_mass" = "plso2an", 
+    "plant_co2_mass" = "plco2an", 
+    "plant_ch4_mass" = "plch4an", 
+    "plant_n2o_mass" = "pln2oan", 
+    "plant_co2e_mass" = "plco2eqa",
+    "plant_hg_mass" = "plhgan", 
+    "plant_coal_gen" = "plgenacl", 
+    "plant_oil_gen" = "plgenaol", 
+    "plant_gas_gen" = "plgenags", 
+    "plant_nuclear_gen" = "plgenanc", 
+    "plant_hydro_gen" = "plgenahy",
+    "plant_biomass_gen" = "plgenabm", 
+    "plant_wind_gen" = "plgenawi", 
+    "plant_solar_gen" = "plgenaso", 
+    "plant_geothermal_gen" = "plgenagt", 
+    "plant_other_fossil_gen" = "plgenaof", 
+    "plant_other_purchased_gen" = "plgenaop", 
+    "plant_nonre_gen" = "plgenatn", 
+    "plant_re_gen" = "plgenatr", 
+    "plant_re_nonhydro_gen" = "plgenath", 
+    "plant_combustion_gen" = "plgenacy", 
+    "plant_noncombustion_gen" = "plgenacn"
+  )  
 
-# factor energy sources ordering for final eGRID output
-xwalk_energy_source$energy_source <- factor(xwalk_energy_source$energy_source, 
-                                            levels = c("coal", 
-                                                       "oil", 
-                                                       "gas", 
-                                                       "nuclear", 
-                                                       "hydro", 
-                                                       "biomass", 
-                                                       "wind", 
-                                                       "solar", 
-                                                       "geothermal", 
-                                                       "other"))
 
-
-# unit file 
-
-unit <- read_rds("data/outputs/unit_file_2021.RDS") # need to generalize for any year
-
-# calculate plant level emissions & heat input
-
-plant_emissions_heat_rate <- 
-  unit %>% 
-  mutate(plant_id = as.character(plant_id)) %>%
-  group_by(plant_name, plant_id, primary_fuel_type) %>% 
-  summarize(plant_nox = sum(nox_mass), 
-            plant_nox_oz = sum(nox_oz), 
-            plant_so2 = sum(so2_mass), 
-            plant_co2 = sum(co2_mass),
-            plant_heat_input = sum(heat_input), 
-            plant_heat_input_oz = sum(heat_input_oz))
-
-# generator file 
-
-generator <- read_rds("data/outputs/generator_file.RDS") # need to generalize for any year
-
-# calculate plant level net generation by prime mover and primary fuel type
-
-plant_generation <-
-  generator %>% 
-  mutate(plant_id = as.character(plant_id)) %>% 
-  group_by(plant_id) %>% 
-  summarize(plant_gen_ann = sum(generation_ann),
-            plant_gen_oz = sum(generation_oz),
-            plant_nameplate_capacity = sum(nameplate_capacity))
-
-# plant file 
-
-plant <- read_rds("data/outputs/plant_file_2021.RDS") # need to generalize for any year
+# read in plant file 
 
 plant <- 
-  plant %>% 
-  mutate(plant_id = as.character(plant_id)) 
+  read_rds("data/outputs/plant_file_2021.RDS") %>% 
+  select(any_of(columns_to_keep))
 
-# Combine data ------
+# factor plant_fuel_category to final eGRID output order
+plant$primary_fuel_category <- factor(plant$primary_fuel_category, 
+                                      levels = c("COAL", 
+                                                 "OIL", 
+                                                 "GAS",
+                                                 "NUCLEAR", 
+                                                 "HYDRO", 
+                                                 "BIOMASS", 
+                                                 "WIND", 
+                                                 "SOLAR", 
+                                                 "GEOTHERMAL", 
+                                                 "OFSL", 
+                                                 "OTHF"))
 
-plant_combined <- 
-  plant %>% 
-  left_join(plant_emissions_heat_rate, by = c("plant_id", "plant_name")) %>% 
-  left_join(plant_generation, by = "plant_id") %>% 
-  left_join(xwalk_energy_source, by = "primary_fuel_type") 
 
 # NERC level aggregation ------
 
+# sum capacity, generation, emissions mass to NERC level 
+
 nerc <- 
-  plant_combined %>% 
+  plant %>% 
   group_by(year, nerc) %>% 
-  summarize(nerc_nameplate_capacity = sum(plant_nameplate_capacity, na.rm = TRUE),
-            nerc_heat_input = sum(plant_heat_input, na.rm = TRUE), 
-            nerc_heat_input_oz = sum(plant_heat_input_oz, na.rm = TRUE),
-            nerc_gen_ann = sum(plant_gen_ann, na.rm = TRUE), 
-            nerc_gen_oz = sum(plant_gen_oz, na.rm = TRUE), 
-            nerc_nox = sum(plant_nox, na.rm = TRUE), 
-            nerc_nox_oz = sum(plant_nox_oz, na.rm = TRUE), 
-            nerc_so2 = sum(plant_so2, na.rm = TRUE), 
-            nerc_co2 = sum(plant_co2, na.rm = TRUE)) %>% 
+  summarize(across(.cols = c("plant_nameplate_capacity", 
+                             contains("heat_input"), 
+                             "plant_gen_ann", 
+                             "plant_gen_oz", 
+                             contains("_mass")), 
+                   .fns = ~ sum(.x, na.rm = TRUE),
+                   .names = "{str_replace(.col, 'plant_', 'nerc_')}")) %>% 
   mutate(nerc_hg = "--") %>% 
   ungroup()
 
 
-## Calculate emission rates -----
+## Calculate emission rates ------
 
-### Output and input emission rates -----
+### Output emission rates (lb/MWh) -----
 
-nerc_emission_rates <- 
+nerc_output_rates <- 
   nerc %>% 
-  mutate(nerc_output_nox_rate = 2000*nerc_nox/nerc_gen_ann, # output emissions rates (lb/MWh)
-         nerc_output_nox_oz_rate = 2000*nerc_nox_oz/nerc_gen_oz,
-         nerc_output_so2_rate = 2000*nerc_so2/nerc_gen_ann,
-         nerc_output_co2_rate = 2000*nerc_co2/nerc_gen_ann,
-         nerc_output_hg_rate = "--",
-         nerc_input_nox_rate = 2000*nerc_nox/nerc_heat_input, # input emissions rate (lb/MMBtu)
-         nerc_input_nox_oz_rate = 2000*nerc_nox/nerc_heat_input_oz,
-         nerc_input_so2_rate = 2000*nerc_so2/nerc_heat_input,
-         nerc_input_co2_rate = 2000*nerc_co2/nerc_heat_input,
-         nerc_input_hg_rate = "--") %>% 
-  select(year, nerc, contains("rate")) # include necessary data only
+  mutate(# calculating output emissions rates (lb/MWh)
+    across(.cols = c("nerc_nox_mass",  
+                     "nerc_so2_mass", 
+                     "nerc_co2_mass", 
+                     "nerc_co2e_mass"), 
+           .fns = ~ 2000 * . / nerc_gen_ann, 
+           .names = "{str_replace(.col, '_mass', '')}_output_rate"), 
+    nerc_nox_oz_output_rate = 2000 * nerc_nox_oz_mass / nerc_gen_oz, 
+    across(.cols = c("nerc_ch4_mass", 
+                     "nerc_n2o_mass"),
+           .fns = ~ . / nerc_gen_ann, 
+           .names = "{str_replace(.col, '_mass', '')}_output_rate"),
+    nerc_hg_output_rate = "--") %>% 
+  relocate(nerc_nox_oz_output_rate, .after = nerc_nox_output_rate) %>% 
+  select(nerc, contains("rate"))
 
-### Combustion emission rates -----
 
-# check: once plant file is complete, combustion techs may be identified already
+### Input emission rates (lb/MMBtu) -----
 
-combustion_fuels <- c("coal", 
-                      "oil", 
-                      "gas", 
-                      "biomass")
+nerc_input_rates <- 
+  nerc %>% 
+  mutate(# calculating input emission rates (lb/MMBtu)
+    across(.cols = c("nerc_nox_mass",  
+                     "nerc_so2_mass", 
+                     "nerc_co2_mass", 
+                     "nerc_co2e_mass"), 
+           .fns = ~ 2000 * . / nerc_heat_input_ann, 
+           .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
+    nerc_nox_oz_input_rate = 2000 * nerc_nox_oz_mass / nerc_heat_input_oz, 
+    across(.cols = c("nerc_ch4_mass", 
+                     "nerc_n2o_mass"),
+           .fns = ~ . / nerc_heat_input_ann, 
+           .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
+    nerc_hg_input_rate = "--") %>% 
+  relocate(nerc_nox_oz_input_rate, .after = nerc_nox_input_rate) %>% 
+  select(nerc, contains("rate"))
+
+
+### Combustion emission rates (lb/MWh) -----
 
 nerc_combustion_rates <- 
-  plant_combined %>% 
-  filter(energy_source %in% combustion_fuels) %>%  # combustion flag identified in xwalk_energy_source.csv
-  group_by(year, nerc) %>% 
-  summarize(nerc_nox_comb = sum(plant_nox, na.rm = TRUE), 
-            nerc_nox_oz_comb = sum(plant_nox_oz, na.rm = TRUE), 
-            nerc_so2_comb = sum(plant_so2, na.rm = TRUE), 
-            nerc_co2_comb = sum(plant_co2, na.rm = TRUE), 
-            nerc_gen_ann_comb = sum(plant_gen_ann, na.rm = TRUE), 
-            nerc_gen_oz_comb = sum(plant_gen_oz, na.rm = TRUE), 
-            nerc_heat_input_comb = sum(plant_heat_input, na.rm = TRUE), 
-            nerc_heat_input_oz_comb = sum(plant_heat_input_oz, na.rm = TRUE)) %>%
-  mutate(nerc_output_nox_rate_comb = 2000*nerc_nox_comb/nerc_gen_ann_comb, # output emissions rates (lb/MWh)
-         nerc_output_nox_oz_rate_comb = 2000*nerc_nox_oz_comb/nerc_gen_oz_comb,
-         nerc_output_so2_rate_comb = 2000*nerc_so2_comb/nerc_gen_ann_comb,
-         nerc_output_co2_rate_comb = 2000*nerc_co2_comb/nerc_gen_ann_comb,
-         nerc_output_hg_rate_comb = "--") %>% 
-  select(year, 
-         nerc, 
-         nerc_heat_input_comb, 
-         nerc_heat_input_oz_comb, 
-         contains("output")) # include necessary data only
+  plant %>% 
+  group_by(nerc) %>% 
+  summarize(nerc_combustion_gen = sum(plant_combustion_gen, na.rm = TRUE)) %>% 
+  left_join(nerc, by = c("nerc")) %>% 
+  mutate(# calculating combustion emissions rates (lb/MWh)
+    across(.cols = c("nerc_nox_mass",  
+                     "nerc_so2_mass", 
+                     "nerc_co2_mass", 
+                     "nerc_co2e_mass"), 
+           .fns = ~ 2000 * . / nerc_combustion_gen, 
+           .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
+    nerc_nox_oz_combustion_rate = 2000 * nerc_nox_oz_mass / (nerc_combustion_gen * (nerc_gen_oz / nerc_gen_ann)), 
+    across(.cols = c("nerc_ch4_mass", 
+                     "nerc_n2o_mass"),
+           .fns = ~ . / nerc_gen_ann, 
+           .names = "{str_replace(.col, '_mass', '')}_combustion_rate")) %>% 
+  relocate(nerc_nox_oz_combustion_rate, .after = nerc_nox_combustion_rate) %>% 
+  select(nerc, contains("rate"))
 
 
-### Output and input emission rates by fuel type (lb/MWh) -----
+### Output emission rates (lb/MWh) and input emission rates (lb/MMBtu) by fuel type  -----
 
-# issues/notes here: 
-# applied case_when to only calculate rates when generation > 0
-# should rate values with gen <= 0 be NA or 0? 
+# calculate emission rates by fossil fuel types 
 
-fossil_fuels <- c("coal", 
-                  "gas", 
-                  "oil")
+fossil_fuels <- c("COAL", 
+                  "OIL",
+                  "GAS", 
+                  "OSFL")
 
-nerc_fuel_type <-
-  plant_combined %>% 
-  group_by(year, nerc, energy_source) %>% 
-  filter(energy_source %in% fossil_fuels) %>% # only calculate these energy sources 
-  summarize(nerc_nox_fuel = sum(plant_nox, na.rm = TRUE), 
-            nerc_nox_oz_fuel = sum(plant_nox_oz, na.rm = TRUE), 
-            nerc_so2_fuel = sum(plant_so2, na.rm = TRUE), 
-            nerc_co2_fuel = sum(plant_co2, na.rm = TRUE), 
-            nerc_gen_ann_fuel = sum(plant_gen_ann, na.rm = TRUE), 
-            nerc_gen_oz_fuel = sum(plant_gen_oz, na.rm = TRUE), 
-            nerc_heat_input_fuel = sum(plant_heat_input, na.rm = TRUE), 
-            nerc_heat_input_oz_fuel = sum(plant_heat_input_oz, na.rm = TRUE)) %>% 
-  mutate(
-    # output emission rates 
-    nerc_output_nox_rate_fuel = case_when(    
-      nerc_gen_ann_fuel > 0 ~ 2000*nerc_nox_fuel/nerc_gen_ann_fuel, 
-      nerc_gen_ann_fuel <= 0 ~ 0),
-    nerc_output_nox_oz_rate_fuel = case_when(
-      nerc_gen_oz_fuel > 0 ~ 2000*nerc_nox_oz_fuel/nerc_gen_oz_fuel, 
-      nerc_gen_oz_fuel <= 0 ~ 0),
-    nerc_output_so2_rate_fuel = case_when(
-      nerc_gen_ann_fuel > 0 ~ 2000*nerc_so2_fuel/nerc_gen_ann_fuel, 
-      nerc_gen_ann_fuel <= 0 ~ 0),
-    nerc_output_co2_rate_fuel = case_when(
-      nerc_gen_ann_fuel > 0 ~ 2000*nerc_co2_fuel/nerc_gen_ann_fuel, 
-      nerc_gen_ann_fuel <= 0 ~ 0),
-    nerc_output_hg_rate_fuel = "--", 
+nerc_fuel_rates <-
+  plant %>% 
+  group_by(nerc, primary_fuel_category) %>% 
+  filter(primary_fuel_category %in% fossil_fuels, 
+         !primary_fuel_category == 'OSFL') %>% # do not include other fossil in individual fuel rate calculations
+  summarize(across(.cols = c(contains("heat_input"), 
+                             "plant_gen_ann", 
+                             "plant_gen_oz", 
+                             contains("mass"), 
+                             "plant_coal_gen", 
+                             "plant_oil_gen", 
+                             "plant_gas_gen", 
+                             "plant_other_fossil_gen"), 
+                   .fns = ~ sum(.x, na.rm = TRUE),
+                   .names = "{str_replace(.col, 'plant_', 'nerc_')}")) %>% 
+  mutate(# output emission rates (lb/MWh)
+    across(.cols = c("nerc_nox_mass",  
+                     "nerc_so2_mass", 
+                     "nerc_co2_mass", 
+                     "nerc_co2e_mass"), 
+           .fns = ~ 2000 * . / nerc_gen_ann, 
+           .names = "{str_replace(.col, '_mass', '')}_output_rate"), 
+    nerc_nox_oz_output_rate = 2000 * nerc_nox_oz_mass / nerc_gen_oz, 
+    across(.cols = c("nerc_ch4_mass", 
+                     "nerc_n2o_mass"),
+           .fns = ~ . / nerc_gen_ann, 
+           .names = "{str_replace(.col, '_mass', '')}_output_rate"),
     
     # input emission rates (lb/MMBtu)
-    nerc_input_nox_rate_fuel = case_when(    
-      nerc_heat_input_fuel > 0 ~ 2000*nerc_nox_fuel/nerc_heat_input_fuel, 
-      nerc_heat_input_fuel <= 0 ~ 0),
-    nerc_input_nox_oz_rate_fuel = case_when(
-      nerc_heat_input_oz_fuel > 0 ~ 2000*nerc_nox_oz_fuel/nerc_heat_input_oz_fuel, 
-      nerc_heat_input_oz_fuel <= 0 ~ 0),
-    nerc_input_so2_rate_fuel = case_when(
-      nerc_heat_input_fuel > 0 ~ 2000*nerc_so2_fuel/nerc_heat_input_fuel, 
-      nerc_heat_input_fuel <= 0 ~ 0),
-    nerc_input_co2_rate_fuel = case_when(
-      nerc_heat_input_fuel > 0 ~ 2000*nerc_co2_fuel/nerc_heat_input_fuel, 
-      nerc_heat_input_fuel <= 0 ~ 0),
-    nerc_input_hg_rate_fuel = "--") 
-  
-nerc_fuel_type_rates <- 
-  nerc_fuel_type %>% 
-  select(year, nerc, energy_source, contains("rate")) # include only necessary columns
+    across(.cols = c("nerc_nox_mass",  
+                     "nerc_so2_mass", 
+                     "nerc_co2_mass", 
+                     "nerc_co2e_mass"), 
+           .fns = ~ 2000 * . / nerc_heat_input_ann, 
+           .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
+    nerc_nox_oz_input_rate = 2000 * nerc_nox_oz_mass / nerc_heat_input_oz, 
+    across(.cols = c("nerc_ch4_mass", 
+                     "nerc_n2o_mass"),
+           .fns = ~ . / nerc_heat_input_ann, 
+           .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
+  select(nerc, primary_fuel_category, contains("rate")) %>% 
+  pivot_wider(names_from = primary_fuel_category, 
+              values_from = contains("rate")) %>% 
+  janitor::clean_names() %>% 
+  mutate(across(where(is.numeric), ~ replace_na(., 0)), 
+         nerc_hg_output_rate_coal = "--", 
+         nerc_hg_output_rate_fossil = "--", 
+         nerc_hg_input_rate_coal = "--", 
+         nerc_hg_input_rate_fossil = "--")
 
-# calculate fossil fuel rate
 
-nerc_fossil_rate <-
-  plant_combined %>% 
-  filter(energy_source %in% fossil_fuels) %>% # only calculate these energy sources
-  group_by(year, nerc) %>% 
-  summarize(nerc_nox_fossil = sum(plant_nox, na.rm = TRUE), 
-            nerc_nox_oz_fossil = sum(plant_nox_oz, na.rm = TRUE), 
-            nerc_so2_fossil = sum(plant_so2, na.rm = TRUE), 
-            nerc_co2_fossil = sum(plant_co2, na.rm = TRUE), 
-            nerc_gen_ann_fossil = sum(plant_gen_ann, na.rm = TRUE), 
-            nerc_gen_oz_fossil = sum(plant_gen_oz, na.rm = TRUE), 
-            nerc_heat_input_fossil = sum(plant_heat_input, na.rm = TRUE), 
-            nerc_heat_input_oz_fossil = sum(plant_heat_input_oz, na.rm = TRUE)) %>% 
-  mutate(
-    # output emission rates 
-    nerc_output_nox_rate_fossil = case_when(    
-      nerc_gen_ann_fossil > 0 ~ 2000*nerc_nox_fossil/nerc_gen_ann_fossil, 
-      nerc_gen_ann_fossil <= 0 ~ 0),
-    nerc_output_nox_oz_rate_fossil = case_when(
-      nerc_gen_oz_fossil > 0 ~ 2000*nerc_nox_oz_fossil/nerc_gen_oz_fossil, 
-      nerc_gen_oz_fossil <= 0 ~ 0),
-    nerc_output_so2_rate_fossil = case_when(
-      nerc_gen_ann_fossil > 0 ~ 2000*nerc_so2_fossil/nerc_gen_ann_fossil, 
-      nerc_gen_ann_fossil <= 0 ~ 0),
-    nerc_output_co2_rate_fossil = case_when(
-      nerc_gen_ann_fossil > 0 ~ 2000*nerc_co2_fossil/nerc_gen_ann_fossil, 
-      nerc_gen_ann_fossil <= 0 ~ 0),
-    nerc_output_hg_rate_fossil = "--", 
+# calculate all fossil fuel output and input emission rates 
+
+nerc_fossil_rates <-
+  plant %>% 
+  group_by(nerc) %>% 
+  filter(primary_fuel_category %in% fossil_fuels) %>% 
+  summarize(across(.cols = c(contains("heat_input"), 
+                             "plant_gen_ann", 
+                             "plant_gen_oz", 
+                             contains("mass"), 
+                             "plant_coal_gen", 
+                             "plant_oil_gen", 
+                             "plant_gas_gen", 
+                             "plant_other_fossil_gen"), 
+                   .fns = ~ sum(.x, na.rm = TRUE),
+                   .names = "{str_replace(.col, 'plant_', 'nerc_')}")) %>% 
+  mutate(# output emission rates (lb/MWh)
+    across(.cols = c("nerc_nox_mass",  
+                     "nerc_so2_mass", 
+                     "nerc_co2_mass", 
+                     "nerc_co2e_mass"), 
+           .fns = ~ 2000 * . / nerc_gen_ann, 
+           .names = "{str_replace(.col, '_mass', '')}_output_rate_fossil"), 
+    nerc_nox_oz_output_rate_fossil = 2000 * nerc_nox_oz_mass / nerc_gen_oz, 
+    across(.cols = c("nerc_ch4_mass", 
+                     "nerc_n2o_mass"),
+           .fns = ~ . / nerc_gen_ann, 
+           .names = "{str_replace(.col, '_mass', '')}_output_rate_fossil"),
     
     # input emission rates (lb/MMBtu)
-    nerc_input_nox_rate_fossil = case_when(    
-      nerc_heat_input_fossil > 0 ~ 2000*nerc_nox_fossil/nerc_heat_input_fossil, 
-      nerc_heat_input_fossil <= 0 ~ 0),
-    nerc_input_nox_oz_rate_fossil = case_when(
-      nerc_heat_input_oz_fossil > 0 ~ 2000*nerc_nox_oz_fossil/nerc_heat_input_oz_fossil, 
-      nerc_heat_input_oz_fossil <= 0 ~ 0),
-    nerc_input_so2_rate_fossil = case_when(
-      nerc_heat_input_fossil > 0 ~ 2000*nerc_so2_fossil/nerc_heat_input_fossil, 
-      nerc_heat_input_fossil <= 0 ~ 0),
-    nerc_input_co2_rate_fossil = case_when(
-      nerc_heat_input_fossil > 0 ~ 2000*nerc_co2_fossil/nerc_heat_input_fossil, 
-      nerc_heat_input_fossil <= 0 ~ 0),
-    nerc_input_hg_rate_fossil = "--") %>% 
-  select(year, nerc, contains("rate")) # include only necessary columns
+    across(.cols = c("nerc_nox_mass",  
+                     "nerc_so2_mass", 
+                     "nerc_co2_mass", 
+                     "nerc_co2e_mass"), 
+           .fns = ~ 2000 * . / nerc_heat_input_ann, 
+           .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
+    nerc_nox_oz_input_rate_fossil = 2000 * nerc_nox_oz_mass / nerc_heat_input_oz, 
+    across(.cols = c("nerc_ch4_mass", 
+                     "nerc_n2o_mass"),
+           .fns = ~ . / nerc_heat_input_ann, 
+           .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
+    across(where(is.numeric), ~ replace_na(., 0))) %>% 
+  relocate(nerc_nox_oz_input_rate_fossil, .after = nerc_nox_input_rate_fossil) %>% 
+  select(nerc, contains("rate"))  
 
 
-# format for final data frame 
-
-nerc_fuel_type_wider <-
-  nerc_fuel_type_rates %>% 
-  pivot_wider(
-    names_from = energy_source, 
-    values_from = c(nerc_output_nox_rate_fuel, 
-                    nerc_output_nox_oz_rate_fuel,
-                    nerc_output_so2_rate_fuel,
-                    nerc_output_co2_rate_fuel,
-                    nerc_output_hg_rate_fuel, 
-                    nerc_input_nox_rate_fuel, 
-                    nerc_input_nox_oz_rate_fuel,
-                    nerc_input_so2_rate_fuel,
-                    nerc_input_co2_rate_fuel,
-                    nerc_input_hg_rate_fuel)
-  ) %>% 
-  left_join(nerc_fossil_rate, by = c("year", "nerc")) 
 
 ### Non-baseload output emission rates (lb/MWh) -----
 
-# missing data from plant file ... 
+nerc_nonbaseload_rates <- 
+  plant %>% 
+  group_by(nerc) %>% 
+  summarize(across(.cols = c("plant_gen_ann", 
+                             "plant_gen_oz", 
+                             contains("mass")), 
+                   .fns = ~ sum(. * nonbaseload_factor, na.rm = TRUE), 
+                   .names = "{str_replace(.col, 'plant_', 'nerc_')}")) %>% 
+  mutate(across(.cols = c("nerc_nox_mass",  
+                          "nerc_so2_mass", 
+                          "nerc_co2_mass", 
+                          "nerc_co2e_mass"), 
+                .fns = ~ 2000 * . / nerc_gen_ann, 
+                .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"), 
+         nerc_nox_oz_output_rate_nonbaseload = 2000 * nerc_nox_oz_mass / nerc_gen_oz, 
+         across(.cols = c("nerc_ch4_mass", 
+                          "nerc_n2o_mass"),
+                .fns = ~ . / nerc_gen_ann, 
+                .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"),
+         nerc_hg_output_rate_nonbaseload = "--") %>% 
+  relocate(nerc_nox_oz_output_rate_nonbaseload, .after = nerc_nox_output_rate_nonbaseload) %>% 
+  select(nerc, contains("rate"))
 
 
 ## Calculate net generation and resource mix -----
 
-### Generation by fuel type (MWh) and resource mix (percentage) -----
-
-# net generation by energy_source
+### Generation by fuel category (MWh) -----
 
 nerc_gen <- 
-  plant_combined %>% 
-  group_by(year, nerc, energy_source) %>% 
-  mutate(gen_fuel = sum(plant_gen_ann, na.rm = TRUE)) %>% 
-  select(year, nerc, energy_source, gen_fuel) %>% 
-  distinct()
+  plant %>% 
+  group_by(nerc) %>% 
+  summarize(across(.cols = c(contains("gen")), 
+                   .fns = ~ sum(.x, na.rm = TRUE),
+                   .names = "{str_replace(.col, 'plant_', 'nerc_')}")) 
 
-# format for final data frame (pivot wider)
-
-nerc_gen_wider <-
+nerc_gen_2 <- 
   nerc_gen %>% 
-  pivot_wider(
-    names_from = energy_source, 
-    values_from = gen_fuel, 
-    names_prefix = "nerc_gen_") 
+  select(-nerc_gen_ann, -nerc_gen_oz) # remove duplicate columns for final formatting
 
+### Resource mix by fuel category (%) -----
 
-# resource mix (%) by energy_source
-
-nerc_gen_pct <- 
+nerc_resource_mix <- 
   nerc_gen %>% 
-  left_join(nerc, by = c("year", "nerc")) %>% 
-  summarize(pct_gen_fuel = sum(gen_fuel, na.rm = TRUE)/nerc_gen_ann) %>% 
-  distinct()
-
-# format for final data frame (pivot wider)
-
-nerc_gen_pct_wider <-
-  nerc_gen_pct %>% 
-  pivot_wider(
-    names_from = energy_source, 
-    values_from = pct_gen_fuel, 
-    names_prefix = "nerc_pct_gen_") 
+  select(-nerc_gen_oz) %>%   
+  mutate(across(.cols = -c("nerc", "nerc_gen_ann"), 
+                .fns = ~ . / nerc_gen_ann * 100, # convert to percentage 
+                .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
+  select(nerc, contains("resource_mix"))
 
 
+### Nonbaseload generation (MWh) -----
 
-### Renewable and non-renewable generation (MWh and percentage) -----
-
-# check: what fuel types are included in RE? 
-
-re_fuels <- c("biomass", 
-              "solar", 
-              "wind", 
-              "geothermal", 
-              "hydro")
-
-# RE including hydro
-
-nerc_re <- 
-  plant_combined %>% 
-  filter(energy_source %in% re_fuels) %>% 
-  left_join(nerc, by = c("year", "nerc")) %>% 
-  group_by(year, nerc) %>% 
-  summarize(gen_re = sum(plant_gen_ann, na.rm = TRUE), 
-            pct_gen_re = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
-  distinct()
-
-# format for final egrid output
-nerc_re_gen <- 
-  nerc_re %>% 
-  select(year, nerc, gen_re)
-
-nerc_re_pct <- 
-  nerc_re %>% 
-  select(year, nerc, pct_gen_re)
+nerc_nonbaseload_gen <- 
+  plant %>% 
+  group_by(nerc, primary_fuel_category) %>% 
+  summarize(nerc_nonbaseload_gen = sum(plant_gen_ann * nonbaseload_factor, na.rm = TRUE)) %>% 
+  pivot_wider(names_from = primary_fuel_category, 
+              values_from = nerc_nonbaseload_gen, 
+              names_prefix = "nerc_nonbaseload_gen_") %>% 
+  janitor::clean_names() %>% 
+  mutate(across(where(is.numeric), ~ replace_na(., 0))) 
 
 
-# RE non hydro
+### Nonbaseload resource mix (%) -----
 
-re_fuels_no_hydro <- c("biomass", 
-                       "solar", 
-                       "wind", 
-                       "geothermal")
-
-nerc_re_no_hydro <- 
-  plant_combined %>% 
-  filter(energy_source %in% re_fuels_no_hydro) %>% 
-  left_join(nerc, by = c("year", "nerc")) %>% 
-  group_by(year, nerc) %>% 
-  summarize(gen_re_no_hydro = sum(plant_gen_ann, na.rm = TRUE), 
-            pct_gen_re_no_hydro = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
-  distinct()
-
-# format for final egrid output
-nerc_re_no_hydro_gen <- 
-  nerc_re_no_hydro %>% 
-  select(year, nerc, gen_re_no_hydro)
-
-nerc_re_no_hydro_pct <- 
-  nerc_re_no_hydro %>% 
-  select(year, nerc, pct_gen_re_no_hydro)
-
-
-# non-RE
-
-nerc_non_re <- 
-  plant_combined %>% 
-  filter(! energy_source %in% re_fuels) %>% 
-  left_join(nerc, by = c("year", "nerc")) %>% 
-  group_by(year, nerc) %>% 
-  summarize(gen_non_re = sum(plant_gen_ann, na.rm = TRUE), 
-            pct_gen_non_re = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
-  distinct()
-
-# format for final egrid output
-nerc_non_re_gen <- 
-  nerc_non_re %>% 
-  select(year, nerc, gen_non_re)
-
-nerc_non_re_pct <- 
-  nerc_non_re %>% 
-  select(year, nerc, pct_gen_non_re)
-
-
-### Combustion and non-combustion generation (MWh) and resource mix (percent) -----
-
-# generation from combustion sources
-
-combustion_fuels <- c("coal", 
-                      "oil", 
-                      "gas", 
-                      "biomass")
-
-nerc_combustion <- 
-  plant_combined %>% 
-  filter(energy_source %in% combustion_fuels) %>% 
-  left_join(nerc, by = c("year", "nerc")) %>% 
-  group_by(year, nerc) %>% 
-  summarize(gen_combustion = sum(plant_gen_ann, na.rm = TRUE), 
-            pct_gen_combustion = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
-  distinct()
-
-# format for final egrid output
-nerc_combustion_gen <- 
-  nerc_combustion %>% 
-  select(year, nerc, gen_combustion)
-
-nerc_combustion_pct <- 
-  nerc_combustion %>% 
-  select(year, nerc, pct_gen_combustion)
-
-
-# generation from non-combustion sources
-
-nerc_non_combustion <- 
-  plant_combined %>% 
-  filter(! energy_source %in% combustion_fuels) %>% 
-  left_join(nerc, by = c("year", "nerc")) %>% 
-  group_by(year, nerc) %>% 
-  summarize(gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE), 
-            pct_gen_non_combustion = sum(plant_gen_ann, na.rm = TRUE)/nerc_gen_ann) %>% 
-  distinct()
-
-# format for final egrid output
-nerc_non_combustion_gen <- 
-  nerc_non_combustion %>% 
-  select(year, nerc, gen_non_combustion)
-
-nerc_non_combustion_pct <- 
-  nerc_non_combustion %>% 
-  select(year, nerc, pct_gen_non_combustion)
-
-
-### Non-baseload generation by fuel type (MWh and percentage) -----
-
+nerc_nonbaseload_resource_mix <- 
+  nerc_nonbaseload_gen %>% 
+  mutate(nerc_nonbaseload_gen = rowSums(pick(contains("nonbaseload"))), 
+         across(.cols = -c("nerc_nonbaseload_gen"), 
+                .fns = ~ . / nerc_nonbaseload_gen * 100, 
+                .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
+  select(nerc, contains("resource_mix"))
 
 
 # Create final data frame -----
 
+## Join necessary data -----
+
 nerc_merged <- 
   nerc %>% 
-  left_join(nerc_emission_rates, by = c("year", "nerc")) %>% # output/input emission rates
-  left_join(nerc_combustion_rates, by = c("year", "nerc")) %>% # combustion emission rates 
-  left_join(nerc_fuel_type_wider, by = c("year", "nerc")) %>% # fuel specific emission rates
-  left_join(nerc_gen_wider, by = c("year", "nerc")) %>% # generation values and percent by fuel type
-  left_join(nerc_non_re_gen, by = c("year", "nerc")) %>% # non-re generation (MWh)
-  left_join(nerc_re_gen, by = c("year", "nerc")) %>% # re generation (MWh)
-  left_join(nerc_re_no_hydro_gen, by = c("year", "nerc")) %>%  # re no hydro generation (MWh)
-  left_join(nerc_combustion_gen, by = c("year", "nerc")) %>%  # combustion generation (MWh)
-  left_join(nerc_non_combustion_gen, by = c("year", "nerc")) %>%  # non-combustion generation (MWh)
-  left_join(nerc_gen_pct_wider, by = c("year", "nerc")) %>% # generation % by energy source)
-  left_join(nerc_non_re_pct, by = c("year", "nerc")) %>% # non-re generation (%)
-  left_join(nerc_re_pct, by = c("year", "nerc")) %>% # re generation (%)
-  left_join(nerc_re_no_hydro_pct, by = c("year", "nerc")) %>%  # re no hydro generation (%)
-  left_join(nerc_combustion_pct, by = c("year", "nerc")) %>%  # combustion generation (%)
-  left_join(nerc_non_combustion_pct, by = c("year", "nerc")) %>%  # non-combustion generation (%)
+  left_join(nerc_output_rates, by = c("nerc")) %>% # output emission rates
+  left_join(nerc_input_rates, by = c("nerc")) %>% # input emission rates
+  left_join(nerc_combustion_rates, by = c("nerc")) %>% # combustion emission rates
+  left_join(nerc_fuel_rates, by = c("nerc")) %>% # output and input emission rates by fuel type
+  left_join(nerc_fossil_rates, by = c("nerc")) %>% # output and input emission rates for all fossil fuels
+  left_join(nerc_nonbaseload_rates, by = c("nerc")) %>% # output emission rates for nonbaseload generation
+  left_join(nerc_gen_2, by = c("nerc")) %>% # generation by fuel category
+  left_join(nerc_resource_mix, by = c("nerc")) %>% # resource mix by fuel category
+  left_join(nerc_nonbaseload_gen, by = c("nerc")) %>% # nonbaseload generation by fuel category
+  left_join(nerc_nonbaseload_resource_mix, by = c("nerc")) %>% 
   mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
          across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
-  select(-contains("fuel_NA"), 
-         -contains("gen_NA"), 
-         -nerc_input_hg_rate_fuel_gas, 
-         -nerc_input_hg_rate_fuel_oil, 
-         -nerc_output_hg_rate_fuel_gas, 
-         -nerc_output_hg_rate_fuel_oil) # remove unnecessary columns
+  select(-contains("gen_na"),
+         -contains("mix_na")) # remove unnecessary columns
 
+
+## Round data ----
 nerc_rounded <- 
   nerc_merged %>% 
   mutate(across(where(is.numeric), \(x) round(x, 3))) # round to three decimals
 
-# relocate columns to eGRID final output
+
+## Format to eGRID output -------
+
 nerc_formatted <- 
   nerc_rounded %>% 
-  relocate(nerc_heat_input_comb, nerc_heat_input_oz_comb, .after = nerc_nameplate_capacity) %>% 
-  relocate(nerc_output_nox_rate_fossil, .after = nerc_output_nox_rate_fuel_gas) %>% 
-  relocate(nerc_output_nox_oz_rate_fossil, .after = nerc_output_nox_oz_rate_fuel_gas) %>% 
-  relocate(nerc_output_so2_rate_fossil, .after = nerc_output_so2_rate_fuel_gas) %>% 
-  relocate(nerc_output_co2_rate_fossil, .after = nerc_output_co2_rate_fuel_gas) %>% 
-  relocate(nerc_output_hg_rate_fossil, .after = nerc_output_hg_rate_fuel_coal) %>% 
-  relocate(nerc_input_nox_rate_fossil, .after = nerc_input_nox_rate_fuel_gas) %>% 
-  relocate(nerc_input_nox_oz_rate_fossil, .after = nerc_input_nox_oz_rate_fuel_gas) %>% 
-  relocate(nerc_input_so2_rate_fossil, .after = nerc_input_so2_rate_fuel_gas) %>% 
-  relocate(nerc_input_co2_rate_fossil, .after = nerc_input_co2_rate_fuel_gas) %>% 
-  relocate(nerc_input_hg_rate_fossil, .after = nerc_input_hg_rate_fuel_coal)
+  relocate(nerc_nox_output_rate_fossil, .after = nerc_nox_output_rate_gas) %>% 
+  relocate(nerc_nox_oz_output_rate_fossil, .after = nerc_nox_oz_output_rate_gas) %>% 
+  relocate(nerc_so2_output_rate_fossil, .after = nerc_so2_output_rate_gas) %>% 
+  relocate(nerc_co2_output_rate_fossil, .after = nerc_co2_output_rate_gas) %>% 
+  relocate(nerc_co2e_output_rate_fossil, .after = nerc_co2e_output_rate_gas) %>% 
+  relocate(nerc_ch4_output_rate_fossil, .after = nerc_ch4_output_rate_gas) %>% 
+  relocate(nerc_n2o_output_rate_fossil, .after = nerc_n2o_output_rate_gas) %>% 
+  relocate(nerc_hg_output_rate_coal, .after = nerc_n2o_output_rate_fossil) %>% 
+  relocate(nerc_hg_output_rate_fossil, .after = nerc_hg_output_rate_coal) %>% 
+  relocate(nerc_nox_input_rate_fossil, .after = nerc_nox_input_rate_gas) %>% 
+  relocate(nerc_nox_oz_input_rate_fossil, .after = nerc_nox_oz_input_rate_gas) %>% 
+  relocate(nerc_so2_input_rate_fossil, .after = nerc_so2_input_rate_gas) %>% 
+  relocate(nerc_co2_input_rate_fossil, .after = nerc_co2_input_rate_gas) %>% 
+  relocate(nerc_co2e_input_rate_fossil, .after = nerc_co2e_input_rate_gas) %>% 
+  relocate(nerc_ch4_input_rate_fossil, .after = nerc_ch4_input_rate_gas) %>% 
+  relocate(nerc_n2o_input_rate_fossil, .after = nerc_n2o_input_rate_gas) %>% 
+  relocate(nerc_hg_output_rate_coal, .after = nerc_n2o_output_rate_fossil) %>% 
+  relocate(nerc_hg_input_rate_fossil, .after = nerc_hg_input_rate_coal) 
+
 
 # Export NERC aggregation file -----------
 
@@ -512,7 +413,7 @@ if(dir.exists("data/outputs")) {
 
 print("Saving NERC aggregation file to folder data/outputs/")
 
-write_rds(nerc_formatted, "data/outputs/NERC_aggregation.RDS")
+write_rds(nerc_formatted, "data/outputs/nerc_aggregation.RDS")
 
 
 
