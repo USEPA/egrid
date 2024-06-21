@@ -952,5 +952,25 @@ avg_sulfur_content_fuel <- # avg sulfur content grouped by fuel type
   
 ### Estimate SO2 emissions ---------
   
+## CO2 emissions --------
 
+### Estimating CO2 emissions --------  
+
+co2_emissions <- all_units_3 %>%
+  filter(plant_id != 10025) %>% ## Removing duplicate Plant ID 10025/Unit ID 4B that was causing issues with rows_patch
+  select(plant_id, unit_id, primary_fuel_type, heat_input, co2_emissions) %>%
+  inner_join(co2_ef %>%
+              filter(!is.na(eia_fuel_code)) %>%
+              select(eia_fuel_code, co2_ef), by = c("primary_fuel_type" = "eia_fuel_code")) %>%
+  filter(is.na(co2_emissions)) %>%
+  mutate(co2_emissions = heat_input * co2_ef) %>%
+  select(-c(co2_ef, heat_input, primary_fuel_type))
+
+### Updating units with estimated CO2 emissions --------
+
+all_units_4 <- all_units_3 %>% 
+  filter(plant_id != 10025) %>% ## Removing duplicate Plant ID 10025/Unit ID 4B that was causing issues with rows_patch
+  rows_patch(co2_emissions %>% distinct(),
+             by = c("plant_id", "unit_id"),
+             unmatched = "ignore")
   
