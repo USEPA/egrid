@@ -97,7 +97,7 @@ ba <-
                              contains("_mass")), 
                    .fns = ~ sum(.x, na.rm = TRUE),
                    .names = "{str_replace(.col, 'plant_', 'ba_')}")) %>% 
-  mutate(ba_hg = "--") %>% 
+  mutate(ba_hg_mass = "--") %>% 
   ungroup()
 
 
@@ -120,7 +120,8 @@ ba_output_rates <-
            .fns = ~ . / ba_gen_ann, 
            .names = "{str_replace(.col, '_mass', '')}_output_rate"),
     ba_hg_output_rate = "--") %>% 
-  relocate(ba_nox_oz_output_rate, .after = ba_nox_output_rate) %>% 
+  relocate(ba_nox_oz_output_rate, .after = ba_nox_output_rate) %>%  
+  relocate(ba_co2e_output_rate, .after = ba_n2o_output_rate) %>% 
   select(balance_authority_name, balance_authority_code, contains("rate"))
 
 
@@ -142,6 +143,7 @@ ba_input_rates <-
            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
     ba_hg_input_rate = "--") %>% 
   relocate(ba_nox_oz_input_rate, .after = ba_nox_input_rate) %>% 
+  relocate(ba_co2e_input_rate, .after = ba_n2o_input_rate) %>% 
   select(balance_authority_name, balance_authority_code, contains("rate"))
 
 
@@ -163,8 +165,10 @@ ba_combustion_rates <-
     across(.cols = c("ba_ch4_mass", 
                      "ba_n2o_mass"),
            .fns = ~ . / ba_gen_ann, 
-           .names = "{str_replace(.col, '_mass', '')}_combustion_rate")) %>% 
-  relocate(ba_nox_oz_combustion_rate, .after = ba_nox_combustion_rate) %>% 
+           .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
+    ba_hg_combustion_rate = "--") %>% 
+  relocate(ba_nox_oz_combustion_rate, .after = ba_nox_combustion_rate) %>%  
+  relocate(ba_co2e_combustion_rate, .after = ba_n2o_combustion_rate) %>% 
   select(balance_authority_name, balance_authority_code, contains("rate"))
 
 

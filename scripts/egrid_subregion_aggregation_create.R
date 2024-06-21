@@ -97,7 +97,7 @@ egrid <-
                              contains("_mass")), 
                    .fns = ~ sum(.x, na.rm = TRUE),
                    .names = "{str_replace(.col, 'plant_', 'egrid_')}")) %>% 
-  mutate(egrid_hg = "--") %>% 
+  mutate(egrid_hg_mass = "--") %>% 
   ungroup()
 
 
@@ -120,7 +120,8 @@ egrid_output_rates <-
            .fns = ~ . / egrid_gen_ann, 
            .names = "{str_replace(.col, '_mass', '')}_output_rate"),
     egrid_hg_output_rate = "--") %>% 
-  relocate(egrid_nox_oz_output_rate, .after = egrid_nox_output_rate) %>% 
+  relocate(egrid_nox_oz_output_rate, .after = egrid_nox_output_rate) %>%  
+  relocate(egrid_co2e_output_rate, .after = egrid_n2o_output_rate) %>% 
   select(sub_region, contains("rate"))
 
 
@@ -141,7 +142,8 @@ egrid_input_rates <-
            .fns = ~ . / egrid_heat_input_ann, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
     egrid_hg_input_rate = "--") %>% 
-  relocate(egrid_nox_oz_input_rate, .after = egrid_nox_input_rate) %>% 
+  relocate(egrid_nox_oz_input_rate, .after = egrid_nox_input_rate) %>%  
+  relocate(egrid_co2e_input_rate, .after = egrid_n2o_input_rate) %>% 
   select(sub_region, contains("rate"))
 
 
@@ -163,8 +165,10 @@ egrid_combustion_rates <-
     across(.cols = c("egrid_ch4_mass", 
                      "egrid_n2o_mass"),
            .fns = ~ . / egrid_gen_ann, 
-           .names = "{str_replace(.col, '_mass', '')}_combustion_rate")) %>% 
-  relocate(egrid_nox_oz_combustion_rate, .after = egrid_nox_combustion_rate) %>% 
+           .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
+    egrid_hg_combustion_rate = "--") %>% 
+  relocate(egrid_nox_oz_combustion_rate, .after = egrid_nox_combustion_rate) %>%  
+  relocate(egrid_co2e_combustion_rate, .after = egrid_n2o_combustion_rate) %>% 
   select(sub_region, contains("rate"))
 
 
@@ -270,7 +274,10 @@ egrid_fossil_rates <-
            .fns = ~ . / egrid_heat_input_ann, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
     across(where(is.numeric), ~ replace_na(., 0))) %>% 
-  relocate(egrid_nox_oz_input_rate_fossil, .after = egrid_nox_input_rate_fossil) %>% 
+  relocate(egrid_co2e_input_rate_fossil, .after = egrid_n2o_input_rate_fossil, 
+           egrid_nox_oz_input_rate_fossil, .after = egrid_nox_input_rate_fossil,
+           egrid_nox_oz_output_rate_fossil, .after = egrid_nox_output_rate_fossil, 
+           egrid_co2e_output_rate_fossil, .after = egrid_n2o_output_rate_fossil) %>% 
   select(sub_region, contains("rate"))  
 
 

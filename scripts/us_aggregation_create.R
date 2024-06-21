@@ -97,7 +97,7 @@ us <-
                              contains("_mass")), 
                    .fns = ~ sum(.x, na.rm = TRUE),
                    .names = "{str_replace(.col, 'plant_', 'us_')}")) %>% 
-  mutate(us_hg = "--") %>% 
+  mutate(us_hg_mass = "--") %>% 
   ungroup()
 
 
@@ -120,7 +120,8 @@ us_output_rates <-
            .fns = ~ . / us_gen_ann, 
            .names = "{str_replace(.col, '_mass', '')}_output_rate"),
     us_hg_output_rate = "--") %>% 
-  relocate(us_nox_oz_output_rate, .after = us_nox_output_rate) %>% 
+  relocate(us_nox_oz_output_rate, .after = us_nox_output_rate) %>%  
+  relocate(us_co2e_output_rate, .after = us_n2o_output_rate) %>% 
   select(year, contains("rate"))
 
 
@@ -142,6 +143,7 @@ us_input_rates <-
            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
     us_hg_input_rate = "--") %>% 
   relocate(us_nox_oz_input_rate, .after = us_nox_input_rate) %>% 
+  relocate(us_co2e_input_rate, .after = us_n2o_input_rate) %>% 
   select(year, contains("rate"))
 
 
@@ -163,8 +165,10 @@ us_combustion_rates <-
     across(.cols = c("us_ch4_mass", 
                      "us_n2o_mass"),
            .fns = ~ . / us_gen_ann, 
-           .names = "{str_replace(.col, '_mass', '')}_combustion_rate")) %>% 
-  relocate(us_nox_oz_combustion_rate, .after = us_nox_combustion_rate) %>% 
+           .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
+    us_hg_combustion_rate = "--") %>% 
+  relocate(us_nox_oz_combustion_rate, .after = us_nox_combustion_rate) %>%  
+  relocate(us_co2e_combustion_rate, .after = us_n2o_combustion_rate) %>% 
   select(year, contains("rate"))
 
 

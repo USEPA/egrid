@@ -97,7 +97,7 @@ nerc <-
                              contains("_mass")), 
                    .fns = ~ sum(.x, na.rm = TRUE),
                    .names = "{str_replace(.col, 'plant_', 'nerc_')}")) %>% 
-  mutate(nerc_hg = "--") %>% 
+  mutate(nerc_hg_mass = "--") %>% 
   ungroup()
 
 
@@ -120,7 +120,8 @@ nerc_output_rates <-
            .fns = ~ . / nerc_gen_ann, 
            .names = "{str_replace(.col, '_mass', '')}_output_rate"),
     nerc_hg_output_rate = "--") %>% 
-  relocate(nerc_nox_oz_output_rate, .after = nerc_nox_output_rate) %>% 
+  relocate(nerc_nox_oz_output_rate, .after = nerc_nox_output_rate) %>%  
+  relocate(nerc_co2e_output_rate, .after = nerc_n2o_output_rate) %>% 
   select(nerc, contains("rate"))
 
 
@@ -142,6 +143,7 @@ nerc_input_rates <-
            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
     nerc_hg_input_rate = "--") %>% 
   relocate(nerc_nox_oz_input_rate, .after = nerc_nox_input_rate) %>% 
+  relocate(nerc_co2e_input_rate, .after = nerc_n2o_input_rate) %>% 
   select(nerc, contains("rate"))
 
 
@@ -163,8 +165,10 @@ nerc_combustion_rates <-
     across(.cols = c("nerc_ch4_mass", 
                      "nerc_n2o_mass"),
            .fns = ~ . / nerc_gen_ann, 
-           .names = "{str_replace(.col, '_mass', '')}_combustion_rate")) %>% 
-  relocate(nerc_nox_oz_combustion_rate, .after = nerc_nox_combustion_rate) %>% 
+           .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
+    nerc_hg_combustion_rate = "--") %>% 
+  relocate(nerc_nox_oz_combustion_rate, .after = nerc_nox_combustion_rate) %>%  
+  relocate(nerc_co2e_combustion_rate, .after = nerc_n2o_combustion_rate) %>% 
   select(nerc, contains("rate"))
 
 

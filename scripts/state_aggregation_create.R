@@ -97,7 +97,7 @@ state <-
                              contains("_mass")), 
                    .fns = ~ sum(.x, na.rm = TRUE),
                    .names = "{str_replace(.col, 'plant_', 'state_')}")) %>% 
-  mutate(state_hg = "--") %>% 
+  mutate(state_hg_mass = "--") %>% 
   ungroup()
 
 
@@ -121,6 +121,7 @@ state_output_rates <-
                 .names = "{str_replace(.col, '_mass', '')}_output_rate"),
          state_hg_output_rate = "--") %>% 
   relocate(state_nox_oz_output_rate, .after = state_nox_output_rate) %>% 
+  relocate(state_co2e_output_rate, .after = state_n2o_output_rate) %>% 
   select(state, contains("rate"))
   
 
@@ -142,6 +143,7 @@ state_input_rates <-
                 .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
          state_hg_input_rate = "--") %>% 
   relocate(state_nox_oz_input_rate, .after = state_nox_input_rate) %>% 
+  relocate(state_co2e_input_rate, .after = state_n2o_input_rate) %>% 
   select(state, contains("rate"))
 
 
@@ -163,8 +165,10 @@ state_combustion_rates <-
          across(.cols = c("state_ch4_mass", 
                           "state_n2o_mass"),
                 .fns = ~ . / state_gen_ann, 
-                .names = "{str_replace(.col, '_mass', '')}_combustion_rate")) %>% 
-  relocate(state_nox_oz_combustion_rate, .after = state_nox_combustion_rate) %>% 
+                .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
+         state_hg_combustion_rate = "--") %>% 
+  relocate(state_nox_oz_combustion_rate, .after = state_nox_combustion_rate) %>%  
+  relocate(state_co2e_combustion_rate, .after = state_n2o_combustion_rate) %>% 
   select(state, contains("rate"))
 
 
