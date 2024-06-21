@@ -512,7 +512,7 @@ if(dir.exists("data/outputs")) {
 
 print("Saving NERC aggregation file to folder data/outputs/")
 
-write_csv(nerc_formatted, "data/outputs/NERC_aggregation.csv")
+write_rds(nerc_formatted, "data/outputs/NERC_aggregation.RDS")
 
 
 

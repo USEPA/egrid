@@ -511,8 +511,6 @@ if(dir.exists("data/outputs")) {
 
 print("Saving US aggregation file to folder data/outputs/")
 
-# check: output file type 
-
-write_csv(us_formatted, "data/outputs/US_aggregation.csv")
+write_rds(us_formatted, "data/outputs/US_aggregation.RDS")
 
 

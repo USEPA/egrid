@@ -528,9 +528,7 @@ if(dir.exists("data/outputs")) {
 
 print("Saving state aggregation file to folder data/outputs/")
 
-# check: output file type 
-
-write_csv(state_formatted, "data/outputs/state_aggregation.csv")
+write_rds(state_formatted, "data/outputs/state_aggregation.RDS")
 
 
 

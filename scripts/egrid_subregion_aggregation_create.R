@@ -515,6 +515,6 @@ if(dir.exists("data/outputs")) {
 
 print("Saving eGRID subregion aggregation file to folder data/outputs/")
 
-write_csv(egrid_formatted, "data/outputs/eGRID_subregion_aggregation.csv")
+write_rds(egrid_formatted, "data/outputs/eGRID_subregion_aggregation.RDS")
 
 

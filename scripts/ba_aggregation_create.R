@@ -513,7 +513,7 @@ if(dir.exists("data/outputs")) {
 
 print("Saving BA aggregation file to folder data/outputs/")
 
-write_csv(ba_formatted, "data/outputs/BA_aggregation.csv")
+write_rds(ba_formatted, "data/outputs/BA_aggregation.RDS")
 
 
 
