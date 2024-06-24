@@ -172,7 +172,7 @@ us_combustion_rates <-
   select(year, contains("rate"))
 
 
-### Output emission rates (lb/MWh) and input emission rates (lb/MMBtu) by fuel type  -----
+### Fuel type output emission rates (lb/MWh) and input emission rates (lb/MMBtu) -----
 
 # calculate emission rates by fossil fuel types 
 
@@ -222,6 +222,11 @@ us_fuel_rates <-
            .fns = ~ . / us_heat_input_ann, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
   select(year, primary_fuel_category, contains("rate")) %>% 
+  relocate(us_nox_oz_output_rate, .after = us_nox_output_rate) %>% 
+  relocate(us_co2e_output_rate, .after = us_n2o_output_rate) %>% 
+  relocate(us_nox_oz_input_rate, .after = us_nox_input_rate) %>% 
+  relocate(us_co2e_input_rate, .after = us_n2o_input_rate) %>% 
+  arrange(primary_fuel_category) %>% 
   pivot_wider(names_from = primary_fuel_category, 
               values_from = contains("rate")) %>% 
   janitor::clean_names() %>% 
@@ -302,6 +307,7 @@ us_nonbaseload_rates <-
                 .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"),
          us_hg_output_rate_nonbaseload = "--") %>% 
   relocate(us_nox_oz_output_rate_nonbaseload, .after = us_nox_output_rate_nonbaseload) %>% 
+  relocate(us_co2e_output_rate_nonbaseload, .after = us_n2o_output_rate_nonbaseload) %>% 
   select(year, contains("rate"))
 
 
@@ -337,6 +343,7 @@ us_nonbaseload_gen <-
   plant %>% 
   group_by(year, primary_fuel_category) %>% 
   summarize(us_nonbaseload_gen = sum(plant_gen_ann * nonbaseload_factor, na.rm = TRUE)) %>% 
+  arrange(primary_fuel_category) %>% 
   pivot_wider(names_from = primary_fuel_category, 
               values_from = us_nonbaseload_gen, 
               names_prefix = "us_nonbaseload_gen_") %>% 
@@ -394,7 +401,7 @@ us_formatted <-
   relocate(us_co2e_output_rate_fossil, .after = us_co2e_output_rate_gas) %>% 
   relocate(us_ch4_output_rate_fossil, .after = us_ch4_output_rate_gas) %>% 
   relocate(us_n2o_output_rate_fossil, .after = us_n2o_output_rate_gas) %>% 
-  relocate(us_hg_output_rate_coal, .after = us_n2o_output_rate_fossil) %>% 
+  relocate(us_hg_output_rate_coal, .after = us_co2e_output_rate_fossil) %>% 
   relocate(us_hg_output_rate_fossil, .after = us_hg_output_rate_coal) %>% 
   relocate(us_nox_input_rate_fossil, .after = us_nox_input_rate_gas) %>% 
   relocate(us_nox_oz_input_rate_fossil, .after = us_nox_oz_input_rate_gas) %>% 
@@ -403,7 +410,7 @@ us_formatted <-
   relocate(us_co2e_input_rate_fossil, .after = us_co2e_input_rate_gas) %>% 
   relocate(us_ch4_input_rate_fossil, .after = us_ch4_input_rate_gas) %>% 
   relocate(us_n2o_input_rate_fossil, .after = us_n2o_input_rate_gas) %>% 
-  relocate(us_hg_output_rate_coal, .after = us_n2o_output_rate_fossil) %>% 
+  relocate(us_hg_output_rate_coal, .after = us_co2e_output_rate_fossil) %>% 
   relocate(us_hg_input_rate_fossil, .after = us_hg_input_rate_coal) 
 
 

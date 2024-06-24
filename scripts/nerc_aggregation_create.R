@@ -222,6 +222,11 @@ nerc_fuel_rates <-
            .fns = ~ . / nerc_heat_input_ann, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
   select(nerc, primary_fuel_category, contains("rate")) %>% 
+  relocate(nerc_nox_oz_output_rate, .after = nerc_nox_output_rate) %>% 
+  relocate(nerc_co2e_output_rate, .after = nerc_n2o_output_rate) %>% 
+  relocate(nerc_nox_oz_input_rate, .after = nerc_nox_input_rate) %>% 
+  relocate(nerc_co2e_input_rate, .after = nerc_n2o_input_rate) %>% 
+  arrange(primary_fuel_category) %>% 
   pivot_wider(names_from = primary_fuel_category, 
               values_from = contains("rate")) %>% 
   janitor::clean_names() %>% 
@@ -302,6 +307,7 @@ nerc_nonbaseload_rates <-
                 .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"),
          nerc_hg_output_rate_nonbaseload = "--") %>% 
   relocate(nerc_nox_oz_output_rate_nonbaseload, .after = nerc_nox_output_rate_nonbaseload) %>% 
+  relocate(nerc_co2e_output_rate_nonbaseload, .after = nerc_n2o_output_rate_nonbaseload) %>% 
   select(nerc, contains("rate"))
 
 
@@ -394,7 +400,7 @@ nerc_formatted <-
   relocate(nerc_co2e_output_rate_fossil, .after = nerc_co2e_output_rate_gas) %>% 
   relocate(nerc_ch4_output_rate_fossil, .after = nerc_ch4_output_rate_gas) %>% 
   relocate(nerc_n2o_output_rate_fossil, .after = nerc_n2o_output_rate_gas) %>% 
-  relocate(nerc_hg_output_rate_coal, .after = nerc_n2o_output_rate_fossil) %>% 
+  relocate(nerc_hg_output_rate_coal, .after = nerc_co2e_output_rate_fossil) %>% 
   relocate(nerc_hg_output_rate_fossil, .after = nerc_hg_output_rate_coal) %>% 
   relocate(nerc_nox_input_rate_fossil, .after = nerc_nox_input_rate_gas) %>% 
   relocate(nerc_nox_oz_input_rate_fossil, .after = nerc_nox_oz_input_rate_gas) %>% 
@@ -403,7 +409,7 @@ nerc_formatted <-
   relocate(nerc_co2e_input_rate_fossil, .after = nerc_co2e_input_rate_gas) %>% 
   relocate(nerc_ch4_input_rate_fossil, .after = nerc_ch4_input_rate_gas) %>% 
   relocate(nerc_n2o_input_rate_fossil, .after = nerc_n2o_input_rate_gas) %>% 
-  relocate(nerc_hg_output_rate_coal, .after = nerc_n2o_output_rate_fossil) %>% 
+  relocate(nerc_hg_output_rate_coal, .after = nerc_co2e_output_rate_fossil) %>% 
   relocate(nerc_hg_input_rate_fossil, .after = nerc_hg_input_rate_coal) 
 
 

@@ -172,7 +172,7 @@ state_combustion_rates <-
   select(state, contains("rate"))
 
 
-### Output emission rates (lb/MWh) and input emission rates (lb/MMBtu) by fuel type  -----
+### Fuel type output emission rates (lb/MWh) and input emission rates (lb/MMBtu)  -----
 
 # calculate emission rates by fossil fuel types 
 
@@ -222,6 +222,10 @@ state_fuel_rates <-
                 .fns = ~ . / state_heat_input_ann, 
                 .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
   select(state, primary_fuel_category, contains("rate")) %>% 
+  relocate(state_nox_oz_output_rate, .after = state_nox_output_rate) %>% 
+  relocate(state_co2e_output_rate, .after = state_n2o_output_rate) %>% 
+  relocate(state_nox_oz_input_rate, .after = state_nox_input_rate) %>% 
+  relocate(state_co2e_input_rate, .after = state_n2o_input_rate) %>%
   pivot_wider(names_from = primary_fuel_category, 
               values_from = contains("rate")) %>% 
   janitor::clean_names() %>% 
@@ -302,6 +306,7 @@ state_nonbaseload_rates <-
                 .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"),
          state_hg_output_rate_nonbaseload = "--") %>% 
   relocate(state_nox_oz_output_rate_nonbaseload, .after = state_nox_output_rate_nonbaseload) %>% 
+  relocate(state_co2e_output_rate_nonbaseload, .after = state_n2o_output_rate_nonbaseload) %>% 
   select(state, contains("rate"))
   
 
@@ -327,7 +332,7 @@ state_resource_mix <-
   select(-state_gen_oz) %>%   
   mutate(across(.cols = -c("state", "state_gen_ann"), 
                 .fns = ~ . / state_gen_ann * 100, # convert to percentage 
-                .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
+                .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>%
   select(state, contains("resource_mix"))
 
 
@@ -337,6 +342,7 @@ state_nonbaseload_gen <-
   plant %>% 
   group_by(state, primary_fuel_category) %>% 
   summarize(state_nonbaseload_gen = sum(plant_gen_ann * nonbaseload_factor, na.rm = TRUE)) %>% 
+  arrange(primary_fuel_category) %>% 
   pivot_wider(names_from = primary_fuel_category, 
               values_from = state_nonbaseload_gen, 
               names_prefix = "state_nonbaseload_gen_") %>% 
@@ -394,7 +400,7 @@ state_formatted <-
   relocate(state_co2e_output_rate_fossil, .after = state_co2e_output_rate_gas) %>% 
   relocate(state_ch4_output_rate_fossil, .after = state_ch4_output_rate_gas) %>% 
   relocate(state_n2o_output_rate_fossil, .after = state_n2o_output_rate_gas) %>% 
-  relocate(state_hg_output_rate_coal, .after = state_n2o_output_rate_fossil) %>% 
+  relocate(state_hg_output_rate_coal, .after = state_co2e_output_rate_fossil) %>% 
   relocate(state_hg_output_rate_fossil, .after = state_hg_output_rate_coal) %>% 
   relocate(state_nox_input_rate_fossil, .after = state_nox_input_rate_gas) %>% 
   relocate(state_nox_oz_input_rate_fossil, .after = state_nox_oz_input_rate_gas) %>% 
