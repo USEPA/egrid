@@ -973,4 +973,27 @@ all_units_4 <- all_units_3 %>%
   rows_patch(co2_emissions %>% distinct(),
              by = c("plant_id", "unit_id"),
              unmatched = "ignore")
-  
+
+## NOx emissions --------  
+
+### NOx emissions rate --------  
+
+nox_emissions <- all_units_4 %>%
+  inner_join(nox_rates, by = c("plant_id" = "plant_id", "unit_id" = "boiler_id")) %>%
+  filter(is.na(nox_mass),
+         is.na(nox_source),
+         !is.na(nox_rate_ann),
+         is.na(operating_hours)) %>%
+  mutate(annual_nox_mass =  (heat_input * nox_rate_ann)/2000,
+         nox_source = "Estimated based on unit-level NOx emission rates")
+
+nox_emissions_oz <- # filling annual nox mass with nox_rates where available
+  all_units_4 %>%
+  inner_join(nox_rates,
+             by = c("plant_id", "unit_id" = "boiler_id")) %>%
+  filter(is.na(nox_mass_oz),
+         is.na(nox_source),
+         !is.na(nox_rate_oz),
+         is.na(operating_hours)) %>%
+  mutate(ozone_nox_mass = (heat_input * nox_rate_ann)/2000,
+         nox_source = "Estimated based on unit-level NOx ozone season emission rates")
