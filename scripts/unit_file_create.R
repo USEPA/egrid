@@ -973,4 +973,17 @@ all_units_4 <- all_units_3 %>%
   rows_patch(co2_emissions %>% distinct(),
              by = c("plant_id", "unit_id"),
              unmatched = "ignore")
+
+
+# Clean up final output -----  
+
+## Clean up source flags
+
+clean_source_flags <- 
+  all_units_3 %>% 
+  mutate(nox_source = replace(nox_source, is.na(nox_mass), NA), 
+         so2_source = replace(so2_source, is.na(so2_mass), NA), 
+         co2_source = replace(co2_source, is.na(co2_mass), NA), 
+         hg_source = replace(hg_source, is.na(hg_mass), NA))
+  
   
