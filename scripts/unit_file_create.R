@@ -975,15 +975,83 @@ all_units_4 <- all_units_3 %>%
              unmatched = "ignore")
 
 
-# Clean up final output -----  
+# Final modifications -----  
 
-## Clean up source flags
+# Clean up source flags 
 
 clean_source_flags <- 
   all_units_3 %>% 
-  mutate(nox_source = replace(nox_source, is.na(nox_mass), NA), 
+  mutate(nox_source = replace(nox_source, is.na(nox_mass), NA), # replacing NA emission masses with NA sources
          so2_source = replace(so2_source, is.na(so2_mass), NA), 
          co2_source = replace(co2_source, is.na(co2_mass), NA), 
          hg_source = replace(hg_source, is.na(hg_mass), NA))
+
+
+# Change necessary plant names 
+# Check for duplicates
+# TG: units must be aggregated to plant_id level either here or before this step
+# current duplicates at plant level have NA as names 
+
+check_plant_names <- 
+  all_units_3 %>% 
+  distinct(plant_id, plant_name) %>% 
+  group_by(plant_id) %>% 
+  filter(n()>1)
   
+# Update plant names via crosswalk 
+
+xwalk_oris_camd <- read_csv("data/static_tables/xwalk_oris_camd.csv") %>% 
+  rename(c("plant_id" = "camd_plant_id", 
+           "plant_name" = "camd_plant_name")) %>% 
+  mutate(across(where(is.numeric), as.character))
+
+update_names <- 
+  all_units_3 %>% 
+  right_join(xwalk_oris_camd, by = c("plant_id", "plant_name")) %>% 
+  mutate(plant_id = eia_plant_id, 
+         plant_name = eia_plant_name) 
   
+# Update FC prime mover to null CO2 emissions 
+
+update_fc_data <- 
+  all_units_3 %>% 
+  filter((prime_mover == "FC") & ((!is.na(co2_mass)) | (!is.na(co2_source)))) %>%  # only update necessary rows 
+  mutate(co2_mass = NA, 
+         co2_source = NA, 
+         co2_mass = as.numeric(co2_mass), 
+         co2_source = as.character(co2_source)) %>% 
+  select(plant_id, unit_id, co2_mass, co2_source) 
+
+# Delete units in "Units to remove" table 
+
+units_to_remove <- 
+  read_csv("data/static_tables/units_to_remove.csv") %>% 
+  mutate(plant_id = as.character(plant_id))
+
+# Update prime mover for plant 7063 unit **1 from OT to CE 
+
+update_plant_mover <- 
+  all_units_3 %>% 
+  filter(plant_id == "7063" & unit_id == "**1") %>% 
+  mutate(prime_mover = "CE")
+
+# Implement changes in unit file 
+
+all_units_5 <- 
+  all_units_3 %>% # update to most recent unit file data frame
+  rows_delete(units_to_remove, 
+              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_update(update_fc_data, 
+                by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_update(update_plant_mover, 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") #%>% 
+  rows_update(update_names, 
+              by = c("plant_id", "plant_name"), unmatched = "ignore") %>% 
+  mutate(heat_input = round(heat_input, 3), 
+         heat_input_oz = round(heat_input_oz, 3), 
+         nox_mass = round(nox_mass, 3), 
+         nox_mass_oz = round(nox_mass_oz, 3), 
+         so2_mass = round(so2_mass, 4), 
+         co2_mass = round(co2_mass, 4), 
+         hg_mass = round(hg_mass, 3)) # round to three decimals
+
