@@ -849,26 +849,50 @@ xwalk_control_ids <- # xwalk to add additional boiler ids
   mutate(across(everything(), as.character))
   
 
-schedule_8c_updates <- 
+schedule_8c_nox <- 
   eia_923$air_emissions_control_info %>%
-  left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, boiler_id) %>% distinct(), ## SB: causes m:m join
+  distinct(plant_id, nox_control_id, nox_emission_rate_entire_year_lbs_mmbtu) %>% 
+  filter(!is.na(nox_emission_rate_entire_year_lbs_mmbtu)) %>% 
+  left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, boiler_id) %>% filter(!is.na(boiler_id)) %>% distinct(), ## SB: causes m:m join
             by = c("plant_id","nox_control_id")) %>% 
-  rows_patch(eia_860$boiler_so2 %>% select(plant_id, so2_control_id, boiler_id) %>% distinct(), ## causes m:m join
-             by = c("plant_id","so2_control_id")) %>% 
-  rows_patch(eia_860$boiler_particulate_matter %>% select(plant_id, "pm_control_id" = particulate_matter_control_id, boiler_id) %>% distinct(),
-             by = c("plant_id", "pm_control_id")) %>% 
-  rows_patch(eia_860$boiler_mercury %>% select(plant_id, boiler_id, "mercury_control" = mercury_control_id),
-             by = c("plant_id", "mercury_control")) %>% 
-  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"nox_control_id" =  `860_nox_control_id`),
-             by = c("plant_id", "nox_control_id")) %>% 
-  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"so2_control_id" =  `860_so2_control_id`),
-             by = c("plant_id", "so2_control_id")) %>%
-  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"pm_control_id" =  `860_pm_control_id`),
-             by = c("plant_id", "pm_control_id")) %>% 
-  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"hg_control_id" =  `860_hg_control_id`),
-             by = c("plant_id", "hg_control_id")) 
-    
-    
+  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"nox_control_id" =  `860_nox_control_id`) %>% drop_na(),
+             by = c("plant_id", "nox_control_id"),
+             unmatched = "ignore")
+  
+schedule_8c_so2  <-
+  eia_923$air_emissions_control_info %>%
+  distinct(plant_id, so2_control_id, so2_removal_efficiency_rate_at_annual_operating_factor) %>% 
+  filter(!is.na(so2_removal_efficiency_rate_at_annual_operating_factor),
+         !is.na(so2_control_id)) %>%
+  left_join(eia_860$boiler_so2 %>% select(plant_id, so2_control_id, boiler_id) %>% filter(!is.na(boiler_id)) %>% distinct(), 
+            by = c("plant_id","so2_control_id")) %>% 
+  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"so2_control_id" =  `860_so2_control_id`) %>% drop_na(),
+             by = c("plant_id", "so2_control_id"),
+             unmatched = "ignore")
+
+schedule_8c_pm <-
+  eia_923$air_emissions_control_info %>% 
+  distinct(plant_id, pm_control_id, pm_emissions_rate_lbs_mmbtu) %>% 
+  filter(!is.na(pm_emissions_rate_lbs_mmbtu),
+         !is.na(pm_control_id)) %>%
+  left_join(eia_860$boiler_particulate_matter %>% select(plant_id, "pm_control_id" = particulate_matter_control_id, boiler_id) %>% filter(!is.na(boiler_id)) %>% distinct(), 
+            by = c("plant_id","pm_control_id")) %>% 
+  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"pm_control_id" =  `860_pm_control_id`) %>% drop_na(),
+             by = c("plant_id", "pm_control_id"),
+             unmatched = "ignore")
+  
+
+schedule_8c_hg <- 
+  eia_923$air_emissions_control_info %>% 
+  distinct(plant_id, mercury_control, mercury_emission_rate) %>% 
+  filter(!is.na(mercury_emission_rate),
+         !is.na(mercury_control)) %>%
+  left_join(eia_860$boiler_mercury %>% select(plant_id, mercury_control_id, boiler_id) %>% filter(!is.na(boiler_id)) %>% distinct(), 
+            by = c("plant_id", "mercury_control" = "mercury_control_id")) %>% 
+  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id, "mercury_control" =  `860_pm_control_id`) %>% drop_na(),
+             by = c("plant_id", "mercury_control"),
+             unmatched = "ignore")
+
 
 ## Updating units with available values ------
 
