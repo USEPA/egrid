@@ -1001,7 +1001,7 @@ all_units_4 <- all_units_3 %>%
 
 # Final modifications -----  
 
-# Clean up source flags 
+## Clean up source flags --------
 
 clean_source_flags <- 
   all_units_3 %>% 
@@ -1011,7 +1011,7 @@ clean_source_flags <-
          hg_source = replace(hg_source, is.na(hg_mass), NA))
 
 
-# Change necessary plant names 
+## Change necessary plant names -------
 # Check for duplicates
 # TG: units must be aggregated to plant_id level either here or before this step
 # current duplicates at plant level have NA as names 
@@ -1036,7 +1036,8 @@ update_names <-
   right_join(xwalk_oris_camd, by = c("plant_id", "plant_name")) %>% 
   mutate(plant_id_update = eia_plant_id, 
          plant_name_update = eia_plant_name) 
-  
+
+## Update FC prime mover CO2 emissions data ------
 # Update FC prime mover to null CO2 emissions 
 
 update_fc_data <- 
@@ -1048,12 +1049,14 @@ update_fc_data <-
          co2_source = as.character(co2_source)) %>% 
   select(plant_id, unit_id, co2_mass, co2_source) 
 
-# Delete units in "Units to remove" table 
+## Delete specified units -------- 
+# Delete units in "Units to remove" table, which is manually updated 
 
 units_to_remove <- 
   read_csv("data/static_tables/units_to_remove.csv") %>% 
   mutate(plant_id = as.character(plant_id))
 
+## Update prime mover -------
 # Update prime mover for plant 7063 unit **1 from OT to CE 
 
 update_plant_mover <- 
@@ -1061,7 +1064,9 @@ update_plant_mover <-
   filter(plant_id == "7063" & unit_id == "**1") %>% 
   mutate(prime_mover = "CE")
 
+## Update status ------
 # Update operating status via EIA-923 schedule 8C, EIA-860 boiler info, EIA-860 combined
+# TG: EIA-923 Schedule 8C has many duplicates, seems like operating status is related to control technologies? 
 
 update_status <- 
   all_units_3 %>% select(plant_id, unit_id, operating_status) %>% 
@@ -1071,21 +1076,52 @@ update_status <-
   rows_patch(eia_860$boiler_info_design_parameters %>% select(plant_id, "unit_id" = boiler_id, "operating_status" = boiler_status), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(eia_860$combined %>% select(plant_id, "operating_status" = status, "unit_id" = generator_id), 
-             by = c("plant_id", "unit_id"), unmatched = "ignore")
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  mutate(operating_status = toupper(operating_status))
 
-# Implement changes in unit file 
+# Update Puerto Rico plant CAMD flag status 
+
+# TG: I don't think CAMD flag exists yet in unit file / will it exist? 
+
+
+## Retired units to delete ------- 
+
+# delete plants based on operating status from EIA-860 Boiler Info & Design Parameters
+
+delete_retired_units <- 
+  update_status %>% 
+  filter(operating_status == "RE")
+
+
+## EIA units to delete ------ 
+
+# remove plants (specific to 2022 - may not be necessary for other years)
+# removing since all data is 0 in 923 
+# maybe automate this to check if data is 0, then delete plant? 
+
+eia_units_to_delete <- 
+  all_units_3 %>% 
+  filter(plant_id == "2132" | plant_id == "7832") %>% 
+  select(plant_id) %>% distinct()
+
+
+## Implement changes in main unit file ------
 
 all_units_5 <- 
   all_units_3 %>% # update to most recent unit file data frame
   rows_delete(units_to_remove, 
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_delete(delete_retired_units, 
+              by= c("plant_id", "unit_id"), unmatched = "ignore") %>%
+  rows_delete(eia_units_to_delete, 
+              by = c("plant_id"), unmatched = "ignore") %>% 
   rows_update(update_fc_data, 
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_update(update_plant_mover, 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   #rows_update(update_names, 
   #            by = c("plant_id" = "eia_plant_id", "plant_name" = "eia_plant_name"), unmatched = "ignore") %>% 
-  rows_udpate(update_status, 
+  rows_update(update_status, 
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   mutate(heat_input = round(heat_input, 3), 
          heat_input_oz = round(heat_input_oz, 3), 
