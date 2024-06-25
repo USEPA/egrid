@@ -1000,6 +1000,8 @@ check_plant_names <-
   
 # Update plant names via crosswalk 
 
+# many to many issues - some CAMD plant names have multiple EIA names 
+
 xwalk_oris_camd <- read_csv("data/static_tables/xwalk_oris_camd.csv") %>% 
   rename(c("plant_id" = "camd_plant_id", 
            "plant_name" = "camd_plant_name")) %>% 
@@ -1008,13 +1010,13 @@ xwalk_oris_camd <- read_csv("data/static_tables/xwalk_oris_camd.csv") %>%
 update_names <- 
   all_units_3 %>% 
   right_join(xwalk_oris_camd, by = c("plant_id", "plant_name")) %>% 
-  mutate(plant_id = eia_plant_id, 
-         plant_name = eia_plant_name) 
+  mutate(plant_id_update = eia_plant_id, 
+         plant_name_update = eia_plant_name) 
   
 # Update FC prime mover to null CO2 emissions 
 
 update_fc_data <- 
-  all_units_3 %>% 
+  all_units_3 %>% select(plant_id, unit_id, prime_mover, co2_mass, co2_source) %>% 
   filter((prime_mover == "FC") & ((!is.na(co2_mass)) | (!is.na(co2_source)))) %>%  # only update necessary rows 
   mutate(co2_mass = NA, 
          co2_source = NA, 
@@ -1031,9 +1033,21 @@ units_to_remove <-
 # Update prime mover for plant 7063 unit **1 from OT to CE 
 
 update_plant_mover <- 
-  all_units_3 %>% 
+  all_units_3 %>% select(plant_id, unit_id, prime_mover) %>% 
   filter(plant_id == "7063" & unit_id == "**1") %>% 
   mutate(prime_mover = "CE")
+
+# Update operating status via EIA-923 schedule 8C, EIA-860 boiler info, EIA-860 combined
+
+update_status <- 
+  all_units_3 %>% select(plant_id, unit_id, operating_status) %>% 
+  filter(is.na(operating_status)) %>%
+  #rows_patch(eia_923$air_emissions_control_info %>% select(plant_id, "operating_status" = status), #m:m issue
+  #            by = c("plant_id"))
+  rows_patch(eia_860$boiler_info_design_parameters %>% select(plant_id, "unit_id" = boiler_id, "operating_status" = boiler_status), 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_patch(eia_860$combined %>% select(plant_id, "operating_status" = status, "unit_id" = generator_id), 
+             by = c("plant_id", "unit_id"), unmatched = "ignore")
 
 # Implement changes in unit file 
 
@@ -1044,14 +1058,18 @@ all_units_5 <-
   rows_update(update_fc_data, 
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_update(update_plant_mover, 
-             by = c("plant_id", "unit_id"), unmatched = "ignore") #%>% 
-  rows_update(update_names, 
-              by = c("plant_id", "plant_name"), unmatched = "ignore") %>% 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  #rows_update(update_names, 
+  #            by = c("plant_id" = "eia_plant_id", "plant_name" = "eia_plant_name"), unmatched = "ignore") %>% 
+  rows_udpate(update_status, 
+              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   mutate(heat_input = round(heat_input, 3), 
          heat_input_oz = round(heat_input_oz, 3), 
          nox_mass = round(nox_mass, 3), 
          nox_mass_oz = round(nox_mass_oz, 3), 
          so2_mass = round(so2_mass, 4), 
-         co2_mass = round(co2_mass, 4), 
+         co2_mass = round(co2_mass, 3), 
          hg_mass = round(hg_mass, 3)) # round to three decimals
+
+
 
