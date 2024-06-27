@@ -13,8 +13,6 @@ library(stringr)
 
 # Load and clean data -----
 
-year <- params$eGRID_year
-
 ## Load and combine GRID region data -----
 
 # Rename necessary columns to snake_case 
@@ -24,7 +22,27 @@ egrid_column_names <- c(
   "sub_region" = "SUBRGN",
   "sub_region_name" = "SRNAME", 
   "egrid_nameplate_capacity" = "SRNAMEPCAP", 
-  "egrid_co2_rate" = "SRCO2RTA", 
+  "egrid_nox_output_rate" = "SRNOXRTA", 
+  "egrid_nox_oz_output_rate" = "SRNOXRTO", 
+  "egrid_so2_output_rate" = "SRSO2RTA",
+  "egrid_co2_output_rate" = "SRCO2RTA", 
+  "egrid_ch4_output_rate" = "SRCH4RTA", 
+  "egrid_n2o_output_rate" = "SRN2ORTA", 
+  "egrid_co2e_output_rate" = "SRC2ERTA",
+  "egrid_nox_input_rate" = "SRNOXRA", 
+  "egrid_nox_oz_input_rate" = "SRNOXRO", 
+  "egrid_so2_input_rate" = "SRSO2RA",
+  "egrid_co2_input_rate" = "SRCO2RA", 
+  "egrid_ch4_input_rate" = "SRCH4RA", 
+  "egrid_n2o_input_rate" = "SRN2ORA", 
+  "egrid_co2e_input_rate" = "SRC2ERA",
+  "egrid_nox_output_rate" = "SRNOXRTA", 
+  "egrid_nox_oz_output_rate" = "SRNOXRTO", 
+  "egrid_so2_output_rate" = "SRSO2RTA",
+  "egrid_co2_output_rate" = "SRCO2RTA", 
+  "egrid_ch4_output_rate" = "SRCH4RTA", 
+  "egrid_n2o_output_rate" = "SRN2ORTA", 
+  "egrid_co2e_output_rate" = "SRC2ERTA",
   "coal_gen" = "SRGENACL", 
   "oil_gen" = "SRGENAOL", 
   "gas_gen" = "SRGENAGS", 
@@ -41,33 +59,25 @@ egrid_2019 <-
   read_excel("archive/egrid2019_data.xlsx", 
                         sheet = "SRL19", 
                         skip = 1) %>% 
-  rename(all_of(egrid_column_names)) %>% 
-  select(year, sub_region, sub_region_name, contains("egrid"), 
-         contains("_gen")) 
+  select(any_of(egrid_column_names))
   
 egrid_2020 <- 
   read_excel("archive/egrid2020_data.xlsx", 
                         sheet = "SRL20",
                         skip = 1) %>% 
-  rename(all_of(egrid_column_names)) %>% 
-  select(year, sub_region, sub_region_name, contains("egrid"), 
-         contains("_gen")) 
+  select(any_of(egrid_column_names))
 
 egrid_2021 <- 
   read_excel("archive/egrid2021_data.xlsx", 
                         sheet = "SRL21",
                         skip = 1) %>% 
-  rename(all_of(egrid_column_names)) %>% 
-  select(year, sub_region, sub_region_name, contains("egrid"), 
-         contains("_gen")) 
+  select(any_of(egrid_column_names))
 
 egrid_2022 <- 
   read_excel("archive/egrid2022_data.xlsx", 
                         sheet = "SRL22",
                         skip = 1) %>% 
-  rename(all_of(egrid_column_names)) %>% 
-  select(year, sub_region, sub_region_name, contains("egrid"), 
-         contains("_gen")) 
+  select(any_of(egrid_column_names))
 
 # combine all egrid years
 egrid_comparison <- 
@@ -103,33 +113,25 @@ state_2019 <-
   read_excel("archive/egrid2019_data.xlsx", 
              sheet = "ST19", 
              skip = 1) %>% 
-  rename(all_of(state_column_names)) %>% 
-  select(year, contains("state"), 
-         contains("_gen")) 
+  select(any_of(state_column_names)) 
 
 state_2020 <- 
   read_excel("archive/egrid2020_data.xlsx", 
              sheet = "ST20",
              skip = 1) %>% 
-  rename(all_of(state_column_names)) %>% 
-  select(year, contains("state"), 
-         contains("_gen")) 
+  select(any_of(state_column_names))
 
 state_2021 <- 
   read_excel("archive/egrid2021_data.xlsx", 
              sheet = "ST21",
              skip = 1) %>% 
-  rename(all_of(state_column_names)) %>% 
-  select(year, contains("state"), 
-         contains("_gen")) 
+  select(any_of(state_column_names))
 
 state_2022 <- 
   read_excel("archive/egrid2022_data.xlsx", 
              sheet = "ST22",
              skip = 1) %>% 
-  rename(all_of(state_column_names)) %>% 
-  select(year, contains("state"), 
-         contains("_gen")) 
+  select(any_of(state_column_names))
 
 # combine all years
 state_comparison <- 
@@ -139,64 +141,33 @@ state_comparison <-
   bind_rows(state_2022) %>% 
   mutate(year = as.character(year))
 
+# Emission rate comparisons -------------
+## Emission rate comparison across eGRID subregions -------
 
-## Load plant level data -----
+# calculate emission rate percent change 
 
-plant_column_names <- c(
-  "year" = "YEAR", 
-  "state" = "PSTATABB",
-  "plant_name" = "PNAME", 
-  "plant_id" = "ORISPL",
-  "plant_co2" = "PLCO2AN")
-
-plant_2019 <- 
-  read_excel("archive/egrid2019_data.xlsx", 
-             sheet = "PLNT19", 
-             skip = 1) %>% 
-  rename(all_of(plant_column_names)) %>% 
-  select(year, state, contains("plant")) 
-
-plant_2020 <- 
-  read_excel("archive/egrid2020_data.xlsx", 
-             sheet = "PLNT20",
-             skip = 1) %>% 
-  rename(all_of(plant_column_names)) %>% 
-  select(year, state, contains("plant")) 
-
-plant_2021 <- 
-  read_excel("archive/egrid2021_data.xlsx", 
-             sheet = "PLNT21",
-             skip = 1) %>% 
-  rename(all_of(plant_column_names)) %>% 
-  select(year, state, contains("plant")) 
-
-plant_2022 <- 
-  read_excel("archive/egrid2022_data.xlsx", 
-             sheet = "PLNT22",
-             skip = 1) %>% 
-  rename(all_of(plant_column_names)) %>% 
-  select(year, state, contains("plant")) 
-
-# combine all years
-plant_comparison <- 
-  plant_2019 %>% 
-  bind_rows(plant_2020) %>% 
-  bind_rows(plant_2021) %>% 
-  bind_rows(plant_2022) %>% 
-  mutate(year = as.character(year))
-
-
-# CO2 comparison across eGRID subregions -----
-
-# calculate co2 percent change 
-egrid_co2_comparison <- 
+egrid_rate_comparison <- 
   egrid_comparison %>% 
-  select(year, sub_region, sub_region_name, egrid_co2_rate) %>% 
+  select(year, sub_region, sub_region_name, contains("rate"), contains("gen")) %>% 
   pivot_wider(names_from = year, 
-              values_from = egrid_co2_rate, 
-              names_prefix = "co2_rate_") %>% 
-  mutate(co2_rate_pct_diff = (co2_rate_2022 - co2_rate_2021) / co2_rate_2021 * 100)
+              values_from = contains("rate") | contains("gen")) %>% 
+  mutate(across(.cols = contains("rate_2022"), 
+                .fns = ~ (. - get(str_replace(cur_column(), "2022", "2021"))) / get(str_replace(cur_column(), "2022", "2021")) * 100,
+                .names = "{str_replace(.col, '_rate_2022', '_pct_change')}"), 
+         across(.cols = contains("gen_2022"), 
+                .fns = ~ case_when(
+                  (get(str_replace(cur_column(), "2022", "2021")) == 0 & . == 0) ~ 0, 
+                  (get(str_replace(cur_column(), "2022", "2021")) != 0) ~ round((. - get(str_replace(cur_column(), "2022", "2021"))) / get(str_replace(cur_column(), "2022", "2021")) * 100, 1), 
+                  (get(str_replace(cur_column(), "2022", "2021")) == 0 & . > 0) ~ 100), 
+                .names = "{str_replace(.col, '_gen_2022', '_pct')}")) %>% 
+  select(-contains("gen")) %>% 
+  mutate(generation_notes = paste(sprintf("Coal: %+.1f%%", coal_pct), sprintf("Oil: %+.1f%%", oil_pct), # add summary of net generation changes
+                                  sprintf("Gas: %+.1f%%", gas_pct), sprintf("Other fossil: %+.1f%%", other_fossil_pct), 
+                                  sprintf("Nuclear: %+.1f%%", nuclear_pct), sprintf("Hydro: %+.1f%%", hydro_pct), 
+                                  sprintf("Biomass: %+.1f%%", biomass_pct), sprintf("Wind: %+.1f%%", wind_pct),
+                                  sprintf("Solar: %+.1f%%", solar_pct), sprintf("Geothermal: %+.1f%%", geothermal_pct)))
   
+
 
 # eGRID region and US resource mix -----
 
@@ -207,14 +178,14 @@ egrid_gen_comparison <-
   pivot_wider(names_from = year, 
               values_from = contains("gen")) %>% 
   mutate(across(
-         .cols = contains(cbind("gen_", year)), 
+         .cols = contains("gen_2022"), 
          .fns = ~ case_when(
-                  (get(str_replace(cur_column(), year, "2021")) == 0 & . == 0) ~ 0, 
-                  (get(str_replace(cur_column(), year, "2021")) != 0) ~ round((. - get(str_replace(cur_column(), year, "2021"))) / get(str_replace(cur_column(), year, "2021")) * 100, 1), 
-                  (get(str_replace(cur_column(), year, "2021")) == 0 & . > 0) ~ 100), 
-         .names = "{str_replace(.col, paste0('_gen_', year), '')}")) %>% 
+                  (get(str_replace(cur_column(), "2022", "2021")) == 0 & . == 0) ~ 0, 
+                  (get(str_replace(cur_column(), "2022", "2021")) != 0) ~ round((. - get(str_replace(cur_column(), "2022", "2021"))) / get(str_replace(cur_column(), "2022", "2021")) * 100, 1), 
+                  (get(str_replace(cur_column(), "2022", "2021")) == 0 & . > 0) ~ 100), 
+         .names = "{str_replace(.col, '_gen_2022', '')}")) %>% 
   select(-contains("gen")) %>% 
-  pivot_longer(cols = -any_of(c("sub_region", "sub_region_name")), 
+  pivot_longer(cols = -c("sub_region", "sub_region_name"), 
                names_to = "energy_source", 
                values_to = "pct_change")
 
@@ -264,14 +235,14 @@ state_gen_comparison <-
   pivot_wider(names_from = year, 
               values_from = contains("gen")) %>% 
   mutate(across(
-    .cols = contains(cbind("gen_", params$eGRID_year)), 
+    .cols = contains(cbind("gen_2022")), 
     .fns = ~ case_when(
-      (get(str_replace(cur_column(), params$eGRID_year, "2021")) == 0 & . == 0) ~ 0, 
-      (get(str_replace(cur_column(), params$eGRID_year, "2021")) != 0) ~ round((. - get(str_replace(cur_column(), params$eGRID_year, "2021"))) / get(str_replace(cur_column(), params$eGRID_year, "2021")) * 100, 1), 
-      (get(str_replace(cur_column(), params$eGRID_year, "2021")) == 0 & . > 0) ~ 100), 
+      (get(str_replace(cur_column(), "2022", "2021")) == 0 & . == 0) ~ 0, 
+      (get(str_replace(cur_column(), "2022", "2021")) != 0) ~ round((. - get(str_replace(cur_column(), "2022", "2021"))) / get(str_replace(cur_column(), "2022", "2021")) * 100, 1), 
+      (get(str_replace(cur_column(), "2022", "2021")) == 0 & . > 0) ~ 100), 
     .names = "{str_replace(.col, '_gen_2022', '')}")) %>% 
   select(-contains("gen")) %>% 
-  pivot_longer(cols = -any_of(c("state")), 
+  pivot_longer(cols = -c("state"), 
                names_to = "energy_source", 
                values_to = "pct_change")
 
@@ -281,12 +252,7 @@ state_resource_mix <-
   select(year, state, contains("gen"), -net_gen) %>% 
   pivot_longer(cols = contains("gen"), 
                names_to = "energy_source", 
-               values_to = "generation") %>% 
-  separate_wider_delim("energy_source", 
-                       delim = "_", 
-                       names = c("energy_source", "gen"), #1, 2, and 3 are unnecessary cols and will be deleted
-                       too_many = "merge") %>% 
-  select(-gen) 
+               values_to = "generation") 
 
 state_resource_mix_wider <- 
   state_resource_mix %>% 
