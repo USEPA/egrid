@@ -172,7 +172,7 @@ egrid_combustion_rates <-
   select(sub_region, contains("rate"))
 
 
-### Output emission rates (lb/MWh) and input emission rates (lb/MMBtu) by fuel type  -----
+### Fuel type output emission rates (lb/MWh) and input emission rates (lb/MMBtu)  -----
 
 # calculate emission rates by fossil fuel types 
 
@@ -222,6 +222,11 @@ egrid_fuel_rates <-
            .fns = ~ . / egrid_heat_input_ann, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
   select(sub_region, primary_fuel_category, contains("rate")) %>% 
+  relocate(egrid_nox_oz_output_rate, .after = egrid_nox_output_rate) %>% 
+  relocate(egrid_co2e_output_rate, .after = egrid_n2o_output_rate) %>% 
+  relocate(egrid_nox_oz_input_rate, .after = egrid_nox_input_rate) %>% 
+  relocate(egrid_co2e_input_rate, .after = egrid_n2o_input_rate) %>% 
+  arrange(primary_fuel_category) %>% 
   pivot_wider(names_from = primary_fuel_category, 
               values_from = contains("rate")) %>% 
   janitor::clean_names() %>% 
@@ -274,10 +279,10 @@ egrid_fossil_rates <-
            .fns = ~ . / egrid_heat_input_ann, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
     across(where(is.numeric), ~ replace_na(., 0))) %>% 
-  relocate(egrid_co2e_input_rate_fossil, .after = egrid_n2o_input_rate_fossil, 
-           egrid_nox_oz_input_rate_fossil, .after = egrid_nox_input_rate_fossil,
-           egrid_nox_oz_output_rate_fossil, .after = egrid_nox_output_rate_fossil, 
-           egrid_co2e_output_rate_fossil, .after = egrid_n2o_output_rate_fossil) %>% 
+  relocate(egrid_co2e_input_rate_fossil, .after = egrid_n2o_input_rate_fossil) %>%  
+  relocate(egrid_nox_oz_input_rate_fossil, .after = egrid_nox_input_rate_fossil) %>% 
+  relocate(egrid_nox_oz_output_rate_fossil, .after = egrid_nox_output_rate_fossil) %>% 
+  relocate(egrid_co2e_output_rate_fossil, .after = egrid_n2o_output_rate_fossil) %>% 
   select(sub_region, contains("rate"))  
 
 
@@ -305,6 +310,7 @@ egrid_nonbaseload_rates <-
                 .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"),
          egrid_hg_output_rate_nonbaseload = "--") %>% 
   relocate(egrid_nox_oz_output_rate_nonbaseload, .after = egrid_nox_output_rate_nonbaseload) %>% 
+  relocate(egrid_co2e_output_rate_nonbaseload, .after = egrid_n2o_output_rate_nonbaseload) %>%
   select(sub_region, contains("rate"))
 
 
@@ -340,6 +346,7 @@ egrid_nonbaseload_gen <-
   plant %>% 
   group_by(sub_region, primary_fuel_category) %>% 
   summarize(egrid_nonbaseload_gen = sum(plant_gen_ann * nonbaseload_factor, na.rm = TRUE)) %>% 
+  arrange(primary_fuel_category) %>% 
   pivot_wider(names_from = primary_fuel_category, 
               values_from = egrid_nonbaseload_gen, 
               names_prefix = "egrid_nonbaseload_gen_") %>% 
@@ -397,7 +404,7 @@ egrid_formatted <-
   relocate(egrid_co2e_output_rate_fossil, .after = egrid_co2e_output_rate_gas) %>% 
   relocate(egrid_ch4_output_rate_fossil, .after = egrid_ch4_output_rate_gas) %>% 
   relocate(egrid_n2o_output_rate_fossil, .after = egrid_n2o_output_rate_gas) %>% 
-  relocate(egrid_hg_output_rate_coal, .after = egrid_n2o_output_rate_fossil) %>% 
+  relocate(egrid_hg_output_rate_coal, .after = egrid_co2e_output_rate_fossil) %>% 
   relocate(egrid_hg_output_rate_fossil, .after = egrid_hg_output_rate_coal) %>% 
   relocate(egrid_nox_input_rate_fossil, .after = egrid_nox_input_rate_gas) %>% 
   relocate(egrid_nox_oz_input_rate_fossil, .after = egrid_nox_oz_input_rate_gas) %>% 
@@ -406,7 +413,7 @@ egrid_formatted <-
   relocate(egrid_co2e_input_rate_fossil, .after = egrid_co2e_input_rate_gas) %>% 
   relocate(egrid_ch4_input_rate_fossil, .after = egrid_ch4_input_rate_gas) %>% 
   relocate(egrid_n2o_input_rate_fossil, .after = egrid_n2o_input_rate_gas) %>% 
-  relocate(egrid_hg_output_rate_coal, .after = egrid_n2o_output_rate_fossil) %>% 
+  relocate(egrid_hg_output_rate_coal, .after = egrid_co2e_output_rate_fossil) %>% 
   relocate(egrid_hg_input_rate_fossil, .after = egrid_hg_input_rate_coal) 
 
 

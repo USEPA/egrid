@@ -11,8 +11,9 @@ library(readr)
 library(readxl)
 library(stringr)
 
-
 # Load and clean data -----
+
+year <- params$eGRID_year
 
 ## Load and combine GRID region data -----
 
@@ -33,7 +34,7 @@ egrid_column_names <- c(
   "wind_gen" = "SRGENAWI", 
   "solar_gen" = "SRGENASO",
   "geothermal_gen" = "SRGENAGT", 
-  "otherfossil_gen" = "SRGENAOF",
+  "other_fossil_gen" = "SRGENAOF",
   "net_gen" = "SRNGENAN")
 
 egrid_2019 <- 
@@ -95,7 +96,7 @@ state_column_names <- c(
   "wind_gen" = "STGENAWI", 
   "solar_gen" = "STGENASO",
   "geothermal_gen" = "STGENAGT", 
-  "otherfossil_gen" = "STGENAOF",
+  "other_fossil_gen" = "STGENAOF",
   "net_gen" = "STNGENAN")
 
 state_2019 <- 
@@ -205,37 +206,13 @@ egrid_gen_comparison <-
   select(year, sub_region, sub_region_name, contains("gen")) %>% 
   pivot_wider(names_from = year, 
               values_from = contains("gen")) %>% 
-  mutate(
-    coal = case_when(
-      (coal_gen_2021 == 0 & coal_gen_2022 == 0) ~ 0, 
-      coal_gen_2021 > 0 ~ round((coal_gen_2022 - coal_gen_2021) / coal_gen_2021 * 100, 1)), 
-    oil = case_when(
-      (oil_gen_2021 == 0 & oil_gen_2022 == 0) ~ 0, 
-      oil_gen_2021 > 0 ~ round((oil_gen_2022 - oil_gen_2021) / oil_gen_2021 * 100, 1)),
-    gas = case_when(
-      (gas_gen_2021 == 0 & gas_gen_2022 == 0) ~ 0, 
-      gas_gen_2021 > 0 ~ round((gas_gen_2022 - gas_gen_2021) / gas_gen_2021 * 100, 1)),
-    otherfossil = case_when(
-      (otherfossil_gen_2021 == 0 & otherfossil_gen_2022 == 0) ~ 0, 
-      otherfossil_gen_2021 > 0 ~ round((otherfossil_gen_2022 - otherfossil_gen_2021) / otherfossil_gen_2021 * 100, 1)), 
-    nuclear = case_when(
-      (nuclear_gen_2021 == 0 & nuclear_gen_2022 == 0) ~ 0, 
-      nuclear_gen_2021 > 0 ~ round((nuclear_gen_2022 - nuclear_gen_2021) / nuclear_gen_2021 * 100, 1)),
-    hydro = case_when(
-      (hydro_gen_2021 == 0 & hydro_gen_2022 == 0) ~ 0, 
-      hydro_gen_2021 > 0 ~ round((hydro_gen_2022 - hydro_gen_2021) / hydro_gen_2021 * 100, 1)),
-    biomass = case_when(
-      (biomass_gen_2021 == 0 & biomass_gen_2022 == 0) ~ 0, 
-      biomass_gen_2021 > 0 ~ round((biomass_gen_2022 - biomass_gen_2021) / biomass_gen_2021 * 100, 1)),
-    wind = case_when(
-      (wind_gen_2021 == 0 & wind_gen_2022 == 0) ~ 0, 
-      wind_gen_2021 > 0 ~ round((wind_gen_2022 - wind_gen_2021) / wind_gen_2021 * 100, 1)),
-    solar = case_when(
-      (solar_gen_2021 == 0 & solar_gen_2022 == 0) ~ 0, 
-      solar_gen_2021 > 0 ~ round((solar_gen_2022 - solar_gen_2021) / solar_gen_2021 * 100, 1)),
-    geothermal = case_when(
-      (geothermal_gen_2021 == 0 & geothermal_gen_2022 == 0) ~ 0, 
-      geothermal_gen_2021 > 0 ~ round((geothermal_gen_2022 - geothermal_gen_2021) / geothermal_gen_2021 * 100, 1))) %>% 
+  mutate(across(
+         .cols = contains(cbind("gen_", year)), 
+         .fns = ~ case_when(
+                  (get(str_replace(cur_column(), year, "2021")) == 0 & . == 0) ~ 0, 
+                  (get(str_replace(cur_column(), year, "2021")) != 0) ~ round((. - get(str_replace(cur_column(), year, "2021"))) / get(str_replace(cur_column(), year, "2021")) * 100, 1), 
+                  (get(str_replace(cur_column(), year, "2021")) == 0 & . > 0) ~ 100), 
+         .names = "{str_replace(.col, paste0('_gen_', year), '')}")) %>% 
   select(-contains("gen")) %>% 
   pivot_longer(cols = -any_of(c("sub_region", "sub_region_name")), 
                names_to = "energy_source", 
@@ -248,11 +225,7 @@ egrid_resource_mix <-
   pivot_longer(cols = contains("gen"), 
                names_to = "energy_source", 
                values_to = "generation") %>% 
-  separate_wider_delim("energy_source", 
-                       delim = "_", 
-                       names = c("energy_source", "gen"), #1, 2, and 3 are unnecessary cols and will be deleted
-                       too_many = "merge") %>% 
-  select(-gen) 
+  mutate(energy_source = str_replace(energy_source, "_gen", "")) 
 
 egrid_resource_mix_wider <- 
   egrid_resource_mix %>% 
@@ -290,37 +263,13 @@ state_gen_comparison <-
   select(year, state, contains("gen")) %>% 
   pivot_wider(names_from = year, 
               values_from = contains("gen")) %>% 
-  mutate(
-    coal = case_when(
-      (coal_gen_2021 == 0 & coal_gen_2022 == 0) ~ 0, 
-      coal_gen_2021 > 0 ~ round((coal_gen_2022 - coal_gen_2021) / coal_gen_2021 * 100, 1)), 
-    oil = case_when(
-      (oil_gen_2021 == 0 & oil_gen_2022 == 0) ~ 0, 
-      oil_gen_2021 > 0 ~ round((oil_gen_2022 - oil_gen_2021) / oil_gen_2021 * 100, 1)),
-    gas = case_when(
-      (gas_gen_2021 == 0 & gas_gen_2022 == 0) ~ 0, 
-      gas_gen_2021 > 0 ~ round((gas_gen_2022 - gas_gen_2021) / gas_gen_2021 * 100, 1)),
-    otherfossil = case_when(
-      (otherfossil_gen_2021 == 0 & otherfossil_gen_2022 == 0) ~ 0, 
-      otherfossil_gen_2021 > 0 ~ round((otherfossil_gen_2022 - otherfossil_gen_2021) / otherfossil_gen_2021 * 100, 1)), 
-    nuclear = case_when(
-      (nuclear_gen_2021 == 0 & nuclear_gen_2022 == 0) ~ 0, 
-      nuclear_gen_2021 > 0 ~ round((nuclear_gen_2022 - nuclear_gen_2021) / nuclear_gen_2021 * 100, 1)),
-    hydro = case_when(
-      (hydro_gen_2021 == 0 & hydro_gen_2022 == 0) ~ 0, 
-      hydro_gen_2021 > 0 ~ round((hydro_gen_2022 - hydro_gen_2021) / hydro_gen_2021 * 100, 1)),
-    biomass = case_when(
-      (biomass_gen_2021 == 0 & biomass_gen_2022 == 0) ~ 0, 
-      biomass_gen_2021 > 0 ~ round((biomass_gen_2022 - biomass_gen_2021) / biomass_gen_2021 * 100, 1)),
-    wind = case_when(
-      (wind_gen_2021 == 0 & wind_gen_2022 == 0) ~ 0, 
-      wind_gen_2021 > 0 ~ round((wind_gen_2022 - wind_gen_2021) / wind_gen_2021 * 100, 1)),
-    solar = case_when(
-      (solar_gen_2021 == 0 & solar_gen_2022 == 0) ~ 0, 
-      solar_gen_2021 > 0 ~ round((solar_gen_2022 - solar_gen_2021) / solar_gen_2021 * 100, 1)),
-    geothermal = case_when(
-      (geothermal_gen_2021 == 0 & geothermal_gen_2022 == 0) ~ 0, 
-      geothermal_gen_2021 > 0 ~ round((geothermal_gen_2022 - geothermal_gen_2021) / geothermal_gen_2021 * 100, 1))) %>% 
+  mutate(across(
+    .cols = contains(cbind("gen_", params$eGRID_year)), 
+    .fns = ~ case_when(
+      (get(str_replace(cur_column(), params$eGRID_year, "2021")) == 0 & . == 0) ~ 0, 
+      (get(str_replace(cur_column(), params$eGRID_year, "2021")) != 0) ~ round((. - get(str_replace(cur_column(), params$eGRID_year, "2021"))) / get(str_replace(cur_column(), params$eGRID_year, "2021")) * 100, 1), 
+      (get(str_replace(cur_column(), params$eGRID_year, "2021")) == 0 & . > 0) ~ 100), 
+    .names = "{str_replace(.col, '_gen_2022', '')}")) %>% 
   select(-contains("gen")) %>% 
   pivot_longer(cols = -any_of(c("state")), 
                names_to = "energy_source", 

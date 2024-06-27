@@ -172,7 +172,7 @@ ba_combustion_rates <-
   select(balance_authority_name, balance_authority_code, contains("rate"))
 
 
-### Output emission rates (lb/MWh) and input emission rates (lb/MMBtu) by fuel type  -----
+### Fuel type output emission rates (lb/MWh) and input emission rates (lb/MMBtu)  -----
 
 # calculate emission rates by fossil fuel types 
 
@@ -222,6 +222,11 @@ ba_fuel_rates <-
            .fns = ~ . / ba_heat_input_ann, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
   select(balance_authority_name, balance_authority_code, primary_fuel_category, contains("rate")) %>% 
+  relocate(ba_nox_oz_output_rate, .after = ba_nox_output_rate) %>% 
+  relocate(ba_co2e_output_rate, .after = ba_n2o_output_rate) %>% 
+  relocate(ba_nox_oz_input_rate, .after = ba_nox_input_rate) %>% 
+  relocate(ba_co2e_input_rate, .after = ba_n2o_input_rate) %>% 
+  arrange(primary_fuel_category) %>% 
   pivot_wider(names_from = primary_fuel_category, 
               values_from = contains("rate")) %>% 
   janitor::clean_names() %>% 
@@ -302,6 +307,7 @@ ba_nonbaseload_rates <-
                 .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"),
          ba_hg_output_rate_nonbaseload = "--") %>% 
   relocate(ba_nox_oz_output_rate_nonbaseload, .after = ba_nox_output_rate_nonbaseload) %>% 
+  relocate(ba_co2e_output_rate_nonbaseload, .after = ba_n2o_output_rate_nonbaseload) %>% 
   select(balance_authority_name, balance_authority_code, contains("rate"))
 
 
@@ -338,6 +344,7 @@ ba_nonbaseload_gen <-
   plant %>% 
   group_by(balance_authority_name, balance_authority_code, primary_fuel_category) %>% 
   summarize(ba_nonbaseload_gen = sum(plant_gen_ann * nonbaseload_factor, na.rm = TRUE)) %>% 
+  arrange(primary_fuel_category) %>% 
   pivot_wider(names_from = primary_fuel_category, 
               values_from = ba_nonbaseload_gen, 
               names_prefix = "ba_nonbaseload_gen_") %>% 
@@ -395,7 +402,7 @@ ba_formatted <-
   relocate(ba_co2e_output_rate_fossil, .after = ba_co2e_output_rate_gas) %>% 
   relocate(ba_ch4_output_rate_fossil, .after = ba_ch4_output_rate_gas) %>% 
   relocate(ba_n2o_output_rate_fossil, .after = ba_n2o_output_rate_gas) %>% 
-  relocate(ba_hg_output_rate_coal, .after = ba_n2o_output_rate_fossil) %>% 
+  relocate(ba_hg_output_rate_coal, .after = ba_co2e_output_rate_fossil) %>% 
   relocate(ba_hg_output_rate_fossil, .after = ba_hg_output_rate_coal) %>% 
   relocate(ba_nox_input_rate_fossil, .after = ba_nox_input_rate_gas) %>% 
   relocate(ba_nox_oz_input_rate_fossil, .after = ba_nox_oz_input_rate_gas) %>% 
@@ -404,7 +411,7 @@ ba_formatted <-
   relocate(ba_co2e_input_rate_fossil, .after = ba_co2e_input_rate_gas) %>% 
   relocate(ba_ch4_input_rate_fossil, .after = ba_ch4_input_rate_gas) %>% 
   relocate(ba_n2o_input_rate_fossil, .after = ba_n2o_input_rate_gas) %>% 
-  relocate(ba_hg_output_rate_coal, .after = ba_n2o_output_rate_fossil) %>% 
+  relocate(ba_hg_output_rate_coal, .after = ba_co2e_output_rate_fossil) %>% 
   relocate(ba_hg_input_rate_fossil, .after = ba_hg_input_rate_coal) 
 
 
