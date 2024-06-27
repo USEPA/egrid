@@ -1025,10 +1025,11 @@ check_plant_names <-
 # update specified units
 
 update_eia_names <- 
-  all_units_4 %>% select(plant_id, plant_name, unit_id) %>% 
+  all_units_4 %>% select(plant_id, plant_name) %>% 
   filter(plant_id %in% c("2847", "55248")) %>% 
   mutate(eia_plant_id = case_when(plant_id %in% c("2847", "55248") ~ "2847"), 
-         eia_plant_name = case_when(plant_id %in% c("2847", "55248") ~ "Tait Electric Generating Station")) 
+         eia_plant_name = case_when(plant_id %in% c("2847", "55248") ~ "Tait Electric Generating Station")) %>% 
+  distinct()
    
   
 
@@ -1061,7 +1062,7 @@ update_plant_mover <-
 
 ## Update status ------
 # Update operating status via EIA-923 schedule 8C, EIA-860 boiler info, EIA-860 combined
-# EIA-923 Schedule 8C has many duplicates, defaulting to "OP"
+# EIA-923 Schedule 8C has many duplicates, defaulting to "OP", then filling in with others if "OP" does not exist for unit
 
 schedule_8c_longer <- eia_923$air_emissions_control_info %>% 
   pivot_longer(cols = contains("control"), 
@@ -1069,15 +1070,43 @@ schedule_8c_longer <- eia_923$air_emissions_control_info %>%
                values_to = "unit_id") %>% 
   select(plant_id, status, unit_id) %>% 
   filter(!is.na(unit_id)) %>% distinct() %>% 
-  rename("operating_status" = "status") %>% 
-  arrange(plant_id, unit_id, operating_status) %>% # arrange operating status alphabetically by plant and unit
-  group_by(plant_id, unit_id) %>% 
-  slice_head(n = 1) # use the first operating status (which will be "OP" alphabetically if it exists)
+  rename("operating_status" = "status")  
+
+# split out by operating status   
+schedule_8c_op <- 
+  schedule_8c_longer %>% 
+  filter(operating_status == "OP") 
+
+schedule_8c_os <- 
+  schedule_8c_longer %>% 
+  filter(operating_status == "OS")
+
+schedule_8c_oa <- 
+  schedule_8c_longer %>% 
+  filter(operating_status == "OA")
+
+schedule_8c_sb <- 
+  schedule_8c_longer %>% 
+  filter(operating_status == "SB")
+
+schedule_8c_re <- 
+  schedule_8c_longer %>% 
+  filter(operating_status == "RE")
+
+# update operating status 
 
 update_status <- 
   all_units_4 %>% select(plant_id, unit_id, operating_status) %>% 
   filter(is.na(operating_status)) %>%
-  rows_patch(schedule_8c_longer %>% select(plant_id, unit_id, operating_status), 
+  rows_patch(schedule_8c_op %>% select(plant_id, unit_id, operating_status), 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_patch(schedule_8c_os %>% select(plant_id, unit_id, operating_status), 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_patch(schedule_8c_oa %>% select(plant_id, unit_id, operating_status), 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_patch(schedule_8c_sb %>% select(plant_id, unit_id, operating_status), 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_patch(schedule_8c_re %>% select(plant_id, unit_id, operating_status), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(eia_860$boiler_info_design_parameters %>% select(plant_id, "unit_id" = boiler_id, "operating_status" = boiler_status), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
