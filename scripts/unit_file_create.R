@@ -851,7 +851,7 @@ xwalk_control_ids <- # xwalk to add additional boiler ids
 
 schedule_8c_nox <- 
   eia_923$air_emissions_control_info %>%
-  distinct(plant_id, nox_control_id, nox_emission_rate_entire_year_lbs_mmbtu) %>% 
+  distinct(plant_id, nox_control_id, pick(starts_with("nox_emission_rate"))) %>% 
   filter(!is.na(nox_emission_rate_entire_year_lbs_mmbtu)) %>% 
   left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, boiler_id) %>% filter(!is.na(boiler_id)) %>% distinct(), ## SB: causes m:m join
             by = c("plant_id","nox_control_id")) %>% 
