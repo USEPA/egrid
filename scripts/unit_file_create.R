@@ -450,7 +450,7 @@ renewable_ids <-
   mutate(id = paste0(plant_id, "_", generator_id)) %>%
   pull(id)
   
-eia_860_generators_to_add <- 
+eia_860_generators_to_add <- # TG 6/27/24 - losing plant_names here, I think we need to keep them for final output
   eia_860$combined %>% 
   mutate(id = paste0(plant_id, "_", generator_id)) %>% 
   filter(!plant_id %in% camd_7$plant_id & !id %in% renewable_ids, # removing generators from plants in CAMD, unless it is a renewable generator
@@ -1013,35 +1013,31 @@ clean_source_flags <-
 
 ## Change necessary plant names -------
 # Check for duplicates
-# TG: units must be aggregated to plant_id level either here or before this step
-# current duplicates at plant level have NA as names 
+# TG: current duplicates at plant level have NA as names 
+# TG: I think this could be fixed earlier in the file by collecting plant_names in eia 860 data
 
 check_plant_names <- 
-  all_units_3 %>% 
+  all_units_4 %>% select(plant_id, plant_name) %>% 
   distinct(plant_id, plant_name) %>% 
   group_by(plant_id) %>% 
-  filter(n()>1)
+  filter(n()>1 & !is.na(plant_name))
   
-# Update plant names via crosswalk 
+# update specified units
 
-# many to many issues - some CAMD plant names have multiple EIA names 
-
-xwalk_oris_camd <- read_csv("data/static_tables/xwalk_oris_camd.csv") %>% 
-  rename(c("plant_id" = "camd_plant_id", 
-           "plant_name" = "camd_plant_name")) %>% 
-  mutate(across(where(is.numeric), as.character))
-
-update_names <- 
-  all_units_3 %>% 
-  right_join(xwalk_oris_camd, by = c("plant_id", "plant_name")) %>% 
-  mutate(plant_id_update = eia_plant_id, 
-         plant_name_update = eia_plant_name) 
+update_eia_names <- 
+  all_units_4 %>% select(plant_id, plant_name) %>% 
+  filter(plant_id %in% c("2847", "55248")) %>% 
+  mutate(eia_plant_id = case_when(plant_id %in% c("2847", "55248") ~ "2847"), 
+         eia_plant_name = case_when(plant_id %in% c("2847", "55248") ~ "Tait Electric Generating Station")) %>% 
+  distinct()
+   
+  
 
 ## Update FC prime mover CO2 emissions data ------
 # Update FC prime mover to null CO2 emissions 
 
 update_fc_data <- 
-  all_units_3 %>% select(plant_id, unit_id, prime_mover, co2_mass, co2_source) %>% 
+  all_units_4 %>% select(plant_id, unit_id, prime_mover, co2_mass, co2_source) %>% 
   filter((prime_mover == "FC") & ((!is.na(co2_mass)) | (!is.na(co2_source)))) %>%  # only update necessary rows 
   mutate(co2_mass = NA, 
          co2_source = NA, 
@@ -1060,29 +1056,87 @@ units_to_remove <-
 # Update prime mover for plant 7063 unit **1 from OT to CE 
 
 update_plant_mover <- 
-  all_units_3 %>% select(plant_id, unit_id, prime_mover) %>% 
+  all_units_4 %>% select(plant_id, unit_id, prime_mover) %>% 
   filter(plant_id == "7063" & unit_id == "**1") %>% 
   mutate(prime_mover = "CE")
 
 ## Update status ------
 # Update operating status via EIA-923 schedule 8C, EIA-860 boiler info, EIA-860 combined
-# TG: EIA-923 Schedule 8C has many duplicates, seems like operating status is related to control technologies? 
+# EIA-923 Schedule 8C has many duplicates, defaulting to "OP", then filling in with others if "OP" does not exist for unit
+
+schedule_8c_longer <- eia_923$air_emissions_control_info %>% 
+  pivot_longer(cols = contains("control"), 
+               names_to = "unit_control", 
+               values_to = "unit_id") %>% 
+  select(plant_id, status, unit_id) %>% 
+  filter(!is.na(unit_id)) %>% distinct() %>% 
+  rename("operating_status" = "status")  
+
+# split out by operating status   
+schedule_8c_op <- 
+  schedule_8c_longer %>% 
+  filter(operating_status == "OP") 
+
+schedule_8c_os <- 
+  schedule_8c_longer %>% 
+  filter(operating_status == "OS")
+
+schedule_8c_oa <- 
+  schedule_8c_longer %>% 
+  filter(operating_status == "OA")
+
+schedule_8c_sb <- 
+  schedule_8c_longer %>% 
+  filter(operating_status == "SB")
+
+schedule_8c_re <- 
+  schedule_8c_longer %>% 
+  filter(operating_status == "RE")
+
+# update operating status 
 
 update_status <- 
-  all_units_3 %>% select(plant_id, unit_id, operating_status) %>% 
+  all_units_4 %>% select(plant_id, unit_id, operating_status) %>% 
   filter(is.na(operating_status)) %>%
-  #rows_patch(eia_923$air_emissions_control_info %>% select(plant_id, "operating_status" = status), #m:m issue
-  #            by = c("plant_id"))
+  rows_patch(schedule_8c_op %>% select(plant_id, unit_id, operating_status), 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_patch(schedule_8c_os %>% select(plant_id, unit_id, operating_status), 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_patch(schedule_8c_oa %>% select(plant_id, unit_id, operating_status), 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_patch(schedule_8c_sb %>% select(plant_id, unit_id, operating_status), 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_patch(schedule_8c_re %>% select(plant_id, unit_id, operating_status), 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(eia_860$boiler_info_design_parameters %>% select(plant_id, "unit_id" = boiler_id, "operating_status" = boiler_status), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(eia_860$combined %>% select(plant_id, "operating_status" = status, "unit_id" = generator_id), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  mutate(operating_status = toupper(operating_status))
+  mutate(operating_status = toupper(operating_status)) %>% 
+  filter(!is.na(operating_status)) %>% distinct()
 
-# Update Puerto Rico plant CAMD flag status 
 
-# TG: I don't think CAMD flag exists yet in unit file / will it exist? 
+## Create and edit CAMD flag ----- 
 
+# ID camd units 
+
+camd_units <- camd_7 %>% mutate(id = paste0(plant_id, unit_id)) %>% pull(id)
+
+# update PR CAMD flag from crosswalk
+
+update_pr_camd_flag <- read_csv("data/static_tables/xwalk_pr_oris.csv") %>% 
+  select("plant_id" = "eia_plant_id", 
+         "unit_id" = "eia_unit_id", 
+         "plant_name" = "eia_plant_name") %>% 
+  mutate(across(where(is.numeric), ~as.character(.)), 
+         camd_flag = "Yes")
+
+# create CAMD flag 
+
+all_units_5 <- 
+  all_units_4 %>%  
+  mutate(camd_flag = if_else(paste0(plant_id, unit_id) %in% camd_units, "Yes", "No")) %>% 
+  rows_update(update_pr_camd_flag, by = c("plant_id", "unit_id"))
 
 ## Retired units to delete ------- 
 
@@ -1095,20 +1149,18 @@ delete_retired_units <-
 
 ## EIA units to delete ------ 
 
-# remove plants (specific to 2022 - may not be necessary for other years)
-# removing since all data is 0 in 923 
-# maybe automate this to check if data is 0, then delete plant? 
+# need to check this each year
 
 eia_units_to_delete <- 
-  all_units_3 %>% 
+  all_units_5 %>% 
   filter(plant_id == "2132" | plant_id == "7832") %>% 
   select(plant_id) %>% distinct()
 
 
 ## Implement changes in main unit file ------
 
-all_units_5 <- 
-  all_units_3 %>% # update to most recent unit file data frame
+all_units_6 <- 
+  all_units_5 %>% # update to most recent unit file data frame
   rows_delete(units_to_remove, 
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_delete(delete_retired_units, 
@@ -1119,17 +1171,17 @@ all_units_5 <-
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_update(update_plant_mover, 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  #rows_update(update_names, 
-  #            by = c("plant_id" = "eia_plant_id", "plant_name" = "eia_plant_name"), unmatched = "ignore") %>% 
+  rows_patch(check_plant_names, 
+             by = c("plant_id"), unmatched = "ignore") %>% 
   rows_update(update_status, 
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  left_join(update_eia_names, by = c("plant_id", "plant_name")) %>%
   mutate(heat_input = round(heat_input, 3), 
          heat_input_oz = round(heat_input_oz, 3), 
          nox_mass = round(nox_mass, 3), 
          nox_mass_oz = round(nox_mass_oz, 3), 
          so2_mass = round(so2_mass, 4), 
          co2_mass = round(co2_mass, 3), 
-         hg_mass = round(hg_mass, 3)) # round to three decimals
-
+         hg_mass = round(hg_mass, 3)) 
 
 
