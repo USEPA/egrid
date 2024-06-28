@@ -1117,6 +1117,17 @@ all_units_4 <- all_units_3 %>%
              by = c("plant_id", "unit_id"),
              unmatched = "ignore")
 
+## NOx Emissions Rate -----
+nox_rates_2 <- schedule_8c_nox %>%
+  group_by(plant_id, boiler_id) %>%
+  summarize(nox_rate = max(nox_emission_rate_entire_year_lbs_mmbtu),
+            nox_oz_rate = max(nox_emission_rate_may_through_september_lbs_mmbtu))
+
+nox_emissions_rates <- all_units_4 %>%
+  rows_patch(nox_rates_2, 
+            by = c("plant_id", "unit_id"), ## Error with this part of the script because some columns aren't present in all_units_4 that are in nox_rates_2
+            unmatched = "ignore")
+
 
 # Final modifications -----  
 
