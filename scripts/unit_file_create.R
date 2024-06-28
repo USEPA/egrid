@@ -986,8 +986,7 @@ estimated_so2_emissions_content <-
   left_join(schedule_8c_so2 %>% 
               select(plant_id, boiler_id, so2_removal_efficiency_rate_at_annual_operating_factor)) %>% 
   left_join(emission_factors %>%
-              select(prime_mover, botfirty, so2_ef, so2_flag, unit_flag, primary_fuel_type) %>%
-              filter(unit_flag == "PhysicalUnits"),
+              select(prime_mover, botfirty, so2_ef, so2_flag, unit_flag, primary_fuel_type),
             by = c("prime_mover", "botfirty", "fuel_type" = "primary_fuel_type")) %>%
   mutate(avg_sulfur_content = if_else(is.na(so2_flag), 1, avg_sulfur_content), # if so2_flag is missing, change avg_sulfur_content to 1
          so2_mass = if_else(unit_flag == "PhysicalUnits", 
@@ -1029,14 +1028,36 @@ eia_fuel_consum_fuel_type <- # summing fuel and consum to PM fuel_type level
             heat_input_ann_923 = sum(total_fuel_consumption_mmbtu, na.rm = TRUE), # consumption in mmbtus is referred to as "heat input"
             fuel_consum_nonoz_923 = sum(unit_consum_nonoz, na.rm = TRUE),
             fuel_consum_oz_923 = sum(unit_consum_oz, na.rm = TRUE),
-            fuel_consum_ann_923 = sum(total_fuel_consumption_quantity, na.rm = TRUE) # consumption in quantity is referred to as "fuel consumpsion"
+            fuel_consum_ann_923 = sum(total_fuel_consumption_quantity, na.rm = TRUE) # consumption in quantity is referred to as "fuel consumption"
   )
 
 
-sulfur_contents_default_coal <- 
-  read_csv("data/static_tables/sulfur_contents_default_coal.csv") 
+default_sulfur_content_coal <- 
+  eia_923$boiler_fuel_data %>% 
+  group_by(plant_state, fuel_type) %>% 
+  summarize(across(c(starts_with(c("quantity", "mmbtu_")), "total_fuel_consumption_quantity"), ~ sum(.x, na.rm = TRUE)),
+            across(starts_with("sulfur_content"), ~ max(.x))) %>% 
+  ungroup() %>% 
+  mutate(across( # calculating monthly boiler heat input, based on correponding consumption and mmbtu_per_unit
+    .cols = starts_with("quantity_of_fuel_consumed_"),
+    .fns = ~ . * get(str_replace(cur_column(), "quantity_of_fuel_consumed_", "mmbtu_per_unit_")), # identifies corresponding mmbtu_per_unit and multiplies by quantity column
+    .names = "heat_input_{str_replace(.col, 'quantity_of_fuel_consumed_','')}"),
+    across( # calculating monthly boiler heat input, based on correponding consumption and mmbtu_per_unit
+      .cols = starts_with("quantity_of_fuel_consumed_"),
+      .fns = ~ . * get(str_replace(cur_column(), "quantity_of_fuel_consumed_", "sulfur_content_")), # identifies corresponding mmbtu_per_unit and multiplies by quantity column
+      .names = "sulfur_content_{str_replace(.col, 'quantity_of_fuel_consumed_','')}"),
+    total_heat_input = rowSums(pick(starts_with("heat_input")), na.rm = TRUE),
+    avg_sulfur_content = if_else(total_fuel_consumption_quantity > 0, # calculating avg sulfur content with condition to ignore if i total_fuel_consumption is 0
+                                 rowSums(pick(starts_with("sulfur_content")), na.rm = TRUE)/total_fuel_consumption_quantity, 
+                                 rowSums(pick(starts_with("sulfur_content")), na.rm = TRUE)/1)) %>%
+  filter(fuel_type %in% coal_fuels) %>% 
+  select(plant_state,
+         fuel_type,
+         avg_sulfur_content)
 
-estimated_so2_emissions_
+
+
+estimated_so2_emissions <-
 all_units_4 %>% 
   group_by(plant_id, prime_mover, primary_fuel_type) %>% 
   mutate(total_heat_input = sum(heat_input, na.rm = TRUE)) %>% 
