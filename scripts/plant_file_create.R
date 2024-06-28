@@ -68,12 +68,18 @@ library(tidyverse)
 
 # 0. create a file to string concatenate unique values that are not NA ----------
 
-paste_concat <- function(l, number = FALSE){
+paste_concat <- function(l, number = FALSE, concat = TRUE){
   l <- l[!is.na(l)]
   l <- l[l!="NA" & l!=""]
   l[order(l)]
-  txt <- paste0(unique(l), collapse = ", ")
-  if(txt == ""){txt <- NA}
+  
+  if(length(unique(l)) == 0){txt <- NA
+  }else if(concat){
+    txt <- paste0(unique(l), collapse = ", ")
+    if(txt == ""){txt <- NA}
+  }else{
+    txt = unique(l)
+  }
   if(number){return(as.numeric(txt)) # convert to numeric if it can
     }else{return(txt)}
 }
@@ -100,7 +106,9 @@ unit <- unit_file %>% group_by(plant_id) %>%
             unadj_so2_mass = sum(so2_mass, na.rm = TRUE), # tons
             unadj_so2_source = paste_concat(so2_source),
             unadj_co2_mass = sum(co2_mass, na.rm = TRUE),# tons
-            unadj_co2_source = paste_concat(co2_source)) %>% 
+            unadj_co2_source = paste_concat(co2_source),
+            unadj_hg_mass = ifelse("hg_mass" %in% colnames(unit_file), sum(hg_mass, na.rm = TRUE) , NA),
+            unadj_hg_source = ifelse("hg_source" %in% colnames(unit_file), paste_concat(hg_source) , NA)) %>% 
   mutate(plant_id = as.numeric(plant_id)) 
 
 # 2. aggregate gen file to plant level----------------------------
@@ -285,10 +293,10 @@ EIA_923_non_biomass <- eia_923$generation_and_fuel_combined %>% select(plant_id,
   filter(co2_non_biomass > 0) %>% 
   mutate(biomass_adj_flag = 1)
 
-plant_file1 <- plant_file %>% left_join(EIA_923_non_biomass)  %>%
+plant_file <- plant_file %>% left_join(EIA_923_non_biomass)  %>%
   mutate(co2_mass = ifelse( !is.na(co2_non_biomass), co2_non_biomass, co2_mass) ) # replace co2_mass with co2_non_biomass
   
-rm(emissions_CO2, EIA_923_biomass, EIA_923_non_biomass)
+rm(EFs_CO2, EIA_923_biomass, EIA_923_non_biomass)
 
 ## Landfill Gas adjustment (NOX, CH4, N2O, SO2) -----------------
 EFs <- read_csv("data/static_tables/co2_ch4_n2o_ef.csv") %>% 
@@ -316,8 +324,9 @@ plant_file <- plant_file %>% left_join(EIA_923_LFG) %>%
          nox_oz = unadj_nox_oz - nox_bio_oz,
          ch4_mass = unadj_ch4_mass - ch4_biomass,
          n2o_mass = unadj_n2o_mass - n2o_biomass,
-         so2_mass = unadj_so2_mass - so2_biomass) %>%
-  mutate(nox_oz =  minimum(nox_oz,nox_mass),
+         so2_mass = unadj_so2_mass - so2_biomass,
+         hg_mass = unadj_hg_mass) %>% # no biomass variable for hg 
+  mutate(nox_oz =  min(nox_oz,nox_mass),
          biomass_adj_flag = ifelse(biomass_adj_flag == 1 | biomass_adj_flag1 == 1, 1, 0)) %>%
   select(-biomass_adj_flag)
 
@@ -433,7 +442,8 @@ plant_file = plant_file %>% mutate(nox_combust_out_emission_rate = 2000 * nox_ma
                                    co2_combust_out_emission_rate = 2000 * co2_mass / ann_gen_combust,
                                    ch4_combust_out_emission_rate = 2000 * ch4_mass / ann_gen_combust,
                                    n2o_combust_out_emission_rate = 2000 * n2o_mass / ann_gen_combust,
-                                   co2_combust_equiv_out_emission_rate = 2000 * co2_equivalent / ann_gen_combust)  
+                                   co2_combust_equiv_out_emission_rate = 2000 * co2_equivalent / ann_gen_combust,
+                                   hg_combust_out_emission_rate = 2000 * hg_mass / ann_gen_combust)  
 
 
 #   b.	Input emission rates ----------------------------------------
@@ -444,7 +454,8 @@ plant_file = plant_file %>% mutate(nox_combust_out_emission_rate = 2000 * nox_ma
                                      co2_in_emission_rate = 2000 * co2_mass / heat_input,
                                      ch4_in_emission_rate = 2000 * ch4_mass / heat_input,
                                      n2o_in_emission_rate = 2000 *  n2o_mass / heat_input,
-                                     co2_equiv_in_emission_rate = 2000 * co2_equivalent / heat_input)  
+                                     co2_equiv_in_emission_rate = 2000 * co2_equivalent / heat_input,
+                                     hg_in_emission_rate = 2000 * hg_mass / heat_input)  
 #   c.	Output emission rates ----------------------------------------
 
 plant_file = plant_file %>% mutate(nox_out_emission_rate = 2000 * nox_mass / generation_ann,
@@ -453,5 +464,6 @@ plant_file = plant_file %>% mutate(nox_out_emission_rate = 2000 * nox_mass / gen
                                   co2_out_emission_rate = 2000 * co2_mass / generation_ann,
                                   ch4_out_emission_rate = 2000 * ch4_mass / generation_ann,
                                   n2o_out_emission_rate = 2000 * n2o_mass / generation_ann,
-                                  co2_equiv_out_emission_rate = 2000 * co2_equivalent / generation_ann)  
+                                  co2_equiv_out_emission_rate = 2000 * co2_equivalent / generation_ann,
+                                  hg_out_emission_rate = 2000 * hg_mass / generation_ann)
 
