@@ -21,28 +21,28 @@ egrid_column_names <- c(
   "year" = "YEAR", 
   "sub_region" = "SUBRGN",
   "sub_region_name" = "SRNAME", 
-  "egrid_nameplate_capacity" = "SRNAMEPCAP", 
-  "egrid_nox_output_rate" = "SRNOXRTA", 
-  "egrid_nox_oz_output_rate" = "SRNOXRTO", 
-  "egrid_so2_output_rate" = "SRSO2RTA",
-  "egrid_co2_output_rate" = "SRCO2RTA", 
-  "egrid_ch4_output_rate" = "SRCH4RTA", 
-  "egrid_n2o_output_rate" = "SRN2ORTA", 
-  "egrid_co2e_output_rate" = "SRC2ERTA",
-  "egrid_nox_input_rate" = "SRNOXRA", 
-  "egrid_nox_oz_input_rate" = "SRNOXRO", 
-  "egrid_so2_input_rate" = "SRSO2RA",
-  "egrid_co2_input_rate" = "SRCO2RA", 
-  "egrid_ch4_input_rate" = "SRCH4RA", 
-  "egrid_n2o_input_rate" = "SRN2ORA", 
-  "egrid_co2e_input_rate" = "SRC2ERA",
-  "egrid_nox_output_rate" = "SRNOXRTA", 
-  "egrid_nox_oz_output_rate" = "SRNOXRTO", 
-  "egrid_so2_output_rate" = "SRSO2RTA",
-  "egrid_co2_output_rate" = "SRCO2RTA", 
-  "egrid_ch4_output_rate" = "SRCH4RTA", 
-  "egrid_n2o_output_rate" = "SRN2ORTA", 
-  "egrid_co2e_output_rate" = "SRC2ERTA",
+  "nameplate_capacity" = "SRNAMEPCAP", 
+  "nox_output_rate" = "SRNOXRTA", 
+  "nox_oz_output_rate" = "SRNOXRTO", 
+  "so2_output_rate" = "SRSO2RTA",
+  "co2_output_rate" = "SRCO2RTA", 
+  "ch4_output_rate" = "SRCH4RTA", 
+  "n2o_output_rate" = "SRN2ORTA", 
+  "co2e_output_rate" = "SRC2ERTA",
+  "nox_input_rate" = "SRNOXRA", 
+  "nox_oz_input_rate" = "SRNOXRO", 
+  "so2_input_rate" = "SRSO2RA",
+  "co2_input_rate" = "SRCO2RA", 
+  "ch4_input_rate" = "SRCH4RA", 
+  "n2o_input_rate" = "SRN2ORA", 
+  "co2e_input_rate" = "SRC2ERA",
+  "nox_combustion_rate" = "SRNOXCRT", 
+  "nox_oz_combustion_rate" = "SRNOXCRO", 
+  "so2_combustion_rate" = "SRSO2CRT",
+  "co2_combustion_rate" = "SRCO2CRT", 
+  "ch4_combustion_rate" = "SRCH4CRT", 
+  "n2o_combustion_rate" = "SRN2OCRT", 
+  "co2e_combustion_rate" = "SRC2ECRT",
   "coal_gen" = "SRGENACL", 
   "oil_gen" = "SRGENAOL", 
   "gas_gen" = "SRGENAGS", 
@@ -53,6 +53,7 @@ egrid_column_names <- c(
   "solar_gen" = "SRGENASO",
   "geothermal_gen" = "SRGENAGT", 
   "other_fossil_gen" = "SRGENAOF",
+  "other_purchased_gen" = "SRGENAOP", 
   "net_gen" = "SRNGENAN")
 
 egrid_2019 <- 
@@ -86,7 +87,6 @@ egrid_comparison <-
   bind_rows(egrid_2021) %>% 
   bind_rows(egrid_2022) %>% 
   mutate(year = as.character(year))
-
 
 ## Load state region data -----
 
@@ -161,17 +161,18 @@ egrid_rate_comparison <-
                   (get(str_replace(cur_column(), "2022", "2021")) == 0 & . > 0) ~ 100), 
                 .names = "{str_replace(.col, '_gen_2022', '_pct')}")) %>% 
   select(-contains("gen")) %>% 
-  mutate(generation_notes = paste(sprintf("Coal: %+.1f%%", coal_pct), sprintf("Oil: %+.1f%%", oil_pct), # add summary of net generation changes
-                                  sprintf("Gas: %+.1f%%", gas_pct), sprintf("Other fossil: %+.1f%%", other_fossil_pct), 
-                                  sprintf("Nuclear: %+.1f%%", nuclear_pct), sprintf("Hydro: %+.1f%%", hydro_pct), 
-                                  sprintf("Biomass: %+.1f%%", biomass_pct), sprintf("Wind: %+.1f%%", wind_pct),
-                                  sprintf("Solar: %+.1f%%", solar_pct), sprintf("Geothermal: %+.1f%%", geothermal_pct)))
+  mutate(generation_notes = paste(sprintf("Coal: %+.1f%%,", coal_pct), sprintf("Oil: %+.1f%%,", oil_pct), # add summary of net generation changes
+                                  sprintf("Gas: %+.1f%%,", gas_pct), sprintf("Other fossil: %+.1f%%,", other_fossil_pct), 
+                                  sprintf("Nuclear: %+.1f%%,", nuclear_pct), sprintf("Hydro: %+.1f%%,", hydro_pct), 
+                                  sprintf("Biomass: %+.1f%%,", biomass_pct), sprintf("Wind: %+.1f%%,", wind_pct),
+                                  sprintf("Solar: %+.1f%%,", solar_pct), sprintf("Geothermal: %+.1f%%,", geothermal_pct)))
   
 
 
 # eGRID region and US resource mix -----
 
 # calculate generation percent change
+
 egrid_gen_comparison <- 
   egrid_comparison %>% 
   select(year, sub_region, sub_region_name, contains("gen")) %>% 
@@ -198,6 +199,21 @@ egrid_resource_mix <-
                values_to = "generation") %>% 
   mutate(energy_source = str_replace(energy_source, "_gen", "")) 
 
+egrid_resource_mix$energy_source <- 
+  factor(egrid_resource_mix$energy_source, 
+          levels = c("coal", 
+                     "oil", 
+                     "gas",
+                     "other_fossil", 
+                     "nuclear", 
+                     "hydro", 
+                     "biomass", 
+                     "wind", 
+                     "solar", 
+                     "geothermal", 
+                     "other_purchased"))
+
+
 egrid_resource_mix_wider <- 
   egrid_resource_mix %>% 
   pivot_wider(names_from = year, 
@@ -207,23 +223,45 @@ egrid_resource_mix_wider <-
 # summarize nameplate capacity and net gen 
 egrid_cap_gen <- 
   egrid_comparison %>% 
-  select(year, sub_region, sub_region_name, egrid_nameplate_capacity, net_gen)
+  select(year, sub_region, sub_region_name, nameplate_capacity, net_gen)
 
 
 # calculate us resource mix
 us_resource_mix <-
   egrid_resource_mix %>%
   group_by(year, energy_source) %>%
-  summarize(energy_source_generation = sum(generation)) %>%
-  ungroup()
+  summarize(energy_source_generation = sum(generation, na.rm = TRUE)) %>%
+  ungroup() 
 
 us_resource_mix_formatted <-
   us_resource_mix %>%
-  pivot_wider(id_cols = year,
-              names_from = energy_source,
+  pivot_wider(names_from = energy_source,
               values_from = energy_source_generation) %>%
   mutate(net_gen = rowSums(across(where(is.numeric)))) %>%
-  relocate(net_gen, .after = year)
+  relocate(net_gen, .after = year) %>% 
+  pivot_longer(cols = -c(year),
+               names_to = "energy_source", 
+               values_to = "generation") %>% 
+  pivot_wider(names_from = year, 
+              values_from = generation, 
+              names_prefix = "generation_") %>% 
+  mutate(percent_change = (generation_2022 - generation_2021) / generation_2021 * 100)
+  
+
+#us_resource_mix_pct_change <- 
+#  us_resource_mix_formatted %>% 
+#  pivot_wider(names_from = year, 
+#              values_from = -c(year)) %>% 
+#  mutate(across(.cols = contains("2022"), 
+#                .fns = ~ case_when(
+#                  (get(str_replace(cur_column(), "2022", "2021")) == 0 & . == 0) ~ 0, 
+#                  (get(str_replace(cur_column(), "2022", "2021")) != 0) ~ round((. - get(str_replace(cur_column(), "2022", "2021"))) / get(str_replace(cur_column(), "2022", "2021")) * 100, 1), 
+#                  (get(str_replace(cur_column(), "2022", "2021")) == 0 & . > 0) ~ 100),
+#         .names = "{str_replace(.col, '_2022', '')}")) %>% 
+#  select(net_gen, coal, oil, gas, other_fossil, hydro, biomass, wind, solar, geothermal, other_purchased) %>% 
+#  pivot_longer(everything(), 
+#               names_to = "energy_source", 
+#               values_to = "percent_change")
 
 
 # State resource mix ----- 
