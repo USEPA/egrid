@@ -996,7 +996,14 @@ estimated_so2_emissions_content <-
          ) %>% 
   filter(so2_mass > 0) %>% 
   mutate(so2_source = "Estimated using emissions factor and plant-specific sulfur content") %>% 
-  select(plant_id, boiler_id, so2_mass, so2_source) 
+  select(plant_id, boiler_id, so2_mass, so2_source, unit_flag) %>%
+  add_count(plant_id ,boiler_id, sort = TRUE) %>% # Some units match to multiple EF under different unit_flags. We want default to be "PhysicalUnits", so where there are multiple rows per unit, we take only "PhysicalUnits"
+  filter(unit_flag == "PhysicalUnits" & n == 1 |
+         unit_flag == "PhysicalUnits" & n == 2 |
+         unit_flag != "PhsycialUnits" & n == 1  ) %>%
+  select(-n)
+
+
 
   
 ### Join sulfur emissions to all units df  --------
