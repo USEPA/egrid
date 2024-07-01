@@ -96,7 +96,6 @@ state_column_names <- c(
   "year" = "YEAR", 
   "state" = "PSTATABB",
   "state_nameplate_capacity" = "STNAMEPCAP", 
-  "state_co2_rate" = "STCO2RTA", 
   "coal_gen" = "STGENACL", 
   "oil_gen" = "STGENAOL", 
   "gas_gen" = "STGENAGS", 
@@ -218,7 +217,8 @@ egrid_resource_mix_wider <-
   egrid_resource_mix %>% 
   pivot_wider(names_from = year, 
               values_from = generation) %>% 
-  left_join(egrid_gen_comparison, by = c("sub_region", "sub_region_name", "energy_source"))
+  left_join(egrid_gen_comparison, by = c("sub_region", "sub_region_name", "energy_source")) %>% 
+  select(-sub_region_name)
 
 # summarize nameplate capacity and net gen 
 egrid_cap_gen <- 
@@ -246,22 +246,6 @@ us_resource_mix_formatted <-
               values_from = generation, 
               names_prefix = "generation_") %>% 
   mutate(percent_change = (generation_2022 - generation_2021) / generation_2021 * 100)
-  
-
-#us_resource_mix_pct_change <- 
-#  us_resource_mix_formatted %>% 
-#  pivot_wider(names_from = year, 
-#              values_from = -c(year)) %>% 
-#  mutate(across(.cols = contains("2022"), 
-#                .fns = ~ case_when(
-#                  (get(str_replace(cur_column(), "2022", "2021")) == 0 & . == 0) ~ 0, 
-#                  (get(str_replace(cur_column(), "2022", "2021")) != 0) ~ round((. - get(str_replace(cur_column(), "2022", "2021"))) / get(str_replace(cur_column(), "2022", "2021")) * 100, 1), 
-#                  (get(str_replace(cur_column(), "2022", "2021")) == 0 & . > 0) ~ 100),
-#         .names = "{str_replace(.col, '_2022', '')}")) %>% 
-#  select(net_gen, coal, oil, gas, other_fossil, hydro, biomass, wind, solar, geothermal, other_purchased) %>% 
-#  pivot_longer(everything(), 
-#               names_to = "energy_source", 
-#               values_to = "percent_change")
 
 
 # State resource mix ----- 
@@ -273,7 +257,7 @@ state_gen_comparison <-
   pivot_wider(names_from = year, 
               values_from = contains("gen")) %>% 
   mutate(across(
-    .cols = contains(cbind("gen_2022")), 
+    .cols = contains("gen_2022"), 
     .fns = ~ case_when(
       (get(str_replace(cur_column(), "2022", "2021")) == 0 & . == 0) ~ 0, 
       (get(str_replace(cur_column(), "2022", "2021")) != 0) ~ round((. - get(str_replace(cur_column(), "2022", "2021"))) / get(str_replace(cur_column(), "2022", "2021")) * 100, 1), 
@@ -290,7 +274,9 @@ state_resource_mix <-
   select(year, state, contains("gen"), -net_gen) %>% 
   pivot_longer(cols = contains("gen"), 
                names_to = "energy_source", 
-               values_to = "generation") 
+               values_to = "generation") %>% 
+  mutate(energy_source = str_replace(energy_source, "_gen", ""))
+  
 
 state_resource_mix_wider <- 
   state_resource_mix %>% 
