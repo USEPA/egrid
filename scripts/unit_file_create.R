@@ -1072,7 +1072,7 @@ units_estimated_fuel <- # df that will be used to calculate so2 emissions
          primary_fuel_type,
          botfirty,
          dist_prop) %>%
-  left_join(eia_fuel_consum_fuel_type,
+  inner_join(eia_fuel_consum_fuel_type,
             by = c("plant_id", "plant_state", "prime_mover", "primary_fuel_type" = "fuel_type")) %>%
   mutate(fuel_consumption = fuel_consum_ann_923 * dist_prop,
          fuel_consumption_oz = fuel_consum_oz_923 * dist_prop,
