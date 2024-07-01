@@ -1008,7 +1008,7 @@ estimated_so2_emissions_content <-
 ### Join sulfur emissions to all units df  --------
 all_units_4 <- 
   all_units_3 %>%
-  rows_update(estimated_so2_emissions_content %>% rename("unit_id" = "boiler_id"),
+  rows_update(estimated_so2_emissions_content %>% rename("unit_id" = "boiler_id") %>% select(-unit_flag),
               by = c("plant_id", "unit_id"))
 
 
@@ -1031,6 +1031,8 @@ eia_fuel_consum_fuel_type <- # summing fuel and consum to PM fuel_type level
             fuel_consum_ann_923 = sum(total_fuel_consumption_quantity, na.rm = TRUE) # consumption in quantity is referred to as "fuel consumption"
   )
 
+
+coal_fuels <- c("BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG")
 
 default_sulfur_content_coal <- 
   eia_923$boiler_fuel_data %>% 
@@ -1057,49 +1059,134 @@ default_sulfur_content_coal <-
 
 
 
-estimated_so2_emissions <-
-all_units_4 %>% 
-  group_by(plant_id, prime_mover, primary_fuel_type) %>% 
+units_estimated_fuel <- # df that will be used to calculate so2 emissions 
+  all_units_4 %>% 
+  group_by(plant_state, plant_id, prime_mover, primary_fuel_type) %>% 
   mutate(total_heat_input = sum(heat_input, na.rm = TRUE)) %>% 
   ungroup() %>% 
   mutate(dist_prop = heat_input/total_heat_input) %>% 
-  select(plant_id, 
+  select(plant_state,
+         plant_id, 
          prime_mover, 
          unit_id, 
          primary_fuel_type,
          botfirty,
-         #heat_input,
-         #total_heat_input,
          dist_prop) %>%
-  left_join(eia_fuel_consum_fuel_type) %>%
+  inner_join(eia_fuel_consum_fuel_type,
+            by = c("plant_id", "plant_state", "prime_mover", "primary_fuel_type" = "fuel_type")) %>%
   mutate(fuel_consumption = fuel_consum_ann_923 * dist_prop,
          fuel_consumption_oz = fuel_consum_oz_923 * dist_prop,
          heat_input = heat_input_ann_923 * dist_prop,
          heat_input_oz = heat_input_oz_923 * dist_prop) %>% 
-  select(-c(ends_with("_923"))) %>% 
-  left_join(sulfur_contents_default_coal %>% 
-              rename("sulfur_content_pct" = SulfurContentPct), # renaming for consistent naming
-            by = c("plant_state" = "State",
-                   "primary_fuel_type" = "Fuel")) %>% 
+  select(-c(ends_with("_923"))) 
+
+### estimating so2 emissions - coal --------
+
+so2_emissions_pu_coal <-
+  units_estimated_fuel %>% 
+  left_join(default_sulfur_content_coal, # renaming for consistent naming
+            by = c("plant_state",
+                   "primary_fuel_type" = "fuel_type")) %>% 
   left_join(emission_factors %>% 
-              filter(unit_flag == "PhysicalUnits") %>% 
-              select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag), 
+              select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag, unit_flag), 
             by = c("prime_mover",
                    "botfirty",
                    "primary_fuel_type")) %>%
-  mutate(sulfur_content_pct = if_else(so2_flag == "S", sulfur_content_pct, 1),
-         so2_mass = so2_ef * sulfur_content_pct * fuel_consumption)
+  mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
+         so2_mass = if_else(unit_flag == "PhysicalUnits",
+                            so2_ef * avg_sulfur_content * fuel_consumption,
+                            so2_ef * avg_sulfur_content * heat_input/2000)) %>%
+  select(plant_id,
+         unit_id,
+         so2_mass) %>% 
+  filter(so2_mass > 0) %>% 
+  mutate(so2_source = "Estimated using emissions factor")
+
+### estimating so2 emissions - non coal ----------
+
+so2_emissions_pu_noncoal <- 
+  units_estimated_fuel %>% 
+  left_join(avg_sulfur_content_fuel %>% select(fuel_type, avg_sulfur_content), # renaming for consistent naming
+            by = c("primary_fuel_type" = "fuel_type")) %>% 
+  left_join(emission_factors %>% 
+              select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag, unit_flag), 
+            by = c("prime_mover",
+                   "botfirty",
+                   "primary_fuel_type")) %>%
+  mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
+         so2_mass = if_else(unit_flag == "PhysicalUnits",
+                            so2_ef * avg_sulfur_content * fuel_consumption,
+                            so2_ef * avg_sulfur_content * heat_input/2000)) %>%
+  select(plant_id,
+         unit_id,
+         so2_mass) %>% 
+  filter(so2_mass > 0) %>% 
+  mutate(so2_source = "Estimated using emissions factor")
+  
+### estimating so2 emissions with heat input - coal ------
+
+so2_emissions_heat_coal <- 
+  units_estimated_fuel %>% 
+  left_join(default_sulfur_content_coal, # renaming for consistent naming
+            by = c("primary_fuel_type" = "fuel_type",
+                   "plant_state")) %>% 
+  left_join(emission_factors %>% 
+              select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag, unit_flag), 
+            by = c("prime_mover",
+                   "botfirty",
+                   "primary_fuel_type")) %>%
+  mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
+         so2_mass = if_else(unit_flag == "HeatInput",
+                            so2_ef * avg_sulfur_content * heat_input / 2000,
+                            so2_ef * avg_sulfur_content * 0 / 2000)) %>%
+  select(plant_id,
+         unit_id,
+         so2_mass) %>% 
+  filter(so2_mass > 0) %>% 
+  mutate(so2_source = "Estimated using emissions factor")
 
 
-  
-  
-### Estimate SO2 emissions ---------
-  
+### estimating so2 emissions with heat input - non coal ---------
+
+so2_emissions_heat_noncoal <- 
+  units_estimated_fuel %>% 
+  left_join(avg_sulfur_content_fuel %>% select(fuel_type, avg_sulfur_content), # renaming for consistent naming
+            by = c("primary_fuel_type" = "fuel_type")) %>%
+  left_join(emission_factors %>% 
+              select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag, unit_flag), 
+            by = c("prime_mover",
+                   "botfirty",
+                   "primary_fuel_type")) %>%
+  mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
+         so2_mass = if_else(unit_flag == "HeatInput",
+                            so2_ef * avg_sulfur_content * heat_input / 2000,
+                            so2_ef * avg_sulfur_content * 0 / 2000)) %>%
+  select(plant_id,
+         unit_id,
+         so2_mass) %>% 
+  filter(so2_mass > 0) %>% 
+  mutate(so2_source = "Estimated using emissions factor")
+
+### Updating units with estimated SO2 --------
+
+all_units_5 <- 
+  all_units_4 %>% 
+  rows_patch(so2_emissions_pu_coal, 
+             by = c("plant_id", "unit_id")) %>% 
+  rows_patch(so2_emissions_pu_noncoal, 
+             by = c("plant_id", "unit_id")) %>% 
+  rows_patch(so2_emissions_heat_coal, 
+             by = c("plant_id", "unit_id")) %>% 
+  rows_patch(so2_emissions_heat_noncoal, 
+             by = c("plant_id", "unit_id"))
+
+
 ## CO2 emissions --------
 
 ### Estimating CO2 emissions --------  
 
-co2_emissions <- all_units_3 %>%
+co2_emissions <- 
+  all_units_5 %>%
   filter(plant_id != 10025) %>% ## Removing duplicate Plant ID 10025/Unit ID 4B that was causing issues with rows_patch
   select(plant_id, unit_id, primary_fuel_type, heat_input, co2_emissions) %>%
   inner_join(co2_ef %>%
@@ -1111,19 +1198,22 @@ co2_emissions <- all_units_3 %>%
 
 ### Updating units with estimated CO2 emissions --------
 
-all_units_4 <- all_units_3 %>% 
+all_units_6 <- 
+  all_units_5 %>% 
   filter(plant_id != 10025) %>% ## Removing duplicate Plant ID 10025/Unit ID 4B that was causing issues with rows_patch
   rows_patch(co2_emissions %>% distinct(),
              by = c("plant_id", "unit_id"),
              unmatched = "ignore")
 
 ## NOx Emissions Rate -----
+
 nox_rates_2 <- schedule_8c_nox %>%
   group_by(plant_id, boiler_id) %>%
   summarize(nox_rate = max(nox_emission_rate_entire_year_lbs_mmbtu),
             nox_oz_rate = max(nox_emission_rate_may_through_september_lbs_mmbtu))
 
-nox_emissions_rates <- all_units_4 %>%
+nox_emissions_rates <- 
+  all_units_6 %>%
   rows_patch(nox_rates_2, 
             by = c("plant_id", "unit_id"), ## Error with this part of the script because some columns aren't present in all_units_4 that are in nox_rates_2
             unmatched = "ignore")
@@ -1134,7 +1224,7 @@ nox_emissions_rates <- all_units_4 %>%
 ## Clean up source flags --------
 
 clean_source_flags <- 
-  all_units_3 %>% 
+  all_units_6 %>% 
   mutate(nox_source = replace(nox_source, is.na(nox_mass), NA), # replacing NA emission masses with NA sources
          so2_source = replace(so2_source, is.na(so2_mass), NA), 
          co2_source = replace(co2_source, is.na(co2_mass), NA), 
@@ -1147,7 +1237,7 @@ clean_source_flags <-
 # TG: I think this could be fixed earlier in the file by collecting plant_names in eia 860 data
 
 check_plant_names <- 
-  all_units_4 %>% select(plant_id, plant_name) %>% 
+  all_units_6 %>% select(plant_id, plant_name) %>% 
   distinct(plant_id, plant_name) %>% 
   group_by(plant_id) %>% 
   filter(n()>1 & !is.na(plant_name))
@@ -1155,7 +1245,7 @@ check_plant_names <-
 # update specified units
 
 update_eia_names <- 
-  all_units_4 %>% select(plant_id, plant_name) %>% 
+  all_units_6 %>% select(plant_id, plant_name) %>% 
   filter(plant_id %in% c("2847", "55248")) %>% 
   mutate(eia_plant_id = case_when(plant_id %in% c("2847", "55248") ~ "2847"), 
          eia_plant_name = case_when(plant_id %in% c("2847", "55248") ~ "Tait Electric Generating Station")) %>% 
@@ -1167,7 +1257,7 @@ update_eia_names <-
 # Update FC prime mover to null CO2 emissions 
 
 update_fc_data <- 
-  all_units_4 %>% select(plant_id, unit_id, prime_mover, co2_mass, co2_source) %>% 
+  all_units_6 %>% select(plant_id, unit_id, prime_mover, co2_mass, co2_source) %>% 
   filter((prime_mover == "FC") & ((!is.na(co2_mass)) | (!is.na(co2_source)))) %>%  # only update necessary rows 
   mutate(co2_mass = NA, 
          co2_source = NA, 
@@ -1186,7 +1276,7 @@ units_to_remove <-
 # Update prime mover for plant 7063 unit **1 from OT to CE 
 
 update_plant_mover <- 
-  all_units_4 %>% select(plant_id, unit_id, prime_mover) %>% 
+  all_units_6 %>% select(plant_id, unit_id, prime_mover) %>% 
   filter(plant_id == "7063" & unit_id == "**1") %>% 
   mutate(prime_mover = "CE")
 
@@ -1226,7 +1316,7 @@ schedule_8c_re <-
 # update operating status 
 
 update_status <- 
-  all_units_4 %>% select(plant_id, unit_id, operating_status) %>% 
+  all_units_6 %>% select(plant_id, unit_id, operating_status) %>% 
   filter(is.na(operating_status)) %>%
   rows_patch(schedule_8c_op %>% select(plant_id, unit_id, operating_status), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
@@ -1263,8 +1353,8 @@ update_pr_camd_flag <- read_csv("data/static_tables/xwalk_pr_oris.csv") %>%
 
 # create CAMD flag 
 
-all_units_5 <- 
-  all_units_4 %>%  
+all_units_7 <- 
+  all_units_6 %>%  
   mutate(camd_flag = if_else(paste0(plant_id, unit_id) %in% camd_units, "Yes", "No")) %>% 
   rows_update(update_pr_camd_flag, by = c("plant_id", "unit_id"))
 
@@ -1282,15 +1372,15 @@ delete_retired_units <-
 # need to check this each year
 
 eia_units_to_delete <- 
-  all_units_5 %>% 
+  all_units_7 %>% 
   filter(plant_id == "2132" | plant_id == "7832") %>% 
   select(plant_id) %>% distinct()
 
 
 ## Implement changes in main unit file ------
 
-all_units_6 <- 
-  all_units_5 %>% # update to most recent unit file data frame
+all_units_8 <- 
+  all_units_7 %>% # update to most recent unit file data frame
   rows_delete(units_to_remove, 
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_delete(delete_retired_units, 
