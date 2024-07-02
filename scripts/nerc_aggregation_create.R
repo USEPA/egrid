@@ -134,12 +134,12 @@ nerc_input_rates <-
                      "nerc_so2_mass", 
                      "nerc_co2_mass", 
                      "nerc_co2e_mass"), 
-           .fns = ~ 2000 * . / nerc_heat_input_ann, 
+           .fns = ~ 2000 * . / nerc_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-    nerc_nox_oz_input_rate = 2000 * nerc_nox_oz_mass / nerc_heat_input_oz, 
+    nerc_nox_oz_input_rate = 2000 * nerc_nox_oz_mass / nerc_heat_input_comb_oz, 
     across(.cols = c("nerc_ch4_mass", 
                      "nerc_n2o_mass"),
-           .fns = ~ . / nerc_heat_input_ann, 
+           .fns = ~ . / nerc_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
     nerc_hg_input_rate = "--") %>% 
   relocate(nerc_nox_oz_input_rate, .after = nerc_nox_input_rate) %>% 
@@ -214,12 +214,12 @@ nerc_fuel_rates <-
                      "nerc_so2_mass", 
                      "nerc_co2_mass", 
                      "nerc_co2e_mass"), 
-           .fns = ~ 2000 * . / nerc_heat_input_ann, 
+           .fns = ~ 2000 * . / nerc_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-    nerc_nox_oz_input_rate = 2000 * nerc_nox_oz_mass / nerc_heat_input_oz, 
+    nerc_nox_oz_input_rate = 2000 * nerc_nox_oz_mass / nerc_heat_input_comb_oz, 
     across(.cols = c("nerc_ch4_mass", 
                      "nerc_n2o_mass"),
-           .fns = ~ . / nerc_heat_input_ann, 
+           .fns = ~ . / nerc_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
   select(nerc, primary_fuel_category, contains("rate")) %>% 
   relocate(nerc_nox_oz_output_rate, .after = nerc_nox_output_rate) %>% 
@@ -271,12 +271,12 @@ nerc_fossil_rates <-
                      "nerc_so2_mass", 
                      "nerc_co2_mass", 
                      "nerc_co2e_mass"), 
-           .fns = ~ 2000 * . / nerc_heat_input_ann, 
+           .fns = ~ 2000 * . / nerc_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
-    nerc_nox_oz_input_rate_fossil = 2000 * nerc_nox_oz_mass / nerc_heat_input_oz, 
+    nerc_nox_oz_input_rate_fossil = 2000 * nerc_nox_oz_mass / nerc_heat_input_comb_oz, 
     across(.cols = c("nerc_ch4_mass", 
                      "nerc_n2o_mass"),
-           .fns = ~ . / nerc_heat_input_ann, 
+           .fns = ~ . / nerc_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
     across(where(is.numeric), ~ replace_na(., 0))) %>% 
   relocate(nerc_nox_oz_input_rate_fossil, .after = nerc_nox_input_rate_fossil) %>% 
@@ -332,7 +332,7 @@ nerc_resource_mix <-
   nerc_gen %>% 
   select(-nerc_gen_oz) %>%   
   mutate(across(.cols = -c("nerc", "nerc_gen_ann"), 
-                .fns = ~ . / nerc_gen_ann * 100, # convert to percentage 
+                .fns = ~ . / nerc_gen_ann, # convert to percentage 
                 .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
   select(nerc, contains("resource_mix"))
 
@@ -356,7 +356,7 @@ nerc_nonbaseload_resource_mix <-
   nerc_nonbaseload_gen %>% 
   mutate(nerc_nonbaseload_gen = rowSums(pick(contains("nonbaseload"))), 
          across(.cols = -c("nerc_nonbaseload_gen"), 
-                .fns = ~ . / nerc_nonbaseload_gen * 100, 
+                .fns = ~ . / nerc_nonbaseload_gen, 
                 .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
   select(nerc, contains("resource_mix"))
 

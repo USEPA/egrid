@@ -134,12 +134,12 @@ egrid_input_rates <-
                      "egrid_so2_mass", 
                      "egrid_co2_mass", 
                      "egrid_co2e_mass"), 
-           .fns = ~ 2000 * . / egrid_heat_input_ann, 
+           .fns = ~ 2000 * . / egrid_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-    egrid_nox_oz_input_rate = 2000 * egrid_nox_oz_mass / egrid_heat_input_oz, 
+    egrid_nox_oz_input_rate = 2000 * egrid_nox_oz_mass / egrid_heat_input_comb_oz, 
     across(.cols = c("egrid_ch4_mass", 
                      "egrid_n2o_mass"),
-           .fns = ~ . / egrid_heat_input_ann, 
+           .fns = ~ . / egrid_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
     egrid_hg_input_rate = "--") %>% 
   relocate(egrid_nox_oz_input_rate, .after = egrid_nox_input_rate) %>%  
@@ -214,12 +214,12 @@ egrid_fuel_rates <-
                      "egrid_so2_mass", 
                      "egrid_co2_mass", 
                      "egrid_co2e_mass"), 
-           .fns = ~ 2000 * . / egrid_heat_input_ann, 
+           .fns = ~ 2000 * . / egrid_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-    egrid_nox_oz_input_rate = 2000 * egrid_nox_oz_mass / egrid_heat_input_oz, 
+    egrid_nox_oz_input_rate = 2000 * egrid_nox_oz_mass / egrid_heat_input_comb_oz, 
     across(.cols = c("egrid_ch4_mass", 
                      "egrid_n2o_mass"),
-           .fns = ~ . / egrid_heat_input_ann, 
+           .fns = ~ . / egrid_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
   select(sub_region, primary_fuel_category, contains("rate")) %>% 
   relocate(egrid_nox_oz_output_rate, .after = egrid_nox_output_rate) %>% 
@@ -271,12 +271,12 @@ egrid_fossil_rates <-
                      "egrid_so2_mass", 
                      "egrid_co2_mass", 
                      "egrid_co2e_mass"), 
-           .fns = ~ 2000 * . / egrid_heat_input_ann, 
+           .fns = ~ 2000 * . / egrid_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
-    egrid_nox_oz_input_rate_fossil = 2000 * egrid_nox_oz_mass / egrid_heat_input_oz, 
+    egrid_nox_oz_input_rate_fossil = 2000 * egrid_nox_oz_mass / egrid_heat_input_comb_oz, 
     across(.cols = c("egrid_ch4_mass", 
                      "egrid_n2o_mass"),
-           .fns = ~ . / egrid_heat_input_ann, 
+           .fns = ~ . / egrid_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
     across(where(is.numeric), ~ replace_na(., 0))) %>% 
   relocate(egrid_co2e_input_rate_fossil, .after = egrid_n2o_input_rate_fossil) %>%  
@@ -335,7 +335,7 @@ egrid_resource_mix <-
   egrid_gen %>% 
   select(-egrid_gen_oz) %>%   
   mutate(across(.cols = -c("sub_region", "egrid_gen_ann"), 
-                .fns = ~ . / egrid_gen_ann * 100, # convert to percentage 
+                .fns = ~ . / egrid_gen_ann, # convert to percentage 
                 .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
   select(sub_region, contains("resource_mix"))
 
@@ -360,7 +360,7 @@ egrid_nonbaseload_resource_mix <-
   egrid_nonbaseload_gen %>% 
   mutate(egrid_nonbaseload_gen = rowSums(pick(contains("nonbaseload"))), 
          across(.cols = -c("egrid_nonbaseload_gen"), 
-                .fns = ~ . / egrid_nonbaseload_gen * 100, 
+                .fns = ~ . / egrid_nonbaseload_gen, 
                 .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
   select(sub_region, contains("resource_mix"))
 
