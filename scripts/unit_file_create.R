@@ -1208,9 +1208,15 @@ all_units_6 <-
 ## NOx Emissions Rate -----
 
 nox_rates_2 <- schedule_8c_nox %>%
-  group_by(plant_id, boiler_id) %>%
+  rename(unit_id = boiler_id) %>%
+  group_by(unit_id, plant_id) %>%
   summarize(nox_rate = max(nox_emission_rate_entire_year_lbs_mmbtu),
-            nox_oz_rate = max(nox_emission_rate_may_through_september_lbs_mmbtu))
+            nox_oz_rate = max(nox_emission_rate_may_through_september_lbs_mmbtu)) %>%
+  left_join(all_units_6 %>%
+              select(plant_id, unit_id, heat_input, heat_input_oz)) %>%
+  mutate(nox_mass = (nox_rate*heat_input)/2000,
+         nox_mass_oz = (nox_oz_rate*heat_input_oz)/2000)
+  
 
 nox_emissions_rates <- 
   all_units_6 %>%
