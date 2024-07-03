@@ -134,12 +134,12 @@ state_input_rates <-
                           "state_so2_mass", 
                           "state_co2_mass", 
                           "state_co2e_mass"), 
-                .fns = ~ 2000 * . / state_heat_input_ann, 
+                .fns = ~ 2000 * . / state_heat_input_comb, 
                 .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-         state_nox_oz_input_rate = 2000 * state_nox_oz_mass / state_heat_input_oz, 
+         state_nox_oz_input_rate = 2000 * state_nox_oz_mass / state_heat_input_comb_oz, 
          across(.cols = c("state_ch4_mass", 
                           "state_n2o_mass"),
-                .fns = ~ . / state_heat_input_ann, 
+                .fns = ~ . / state_heat_input_comb, 
                 .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
          state_hg_input_rate = "--") %>% 
   relocate(state_nox_oz_input_rate, .after = state_nox_input_rate) %>% 
@@ -214,12 +214,12 @@ state_fuel_rates <-
                           "state_so2_mass", 
                           "state_co2_mass", 
                           "state_co2e_mass"), 
-                .fns = ~ 2000 * . / state_heat_input_ann, 
+                .fns = ~ 2000 * . / state_heat_input_comb, 
                 .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-         state_nox_oz_input_rate = 2000 * state_nox_oz_mass / state_heat_input_oz, 
+         state_nox_oz_input_rate = 2000 * state_nox_oz_mass / state_heat_input_comb_oz, 
          across(.cols = c("state_ch4_mass", 
                           "state_n2o_mass"),
-                .fns = ~ . / state_heat_input_ann, 
+                .fns = ~ . / state_heat_input_comb, 
                 .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
   select(state, primary_fuel_category, contains("rate")) %>% 
   relocate(state_nox_oz_output_rate, .after = state_nox_output_rate) %>% 
@@ -270,12 +270,12 @@ state_fossil_rates <-
                      "state_so2_mass", 
                      "state_co2_mass", 
                      "state_co2e_mass"), 
-           .fns = ~ 2000 * . / state_heat_input_ann, 
+           .fns = ~ 2000 * . / state_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
-    state_nox_oz_input_rate_fossil = 2000 * state_nox_oz_mass / state_heat_input_oz, 
+    state_nox_oz_input_rate_fossil = 2000 * state_nox_oz_mass / state_heat_input_comb_oz, 
     across(.cols = c("state_ch4_mass", 
                      "state_n2o_mass"),
-           .fns = ~ . / state_heat_input_ann, 
+           .fns = ~ . / state_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
     across(where(is.numeric), ~ replace_na(., 0))) %>% 
   relocate(state_nox_oz_input_rate_fossil, .after = state_nox_input_rate_fossil) %>% 
@@ -331,7 +331,7 @@ state_resource_mix <-
   state_gen %>% 
   select(-state_gen_oz) %>%   
   mutate(across(.cols = -c("state", "state_gen_ann"), 
-                .fns = ~ . / state_gen_ann * 100, # convert to percentage 
+                .fns = ~ . / state_gen_ann,  
                 .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>%
   select(state, contains("resource_mix"))
 
@@ -356,7 +356,7 @@ state_nonbaseload_resource_mix <-
   state_nonbaseload_gen %>% 
   mutate(state_nonbaseload_gen = rowSums(pick(contains("nonbaseload"))), 
          across(.cols = -c("state_nonbaseload_gen"), 
-                .fns = ~ . / state_nonbaseload_gen * 100, 
+                .fns = ~ . / state_nonbaseload_gen, 
                 .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
   select(state, contains("resource_mix"))
 

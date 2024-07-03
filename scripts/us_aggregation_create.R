@@ -134,12 +134,12 @@ us_input_rates <-
                      "us_so2_mass", 
                      "us_co2_mass", 
                      "us_co2e_mass"), 
-           .fns = ~ 2000 * . / us_heat_input_ann, 
+           .fns = ~ 2000 * . / us_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-    us_nox_oz_input_rate = 2000 * us_nox_oz_mass / us_heat_input_oz, 
+    us_nox_oz_input_rate = 2000 * us_nox_oz_mass / us_heat_input_comb_oz, 
     across(.cols = c("us_ch4_mass", 
                      "us_n2o_mass"),
-           .fns = ~ . / us_heat_input_ann, 
+           .fns = ~ . / us_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
     us_hg_input_rate = "--") %>% 
   relocate(us_nox_oz_input_rate, .after = us_nox_input_rate) %>% 
@@ -214,12 +214,12 @@ us_fuel_rates <-
                      "us_so2_mass", 
                      "us_co2_mass", 
                      "us_co2e_mass"), 
-           .fns = ~ 2000 * . / us_heat_input_ann, 
+           .fns = ~ 2000 * . / us_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-    us_nox_oz_input_rate = 2000 * us_nox_oz_mass / us_heat_input_oz, 
+    us_nox_oz_input_rate = 2000 * us_nox_oz_mass / us_heat_input_comb_oz, 
     across(.cols = c("us_ch4_mass", 
                      "us_n2o_mass"),
-           .fns = ~ . / us_heat_input_ann, 
+           .fns = ~ . / us_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
   select(year, primary_fuel_category, contains("rate")) %>% 
   relocate(us_nox_oz_output_rate, .after = us_nox_output_rate) %>% 
@@ -271,12 +271,12 @@ us_fossil_rates <-
                      "us_so2_mass", 
                      "us_co2_mass", 
                      "us_co2e_mass"), 
-           .fns = ~ 2000 * . / us_heat_input_ann, 
+           .fns = ~ 2000 * . / us_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
-    us_nox_oz_input_rate_fossil = 2000 * us_nox_oz_mass / us_heat_input_oz, 
+    us_nox_oz_input_rate_fossil = 2000 * us_nox_oz_mass / us_heat_input_comb_oz, 
     across(.cols = c("us_ch4_mass", 
                      "us_n2o_mass"),
-           .fns = ~ . / us_heat_input_ann, 
+           .fns = ~ . / us_heat_input_comb, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
     across(where(is.numeric), ~ replace_na(., 0))) %>% 
   relocate(us_nox_oz_input_rate_fossil, .after = us_nox_input_rate_fossil) %>% 
@@ -332,7 +332,7 @@ us_resource_mix <-
   us_gen %>% 
   select(-us_gen_oz) %>%   
   mutate(across(.cols = -c("year", "us_gen_ann"), 
-                .fns = ~ . / us_gen_ann * 100, # convert to percentage 
+                .fns = ~ . / us_gen_ann, # convert to percentage 
                 .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
   select(year, contains("resource_mix"))
 
@@ -357,7 +357,7 @@ us_nonbaseload_resource_mix <-
   us_nonbaseload_gen %>% 
   mutate(us_nonbaseload_gen = rowSums(pick(contains("nonbaseload"))), 
          across(.cols = -c("us_nonbaseload_gen"), 
-                .fns = ~ . / us_nonbaseload_gen * 100, 
+                .fns = ~ . / us_nonbaseload_gen, 
                 .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
   select(year, contains("resource_mix"))
 
