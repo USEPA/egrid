@@ -1211,18 +1211,30 @@ nox_rates_2 <- schedule_8c_nox %>%
   rename(unit_id = boiler_id) %>%
   group_by(unit_id, plant_id) %>%
   summarize(nox_rate = max(nox_emission_rate_entire_year_lbs_mmbtu),
-            nox_oz_rate = max(nox_emission_rate_may_through_september_lbs_mmbtu)) %>%
-  left_join(all_units_6 %>%
-              select(plant_id, unit_id, heat_input, heat_input_oz)) %>%
+            nox_oz_rate = max(nox_emission_rate_may_through_september_lbs_mmbtu)) 
+
+nox_rates_ann <- nox_rates_2 %>%
+  inner_join(all_units_6 %>%
+               select(plant_id, unit_id, heat_input)) %>%
   mutate(nox_mass = (nox_rate*heat_input)/2000,
-         nox_mass_oz = (nox_oz_rate*heat_input_oz)/2000)
-  
+         nox_source = "Estimated based on unit-level NOx emission rates") %>%
+  select(-c(nox_rate, nox_oz_rate))
+
+nox_rates_oz <- nox_rates_2 %>%
+  inner_join(all_units_6 %>%
+               select(plant_id, unit_id, heat_input_oz)) %>%
+  mutate(nox_mass_oz = (nox_oz_rate*heat_input_oz)/2000,
+         nox_source = "Estimated based on unit-level NOx ozone season emission rates") %>%
+  select(-c(nox_rate, nox_oz_rate))
 
 nox_emissions_rates <- 
   all_units_6 %>%
-  rows_patch(nox_rates_2, 
-            by = c("plant_id", "unit_id"), ## Error with this part of the script because some columns aren't present in all_units_4 that are in nox_rates_2
-            unmatched = "ignore")
+  rows_patch(nox_rates_ann, 
+            by = c("plant_id", "unit_id"), ## Error with this part of the script as there are duplicates in all_units_6
+            unmatched = "ignore") %>%
+  rows_patch(nox_rates_oz, 
+             by = c("plant_id", "unit_id"),
+             unmatched = "ignore")
 
 
 # Final modifications -----  
