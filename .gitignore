@@ -12,3 +12,5 @@ brand
 *.Rproj
 qa_all.html
 qa_all_files
+qa_annual_comparison.html
+qa_annual_comparison_files
