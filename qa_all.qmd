@@ -533,9 +533,50 @@ knitr::kable(check_unit_nox_so2 %>% select(plant_name, plant_id, unit_id, fuelu1
 
 # Plant File QA
 
+Load current year plant file and previous year plant file.
+
+```{r}
+#| label: load_plant_data
+#| echo: false
+#| warning: false
+
+plant_file <- read_excel("archive/egrid2021_data.xlsx", sheet = "PLNT21", skip = 1) %>% 
+              janitor::clean_names() %>% 
+              rename("plant_id" = "orispl", 
+                     "plant_name" = "pname")
+
+plant_file_prev <- read_excel("archive/egrid2020_data.xlsx", 
+                              sheet = "PLNT20", skip = 1) %>% 
+              janitor::clean_names() %>% 
+              rename("plant_id" = "orispl", 
+                     "plant_name" = "pname", 
+                     "lat_prev" = "lat", 
+                     "lon_prev" = "lon")
+
+```
+
 ## Difference in latitude and longitude
 
 Check if plants have a difference in longitude and latitude in comparison to previous year data. This is checked to three decimal points.
+
+```{r}
+#| label: plant_lat_long
+#| echo: false
+#| warning: false
+
+plant_file_lat_lon <- 
+  plant_file %>% select(plant_id, lat, lon) %>% 
+  left_join(plant_file_prev %>% select(plant_id, lat_prev, lon_prev), 
+            by = "plant_id") %>% 
+  mutate(across(where(is.numeric), round, 3))
+
+check_plant_lat_long <- 
+  plant_file_lat_lon %>% mutate(lat_diff = abs(lat) - abs(lat_prev), 
+                                lon_diff = abs(lon) - abs(lon_prev)) %>% 
+  filter(!(lat_diff == 0) | !(lon_diff == 0) | is.na(lat) | is.na(lon))
+  
+
+```
 
 ## Facilities that change CHP status from previous year
 
@@ -567,46 +608,46 @@ FC prime mover should have no (NA) values for:
 
 # adjusted emissions not greater than unadjusted emissions
 
-## Ozone emissions and heat input check 
+## Ozone emissions and heat input check
 
 # ozone emissions and heat input not greater than annual emissions
 
 ## No duplicate plants
 
-## Negative emission values 
+## Negative emission values
 
-## Emission rate outliers 
+## Emission rate outliers
 
-## Capacity factor \> 1 
+## Capacity factor \> 1
 
 ## Electric allocation factor \> 1 or \< 0
 
-## Blank subregions 
+## Blank subregions
 
-## NB factor \> 1 or \< 0 
+## NB factor \> 1 or \< 0
 
-## Blank primary fuel 
+## Blank primary fuel
 
-## Primary fuel category == primary fuel 
+## Primary fuel category == primary fuel
 
-## Emissions without heat input 
+## Emissions without heat input
 
-## Resource mix adds to 100 
+## Resource mix adds to 100
 
-# Subregion, state, BA, NERC File QA 
+# Subregion, state, BA, NERC File QA
 
-## No duplicates 
+## No duplicates
 
-## Resource mix adds to 100 
+## Resource mix adds to 100
 
-## Appropriate number of digits for fuel specific input rates 
+## Appropriate number of digits for fuel specific input rates
 
 # Subregion File Only QA
 
-## Outlier check for emission rates 
+## Outlier check for emission rates
 
 # All file QA
 
-## Count of plants in generator, unit, and plant file are equivalent 
+## Count of plants in generator, unit, and plant file are equivalent
 
-## Sum of generation and emission equivalent between files 
+## Sum of generation and emission equivalent between files
