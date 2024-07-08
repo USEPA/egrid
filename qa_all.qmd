@@ -37,15 +37,46 @@ library(tidyr)
 library(readr) 
 library(readxl) 
 library(stringr)
+
 ```
 
 # Master Database
 
-*Need to check what file this is.*
+<!--# Need to check what files these are. -->
 
 ## Compare plants between EIA and CAMD
 
 Check if any plants are only in the CAMD data and not EIA data. These plants will be checked with EPA to see if there are any ORIS (plant ID) matches we should be making or if the plants should be deleted.
+
+<!--# Check if this is both EIA datasets or one. -->
+
+```{r}
+#| label: compare_eia_camd
+#| echo: false
+#| warning: false
+
+camd <- read_rds("data/clean_data/camd/camd_clean.RDS")
+eia_860 <- read_rds("data/clean_data/eia_860_clean.RDS") 
+eia_923 <- read_rds("data/clean_data/eia_923_clean.RDS")
+
+compare_plants <- 
+  camd %>% select(plant_id, plant_name) %>% distinct() %>% 
+  full_join(eia_860$combined %>% select(plant_id) %>% distinct() %>% 
+              mutate(eia_860_plant_id = plant_id), by = "plant_id") %>% 
+  full_join(eia_923$generation_and_fuel_combined %>% 
+              select(plant_id) %>% distinct() %>% 
+              mutate(eia_923_plant_id = plant_id), by = "plant_id")
+
+check_compare_plants <- 
+  compare_plants %>% 
+  filter(!is.na(plant_id) & is.na(eia_860_plant_id) & is.na(eia_923_plant_id))
+
+ifelse(nrow(check_compare_plants) == 0, "No plants in CAMD not in EIA.", 
+        glue::glue("{nrow(check_compare_plants)} plants in CAMD not in EIA."))
+
+knitr::kable(check_compare_plants %>% select(plant_id, plant_name))
+
+```
 
 ## Biomass units added table
 
@@ -81,7 +112,7 @@ generator_file <- read_rds("data/outputs/generator_file.RDS")
 
 ## Retirement year to current data year
 
-*Is this for plants retired in current year?*
+<!--# Is this for plants retired in current year? -->
 
 ```{r}
 #| label: generator_retirement 
@@ -92,7 +123,10 @@ check_gen_retirement<-
   generator_file %>% filter(status == "RE" | !is.na(retirement_year))
 
 ifelse(nrow(check_gen_retirement) == 0, "No retirements to update.", 
-        glue::glue("{nrow(check_gen_retirement)} generators to update retirements."))
+       glue::glue("{nrow(check_gen_retirement)} generators to update retirements."))
+
+knitr::kable(check_gen_retirement %>% select(plant_id, generator_id, plant_name))
+
 ```
 
 ## Duplicate generators
@@ -109,8 +143,9 @@ check_gen_duplicates <-
   filter(n() > 1)
 
 ifelse(nrow(check_gen_duplicates) == 0, "No duplicates.", 
-        {glue::glue("{nrow(check_gen_duplicates)} generators are duplicated."); 
-          knitr::kable(check_gen_duplicates)})
+        glue::glue("{nrow(check_gen_duplicates)} generators are duplicated."))
+
+knitr::kable(check_gen_duplicates %>% select(plant_id, generator_id, plant_name))
 
 ```
 
@@ -118,7 +153,7 @@ ifelse(nrow(check_gen_duplicates) == 0, "No duplicates.",
 
 Check if there are any retired units that are not retired in the current year that have generation values.
 
-*Are units retired before this year included? Ask about this.*
+<!--# Are units retired before this year included? Ask about this. -->
 
 ```{r}
 #| label: generator_retired_gen 
@@ -130,8 +165,10 @@ check_gen_retirement_generation <-
   filter(status == "RE")
 
 ifelse(nrow(check_gen_retirement_generation == 0), "No retired units to udpate.", 
-        {glue::glue("{nrow(check_gen_duplicates)} retired units to be updated.");
-          knitr::kable(check_gen_retirement_generation %>% select(plant_name, plant_id, generator_id))})
+        glue::glue("{nrow(check_gen_duplicates)} retired units to be updated."))
+
+knitr::kable(check_gen_retirement_generation %>% 
+                         select(plant_name, plant_id, generator_id))
 
 ```
 
@@ -168,17 +205,18 @@ check_unit_fc_pm <-
   unit_file %>% filter(prmvr == "FC" & !is.na(co2an)) 
 
 ifelse(nrow(check_unit_fc_pm) == 0, "All CO2 values for FC prime mover are NA.", 
-        {glue::glue("{nrow(check_unit_fc_pm)} FC units have non-zero CO2 values."); 
-          knitr::kable(check_unit_fc_pm %>% select(plant_name, plant_id, unit_id))})
+        glue::glue("{nrow(check_unit_fc_pm)} FC units have non-zero CO2 values."))
+  
+knitr::kable(check_unit_fc_pm %>% select(plant_name, plant_id, unit_id))
 ```
 
 ## Retirement year to current year
 
 Update retirement year to current year for retired units.
 
-*Need clarification here.*
+<!--# Need clarification here. -->
 
-*Retirement year does not exist in unit file?*
+<!--# Retirement year does not exist in unit file? -->
 
 ```{r}
 #| label: unit_retirement_cur_year
@@ -186,10 +224,12 @@ Update retirement year to current year for retired units.
 #| warning: false
 
 check_unit_retirement<- 
-  unit_file %>% filter(status == "RE" | !is.na(retirement_year))
+  unit_file %>% filter(status == "RE")
 
-ifelse(nrow(check_unit_retirement) == 0, "No retirements to update.", 
-        glue::glue("{nrow(check_unit_retirement)} units to update retirements."))
+ifelse(nrow(check_unit_retirement) == 0, "No retirement years to update.", 
+        glue::glue("{nrow(check_unit_retirement)} units to update retirement year."))
+
+knitr::kable(check_unit_retirement %>% select(plant_name, plant_id, unit_id))
 
 ```
 
@@ -203,15 +243,44 @@ Check if any CAMD units that retired in current data year have heat input / emis
 #| warning: false
 
 check_unit_retired_values <- 
-  unit_files %>% filter(camdflag == "Yes" & status = "RE" & (htian > 0 | )
+  unit_file %>% filter(camdflag == "Yes" & status == "RE" & (htian > 0 | 
+                                                             htioz > 0 |
+                                                             noxan > 0 |
+                                                             noxoz > 0 |
+                                                             so2an > 0 |
+                                                             co2an > 0))
+
+ifelse(nrow(check_unit_retired_values) == 0, 
+       "No units that are retired and have positive heat input or emissions.", 
+        glue::glue("{nrow(check_unit_retirement)} units that are retired and 
+                   have positive heat input or emissions."))
+
+knitr::kable(check_unit_retired_values %>% select(plant_name, plant_id, unit_id))
 
 ```
 
-## CAMD ozone season reporter outliers 
+## CAMD ozone season reporter outliers
 
 Some CAMD units only report their ozone season emissions, so we try to gap fill the remaining months with EIA data. In the source columns, we have an option that states this (i.e. "EIA non-ozone season distributed and EPA/CAMD ozone season" for heat input and "Estimated using emissions factor and EIA data for non-ozone season and EPA/CAMD ozone season emissions" or "Estimated based on unit-level NOx emission rates and EPA/CAMD ozone season emissions" for annual NOx). We want to make sure that the NOx emissions we've assigned for these aren't extremely large outliers - especially compared to the ozone season values for NOx at the plant. So you'd filter the NOx source for these sources and then filter the NOx annual emissions from largest to smallest and see how those large ones compare to the ozone season NOx value. If super high we want to note that we need to look into that plant/unit.
 
-*Can we set a "super high" value? Do a stats test?*
+<!--# Can we set a "super high" value? Do a stats test? -->
+
+```{r}
+#| label: unit_nox_outliers
+#| echo: false
+#| warning: false
+
+check_unit_nox_outliers <- 
+  unit_file %>% 
+  filter(noxansrc %in% 
+           c("Estimated using emissions factor and EIA data for non-ozone season 
+             and EPA/CAMD ozone season emissions", 
+             "Estimated based on unit-level NOx emission rates and EPA/CAMD ozone season emissions")) %>% 
+  arrange(desc(noxan)) %>% select(plant_name, plant_id, unit_id, noxan, noxoz)
+
+knitr::kable(check_unit_nox_outliers)
+
+```
 
 ## Ozone emissions and heat input
 
@@ -227,15 +296,17 @@ check_unit_ozone <-
 
 ifelse(nrow(check_unit_ozone) == 0, 
        "All ozone emissions and heat input values are less than annual values.", 
-        {glue::glue("{nrow(check_unit_ozone)} units have heat input values greater than annual values."); 
-          knitr::kable(check_unit_fc_pm %>% selet(plant_name, plant_id, unit_id))})
+        glue::glue("{nrow(check_unit_ozone)} units have heat input values greater 
+                    than annual values.")) 
+
+knitr::kable(check_unit_ozone %>% select(plant_name, plant_id, unit_id))
 ```
 
 ## Positive annual heat input, missing ozone season for CAMD plants
 
 Check if units with a positive annual heat input are missing ozone season data.
 
-*Is this data for ozone season heat input?*
+<!--# Is this data for ozone season heat input? -->
 
 ```{r}
 #| label: unit_ozone_missing
@@ -247,8 +318,10 @@ check_unit_ozone_input <-
 
 ifelse(nrow(check_unit_ozone_input) == 0, 
        "All annual heat inputs have ozone heat inputs.", 
-        {glue::glue("{nrow(check_unit_ozone_input)} units have ."); 
-          knitr::kable(check_unit_fc_pm %>% selet(plant_name, plant_id, unit_id))})
+        glue::glue("{nrow(check_unit_ozone_input)} units have positive annual heat input with 
+                   missing ozone season  heat input."))
+
+knitr::kable(check_unit_ozone_input %>% select(plant_name, plant_id, unit_id))
 
 ```
 
@@ -266,26 +339,14 @@ check_unit_duplicates <-
   filter(n() > 1)
 
 ifelse(nrow(check_unit_duplicates) == 0, "No duplicates.", 
-        {glue::glue("{nrow(check_unit_duplicates)} units are duplicated."); 
-          knitr::kable(check_unit_duplicates)})
+        glue::glue("{nrow(check_unit_duplicates)} units are duplicated."))
 
+knitr::kable(check_unit_duplicates %>% select(plant_name, plant_id, unit_id))
 ```
 
 ## Negative emissions values
 
-Check if any emission values are negative.
-
-```{r}
-#| label: unit_negative_emissions
-#| echo: false
-#| warning: false
-
-
-```
-
-## Emissions from renewable fuels
-
-Check if there are positive emission values from renewable fuels. There should be zero. The emission values to check are:
+Check if any emission values are negative. The emissions to check are:
 
 -   unadjusted annual NOx
 
@@ -298,11 +359,55 @@ Check if there are positive emission values from renewable fuels. There should b
 -   unadjusted annual Hg
 
 ```{r}
-#| label: unit_renewable_emissions
+#| label: unit_negative_emissions
 #| echo: false
 #| warning: false
 
+check_unit_negative_emissions <- 
+  unit_file %>% filter(noxan < 0 |
+                       noxoz < 0 |
+                       so2an < 0 |
+                       co2an < 0 |
+                       hgan < 0)
 
+ifelse(nrow(check_unit_negative_emissions) == 0, "No negative emissions.", 
+        glue::glue("{nrow(check_unit_negative_emissions)} units have negative emissions."))
+
+knitr::kable(check_unit_negative_emissions %>% select(plant_name, plant_id, unit_id, noxan, noxoz, so2an, co2an))
+```
+
+## Emissions from zero emission fuels
+
+Check if there are positive emission values from zero-emission fuels. There should be zero. The emission values to check are:
+
+-   unadjusted annual NOx
+
+-   unadjusted ozone NOx
+
+-   unadjusted annual SO2
+
+-   unadjusted annual CO2
+
+-   unadjusted annual Hg
+
+```{r}
+#| label: unit_zero_emissions
+#| echo: false
+#| warning: false
+
+check_unit_zero_emissions <- 
+  unit_file %>% filter(fuelu1 %in% c("WAT", "WND", "SUN", "NUC") & 
+                         (!is.na(noxan) | noxan > 0 |
+                         !is.na(noxoz) | noxoz > 0 |
+                         !is.na(so2an) | so2an > 0 |
+                         !is.na(co2an) | co2an > 0 |
+                         !is.na(hgan) | hgan > 0)) 
+
+ifelse(nrow(check_unit_zero_emissions) == 0, "No positive emissions for zero emissions technologies.", 
+        glue::glue("{nrow(check_zero_emissions)} zero emission units have positive emissions."))
+
+knitr::kable(check_unit_zero_emissions %>% select(plant_name, plant_id, unit_id, fuelu1, 
+                                                  noxan, noxoz, so2an, co2an, hgan))
 ```
 
 ## Primary fuel blanks
@@ -314,23 +419,36 @@ Check if any primary fuel rows are blank.
 #| echo: false
 #| warning: false
 
+check_unit_primary_fuel <- 
+  unit_file %>% filter(is.na(fuelu1))
+
+ifelse(nrow(check_unit_primary_fuel) == 0, "No units have blank primary fuels.", 
+        glue::glue("{nrow(check_unit_primary_fuel)} units have blank primary fuels."))
+
+knitr::kable(check_unit_primary_fuel %>% select(plant_name, plant_id, unit_id, fuelu1, htian, htioz))
 
 ```
 
 ## Check CAMD flag and program code
 
-Check if units with a CAMD flag have a program code. Columns: PRGCODE and CAMDFLAG.
+Check if units with a CAMD flag have no program code. Columns: PRGCODE and CAMDFLAG.
 
 ```{r}
 #| label: unit_camd_flag
 #| echo: false
 #| warning: false
 
+check_unit_program_code <- 
+  unit_file %>% filter(camdflag == "Yes" & is.na(prgcode))
 
+ifelse(nrow(check_unit_program_code) == 0, "All CAMD flags have a program code.", 
+        glue::glue("{nrow(check_unit_program_code)} units have CAMD flag but no program code."))
+
+knitr::kable(check_unit_program_code %>% select(plant_name, plant_id, unit_id))
 
 ```
 
-## Emissions without heat input 
+## Emissions without heat input
 
 Check if any units that have emission values are missing heat input values.
 
@@ -339,40 +457,93 @@ Check if any units that have emission values are missing heat input values.
 #| echo: false
 #| warning: false
 
+check_unit_heat_input <- 
+  unit_file %>% filter((noxan > 0 | noxoz > 0 | so2an > 0 | co2an > 0 | hgan > 0) &
+                       (is.na(htian) | is.na(htioz)))
 
+ifelse(nrow(check_unit_heat_input) == 0, "All units with emissions have heat input values.", 
+        glue::glue("{nrow(check_unit_heat_input)} units with emissions are missing heat input values."))
+
+knitr::kable(check_unit_heat_input %>% select(plant_name, plant_id, unit_id, htian, htioz, 
+                                              noxan, noxoz, so2an, co2an, hgan))
 
 ```
 
-## Heat input without emissions 
+## Heat input without emissions
 
 Check if any units have heat input values are missing emission values.
+
+<!--# Can some units have only some emission types? Should "WH" and "PUR" be included? -->
 
 ```{r}
 #| label: unit_emissions_missing
 #| echo: false
 #| warning: false
 
+check_unit_emissions <- 
+  unit_file %>% filter((!(fuelu1 %in% c("WAT", "WND", "SUN", "NUC", "MWH"))) & 
+                       (!(prmvr == "FC")) & 
+                       (is.na(noxan) & is.na(noxoz) & is.na(so2an) & is.na(co2an)) &
+                       (htian > 0 | htioz > 0))
 
+ifelse(nrow(check_unit_emissions) == 0, "All units with heat inputs have emission values.", 
+        glue::glue("{nrow(check_unit_emissions)} units with heat inputs are missing emission values."))
+
+knitr::kable(check_unit_emissions %>% select(plant_name, plant_id, unit_id, fuelu1, prmvr, 
+                                             htian, htioz, noxan, noxoz, so2an, co2an, hgan))
 
 ```
 
 ## Blanks in heat input and emissions
 
+Check if units have blanks in heat input and emissions.
+
+<!--# which emissions are included here? -->
+
+```{r}
+#| label: unit_blanks
+#| echo: false
+#| warning: false
+
+check_unit_blanks <- 
+  unit_file %>% filter(is.na(htian) | is.na(htioz) | is.na(noxan) | is.na(noxoz) | is.na(so2an) | 
+                         is.na(co2an) | is.na(hgan))
+
+```
+
 ## Positive NOx, missing SO2
 
-# Plant File QA 
+Check if units have positive NOx values and missing SO2 values.
 
-## Difference in latitude and longitude 
+```{r}
+#| label: unit_nox_so2
+#| echo: false
+#| warning: false
+
+check_unit_nox_so2 <- 
+  unit_file %>% filter((noxan > 0) & (is.na(so2an) | so2an == 0))
+
+ifelse(nrow(check_unit_nox_so2) == 0, "All units with positive NOx values have positive SO2 values.", 
+        glue::glue("{nrow(check_unit_emissions)} units with positive NOx values have NA or 0 SO2 values."))
+
+knitr::kable(check_unit_nox_so2 %>% select(plant_name, plant_id, unit_id, fuelu1, prmvr, 
+                                             noxan, noxoz, so2an))
+
+```
+
+# Plant File QA
+
+## Difference in latitude and longitude
 
 Check if plants have a difference in longitude and latitude in comparison to previous year data. This is checked to three decimal points.
 
-## Facilities that change CHP status from previous year 
+## Facilities that change CHP status from previous year
 
-## Mislabeled subregions 
+## Mislabeled subregions
 
 look at plants on map to see if any outliers in subregions and fix accordingly
 
-## FC prime mover 
+## FC prime mover
 
 FC prime mover should have no (NA) values for:
 
@@ -392,50 +563,50 @@ FC prime mover should have no (NA) values for:
 
     ```
 
-## Biomass adjustment emissions 
+## Biomass adjustment emissions
 
 # adjusted emissions not greater than unadjusted emissions
 
-## Ozone emissions and heat input check --------
+## Ozone emissions and heat input check 
 
 # ozone emissions and heat input not greater than annual emissions
 
-## No duplicate plants -------
+## No duplicate plants
 
-## Negative emission values ------
+## Negative emission values 
 
-## Emission rate outliers --------
+## Emission rate outliers 
 
-## Capacity factor \> 1 --------
+## Capacity factor \> 1 
 
-## Electric allocation factor \> 1 or \< 0 --------
+## Electric allocation factor \> 1 or \< 0
 
-## Blank subregions --------
+## Blank subregions 
 
-## NB factor \> 1 or \< 0 -----------
+## NB factor \> 1 or \< 0 
 
-## Blank primary fuel --------
+## Blank primary fuel 
 
-## Primary fuel category == primary fuel ----------
+## Primary fuel category == primary fuel 
 
-## Emissions without heat input --------
+## Emissions without heat input 
 
-## Resource mix adds to 100 -------
+## Resource mix adds to 100 
 
-# Subregion, state, BA, NERC File QA ---------
+# Subregion, state, BA, NERC File QA 
 
-## No duplicates ---------
+## No duplicates 
 
-## Resource mix adds to 100 -----------
+## Resource mix adds to 100 
 
-## Appropriate number of digits for fuel specific input rates --------
+## Appropriate number of digits for fuel specific input rates 
 
-# Subregion File Only QA -----------
+# Subregion File Only QA
 
-## Outlier check for emission rates ---------
+## Outlier check for emission rates 
 
-# All file QA ---------
+# All file QA
 
-## Count of plants in generator, unit, and plant file are equivalent --------
+## Count of plants in generator, unit, and plant file are equivalent 
 
-## Sum of generation and emission equivalent between files --------
+## Sum of generation and emission equivalent between files 
