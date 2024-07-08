@@ -1,0 +1,1654 @@
+---
+title: "QA"
+format: 
+  html: 
+    toc: true
+editor: visual
+---
+
+```{r}
+#| label: load_libraries
+#| warning: False
+#| echo: False
+
+library(ggplot2)
+library(dplyr)
+library(kableExtra)
+
+```
+
+This file compares the final output of eGRID to previous year outputs.
+
+```{r}
+#| label: read_qa_file
+#| file: "scripts/qa_egrid_annual_comparison.R"
+#| warning: False
+#| echo: False
+```
+
+# Rate comparison
+
+Compare emission rates from 2019 to 2022 and percent change from 2021 to 2022.
+
+## Output emission rate comparison
+
+::: panel-tabset
+### NOx output rate
+
+```{r}
+#| label: nox_output_rate
+#| echo: False
+#| warning: False
+
+nox_output <- 
+  egrid_rate_comparison %>% select(sub_region, contains("nox_output"), generation_notes)
+
+knitr::kable(nox_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes')) 
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = nox_output_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("NOx output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+
+```
+
+### NOx ozone output rate
+
+```{r}
+#| label: nox_oz_output_rate
+#| echo: False
+#| warning: False
+
+nox_oz_output <- 
+  egrid_rate_comparison %>% select(sub_region, contains("nox_oz_output"), generation_notes)
+
+knitr::kable(nox_oz_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = nox_oz_output_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("NOx ozone output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### SO2 output rate
+
+```{r}
+#| label: so2_output_rate
+#| echo: False
+#| warning: False
+
+so2_output <- 
+  egrid_rate_comparison %>% select(sub_region, contains("so2_output"), generation_notes)
+
+knitr::kable(so2_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = so2_output_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("SO2 output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### CO2 output rate
+
+```{r}
+#| label: co2_output_rate
+#| echo: False
+#| warning: False
+
+co2_output <- 
+  egrid_rate_comparison %>% select(sub_region, contains("co2_output"), generation_notes)
+
+knitr::kable(co2_output,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = co2_output_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("CO2 output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### CH4 output rate
+
+```{r}
+#| label: ch4_output_rate
+#| echo: False
+#| warning: False
+
+ch4_output <- 
+  egrid_rate_comparison %>% select(sub_region, contains("ch4_output"), generation_notes)
+
+knitr::kable(ch4_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = ch4_output_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("CH4 output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### N2O output rate
+
+```{r}
+#| label: n2o_output_rate
+#| echo: False
+#| warning: False
+
+n2o_output <- 
+  egrid_rate_comparison %>% select(sub_region, contains("n2o_output"), generation_notes)
+
+knitr::kable(n2o_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes')) 
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = n2o_output_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("N2O output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### CO2e output rate
+
+```{r}
+#| label: co2e_output_rate
+#| echo: False
+#| warning: False
+
+co2e_output <- 
+  egrid_rate_comparison %>% select(sub_region, contains("co2e_output"), generation_notes)
+
+knitr::kable(co2e_output,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = co2e_output_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("CO2e output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+:::
+
+## Input emission rate comparison
+
+::: panel-tabset
+### NOx input rate
+
+```{r}
+#| label: nox_input_rate
+#| echo: False
+#| warning: False
+
+nox_input <- 
+  egrid_rate_comparison %>% select(sub_region, contains("nox_input"), generation_notes)
+
+knitr::kable(nox_input,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = nox_input_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("NOx input rate (lb/MMBtu)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### NOx ozone input rate
+
+```{r}
+#| label: nox_input_oz_rate
+#| echo: False
+#| warning: False
+
+nox_oz_input <- 
+  egrid_rate_comparison %>% select(sub_region, contains("nox_oz_input"), generation_notes)
+
+knitr::kable(nox_oz_input,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = nox_oz_input_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("NOx ozone input rate (lb/MMBtu)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### SO2 input rate
+
+```{r}
+#| label: so2_input_rate
+#| echo: False
+#| warning: False
+
+so2_input <- 
+  egrid_rate_comparison %>% select(sub_region, contains("so2_input"), generation_notes)
+
+knitr::kable(so2_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes')) 
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = so2_input_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("SO2 input rate (lb/MMBtu)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### CO2 input rate
+
+```{r}
+#| label: co2_input_rate
+#| echo: False
+#| warning: False
+
+co2_input <- 
+  egrid_rate_comparison %>% select(sub_region, contains("co2_input"), generation_notes)
+
+knitr::kable(co2_input,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = co2_input_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("CO2 input rate (lb/MMBtu)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### CH4 input rate
+
+```{r}
+#| label: ch4_input_rate
+#| echo: False
+#| warning: False
+
+ch4_output <- 
+  egrid_rate_comparison %>% select(sub_region, contains("ch4_output"), generation_notes)
+
+knitr::kable(ch4_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = ch4_input_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("CH4 input rate (lb/MMBtu)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### N2O input rate
+
+```{r}
+#| label: n2o_input_rate
+#| echo: False
+#| warning: False
+
+n2o_input <- 
+  egrid_rate_comparison %>% select(sub_region, contains("n2o_input"), generation_notes)
+
+knitr::kable(n2o_input,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = n2o_input_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("N2O input rate (lb/MMBtu)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### CO2e input rate
+
+```{r}
+#| label: co2e_input_rate
+#| echo: False
+#| warning: False
+
+co2e_input <- 
+  egrid_rate_comparison %>% select(sub_region, contains("co2e_input"), generation_notes)
+
+knitr::kable(co2e_input,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = co2e_input_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("CO2e input rate (lb/MMBtu)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+:::
+
+## Combustion output emission rate comparison
+
+::: panel-tabset
+### NOx combustion output rate
+
+```{r}
+#| label: nox_combustion_rate
+#| echo: False
+#| warning: False
+
+nox_combustion <- 
+  egrid_rate_comparison %>% select(sub_region, contains("nox_combustion"), generation_notes)
+
+knitr::kable(nox_combustion,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes')) 
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = nox_combustion_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("NOx combustion output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### NOx ozone combustion output rate
+
+```{r}
+#| label: nox_oz_combustion_rate
+#| echo: False
+#| warning: False
+
+nox_oz_combustion <- 
+  egrid_rate_comparison %>% select(sub_region, contains("nox_oz_combustion"), generation_notes)
+
+knitr::kable(nox_oz_combustion,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = nox_oz_combustion_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("NOx ozone combustion output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### SO2 combustion output rate
+
+```{r}
+#| label: so2_combustion_rate
+#| echo: False
+#| warning: False
+
+so2_combustion <- 
+  egrid_rate_comparison %>% select(sub_region, contains("so2_combustion"), generation_notes)
+
+knitr::kable(so2_combustion,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = so2_combustion_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("SO2 combustion output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### CO2 combustion output rate
+
+```{r}
+#| label: co2_combustion_rate
+#| echo: False
+#| warning: False
+
+co2_combustion <- 
+  egrid_rate_comparison %>% select(sub_region, contains("co2_combustion"), generation_notes)
+
+knitr::kable(co2_combustion,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = co2_combustion_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("CO2 combustion output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### CH4 combustion output rate
+
+```{r}
+#| label: ch4_combustion_rate
+#| echo: False
+#| warning: False
+
+ch4_combustion <- 
+  egrid_rate_comparison %>% select(sub_region, contains("ch4_combustion"), generation_notes)
+
+knitr::kable(ch4_combustion,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = ch4_combustion_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("CH4 combustion output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### N2O combustion output rate
+
+```{r}
+#| label: n2o_combustion_rate
+#| echo: False
+#| warning: False
+
+n2o_combustion <- 
+  egrid_rate_comparison %>% select(sub_region, contains("n2o_combustion"), generation_notes)
+
+knitr::kable(n2o_combustion,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = n2o_combustion_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("N2O combustion output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+
+### CO2e combustion output rate
+
+```{r}
+#| label: co2e_combustion_rate
+#| echo: False
+#| warning: False
+
+co2e_combustion <- 
+  egrid_rate_comparison %>% select(sub_region, contains("co2e_combustion"), generation_notes)
+
+knitr::kable(co2e_combustion,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", "2019", "2020", "2021", "2022", 
+                                 "Percent change", 'Notes'))
+
+rate_comparison <- ggplot(egrid_comparison, aes(x = co2e_combustion_rate, 
+                                                y = sub_region, 
+                                                fill = year)) +
+                    geom_col(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    xlab("CO2e combustion output rate (lb/MWh)") + 
+                    ylab("eGRID Subregion") + 
+                    theme(text = element_text(size = 12)) 
+  
+plotly::ggplotly(rate_comparison)
+```
+:::
+
+# Resource mix comparison
+
+## US resource mix
+
+::: panel-tabset
+### US resource mix table
+
+```{r}
+#| label: US_resource_mix_table 
+#| echo: false 
+#| warning: false  
+
+knitr::kable(us_resource_mix_formatted,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(us_resource_mix_formatted))) %>%
+  row_spec(1, background = "#ffefd5") %>% 
+  column_spec(6,
+              background = case_when(us_resource_mix_formatted$percent_change 
+                                     > 0 ~ "#e9ffdb", 
+                                     us_resource_mix_formatted$percent_change 
+                                     == 0 ~ "#dcdcdc", 
+                                     us_resource_mix_formatted$percent_change 
+                                     < 0 ~ "#f7bfbe"), 
+              color = case_when(us_resource_mix_formatted$percent_change 
+                                > 0 ~ "#013220", 
+                                us_resource_mix_formatted$percent_change 
+                                == 0 ~ "#000000", 
+                                us_resource_mix_formatted$percent_change 
+                                < 0 ~ "#860111"))  
+  
+```
+
+### US resource mix figure
+
+```{r}
+#| label: US_resource_mix_figure
+#| echo: false 
+#| warning: false  
+
+resource_comparison <-    
+  ggplot(us_resource_mix, 
+         aes(x = energy_source_generation / 1000,               
+           y = reorder(energy_source, energy_source_generation), fill = year)) +
+  geom_col(stat = "identity",
+           width = 0.75,
+           position = "dodge") +   
+  xlab("Generation (GWh)") +    
+  ylab("Energy source") +    
+  theme(text = element_text(size = 12))     
+
+plotly::ggplotly(resource_comparison)
+```
+:::
+
+## eGRID subregion resource mix
+
+::: panel-tabset
+### AKGD
+
+```{r}
+#| label: AKGD_summary
+#| echo: false
+#| warning: false
+
+source("archive/function_region_summary.R")
+
+create_cap_table_egrid("AKGD", c("2021", "2022"))
+create_resource_table_egrid("AKGD", c("2021", "2022"))
+create_resource_plot_egrid("AKGD", c("2021", "2022"))
+```
+
+### AKMS
+
+```{r}
+#| label: AKMS_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("AKMS", c("2021", "2022"))
+create_resource_table_egrid("AKMS", c("2021", "2022"))
+create_resource_plot_egrid("AKMS", c("2021", "2022"))
+```
+
+### AZNM
+
+```{r}
+#| label: AZNM_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("AZNM", c("2021", "2022"))
+create_resource_table_egrid("AZNM", c("2021", "2022"))
+create_resource_plot_egrid("AKMS", c("2021", "2022"))
+```
+
+### CAMX
+
+```{r}
+#| label: CAMX_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("CAMX", c("2021", "2022"))
+create_resource_table_egrid("CAMX", c("2021", "2022"))
+create_resource_plot_egrid("CAMX", c("2021", "2022"))
+```
+
+### ERCT
+
+```{r}
+#| label: ERCT_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("ERCT", c("2021", "2022"))
+create_resource_table_egrid("ERCT", c("2021", "2022"))
+create_resource_plot_egrid("ERCT", c("2021", "2022"))
+```
+
+### FRCC
+
+```{r}
+#| label: FRCC_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("FRCC", c("2021", "2022"))
+create_resource_table_egrid("FRCC", c("2021", "2022"))
+create_resource_plot_egrid("FRCC", c("2021", "2022"))
+```
+
+### HIMS
+
+```{r}
+#| label: HIMS_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("HIMS", c("2021", "2022"))
+create_resource_table_egrid("HIMS", c("2021", "2022"))
+create_resource_plot_egrid("HIMS", c("2021", "2022"))
+```
+
+### HIOA
+
+```{r}
+#| label: HIOA_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("HIOA", c("2021", "2022"))
+create_resource_table_egrid("HIOA", c("2021", "2022"))
+create_resource_plot_egrid("HIOA", c("2021", "2022"))
+```
+
+### MROE
+
+```{r}
+#| label: MROE_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("MROE", c("2021", "2022"))
+create_resource_table_egrid("MROE", c("2021", "2022"))
+create_resource_plot_egrid("MROE", c("2021", "2022"))
+```
+
+### MROW
+
+```{r}
+#| label: MROW_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("MROW", c("2021", "2022"))
+create_resource_table_egrid("MROW", c("2021", "2022"))
+create_resource_plot_egrid("MROW", c("2021", "2022"))
+```
+
+### NEWE
+
+```{r}
+#| label: NEWE_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("NEWE", c("2021", "2022"))
+create_resource_table_egrid("NEWE", c("2021", "2022"))
+create_resource_plot_egrid("NEWE", c("2021", "2022"))
+```
+
+### NWPP
+
+```{r}
+#| label: NWPP_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("NWPP", c("2021", "2022"))
+create_resource_table_egrid("NWPP", c("2021", "2022"))
+create_resource_plot_egrid("NWPP", c("2021", "2022"))
+```
+
+### NYCW
+
+```{r}
+#| label: NYCW_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("NYCW", c("2021", "2022"))
+create_resource_table_egrid("NYCW", c("2021", "2022"))
+create_resource_plot_egrid("NYCW", c("2021", "2022"))
+```
+
+### NYLI
+
+```{r}
+#| label: NYLI_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("NYLI", c("2021", "2022"))
+create_resource_table_egrid("NYLI", c("2021", "2022"))
+create_resource_plot_egrid("NYLI", c("2021", "2022"))
+```
+
+### NYUP
+
+```{r}
+#| label: NYUP_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("NYUP", c("2021", "2022"))
+create_resource_table_egrid("NYUP", c("2021", "2022"))
+create_resource_plot_egrid("NYUP", c("2021", "2022"))
+```
+
+### PRMS
+
+```{r}
+#| label: PRMS_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("PRMS", c("2021", "2022"))
+create_resource_table_egrid("PRMS", c("2021", "2022"))
+create_resource_plot_egrid("PRMS", c("2021", "2022"))
+```
+
+### RFCE
+
+```{r}
+#| label: RFCE_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("RFCE", c("2021", "2022"))
+create_resource_table_egrid("RFCE", c("2021", "2022"))
+create_resource_plot_egrid("RFCE", c("2021", "2022"))
+```
+
+### RFCM
+
+```{r}
+#| label: RFCM_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("RFCM", c("2021", "2022"))
+create_resource_table_egrid("RFCM", c("2021", "2022"))
+create_resource_plot_egrid("RFCM", c("2021", "2022"))
+```
+
+### RFCW
+
+```{r}
+#| label: RFCW_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("RFCW", c("2021", "2022"))
+create_resource_table_egrid("RFCW", c("2021", "2022"))
+create_resource_plot_egrid("RFCW", c("2021", "2022"))
+```
+
+### RMPA
+
+```{r}
+#| label: RMPA_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("RMPA", c("2021", "2022"))
+create_resource_table_egrid("RMPA", c("2021", "2022"))
+create_resource_plot_egrid("RMPA", c("2021", "2022"))
+```
+
+### SPNO
+
+```{r}
+#| label: SPNO_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("SPNO", c("2021", "2022"))
+create_resource_table_egrid("SPNO", c("2021", "2022"))
+create_resource_plot_egrid("SPNO", c("2021", "2022"))
+```
+
+### SPSO
+
+```{r}
+#| label: SPSO_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("SPSO", c("2021", "2022"))
+create_resource_table_egrid("SPSO", c("2021", "2022"))
+create_resource_plot_egrid("SPSO", c("2021", "2022"))
+```
+
+### SRMV
+
+```{r}
+#| label: SRMV_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("SRMV", c("2021", "2022"))
+create_resource_table_egrid("SRMV", c("2021", "2022"))
+create_resource_plot_egrid("SRMV", c("2021", "2022"))
+```
+
+### SRSO
+
+```{r}
+#| label: SRSO_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("SRSO", c("2021", "2022"))
+create_resource_table_egrid("SRSO", c("2021", "2022"))
+create_resource_plot_egrid("SRSO", c("2021", "2022"))
+```
+
+### SRTV
+
+```{r}
+#| label: SRTV_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("SRTV", c("2021", "2022"))
+create_resource_table_egrid("SRTV", c("2021", "2022"))
+create_resource_plot_egrid("SRTV", c("2021", "2022"))
+```
+
+### SRVC
+
+```{r}
+#| label: SRVC_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_egrid("SRVC", c("2021", "2022"))
+create_resource_table_egrid("SRVC", c("2021", "2022"))
+create_resource_plot_egrid("SRVC", c("2021", "2022"))
+```
+:::
+
+## State resource mix
+
+::: panel-tabset
+### AK
+
+```{r}
+#| label: AK_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("AK", c("2021", "2022"))
+create_resource_table_state("AK", c("2021", "2022"))
+create_resource_plot_state("AK", c("2021", "2022"))
+```
+
+### AL
+
+```{r}
+#| label: AL_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("AL", c("2021", "2022"))
+create_resource_table_state("AL", c("2021", "2022"))
+create_resource_plot_state("AL", c("2021", "2022"))
+```
+
+### AR
+
+```{r}
+#| label: AR_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("AR", c("2021", "2022"))
+create_resource_table_state("AR", c("2021", "2022"))
+create_resource_plot_state("AR", c("2021", "2022"))
+```
+
+### AZ
+
+```{r}
+#| label: AZ_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("AZ", c("2021", "2022"))
+create_resource_table_state("AZ", c("2021", "2022"))
+create_resource_plot_state("AZ", c("2021", "2022"))
+```
+
+### CA
+
+```{r}
+#| label: CA_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("CA", c("2021", "2022"))
+create_resource_table_state("CA", c("2021", "2022"))
+create_resource_plot_state("CA", c("2021", "2022"))
+```
+
+### CO
+
+```{r}
+#| label: CO_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("CO", c("2021", "2022"))
+create_resource_table_state("CO", c("2021", "2022"))
+create_resource_plot_state("CO", c("2021", "2022"))
+```
+
+### CT
+
+```{r}
+#| label: CT_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("CT", c("2021", "2022"))
+create_resource_table_state("CT", c("2021", "2022"))
+create_resource_plot_state("CT", c("2021", "2022"))
+```
+
+### DC
+
+```{r}
+#| label: DC_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("DC", c("2021", "2022"))
+create_resource_table_state("DC", c("2021", "2022"))
+create_resource_plot_state("DC", c("2021", "2022"))
+```
+
+### DE
+
+```{r}
+#| label: DE_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("DE", c("2021", "2022"))
+create_resource_table_state("DE", c("2021", "2022"))
+create_resource_plot_state("DE", c("2021", "2022"))
+```
+
+### FL
+
+```{r}
+#| label: FL_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("FL", c("2021", "2022"))
+create_resource_table_state("FL", c("2021", "2022"))
+create_resource_plot_state("FL", c("2021", "2022"))
+```
+
+### GA
+
+```{r}
+#| label: GA_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("GA", c("2021", "2022"))
+create_resource_table_state("GA", c("2021", "2022"))
+create_resource_plot_state("GA", c("2021", "2022"))
+```
+
+### HI
+
+```{r}
+#| label: HI_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("HI", c("2021", "2022"))
+create_resource_table_state("HI", c("2021", "2022"))
+create_resource_plot_state("HI", c("2021", "2022"))
+```
+
+### IA
+
+```{r}
+#| label: IA_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("IA", c("2021", "2022"))
+create_resource_table_state("IA", c("2021", "2022"))
+create_resource_plot_state("IA", c("2021", "2022"))
+```
+
+### ID
+
+```{r}
+#| label: ID_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("ID", c("2021", "2022"))
+create_resource_table_state("ID", c("2021", "2022"))
+create_resource_plot_state("ID", c("2021", "2022"))
+```
+
+### IL
+
+```{r}
+#| label: IL_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("IL", c("2021", "2022"))
+create_resource_table_state("IL", c("2021", "2022"))
+create_resource_plot_state("IL", c("2021", "2022"))
+```
+
+### IN
+
+```{r}
+#| label: IN_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("IN", c("2021", "2022"))
+create_resource_table_state("IN", c("2021", "2022"))
+create_resource_plot_state("IN", c("2021", "2022"))
+```
+
+### KS
+
+```{r}
+#| label: KS_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("KS", c("2021", "2022"))
+create_resource_table_state("KS", c("2021", "2022"))
+create_resource_plot_state("KS", c("2021", "2022"))
+```
+
+### KY
+
+```{r}
+#| label: KY_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("KY", c("2021", "2022"))
+create_resource_table_state("KY", c("2021", "2022"))
+create_resource_plot_state("KY", c("2021", "2022"))
+```
+
+### LA
+
+```{r}
+#| label: LA_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("LA", c("2021", "2022"))
+create_resource_table_state("LA", c("2021", "2022"))
+create_resource_plot_state("LA", c("2021", "2022"))
+```
+
+### MA
+
+```{r}
+#| label: MA_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("MA", c("2021", "2022"))
+create_resource_table_state("MA", c("2021", "2022"))
+create_resource_plot_state("MA", c("2021", "2022"))
+```
+
+### MD
+
+```{r}
+#| label: MD_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("MD", c("2021", "2022"))
+create_resource_table_state("MD", c("2021", "2022"))
+create_resource_plot_state("MD", c("2021", "2022"))
+```
+
+### ME
+
+```{r}
+#| label: ME_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("ME", c("2021", "2022"))
+create_resource_table_state("ME", c("2021", "2022"))
+create_resource_plot_state("ME", c("2021", "2022"))
+```
+
+### MI
+
+```{r}
+#| label: MI_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("MI", c("2021", "2022"))
+create_resource_table_state("MI", c("2021", "2022"))
+create_resource_plot_state("MI", c("2021", "2022"))
+```
+
+### MN
+
+```{r}
+#| label: MN_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("MN", c("2021", "2022"))
+create_resource_table_state("MN", c("2021", "2022"))
+create_resource_plot_state("MN", c("2021", "2022"))
+```
+
+### MO
+
+```{r}
+#| label: MO_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("MO", c("2021", "2022"))
+create_resource_table_state("MO", c("2021", "2022"))
+create_resource_plot_state("MO", c("2021", "2022"))
+```
+
+### MS
+
+```{r}
+#| label: MS_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("MS", c("2021", "2022"))
+create_resource_table_state("MS", c("2021", "2022"))
+create_resource_plot_state("MS", c("2021", "2022"))
+```
+
+### MT
+
+```{r}
+#| label: MT_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("MT", c("2021", "2022"))
+create_resource_table_state("MT", c("2021", "2022"))
+create_resource_plot_state("MT", c("2021", "2022"))
+```
+
+### NC
+
+```{r}
+#| label: NC_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("NC", c("2021", "2022"))
+create_resource_table_state("NC", c("2021", "2022"))
+create_resource_plot_state("NC", c("2021", "2022"))
+```
+
+### ND
+
+```{r}
+#| label: ND_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("ND", c("2021", "2022"))
+create_resource_table_state("ND", c("2021", "2022"))
+create_resource_plot_state("ND", c("2021", "2022"))
+```
+
+### NE
+
+```{r}
+#| label: NE_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("NE", c("2021", "2022"))
+create_resource_table_state("NE", c("2021", "2022"))
+create_resource_plot_state("NE", c("2021", "2022"))
+```
+
+### NH
+
+```{r}
+#| label: NH_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("NH", c("2021", "2022"))
+create_resource_table_state("NH", c("2021", "2022"))
+create_resource_plot_state("NH", c("2021", "2022"))
+```
+
+### NJ
+
+```{r}
+#| label: NJ_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("NJ", c("2021", "2022"))
+create_resource_table_state("NJ", c("2021", "2022"))
+create_resource_plot_state("NJ", c("2021", "2022"))
+```
+
+### NM
+
+```{r}
+#| label: NM_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("NM", c("2021", "2022"))
+create_resource_table_state("NM", c("2021", "2022"))
+create_resource_plot_state("NM", c("2021", "2022"))
+```
+
+### NV
+
+```{r}
+#| label: NV_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("NV", c("2021", "2022"))
+create_resource_table_state("NV", c("2021", "2022"))
+create_resource_plot_state("NV", c("2021", "2022"))
+```
+
+### NY
+
+```{r}
+#| label: NY_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("NY", c("2021", "2022"))
+create_resource_table_state("NY", c("2021", "2022"))
+create_resource_plot_state("NY", c("2021", "2022"))
+```
+
+### OH
+
+```{r}
+#| label: OH_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("OH", c("2021", "2022"))
+create_resource_table_state("OH", c("2021", "2022"))
+create_resource_plot_state("OH", c("2021", "2022"))
+```
+
+### OK
+
+```{r}
+#| label: OK_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("OK", c("2021", "2022"))
+create_resource_table_state("OK", c("2021", "2022"))
+create_resource_plot_state("OK", c("2021", "2022"))
+```
+
+### OR
+
+```{r}
+#| label: OR_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("OR", c("2021", "2022"))
+create_resource_table_state("OR", c("2021", "2022"))
+create_resource_plot_state("OR", c("2021", "2022"))
+```
+
+### PA
+
+```{r}
+#| label: PA_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("PA", c("2021", "2022"))
+create_resource_table_state("PA", c("2021", "2022"))
+create_resource_plot_state("PA", c("2021", "2022"))
+```
+
+### PR
+
+```{r}
+#| label: PR_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("PR", c("2021", "2022"))
+create_resource_table_state("PR", c("2021", "2022"))
+create_resource_plot_state("PR", c("2021", "2022"))
+```
+
+### RI
+
+```{r}
+#| label: RI_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("RI", c("2021", "2022"))
+create_resource_table_state("RI", c("2021", "2022"))
+create_resource_plot_state("RI", c("2021", "2022"))
+```
+
+### SC
+
+```{r}
+#| label: SC_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("SC", c("2021", "2022"))
+create_resource_table_state("SC", c("2021", "2022"))
+create_resource_plot_state("SC", c("2021", "2022"))
+```
+
+### SD
+
+```{r}
+#| label: SD_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("SD", c("2021", "2022"))
+create_resource_table_state("SD", c("2021", "2022"))
+create_resource_plot_state("SD", c("2021", "2022"))
+```
+
+### TN
+
+```{r}
+#| label: TN_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("TN", c("2021", "2022"))
+create_resource_table_state("TN", c("2021", "2022"))
+create_resource_plot_state("TN", c("2021", "2022"))
+```
+
+### TX
+
+```{r}
+#| label: TX_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("TX", c("2021", "2022"))
+create_resource_table_state("TX", c("2021", "2022"))
+create_resource_plot_state("TX", c("2021", "2022"))
+```
+
+### UT
+
+```{r}
+#| label: UT_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("UT", c("2021", "2022"))
+create_resource_table_state("UT", c("2021", "2022"))
+create_resource_plot_state("UT", c("2021", "2022"))
+```
+
+### VA
+
+```{r}
+#| label: VA_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("VA", c("2021", "2022"))
+create_resource_table_state("VA", c("2021", "2022"))
+create_resource_plot_state("VA", c("2021", "2022"))
+```
+
+### VT
+
+```{r}
+#| label: VT_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("VT", c("2021", "2022"))
+create_resource_table_state("VT", c("2021", "2022"))
+create_resource_plot_state("VT", c("2021", "2022"))
+```
+
+### WA
+
+```{r}
+#| label: WA_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("WA", c("2021", "2022"))
+create_resource_table_state("WA", c("2021", "2022"))
+create_resource_plot_state("WA", c("2021", "2022"))
+```
+
+### WI
+
+```{r}
+#| label: WI_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("WI", c("2021", "2022"))
+create_resource_table_state("WI", c("2021", "2022"))
+create_resource_plot_state("WI", c("2021", "2022"))
+```
+
+### WV
+
+```{r}
+#| label: WV_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("WV", c("2021", "2022"))
+create_resource_table_state("WV", c("2021", "2022"))
+create_resource_plot_state("WV", c("2021", "2022"))
+```
+
+### WY
+
+```{r}
+#| label: WY_summary
+#| echo: false
+#| warning: false
+
+create_cap_table_state("WY", c("2021", "2022"))
+create_resource_table_state("WY", c("2021", "2022"))
+create_resource_plot_state("WY", c("2021", "2022"))
+```
+:::
