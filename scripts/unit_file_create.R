@@ -1225,13 +1225,13 @@ nox_rates_oz <- nox_rates_2 %>%
   inner_join(all_units_6 %>%
                select(plant_id, unit_id, prime_mover, heat_input_oz)) %>%
   mutate(nox_mass_oz = (nox_oz_rate*heat_input_oz)/2000,
-         nox_source = "Estimated based on unit-level NOx ozone season emission rates") %>%
+         nox_oz_source = "Estimated based on unit-level NOx ozone season emission rates") %>%
   select(-c(nox_rate, nox_oz_rate))
 
 nox_emissions_rates <- 
   all_units_6 %>%
   rows_patch(nox_rates_ann,
-            by = c("plant_id", "unit_id", "prime_mover"), ## Error with this part of the script as there are duplicates in all_units_6
+            by = c("plant_id", "unit_id", "prime_mover"), ## Joining by prime_mover because there are duplicate plant_id/unit_id combinations
             unmatched = "ignore") %>%
   rows_patch(nox_rates_oz, 
              by = c("plant_id", "unit_id", "prime_mover"),
