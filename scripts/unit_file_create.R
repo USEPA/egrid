@@ -37,6 +37,7 @@ camd_vars_to_keep <-
     "heat_input_source",
     "heat_input_oz_source",
     "nox_source",
+    "nox_oz_source",
     "so2_source",
     "co2_source",
     "hg_source",
@@ -49,7 +50,7 @@ camd_vars_to_keep <-
 
 
 camd <- 
-  read_rds("data/clean_data/camd/camd_clean.RDS") %>%
+  read_rds("data/clean_data/camd/camd_clean.RDS") %>% 
   select(all_of(camd_vars_to_keep)) # keeping only necessary variables
 
 ## eia ------------
