@@ -1237,6 +1237,44 @@ nox_emissions_rates <-
              by = c("plant_id", "unit_id", "prime_mover"),
              unmatched = "ignore")
 
+## NOx emissions - emissions factor -----
+
+## estimating NOx annual emissions with EF
+nox_emissions_factor <-
+  units_estimated_fuel %>% 
+  left_join(emission_factors %>%
+              select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_unit_flag, unit_flag), 
+            by = c("prime_mover",
+                   "botfirty",
+                   "primary_fuel_type")) %>%
+  group_by(plant_id, unit_id) %>%
+  mutate(nox_mass = (fuel_consumption*nox_ef)/2000) %>%
+  select(plant_id,
+         unit_id,
+         nox_mass) %>% 
+  filter(nox_mass > 0) %>% 
+  mutate(nox_source = "Estimated using emissions factor")
+
+## estimating NOx ozone emissions with EF
+
+nox_oz_emissions_factor <- 
+  units_estimated_fuel %>% 
+  left_join(emission_factors %>%
+              select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_unit_flag, unit_flag), 
+            by = c("prime_mover",
+                   "botfirty",
+                   "primary_fuel_type")) %>%
+  group_by(plant_id, unit_id) %>%
+  mutate(nox_mass_oz = (fuel_consumption_oz*nox_ef)/2000) %>%
+  select(plant_id,
+         unit_id,
+         nox_mass_oz) %>% 
+  filter(nox_mass_oz > 0) %>% 
+  mutate(nox_oz_source = "Estimated using emissions factor")
+
+
+  
+
 
 # Final modifications -----  
 
