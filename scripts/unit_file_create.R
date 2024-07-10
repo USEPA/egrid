@@ -1239,7 +1239,7 @@ nox_emissions_rates <-
 
 ## NOx emissions - emissions factor -----
 
-## estimating NOx annual emissions with EF
+### estimating NOx annual emissions with EF --------
 nox_emissions_factor <-
   units_estimated_fuel %>% 
   left_join(emission_factors %>%
@@ -1255,7 +1255,7 @@ nox_emissions_factor <-
   filter(nox_mass > 0) %>% 
   mutate(nox_source = "Estimated using emissions factor")
 
-## estimating NOx ozone emissions with EF
+### estimating NOx ozone emissions with EF --------
 
 nox_oz_emissions_factor <- 
   units_estimated_fuel %>% 
@@ -1271,6 +1271,51 @@ nox_oz_emissions_factor <-
          nox_mass_oz) %>% 
   filter(nox_mass_oz > 0) %>% 
   mutate(nox_oz_source = "Estimated using emissions factor")
+
+### estimating NOx annual emissions with heat input --------
+nox_emissions_heat_input <- nox_emissions_rates %>%
+  left_join(emission_factors %>%
+              select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_unit_flag, unit_flag), 
+            by = c("prime_mover",
+                   "botfirty",
+                   "primary_fuel_type")) %>%
+  select(plant_id, unit_id, heat_input, nox_ef) %>%
+  mutate(nox_mass = (heat_input*nox_ef)/2000,
+         nox_source = "Estimated using emissions factor") %>%
+  select(plant_id,
+         unit_id,
+         nox_mass,
+         nox_source)
+
+### estimating NOx ozone emissions with heat input --------
+nox_oz_emissions_heat_input <- nox_emissions_rates %>%
+  left_join(emission_factors %>%
+              select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_unit_flag, unit_flag), 
+            by = c("prime_mover",
+                   "botfirty",
+                   "primary_fuel_type")) %>%
+  select(plant_id, unit_id, heat_input_oz, nox_ef) %>%
+  mutate(nox_mass_oz = (heat_input_oz*nox_ef)/2000,
+         nox_oz_source = "Estimated using emissions factor") %>%
+  select(plant_id,
+         unit_id,
+         nox_mass_oz,
+         nox_oz_source)
+
+### Updating units with estimating NOx --------
+all_units_nox_updates <- nox_emissions_rates %>%
+  rows_patch(nox_emissions_factor,
+             by = c("plant_id", "unit_id"),
+             unmatched = "ignore") %>%
+  rows_patch(nox_oz_emissions_factor, 
+             by = c("plant_id", "unit_id"),
+             unmatched = "ignore") %>%
+  rows_patch(nox_emissions_heat_input,
+             by = c("plant_id", "unit_id"),
+             unmatched = "ignore") %>%
+  rows_patch(nox_oz_emissions_heat_input,
+             by = c("plant_id", "unit_id"),
+             unmatched = "ignore") ### Getting a duplicate error when running this code
 
 
   
