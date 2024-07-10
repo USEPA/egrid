@@ -216,7 +216,7 @@ Update retirement year to current year for retired units.
 
 <!--# Need clarification here. -->
 
-<!--# Retirement year does not exist in unit file? -->
+<!--# Retirement year column does not exist in unit file? -->
 
 ```{r}
 #| label: unit_retirement_cur_year
@@ -461,8 +461,10 @@ check_unit_heat_input <-
   unit_file %>% filter((noxan > 0 | noxoz > 0 | so2an > 0 | co2an > 0 | hgan > 0) &
                        (is.na(htian) | is.na(htioz)))
 
-ifelse(nrow(check_unit_heat_input) == 0, "All units with emissions have heat input values.", 
-        glue::glue("{nrow(check_unit_heat_input)} units with emissions are missing heat input values."))
+ifelse(nrow(check_unit_heat_input) == 0, "All units with emissions have 
+       heat input values.", 
+        glue::glue("{nrow(check_unit_heat_input)} units with emissions are 
+                   missing heat input values."))
 
 knitr::kable(check_unit_heat_input %>% select(plant_name, plant_id, unit_id, htian, htioz, 
                                               noxan, noxoz, so2an, co2an, hgan))
@@ -486,8 +488,10 @@ check_unit_emissions <-
                        (is.na(noxan) & is.na(noxoz) & is.na(so2an) & is.na(co2an)) &
                        (htian > 0 | htioz > 0))
 
-ifelse(nrow(check_unit_emissions) == 0, "All units with heat inputs have emission values.", 
-        glue::glue("{nrow(check_unit_emissions)} units with heat inputs are missing emission values."))
+ifelse(nrow(check_unit_emissions) == 0, "All units with heat inputs 
+       have emission values.", 
+        glue::glue("{nrow(check_unit_emissions)} units with heat inputs 
+                   are missing emission values."))
 
 knitr::kable(check_unit_emissions %>% select(plant_name, plant_id, unit_id, fuelu1, prmvr, 
                                              htian, htioz, noxan, noxoz, so2an, co2an, hgan))
@@ -523,11 +527,13 @@ Check if units have positive NOx values and missing SO2 values.
 check_unit_nox_so2 <- 
   unit_file %>% filter((noxan > 0) & (is.na(so2an) | so2an == 0))
 
-ifelse(nrow(check_unit_nox_so2) == 0, "All units with positive NOx values have positive SO2 values.", 
-        glue::glue("{nrow(check_unit_emissions)} units with positive NOx values have NA or 0 SO2 values."))
+ifelse(nrow(check_unit_nox_so2) == 0, "All units with positive NOx values 
+       have positive SO2 values.", 
+       glue::glue("{nrow(check_unit_emissions)} units with positive NOx values 
+                   have NA or 0 SO2 values."))
 
-knitr::kable(check_unit_nox_so2 %>% select(plant_name, plant_id, unit_id, fuelu1, prmvr, 
-                                             noxan, noxoz, so2an))
+knitr::kable(check_unit_nox_so2 %>% select(plant_name, plant_id, unit_id, fuelu1, 
+                                           prmvr, noxan, noxoz, so2an))
 
 ```
 
@@ -551,7 +557,8 @@ plant_file_prev <- read_excel("archive/egrid2020_data.xlsx",
               rename("plant_id" = "orispl", 
                      "plant_name" = "pname", 
                      "lat_prev" = "lat", 
-                     "lon_prev" = "lon")
+                     "lon_prev" = "lon", 
+                     "chpflag_prev" = "chpflag")
 
 ```
 
@@ -570,19 +577,208 @@ plant_file_lat_lon <-
             by = "plant_id") %>% 
   mutate(across(where(is.numeric), round, 3))
 
-check_plant_lat_long <- 
+check_plant_lat_lon <- 
   plant_file_lat_lon %>% mutate(lat_diff = abs(lat) - abs(lat_prev), 
                                 lon_diff = abs(lon) - abs(lon_prev)) %>% 
   filter(!(lat_diff == 0) | !(lon_diff == 0) | is.na(lat) | is.na(lon))
+
+ifelse(nrow(check_plant_lat_lon) == 0, "All plants have the same lat/lon as 
+       previous year.", 
+        glue::glue("{nrow(check_plant_lat_lon)} plants have different lat/lon than last year."))
   
+knitr::kable(check_plant_lat_lon %>% select(plant_id, lat, lat_prev, lat_diff,
+                                            lon, lon_prev, lon_diff))
 
 ```
 
-## Facilities that change CHP status from previous year
+## CHP status change
+
+Check if CHP status has changed from previous year.
+
+```{r}
+#| label: plant_chp_flag
+#| echo: false
+#| warning: false
+
+plant_chp_flag <- 
+  plant_file %>% 
+  left_join(plant_file_prev, by = c("plant_id")) %>% 
+  mutate(chp_comparison = ifelse(chpflag == chpflag_prev, "Same", 
+                                 "Changed"))
+  
+check_plant_chp_flag <- 
+  plant_chp_flag %>% filter(chp_comparison == "Changed")
+  
+
+ifelse(nrow(check_plant_chp_flag) == 0, "No CHP flags are different", 
+        glue::glue("{nrow(check_plant_chp_flag)} plants have different CHP flags than last year."))
+
+knitr::kable(check_plant_chp_flag %>% select(plant_id, chpflag, chpflag_prev))
+
+```
 
 ## Mislabeled subregions
 
-look at plants on map to see if any outliers in subregions and fix accordingly
+Map plants for each region and fix accordingly if needed.
+
+Load in shapefile
+
+```{r}
+#| label: load_subregion_shapefile 
+#| echo: false 
+#| warning: false
+
+sbrgn_shp <- sf::st_read("archive/egrid2021_subregions_shapefile/eGRID2021 Subregions Shapefile final.shp") %>% drop_na() %>% rename("subregion" = "SUBRGN") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+multi_sbrgn_shp <- sf::st_read("archive/egrid2021_multiple_subregions_shapefile/eGRID2021 Multiple Subregions Shapefile final.shp") %>% 
+  drop_na() %>% 
+  rename("subregion" = "SUBRGN") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+# plot subregions
+#ggplot2::ggplot(sbrgn_shp[1]) + 
+#  ggplot2::geom_sf() + 
+#  ggplot2::coord_sf(xlim = c(-166, -67), ylim = c(19, 71))
+
+sf::sf_use_s2(FALSE)
+
+```
+
+Check if plant locations are in regions.
+
+::: panel-tabset
+### AKGD
+
+```{r}
+#| label: AKGD_map 
+#| echo: false 
+#| warning: false  
+
+AKGD_plants <- plant_file %>% filter(subrgn == "AKGD") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") 
+
+AKGD_shp <- sbrgn_shp %>% filter(subregion == "AKGD")
+AKGD_multi <- multi_sbrgn_shp %>% filter(subregion == "AKGD")
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) + 
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = AKGD_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(AKGD_plants)[1] - 5, 
+                             sf::st_bbox(AKGD_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(AKGD_plants)[2] - 5, 
+                             sf::st_bbox(AKGD_plants)[4] + 5), 
+                    expand = TRUE) 
+
+# this may not be necessary, and we need to include the multi files
+AKGD_plants <- 
+  AKGD_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(AKGD_plants, AKGD_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(AKGD_plants %>% filter(in_region_check == FALSE)) 
+
+```
+
+### AKMS
+
+```{r}
+#| label: AKMS_summary 
+#| echo: false 
+#| warning: false  
+
+AKMS_plants <- plant_file %>% filter(subrgn == "AKMS") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") 
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = AKMS_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(AKMS_plants)[1] - 5, 
+                             sf::st_bbox(AKMS_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(AKMS_plants)[2] - 5, 
+                             sf::st_bbox(AKMS_plants)[4] + 5), 
+                    expand = TRUE) 
+```
+
+### AZNM
+
+```{r}
+#| label: AZNM_summary 
+#| echo: false 
+#| warning: false  
+
+AZNM_plants <- plant_file %>% filter(subrgn == "AZNM") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Overlap")) +
+  ggplot2::geom_sf(data = AZNM_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(AZNM_plants)[1] - 5, 
+                             sf::st_bbox(AZNM_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(AZNM_plants)[2] - 5, 
+                             sf::st_bbox(AZNM_plants)[4] + 5), 
+                    expand = TRUE) 
+```
+
+### CAMX
+
+```{r}
+```
+
+### ERCT
+
+### FRCC
+
+### HIMS
+
+### HIOA
+
+### MROE
+
+### MROW
+
+### NEWE
+
+### NWPP
+
+### NYCW
+
+### NYLI
+
+### NYUP
+
+### PRMS
+
+### RFCE
+
+### RFCM
+
+### RFCW
+
+### RMPA
+
+### SPNO
+
+### SPSO
+
+### SRMV
+
+### SRSO
+
+### SRTV
+
+### SRVC
+:::
+
+## 
 
 ## FC prime mover
 
