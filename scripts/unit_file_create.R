@@ -1243,7 +1243,7 @@ nox_emissions_rates <-
 nox_emissions_factor <-
   units_estimated_fuel %>% 
   left_join(emission_factors %>%
-              select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_unit_flag, unit_flag), 
+              select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
                    "botfirty",
                    "primary_fuel_type")) %>%
@@ -1260,7 +1260,7 @@ nox_emissions_factor <-
 nox_oz_emissions_factor <- 
   units_estimated_fuel %>% 
   left_join(emission_factors %>%
-              select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_unit_flag, unit_flag), 
+              select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
                    "botfirty",
                    "primary_fuel_type")) %>%
@@ -1275,32 +1275,38 @@ nox_oz_emissions_factor <-
 ### estimating NOx annual emissions with heat input --------
 nox_emissions_heat_input <- nox_emissions_rates %>%
   left_join(emission_factors %>%
-              select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_unit_flag, unit_flag), 
+              select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
                    "botfirty",
                    "primary_fuel_type")) %>%
-  select(plant_id, unit_id, heat_input, nox_ef) %>%
-  mutate(nox_mass = (heat_input*nox_ef)/2000,
+  select(plant_id, unit_id, heat_input, nox_ef, nox_ef, nox_ef_num, nox_ef_denom) %>%
+  group_by(plant_id, unit_id,nox_ef, nox_ef_num, nox_ef_denom) %>%
+  mutate(nox_mass = sum((heat_input*nox_ef)/2000),
          nox_source = "Estimated using emissions factor") %>%
+  ungroup() %>%
   select(plant_id,
          unit_id,
          nox_mass,
-         nox_source)
+         nox_source) %>%
+  filter(nox_mass > 0)
 
 ### estimating NOx ozone emissions with heat input --------
 nox_oz_emissions_heat_input <- nox_emissions_rates %>%
   left_join(emission_factors %>%
-              select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_unit_flag, unit_flag), 
+              select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
                    "botfirty",
                    "primary_fuel_type")) %>%
-  select(plant_id, unit_id, heat_input_oz, nox_ef) %>%
-  mutate(nox_mass_oz = (heat_input_oz*nox_ef)/2000,
+  select(plant_id, unit_id, heat_input_oz, nox_ef, nox_ef_num, nox_ef_denom) %>%
+  group_by(unit_id, plant_id, nox_ef, nox_ef_num, nox_ef_denom) %>%
+  mutate(nox_mass_oz = sum((heat_input_oz*nox_ef)/2000),
          nox_oz_source = "Estimated using emissions factor") %>%
+  ungroup() %>%
   select(plant_id,
          unit_id,
          nox_mass_oz,
-         nox_oz_source)
+         nox_oz_source) %>%
+  filter(nox_mass_oz > 0)
 
 ### Updating units with estimating NOx --------
 all_units_nox_updates <- nox_emissions_rates %>%
@@ -1312,10 +1318,10 @@ all_units_nox_updates <- nox_emissions_rates %>%
              unmatched = "ignore") %>%
   rows_patch(nox_emissions_heat_input,
              by = c("plant_id", "unit_id"),
-             unmatched = "ignore") %>%
+             unmatched = "ignore") %>% 
   rows_patch(nox_oz_emissions_heat_input,
              by = c("plant_id", "unit_id"),
-             unmatched = "ignore") ### Getting a duplicate error when running this code
+             unmatched = "ignore") 
 
 
   
