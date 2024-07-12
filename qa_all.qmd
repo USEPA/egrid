@@ -463,8 +463,7 @@ check_unit_heat_input <-
 
 ifelse(nrow(check_unit_heat_input) == 0, "All units with emissions have 
        heat input values.", 
-        glue::glue("{nrow(check_unit_heat_input)} units with emissions are 
-                   missing heat input values."))
+        glue::glue("{nrow(check_unit_heat_input)} units with emissions are missing heat input values."))
 
 knitr::kable(check_unit_heat_input %>% select(plant_name, plant_id, unit_id, htian, htioz, 
                                               noxan, noxoz, so2an, co2an, hgan))
@@ -490,8 +489,7 @@ check_unit_emissions <-
 
 ifelse(nrow(check_unit_emissions) == 0, "All units with heat inputs 
        have emission values.", 
-        glue::glue("{nrow(check_unit_emissions)} units with heat inputs 
-                   are missing emission values."))
+        glue::glue("{nrow(check_unit_emissions)} units with heat inputs are missing emission values."))
 
 knitr::kable(check_unit_emissions %>% select(plant_name, plant_id, unit_id, fuelu1, prmvr, 
                                              htian, htioz, noxan, noxoz, so2an, co2an, hgan))
@@ -510,8 +508,9 @@ Check if units have blanks in heat input and emissions.
 #| warning: false
 
 check_unit_blanks <- 
-  unit_file %>% filter(is.na(htian) | is.na(htioz) | is.na(noxan) | is.na(noxoz) | is.na(so2an) | 
-                         is.na(co2an) | is.na(hgan))
+  unit_file %>% filter(is.na(htian) | is.na(htioz) | is.na(noxan) | is.na(noxoz) 
+                       | is.na(so2an) | is.na(co2an))
+
 
 ```
 
@@ -529,8 +528,7 @@ check_unit_nox_so2 <-
 
 ifelse(nrow(check_unit_nox_so2) == 0, "All units with positive NOx values 
        have positive SO2 values.", 
-       glue::glue("{nrow(check_unit_emissions)} units with positive NOx values 
-                   have NA or 0 SO2 values."))
+       glue::glue("{nrow(check_unit_emissions)} units with positive NOx values have NA or 0 SO2 values."))
 
 knitr::kable(check_unit_nox_so2 %>% select(plant_name, plant_id, unit_id, fuelu1, 
                                            prmvr, noxan, noxoz, so2an))
@@ -621,12 +619,13 @@ knitr::kable(check_plant_chp_flag %>% select(plant_id, chpflag, chpflag_prev))
 
 Map plants for each region and fix accordingly if needed.
 
-Load in shapefile
+Load in shapefiles.
 
 ```{r}
 #| label: load_subregion_shapefile 
 #| echo: false 
 #| warning: false
+#| results: false
 
 sbrgn_shp <- sf::st_read("archive/egrid2021_subregions_shapefile/eGRID2021 Subregions Shapefile final.shp") %>% drop_na() %>% rename("subregion" = "SUBRGN") %>% 
   sf::st_transform(crs = "EPSG:4326")
@@ -641,11 +640,15 @@ multi_sbrgn_shp <- sf::st_read("archive/egrid2021_multiple_subregions_shapefile/
 #  ggplot2::geom_sf() + 
 #  ggplot2::coord_sf(xlim = c(-166, -67), ylim = c(19, 71))
 
+#ggplot2::ggplot(multi_sbrgn_shp[1]) + 
+#  ggplot2::geom_sf() + 
+#  ggplot2::coord_sf(xlim = c(-166, -67), ylim = c(19, 71))
+
 sf::sf_use_s2(FALSE)
 
 ```
 
-Check if plant locations are in regions.
+Check if plant locations are in regions. If there are any plants that are not in the region or in the overlapping regions, they will appear in the table. Some of the plants in the table may be due to being on the edge of region boundaries.
 
 ::: panel-tabset
 ### AKGD
@@ -659,27 +662,32 @@ AKGD_plants <- plant_file %>% filter(subrgn == "AKGD") %>%
   select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") 
 
-AKGD_shp <- sbrgn_shp %>% filter(subregion == "AKGD")
-AKGD_multi <- multi_sbrgn_shp %>% filter(subregion == "AKGD")
-
 ggplot2::ggplot() + 
   ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) + 
   ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
   ggplot2::geom_sf(data = AKGD_plants) +
   ggplot2::coord_sf(xlim = c(sf::st_bbox(AKGD_plants)[1] - 5, 
                              sf::st_bbox(AKGD_plants)[3] + 5), 
-                    ylim = c(sf::st_bbox(AKGD_plants)[2] - 5, 
-                             sf::st_bbox(AKGD_plants)[4] + 5), 
+                    ylim = c(sf::st_bbox(AKGD_plants)[2] - 3, 
+                             sf::st_bbox(AKGD_plants)[4] + 3), 
                     expand = TRUE) 
 
-# this may not be necessary, and we need to include the multi files
+# create table of plants not in region or multi-region area
+# this may not be necessary
+AKGD_shp <- sbrgn_shp %>% filter(subregion == "AKGD") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
 AKGD_plants <- 
   AKGD_plants %>% 
   mutate(in_region_check = ifelse(plant_id %in% 
                         c(sf::st_filter(AKGD_plants, AKGD_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(AKGD_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(AKGD_plants %>% filter(in_region_check == FALSE)) 
+knitr::kable(AKGD_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 
 ```
 
@@ -700,9 +708,25 @@ ggplot2::ggplot() +
   ggplot2::geom_sf(data = AKMS_plants) +
   ggplot2::coord_sf(xlim = c(sf::st_bbox(AKMS_plants)[1] - 5, 
                              sf::st_bbox(AKMS_plants)[3] + 5), 
-                    ylim = c(sf::st_bbox(AKMS_plants)[2] - 5, 
-                             sf::st_bbox(AKMS_plants)[4] + 5), 
+                    ylim = c(sf::st_bbox(AKMS_plants)[2] - 3, 
+                             sf::st_bbox(AKMS_plants)[4] + 3), 
                     expand = TRUE) 
+
+# create table of plants not in region or multi-region area
+AKMS_shp <- sbrgn_shp %>% filter(subregion == "AKMS") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+AKMS_plants <- 
+  AKMS_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(AKMS_plants, AKMS_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(AKMS_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(AKMS_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### AZNM
@@ -719,66 +743,576 @@ AZNM_plants <- plant_file %>% filter(subrgn == "AZNM") %>%
 
 ggplot2::ggplot() + 
   ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
-  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Overlap")) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
   ggplot2::geom_sf(data = AZNM_plants) +
   ggplot2::coord_sf(xlim = c(sf::st_bbox(AZNM_plants)[1] - 5, 
                              sf::st_bbox(AZNM_plants)[3] + 5), 
-                    ylim = c(sf::st_bbox(AZNM_plants)[2] - 5, 
-                             sf::st_bbox(AZNM_plants)[4] + 5), 
+                    ylim = c(sf::st_bbox(AZNM_plants)[2] - 3, 
+                             sf::st_bbox(AZNM_plants)[4] + 3), 
                     expand = TRUE) 
+
+# create table of plants not in region or multi-region area
+AZNM_shp <- sbrgn_shp %>% filter(subregion == "AZNM") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+AZNM_plants <- 
+  AZNM_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(AZNM_plants, AZNM_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(AZNM_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(AZNM_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### CAMX
 
 ```{r}
+#| label: CAMX_summary 
+#| echo: false 
+#| warning: false  
+
+CAMX_plants <- plant_file %>% filter(subrgn == "CAMX") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = CAMX_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(CAMX_plants)[1] - 5, 
+                             sf::st_bbox(CAMX_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(CAMX_plants)[2] - 3, 
+                             sf::st_bbox(CAMX_plants)[4] + 3), 
+                    expand = TRUE) 
+
+# create table of plants not in region or multi-region area
+CAMX_shp <- sbrgn_shp %>% filter(subregion == "CAMX") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+CAMX_plants <- 
+  CAMX_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(CAMX_plants, CAMX_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(CAMX_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(CAMX_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### ERCT
 
+```{r}
+#| label: ERCT_summary 
+#| echo: false 
+#| warning: false  
+
+ERCT_plants <- plant_file %>% filter(subrgn == "ERCT") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = ERCT_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(ERCT_plants)[1] - 5, 
+                             sf::st_bbox(ERCT_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(ERCT_plants)[2] - 3, 
+                             sf::st_bbox(ERCT_plants)[4] + 3), 
+                    expand = TRUE) 
+```
+
 ### FRCC
+
+```{r}
+#| label: FRCC_summary 
+#| echo: false 
+#| warning: false  
+
+FRCC_plants <- plant_file %>% filter(subrgn == "FRCC") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = FRCC_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(FRCC_plants)[1] - 2, 
+                             sf::st_bbox(FRCC_plants)[3] + 2), 
+                    ylim = c(sf::st_bbox(FRCC_plants)[2] - 2, 
+                             sf::st_bbox(FRCC_plants)[4] + 2), 
+                    expand = TRUE) 
+```
 
 ### HIMS
 
+```{r}
+#| label: HIMS_summary 
+#| echo: false 
+#| warning: false  
+
+HIMS_plants <- plant_file %>% filter(subrgn == "HIMS") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = HIMS_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(HIMS_plants)[1] - 1, 
+                             sf::st_bbox(HIMS_plants)[3] + 1), 
+                    ylim = c(sf::st_bbox(HIMS_plants)[2] - 1, 
+                             sf::st_bbox(HIMS_plants)[4] + 1), 
+                    expand = TRUE) 
+```
+
 ### HIOA
+
+```{r}
+#| label: HIOA_summary 
+#| echo: false 
+#| warning: false  
+
+HIOA_plants <- plant_file %>% filter(subrgn == "HIOA") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = HIOA_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(HIOA_plants)[1] - 1, 
+                             sf::st_bbox(HIOA_plants)[3] + 1), 
+                    ylim = c(sf::st_bbox(HIOA_plants)[2] - 1, 
+                             sf::st_bbox(HIOA_plants)[4] + 1), 
+                    expand = TRUE) 
+```
 
 ### MROE
 
+```{r}
+#| label: MROE_summary 
+#| echo: false 
+#| warning: false  
+
+MROE_plants <- plant_file %>% filter(subrgn == "MROE") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = MROE_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(MROE_plants)[1] - 5, 
+                             sf::st_bbox(MROE_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(MROE_plants)[2] - 3, 
+                             sf::st_bbox(MROE_plants)[4] + 3), 
+                    expand = TRUE) 
+```
+
 ### MROW
+
+```{r}
+#| label: MROW_summary 
+#| echo: false 
+#| warning: false  
+
+MROW_plants <- plant_file %>% filter(subrgn == "MROW") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = MROW_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(MROW_plants)[1] - 5, 
+                             sf::st_bbox(MROW_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(MROW_plants)[2] - 3, 
+                             sf::st_bbox(MROW_plants)[4] + 1), 
+                    expand = TRUE) 
+```
 
 ### NEWE
 
+```{r}
+#| label: NEWE_summary 
+#| echo: false 
+#| warning: false  
+
+NEWE_plants <- plant_file %>% filter(subrgn == "NEWE") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = NEWE_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(NEWE_plants)[1] - 3, 
+                             sf::st_bbox(NEWE_plants)[3] + 3), 
+                    ylim = c(sf::st_bbox(NEWE_plants)[2] - 1, 
+                             sf::st_bbox(NEWE_plants)[4] + 1), 
+                    expand = TRUE) 
+```
+
 ### NWPP
+
+```{r}
+#| label: NWPP_summary 
+#| echo: false 
+#| warning: false  
+
+NWPP_plants <- plant_file %>% filter(subrgn == "NWPP") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = NWPP_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(NWPP_plants)[1] - 2, 
+                             sf::st_bbox(NWPP_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(NWPP_plants)[2] - 3, 
+                             sf::st_bbox(NWPP_plants)[4] + 1), 
+                    expand = TRUE) 
+```
 
 ### NYCW
 
+```{r}
+#| label: NYCW_summary 
+#| echo: false 
+#| warning: false  
+
+NYCW_plants <- plant_file %>% filter(subrgn == "NYCW") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = NYCW_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(NYCW_plants)[1] - 1, 
+                             sf::st_bbox(NYCW_plants)[3] + 1), 
+                    ylim = c(sf::st_bbox(NYCW_plants)[2] - 1, 
+                             sf::st_bbox(NYCW_plants)[4] + 1), 
+                    expand = TRUE) 
+```
+
 ### NYLI
+
+```{r}
+#| label: NYLI_summary 
+#| echo: false 
+#| warning: false  
+
+NYLI_plants <- plant_file %>% filter(subrgn == "NYLI") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = NYLI_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(NYLI_plants)[1] - 1, 
+                             sf::st_bbox(NYLI_plants)[3] + 1), 
+                    ylim = c(sf::st_bbox(NYLI_plants)[2] - 1, 
+                             sf::st_bbox(NYLI_plants)[4] + 1), 
+                    expand = TRUE) 
+```
 
 ### NYUP
 
+```{r}
+#| label: NYUP_summary 
+#| echo: false 
+#| warning: false  
+
+NYUP_plants <- plant_file %>% filter(subrgn == "NYUP") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = NYUP_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(NYUP_plants)[1] - 2, 
+                             sf::st_bbox(NYUP_plants)[3] + 2), 
+                    ylim = c(sf::st_bbox(NYUP_plants)[2] - 2, 
+                             sf::st_bbox(NYUP_plants)[4] + 2), 
+                    expand = TRUE) 
+```
+
 ### PRMS
+
+```{r}
+#| label: PRMS_summary 
+#| echo: false 
+#| warning: false  
+
+PRMS_plants <- plant_file %>% filter(subrgn == "PRMS") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = PRMS_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(PRMS_plants)[1] - 1, 
+                             sf::st_bbox(PRMS_plants)[3] + 1), 
+                    ylim = c(sf::st_bbox(PRMS_plants)[2] - 1, 
+                             sf::st_bbox(PRMS_plants)[4] + 1), 
+                    expand = TRUE) 
+```
 
 ### RFCE
 
+```{r}
+#| label: RFCE_summary 
+#| echo: false 
+#| warning: false  
+
+RFCE_plants <- plant_file %>% filter(subrgn == "RFCE") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = RFCE_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(RFCE_plants)[1] - 3, 
+                             sf::st_bbox(RFCE_plants)[3] + 3), 
+                    ylim = c(sf::st_bbox(RFCE_plants)[2] - 2, 
+                             sf::st_bbox(RFCE_plants)[4] + 2), 
+                    expand = TRUE) 
+```
+
 ### RFCM
+
+```{r}
+#| label: RFCM_summary 
+#| echo: false 
+#| warning: false  
+
+RFCM_plants <- plant_file %>% filter(subrgn == "RFCM") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = RFCM_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(RFCM_plants)[1] - 3, 
+                             sf::st_bbox(RFCM_plants)[3] + 3), 
+                    ylim = c(sf::st_bbox(RFCM_plants)[2] - 2, 
+                             sf::st_bbox(RFCM_plants)[4] + 2), 
+                    expand = TRUE) 
+```
 
 ### RFCW
 
+```{r}
+#| label: RFCW_summary 
+#| echo: false 
+#| warning: false  
+
+RFCW_plants <- plant_file %>% filter(subrgn == "RFCW") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = RFCW_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(RFCW_plants)[1] - 3, 
+                             sf::st_bbox(RFCW_plants)[3] + 3), 
+                    ylim = c(sf::st_bbox(RFCW_plants)[2] - 2, 
+                             sf::st_bbox(RFCW_plants)[4] + 2), 
+                    expand = TRUE)
+```
+
 ### RMPA
+
+```{r}
+#| label: RMPA_summary 
+#| echo: false 
+#| warning: false  
+
+RMPA_plants <- plant_file %>% filter(subrgn == "RMPA") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = RMPA_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(RMPA_plants)[1] - 3, 
+                             sf::st_bbox(RMPA_plants)[3] + 3), 
+                    ylim = c(sf::st_bbox(RMPA_plants)[2] - 2, 
+                             sf::st_bbox(RMPA_plants)[4] + 2), 
+                    expand = TRUE)
+```
 
 ### SPNO
 
+```{r}
+#| label: SPNO_summary 
+#| echo: false 
+#| warning: false  
+
+SPNO_plants <- plant_file %>% filter(subrgn == "SPNO") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = SPNO_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(SPNO_plants)[1] - 3, 
+                             sf::st_bbox(SPNO_plants)[3] + 3), 
+                    ylim = c(sf::st_bbox(SPNO_plants)[2] - 2, 
+                             sf::st_bbox(SPNO_plants)[4] + 2), 
+                    expand = TRUE)
+```
+
 ### SPSO
+
+```{r}
+#| label: SPSO_summary 
+#| echo: false 
+#| warning: false  
+
+SPSO_plants <- plant_file %>% filter(subrgn == "SPSO") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = SPSO_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(SPSO_plants)[1] - 3, 
+                             sf::st_bbox(SPSO_plants)[3] + 3), 
+                    ylim = c(sf::st_bbox(SPSO_plants)[2] - 2, 
+                             sf::st_bbox(SPSO_plants)[4] + 2), 
+                    expand = TRUE)
+```
 
 ### SRMV
 
+```{r}
+#| label: SRMV_summary 
+#| echo: false 
+#| warning: false  
+
+SRMV_plants <- plant_file %>% filter(subrgn == "SRMV") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = SRMV_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(SRMV_plants)[1] - 3, 
+                             sf::st_bbox(SRMV_plants)[3] + 3), 
+                    ylim = c(sf::st_bbox(SRMV_plants)[2] - 2, 
+                             sf::st_bbox(SRMV_plants)[4] + 2), 
+                    expand = TRUE)
+```
+
 ### SRSO
+
+```{r}
+#| label: SRSO_summary 
+#| echo: false 
+#| warning: false  
+
+SRSO_plants <- plant_file %>% filter(subrgn == "SRSO") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = SRSO_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(SRSO_plants)[1] - 3, 
+                             sf::st_bbox(SRSO_plants)[3] + 3), 
+                    ylim = c(sf::st_bbox(SRSO_plants)[2] - 2, 
+                             sf::st_bbox(SRSO_plants)[4] + 2), 
+                    expand = TRUE)
+```
 
 ### SRTV
 
-### SRVC
-:::
+```{r}
+#| label: SRTV_summary 
+#| echo: false 
+#| warning: false  
 
-## 
+SRTV_plants <- plant_file %>% filter(subrgn == "SRTV") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = SRTV_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(SRTV_plants)[1] - 3, 
+                             sf::st_bbox(SRTV_plants)[3] + 3), 
+                    ylim = c(sf::st_bbox(SRTV_plants)[2] - 2, 
+                             sf::st_bbox(SRTV_plants)[4] + 2), 
+                    expand = TRUE)
+```
+
+### SRVC
+
+```{r}
+#| label: SRVC_summary 
+#| echo: false 
+#| warning: false  
+
+SRVC_plants <- plant_file %>% filter(subrgn == "SRVC") %>% 
+  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+                                                      crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ggplot2::ggplot() + 
+  ggplot2::geom_sf(data = sbrgn_shp, ggplot2::aes(fill = subregion)) +
+  ggplot2::geom_sf(data = multi_sbrgn_shp, ggplot2::aes(color = "Multi-region")) +
+  ggplot2::geom_sf(data = SRVC_plants) +
+  ggplot2::coord_sf(xlim = c(sf::st_bbox(SRVC_plants)[1] - 3, 
+                             sf::st_bbox(SRVC_plants)[3] + 3), 
+                    ylim = c(sf::st_bbox(SRVC_plants)[2] - 2, 
+                             sf::st_bbox(SRVC_plants)[4] + 2), 
+                    expand = TRUE)
+```
+:::
 
 ## FC prime mover
 
@@ -797,22 +1331,192 @@ FC prime mover should have no (NA) values for:
     #| echo: false
     #| warning: false
 
+    # need to identify plants that ONLY have FC prime mover - and extract plant IDs
+    unit_fc_prmvr <- unit_file %>% filter(prmvr == "FC") %>% distinct(plant_id) %>% 
+      pull(plant_id) 
+
+    unit_other_prmvr <- unit_file %>% filter(plant_id %in% unit_fc_prmvr) %>% 
+      filter(!(prmvr == "FC")) %>% distinct(plant_id) %>% pull(plant_id) 
+
+    check_plant_fc_values <- 
+      plant_file %>% filter((plant_id %in% unit_fc_prmvr & 
+                              !(plant_id %in% unit_other_prmvr)) &
+                             (!is.na(plco2an) | !is.na(plch4an) | !is.na(pln2oan) | 
+                              !is.na(plhtian))) 
+
+    ifelse(nrow(check_plant_fc_values) == 0, "No plants with FC prime mover ONLY have values for CO2, N2O, CH4, or annual combustion heat input.", 
+            glue::glue("{nrow(check_plant_fc_values)} plants with FC prime mover ONLY have values for CO2, N2O, CH4, or annual combustion heat input."))
+
+    knitr::kable(check_plant_fc_values %>% select(plant_id, plant_name, plco2an, 
+                                                  plch4an, pln2oan, plhtian))
 
     ```
 
 ## Biomass adjustment emissions
 
-# adjusted emissions not greater than unadjusted emissions
+We have columns labeled BIOCO2, BIOCH4, etc. We want to make sure the value in that column is [not greater]{.underline} than the total unadjusted emissions (columns UNCO2, UNCH4, etc.). We have a query that should set BIO columns to equal UN columns if it is larger, so want to check that is working
+
+```{r}
+#| label: plant_biomass
+#| echo: false
+#| warning: false
+
+check_plant_biomass_emissions <- 
+  plant_file %>% filter((bionox > unnox) |
+                          (bionoxoz > unnoxoz) |
+                          (bioso2 > unso2) | 
+                          (bioco2 > unco2) | 
+                          (bioch4 > unch4) |
+                          (bion2o > unn2o))
+
+ifelse(nrow(check_plant_fc_values) == 0, "No plants have biomass emissions greater than unadjusted emissions.", 
+        glue::glue("{nrow(check_plant_biomass_emissions)} plants have biomass emissions greater than unadjusted emissions."))
+
+knitr::kable(check_plant_biomass_emissions %>% select(plant_id, plant_name, unnox, 
+                                                      bionox, unnoxoz, bionoxoz, 
+                                                      unso2, bioso2, unco2, bioco2, 
+                                                      unch4, bioch4, unn2o, bion2o))
+
+```
 
 ## Ozone emissions and heat input check
 
-# ozone emissions and heat input not greater than annual emissions
+For this, we want to check that the NOx ozone season emissions are not greater than the annual NOx emissions (so columns PLNOXAN and PLNOXOZ). Same with annual heat input and ozone season heat input (PLHTIAN and PLHTIOZ/PLHTIANT and PLHTIOZT).
 
-## No duplicate plants
+```{r}
+#| label: plant_ozone
+#| echo: false
+#| warning: false
+
+check_plant_ozone <- 
+  plant_file %>% filter((plnoxan < plnoxoz) |
+                          (plhtian < plhtioz) |
+                          (plhtiant < plhtiozt))
+
+ifelse(nrow(check_plant_ozone) == 0, "No plants have ozone values greater than annual values", 
+        glue::glue("{nrow(check_plant_ozone)} plants have biomass emissions greater than unadjusted emissions."))
+
+knitr::kable(check_plant_biomass_emissions %>% select(plant_id, plant_name, plnoxan, 
+                                                      plnoxoz, plhtian, plhtioz, 
+                                                      plhtiant, plhtiozt))
+
+```
+
+## Duplicate plants
+
+Check for duplicate plants. There should be none.
+
+```{r}
+#| label: plant_duplicates
+#| echo: false
+#| warning: false
+
+check_plant_duplicate <- 
+  plant_file %>% group_by(plant_id) %>% filter(n()>1)
+
+ifelse(nrow(check_plant_duplicate) == 0, "No plants have ozone values greater than annual values", 
+        glue::glue("{nrow(check_plant_duplicate)} plants have biomass emissions greater than unadjusted emissions."))
+
+knitr::kable(check_plant_biomass_emissions %>% select(plant_id, plant_name))
+
+```
 
 ## Negative emission values
 
+```{r}
+#| label: plant_negative_emissions
+#| echo: false
+#| warning: false
+
+check_plant_neg_emissions <- 
+  plant_file %>% filter((plnoxan < 0) | (plnoxoz < 0) | (plso2an < 0), 
+                        (plco2an < 0) | (plch4an < 0) | (pln2oan < 0))
+
+ifelse(nrow(check_plant_neg_emissions) == 0, "No plants have ozone values greater than annual values", 
+        glue::glue("{nrow(check_plant_neg_emissions)} plants have biomass emissions greater than unadjusted emissions."))
+
+knitr::kable(check_plant_neg_emissions %>% select(plant_id, plant_name, plnoxan, 
+                                                  plnoxoz, plso2an, plco2an, 
+                                                  plch4an, pln2oan))
+
+```
+
 ## Emission rate outliers
+
+<!--# check which values to count -->
+
+::: panel-tabset
+## NOx
+
+```{r}
+#| label: plant_nox_outliers
+#| echo: false
+#| warning: false
+
+plant_file %>% 
+  count(plnoxra > 1) 
+
+print()
+
+knitr::kable(head(nox_input, 20))
+
+```
+
+## NOx ozone
+
+```{r}
+#| label: plant_noxoz_outliers
+#| echo: false
+#| warning: false
+
+
+
+```
+
+## SO2
+
+```{r}
+#| label: plant_so2_outliers
+#| echo: false
+#| warning: false
+
+
+
+```
+
+## CO2
+
+```{r}
+#| label: plant_co2_outliers
+#| echo: false
+#| warning: false
+
+
+
+```
+
+## CH4
+
+```{r}
+#| label: plant_ch4_outliers
+#| echo: false
+#| warning: false
+
+
+
+```
+
+## N2O
+
+```{r}
+#| label: plant_n2o_outliers
+#| echo: false
+#| warning: false
+
+
+
+```
+:::
 
 ## Capacity factor \> 1
 
