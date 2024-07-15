@@ -40,7 +40,7 @@ library(stringr)
 
 ```
 
-# Master Database
+# Master Database QA
 
 <!--# Need to check what files these are. -->
 
@@ -84,7 +84,7 @@ knitr::kable(check_compare_plants %>% select(plant_id, plant_name))
 
 ## CAMD fuel crosswalks
 
-# CHP Database
+# CHP Database QA
 
 ## Retirement year to current year
 
@@ -97,7 +97,7 @@ knitr::kable(check_compare_plants %>% select(plant_id, plant_name))
 
 ```
 
-# Generator File
+# Generator File QA
 
 Load generator file.
 
@@ -1446,23 +1446,17 @@ knitr::kable(check_plant_neg_emissions %>% select(plant_id, plant_name, plnoxan,
 <!--# check which values to count -->
 
 ::: panel-tabset
-## NOx
+### NOx
 
 ```{r}
 #| label: plant_nox_outliers
 #| echo: false
 #| warning: false
 
-plant_file %>% 
-  count(plnoxra > 1) 
-
-print()
-
-knitr::kable(head(nox_input, 20))
 
 ```
 
-## NOx ozone
+### NOx ozone
 
 ```{r}
 #| label: plant_noxoz_outliers
@@ -1473,7 +1467,7 @@ knitr::kable(head(nox_input, 20))
 
 ```
 
-## SO2
+### SO2
 
 ```{r}
 #| label: plant_so2_outliers
@@ -1484,7 +1478,7 @@ knitr::kable(head(nox_input, 20))
 
 ```
 
-## CO2
+### CO2
 
 ```{r}
 #| label: plant_co2_outliers
@@ -1495,7 +1489,7 @@ knitr::kable(head(nox_input, 20))
 
 ```
 
-## CH4
+### CH4
 
 ```{r}
 #| label: plant_ch4_outliers
@@ -1506,7 +1500,7 @@ knitr::kable(head(nox_input, 20))
 
 ```
 
-## N2O
+### N2O
 
 ```{r}
 #| label: plant_n2o_outliers
@@ -1518,27 +1512,351 @@ knitr::kable(head(nox_input, 20))
 ```
 :::
 
-## Capacity factor \> 1
+## Capacity factor
 
-## Electric allocation factor \> 1 or \< 0
+The capacity factor must be less than 1. Check if htere are any instances of a capacity factor greater than 1.
+
+```{r}
+#| label: plant_cap_fac
+#| echo: false
+#| warning: false
+
+check_plant_capfac <- 
+  plant_file %>% filter(capfac > 1)
+
+ifelse(nrow(check_plant_capfac) == 0, "No plants have capacity factor greater than 1.", 
+        glue::glue("{nrow(check_plant_capfac)} plants have capacity factor greater than 1."))
+
+knitr::kable(check_plant_capfac %>% select(plant_id, plant_name, plfuelct, 
+                                           plprmfl, capfac))
+
+
+```
+
+## Electric allocation factor 
+
+```{r}
+#| label: plant_elec_allocation
+#| echo: false
+#| warning: false
+
+check_plant_elec_alloc <- 
+  plant_file %>% filter(elcalloc < 0 | elcalloc > 1)
+
+ifelse(nrow(check_plant_elec_alloc) == 0, "No plants have an electric allocation factor greater than 1 or less than 0.", 
+        glue::glue("{nrow(check_plant_elec_alloc)} plants have electric allocation factor greater than 1 or less than 0."))
+
+knitr::kable(check_plant_elec_alloc %>% select(plant_id, plant_name, elcalloc))
+
+```
 
 ## Blank subregions
 
-## NB factor \> 1 or \< 0
+Check if any subregions are blank.
 
-## Blank primary fuel
+```{r}
+#| label: plant_subrgn_blanks
+#| echo: false
+#| warning: false
 
-## Primary fuel category == primary fuel
+check_plant_sbrgn_blanks <- 
+  plant_file %>% filter(is.na(subrgn) | subrgn == "")
+
+ifelse(nrow(check_plant_sbrgn_blanks) == 0, "No plants have blank subregions.", 
+        glue::glue("{nrow(check_plant_sbrgn_blanks)} plants have blank subregions."))
+
+knitr::kable(check_plant_sbrgn_blanks %>% select(plant_id, plant_name, subrgn))
+
+```
+
+## Nonbaseload factor 
+
+```{r}
+#| label: plant_nb_factor
+#| echo: false
+#| warning: false
+
+check_plant_nb_factor <- 
+  plant_file %>% filter(nbfactor < 0 | nbfactor > 1)
+
+ifelse(nrow(check_plant_nb_factor) == 0, "No plants have a nonbaseload factor greater than 1 or less than 0.", 
+        glue::glue("{nrow(check_plant_nb_factor)} plants have a nonbaseload factor greater than 1 or less than 0."))
+
+knitr::kable(check_plant_nb_factor %>% select(plant_id, plant_name, nbfactor))
+
+```
+
+## Primary fuel blanks
+
+```{r}
+#| label: plant_fuel_blanks
+#| echo: false
+#| warning: false
+
+check_plant_fuel_blanks <- 
+  plant_file %>% filter(is.na(plprmfl) | plprmfl == "")
+
+ifelse(nrow(check_plant_fuel_blanks) == 0, "All plants have a primary fuel.", 
+        glue::glue("{nrow(check_plant_fuel_blanks)} plants are missing a primary fuel."))
+
+knitr::kable(check_plant_fuel_blanks %>% select(plant_id, plant_name, plprmfl))
+
+```
+
+## Primary fuel category matches primary fuel
+
+```{r}
+#| label: plant_fuel_cat
+#| echo: false
+#| warning: false
+
+check_plant_fuelcat <- 
+  plant_file %>% filter(is.na(plfuelct) |
+                        (plfuelct == "COAL" & !(plprmfl %in% 
+                          c("ANT","BIT", "COG", "LIG", "RC", "SGC", "SUB", "WC"))) |
+                        (plfuelct == "GAS" & !(plprmfl %in% c("NG", "PG"))) | 
+                        (plfuelct == "OIL" & !(plprmfl %in% 
+                          c("DFO", "JF", "KER", "PC", "RFO", "WO"))) | 
+                        (plfuelct == "OFSL" & !(plprmfl %in% c("BFG", "OG", "TDF"))) |
+                        (plfuelct == "NUCLEAR" & !(plprmfl == "NUC")) | 
+                        (plfuelct == "HYDRO" & !(plprmfl == "WAT")) | 
+                        (plfuelct == "SOLAR" & !(plprmfl == "SUN")) | 
+                        (plfuelct == "WIND" & !(plprmfl == "WND")) | 
+                        (plfuelct == "GEOTHERMAL" & !(plprmfl == "GEO")) | 
+                        (plfuelct == "OTHF" & !(plprmfl %in% 
+                          c("H", "MWH", "OTH", "PRG", "PUR", "WH"))) | 
+                        (plfuelct == "BIOMASS" & !(plprmfl %in% 
+                           c("AB", "BG", "BLQ", "DG", "LFG", "MSB", "MSW", "OBG", "OBL",
+                             "OBS", "SLW", "WDL", "WDS"))))
+
+ifelse(nrow(check_plant_fuelcat) == 0, "All plants have a primary category and it matches the primary fuel.", 
+        glue::glue("{nrow(check_plant_fuelcat)} plants are either missing a primary fuel category or primary fuel cateogry does not match primary fuel."))
+
+knitr::kable(check_plant_fuelcat %>% select(plant_id, plant_name, plprmfl, plfuelct))
+                          
+```
 
 ## Emissions without heat input
 
+Check if any values that have positive emission values are missing heat input.
+
+```{r}
+#| label: plant_emissions_no_heatinput
+#| echo: false
+#| warning: false
+
+check_plant_emissions_heatinput <- 
+  plant_file %>% filter((is.na(plhtiant) | is.na(plhtiozt)) & 
+                        (plnoxan > 0 | plnoxoz > 0 | 
+                         plso2an > 0 | plco2an > 0 |
+                         plch4an > 0 | pln2oan > 0 | 
+                         plco2eqa > 0))
+
+ifelse(nrow(check_plant_emissions_heatinput) == 0, "All plants with emission values have heat input values.", 
+        glue::glue("{nrow(check_plant_emissions_heatinput)} plants that have emissions values are missing heat input."))
+
+knitr::kable(check_plant_emissions_heatinput %>% 
+               select(plant_id, plant_name, plhtiant, plhtiozt, plnoxan, plnoxoz, 
+                      plso2an, plco2an, plch4an, pln2oan, plco2eqa))
+
+```
+
 ## Resource mix adds to 100
 
-# Subregion, state, BA, NERC File QA
+Confirm that the resource mix adds to 100%.
 
-## No duplicates
+```{r}
+#| label: plant_resource_mix
+#| echo: false
+#| warning: false
 
-## Resource mix adds to 100
+plant_resource_mix <- 
+  plant_file %>% 
+  mutate(resource_mix_total = plclpr + plolpr + plgspr + plncpr + plhypr + plbmpr + 
+           plwipr + plsopr + plgtpr + plofpr + ploppr, 
+         resource_mix_total = round(resource_mix_total, 3)) %>% 
+  select(plant_id, plant_name, resource_mix_total)
+
+check_plant_resource_mix <- 
+  plant_resource_mix %>% filter(!(resource_mix_total == 1)) %>% 
+  mutate()
+
+ifelse(nrow(check_plant_resource_mix) == 0, "All plant resource mixes add to 100%.", 
+        glue::glue("{nrow(check_plant_resource_mix)} plant resource mixes do not add to 100%."))
+
+knitr::kable(check_plant_resource_mix %>% select(plant_id, plant_name,
+                                                 resource_mix_total))
+
+```
+
+# Aggregation file QA
+
+Load aggregation files.
+
+```{r}
+#| label: load_agg_files
+#| echo: false
+#| warning: false
+
+state_agg <- read_rds("data/outputs/state_aggregation.RDS")
+ba_agg <- read_rds("data/outputs/ba_aggregation.RDS")
+subrgn_agg <- read_rds("data/outputs/egrid_subregion_aggregation.RDS")
+nerc_agg <- read_rds("data/outputs/nerc_aggregation.RDS")
+
+```
+
+## Duplicate regions
+
+::: panel-tabset
+### State
+
+```{r}
+#| label: state_duplicates
+#| echo: false
+#| warning: false
+
+check_state_duplicates <- 
+  state_agg %>% group_by(state) %>% filter(n() > 1)
+
+ifelse(nrow(check_state_duplicates) == 0, "No duplicate states.", 
+        glue::glue("{nrow(check_state_duplicates)} duplicate states."))
+
+knitr::kable(check_state_duplicates %>% select(state))
+```
+
+### BA
+
+```{r}
+#| label: ba_duplicates
+#| echo: false
+#| warning: false
+
+check_ba_duplicates <- 
+  ba_agg %>% group_by(balance_authority_code) %>% filter(n() > 1)
+
+ifelse(nrow(check_ba_duplicates) == 0, "No duplicate BA regions.", 
+        glue::glue("{nrow(check_ba_duplicates)} duplicate BA regions."))
+
+knitr::kable(check_ba_duplicates %>% select(balance_authority_code))
+```
+
+### eGRID subregion
+
+```{r}
+#| label: subregion_duplicates
+#| echo: false
+#| warning: false
+
+check_subregion_duplicates <- 
+  subrgn_agg %>% group_by(sub_region) %>% filter(n() > 1)
+
+ifelse(nrow(check_subregion_duplicates) == 0, "No duplicate eGRID subregions.", 
+        glue::glue("{nrow(check_subregion_duplicates)} duplicate states."))
+
+knitr::kable(check_subregion_duplicates %>% select(sub_region))
+```
+
+### NERC
+
+```{r}
+#| label: nerc_duplicates
+#| echo: false
+#| warning: false
+
+check_nerc_duplicates <- 
+  nerc_agg %>% group_by(nerc) %>% filter(n() > 1)
+
+ifelse(nrow(check_nerc_duplicates) == 0, "No duplicate NERC regions.", 
+        glue::glue("{nrow(check_state_duplicates)} duplicate NERC regions."))
+
+knitr::kable(check_nerc_duplicates %>% select(nerc))
+```
+:::
+
+## Resource mix 
+
+::: panel-tabset
+### State
+
+```{r}
+#| label: state_mix
+#| echo: false
+#| warning: false
+
+state_mix <- 
+  state_agg %>% 
+  mutate(resource_mix_total = state_coal_resource_mix + state_oil_resource_mix + 
+           state_gas_resource_mix + state_nuclear_resource_mix + 
+           state_hydro_resource_mix + state_biomass_resource_mix + 
+           state_wind_resource_mix + state_solar_resource_mix + 
+           state_geothermal_resource_mix + state_other_fossil_resource_mix + 
+           state_other_purchased_resource_mix, 
+         resource_mix_total = round(resource_mix_total, 3))
+
+check_state_mix <- 
+  state_mix %>% filter(!(resource_mix_total %in% c(0.999, 1.000, 1.001)))
+
+ifelse(nrow(check_state_mix) == 0, "All state resource mixes add to 100%.", 
+        glue::glue("{nrow(check_state_mix)} state resource mixes do not add to 100%."))
+
+knitr::kable(check_state_mix %>% select(state, resource_mix_total))
+
+```
+
+### BA
+
+```{r}
+#| label: ba_mix
+#| echo: false
+#| warning: false
+
+ba_mix <- 
+  ba_agg %>% 
+  mutate(resource_mix_total = ba_coal_resource_mix + ba_oil_resource_mix + 
+           ba_gas_resource_mix + ba_nuclear_resource_mix + 
+           ba_hydro_resource_mix + ba_biomass_resource_mix + 
+           ba_wind_resource_mix + ba_solar_resource_mix + 
+           ba_geothermal_resource_mix + ba_other_fossil_resource_mix + 
+           ba_other_purchased_resource_mix, 
+         resource_mix_total = round(resource_mix_total, 3))
+
+check_ba_mix <- 
+  ba_mix %>% filter(!(resource_mix_total %in% c(0.999, 1.000, 1.001)))
+
+ifelse(nrow(check_ba_mix) == 0, "All BA resource mixes add to 100%.", 
+        glue::glue("{nrow(check_ba_mix)} BA resource mixes do not add to 100%."))
+
+knitr::kable(check_ba_mix %>% select(balance_authority_code, resource_mix_total))
+```
+
+### eGRID subregion
+
+```{r}
+#| label: subregion_mix
+#| echo: false
+#| warning: false
+
+subregion_mix <- 
+  subrgn_agg %>% 
+  mutate(resource_mix_total = egrid_coal_resource_mix + egrid_oil_resource_mix + 
+           egrid_gas_resource_mix + egrid_nuclear_resource_mix + 
+           egrid_hydro_resource_mix + egrid_biomass_resource_mix + 
+           egrid_wind_resource_mix + egrid_solar_resource_mix + 
+           egrid_geothermal_resource_mix + egrid_other_fossil_resource_mix + 
+           egrid_other_purchased_resource_mix, 
+         resource_mix_total = round(resource_mix_total, 3))
+
+check_subregion_mix <- 
+  subregion_mix %>% filter(!(resource_mix_total %in% c(0.999, 1.000, 1.001)))
+
+ifelse(nrow(check_subregion_mix) == 0, "All state resource mixes add to 100%.", 
+        glue::glue("{nrow(check_state_mix)} state resource mixes do not add to 100%."))
+
+knitr::kable(check_state_mix %>% select(state, resource_mix_total))
+```
+
+### NERC
+:::
 
 ## Appropriate number of digits for fuel specific input rates
 
