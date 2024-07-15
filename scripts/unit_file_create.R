@@ -841,7 +841,7 @@ hg_flags_to_update <- # boilers that have strategy == "ACI" get mercury controls
 og_fuel_types_update <- 
   read_csv("data/static_tables/og_oth_units_to_change_fuel_type.csv") %>% 
   mutate(across(everything(), ~ as.character(.x))) %>%
-  select(plant_id, unit_id,  fuel_code)
+  select(plant_id, unit_id,  fuel_code, primary_fuel_type, prime_mover)
 
 ## Schedule 8c updates ------
 
