@@ -306,8 +306,6 @@ knitr::kable(check_unit_ozone %>% select(plant_name, plant_id, unit_id))
 
 Check if units with a positive annual heat input are missing ozone season data.
 
-<!--# Is this data for ozone season heat input? -->
-
 ```{r}
 #| label: unit_ozone_missing
 #| echo: false
@@ -615,11 +613,22 @@ knitr::kable(check_plant_chp_flag %>% select(plant_id, chpflag, chpflag_prev))
 
 ```
 
+## Different subregions
+
+Check if any plants have changed subregion from previous year.
+
+```{r}
+#| label: plant_subregion
+#| echo: false
+#| warning: false
+
+
+
+```
+
 ## Mislabeled subregions
 
 Map plants for each region and fix accordingly if needed.
-
-Load in shapefiles.
 
 ```{r}
 #| label: load_subregion_shapefile 
@@ -674,6 +683,7 @@ ggplot2::ggplot() +
 
 # create table of plants not in region or multi-region area
 # this may not be necessary
+# rounding lat long may help capture edge case plants (that are just outside of boundary)
 AKGD_shp <- sbrgn_shp %>% filter(subregion == "AKGD") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
@@ -1533,7 +1543,7 @@ knitr::kable(check_plant_capfac %>% select(plant_id, plant_name, plfuelct,
 
 ```
 
-## Electric allocation factor 
+## Electric allocation factor
 
 ```{r}
 #| label: plant_elec_allocation
@@ -1569,7 +1579,7 @@ knitr::kable(check_plant_sbrgn_blanks %>% select(plant_id, plant_name, subrgn))
 
 ```
 
-## Nonbaseload factor 
+## Nonbaseload factor
 
 ```{r}
 #| label: plant_nb_factor
@@ -1773,7 +1783,7 @@ knitr::kable(check_nerc_duplicates %>% select(nerc))
 ```
 :::
 
-## Resource mix 
+## Resource mix
 
 ::: panel-tabset
 ### State
@@ -1831,6 +1841,8 @@ knitr::kable(check_ba_mix %>% select(balance_authority_code, resource_mix_total)
 
 ### eGRID subregion
 
+Need to update eGRID subregion resource mix to percentages.
+
 ```{r}
 #| label: subregion_mix
 #| echo: false
@@ -1849,16 +1861,84 @@ subregion_mix <-
 check_subregion_mix <- 
   subregion_mix %>% filter(!(resource_mix_total %in% c(0.999, 1.000, 1.001)))
 
-ifelse(nrow(check_subregion_mix) == 0, "All state resource mixes add to 100%.", 
-        glue::glue("{nrow(check_state_mix)} state resource mixes do not add to 100%."))
+ifelse(nrow(check_subregion_mix) == 0, "All subregion resource mixes add to 100%.", 
+        glue::glue("{nrow(check_subregion_mix)} subregion resource mixes do not add to 100%."))
 
-knitr::kable(check_state_mix %>% select(state, resource_mix_total))
+knitr::kable(check_subregion_mix %>% select(sub_region, resource_mix_total))
 ```
 
 ### NERC
+
+```{r}
+#| label: nerc_mix
+#| echo: false
+#| warning: false
+
+nerc_mix <- 
+  nerc_agg %>% 
+  mutate(resource_mix_total = nerc_coal_resource_mix + nerc_oil_resource_mix + 
+           nerc_gas_resource_mix + nerc_nuclear_resource_mix + 
+           nerc_hydro_resource_mix + nerc_biomass_resource_mix + 
+           nerc_wind_resource_mix + nerc_solar_resource_mix + 
+           nerc_geothermal_resource_mix + nerc_other_fossil_resource_mix + 
+           nerc_other_purchased_resource_mix, 
+         resource_mix_total = round(resource_mix_total, 3))
+
+check_nerc_mix <- 
+  nerc_mix %>% filter(!(resource_mix_total %in% c(0.999, 1.000, 1.001)))
+
+ifelse(nrow(check_nerc_mix) == 0, "All NERC resource mixes add to 100%.", 
+        glue::glue("{nrow(check_nerc_mix)} NERC resource mixes do not add to 100%."))
+
+knitr::kable(check_nerc_mix %>% select(nerc, resource_mix_total))
+```
 :::
 
-## Appropriate number of digits for fuel specific input rates
+## Digits for fuel specific input rates
+
+Check there are an approporate number of digits for fuel specific input rates. For example, if N2O emissions are all zero, there is the possibility that there are not enough digits and they are rounding.
+
+::: panel-tabset
+### State
+
+```{r}
+#| label: state_rate_digits
+#| echo: false
+#| warning: false
+
+knitr::kable(state_agg %>% select(state, contains("input_rate_")))
+```
+
+### BA
+
+```{r}
+#| label: ba_rate_digits
+#| echo: false
+#| warning: false
+
+knitr::kable(ba_agg %>% select(balance_authority_code, contains("input_rate_")))
+```
+
+### eGRID subregion
+
+```{r}
+#| label: subregion_rate_digits
+#| echo: false
+#| warning: false
+
+knitr::kable(subrgn_agg %>% select(sub_region, contains("input_rate_")))
+```
+
+### NERC
+
+```{r}
+#| label: nerc_rate_digits
+#| echo: false
+#| warning: false
+
+knitr::kable(nerc_agg %>% select(nerc, contains("input_rate_")))
+```
+:::
 
 # Subregion File Only QA
 
@@ -1868,4 +1948,14 @@ knitr::kable(check_state_mix %>% select(state, resource_mix_total))
 
 ## Count of plants in generator, unit, and plant file are equivalent
 
+```{r}
+#| label: count_plants
+#| echo: false
+#| warning: false
+
+
+```
+
 ## Sum of generation and emission equivalent between files
+
+# Output file QA
