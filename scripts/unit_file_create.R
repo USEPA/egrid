@@ -841,7 +841,7 @@ hg_flags_to_update <- # boilers that have strategy == "ACI" get mercury controls
 og_fuel_types_update <- 
   read_csv("data/static_tables/og_oth_units_to_change_fuel_type.csv") %>% 
   mutate(across(everything(), ~ as.character(.x))) %>%
-  select(plant_id, unit_id,  fuel_code, primary_fuel_type, prime_mover)
+  select(plant_id, unit_id,  fuel_code)
 
 ## Schedule 8c updates ------
 
@@ -1328,6 +1328,9 @@ all_units_nox_updates <- nox_emissions_rates %>%
 
 ### NOx emissions factor (OTH/OG crosswalk) ----------
 
+## Fix Ozone Season ----------
+all_units_ozone_update <- all_units_nox_updates %>%
+  mutate()
 
 
 # Final modifications -----  
