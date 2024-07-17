@@ -1329,8 +1329,10 @@ all_units_nox_updates <- nox_emissions_rates %>%
 ### NOx emissions factor (OTH/OG crosswalk) ----------
 
 ## Fix Ozone Season ----------
-all_units_ozone_update <- all_units_nox_updates %>%
-  mutate()
+# IF NOx ozone emissions > annual NOx emissions, make the NOx ozone emissions equal the annual NOx emissions
+all_units_nox_ozone_update <- all_units_nox_updates %>%
+  mutate(nox_mass_oz = case_when(nox_mass_oz > nox_mass ~ nox_mass,
+                                 TRUE ~ nox_mass_oz))
 
 
 # Final modifications -----  
