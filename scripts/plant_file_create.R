@@ -519,10 +519,149 @@ ann_gen_by_fuel <- ann_gen_by_fuel %>% mutate(plant_id = as.numeric(plant_id),
                perc_ann_gen_combust = 100 * ann_gen_combust / ann_gen,
                perc_ann_gen_non_combust = 100 * ann_gen_combust / ann_gen,)
 
+# checks for negative generations
+stopifnot(sum(isTRUE( as.matrix(ann_gen_by_fuel) < 0), na.rm = TRUE) ==0)
 
-plant_file <- plant_file %>% full_join(ann_gen_by_fuel)
+plant_file <- plant_file %>% left_join(ann_gen_by_fuel) %>% mutate(
+  primary_fuel_type = ifelse(perc_ann_gen_nuclear > 50, "NUC", primary_fuel_type),
+  primary_fuel_category = ifelse(perc_ann_gen_nuclear > 50, "NUCLEAR", primary_fuel_category),
+)
+
+# there is some weird v small differences, but rounding fixes
+# checks the sum of all = 100
+stopifnot(all(100==round(plant_file$perc_ann_gen_renew + plant_file$perc_ann_gen_non_renew,0) |
+      is.na(round(plant_file$perc_ann_gen_renew + plant_file$perc_ann_gen_non_renew,0))))
+      
 
 
+# 17.	Useful thermal output ---------------------
+EIA_923_use <- eia_923$generation_and_fuel_combined %>% group_by(plant_id) %>%
+  mutate(plant_id = as.numeric(plant_id))   %>% 
+  summarise(total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE),
+            elec_fuel_consumption_mmbtu = sum(elec_fuel_consumption_mmbtu, na.rm = TRUE))
+
+CHP <- read_xlsx(here("data", "static_tables", "CHP list.xlsx")) %>% filter(Total > 0) %>% 
+  rename(plant_id = `Plant Code`) %>%
+  left_join(EIA_923_use) %>%
+  mutate(uto = 0.8*(total_fuel_consumption_mmbtu - elec_fuel_consumption_mmbtu),
+         chp_flag =  "Yes") %>% select(plant_id, uto, chp_flag)
+
+plant_file <- plant_file %>% left_join(CHP) 
+# only CHP plants calculate uto??
+
+# 18. Power Heat Ratio ---------------
+plant_file <- plant_file %>% 
+  mutate(power_heat_ratio = 3.413 * generation_ann / uto)
+
+# 19. Electric allocation Factor ---------------
+plant_file <- plant_file %>% 
+  mutate(elec_allocation = ifelse(chp_flag == "Yes", 
+                                   ifelse(uto == 0, 1, 
+                                          3.413 * generation_ann / (0.75*uto + 3.413 * generation_ann)),
+                                  NA))
+
+plant_file <- plant_file %>% 
+  mutate(elec_allocation = ifelse(elec_allocation < 0, 0,
+                                  ifelse(elec_allocation > 1, 1, elec_allocation)))
+
+# 20.	CHP adjustment  ------------------
+plant_chp <- plant_file %>% filter( chp_flag == "Yes" ) %>% 
+  mutate(power_heat_ratio =  elec_allocation * power_heat_ratio,
+         combust_heat_input_1 = elec_allocation * unadj_combust_heat_input,
+         combust_heat_input_oz_1 = elec_allocation * unadj_combust_heat_input_oz, 
+         nox_mass = elec_allocation * nox_mass,
+         nox_oz =  elec_allocation * nox_oz, 
+         so2_mass = elec_allocation * so2_mass, 
+         co2_mass =  elec_allocation * co2_mass, 
+         ch4_mass =elec_allocation * ch4_mass, 
+         n2o_mass =  elec_allocation * n2o_mass)
+
+plant_file <- plant_file %>% filter( chp_flag != "Yes" )
+# drop for easier joining later
+
+# why is elec_allocation applied twice? 
+# used total heat input because SQL suggests it's the same var combust_heat_input 
+# [PLHTIAN - Combust HTI] when they are the same thing???
+
+plant_chp <- plant_chp %>% 
+  mutate(combust_heat_input = elec_allocation * combust_heat_input_1 + (unadj_heat_input - combust_heat_input_1),
+         combust_heat_input_oz = elec_allocation * combust_heat_input_oz_1 + (unadj_heat_input_oz - combust_heat_input_oz_1))
+
+
+plant_chp <- plant_chp %>%
+  mutate(CHP_combust_heat_input = combust_heat_input_1/elec_allocation -  combust_heat_input,
+         CHP_combust_heat_input_oz =combust_heat_input_oz_1/elec_allocation  -  combust_heat_input_oz,
+         CHP_nox = nox_mass/elec_allocation -  nox_mass, 
+         CHP_nox_oz =nox_oz/elec_allocation -  nox_oz,
+         CHP_so2 = so2_mass/elec_allocation -  so2_mass,
+         CHP_co2 = co2_mass/elec_allocation -  co2_mass,
+         CHP_ch4 = ch4_mass/elec_allocation -  ch4_mass,
+         CHP_n2o = n2o_mass/elec_allocation -  n2o_mass) %>%
+  select(-combust_heat_input_1, - combust_heat_input_oz_1)
+
+
+plant_chp <- plant_chp %>% 
+  mutate(CHP_nox = ifelse(CHP_nox > unadj_nox_mass | CHP_nox < 0, unadj_nox_mass, CHP_nox),
+         CHP_nox_oz = ifelse(CHP_nox_oz > unadj_nox_oz | CHP_nox_oz < 0, unadj_nox_oz, CHP_nox_oz),
+         CHP_so2 = ifelse(CHP_so2 > unadj_so2_mass| CHP_so2 < 0, unadj_so2_mass, CHP_so2),
+         CHP_co2 = ifelse(CHP_co2 > unadj_co2_mass| CHP_co2 < 0, unadj_co2_mass, CHP_co2),
+         CHP_ch4 = ifelse(CHP_ch4 > unadj_ch4_mass| CHP_ch4 < 0, unadj_ch4_mass, CHP_ch4),
+         CHP_n2o = ifelse(CHP_n2o > unadj_n2o_mass| CHP_n2o < 0, unadj_n2o_mass, CHP_n2o)) %>%
+  mutate(nominal_heat_rate = combust_heat_input * 1000 / ann_gen_combust)
+
+plant_file <- plant_file %>% full_join(plant_chp) %>% 
+  mutate(power_heat_ratio = ifelse(combust_flag == 1 | combust_flag ==0.5, nominal_heat_rate, power_heat_ratio))
+
+rm(plant_chp)
+
+# 21. Pumped storage PM ----------------------------------------
+
+pumped_storage <- generator_file %>% select(plant_id, plant_state, plant_name, prime_mover) %>%
+  filter(prime_mover == "PS") %>% unique()
+
+plant_file <- plant_file %>% mutate(ps_flag = ifelse(plant_id %in% pumped_storage$plant_id, "Yes", "No"))
+rm(pumped_storage)
+
+# 22. NULLs for BA ----------------------------------------
+
+plant_file <- plant_file %>% mutate(ba_name = ifelse(ba_id == "" | is.na(ba_id), "No balancing authority", ba_name),
+                                    ba_id = ifelse(ba_id == "" | is.na(ba_id), "NA", ba_id)) 
+# do we really want string NA?
+# 23. NERC region update ----------------------------------------
+
+plant_file <- plant_file %>% mutate(nerc = case_when(plant_state == "PR" ~ "PR",
+                                                     plant_state == "AK" ~ "AK",
+                                                     plant_state == "HI" ~ "HI",
+                                                     is.na(nerc) ~ "NA",
+                                                     nerc == "" ~ "NA",
+                                                     TRUE ~ nerc))
+# do we really want string NA?
+# 24. Update NULLs (system_owner_id) is plant_file ----------------------------------------
+
+plant_file <- plant_file %>% mutate(system_owner_id = ifelse(is.na(system_owner_id), "-9999", system_owner_id))
+
+# 25. Sub region crosswalks  ----------------------------------------
+
+plant_file <- plant_file %>% mutate(nerc_subregion = case_when(nerc == "TRE" ~ "ERCT",
+                                                               nerc == "FRCC" ~ "FRCC",
+                                                               nerc == "PR" ~ "PRMS",
+                                                               TRUE ~ NA_character_))
+
+BAsubregionX <- read_xlsx(here("data", "static_tables", "BAsubregionCrosswalk.xlsx")) %>%
+  rename(ba_id = "Balancing Authority Code",
+         ba_name = "Balancing Authority Name",
+         nerc_subregion = "SUBRGN") %>% select(-Flag)
+
+plant_file_x <- plant_file %>% left_join(BAsubregionX)
+
+BAtransmissionX<- read_xlsx(here("data", "static_tables", "BAtransmissionCrosswalk.xlsx")) %>%
+  rename(nerc = "NERC Region",
+         ba_id = "Balancing Authority Code",
+         system_owner_id = "Balancing Authority Name",
+         nerc_subregion = "SUBRGN") %>% select(-Flag)
+
+# 26. Update NOT IN FILE Counties to blank ----------------------------------------
+# 27. Lat/Long ----------------------------------------
 
 # 29. Calculate CO2 equivalent ----------------------------------------
 
