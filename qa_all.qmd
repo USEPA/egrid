@@ -2130,7 +2130,7 @@ glue::glue("{nrow(unit_file %>% distinct(plant_id))} plants in unit file.")
 
 ```
 
-## Sum of generation 
+## Sum of generation
 
 Check that generation is equal across plant, generator and unit file.
 
@@ -2146,8 +2146,13 @@ plant_gen_sum <-
 
 generator_gen_sum <- 
   generator_file %>% 
-  summarize(gen_total = sum())
+  summarize(gen_total = sum(genntan, na.rm = TRUE),
+            gen_oz_total = sum(genntoz, na.rm = TRUE))
 
+glue::glue("Plant file total generation: {plant_gen_sum$gen_total}")
+glue::glue("Generator file total generation: {generator_gen_sum$gen_total}")
+
+glue::glue("Difference (plant - generator): {plant_gen_sum$gen_total - generator_gen_sum$gen_total}")
 ```
 
 ## Sum of emissions
@@ -2159,8 +2164,38 @@ Check that emissions are equal to each other across plant, generator, and unit f
 #| echo: false
 #| warning: false
 
+plant_emissions_sum <- 
+  plant_file %>% 
+  summarize(nox_total = sum(plnoxan, na.rm = TRUE), 
+            nox_oz_total = sum(plnoxoz, na.rm = TRUE),
+            so2_total = sum(plso2an, na.rm = TRUE), 
+            co2_total = sum(plco2an, na.rm = TRUE), 
+            hg_total = sum(plhgan, na.rm = TRUE))
 
+unit_emissions_sum <- 
+  unit_file %>% 
+  summarize(nox_total = sum(noxan, na.rm = TRUE), 
+            nox_oz_total = sum(noxoz, na.rm = TRUE),
+            so2_total = sum(so2an, na.rm = TRUE), 
+            co2_total = sum(co2an, na.rm = TRUE), 
+            hg_total = sum(hgan, na.rm = TRUE))
+
+glue::glue("NOx emissions -- plant: {plant_emissions_sum$nox_total}, unit: {unit_emissions_sum$nox_total}, difference: {plant_emissions_sum$nox_total - unit_emissions_sum$nox_total}")
+
+glue::glue("NOx ozone emissions -- plant: {plant_emissions_sum$nox_oz_total}, unit: {unit_emissions_sum$nox_oz_total}, difference: {plant_emissions_sum$nox_oz_total - unit_emissions_sum$nox_oz_total}")
+
+glue::glue("SO2 emissions -- plant: {plant_emissions_sum$so2_total}, unit: {unit_emissions_sum$so2_total}, difference: {plant_emissions_sum$so2_total - unit_emissions_sum$so2_total}")
+
+glue::glue("CO2 emissions -- plant: {plant_emissions_sum$co2_total}, unit: {unit_emissions_sum$co2_total}, difference: {plant_emissions_sum$co2_total - unit_emissions_sum$co2_total}")
+
+glue::glue("Hg emissions -- plant: {plant_emissions_sum$hg_total}, unit: {unit_emissions_sum$hg_total}, difference: {plant_emissions_sum$hg_total - unit_emissions_sum$hg_total}")
 
 ```
 
 # Output file QA
+
+Check excel summary links.
+
+Data year correct in excel output.
+
+Count of units/generators/plants in excel output match R datasets.
