@@ -14,7 +14,7 @@ library(here)
 ## eia ------------
 
 eia_860 <- read_rds("data/clean_data/eia_860_clean.RDS")
-eia_861 <- read_rds("data/clean_data/eia_860_clean.RDS")
+eia_861 <- read_rds("data/clean_data/eia_861_clean.RDS")
 eia_923 <- read_rds("data/clean_data/eia_923_clean.RDS")
 # note: eia-923 generation and fuel = generation_and_fuel_combined
 
@@ -95,7 +95,7 @@ unit <- unit_file %>% group_by(plant_id) %>%
             camd_flag = paste_concat(camd_flag),
             num_units = length(unique(unit_id)), # count
             num_units_op = sum(unique(data.frame(unit_id, operating_status))$operating_status == "OP",na.rm = TRUE), # count operational
-            unadj_heat_input = sum(heat_input, na.rm = TRUE), # MMBtu
+          unadj_heat_input = sum(heat_input, na.rm = TRUE), # MMBtu
             unadj_heat_input_source = paste_concat(heat_input_source),
             unadj_heat_input_oz = sum(heat_input_oz, na.rm = TRUE), # MMBtu 
             unadj_heat_input_oz_source = paste_concat(heat_input_oz_source),
@@ -146,11 +146,6 @@ eia_860_use <- eia_860$plant %>% select(plant_id,
 
 gen_860 <-gen %>% left_join(eia_860_use)
 
-CHP <- eia_860$combined %>%
-  mutate(plant_id = as.numeric(plant_id)) %>% group_by(plant_id) %>% 
-  summarise(chp_flag = ifelse("Y" %in% associated_with_combined_heat_and_power_system, 1,0))
-
-gen_860 <-gen_860 %>% left_join(CHP)
 if(any( grepl('not in file|Not in file', gen_860$county))){
   gen_860 <- gen_860 %>% mutate(county = ifelse(grepl('not in file|Not in file', county),NA,county ))
 }
@@ -161,12 +156,10 @@ heat_input_table = unit_file %>% group_by(primary_fuel_type, prime_mover, plant_
     summarise(unadj_heat_input = sum(heat_input, na.rm = TRUE),
               unadj_heat_input_oz = sum(heat_input_oz, na.rm = TRUE))
 
-combustion_fuels <- c("AB","ANT","BFG","BIT","BLQ","COG","DFO","JF","KER","LFG","LIG",
+combustion_fuels <- c("AB","ANT", "BFG","BIT","BLQ","COG","DFO","JF","KER","LFG","LIG",
                       "MSB","MSN","MSW","NG","OBG","OBL","OBS","OG","PC","PG","RC","RFO",
-                      "SGC","SGP","SLW","SUB","TDF","WC","WDL","WDS","WO")
-# going with list in Combustion Crosswalk
-# values were hardcoded in SQL for this which additionally contained: "H", "OTH", "PRG","PUR", "MWH","WD"
-# they were missing: "ANT", "MSB", "MSN", "SGP"
+                      "SGC","SGP","SLW","SUB","TDF","WC","WDL","WDS","WO") 
+# confirmed full list with Marissa
 
         # filter to combustable fuels 
 heat_input_table <- heat_input_table %>% 
@@ -267,8 +260,8 @@ rm(EIA_923_combust)
 EFs_CO2 <- read_csv("data/static_tables/co2_ch4_n2o_ef.csv") %>% filter(!is.na(eia_fuel_code)) %>% 
   select(eia_fuel_code, co2_ef)
 # seperate out co2 from biofuels and co2 from other sources
-biomass_fuels <- c("AB", "BG", "BLQ", "DG", "LFG", "MSB", "OBG", "OBL", "OBS", "SLW", "WDL", "WDS")
-
+biomass_fuels <- c("AB",  "BLQ",  "LFG", "MSB","MSW", "OBG", "OBL", "OBS", "PP", "SLW", "WDL", "WDS")
+# BG","DG", "ME",
 # subtract co2 from biofuels from the unadj_co2_mass to  create co2_mass
 EIA_923_biomass <- eia_923$generation_and_fuel_combined %>% select(plant_id, total_fuel_consumption_mmbtu, fuel_type) %>%
   left_join(EFs_CO2, by = c("fuel_type" = "eia_fuel_code")) %>% filter(fuel_type %in% biomass_fuels & total_fuel_consumption_mmbtu>0) %>%
@@ -363,7 +356,7 @@ plant_file <- plant_file %>%
          co2_biomass = min(co2_biomass, unadj_co2_mass))
 
 # 12. BA codes/names --------------
-
+# 
 
 # count ba_ids for each utility to find those with only 1
 ult_ba <- plant_file %>% group_by(utility_id) %>% summarise(count = length(paste_concat(ba_id, concat = FALSE)),
@@ -397,6 +390,7 @@ stopifnot(nrow(plant_file[which(is.na(plant_file$ba_id) & !is.na(plant_file$ba_n
 lu_ba <- plant_file$plant_id[which(is.na(plant_file$ba_id) & is.na(plant_file$ba_name))]
 
 # filter to non-NA values and use as guide to recoding
+# no plant table... switch to cust_sales
 eia_861_use <- eia_861$plant %>% select(plant_id, balancing_authority_code, balancing_authority_name) %>% 
   mutate(plant_id = as.numeric(plant_id)) %>%
   rename(ba_name = balancing_authority_name,
@@ -449,45 +443,65 @@ fuel_by_plant <- fuel_by_plant %>% full_join(fuel_dups)
 stopifnot(all(!duplicated(fuel_by_plant$plant_id))) # check there are no more duplicates
 rm(fuel_dups,eia_923_use, gen_fuel_by_plant, unit_fuel_by_plant)
 # 14.	Plant primary fuel category  ---------------
+oil_fuels <- c("DFO", "JF", "KER", "PC", "RFO", "WO", "SGP") # , "OO"
+gas_fuels <- c("NG", "PG", "BU") 
+oth_FF <- c("BFG", "OG", "TDF", "MSN") #   "HY", "LB", "MH", "MSF"
+oth_fuels <- c("H", "MWH", "OTH", "PRG", "PUR", "WH")
 
 fuel_by_plant <- fuel_by_plant %>%
   mutate(primary_fuel_category = case_when(primary_fuel_type %in% coal_fuels ~ "COAL", # DD didn't include "ANT"
-                                           primary_fuel_type %in% c("DFO", "JF", "KER", "PC", "RFO", "WO") ~ "OIL",
-                                           primary_fuel_type %in% c("NG", "PG") ~ "GAS",
-                                           primary_fuel_type %in% c("BFG", "OG", "TDF") ~ "OFSL", # other fossil fuel
+                                           primary_fuel_type %in% oil_fuels ~ "OIL",
+                                           primary_fuel_type %in% gas_fuels ~ "GAS",
+                                           primary_fuel_type %in% oth_FF ~ "OFSL", # other fossil fuel
                                            primary_fuel_type %in% c("NUC") ~ "NUCLEAR",
                                            primary_fuel_type %in% c("WAT") ~ "HYDRO",
                                            primary_fuel_type %in% c("SUN") ~ "SOLAR",
                                            primary_fuel_type %in% c("WND") ~ "WIND",
                                            primary_fuel_type %in% c("GEO") ~ "GEOTHERMAL",
-                                           primary_fuel_type %in% c("H", "MWH", "OTH", "PRG", "PUR", "WH") ~ "OTHF", # derived from waste heat/hydrogen/purchased/unknown
+                                           primary_fuel_type %in% oth_fuels ~ "OTHF", # derived from waste heat/hydrogen/purchased/unknown
                                            primary_fuel_type %in% biomass_fuels ~ "BIOMASS")) # DD didn't include "BG", "DG", "MSB". It did include "MSW" which was excluded here 
 plant_file <- plant_file %>% full_join(fuel_by_plant)
 rm(fuel_by_plant)
-# 15.	Create Generation by Fuel table and update Plant file & 16.	Resource mix a.	generation by fuel type b.	% resource mix ------------------
-
+# 15.	Create Generation by Fuel table and update Plant file ------------------
 ann_gen_by_fuel = generator_file %>% group_by(fuel_code, plant_id) %>% #why by prime mover?
   summarise(ann_gen = sum(generation_ann, na.rm = TRUE),
             ann_gen_oz = sum(generation_oz, na.rm = TRUE)) %>% ungroup %>% group_by(plant_id) %>%
   summarise(ann_gen = sum(ann_gen, na.rm = TRUE),
-            ann_gen_coal = sum(ann_gen[which(fuel_code %in% c("BIT", "COG", "LIG", "RC", "SGC","SC", "SUB", "WC"))], na.rm = TRUE),
-            ann_gen_oil = sum(ann_gen[which(fuel_code %in% c("DFO", "JF", "KER","OO", "PC", "RFO", "WO"))], na.rm = TRUE),
-            ann_gen_gas = sum(ann_gen[which(fuel_code %in% c("NG", "PG"))], na.rm = TRUE),
+            ann_gen_coal = sum(ann_gen[which(fuel_code %in% coal_fuels)], na.rm = TRUE),
+            ann_gen_oil = sum(ann_gen[which(fuel_code %in% oil_fuels)], na.rm = TRUE),
+            ann_gen_gas = sum(ann_gen[which(fuel_code %in% gas_fuels)], na.rm = TRUE),
             ann_gen_nuclear = sum(ann_gen[which(fuel_code %in% c("NUC"))], na.rm = TRUE),
             ann_gen_hydro = sum(ann_gen[which(fuel_code %in% c("WAT"))], na.rm = TRUE),
-            ann_gen_biomass = sum(ann_gen[which(fuel_code %in% c("AB", "BLQ", "DG", "LFG", "ME", "MSW", "OBG", "OBL", "OBS","PP", "SLW", "WDL", "WDS"))], na.rm = TRUE),
+            ann_gen_biomass = sum(ann_gen[which(fuel_code %in% biomass_fuels)], na.rm = TRUE),
             ann_gen_wind = sum(ann_gen[which(fuel_code %in% c("WND"))], na.rm = TRUE),
             ann_gen_solar = sum(ann_gen[which(fuel_code %in% c("SUN"))], na.rm = TRUE),
             ann_gen_geothermal = sum(ann_gen[which(fuel_code %in% c("GEO"))], na.rm = TRUE),
-            ann_gen_other_ff = sum(ann_gen[which(fuel_code %in% c("BFG", "HY", "LB", "MH", "MSF", "OG", "TDF"))], na.rm = TRUE),
-            ann_gen_other = sum(ann_gen[which(fuel_code %in% c("H", "MWH", "OTH", "PRG", "PUR", "WH"))], na.rm = TRUE),
+            ann_gen_other_ff = sum(ann_gen[which(fuel_code %in% oth_FF)], na.rm = TRUE),
+            ann_gen_other = sum(ann_gen[which(fuel_code %in% oth_fuels)], na.rm = TRUE),
             
-  ) %>% mutate(ann_gen_non_renew = ann_gen_coal + ann_gen_oil + ann_gen_gas + ann_gen_other_ff + ann_gen_nuclear + ann_gen_other,
+  ) %>% rowwise %>%
+  mutate(ann_gen = ifelse(is.na(ann_gen) | abs(ann_gen - sum(ann_gen_coal, ann_gen_oil, ann_gen_gas, ann_gen_nuclear, 
+                                                            ann_gen_hydro, ann_gen_biomass, ann_gen_wind, ann_gen_solar,
+                                                            ann_gen_geothermal, ann_gen_other_ff, ann_gen_other, na.rm = TRUE)) > 2,
+                          sum(ann_gen_coal, ann_gen_oil, ann_gen_gas, ann_gen_nuclear, 
+                              ann_gen_hydro, ann_gen_biomass, ann_gen_wind, ann_gen_solar,
+                              ann_gen_geothermal, ann_gen_other_ff, ann_gen_other, na.rm = TRUE),
+                          ann_gen))
+
+ann_gen_by_fuel <- ann_gen_by_fuel %>% replace_na(list(ann_gen = 0, ann_gen_coal = 0, ann_gen_oil= 0, 
+                                                  ann_gen_gas= 0,ann_gen_nuclear= 0,ann_gen_hydro= 0,ann_gen_biomass= 0,
+                                                  ann_gen_wind= 0,ann_gen_solar= 0,ann_gen_geothermal= 0,ann_gen_other_ff= 0,ann_gen_other= 0))
+
+# 16.	Resource mix a.	generation by fuel type b.	% resource mix ------------
+ann_gen_by_fuel <- ann_gen_by_fuel %>% mutate(ann_gen_non_renew = ann_gen_coal + ann_gen_oil + ann_gen_gas + ann_gen_other_ff + ann_gen_nuclear + ann_gen_other,
                ann_gen_renew = ann_gen_biomass + ann_gen_wind + ann_gen_solar + ann_gen_geothermal + ann_gen_hydro,
                ann_gen_renew_nonhydro = ann_gen_biomass + ann_gen_wind + ann_gen_solar + ann_gen_geothermal ,
                ann_gen_combust = ann_gen_coal + ann_gen_oil + ann_gen_gas + ann_gen_other_ff + ann_gen_biomass + ann_gen_other,
                ann_gen_non_combust = ann_gen_nuclear + ann_gen_wind + ann_gen_solar + ann_gen_geothermal + ann_gen_hydro
-  ) %>% mutate(perc_ann_gen_coal = 100 * ann_gen_coal / ann_gen,
+  )
+
+ann_gen_by_fuel <- ann_gen_by_fuel %>% mutate(plant_id = as.numeric(plant_id),
+               perc_ann_gen_coal = 100 * ann_gen_coal / ann_gen,
                perc_ann_gen_oil = 100 * ann_gen_oil / ann_gen,
                perc_ann_gen_gas = 100 * ann_gen_gas / ann_gen,
                perc_ann_gen_nuclear = 100 * ann_gen_nuclear / ann_gen,
