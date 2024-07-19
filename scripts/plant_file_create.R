@@ -387,23 +387,33 @@ plant_file <- plant_file%>%
 stopifnot(nrow(plant_file[which(!is.na(plant_file$ba_id) & is.na(plant_file$ba_name)),])==0)
 stopifnot(nrow(plant_file[which(is.na(plant_file$ba_id) & !is.na(plant_file$ba_name)),])==0)
 # look up plant_ids with both missing that exist in EIA_861
-lu_ba <- plant_file$plant_id[which(is.na(plant_file$ba_id) & is.na(plant_file$ba_name))]
+lu_ba <- plant_file[which(is.na(plant_file$ba_id) & is.na(plant_file$ba_name)),]
 
 # filter to non-NA values and use as guide to recoding
-# no plant table... switch to cust_sales
-eia_861_use <- eia_861$plant %>% select(plant_id, balancing_authority_code, balancing_authority_name) %>% 
-  mutate(plant_id = as.numeric(plant_id)) %>%
-  rename(ba_name = balancing_authority_name,
-         ba_id = balancing_authority_code)   %>%
+# merge the balancing_authority and sales_ult_cust to get utility_id, ba_name, and ba_id in one df
+# filter to utilities with missing ba data that are not NA
+eia_861_use <- eia_861$sales_ult_cust %>% full_join(eia_861$balancing_authority %>% 
+                                                      mutate(year = as.character(year))) %>% 
+  select(utility_number, ba_code, balancing_authority_name) %>% 
+  rename(utility_id = utility_number,
+         ba_id = ba_code,
+         ba_name = balancing_authority_name)  %>% filter(utility_id %in% lu_ba$utility_id & !is.na(ba_name)) 
+
+# update plant_file with the lookup
+plant_file <- plant_file %>% ungroup %>% rowwise %>% mutate(
+  ba_id = ifelse(utility_id %in% eia_861_use$utility_id, getBAid(utility_id, data = eia_861_use), ba_id),
+  ba_name = ifelse(utility_id %in% eia_861_use$utility_id, getBAname(utility_id, data = eia_861_use), ba_name)
+) %>%
   mutate( ba_name = case_when(ba_name == "No BA" ~ NA,
                               TRUE ~ ba_name),
           ba_id = case_when(ba_id == "NA" ~ NA,
                               TRUE ~ ba_id)) %>% filter(plant_id %in% lu_ba & ( !is.na(ba_name) | !is.na(ba_id)))
 
+
 # check all plants in eia_861_are programmed
-#stopifnot(all(eia_861_use$plant_id %in% c(60910, 63259)))
+stopifnot(all(eia_861_use$utility_id %in% c(1857, 3522)))
 # these plants were caught by updates above and no info from EIA 861 gets incorporated
-stopifnot(nrow(eia_861_use) == 0)
+#stopifnot(nrow(eia_861_use) == 0)
 rm(ult_ba, lu_ba, eia_861_use)
 
 
@@ -659,6 +669,7 @@ BAtransmissionX<- read_xlsx(here("data", "static_tables", "BAtransmissionCrosswa
          ba_id = "Balancing Authority Code",
          system_owner_id = "Balancing Authority Name",
          nerc_subregion = "SUBRGN") %>% select(-Flag)
+
 
 # 26. Update NOT IN FILE Counties to blank ----------------------------------------
 # 27. Lat/Long ----------------------------------------
