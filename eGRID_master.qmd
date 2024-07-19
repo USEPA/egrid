@@ -84,7 +84,7 @@ There are a set of helper functions used throughout the project. These are defin
 #| message: false
 
 # sourcing each file in functions folder
-walk(paste0("scripts/functions/",list.files('scripts/functions')),source)
+purrr::walk(paste0("scripts/functions/",list.files('scripts/functions')), ~ source(.x))
 
 ```
 
