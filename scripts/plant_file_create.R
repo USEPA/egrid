@@ -196,7 +196,7 @@ eia_CH4_N2O <- eia_923$generation_and_fuel_combined %>% filter(prime_mover != "F
             unadj_n2o_mass = sum(unadj_n2o_mass, na.rm = TRUE))
   
 
-plant_file <- gen_860 %>% full_join(unit, by = c("plant_id", "plant_state"))
+plant_file <- gen_860 %>% full_join(unit, by = c("plant_id", "plant_state", "plant_name"))
 plant_file <- plant_file %>% left_join(eia_CH4_N2O) 
 
 
@@ -376,12 +376,9 @@ plant_file <- plant_file %>% ungroup %>% rowwise %>% mutate(
 ) 
 
 # one ba_name was missing a ba_id
-plant_file <- plant_file%>%
-  mutate(ba_id = case_when(ba_name == "Hawaiian Electric Co Inc" ~ "HECO",
-                           ba_id == "NA" ~ NA,
-                           TRUE ~ ba_id),
-         ba_name = case_when(ba_name == "No BA" ~ NA,
-                             TRUE ~ ba_name))
+plant_file <- plant_file %>% 
+  mutate(ba_id = ifelse(ba_name == "Hawaiian Electric Co Inc", "HECO", ba_id),
+         ba_name = ifelse(ba_name == "No BA", NA, ba_name))
 
 # check all codes have names and all names have codes
 stopifnot(nrow(plant_file[which(!is.na(plant_file$ba_id) & is.na(plant_file$ba_name)),])==0)
@@ -407,7 +404,7 @@ plant_file <- plant_file %>% ungroup %>% rowwise %>% mutate(
   mutate( ba_name = case_when(ba_name == "No BA" ~ NA,
                               TRUE ~ ba_name),
           ba_id = case_when(ba_id == "NA" ~ NA,
-                              TRUE ~ ba_id)) %>% filter(plant_id %in% lu_ba & ( !is.na(ba_name) | !is.na(ba_id)))
+                              TRUE ~ ba_id))
 
 
 # check all plants in eia_861_are programmed
@@ -586,7 +583,7 @@ plant_chp <- plant_file %>% filter( chp_flag == "Yes" ) %>%
          ch4_mass =elec_allocation * ch4_mass, 
          n2o_mass =  elec_allocation * n2o_mass)
 
-plant_file <- plant_file %>% filter( chp_flag != "Yes" )
+plant_file <- plant_file %>% filter( is.na(chp_flag))
 # drop for easier joining later
 
 # why is elec_allocation applied twice? 
@@ -667,11 +664,15 @@ plant_file_x <- plant_file %>% left_join(BAsubregionX)
 BAtransmissionX<- read_xlsx(here("data", "static_tables", "BAtransmissionCrosswalk.xlsx")) %>%
   rename(nerc = "NERC Region",
          ba_id = "Balancing Authority Code",
-         system_owner_id = "Balancing Authority Name",
-         nerc_subregion = "SUBRGN") %>% select(-Flag)
+         system_owner_id = "Transmission or Distribution System Owner ID",
+         nerc_subregion = "SUBRGN") %>% mutate(system_owner_id = as.character(system_owner_id))
+
+plant_file_x <- plant_file_x %>% left_join(BAtransmissionX)
 
 
 # 26. Update NOT IN FILE Counties to blank ----------------------------------------
+
+
 # 27. Lat/Long ----------------------------------------
 
 # 29. Calculate CO2 equivalent ----------------------------------------
