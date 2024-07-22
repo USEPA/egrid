@@ -1,8 +1,15 @@
 ---
 title: "QA All Files"
-format: html
+format: 
+  html:
+    toc: true
+    toc-expand: true
+    toc-location: left
+    html-table-processing: none
+    code-fold: true
 editor: visual
-toc: true
+project: 
+  execute_dir: project
 ---
 
 This markdown file performs QA on the following files:
@@ -42,8 +49,6 @@ library(ggplot2)
 
 # Master Database QA
 
-<!--# Need to check what files these are. -->
-
 ## Compare plants between EIA and CAMD
 
 Check if any plants are only in the CAMD data and not EIA data. These plants will be checked with EPA to see if there are any ORIS (plant ID) matches we should be making or if the plants should be deleted.
@@ -57,11 +62,14 @@ Check if any plants are only in the CAMD data and not EIA data. These plants wil
 
 camd <- read_rds("data/clean_data/camd/camd_clean.RDS")
 eia_860 <- read_rds("data/clean_data/eia_860_clean.RDS") 
-eia_923 <- read_rds("data/clean_data/eia_923_clean.RDS")
+eia_923 <- read_rds("data/clean_data/eia_923_clean.RDS") # change data source
+
+# compare to CAMD plants to delete in unit file
+# CAMD plants to delete has not been added into unit file yet. 
 
 compare_plants <- 
   camd %>% select(plant_id, plant_name) %>% distinct() %>% 
-  full_join(eia_860$combined %>% select(plant_id) %>% distinct() %>% 
+  full_join(eia_860$plant %>% select(plant_id) %>% distinct() %>% 
               mutate(eia_860_plant_id = plant_id), by = "plant_id") %>% 
   full_join(eia_923$generation_and_fuel_combined %>% 
               select(plant_id) %>% distinct() %>% 
@@ -80,24 +88,19 @@ knitr::kable(check_compare_plants %>% select(plant_id, plant_name))
 
 ## Biomass units added table
 
+Not automated. Need to check manually.
+
 ## OG/OTH fuel crosswalks
+
+Not automated. Need to check manually.
 
 ## CAMD fuel crosswalks
 
-# CHP Database QA
-
-## Retirement year to current year
-
-```{r}
-#| label: chp_retire_year
-#| echo: false
-#| warning: false
-
-
-
-```
+Can maybe be automated. Will wait for confirmation.
 
 # Generator File QA
+
+Load generator file. Currently using published data from eGRID 2021.
 
 ```{r}
 #| label: load_gen_file
@@ -113,25 +116,6 @@ generator_file <- read_excel("archive/egrid2021_data.xlsx", sheet = "GEN21", ski
          "generator_id" = "genid", 
          "retirement_year" = "genyrret", 
          "status" = "genstat")
-
-```
-
-## Retirement year to current data year
-
-<!--# Is this for plants retired in current year? -->
-
-```{r}
-#| label: generator_retirement 
-#| echo: false
-#| warning: false
-
-check_gen_retirement<- 
-  generator_file %>% filter(status == "RE" | !is.na(retirement_year))
-
-ifelse(nrow(check_gen_retirement) == 0, "No retirements to update.", 
-       glue::glue("{nrow(check_gen_retirement)} generators to update retirements."))
-
-knitr::kable(check_gen_retirement %>% select(plant_id, generator_id, plant_name))
 
 ```
 
@@ -152,30 +136,6 @@ ifelse(nrow(check_gen_duplicates) == 0, "No duplicates.",
         glue::glue("{nrow(check_gen_duplicates)} generators are duplicated."))
 
 knitr::kable(check_gen_duplicates %>% select(plant_id, generator_id, plant_name))
-
-```
-
-## Retired units with generation
-
-Check if there are any retired units that are not retired in the current year that have generation values.
-
-<!--# Are units retired before this year included? Ask about this. Issue printing correct rows here. -->
-
-```{r}
-#| label: generator_retired_gen 
-#| echo: false
-#| warning: false
-
-check_gen_retirement_generation <- 
-  generator_file %>% 
-  filter(status == "RE")
-
-# not printing correct rows
-ifelse(nrow(check_gen_retirement_generation == 0), "No retired units with generation.", 
-        glue::glue("{nrow(check_gen_retirement_generation)} retired units with generation values."))
-
-knitr::kable(check_gen_retirement_generation %>% 
-                         select(plant_name, plant_id, generator_id))
 
 ```
 
@@ -215,29 +175,6 @@ ifelse(nrow(check_unit_fc_pm) == 0, "All CO2 values for FC prime mover are NA.",
         glue::glue("{nrow(check_unit_fc_pm)} FC units have non-zero CO2 values."))
   
 knitr::kable(check_unit_fc_pm %>% select(plant_name, plant_id, unit_id))
-```
-
-## Retirement year to current year
-
-Update retirement year to current year for retired units.
-
-<!--# Need clarification here. -->
-
-<!--# Retirement year column does not exist in unit file? -->
-
-```{r}
-#| label: unit_retirement_cur_year
-#| echo: false
-#| warning: false
-
-check_unit_retirement<- 
-  unit_file %>% filter(status == "RE")
-
-ifelse(nrow(check_unit_retirement) == 0, "No retirement years to update.", 
-        glue::glue("{nrow(check_unit_retirement)} units to update retirement year."))
-
-knitr::kable(check_unit_retirement %>% select(plant_name, plant_id, unit_id))
-
 ```
 
 ## Heat input / emissions values for retired units
@@ -687,6 +624,8 @@ sf::sf_use_s2(FALSE)
 
 Check if plant locations are in regions. If there are any plants that are not in the region or in the overlapping regions, they will appear in the table. Some of the plants in the table may be due to being on the edge of region boundaries.
 
+<!--# need to update this to output table for each subregion -->
+
 ::: panel-tabset
 ### AKGD
 
@@ -696,7 +635,7 @@ Check if plant locations are in regions. If there are any plants that are not in
 #| warning: false  
 
 AKGD_plants <- plant_file %>% filter(subrgn == "AKGD") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") 
 
 ggplot() + 
@@ -737,7 +676,7 @@ knitr::kable(AKGD_plants %>% filter(in_region_check == FALSE &
 #| warning: false  
 
 AKMS_plants <- plant_file %>% filter(subrgn == "AKMS") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") 
 
 ggplot() + 
@@ -1491,6 +1430,7 @@ knitr::kable(check_plant_neg_emissions %>% select(plant_id, plant_name, plnoxan,
 #| echo: false
 #| warning: false
 
+knitr::kable(head(plant_file %>% arrange(desc(plnoxra)) %>% select(plant_id, plant_name, plnoxra), n = 20))
 
 ```
 
@@ -1501,7 +1441,7 @@ knitr::kable(check_plant_neg_emissions %>% select(plant_id, plant_name, plnoxan,
 #| echo: false
 #| warning: false
 
-
+knitr::kable(head(plant_file %>% arrange(desc(plnoxro)) %>% select(plant_id, plant_name, plnoxro), n = 20))
 
 ```
 
@@ -1512,7 +1452,7 @@ knitr::kable(check_plant_neg_emissions %>% select(plant_id, plant_name, plnoxan,
 #| echo: false
 #| warning: false
 
-
+knitr::kable(head(plant_file %>% arrange(desc(plso2ra)) %>% select(plant_id, plant_name, plso2ra), n = 20))
 
 ```
 
@@ -1523,7 +1463,7 @@ knitr::kable(check_plant_neg_emissions %>% select(plant_id, plant_name, plnoxan,
 #| echo: false
 #| warning: false
 
-
+knitr::kable(head(plant_file %>% arrange(desc(plco2ra)) %>% select(plant_id, plant_name, plco2ra), n = 20))
 
 ```
 
@@ -1534,7 +1474,7 @@ knitr::kable(check_plant_neg_emissions %>% select(plant_id, plant_name, plnoxan,
 #| echo: false
 #| warning: false
 
-
+knitr::kable(head(plant_file %>% arrange(desc(plch4ra)) %>% select(plant_id, plant_name, plch4ra), n = 20))
 
 ```
 
@@ -1545,7 +1485,18 @@ knitr::kable(check_plant_neg_emissions %>% select(plant_id, plant_name, plnoxan,
 #| echo: false
 #| warning: false
 
+knitr::kable(head(plant_file %>% arrange(desc(pln2ora)) %>% select(plant_id, plant_name, pln2ora), n = 20))
 
+```
+
+### CO2e
+
+```{r}
+#| label: plant_co2e_outliers
+#| echo: false
+#| warning: false
+
+knitr::kable(head(plant_file %>% arrange(desc(plc2era)) %>% select(plant_id, plant_name, plc2era), n = 20))
 
 ```
 :::
