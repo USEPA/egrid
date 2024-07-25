@@ -668,6 +668,7 @@ plant_file <- plant_file %>% mutate(nerc_subregion = case_when(nerc == "TRE" ~ "
                                                                TRUE ~ NA_character_))
 
 BAsubregionX <- read_xlsx(here("data", "static_tables", "BAsubregionCrosswalk.xlsx")) %>%
+plant_file <- plant_file %>% filter(!is.na(plant_id)) %>% 
   rename(ba_id = "Balancing Authority Code",
          ba_name = "Balancing Authority Name",
          nerc_subregion = "SUBRGN") %>% select(-Flag)
