@@ -662,48 +662,150 @@ plant_file <- plant_file %>% mutate(system_owner_id = ifelse(is.na(system_owner_
 
 # 25. Sub region crosswalks  ----------------------------------------
 
-plant_file <- plant_file %>% mutate(nerc_subregion = case_when(nerc == "TRE" ~ "ERCT",
-                                                               nerc == "FRCC" ~ "FRCC",
-                                                               nerc == "PR" ~ "PRMS",
-                                                               TRUE ~ NA_character_))
+# some imputation of NA added an additional row at some point with plant_id NA
+# filter those out
+# eventually move to whichever step adds this row
+plant_file <- plant_file %>% filter(!is.na(plant_id)) %>% 
+  mutate(nerc_subregion = case_when(nerc == "TRE" ~ "ERCT",
+                                    nerc == "FRCC" ~ "FRCC",
+                                    nerc == "PR" ~ "PRMS",
+                                    TRUE ~ NA_character_))
 
-BAsubregionX <- read_xlsx(here("data", "static_tables", "BAsubregionCrosswalk.xlsx")) %>%
+BAX <- read_xlsx(here("data", "static_tables", "BAsubregionCrosswalk.xlsx")) %>%
   rename(ba_id = "Balancing Authority Code",
          ba_name = "Balancing Authority Name",
-         nerc_subregion = "SUBRGN") %>% select(-Flag)
+         nerc_subregion_new = "SUBRGN") %>% select(-Flag)
 
-plant_file_x <- plant_file %>% left_join(BAsubregionX)
+plant_file <- plant_file %>% left_join(BAX) %>%
+  mutate(nerc_subregion = ifelse(is.na(nerc_subregion), nerc_subregion_new, nerc_subregion)) %>% 
+  select(-nerc_subregion_new)
 
-BAtransmissionX<- read_xlsx(here("data", "static_tables", "BAtransmissionCrosswalk.xlsx")) %>%
+BAtransX<- read_xlsx(here("data", "static_tables", "BAtransmissionCrosswalk.xlsx")) %>%
   rename(nerc = "NERC Region",
          ba_id = "Balancing Authority Code",
          system_owner_id = "Transmission or Distribution System Owner ID",
-         nerc_subregion = "SUBRGN") %>% mutate(system_owner_id = as.character(system_owner_id))
+         nerc_subregion_new = "SUBRGN") %>% mutate(system_owner_id = as.character(system_owner_id)) %>% unique
 
-plant_file_x <- plant_file_x %>% left_join(BAtransmissionX)
+plant_file <- plant_file %>% left_join(BAtransX) %>%
+  mutate(nerc_subregion = ifelse(is.na(nerc_subregion), nerc_subregion_new, nerc_subregion)) %>% 
+  select(-nerc_subregion_new)
+
+BAtransPJMutilityX<- read_xlsx(here("data", "static_tables", "BAsubregionCrosswalkPJMutility.xlsx")) %>%
+  rename(nerc = "NERC Region",
+         ba_id = "Balancing Authority Code",
+         system_owner_id = "Transmission or Distribution System Owner ID", 
+         utility_id = "Utility ID" ,
+         nerc_subregion_new = "SUBRGN") %>% mutate(system_owner_id = as.character(system_owner_id),
+                                               utility_id = as.character(utility_id)) %>% unique
+
+plant_file <- plant_file %>% left_join(BAtransPJMutilityX) %>%
+  mutate(nerc_subregion = ifelse(is.na(nerc_subregion), nerc_subregion_new, nerc_subregion)) %>% 
+  select(-nerc_subregion_new)
 
 
+ORISX<- read_xlsx(here("data", "static_tables", "ORIS WECC Crosswalk.xlsx")) %>%
+  rename(plant_state = "PSTATABB",
+         plant_name = "PNAME",
+         plant_id = "ORISPL", 
+         nerc_subregion_new = "SUBRGN") %>% unique %>% select(-plant_name)
+# remove plant_name since it doesn't perfectly match plant_name_gen or plant_name_unit
+
+plant_file <- plant_file %>% left_join(ORISX) %>%
+  mutate(nerc_subregion = ifelse(is.na(nerc_subregion), nerc_subregion_new, nerc_subregion)) %>% 
+  select(-nerc_subregion_new)
+
+
+# there are duplicates in NERCassess that are all already handled in previous crosswalks
+# filter to only plant_ids with na for nerc_subregion
+ids <- plant_file$plant_id[which(is.na(plant_file$nerc_subregion))]
+NERCassessX <-  read_xlsx(here("data", "static_tables", "NERC Assessment Areas grouped by plant.xlsx")) %>% 
+  full_join( read_xlsx(here("data", "static_tables", "NERCassessmentCrosswalk.xlsx"))) %>% 
+  rename(plant_id = "Plant Code",
+         nerc_subregion_new = "SUBRGN") %>% filter(!is.na(nerc_subregion_new) & !is.na(plant_id)) %>%
+  select(-"Assessment Area") %>% unique %>% filter(plant_id %in% ids)
+
+plant_file <- plant_file %>% left_join(NERCassessX) %>%
+  mutate(nerc_subregion = ifelse(is.na(nerc_subregion), nerc_subregion_new, nerc_subregion)) %>% 
+  select(-nerc_subregion_new)
+
+
+subregions <-  read_xlsx(here("data", "static_tables", "eGRID subregions.xlsx")) %>%
+  rename("nerc_subregion" = "SUBRGN",
+         "nerc_subregion_name" = "SRNAME")
+  
+
+plant_file <- plant_file %>% left_join(subregions)
+
+rm(BAX, BAtransX, BAtransPJMutilityX, ORISX, NERCassessX, ids, subregions)
 # 26. Update NOT IN FILE Counties to blank ----------------------------------------
 
+## no occurences exist and this was checked for in step #3
 
 # 27. Lat/Long ----------------------------------------
 
+# no occurances of this but added to make sure
+#View(plant_file %>% filter(lat ==0 | lon == 0) %>% select(plant_id, lat,lon))
+
+plant_file <- plant_file %>% mutate(lat = as.numeric(lat),
+                                    lon = as.numeric(lon)) %>%
+  mutate(lat = ifelse(lat ==0, NA, lat),
+         lon = ifelse(lon ==0, NA, lon))
+
+# manually coded the updates in Lat/Lon changes
+plant_file <- plant_file %>% mutate(lat = case_when(plant_id==54975 ~ 32.380032,
+                                                    plant_id==62262 ~ 42.899029,
+                                                    plant_id==63003 ~ 41,
+                                                    plant_id==64850 ~ 36.169,
+                                                    TRUE ~ lat),
+                                    lon = case_when(plant_id==54975 ~ -106.753716,
+                                                    plant_id==62262 ~ -75.458456,
+                                                    plant_id==63003 ~ -89.996844,
+                                                    plant_id==64850 ~ -81.042,
+                                                    TRUE ~ lon))
+
+# 28. ISORTO ----------
+
+plant_file <- plant_file %>% mutate(isorto = case_when(ba_id=="CISO" ~ "CAISO",
+                                                       ba_id=="ERCO" ~ "ERCOT",
+                                                       ba_id=="ISNE" ~"ISONE",
+                                                       ba_id=="MISO" ~"MISO",
+                                                       ba_id=="NYIS" ~"NYISO",
+                                                       ba_id=="PJM" ~"PJM",
+                                                       ba_id=="SPA" ~"SPP",
+                                                       TRUE ~ NA_character_)) %>%
+  mutate(isorto = ifelse(plant_state %in% c("AL","AK","AZ","CO","FL","GA", "HI", "ID", "OR", "SC", "TN", "UT", "WA"),
+                         "", isorto)
+                                                       
+# do we want to set to NA or blank string?                                                        
+)
+
 # 29. Calculate CO2 equivalent ----------------------------------------
 
-plant_file = plant_file %>% mutate(co2_equivalent = co2_mass + (25*ch4_mass/2000) + (298*n2o_mass/2000))  
+plant_file = plant_file %>% mutate(co2_equivalent = 
+                                     ifelse(is.na(co2_mass), 0, co2_mass) + 
+                                     ifelse(is.na(ch4_mass), 0, 25*ch4_mass/2000) + 
+                                     ifelse(is.na(n2o_mass), 0, 298*n2o_mass/2000))
     
+# 30. Update negative adjusted emissions to 0 ---------------
+
+
+plant_file <- plant_file %>% mutate(co2_mass = ifelse(co2_mass<0, 0, co2_mass),
+                                    ch4_mass = ifelse(ch4_mass<0, 0, ch4_mass),
+                                    n2o_mass = ifelse(n2o_mass<0, 0, n2o_mass),
+                                    co2_equivalent = ifelse(co2_equivalent<0, 0, co2_equivalent))
+
 
 # 31.	Calculate emissions rates  --------------------
 #   a.	Combustion output emissions rates ----------------------------------------
 
-plant_file = plant_file %>% mutate(nox_combust_out_emission_rate = 2000 * nox_mass / ann_gen_combust,
-                                   nox_combust_out_emission_rate_oz = 2000 * nox_oz / ( ann_gen_combust * (generation_oz/generation_ann)),
-                                   so2_combust_out_emission_rate = 2000 * so2_mass / ann_gen_combust,
-                                   co2_combust_out_emission_rate = 2000 * co2_mass / ann_gen_combust,
-                                   ch4_combust_out_emission_rate = 2000 * ch4_mass / ann_gen_combust,
-                                   n2o_combust_out_emission_rate = 2000 * n2o_mass / ann_gen_combust,
-                                   co2_combust_equiv_out_emission_rate = 2000 * co2_equivalent / ann_gen_combust,
-                                   hg_combust_out_emission_rate = 2000 * hg_mass / ann_gen_combust)  
+plant_file = plant_file %>% mutate(nox_combust_out_emission_rate = ifelse(ann_gen_combust<0, 0,2000 * nox_mass / ann_gen_combust),
+                                   nox_combust_out_emission_rate_oz = ifelse(  ann_gen_combust * (generation_oz/generation_ann) < 0, 0, 2000 * nox_oz / ( ann_gen_combust * (generation_oz/generation_ann))),
+                                   so2_combust_out_emission_rate = ifelse(ann_gen_combust<0, 0,2000 * so2_mass / ann_gen_combust),
+                                   co2_combust_out_emission_rate = ifelse(ann_gen_combust<0, 0,2000 * co2_mass / ann_gen_combust),
+                                   ch4_combust_out_emission_rate = ifelse(ann_gen_combust<0, 0,2000 * ch4_mass / ann_gen_combust),
+                                   n2o_combust_out_emission_rate = ifelse(ann_gen_combust<0, 0,2000 * n2o_mass / ann_gen_combust),
+                                   co2_combust_equiv_out_emission_rate = ifelse(ann_gen_combust<0, 0,2000 * co2_equivalent / ann_gen_combust),
+                                   hg_combust_out_emission_rate = ifelse(ann_gen_combust<0, 0,2000 * hg_mass / ann_gen_combust)  )
 
 
 #   b.	Input emission rates ----------------------------------------
