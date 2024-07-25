@@ -172,8 +172,8 @@ unit <- unit %>% left_join(heat_input_table)
 
 rm(heat_input_table)
 # 5.	Update capacity factor  -----------------------------------------------
-gen_860 <- gen_860 %>% mutate(capfac = ifelse(generation_ann / nameplate_capacity *8760 < 0, 0, 
-                                      generation_ann / nameplate_capacity *8760))
+gen_860 <- gen_860 %>% mutate(capfac = ifelse(generation_ann / (nameplate_capacity *8760) < 0, 0, 
+                                      generation_ann / (nameplate_capacity *8760)))
 
 # 6.	Calculate CH4 emissions & 7.	Calculate N2O emissions  ----------------------------------------
 
@@ -196,11 +196,16 @@ eia_CH4_N2O <- eia_923$generation_and_fuel_combined %>% filter(prime_mover != "F
             unadj_n2o_mass = sum(unadj_n2o_mass, na.rm = TRUE))
   
 
-plant_file <- gen_860 %>% full_join(unit, by = c("plant_id", "plant_state", "plant_name"))
+plant_file <- gen_860 %>% full_join(unit, by = c("plant_id", "plant_state"))  %>%
+  rename(plant_name_gen = plant_name.x,
+        plant_name_unit = plant_name.y )
+# names differ between sources, so only join on id and state.
+
+#View(plant_file %>% filter(plant_name.x != plant_name.y) %>% select(plant_id, plant_state, plant_name.x, plant_name.y))
 plant_file <- plant_file %>% left_join(eia_CH4_N2O) 
 
 
-rm(eia_CH4_N2O)
+rm(eia_CH4_N2O, emissions_CH4_N2O)
 # 8.	Add in FIPS codes  ----------------
 A6_fips <- read_excel(here("data", "static_tables", "Appendix 6 State and County FIPS Codes.xlsx"))
 A6_newnames <- read_excel(here("data", "static_tables", "FIPS Appendix 6 crosswalk - name updates.xlsx"))
