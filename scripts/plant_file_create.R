@@ -328,7 +328,7 @@ plant_file <- plant_file %>% left_join(EIA_923_LFG) %>%
          biomass_adj_flag = ifelse(biomass_adj_flag == 1 | biomass_adj_flag1 == 1, 1, 0)) %>%
   select(-biomass_adj_flag)
 
-rm(EIA_923_LFG)
+rm(EIA_923_LFG, EFs)
 
 ## Landfill Gas adjustment (SO2) - suppressed -----------------
 #LFG_EF <- read_csv("data/static_tables/emission_factors.csv") %>% filter(primary_fuel_type=="LFG") %>% 
@@ -354,7 +354,7 @@ rm(EIA_923_LFG)
 ## Set Bio fields equal to unadj_ fields -----------------
 plant_file <- plant_file %>% 
   mutate(nox_biomass = min(nox_biomass, unadj_nox_mass),
-         nox_biom_oz = min(nox_bio_oz, unadj_nox_oz),
+         nox_bio_oz = min(nox_bio_oz, unadj_nox_oz),
          ch4_biomass = min(ch4_biomass, unadj_ch4_mass),
          n2o_biomass = min(n2o_biomass, unadj_n2o_mass),
          so2_biomass = min(so2_biomass, unadj_so2_mass),
@@ -383,7 +383,8 @@ plant_file <- plant_file %>% ungroup %>% rowwise %>% mutate(
 # one ba_name was missing a ba_id
 plant_file <- plant_file %>% 
   mutate(ba_id = ifelse(ba_name == "Hawaiian Electric Co Inc", "HECO", ba_id),
-         ba_name = ifelse(ba_name == "No BA", NA, ba_name))
+         ba_name = ifelse(ba_name %in% c( "No BA","NA" ), NA, ba_name)) %>%
+  mutate(ba_id = ifelse(ba_id == "NA", NA, ba_id))
 
 # check all codes have names and all names have codes
 stopifnot(nrow(plant_file[which(!is.na(plant_file$ba_id) & is.na(plant_file$ba_name)),])==0)
@@ -453,7 +454,7 @@ fuel_dups <- fuel_dups %>% mutate(primary_fuel_type = ifelse(plant_id %in% dup_i
 fuel_by_plant <- fuel_by_plant %>% full_join(fuel_dups)
 
 stopifnot(all(!duplicated(fuel_by_plant$plant_id))) # check there are no more duplicates
-rm(fuel_dups,eia_923_use, gen_fuel_by_plant, unit_fuel_by_plant)
+rm(fuel_dups,eia_923_use, gen_fuel_by_plant, unit_fuel_by_plant, dup_ids)
 # 14.	Plant primary fuel category  ---------------
 oil_fuels <- c("DFO", "JF", "KER", "PC", "RFO", "WO", "SGP") # , "OO"
 gas_fuels <- c("NG", "PG", "BU") 
@@ -539,6 +540,7 @@ plant_file <- plant_file %>% left_join(ann_gen_by_fuel) %>% mutate(
   primary_fuel_category = ifelse(perc_ann_gen_nuclear > 50, "NUCLEAR", primary_fuel_category),
 )
 
+rm(ann_gen_by_fuel)
 # there is some weird v small differences, but rounding fixes
 # checks the sum of all = 100
 stopifnot(all(100==round(plant_file$perc_ann_gen_renew + plant_file$perc_ann_gen_non_renew,0) |
