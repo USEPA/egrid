@@ -146,8 +146,8 @@ eia_860_use <- eia_860$plant %>% select(plant_id,
 
 gen_860 <-gen %>% left_join(eia_860_use)
 
-if(any( grepl('not in file|Not in file', gen_860$county))){
-  gen_860 <- gen_860 %>% mutate(county = ifelse(grepl('not in file|Not in file', county),NA,county ))
+if(any( grepl('not in file|Not in file|NOT IN FILE', gen_860$county))){
+  gen_860 <- gen_860 %>% mutate(county = ifelse(grepl('not in file|Not in file|NOT IN FILE', county),NA,county ))
 }
 rm(eia_860_use, CHP)
 # 4.	Combustion heat input ---------------------------------------
