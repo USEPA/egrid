@@ -549,18 +549,19 @@ stopifnot(all(100==round(plant_file$perc_ann_gen_renew + plant_file$perc_ann_gen
 
 
 # 17.	Useful thermal output ---------------------
-EIA_923_use <- eia_923$generation_and_fuel_combined %>% group_by(plant_id) %>%
+eia_923_use <- eia_923$generation_and_fuel_combined %>% group_by(plant_id) %>%
   mutate(plant_id = as.numeric(plant_id))   %>% 
   summarise(total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE),
             elec_fuel_consumption_mmbtu = sum(elec_fuel_consumption_mmbtu, na.rm = TRUE))
 
 CHP <- read_xlsx(here("data", "static_tables", "CHP list.xlsx")) %>% filter(Total > 0) %>% 
   rename(plant_id = `Plant Code`) %>%
-  left_join(EIA_923_use) %>%
+  left_join(eia_923_use) %>%
   mutate(uto = 0.8*(total_fuel_consumption_mmbtu - elec_fuel_consumption_mmbtu),
          chp_flag =  "Yes") %>% select(plant_id, uto, chp_flag)
 
 plant_file <- plant_file %>% left_join(CHP) 
+rm(CHP,eia_923_use)
 # only CHP plants calculate uto??
 
 # 18. Power Heat Ratio ---------------
@@ -579,8 +580,13 @@ plant_file <- plant_file %>%
                                   ifelse(elec_allocation > 1, 1, elec_allocation)))
 
 # 20.	CHP adjustment  ------------------
+
+# ADDED heat_input and heat_input_oz since the DD says it's adjusted by the allocation factor
+
 plant_chp <- plant_file %>% filter( chp_flag == "Yes" ) %>% 
-  mutate(power_heat_ratio =  elec_allocation * power_heat_ratio,
+  mutate(heat_input =  elec_allocation * unadj_heat_input,
+         heat_input_oz =  elec_allocation * unadj_heat_input_oz,
+         power_heat_ratio =  elec_allocation * power_heat_ratio,
          combust_heat_input_1 = elec_allocation * unadj_combust_heat_input,
          combust_heat_input_oz_1 = elec_allocation * unadj_combust_heat_input_oz, 
          nox_mass = elec_allocation * nox_mass,
