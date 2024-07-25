@@ -236,12 +236,14 @@ OTH_OG_recode <- read_excel(here("data", "static_tables", "OG_OTH units to chang
 
 coal_fuels <- c("ANT","BIT", "COG", "LIG", "RC", "SGC", "SUB", "WC")
 
+# if the fuel type (or the recoded value) is in coal_fuels, set the flag to 1, otherwise 0
 coal_plants <- eia_923$generation_and_fuel_data  %>% group_by(plant_id, fuel_type)  %>% 
   summarise(total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE)) %>%
   mutate(plant_id = as.numeric(plant_id)) %>% full_join(OTH_OG_recode) %>%
   mutate(coal_flag = ifelse( (fuel_type %in% coal_fuels|new_code %in% coal_fuels) & 
                                total_fuel_consumption_mmbtu > 0, 1, 0))
 
+# taking the max here chooses 1 if any rows for that plant contain a 1
 coal_plants <- coal_plants %>% ungroup %>% group_by(plant_id) %>% 
   summarise(coal_flag = max(coal_flag))
 
@@ -421,36 +423,51 @@ rm(ult_ba, lu_ba, eia_861_use)
 
 
 # 13.	Plant primary fuel -----------------------
+
+# first summarise the unit file to get the sum of heat input for each fuel type
+# then ungroup and filter to the row (fuel type) with the max value
 unit_fuel_by_plant <- unit_file %>% group_by(plant_id, primary_fuel_type) %>% summarise(heat_input = sum(heat_input)) %>%
   mutate(heat_input = ifelse(is.na(heat_input),0,heat_input),
          plant_id = as.numeric(plant_id)) %>% # replace NA with 0 so rows with only NA do not get filtered out
   ungroup %>% group_by(plant_id) %>% filter(heat_input == max(heat_input)  )
-         
+
+# do the same for the generator file with nameplate_capacity       
 gen_fuel_by_plant <- generator_file %>% group_by(plant_id, fuel_code) %>% summarise(nameplate_capacity = sum(nameplate_capacity)) %>%
   mutate(nameplate_capacity = ifelse(is.na(nameplate_capacity),0,nameplate_capacity),
          plant_id = as.numeric(plant_id)) %>% # replace NA with 0 so rows with only NA do not get filtered out
   ungroup %>% group_by(plant_id) %>% filter(nameplate_capacity == max(nameplate_capacity)  ) 
 
-
+# join these tables together
+# update primary fuel type as fuel_code (from gen file) if heat_input is 0 and primary_fuel_type (from unit file) otherwise
+# drop fuel_code and take unique values 
 fuel_by_plant <- unit_fuel_by_plant %>% full_join(gen_fuel_by_plant) %>%
   mutate(primary_fuel_type = ifelse(heat_input == 0, fuel_code, primary_fuel_type)) %>% select(-fuel_code) %>% unique
 
+# from eia_923 replace na values in total_fuel_consumption_mmbtu with 0 and convert plant_id to numeric
 eia_923_use <- eia_923$generation_and_fuel_combined %>% select(plant_id, fuel_type, total_fuel_consumption_mmbtu) %>% 
   mutate(plant_id = as.numeric(plant_id),
          total_fuel_consumption_mmbtu = ifelse(is.na(total_fuel_consumption_mmbtu), 0, total_fuel_consumption_mmbtu))
 
+# get plant_ids that are duplicated in fuel_by_plant
+# filter to duplicated ids and join with eia_923_use
+# filter to rows with the max total_fuel_consumption_mmbtu
 dup_ids <- fuel_by_plant$plant_id[which(duplicated(fuel_by_plant$plant_id))] %>% unique
 fuel_dups <- fuel_by_plant %>% filter(plant_id %in% dup_ids)  %>%
   left_join(eia_923_use,
             by = c("plant_id" = "plant_id",
                    "primary_fuel_type" = "fuel_type")) %>% unique %>%
   ungroup %>% group_by(plant_id) %>% filter(total_fuel_consumption_mmbtu == max(total_fuel_consumption_mmbtu))
+# drop dups from fuel_by_plant for easier joining later
 fuel_by_plant <- fuel_by_plant %>% filter(!plant_id %in% dup_ids) %>% select(-heat_input, - nameplate_capacity)
 
+# get plant_ids that are STILL duplicated
 dup_ids <- fuel_dups$plant_id[which(duplicated(fuel_dups$plant_id))] %>% unique
+# update those to NA and take unique values to remove remaining duplicates
+# This didn't occur in SQL and I need to confirm this is what we want to do
 fuel_dups <- fuel_dups %>% mutate(primary_fuel_type = ifelse(plant_id %in% dup_ids, NA, primary_fuel_type)) %>%
   select(-heat_input, - nameplate_capacity, - total_fuel_consumption_mmbtu) %>% unique
 
+# join the duplicates back into fuel_by_plant
 fuel_by_plant <- fuel_by_plant %>% full_join(fuel_dups)
 
 stopifnot(all(!duplicated(fuel_by_plant$plant_id))) # check there are no more duplicates
