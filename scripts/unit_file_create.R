@@ -210,6 +210,10 @@ camd_oz_reporters <- # creating dataframe with all plants and associated units t
   camd_6 %>%
   filter(plant_id %in% camd_oz_reporter_plants)
 
+camd_q_oz_reporters <- 
+  camd_oz_reporters %>% 
+  group_by(plant_id) %>% 
+  filter(any(reporting_frequency == "Q"))
 
 ### summing heat input values in the 923 gen and fuel file. These totals will be used to distribute heat for the non-ozone months in the camd data.
 ### We also add consumption totals here, which will be used later when estimating NOx emissions.
@@ -234,26 +238,44 @@ eia_fuel_consum_pm <- # summing fuel and consum to pm level
             fuel_consum_ann_923 = sum(total_fuel_consumption_quantity, na.rm = TRUE) # consumption in quantity is referred to as "fuel consumpsion"
   )
 
+# distributing heat input from only ozone reporting plants to non-ozone months
 camd_oz_reporters_dist <- 
   camd_oz_reporters %>%
   group_by(plant_id, prime_mover) %>% 
   mutate(tot_heat_input = sum(heat_input, na.rm = TRUE)) %>%
   left_join(eia_fuel_consum_pm, 
             by = c("plant_id", "prime_mover")) %>% 
-  ungroup() %>%
-  #mutate(annual_heat_diff = heat_input_ann_923 - tot_heat_input) %>% # calculating annual heat difference # SB: This is old method, but I'm not sure this part works correctly or is necessary
-  #annual_heat_diff_wout_oz = annual_heat_diff - heat_input_oz_923) %>% # calculating difference - ozone month totals to get the leftover nonozone heat input
-  group_by(plant_id, prime_mover) %>% # sum to plant/pm/ for distributional proportion 
-  mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>%
-  ungroup() %>% 
+  mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% # sum to plant/pm/ for distributional proportion 
+  filter(!any(reporting_frequency == "Q")) %>% # Remove any plants with annual reporters
   mutate(prop = heat_input_oz/sum_heat_input_oz) %>%  # determining distributional proportion
-  filter(reporting_frequency == "OS") %>% # Annual reporting units can be removed now
   ungroup() %>% 
-  mutate(heat_input_nonoz = heat_input_nonoz_923 * prop, # distributing nonoz
+  mutate(heat_input_nonoz = heat_input_nonoz_923 * prop, # distributing nonoz 
          heat_input = heat_input_oz + heat_input_nonoz, # annual heat input =   distributed non-oz heat + ozone heat
          heat_input_source = if_else(is.na(heat_input), "EPA/CAMD", "EIA non-ozone season distributed and EPA/CAMD ozone season"))
 
-
+# distributing heat input from plants with both annual and ozone reporting units
+camd_q_oz_reporters_dist <- 
+  camd_oz_reporters %>% 
+  group_by(plant_id, prime_mover) %>% 
+  filter(any(reporting_frequency == "Q")) %>% # selecting plants that have both annual and ozone reporting units
+  mutate(tot_heat_input = sum(heat_input, na.rm = TRUE)) %>%
+  left_join(eia_fuel_consum_pm, 
+            by = c("plant_id", "prime_mover")) %>% 
+  mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  filter(reporting_frequency == "OS") %>% # select only ozone reporting units 
+  mutate(annual_heat_diff = heat_input_ann_923 - tot_heat_input, # calculating annual heat difference 
+         annual_heat_diff_wout_oz = annual_heat_diff - heat_input_oz_923) %>% # calculating difference - ozone month totals to get the leftover nonozone heat input
+  filter(annual_heat_diff_wout_oz > 0) %>%  # annual heat difference without ozone must be positive to have heat input to distribute
+  mutate(prop = heat_input_oz/sum_heat_input_oz, # calculate proportion of heat input for each unit
+         heat_input_nonoz = annual_heat_diff_wout_oz * prop, # calculate non-ozone heat input 
+         heat_input = heat_input_nonoz + heat_input_oz, # calculate total heat input
+         heat_input_source = if_else(is.na(heat_input), "EPA/CAMD", "EIA non-ozone season distributed and EPA/CAMD ozone season")) 
+  
+# combine ozone reporters datasets 
+camd_oz_reporters_dist_2 <- 
+  camd_oz_reporters_dist %>% 
+  bind_rows(camd_q_oz_reporters_dist)
 
 ### Gap fill NOx emissions ozone season reporters -----------
 
@@ -271,7 +293,7 @@ nox_rates <- # calculating nox emission rates used to estimate NOx emissions
             nox_rate_oz = max(nox_emission_rate_may_through_september_lbs_mmbtu)) 
 
 camd_oz_reporters_dist_nox_rates <- # filling annual nox mass with nox_rates where available
-  camd_oz_reporters_dist %>%
+  camd_oz_reporters_dist_2 %>%
   inner_join(nox_rates,
              by = c("plant_id", "unit_id" = "boiler_id")) %>%
   mutate(nox_mass_nonoz = (heat_input_nonoz * nox_rate_ann)/ 2000, 
@@ -306,7 +328,7 @@ camd_oz_reporters_dist_nox_ef <-
 
 distinct_cols <- c("plant_id", "unit_id", "heat_input", "heat_input_source", "nox_mass", "nox_source")
 
-camd_oz_reporters_dist_final <- # combinging all distributed ozone season reporters and keeping only necessary columns 
+camd_oz_reporters_dist_final <- # combining all distributed ozone season reporters and keeping only necessary columns 
   camd_oz_reporters_dist_nox_rates %>% 
   distinct(pick(distinct_cols)) %>%
   bind_rows(camd_oz_reporters_dist_nox_ef %>% 
