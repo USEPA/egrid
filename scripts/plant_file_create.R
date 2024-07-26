@@ -837,12 +837,272 @@ plant_file = plant_file %>% mutate(nox_combust_out_emission_rate = ifelse(ann_ge
                                      hg_in_emission_rate = 2000 * hg_mass / heat_input)  
 #   c.	Output emission rates ----------------------------------------
 
-plant_file = plant_file %>% mutate(nox_out_emission_rate = 2000 * nox_mass / generation_ann,
-                                  nox_out_emission_rate_oz = 2000 * nox_oz / generation_oz,
-                                  so2_out_emission_rate = 2000 * so2_mass / generation_ann,
-                                  co2_out_emission_rate = 2000 * co2_mass / generation_ann,
-                                  ch4_out_emission_rate = 2000 * ch4_mass / generation_ann,
-                                  n2o_out_emission_rate = 2000 * n2o_mass / generation_ann,
-                                  co2_equiv_out_emission_rate = 2000 * co2_equivalent / generation_ann,
-                                  hg_out_emission_rate = 2000 * hg_mass / generation_ann)
+plant_file = plant_file %>% mutate(nox_out_emission_rate = ifelse(generation_ann <0, 0, 2000 * nox_mass / generation_ann),
+                                  nox_out_emission_rate_oz =ifelse(generation_oz <0, 0,  2000 * nox_oz / generation_oz),
+                                  so2_out_emission_rate = ifelse(generation_ann <0, 0, 2000 * so2_mass / generation_ann),
+                                  co2_out_emission_rate = ifelse(generation_ann <0, 0, 2000 * co2_mass / generation_ann),
+                                  ch4_out_emission_rate = ifelse(generation_ann <0, 0, 2000 * ch4_mass / generation_ann),
+                                  n2o_out_emission_rate = ifelse(generation_ann <0, 0, 2000 * n2o_mass / generation_ann),
+                                  co2_equiv_out_emission_rate = ifelse(generation_ann <0, 0, 2000 * co2_equivalent / generation_ann),
+                                  hg_out_emission_rate = ifelse(generation_ann <0, 0, 2000 * hg_mass / generation_ann))
 
+# 32. Nonbaseload factor ---------------------------------
+
+plant_file <- plant_file %>% mutate(nonbaseload = ifelse(!primary_fuel_type %in% c("GEO", "MWH", "NUC", "PUR", "SUN", "WAT", "WND"),
+                                                         case_when(capfac==0 ~ NA_real_,
+                                                                   capfac < 0.2 ~ 1,
+                                                                   capfac > 0.8 ~ 0,
+                                                                   TRUE ~ (-5/3*capfac)+4/3),
+                                                         NA))
+
+# 33. Source columns ------------------------------
+
+
+dedup_source <- function(x, unit_f){
+  str_col <- x
+  x <- as.name(x)
+  
+  unit_source<- unit_f %>% select(plant_id,  !!x) %>% group_by(plant_id, !!x ) %>% filter(!is.na(!!x)) %>%
+    
+    mutate(s = case_when(!!x=="EIA Unit-level Data" ~ "EIA",
+                          !!x=="EIA Unit-Level Data" ~ "EIA",
+                          !!x=="EIA Prime Mover-level Data" ~ "EIA",
+                          !!x=="EPA/CAMD" ~ "EPA/CAMD", 
+                          !!x=="EIA non-ozone season distributed and EPA/CAMD ozone season" ~ "EPA/CAMD; EIA"))
+  unit_source <- unit_source %>% ungroup %>%
+    select(plant_id,s) %>%
+    # the last one doesn't appear in heat_input_oz_source, but keeping it just in case
+    unique
+  ids <- unit_source$plant_id[which(duplicated(unit_source$plant_id))] %>% unique
+  unit_source <- unit_source %>% 
+    mutate(s = ifelse(plant_id %in% ids,"EPA/CAMD; EIA", s)) 
+    unique # take unique again to remove duplicates
+    
+  colnames(unit_source) <- c("plant_id", str_col)
+  
+  return(unique(unit_source))
+}
+
+chk_list <- c( "EIA","EPA/CAMD",NA,"EPA/CAMD; EIA")
+
+# deduplicate heat_input_source
+unit_source<- dedup_source(x ="heat_input_source", unit_f = unit_file) 
+
+plant_file <- plant_file %>% left_join(unit_source) 
+stopifnot(all(plant_file$heat_input_source %in% chk_list))
+
+# Do it again for heat_input_oz_source
+unit_source<- dedup_source(x ="heat_input_oz_source", unit_f = unit_file) 
+plant_file <- plant_file %>% left_join(unit_source) 
+
+stopifnot(all(plant_file$heat_input_oz_source %in% chk_list))
+
+# Do it again for nox_source
+unit_source<- dedup_source(x ="nox_source", unit_f = unit_file) 
+plant_file <- plant_file %>% left_join(unit_source) 
+
+stopifnot(all(plant_file$nox_source %in% chk_list))
+
+# Do it again for nox_oz_source
+unit_source<- dedup_source(x ="nox_oz_source", unit_f = unit_file) 
+plant_file <- plant_file %>% left_join(unit_source) 
+
+stopifnot(all(plant_file$nox_oz_source %in% chk_list))
+
+# Do it again for co2_source
+unit_source<- dedup_source(x ="co2_source", unit_f = unit_file) 
+plant_file <- plant_file %>% left_join(unit_source) 
+
+stopifnot(all(plant_file$co2_source %in% chk_list))
+
+# Do it again for so2_source
+unit_source<- dedup_source(x ="so2_source", unit_f = unit_file) 
+plant_file <- plant_file %>% left_join(unit_source) 
+
+stopifnot(all(plant_file$so2_source %in% chk_list))
+
+
+plant_file <- plant_file %>% mutate(ch4_source = ifelse(!is.na(ch4_mass), "EIA", NA))
+plant_file <- plant_file %>% mutate(n2o_source = ifelse(!is.na(n2o_mass), "EIA", NA))
+
+rm(unit_source, chk_list)
+
+# 34. Update NULL adjusted heat input --------------
+
+# heat_input was only populated for chp_flag == Yes
+x <- which(!is.na(plant_file$heat_input))
+y <- which(plant_file$chp_flag == "Yes")
+z <- which(plant_file$chp_flag == "Yes" & (is.na(plant_file$elec_allocation) | is.na(plant_file$unadj_heat_input)) )
+stopifnot(length(x) == length(y) - length(z))
+rm(z,y,z)
+
+# fill it with the unadjusted value for others
+# this should be moved into one step in re-organization
+# what about heat_input_oz?
+plant_file <- plant_file %>% mutate(heat_input = ifelse(is.na(heat_input), unadj_heat_input, heat_input))
+
+# 35. Round plant file -------------------------
+
+plant_file <- plant_file %>% mutate(capfac = round(capfac, 5), # a - capacity factor
+                                    power_heat_ratio = round(power_heat_ratio, 3), # b - CHP power heat ration
+                                    elec_allocation = round(elec_allocation, 6), # c - CHP electric allocation
+                                    # SQL - heat input
+                                    combust_heat_input = round(combust_heat_input, 3),
+                                    combust_heat_input_oz = round(combust_heat_input_oz, 3), 
+                                    heat_input = round(heat_input, 3),
+                                    heat_input_oz = round(heat_input_oz, 3),
+                                    # j - annual generation
+                                    generation_ann = round(generation_ann, 3), 
+                                    generation_oz = round(generation_oz, 3), 
+                                    # d - emissions mass
+                                    nox_mass = round(nox_mass, 3), 
+                                    nox_oz = round(nox_oz, 3),
+                                    so2_mass = round(so2_mass, 3),
+                                    co2_mass = round(co2_mass, 3),
+                                    ch4_mass = round(ch4_mass, 3),
+                                    n2o_mass = round(n2o_mass, 3),
+                                    co2_equivalent = round(co2_equivalent, 3),
+                                    hg_mass = round(hg_mass, 6),
+                                    # e - output emissions rates
+                                    nox_out_emission_rate = round(nox_out_emission_rate, 3), 
+                                    nox_out_emission_rate_oz = round(nox_out_emission_rate_oz, 3),
+                                    so2_out_emission_rate = round(so2_out_emission_rate, 3),
+                                    co2_out_emission_rate = round(co2_out_emission_rate, 3),
+                                    ch4_out_emission_rate = round(ch4_out_emission_rate, 3),
+                                    n2o_out_emission_rate = round(n2o_out_emission_rate, 3),
+                                    co2_equiv_out_emission_rate = round(co2_equiv_out_emission_rate, 3),
+                                    hg_out_emission_rate = round(hg_out_emission_rate, 6),
+                                    # f - input emissions rates
+                                    nox_in_emission_rate = round(nox_in_emission_rate, 3), 
+                                    nox_in_emission_rate_oz = round(nox_in_emission_rate_oz, 3),
+                                    so2_in_emission_rate = round(so2_in_emission_rate, 3),
+                                    co2_in_emission_rate = round(co2_in_emission_rate, 3),
+                                    ch4_in_emission_rate = round(ch4_in_emission_rate, 3),
+                                    n2o_in_emission_rate = round(n2o_in_emission_rate, 3),
+                                    co2_equiv_in_emission_rate = round(co2_equiv_in_emission_rate, 3),
+                                    hg_in_emission_rate = round(hg_in_emission_rate, 6),
+                                    # e - combustion output emissions rates
+                                    nox_combust_out_emission_rate = round(nox_combust_out_emission_rate, 3), 
+                                    nox_combust_out_emission_rate_oz = round(nox_combust_out_emission_rate_oz, 3),
+                                    so2_combust_out_emission_rate = round(so2_combust_out_emission_rate, 3),
+                                    co2_combust_out_emission_rate = round(co2_combust_out_emission_rate, 3),
+                                    ch4_combust_out_emission_rate = round(ch4_combust_out_emission_rate, 3),
+                                    n2o_combust_out_emission_rate = round(n2o_combust_out_emission_rate, 3),
+                                    co2_combust_equiv_out_emission_rate = round(co2_combust_equiv_out_emission_rate, 3),
+                                    hg_combust_out_emission_rate = round(hg_combust_out_emission_rate, 6),
+                                    # g - undjusted mass
+                                    unadj_nox_mass = round(unadj_nox_mass, 3), 
+                                    unadj_nox_oz = round(unadj_nox_oz, 3),
+                                    unadj_so2_mass = round(unadj_so2_mass, 3),
+                                    unadj_co2_mass = round(unadj_co2_mass, 3),
+                                    unadj_ch4_mass = round(unadj_ch4_mass, 3),
+                                    unadj_n2o_mass = round(unadj_n2o_mass, 3),
+                                    # no co2_equivalent unadjusted mass
+                                    unadj_hg_mass = round(unadj_hg_mass, 6),
+                                    # g - unadjusted heat input
+                                    unadj_combust_heat_input = round(unadj_combust_heat_input, 3),
+                                    unadj_combust_heat_input_oz = round( unadj_combust_heat_input_oz, 3), 
+                                    unadj_heat_input = round( unadj_heat_input, 3),
+                                    unadj_heat_input_oz = round( unadj_heat_input_oz, 3),
+                                    # i - nominal heat rate
+                                    nominal_heat_rate = round(nominal_heat_rate, 6),
+                                    # j - annual generation (by fuel)
+                                    ann_gen_coal = round(ann_gen_coal, 3),
+                                    ann_gen_oil = round(ann_gen_oil, 3),
+                                    ann_gen_gas = round(ann_gen_gas, 3),
+                                    ann_gen_combust = round(ann_gen_combust, 3),
+                                    ann_gen_hydro = round(ann_gen_hydro, 3),
+                                    ann_gen_biomass = round(ann_gen_biomass, 3),
+                                    ann_gen_wind = round(ann_gen_wind, 3),
+                                    ann_gen_solar = round(ann_gen_solar, 3),
+                                    ann_gen_geothermal = round(ann_gen_geothermal, 3),
+                                    ann_gen_other_ff = round(ann_gen_other_ff, 3),
+                                    ann_gen_other = round(ann_gen_other, 3),
+                                    ann_gen_non_renew = round(ann_gen_non_renew, 3),
+                                    ann_gen_renew = round(ann_gen_renew, 3),
+                                    ann_gen_non_renew = round(ann_gen_non_renew, 3),
+                                    ann_gen_renew_nonhydro = round(ann_gen_renew_nonhydro, 3),
+                                    ann_gen_combust = round(ann_gen_combust, 3),
+                                    ann_gen_non_combust = round(ann_gen_non_combust, 3),
+                                    # h - biomass 
+                                    nox_biomass = round(nox_biomass, 3), 
+                                    nox_bio_oz = round(nox_bio_oz, 3),
+                                    so2_biomass = round(so2_biomass, 3),
+                                    co2_biomass = round(co2_biomass, 3),
+                                    ch4_biomass = round(ch4_biomass, 3),
+                                    n2o_biomass = round(n2o_biomass, 3),
+                                    # no co2 equivalent biomass
+                                    # no hg biomass
+                                    # SQL - CHP mass
+                                    CHP_nox = round(nox_mass, 3), 
+                                    CHP_nox_oz = round(nox_oz, 3),
+                                    CHP_so2 = round(so2_mass, 3),
+                                    CHP_co2 = round(co2_mass, 3),
+                                    CHP_ch4 = round(ch4_mass, 3),
+                                    CHP_n2o = round(n2o_mass, 3),
+                                    # no co2 equivalent CHP
+                                    # no hg CHP
+                                    ) 
+
+
+# 36. Correct fuel types ----------------------
+
+# manually updating the type changes in Fuel Type Corrections
+# move this to be near other primary fuel type code
+# update before creating primary_fuel_category
+plant_file <- plant_file %>% 
+  mutate(primary_fuel_type = case_when(plant_id == 55970 ~ "NG",
+                                       plant_id == 10154 ~ "NG",
+                                       TRUE ~ primary_fuel_type),
+         primary_fuel_category = case_when(plant_id == 55970 ~ "GAS",
+                                       plant_id == 10154 ~ "GAS",
+                                       TRUE ~ primary_fuel_category))
+
+# 37. Update PS BA code to PSCO for one plant ---------------------
+
+which(plant_file$ba_id == "PS")
+unique(plant_file$ba_id)
+
+# there are no PS in the ba_id, add conversion anyway
+plant_file <- plant_file %>% mutate(ba_id = ifelse(ba_id == "PS", "PSCO", ba_id))
+
+
+# 38. Update BA names ------------------------
+
+
+BA_codes <- read_xlsx(here("data", "static_tables", "BA Codes.xlsx"))
+
+plant_file$ba_id[which(!plant_file$ba_id %in% BA_codes$BACODE)] %>% unique
+plant_file$ba_name[which(!plant_file$ba_id %in% BA_codes$BACODE)] %>% unique
+# NVE does not appear in this list, but is named "Nevada Power Company" which is NEVP in this list
+# find out where "character(0)" gets introduced and make it NA before here
+plant_file <- plant_file %>% mutate(ba_id = case_when(ba_id == "character(0)" ~ "NA",
+                                                      ba_id == "NVE" ~ "NEVP",
+                                                      TRUE ~ ba_id))
+
+
+plant_file$ba_name[which(!plant_file$ba_name %in% BA_codes$BANAME)] %>% unique
+plant_file$ba_id[which(!plant_file$ba_name %in% BA_codes$BANAME)] %>% unique
+
+
+BA_codes <- BA_codes %>% rename(ba_id = BACODE,
+                                new_ba_name = BANAME)
+
+plant_file <- plant_file %>% left_join(BA_codes) %>%
+  mutate(ba_name = ifelse(is.na(new_ba_name), ba_name, new_ba_name)) %>%
+  select(-new_ba_name)
+
+# 39. CAMD flag ----------------------
+# handled in step # 1 in originally aggregating the unit file by plant_id
+
+# 40. Update coal flag ----------------
+
+
+unique(plant_file$coal_flag)
+# also allowed coal_flag == 0 to be converted 
+update_coal <- plant_file %>% filter(is.na(coal_flag) | coal_flag == 0) %>% select(plant_id, primary_fuel_category) %>%
+  filter(primary_fuel_category == "COAL")
+# I had programmed as 0 & 1, so I also convert to Yes and No here
+plant_file  <- plant_file %>% mutate(coal_flag = ifelse(plant_id %in% update_coal$plant_id | coal_flag == 1, "Yes", "No" ))
+
+rm(update_coal)
