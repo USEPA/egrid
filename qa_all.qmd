@@ -601,6 +601,9 @@ Map plants for each region and fix accordingly if needed.
 #| warning: false
 #| results: false
 
+# could read this from online link to reduce input files needed 
+# link needs to be updated each year
+
 sbrgn_shp <- sf::st_read("archive/egrid2021_subregions_shapefile/eGRID2021 Subregions Shapefile final.shp") %>% drop_na() %>% rename("subregion" = "SUBRGN") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
@@ -1420,83 +1423,205 @@ knitr::kable(check_plant_neg_emissions %>% select(plant_id, plant_name, plnoxan,
 
 ## Emission rate outliers
 
-<!--# check which values to count -->
+```{r}
+#| label: calculate_stats
+#| echo: false
+#| warning: false
+
+# output rates that are negative are typically zeroed out 
+# here, we recalculate them and keep the negatives to identify outliers 
+
+plant_rates <- 
+  plant_file %>% 
+  #select(plant_id, net_gen, heat_input, heat_input_oz, contains("rate")) # filter this way if using R plant file output
+  select(plant_id, plant_name, plhtian, plhtioz, plngenan, plngenoz, plnoxan, plnoxoz, plso2an, plco2an, plch4an,
+         pln2oan, plco2eqa, contains("ra"), contains("ro")) %>% 
+  mutate(nox_output_rate = plnoxan / plngenan * 2000, 
+         nox_oz_output_rate = plnoxoz / plngenoz * 2000, 
+         so2_output_rate = plso2an / plngenan * 2000, 
+         co2_output_rate = plco2an/ plngenan * 2000, 
+         ch4_output_rate = plch4an / plngenan, 
+         n2o_output_rate = pln2oan / plngenan,
+         co2e_output_rate = plco2eqa / plngenan * 2000) 
+
+plant_rates[sapply(plant_rates, is.infinite)] <- NA
+
+plant_stats <- 
+  plant_rates %>% 
+  mutate(across(.cols = c(contains("rate"), contains("ra"), contains("ro")), 
+                .fns = ~ mean(.x, na.rm = TRUE), 
+                .names =  "{.col}_average"), 
+         across(.cols = c(contains("rate"), contains("ra"), contains("ro"), -contains("average")), 
+                .fns = ~ sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_sd"))
+
+plant_stats[sapply(plant_stats, is.infinite)] <- NA
+
+plant_zscore <- 
+  plant_stats %>% 
+  mutate(across(.cols = c(contains("rate"), contains("ra"), contains("ro"), -contains("average"), -contains("sd")), 
+                .fns = ~ (.x - mean(.x, na.rm = TRUE)) / sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_zscore")) 
+```
 
 ::: panel-tabset
-### NOx
+### NO_x input rate
 
 ```{r}
-#| label: plant_nox_outliers
+#| label: plant_nox_input_outliers
 #| echo: false
 #| warning: false
 
-knitr::kable(head(plant_file %>% arrange(desc(plnoxra)) %>% select(plant_id, plant_name, plnoxra), n = 20))
+knitr::kable(plant_zscore %>% filter(plnoxra_zscore > 3 | plnoxra_zscore < -3) %>% 
+               arrange(desc(plnoxra_zscore)) %>% select(plant_id, plant_name, plnoxra_zscore, plnoxra))
 
 ```
 
-### NOx ozone
+### NO_x ozone input rate
 
 ```{r}
-#| label: plant_noxoz_outliers
+#| label: plant_noxoz_input_outliers
 #| echo: false
 #| warning: false
 
-knitr::kable(head(plant_file %>% arrange(desc(plnoxro)) %>% select(plant_id, plant_name, plnoxro), n = 20))
+knitr::kable(plant_zscore %>% filter(plnoxro_zscore > 3 | plnoxro_zscore < -3) %>% 
+               arrange(desc(plnoxro_zscore)) %>% select(plant_id, plant_name, plnoxro_zscore, plnoxro))
+```
+
+### SO_2 input rate
+
+```{r}
+#| label: plant_so2_input_outliers
+#| echo: false
+#| warning: false
+
+knitr::kable(plant_zscore %>% filter(plso2ra_zscore > 3 | plso2ra_zscore < -3) %>% 
+               arrange(desc(plso2ra_zscore)) %>% select(plant_id, plant_name, plso2ra_zscore, plso2ra))
+```
+
+### CO_2 input rate
+
+```{r}
+#| label: plant_co2_input_outliers
+#| echo: false
+#| warning: false
+
+knitr::kable(plant_zscore %>% filter(plco2ra_zscore > 3 | plco2ra_zscore < -3) %>% 
+               arrange(desc(plco2ra_zscore)) %>% select(plant_id, plant_name, plco2ra_zscore, plco2ra))
 
 ```
 
-### SO2
+### CH_4 input rate
 
 ```{r}
-#| label: plant_so2_outliers
+#| label: plant_ch4_input_outliers
 #| echo: false
 #| warning: false
 
-knitr::kable(head(plant_file %>% arrange(desc(plso2ra)) %>% select(plant_id, plant_name, plso2ra), n = 20))
+knitr::kable(plant_zscore %>% filter(plch4ra_zscore > 3 | plch4ra_zscore < -3) %>% 
+               arrange(desc(plch4ra_zscore)) %>% select(plant_id, plant_name, plch4ra_zscore, plch4ra))
 
 ```
 
-### CO2
+### N_2O input rate
 
 ```{r}
-#| label: plant_co2_outliers
+#| label: plant_n2o_input_outliers
 #| echo: false
 #| warning: false
 
-knitr::kable(head(plant_file %>% arrange(desc(plco2ra)) %>% select(plant_id, plant_name, plco2ra), n = 20))
+knitr::kable(plant_zscore %>% filter(pln2ora_zscore > 3 | pln2ora_zscore < -3) %>% 
+               arrange(desc(pln2ora_zscore)) %>% select(plant_id, plant_name, pln2ora_zscore, pln2ora))
 
 ```
 
-### CH4
+### CO_2e input rate
 
 ```{r}
-#| label: plant_ch4_outliers
+#| label: plant_co2e_input_outliers
 #| echo: false
 #| warning: false
 
-knitr::kable(head(plant_file %>% arrange(desc(plch4ra)) %>% select(plant_id, plant_name, plch4ra), n = 20))
+knitr::kable(plant_zscore %>% filter(plc2era_zscore > 3 | plc2era_zscore < -3) %>% 
+               arrange(desc(plc2era_zscore)) %>% select(plant_id, plant_name, plc2era_zscore, plc2era))
 
 ```
 
-### N2O
+### NO_x output rate
 
 ```{r}
-#| label: plant_n2o_outliers
+#| label: plant_nox_output_outliers
 #| echo: false
 #| warning: false
 
-knitr::kable(head(plant_file %>% arrange(desc(pln2ora)) %>% select(plant_id, plant_name, pln2ora), n = 20))
+knitr::kable(plant_zscore %>% filter(nox_output_rate_zscore > 3 | nox_output_rate_zscore < -3) %>% 
+               arrange(desc(nox_output_rate_zscore)) %>% select(plant_id, plant_name, 
+                                                                nox_output_rate_zscore, nox_output_rate))
 
 ```
 
-### CO2e
+### NO_x ozone output rate 
 
 ```{r}
-#| label: plant_co2e_outliers
+#| label: plant_noxoz_output_outliers
 #| echo: false
 #| warning: false
 
-knitr::kable(head(plant_file %>% arrange(desc(plc2era)) %>% select(plant_id, plant_name, plc2era), n = 20))
+knitr::kable(plant_zscore %>% filter(nox_oz_output_rate_zscore > 3 | nox_oz_output_rate_zscore < -3) %>% 
+               arrange(desc(nox_oz_output_rate_zscore)) %>% select(plant_id, plant_name, 
+                                                                   nox_oz_output_rate_zscore, nox_oz_output_rate))
+
+```
+
+### SO_2 output rate
+
+```{r}
+#| label: plant_so2_output_outliers
+#| echo: false
+#| warning: false
+
+knitr::kable(plant_zscore %>% filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
+               arrange(desc(so2_output_rate_zscore)) %>% select(plant_id, plant_name, 
+                                                                so2_output_rate_zscore, so2_output_rate))
+
+```
+
+### CO_2 output rate 
+
+```{r}
+#| label: plant_co2_output_outliers
+#| echo: false
+#| warning: false
+
+knitr::kable(plant_zscore %>% filter(co2_output_rate_zscore > 3 | co2_output_rate_zscore < -3) %>% 
+               arrange(desc(co2_output_rate_zscore)) %>% select(plant_id, plant_name, 
+                                                                co2_output_rate_zscore, co2_output_rate))
+
+```
+
+### CH_4 output rate 
+
+```{r}
+#| label: plant_ch4_output_outliers
+#| echo: false
+#| warning: false
+
+knitr::kable(plant_zscore %>% filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
+               arrange(desc(so2_output_rate_zscore)) %>% select(plant_id, plant_name, 
+                                                                so2_output_rate_zscore, so2_output_rate))
+
+```
+
+### N_2O output rate
+
+```{r}
+#| label: plant_n2o_output_outliers
+#| echo: false
+#| warning: false
+
+knitr::kable(plant_zscore %>% filter(n2o_output_rate_zscore > 3 | n2o_output_rate_zscore < -3) %>% 
+               arrange(desc(n2o_output_rate_zscore)) %>% select(plant_id, plant_name, 
+                                                                n2o_output_rate_zscore, n2o_output_rate))
 
 ```
 :::
