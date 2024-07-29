@@ -652,7 +652,6 @@ ggplot() +
                     expand = TRUE) 
 
 # create table of plants not in region or multi-region area
-# this may not be necessary
 # rounding lat long may help capture edge case plants (that are just outside of boundary)
 AKGD_shp <- sbrgn_shp %>% filter(subregion == "AKGD") %>% 
   sf::st_transform(crs = "EPSG:4326")
@@ -717,7 +716,7 @@ knitr::kable(AKMS_plants %>% filter(in_region_check == FALSE &
 #| warning: false  
 
 AZNM_plants <- plant_file %>% filter(subrgn == "AZNM") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -756,7 +755,7 @@ knitr::kable(AZNM_plants %>% filter(in_region_check == FALSE &
 #| warning: false  
 
 CAMX_plants <- plant_file %>% filter(subrgn == "CAMX") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -795,7 +794,7 @@ knitr::kable(CAMX_plants %>% filter(in_region_check == FALSE &
 #| warning: false  
 
 ERCT_plants <- plant_file %>% filter(subrgn == "ERCT") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -808,6 +807,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(ERCT_plants)[2] - 3, 
                              sf::st_bbox(ERCT_plants)[4] + 3), 
                     expand = TRUE) 
+
+ERCT_shp <- sbrgn_shp %>% filter(subregion == "ERCT") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+ERCT_plants <- 
+  ERCT_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(ERCT_plants, ERCT_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(ERCT_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(ERCT_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### FRCC
@@ -818,7 +832,7 @@ ggplot() +
 #| warning: false  
 
 FRCC_plants <- plant_file %>% filter(subrgn == "FRCC") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -831,6 +845,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(FRCC_plants)[2] - 2, 
                              sf::st_bbox(FRCC_plants)[4] + 2), 
                     expand = TRUE) 
+
+FRCC_shp <- sbrgn_shp %>% filter(subregion == "FRCC") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+FRCC_plants <- 
+  FRCC_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(FRCC_plants, FRCC_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(FRCC_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(FRCC_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### HIMS
@@ -841,7 +870,7 @@ ggplot() +
 #| warning: false  
 
 HIMS_plants <- plant_file %>% filter(subrgn == "HIMS") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -854,6 +883,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(HIMS_plants)[2] - 1, 
                              sf::st_bbox(HIMS_plants)[4] + 1), 
                     expand = TRUE) 
+
+HIMS_shp <- sbrgn_shp %>% filter(subregion == "HIMS") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+HIMS_plants <- 
+  HIMS_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(HIMS_plants, HIMS_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(HIMS_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(HIMS_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### HIOA
@@ -864,7 +908,7 @@ ggplot() +
 #| warning: false  
 
 HIOA_plants <- plant_file %>% filter(subrgn == "HIOA") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -877,6 +921,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(HIOA_plants)[2] - 1, 
                              sf::st_bbox(HIOA_plants)[4] + 1), 
                     expand = TRUE) 
+
+HIOA_shp <- sbrgn_shp %>% filter(subregion == "HIOA") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+HIOA_plants <- 
+  HIOA_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(HIOA_plants, HIOA_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(HIOA_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(HIOA_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### MROE
@@ -887,7 +946,7 @@ ggplot() +
 #| warning: false  
 
 MROE_plants <- plant_file %>% filter(subrgn == "MROE") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -900,6 +959,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(MROE_plants)[2] - 3, 
                              sf::st_bbox(MROE_plants)[4] + 3), 
                     expand = TRUE) 
+
+MROE_shp <- sbrgn_shp %>% filter(subregion == "MROE") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+MROE_plants <- 
+  MROE_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(MROE_plants, MROE_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(MROE_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(MROE_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### MROW
@@ -910,7 +984,7 @@ ggplot() +
 #| warning: false  
 
 MROW_plants <- plant_file %>% filter(subrgn == "MROW") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -923,6 +997,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(MROW_plants)[2] - 3, 
                              sf::st_bbox(MROW_plants)[4] + 1), 
                     expand = TRUE) 
+
+MROW_shp <- sbrgn_shp %>% filter(subregion == "MROW") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+MROW_plants <- 
+  MROW_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(MROW_plants, MROW_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(MROW_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(MROW_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### NEWE
@@ -933,7 +1022,7 @@ ggplot() +
 #| warning: false  
 
 NEWE_plants <- plant_file %>% filter(subrgn == "NEWE") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -946,6 +1035,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(NEWE_plants)[2] - 1, 
                              sf::st_bbox(NEWE_plants)[4] + 1), 
                     expand = TRUE) 
+
+NEWE_shp <- sbrgn_shp %>% filter(subregion == "NEWE") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+NEWE_plants <- 
+  NEWE_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NEWE_plants, NEWE_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NEWE_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(NEWE_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### NWPP
@@ -956,7 +1060,7 @@ ggplot() +
 #| warning: false  
 
 NWPP_plants <- plant_file %>% filter(subrgn == "NWPP") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -969,6 +1073,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(NWPP_plants)[2] - 3, 
                              sf::st_bbox(NWPP_plants)[4] + 1), 
                     expand = TRUE) 
+
+NWPP_shp <- sbrgn_shp %>% filter(subregion == "NWPP") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+NWPP_plants <- 
+  NWPP_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NWPP_plants, NWPP_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NWPP_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(NWPP_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### NYCW
@@ -979,7 +1098,7 @@ ggplot() +
 #| warning: false  
 
 NYCW_plants <- plant_file %>% filter(subrgn == "NYCW") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -992,6 +1111,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(NYCW_plants)[2] - 1, 
                              sf::st_bbox(NYCW_plants)[4] + 1), 
                     expand = TRUE) 
+
+NYCW_shp <- sbrgn_shp %>% filter(subregion == "NYCW") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+NYCW_plants <- 
+  NYCW_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NYCW_plants, AKGD_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NYCW_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(NYCW_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### NYLI
@@ -1002,7 +1136,7 @@ ggplot() +
 #| warning: false  
 
 NYLI_plants <- plant_file %>% filter(subrgn == "NYLI") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -1015,6 +1149,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(NYLI_plants)[2] - 1, 
                              sf::st_bbox(NYLI_plants)[4] + 1), 
                     expand = TRUE) 
+
+NYLI_shp <- sbrgn_shp %>% filter(subregion == "NYLI") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+NYLI_plants <- 
+  NYLI_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NYLI_plants, NYLI_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NYLI_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(NYLI_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### NYUP
@@ -1025,7 +1174,7 @@ ggplot() +
 #| warning: false  
 
 NYUP_plants <- plant_file %>% filter(subrgn == "NYUP") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -1038,6 +1187,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(NYUP_plants)[2] - 2, 
                              sf::st_bbox(NYUP_plants)[4] + 2), 
                     expand = TRUE) 
+
+NYUP_shp <- sbrgn_shp %>% filter(subregion == "NYUP") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+NYUP_plants <- 
+  NYUP_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NYUP_plants, NYUP_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NYUP_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(NYUP_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### PRMS
@@ -1048,7 +1212,7 @@ ggplot() +
 #| warning: false  
 
 PRMS_plants <- plant_file %>% filter(subrgn == "PRMS") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -1061,6 +1225,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(PRMS_plants)[2] - 1, 
                              sf::st_bbox(PRMS_plants)[4] + 1), 
                     expand = TRUE) 
+
+PRMS_shp <- sbrgn_shp %>% filter(subregion == "PRMS") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+PRMS_plants <- 
+  PRMS_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(PRMS_plants, PRMS_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(PRMS_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(PRMS_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### RFCE
@@ -1071,7 +1250,7 @@ ggplot() +
 #| warning: false  
 
 RFCE_plants <- plant_file %>% filter(subrgn == "RFCE") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -1084,6 +1263,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(RFCE_plants)[2] - 2, 
                              sf::st_bbox(RFCE_plants)[4] + 2), 
                     expand = TRUE) 
+
+RFCE_shp <- sbrgn_shp %>% filter(subregion == "RFCE") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+RFCE_plants <- 
+  RFCE_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RFCE_plants, RFCE_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RFCE_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(RFCE_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### RFCM
@@ -1094,7 +1288,7 @@ ggplot() +
 #| warning: false  
 
 RFCM_plants <- plant_file %>% filter(subrgn == "RFCM") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -1107,6 +1301,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(RFCM_plants)[2] - 2, 
                              sf::st_bbox(RFCM_plants)[4] + 2), 
                     expand = TRUE) 
+
+RFCM_shp <- sbrgn_shp %>% filter(subregion == "RFCM") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+RFCM_plants <- 
+  RFCM_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RFCM_plants, RFCM_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RFCM_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(RFCM_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### RFCW
@@ -1117,7 +1326,7 @@ ggplot() +
 #| warning: false  
 
 RFCW_plants <- plant_file %>% filter(subrgn == "RFCW") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -1130,6 +1339,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(RFCW_plants)[2] - 2, 
                              sf::st_bbox(RFCW_plants)[4] + 2), 
                     expand = TRUE)
+
+RFCW_shp <- sbrgn_shp %>% filter(subregion == "RFCW") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+RFCW_plants <- 
+  RFCW_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RFCW_plants, RFCW_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RFCW_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(AKGD_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### RMPA
@@ -1140,7 +1364,7 @@ ggplot() +
 #| warning: false  
 
 RMPA_plants <- plant_file %>% filter(subrgn == "RMPA") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -1153,6 +1377,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(RMPA_plants)[2] - 2, 
                              sf::st_bbox(RMPA_plants)[4] + 2), 
                     expand = TRUE)
+
+RMPA_shp <- sbrgn_shp %>% filter(subregion == "RMPA") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+RMPA_plants <- 
+  RMPA_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RMPA_plants, RMPA_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RMPA_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(RMPA_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### SPNO
@@ -1163,7 +1402,7 @@ ggplot() +
 #| warning: false  
 
 SPNO_plants <- plant_file %>% filter(subrgn == "SPNO") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -1176,6 +1415,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(SPNO_plants)[2] - 2, 
                              sf::st_bbox(SPNO_plants)[4] + 2), 
                     expand = TRUE)
+
+SPNO_shp <- sbrgn_shp %>% filter(subregion == "SPNO") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+SPNO_plants <- 
+  SPNO_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SPNO_plants, SPNO_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SPNO_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(SPNO_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### SPSO
@@ -1186,7 +1440,7 @@ ggplot() +
 #| warning: false  
 
 SPSO_plants <- plant_file %>% filter(subrgn == "SPSO") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -1199,6 +1453,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(SPSO_plants)[2] - 2, 
                              sf::st_bbox(SPSO_plants)[4] + 2), 
                     expand = TRUE)
+
+SPSO_shp <- sbrgn_shp %>% filter(subregion == "SPSO") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+SPSO_plants <- 
+  SPSO_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SPSO_plants, SPSO_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SPSO_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(SPSO_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### SRMV
@@ -1209,7 +1478,7 @@ ggplot() +
 #| warning: false  
 
 SRMV_plants <- plant_file %>% filter(subrgn == "SRMV") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -1222,6 +1491,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(SRMV_plants)[2] - 2, 
                              sf::st_bbox(SRMV_plants)[4] + 2), 
                     expand = TRUE)
+
+SRMV_shp <- sbrgn_shp %>% filter(subregion == "SRMV") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+SRMV_plants <- 
+  SRMV_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRMV_plants, SRMV_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRMV_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(SRMV_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### SRSO
@@ -1232,7 +1516,7 @@ ggplot() +
 #| warning: false  
 
 SRSO_plants <- plant_file %>% filter(subrgn == "SRSO") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -1245,6 +1529,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(SRSO_plants)[2] - 2, 
                              sf::st_bbox(SRSO_plants)[4] + 2), 
                     expand = TRUE)
+
+SRSO_shp <- sbrgn_shp %>% filter(subregion == "SRSO") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+SRSO_plants <- 
+  SRSO_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRSO_plants, SRSO_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRSO_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(SRSO_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### SRTV
@@ -1255,7 +1554,7 @@ ggplot() +
 #| warning: false  
 
 SRTV_plants <- plant_file %>% filter(subrgn == "SRTV") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -1268,6 +1567,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(SRTV_plants)[2] - 2, 
                              sf::st_bbox(SRTV_plants)[4] + 2), 
                     expand = TRUE)
+
+SRTV_shp <- sbrgn_shp %>% filter(subregion == "AKGD") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+SRTV_plants <- 
+  SRTV_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRTV_plants, SRTV_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRTV_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(SRTV_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 
 ### SRVC
@@ -1278,7 +1592,7 @@ ggplot() +
 #| warning: false  
 
 SRVC_plants <- plant_file %>% filter(subrgn == "SRVC") %>% 
-  select(subrgn, plant_id, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
                                                       crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
@@ -1291,6 +1605,21 @@ ggplot() +
                     ylim = c(sf::st_bbox(SRVC_plants)[2] - 2, 
                              sf::st_bbox(SRVC_plants)[4] + 2), 
                     expand = TRUE)
+
+SRVC_shp <- sbrgn_shp %>% filter(subregion == "SRVC") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+SRVC_plants <- 
+  SRVC_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRVC_plants, SRVC_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRVC_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+knitr::kable(SRVC_plants %>% filter(in_region_check == FALSE & 
+                                      multi_region_check == FALSE)) 
 ```
 :::
 
@@ -1334,7 +1663,7 @@ FC prime mover should have no (NA) values for:
 
 ## Biomass adjustment emissions
 
-We have columns labeled BIOCO2, BIOCH4, etc. We want to make sure the value in that column is [not greater]{.underline} than the total unadjusted emissions (columns UNCO2, UNCH4, etc.). We have a query that should set BIO columns to equal UN columns if it is larger, so want to check that is working
+We have columns labeled BIOCO2, BIOCH4, etc. We want to make sure the value in that column is [not greater]{.underline} than the total unadjusted emissions (columns UNCO2, UNCH4, etc.). We have a line of code that should set BIO columns to equal UN columns if it is larger, so want to check that is working. 
 
 ```{r}
 #| label: plant_biomass
@@ -1464,8 +1793,10 @@ plant_zscore <-
                 .names =  "{.col}_zscore")) 
 ```
 
+### Input rate
+
 ::: panel-tabset
-### NOx input rate
+#### NOx input rate
 
 ```{r}
 #| label: plant_nox_input_outliers
@@ -1477,7 +1808,7 @@ knitr::kable(plant_zscore %>% filter(plnoxra_zscore > 3 | plnoxra_zscore < -3) %
 
 ```
 
-### NOx ozone input rate
+#### NOx ozone input rate
 
 ```{r}
 #| label: plant_noxoz_input_outliers
@@ -1488,7 +1819,7 @@ knitr::kable(plant_zscore %>% filter(plnoxro_zscore > 3 | plnoxro_zscore < -3) %
                arrange(desc(plnoxro_zscore)) %>% select(plant_id, plant_name, plnoxro_zscore, plnoxro))
 ```
 
-### SO2 input rate
+#### SO2 input rate
 
 ```{r}
 #| label: plant_so2_input_outliers
@@ -1499,7 +1830,7 @@ knitr::kable(plant_zscore %>% filter(plso2ra_zscore > 3 | plso2ra_zscore < -3) %
                arrange(desc(plso2ra_zscore)) %>% select(plant_id, plant_name, plso2ra_zscore, plso2ra))
 ```
 
-### CO2 input rate
+#### CO2 input rate
 
 ```{r}
 #| label: plant_co2_input_outliers
@@ -1511,7 +1842,7 @@ knitr::kable(plant_zscore %>% filter(plco2ra_zscore > 3 | plco2ra_zscore < -3) %
 
 ```
 
-### CH4 input rate
+#### CH4 input rate
 
 ```{r}
 #| label: plant_ch4_input_outliers
@@ -1523,7 +1854,7 @@ knitr::kable(plant_zscore %>% filter(plch4ra_zscore > 3 | plch4ra_zscore < -3) %
 
 ```
 
-### N2O input rate
+#### N2O input rate
 
 ```{r}
 #| label: plant_n2o_input_outliers
@@ -1535,7 +1866,7 @@ knitr::kable(plant_zscore %>% filter(pln2ora_zscore > 3 | pln2ora_zscore < -3) %
 
 ```
 
-### CO2e input rate
+#### CO2e input rate
 
 ```{r}
 #| label: plant_co2e_input_outliers
@@ -1547,7 +1878,12 @@ knitr::kable(plant_zscore %>% filter(plc2era_zscore > 3 | plc2era_zscore < -3) %
 
 ```
 
-### NOx output rate
+::: 
+
+### Output rates
+
+::: panel-tabset
+#### NOx output rate
 
 ```{r}
 #| label: plant_nox_output_outliers
@@ -1560,7 +1896,7 @@ knitr::kable(plant_zscore %>% filter(nox_output_rate_zscore > 3 | nox_output_rat
 
 ```
 
-### NOx ozone output rate 
+#### NOx ozone output rate 
 
 ```{r}
 #| label: plant_noxoz_output_outliers
@@ -1573,7 +1909,7 @@ knitr::kable(plant_zscore %>% filter(nox_oz_output_rate_zscore > 3 | nox_oz_outp
 
 ```
 
-### SO2 output rate
+#### SO2 output rate
 
 ```{r}
 #| label: plant_so2_output_outliers
@@ -1586,7 +1922,7 @@ knitr::kable(plant_zscore %>% filter(so2_output_rate_zscore > 3 | so2_output_rat
 
 ```
 
-### CO2 output rate 
+#### CO2 output rate 
 
 ```{r}
 #| label: plant_co2_output_outliers
@@ -1599,7 +1935,7 @@ knitr::kable(plant_zscore %>% filter(co2_output_rate_zscore > 3 | co2_output_rat
 
 ```
 
-### CH4 output rate 
+#### CH4 output rate 
 
 ```{r}
 #| label: plant_ch4_output_outliers
@@ -1612,7 +1948,7 @@ knitr::kable(plant_zscore %>% filter(so2_output_rate_zscore > 3 | so2_output_rat
 
 ```
 
-### N2O output rate
+#### N2O output rate
 
 ```{r}
 #| label: plant_n2o_output_outliers
@@ -1625,7 +1961,7 @@ knitr::kable(plant_zscore %>% filter(n2o_output_rate_zscore > 3 | n2o_output_rat
 
 ```
 
-### CO2e output rate 
+#### CO2e output rate 
 
 ```{r}
 #| label: plant_co2e_output_outliers
@@ -2062,146 +2398,387 @@ knitr::kable(nerc_agg %>% select(nerc, contains("input_rate_")))
 
 ## Outlier check for emission rate
 
-Focus on input, but quickly check output as well.
+```{r}
+#| label: calculate_subregion_outliers
+#| echo: false
+#| warning: false
+
+plant_stats_summary <- 
+  plant_stats %>% 
+  select(contains("average"), contains("sd")) %>% distinct() 
+
+subregion_stats <- 
+  subrgn_agg %>% 
+  mutate(across(.cols = c(contains("rate")), 
+                .fns = ~ mean(.x, na.rm = TRUE), 
+                .names =  "{.col}_average"), 
+         across(.cols = c(contains("rate"), -contains("average")), 
+                .fns = ~ sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_sd")) %>% 
+  select(contains("average"), contains("sd")) %>% distinct()
+
+stats_summary <- bind_cols(stats_summary, subregion_stats) 
+
+subregion_input_zscore <- 
+  subrgn_agg %>% 
+  mutate(nox_output_zscore = (egrid_nox_output_rate - 
+                                stats_summary$nox_output_rate_average)/ 
+           stats_summary$nox_output_rate_sd, 
+         
+         nox_oz_output_zscore = (egrid_nox_oz_output_rate - 
+                                   stats_summary$nox_oz_output_rate_average)/ 
+           stats_summary$nox_oz_output_rate_sd, 
+         
+         so2_output_zscore = (egrid_so2_output_rate - 
+                                stats_summary$so2_output_rate_average)/ 
+           stats_summary$so2_output_rate_sd,
+         
+         co2_output_zscore = (egrid_co2_output_rate - 
+                                stats_summary$co2_output_rate_average)/ 
+           stats_summary$co2_output_rate_sd,
+         
+         ch4_output_zscore = (egrid_ch4_output_rate - 
+                                stats_summary$ch4_output_rate_average)/ 
+           stats_summary$ch4_output_rate_sd,
+         
+         n2o_output_zscore = (egrid_n2o_output_rate - 
+                                stats_summary$n2o_output_rate_average)/ 
+           stats_summary$n2o_output_rate_sd,
+         
+         co2e_output_zscore = (egrid_co2e_output_rate - 
+                                 stats_summary$co2e_output_rate_average)/ 
+           stats_summary$co2e_output_rate_sd,
+         
+         nox_input_zscore = (egrid_nox_input_rate - 
+                                stats_summary$plnoxra_average)/ 
+           stats_summary$plnoxra_sd, 
+         
+         nox_oz_input_zscore = (egrid_nox_oz_input_rate - 
+                                   stats_summary$plnoxro_average)/ 
+           stats_summary$plnoxro_sd, 
+         
+         so2_input_zscore = (egrid_so2_input_rate - 
+                                stats_summary$plso2ra_average)/ 
+           stats_summary$plso2ra_sd,
+         
+         co2_input_zscore = (egrid_co2_input_rate - 
+                                stats_summary$plco2ra_average)/ 
+           stats_summary$plco2ra_sd,
+         
+         ch4_input_zscore = (egrid_ch4_input_rate - 
+                                stats_summary$plch4ra_average)/ 
+           stats_summary$plch4ra_sd,
+         
+         n2o_input_zscore = (egrid_n2o_input_rate - 
+                                stats_summary$pln2ora_average)/ 
+           stats_summary$pln2ora_sd,
+         
+         co2e_input_zscore = (egrid_co2e_input_rate - 
+                                 stats_summary$plc2era_average)/ 
+           stats_summary$plc2era_sd) %>% 
+  select(sub_region, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+```
+
+### Overall input rates
+
+Outliers are identified by any zscores for emission rates > +/- 3 and are printed in the table if any exist. 
+
+```{r}
+subregion_input_zscore <- 
+  subrgn_agg %>% 
+  mutate(nox_input_zscore = (egrid_nox_input_rate - 
+                                stats_summary$plnoxra_average)/ 
+           stats_summary$plnoxra_sd, 
+         
+         nox_oz_input_zscore = (egrid_nox_oz_input_rate - 
+                                   stats_summary$plnoxro_average)/ 
+           stats_summary$plnoxro_sd, 
+         
+         so2_input_zscore = (egrid_so2_input_rate - 
+                                stats_summary$plso2ra_average)/ 
+           stats_summary$plso2ra_sd,
+         
+         co2_input_zscore = (egrid_co2_input_rate - 
+                                stats_summary$plco2ra_average)/ 
+           stats_summary$plco2ra_sd,
+         
+         ch4_input_zscore = (egrid_ch4_input_rate - 
+                                stats_summary$plch4ra_average)/ 
+           stats_summary$plch4ra_sd,
+         
+         n2o_input_zscore = (egrid_n2o_input_rate - 
+                                stats_summary$pln2ora_average)/ 
+           stats_summary$pln2ora_sd,
+         
+         co2e_input_zscore = (egrid_co2e_input_rate - 
+                                 stats_summary$plc2era_average)/ 
+           stats_summary$plc2era_sd) %>% 
+  select(sub_region, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+```
+
 
 ::: panel-tabset
-### NOx input rate
+#### NOx input rate
 
 ```{r}
-#| label: subregion_nox_outliers
+#| label: subregion_nox_input_outliers
 #| echo: false
 #| warning: false
 
-knitr::kable(subrgn_agg %>% arrange(desc(egrid_nox_input_rate)) %>% 
-               select(sub_region, egrid_nox_input_rate))
-
-rate_comparison <- ggplot(subrgn_agg, aes(x = egrid_nox_input_rate, 
-                                          y = sub_region)) +
-                    geom_col(stat = "identity", 
-                             width = 0.75,
-                             position = "dodge") +
-                    xlab("NOx input rate (lb/MMBtu)") + 
-                    ylab("eGRID Subregion") + 
-                    theme(text = element_text(size = 12)) 
-  
-plotly::ggplotly(rate_comparison)
+knitr::kable(subregion_input_zscore %>% filter(nox_input_zscore > 3 | 
+                                                 nox_input_zscore < -3) %>% 
+               select(sub_region, egrid_nox_input_rate, nox_input_zscore) %>% 
+               arrange(desc(nox_input_zscore)))
 ```
 
-### NOx ozone input rate
+#### NOx ozone input rate
 
 ```{r}
-#| label: subregion_nox_oz_outliers
+#| label: subregion_nox_oz_input_outliers
 #| echo: false
 #| warning: false
 
-knitr::kable(subrgn_agg %>% arrange(desc(egrid_nox_oz_input_rate)) %>% 
-               select(sub_region, egrid_nox_oz_input_rate))
-
-rate_comparison <- ggplot(subrgn_agg, aes(x = egrid_nox_oz_input_rate, 
-                                          y = sub_region)) +
-                    geom_col(stat = "identity", 
-                             width = 0.75,
-                             position = "dodge") +
-                    xlab("NOx ozone input rate (lb/MMBtu)") + 
-                    ylab("eGRID Subregion") + 
-                    theme(text = element_text(size = 12)) 
-  
-plotly::ggplotly(rate_comparison)
+knitr::kable(subregion_input_zscore %>% filter(nox_oz_input_zscore > 3 
+                                         | nox_oz_input_zscore < -3) %>% 
+               select(sub_region, egrid_nox_oz_input_rate, nox_oz_input_zscore) %>% 
+               arrange(desc(nox_oz_input_zscore)))
 
 ```
 
-### SO2 input rate
+#### SO2 input rate
 
 ```{r}
-#| label: subregion_so2_outliers
+#| label: subregion_so2_input_outliers
 #| echo: false
 #| warning: false
 
-knitr::kable(subrgn_agg %>% arrange(desc(egrid_so2_input_rate)) %>% 
-               select(sub_region, egrid_so2_input_rate))
-
-rate_comparison <- ggplot(subrgn_agg, aes(x = egrid_so2_input_rate, 
-                                          y = sub_region)) +
-                    geom_col(stat = "identity", 
-                             width = 0.75,
-                             position = "dodge") +
-                    xlab("SO2 input rate (lb/MMBtu)") + 
-                    ylab("eGRID Subregion") + 
-                    theme(text = element_text(size = 12)) 
-  
-plotly::ggplotly(rate_comparison)
+knitr::kable(subregion_input_zscore %>% filter(so2_input_zscore > 3 | 
+                                                 so2_input_zscore < -3) %>% 
+               select(sub_region, egrid_so2_input_rate, so2_input_zscore) %>% 
+               arrange(desc(so2_input_zscore)))
 
 ```
 
-### CO2 input rate
+#### CO2 input rate
 
 ```{r}
-#| label: subregion_co2_outliers
+#| label: subregion_co2_input_outliers
 #| echo: false
 #| warning: false
 
-knitr::kable(subrgn_agg %>% arrange(desc(egrid_co2_input_rate)) %>% 
-               select(sub_region, egrid_co2_input_rate))
-
-rate_comparison <- ggplot(subrgn_agg, aes(x = egrid_co2_input_rate, 
-                                          y = sub_region)) +
-                    geom_col(stat = "identity", 
-                             width = 0.75,
-                             position = "dodge") +
-                    xlab("CO2 input rate (lb/MMBtu)") + 
-                    ylab("eGRID Subregion") + 
-                    theme(text = element_text(size = 12)) 
-  
-plotly::ggplotly(rate_comparison)
+knitr::kable(subregion_input_zscore %>% filter(co2_input_zscore > 3 | 
+                                           co2_input_zscore < -3) %>% 
+               select(sub_region, egrid_co2_input_rate, co2_input_zscore) %>% 
+               arrange(desc(co2_input_zscore)))
 
 ```
 
-### CH4 input rate
+#### CH4 input rate
 
 ```{r}
-#| label: subregion_ch4_outliers
+#| label: subregion_ch4_input_outliers
 #| echo: false
 #| warning: false
 
-knitr::kable(subrgn_agg %>% arrange(desc(egrid_ch4_input_rate)) %>% 
-               select(sub_region, egrid_ch4_input_rate))
-
-rate_comparison <- ggplot(subrgn_agg, aes(x = egrid_ch4_input_rate, 
-                                          y = sub_region)) +
-                    geom_col(stat = "identity", 
-                             width = 0.75,
-                             position = "dodge") +
-                    xlab("CH4 input rate (lb/MMBtu)") + 
-                    ylab("eGRID Subregion") + 
-                    theme(text = element_text(size = 12)) 
-  
-plotly::ggplotly(rate_comparison)
+knitr::kable(subregion_input_zscore %>% filter(ch4_input_zscore > 3 | 
+                                           ch4_input_zscore < -3) %>% 
+               select(sub_region, egrid_ch4_input_rate, ch4_input_zscore) %>% 
+               arrange(desc(ch4_input_zscore)))
 
 ```
 
-### N2O input rate
+#### N2O input rate
 
 ```{r}
-#| label: subregion_n2o_outliers
+#| label: subregion_n2o_input_outliers
 #| echo: false
 #| warning: false
 
-knitr::kable(subrgn_agg %>% arrange(desc(egrid_n2o_input_rate)) %>% 
-               select(sub_region, egrid_n2o_input_rate))
-
-rate_comparison <- ggplot(subrgn_agg, aes(x = egrid_n2o_input_rate, 
-                                          y = sub_region)) +
-                    geom_col(stat = "identity", 
-                             width = 0.75,
-                             position = "dodge") +
-                    xlab("N2O input rate (lb/MMBtu)") + 
-                    ylab("eGRID Subregion") + 
-                    theme(text = element_text(size = 12)) 
-  
-plotly::ggplotly(rate_comparison)
+knitr::kable(subregion_input_zscore %>% filter(n2o_input_zscore > 3 | 
+                                                 n2o_input_zscore < -3) %>% 
+               select(sub_region, egrid_n2o_input_rate, n2o_input_zscore) %>% 
+               arrange(desc(n2o_input_zscore)))
 
 ```
 :::
+
+### Overall output rates 
+
+Outliers are identified by any zscores for emission rates > +/- 3 and are printed in the table if any exist. 
+
+```{r}
+subregion_output_zscore <- 
+  subrgn_agg %>% 
+  mutate(nox_output_zscore = (egrid_nox_output_rate - 
+                                stats_summary$nox_output_rate_average)/ 
+           stats_summary$nox_output_rate_sd, 
+         
+         nox_oz_output_zscore = (egrid_nox_oz_output_rate - 
+                                   stats_summary$nox_oz_output_rate_average)/ 
+           stats_summary$nox_oz_output_rate_sd, 
+         
+         so2_output_zscore = (egrid_so2_output_rate - 
+                                stats_summary$so2_output_rate_average)/ 
+           stats_summary$so2_output_rate_sd,
+         
+         co2_output_zscore = (egrid_co2_output_rate - 
+                                stats_summary$co2_output_rate_average)/ 
+           stats_summary$co2_output_rate_sd,
+         
+         ch4_output_zscore = (egrid_ch4_output_rate - 
+                                stats_summary$ch4_output_rate_average)/ 
+           stats_summary$ch4_output_rate_sd,
+         
+         n2o_output_zscore = (egrid_n2o_output_rate - 
+                                stats_summary$n2o_output_rate_average)/ 
+           stats_summary$n2o_output_rate_sd,
+         
+         co2e_output_zscore = (egrid_co2e_output_rate - 
+                                 stats_summary$co2e_output_rate_average)/ 
+           stats_summary$co2e_output_rate_sd) %>% 
+  select(sub_region, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+```
+
+
+::: panel-tabset
+#### NOx output rate
+
+```{r}
+#| label: subregion_nox_output_outliers
+#| echo: false
+#| warning: false
+
+knitr::kable(subregion_output_zscore %>% filter(nox_output_zscore > 3 | 
+                                                  nox_output_zscore < -3) %>% 
+               select(sub_region, egrid_nox_output_rate, nox_output_zscore) %>% 
+               arrange(desc(nox_output_zscore)))
+```
+
+#### NOx ozone output rate
+
+```{r}
+#| label: subregion_nox_oz_output_outliers
+#| echo: false
+#| warning: false
+
+knitr::kable(subregion_output_zscore %>% filter(nox_oz_output_zscore > 3 
+                                         | nox_oz_output_zscore < -3) %>% 
+               select(sub_region, egrid_nox_oz_output_rate, nox_oz_output_zscore) %>% 
+               arrange(desc(nox_oz_output_zscore)))
+
+```
+
+#### SO2 output rate
+
+```{r}
+#| label: subregion_so2_output_outliers
+#| echo: false
+#| warning: false
+
+knitr::kable(subregion_output_zscore %>% filter(so2_output_zscore > 3 | 
+                                                  so2_output_zscore < -3) %>% 
+               select(sub_region, egrid_so2_output_rate, so2_output_zscore) %>% 
+               arrange(desc(so2_output_zscore)))
+
+```
+
+#### CO2 output rate
+
+```{r}
+#| label: subregion_co2_output_outliers
+#| echo: false
+#| warning: false
+
+knitr::kable(subregion_output_zscore %>% filter(co2_output_zscore > 3 | 
+                                                  co2_output_zscore < -3) %>% 
+               select(sub_region, egrid_co2_output_rate, co2_output_zscore) %>% 
+               arrange(desc(co2_output_zscore)))
+
+```
+
+#### CH4 output rate
+
+```{r}
+#| label: subregion_ch4_output_outliers
+#| echo: false
+#| warning: false
+
+knitr::kable(subregion_output_zscore %>% filter(ch4_output_zscore > 3 | 
+                                                  ch4_output_zscore < -3) %>% 
+               select(sub_region, egrid_ch4_output_rate, ch4_output_zscore) %>% 
+               arrange(desc(ch4_output_zscore)))
+
+```
+
+#### N2O output rate
+
+```{r}
+#| label: subregion_n2o_output_outliers
+#| echo: false
+#| warning: false
+
+knitr::kable(subregion_output_zscore %>% filter(n2o_output_zscore > 3 | 
+                                                  n2o_output_zscore < -3) %>% 
+               select(sub_region, egrid_n2o_output_rate, n2o_output_zscore) %>% 
+               arrange(desc(n2o_output_zscore)))
+
+```
+:::
+
+### Fuel specific rates 
+
+#### Coal 
+
+```{r}
+#| label: coal_rate_zscores
+#| echo: false
+#| warning: false
+
+subregion_coal_zscore <- 
+  subrgn_agg %>% 
+  mutate(coal_nox_output_zscore = (egrid_nox_output_rate_coal - 
+                                stats_summary$nox_output_rate_coal_average)/ 
+           stats_summary$nox_output_rate_coal_sd, 
+         
+         coal_nox_oz_output_zscore = (egrid_nox_oz_output_rate_coal - 
+                                   stats_summary$nox_oz_output_rate_coal_average)/ 
+           stats_summary$nox_oz_output_rate_coal_sd, 
+         
+         coal_so2_output_zscore = (egrid_so2_output_rate_coal - 
+                                stats_summary$so2_output_rate_coal_average)/ 
+           stats_summary$so2_output_rate_coal_sd,
+         
+         coal_co2_output_zscore = (egrid_co2_output_rate_coal - 
+                                stats_summary$co2_output_rate_coal_average)/ 
+           stats_summary$co2_output_rate_coal_sd,
+         
+         coal_ch4_output_zscore = (egrid_ch4_output_rate_coal - 
+                                stats_summary$ch4_output_rate_coal_average)/ 
+           stats_summary$ch4_output_rate_coal_sd,
+         
+         coal_n2o_output_zscore = (egrid_n2o_output_rate_coal - 
+                                stats_summary$n2o_output_rate_coal_average)/ 
+           stats_summary$n2o_output_rate_coal_sd,
+         
+         coal_co2e_output_zscore = (egrid_co2e_output_rate_coal - 
+                                 stats_summary$co2e_output_rate_coal_average)/ 
+           stats_summary$co2e_output_rate_coal_sd) %>% 
+  select(sub_region, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+
+```
+
+
+::: panel-tabset
+##### NOx input rate
+
+```{r}
+#| label: coal_nox_input_rate
+#| echo: false
+#| warning: false
+
+
+```
+
 
 # All file QA
 
