@@ -2725,61 +2725,6 @@ knitr::kable(subregion_output_zscore %>% filter(n2o_output_zscore > 3 |
 ```
 :::
 
-### Fuel specific rates 
-
-#### Coal 
-
-```{r}
-#| label: coal_rate_zscores
-#| echo: false
-#| warning: false
-
-subregion_coal_zscore <- 
-  subrgn_agg %>% 
-  mutate(coal_nox_output_zscore = (egrid_nox_output_rate_coal - 
-                                stats_summary$nox_output_rate_coal_average)/ 
-           stats_summary$nox_output_rate_coal_sd, 
-         
-         coal_nox_oz_output_zscore = (egrid_nox_oz_output_rate_coal - 
-                                   stats_summary$nox_oz_output_rate_coal_average)/ 
-           stats_summary$nox_oz_output_rate_coal_sd, 
-         
-         coal_so2_output_zscore = (egrid_so2_output_rate_coal - 
-                                stats_summary$so2_output_rate_coal_average)/ 
-           stats_summary$so2_output_rate_coal_sd,
-         
-         coal_co2_output_zscore = (egrid_co2_output_rate_coal - 
-                                stats_summary$co2_output_rate_coal_average)/ 
-           stats_summary$co2_output_rate_coal_sd,
-         
-         coal_ch4_output_zscore = (egrid_ch4_output_rate_coal - 
-                                stats_summary$ch4_output_rate_coal_average)/ 
-           stats_summary$ch4_output_rate_coal_sd,
-         
-         coal_n2o_output_zscore = (egrid_n2o_output_rate_coal - 
-                                stats_summary$n2o_output_rate_coal_average)/ 
-           stats_summary$n2o_output_rate_coal_sd,
-         
-         coal_co2e_output_zscore = (egrid_co2e_output_rate_coal - 
-                                 stats_summary$co2e_output_rate_coal_average)/ 
-           stats_summary$co2e_output_rate_coal_sd) %>% 
-  select(sub_region, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
-
-```
-
-
-::: panel-tabset
-##### NOx input rate
-
-```{r}
-#| label: coal_nox_input_rate
-#| echo: false
-#| warning: false
-
-
-```
-
-
 # All file QA
 
 ## Count of plants in generator, unit, and plant file are equivalent
