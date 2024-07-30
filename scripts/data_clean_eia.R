@@ -111,7 +111,7 @@ generator_dfs_mod <-
                          !plant_code %in% generator_dfs$operable$plant_code)) %>% 
   purrr::map_at("retired_and_canceled", # retaining only plants retired in eGRID year
                 ~ .x %>% 
-                  filter(retirement_year == Sys.getenv("eGRID_year")))
+                  filter(retirement_year == {params$eGRID_year}))
 
 
 
@@ -164,7 +164,7 @@ plant_df <-
                         na = ".",
                         guess_max = 4000) %>% 
   rename_with(tolower) %>%
-  clean_names()
+  janitor::clean_names()
 
 
 ## 860m -------------
@@ -248,7 +248,7 @@ puerto_rico_dfs_mod <-
                   rename(any_of(names_860_PR_ret))) %>% # renaming columns to match other 860 files.
   purrr::map(., ~ .x %>% 
                rename_with(tolower) %>% 
-               clean_names()) # converting column names in both files to snake_case and lower
+               janitor::clean_names()) # converting column names in both files to snake_case and lower
 
 
 ## create 860 combined file -------------
@@ -314,7 +314,7 @@ balancing_authority <-
              na = "."
              ) %>% 
   rename_with(tolower) %>%
-  clean_names() 
+  janitor::clean_names() 
 
 ## 861 Sales Ult Cust --------
 
@@ -326,7 +326,7 @@ sales_ult_cust <-
              na = "."
              ) %>% 
   rename_with(tolower) %>%
-  clean_names() %>% 
+  janitor::clean_names() %>% 
   select(1:ba_code) %>% # removing all columns after ba_code
   rename("data_type" = contains("data_type")) # renaming long col name that contains "data_type" to just "data_type"
 
@@ -342,7 +342,7 @@ utility_data <-
              na = "."
   ) %>% 
   rename_with(tolower) %>%
-  clean_names() %>% 
+  janitor::clean_names() %>% 
   mutate(across(caiso:other, ~ if_else(is.na(.x), 0, 1)), # creating count of ISORTO territories
          isorto_total = rowSums(pick(caiso:other)),
          isorto_count = case_when(
