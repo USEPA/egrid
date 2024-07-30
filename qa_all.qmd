@@ -88,11 +88,11 @@ knitr::kable(check_compare_plants %>% select(plant_id, plant_name))
 
 ## Biomass units added table
 
-Not automated. Need to check manually.
+Not automated. Need to check manually. Not done here.
 
 ## OG/OTH fuel crosswalks
 
-Not automated. Need to check manually.
+Not automated. Need to check manually. Not done here.
 
 ## CAMD fuel crosswalks
 
@@ -1663,7 +1663,7 @@ FC prime mover should have no (NA) values for:
 
 ## Biomass adjustment emissions
 
-We have columns labeled BIOCO2, BIOCH4, etc. We want to make sure the value in that column is [not greater]{.underline} than the total unadjusted emissions (columns UNCO2, UNCH4, etc.). We have a line of code that should set BIO columns to equal UN columns if it is larger, so want to check that is working. 
+We have columns labeled BIOCO2, BIOCH4, etc. We want to make sure the value in that column is [not greater]{.underline} than the total unadjusted emissions (columns UNCO2, UNCH4, etc.). We have a line of code that should set BIO columns to equal UN columns if it is larger, so want to check that is working.
 
 ```{r}
 #| label: plant_biomass
@@ -1877,8 +1877,7 @@ knitr::kable(plant_zscore %>% filter(plc2era_zscore > 3 | plc2era_zscore < -3) %
                arrange(desc(plc2era_zscore)) %>% select(plant_id, plant_name, plc2era_zscore, plc2era))
 
 ```
-
-::: 
+:::
 
 ### Output rates
 
@@ -1896,7 +1895,7 @@ knitr::kable(plant_zscore %>% filter(nox_output_rate_zscore > 3 | nox_output_rat
 
 ```
 
-#### NOx ozone output rate 
+#### NOx ozone output rate
 
 ```{r}
 #| label: plant_noxoz_output_outliers
@@ -1922,7 +1921,7 @@ knitr::kable(plant_zscore %>% filter(so2_output_rate_zscore > 3 | so2_output_rat
 
 ```
 
-#### CO2 output rate 
+#### CO2 output rate
 
 ```{r}
 #| label: plant_co2_output_outliers
@@ -1935,7 +1934,7 @@ knitr::kable(plant_zscore %>% filter(co2_output_rate_zscore > 3 | co2_output_rat
 
 ```
 
-#### CH4 output rate 
+#### CH4 output rate
 
 ```{r}
 #| label: plant_ch4_output_outliers
@@ -1961,7 +1960,7 @@ knitr::kable(plant_zscore %>% filter(n2o_output_rate_zscore > 3 | n2o_output_rat
 
 ```
 
-#### CO2e output rate 
+#### CO2e output rate
 
 ```{r}
 #| label: plant_co2e_output_outliers
@@ -1973,7 +1972,6 @@ knitr::kable(plant_zscore %>% filter(co2e_output_rate_zscore > 3 | co2e_output_r
                                                                  co2e_output_rate_zscore, co2e_output_rate))
 
 ```
-
 :::
 
 ## Capacity factor
@@ -2481,7 +2479,7 @@ subregion_input_zscore <-
 
 ### Overall input rates
 
-Outliers are identified by any zscores for emission rates > +/- 3 and are printed in the table if any exist. 
+Outliers are identified by any zscores for emission rates \> +/- 3 and are printed in the table if any exist.
 
 ```{r}
 subregion_input_zscore <- 
@@ -2515,7 +2513,6 @@ subregion_input_zscore <-
            stats_summary$plc2era_sd) %>% 
   select(sub_region, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 ```
-
 
 ::: panel-tabset
 #### NOx input rate
@@ -2602,9 +2599,9 @@ knitr::kable(subregion_input_zscore %>% filter(n2o_input_zscore > 3 |
 ```
 :::
 
-### Overall output rates 
+### Overall output rates
 
-Outliers are identified by any zscores for emission rates > +/- 3 and are printed in the table if any exist. 
+Outliers are identified by any zscores for emission rates \> +/- 3 and are printed in the table if any exist.
 
 ```{r}
 subregion_output_zscore <- 
@@ -2638,7 +2635,6 @@ subregion_output_zscore <-
            stats_summary$co2e_output_rate_sd) %>% 
   select(sub_region, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 ```
-
 
 ::: panel-tabset
 #### NOx output rate
