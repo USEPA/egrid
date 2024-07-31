@@ -244,7 +244,7 @@ puerto_rico_dfs_mod <-
                   rename(any_of(names_860_PR_op))) %>% # renaming columns to match other forms based on lookup table
   purrr::map_at("retired_pr", # modifying retired pr data
                 ~ .x %>% 
-                  filter("Retirement Year" == Sys.getenv("eGRID_year")) %>% # filtering to only plants retired in eGRID year
+                  filter("Retirement Year" == {params$eGRID_year}) %>% # filtering to only plants retired in eGRID year
                   rename(any_of(names_860_PR_ret))) %>% # renaming columns to match other 860 files.
   purrr::map(., ~ .x %>% 
                rename_with(tolower) %>% 
