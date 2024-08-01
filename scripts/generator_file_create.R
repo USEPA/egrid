@@ -190,10 +190,11 @@ december_netgen <-
   left_join(eia_gen_fuel_generation_sum) %>% ## pulling in Gen fuel data
   group_by(plant_id, prime_mover) %>%
   mutate(tot_nameplate_cap = sum(nameplate_capacity),
-         proportion = nameplate_capacity/tot_nameplate_cap) %>% 
+         prop = nameplate_capacity/tot_nameplate_cap) %>% 
   ungroup() %>% 
   mutate(
-    generation_oz = if_else(generation_ann_dec_equal == "yes", tot_generation_oz_fuel * prop, generation_oz),
+    generation_oz = if_else(generation_ann_dec_equal == "yes", 
+                            tot_generation_oz_fuel * prop, generation_oz),
     gen_data_source = "EIA-923 Generator File") %>% 
   filter(generation_ann_dec_equal == "yes") %>%
   select(any_of(key_columns), generation_ann_dec_equal) # keeping only necessary columns
@@ -247,7 +248,7 @@ generators_edits <-
          plant_name = recode(plant_id, !!!lookup_camd_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
          gen_data_source = if_else(is.na(generation_ann), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
          year = params$eGRID_year,
-         cfact = generation_ann/(nameplate_capacity * 8760)) %>%  # calculating cfact
+         capfact = generation_ann/(nameplate_capacity * 8760)) %>%  # calculating capacity factor
   left_join(eia_860_boiler_count)
 
 # creating named vector of final variable order and variable name included in generator file
@@ -263,7 +264,7 @@ final_vars <-
       "PRMVR" =  "prime_mover",
       "FUELG1" = "fuel_code",
       "NAMEPCAP" = "nameplate_capacity",
-      "CFACT" = "cfact",
+      "CFACT" = "capfact",
       "GENNTAN" = "generation_ann",
       "GENNTOZ" = "generation_oz",
       "GENERSRC" = "gen_data_source",
@@ -277,7 +278,7 @@ generators_formatted <-
   ungroup() %>%
   arrange(plant_state, plant_name) %>% 
   mutate(seqgen = row_number(),
-         across(c("cfact", "generation_ann", "generation_oz"), ~ round(.x, 3))) %>% 
+         across(c("capfact", "generation_ann", "generation_oz"), ~ round(.x, 3))) %>% 
   select(as_tibble(final_vars)$value) # keeping columns with tidy names for QA steps
 
 
