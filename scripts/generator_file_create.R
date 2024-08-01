@@ -242,8 +242,7 @@ lookup_camd_id_name <- with(xwalk_eia_camd, setNames(camd_plant_name, camd_plant
 
 generators_edits <- 
   generators_combined %>% 
-  mutate(fuel_code = recode(id, !!!lookup_fuel_codes, .default = energy_source_1), # creating fuel_code based on lookup table and energy_source_1 if not in lookup table. recode() essentially matches on id, then replaces with key value ? Should the camd ids be updated before fuel codes are? (SB: 4/4/2024)
-         plant_id = as.character(plant_id), ## remove
+  mutate(fuel_code = recode(id, !!!lookup_fuel_codes, .default = energy_source_1), # creating fuel_code based on lookup table and energy_source_1 if not in lookup table. recode() essentially matches on id, then replaces with key value  
          plant_id = recode(plant_id, !!!lookup_eia_id_camd_id), # updating plant_id to corresponding camd ids with lookup table
          plant_name = recode(plant_id, !!!lookup_camd_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
          gen_data_source = if_else(is.na(generation_ann), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
