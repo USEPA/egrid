@@ -1112,6 +1112,7 @@ emission_factors_so2_pu <- emission_factors %>%
 
 ## creating heat input table for SO2
 emission_factors_so2_heat <- emission_factors %>%
+  mutate(unit_flag = ifelse(unit_flag == "heatinput", "HeatInput", unit_flag)) %>%
   filter(unit_flag == "HeatInput") %>%
   select(!starts_with("nox"))
 
