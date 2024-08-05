@@ -1381,6 +1381,10 @@ all_units_nox_ozone_update <- all_units_nox_updates %>%
   mutate(nox_mass_oz = case_when(nox_mass_oz > nox_mass ~ nox_mass,
                                  TRUE ~ nox_mass_oz))
 
+## Geothermal Emissions --------
+geo_emissions <- all_units_nox_ozone_update %>%
+  filter(primary_fuel_type == "GEO")
+
 
 # Final modifications -----  
 
