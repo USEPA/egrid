@@ -857,7 +857,7 @@ hg_flags_to_update <- # boilers that have strategy == "ACI" get mercury controls
   filter(mercury_control_existing_strategy_1 == "ACI") %>% 
   select(plant_id, boiler_id) %>% 
   distinct() %>%
-  mutate(hg_controls_device = "Yes")
+  mutate(hg_controls_flag = "Yes")
 
 
 ## Update OG fuel types  --------
@@ -1542,6 +1542,7 @@ all_units_8 <-
          nox_mass_oz = round(nox_mass_oz, 3), 
          so2_mass = round(so2_mass, 4), 
          co2_mass = round(co2_mass, 3), 
-         hg_mass = round(hg_mass, 3)) 
+         hg_mass = round(hg_mass, 3)) %>% 
+  select(-eia_plant_id, -eia_plant_name, -id, -hg_controls)
 
 
