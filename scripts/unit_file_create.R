@@ -1122,7 +1122,7 @@ so2_emissions_pu_coal <-
   left_join(default_sulfur_content_coal, # renaming for consistent naming
             by = c("plant_state",
                    "primary_fuel_type" = "fuel_type")) %>% 
-  left_join(emission_factors %>% 
+  left_join(emission_factors_so2_pu %>% 
               select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag, unit_flag), 
             by = c("prime_mover",
                    "botfirty",
@@ -1143,7 +1143,7 @@ so2_emissions_pu_noncoal <-
   units_estimated_fuel %>% 
   left_join(avg_sulfur_content_fuel %>% select(fuel_type, avg_sulfur_content), # renaming for consistent naming
             by = c("primary_fuel_type" = "fuel_type")) %>% 
-  left_join(emission_factors %>% 
+  left_join(emission_factors_so2_pu %>% 
               select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag, unit_flag), 
             by = c("prime_mover",
                    "botfirty",
@@ -1165,7 +1165,7 @@ so2_emissions_heat_coal <-
   left_join(default_sulfur_content_coal, # renaming for consistent naming
             by = c("primary_fuel_type" = "fuel_type",
                    "plant_state")) %>% 
-  left_join(emission_factors %>% 
+  left_join(emission_factors_so2_heat %>% 
               select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag, unit_flag), 
             by = c("prime_mover",
                    "botfirty",
@@ -1187,7 +1187,7 @@ so2_emissions_heat_noncoal <-
   units_estimated_fuel %>% 
   left_join(avg_sulfur_content_fuel %>% select(fuel_type, avg_sulfur_content), # renaming for consistent naming
             by = c("primary_fuel_type" = "fuel_type")) %>%
-  left_join(emission_factors %>% 
+  left_join(emission_factors_so2_heat %>%  
               select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag, unit_flag), 
             by = c("prime_mover",
                    "botfirty",
