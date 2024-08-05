@@ -307,10 +307,8 @@ nox_rates_ids <- # creating unique ids to filter out later
 
 #### NOx Ef   -----------------
 
-emission_factors <- read_csv("data/static_tables/emission_factors.csv") %>% # load in emission_factors data
-  mutate(unit_flag = ifelse(unit_flag == "heatinput", "HeatInput", unit_flag)) %>%
-  filter(primary_fuel_type != "OTH" |
-           so2_ef != 2.8)
+emission_factors <- read_csv("data/static_tables/emission_factors.csv") # load in emission_factors data
+
 
 # Joining EFs df with camd ozone reporters to calculate non-ozone NOx mass
 
