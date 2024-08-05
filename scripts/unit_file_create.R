@@ -933,7 +933,7 @@ all_units_3 <-
                rename("unit_id" = "boiler_id"),
              by = c("plant_id", "unit_id"),
              unmatched = "ignore") %>%
-  mutate(primary_fuel_type = if_else(primary_fuel_type == "MSB", "MSW", "MSB")) %>% # Changing "MSB" fuel codes to "MSW"
+  mutate(primary_fuel_type = if_else(primary_fuel_type == "MSB", "MSW", primary_fuel_type)) %>% # Changing "MSB" fuel codes to "MSW"
   rows_patch(botfirty_eia %>% 
                rename("unit_id" = "boiler_id", 
                       "botfirty" = eGRID),
