@@ -1103,11 +1103,17 @@ units_estimated_fuel <- # df that will be used to calculate so2 emissions
          heat_input_oz = heat_input_oz_923 * dist_prop) %>% 
   select(-c(ends_with("_923"))) 
 
-### creating physical units table for coal
+### creating physical units table for SO2
 emission_factors_so2_pu <- emission_factors %>%
   filter(primary_fuel_type != "OTH" |
            so2_ef != 2.8,
-         unit_flag == "PhysicalUnits")
+         unit_flag == "PhysicalUnits") %>%
+  select(!starts_with("nox"))
+
+## creating heat input table for SO2
+emission_factors_so2_heat <- emission_factors %>%
+  filter(unit_flag == "HeatInput") %>%
+  select(!starts_with("nox"))
 
 ### estimating so2 emissions - coal --------
 
