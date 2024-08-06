@@ -9,6 +9,11 @@ library(readr)
 library(readxl)
 library(stringr)
 
+# define params for eGRID data year 
+# this is only necessary when running the script outside of egrid_master.qmd
+
+params <- list()
+params$eGRID_year <- "2021"
 
 # Load necessary data ------
 
@@ -29,7 +34,7 @@ camd_vars_to_keep <-
     "heat_input" = "heat_input_mmbtu",
     "heat_input_oz" = "heat_input_mmbtu_ozone",
     "nox_mass" = "nox_mass_short_tons",
-    "nox_mass_oz" = "nox_mass_short_tons_ozone",
+    "nox_oz_mass" = "nox_mass_short_tons_ozone",
     "so2_mass" = "so2_mass_short_tons",
     "so2_mass_oz" = "so2_mass_short_tons_ozone",
     "co2_mass" = "co2_mass_short_tons",
@@ -296,8 +301,8 @@ camd_oz_reporters_dist_nox_rates <- # filling annual nox mass with nox_rates whe
   camd_oz_reporters_dist_2 %>%
   inner_join(nox_rates,
              by = c("plant_id", "unit_id" = "boiler_id")) %>%
-  mutate(nox_mass_nonoz = (heat_input_nonoz * nox_rate_ann)/ 2000, 
-         nox_mass = nox_mass_nonoz + nox_mass_oz, # I think there should be a reporting frequency condition here. 
+  mutate(nox_nonoz_mass = (heat_input_nonoz * nox_rate_ann)/ 2000, 
+         nox_mass = nox_nonoz_mass + nox_oz_mass, # I think there should be a reporting frequency condition here. 
          nox_source = if_else(is.na(nox_mass), nox_source ,"Estimated based on unit-level NOx emission rates and EPA/CAMD ozone season emissions"))
 
 nox_rates_ids <- # creating unique ids to filter out later
@@ -320,8 +325,8 @@ camd_oz_reporters_dist_nox_ef <-
               select(prime_mover, botfirty, primary_fuel_type, nox_ef) %>% 
               distinct()) %>% # there are duplicates based on other columns in the emission_factors data. Getting distinct rows.
   mutate(fuel_consum_nonoz = fuel_consum_nonoz_923 * prop, # calculating distributed non-ozone fuel consumption (SB: Need to check if this needs to be calculated at a different level)
-         nox_mass_nonoz = fuel_consum_nonoz * nox_ef/2000,
-         nox_mass = nox_mass_oz + nox_mass_nonoz,
+         nox_nonoz_mass = fuel_consum_nonoz * nox_ef/2000,
+         nox_mass = nox_oz_mass + nox_nonoz_mass,
          nox_source = if_else(is.na(nox_mass), "EPA/CAMD", "Estimated using emissions factor and EIA data for non-ozone season and EPA/CAMD ozone season emissions")) 
 
 # Combing two dataframes with distributed annual NOx mass to join back with rest of CAMD
@@ -1259,7 +1264,7 @@ nox_rates_ann <- nox_rates_2 %>%
 nox_rates_oz <- nox_rates_2 %>%
   inner_join(all_units_6 %>%
                select(plant_id, unit_id, prime_mover, heat_input_oz)) %>%
-  mutate(nox_mass_oz = (nox_oz_rate*heat_input_oz)/2000,
+  mutate(nox_oz_mass = (nox_oz_rate*heat_input_oz)/2000,
          nox_oz_source = "Estimated based on unit-level NOx ozone season emission rates") %>%
   select(-c(nox_rate, nox_oz_rate))
 
@@ -1309,12 +1314,12 @@ nox_oz_emissions_factor <-
                    "botfirty",
                    "primary_fuel_type")) %>%
   group_by(plant_id, unit_id) %>%
-  mutate(nox_mass_oz = (fuel_consumption_oz*nox_ef)/2000) %>%
+  mutate(nox_oz_mass = (fuel_consumption_oz*nox_ef)/2000) %>%
   select(plant_id,
          unit_id,
          prime_mover,
-         nox_mass_oz) %>% 
-  filter(nox_mass_oz > 0) %>% 
+         nox_oz_mass) %>% 
+  filter(nox_oz_mass > 0) %>% 
   mutate(nox_oz_source = "Estimated using emissions factor")
 
 ### estimating NOx annual emissions with heat input --------
@@ -1345,15 +1350,15 @@ nox_oz_emissions_heat_input <- nox_emissions_rates %>%
                    "primary_fuel_type")) %>%
   select(plant_id, unit_id, prime_mover, heat_input_oz, nox_ef, nox_ef_num, nox_ef_denom) %>%
   group_by(unit_id, plant_id, nox_ef, nox_ef_num, nox_ef_denom) %>%
-  mutate(nox_mass_oz = sum((heat_input_oz*nox_ef)/2000),
+  mutate(nox_oz_mass = sum((heat_input_oz*nox_ef)/2000),
          nox_oz_source = "Estimated using emissions factor") %>%
   ungroup() %>%
   select(plant_id,
          unit_id,
          prime_mover,
-         nox_mass_oz,
+         nox_oz_mass,
          nox_oz_source) %>%
-  filter(nox_mass_oz > 0)
+  filter(nox_oz_mass > 0)
 
 ### Updating units with estimating NOx --------
 all_units_nox_updates <- nox_emissions_rates %>%
@@ -1378,8 +1383,8 @@ all_units_nox_updates <- nox_emissions_rates %>%
 ## Fix Ozone Season ----------
 # IF NOx ozone emissions > annual NOx emissions, make the NOx ozone emissions equal the annual NOx emissions
 all_units_nox_ozone_update <- all_units_nox_updates %>%
-  mutate(nox_mass_oz = case_when(nox_mass_oz > nox_mass ~ nox_mass,
-                                 TRUE ~ nox_mass_oz))
+  mutate(nox_oz_mass = case_when(nox_oz_mass > nox_mass ~ nox_mass,
+                                 TRUE ~ nox_oz_mass))
 
 ## Geothermal Emissions --------
 geo_emissions <- all_units_nox_ozone_update %>%
@@ -1566,10 +1571,64 @@ all_units_8 <-
   mutate(heat_input = round(heat_input, 3), 
          heat_input_oz = round(heat_input_oz, 3), 
          nox_mass = round(nox_mass, 3), 
-         nox_mass_oz = round(nox_mass_oz, 3), 
+         nox_oz_mass = round(nox_oz_mass, 3), 
          so2_mass = round(so2_mass, 4), 
          co2_mass = round(co2_mass, 3), 
-         hg_mass = round(hg_mass, 3)) %>% 
-  select(-eia_plant_id, -eia_plant_name, -id, -hg_controls)
+         hg_mass = round(hg_mass, 3)) 
+
+# Format unit file --------------
+
+# creating named vector of final variable order and variable name included in unit file
+final_vars <-
+  c("SEQUNT" = "sequnt",
+    "YEAR" = "year",
+    "PSTATABB" = "plant_state",
+    "PNAME" = "plant_name",
+    "ORISPL" = "plant_id",
+    "UNITID" = "unit_id",
+    "PRMVR" =  "prime_mover",
+    "UNTOPST" = "operating_status",
+    "CAMDFLAG" = "camd_flag", 
+    "PRGCODE" = "program_code", 
+    "BOTFIRTY" = "botfirty", 
+    "NUMGEN" = "num_generators", 
+    "FUELU1" = "primary_fuel_type",
+    "HRSOP" = "operating_hours", 
+    "HTIAN" = "heat_input", 
+    "HTIOZ" = "heat_input_oz",
+    "NOXAN" = "nox_mass",
+    "NOXOZ" = "nox_oz_mass", 
+    "SO2AN" = "so2_mass",
+    "CO2AN" = "co2_mass",
+    "HGAN" = "hg_mass",
+    "HTIANSRC" = "heat_input_source",
+    "HTIOZSRC" = "heat_input_oz_source",
+    "NOXANSRC" = "nox_source", 
+    "NOXOZSRC" = "nox_oz_source", 
+    "SO2SRC" = "so2_source", 
+    "CO2SRC" = "co2_source", 
+    "HGSRC" = "hg_source", 
+    "SO2CTLDV" = "so2_controls", 
+    "NOXCTLDV" = "nox_controls", 
+    "HGCTLDV" = "hg_controls_flag", 
+    "UNTYRONL" = "year_online")
+
+units_formatted <-
+  all_units_8 %>%
+  arrange(plant_state, plant_name) %>% 
+  mutate(sequnt = row_number(), 
+         year = params$eGRID_year) %>% 
+  select(as_tibble(final_vars)$value) # keeping columns with tidy names for QA steps
 
 
+# Export unit file -------------
+
+if(dir.exists("data/outputs")) {
+  print("Folder output already exists.")
+}else{
+  dir.create("data/outputs")
+}
+
+print("Saving unit file to folder data/outputs/")
+
+write_rds(units_formatted, "data/outputs/unit_file.RDS")
