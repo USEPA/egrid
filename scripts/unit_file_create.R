@@ -307,10 +307,8 @@ nox_rates_ids <- # creating unique ids to filter out later
 
 #### NOx Ef   -----------------
 
-emission_factors <- read_csv("data/static_tables/emission_factors.csv") %>% # load in emission_factors data
-  mutate(unit_flag = ifelse(unit_flag == "heatinput", "HeatInput", unit_flag)) %>%
-  filter(primary_fuel_type != "OTH" |
-           so2_ef != 2.8)
+emission_factors <- read_csv("data/static_tables/emission_factors.csv") # load in emission_factors data
+
 
 # Joining EFs df with camd ozone reporters to calculate non-ozone NOx mass
 
@@ -935,7 +933,7 @@ all_units_3 <-
                rename("unit_id" = "boiler_id"),
              by = c("plant_id", "unit_id"),
              unmatched = "ignore") %>%
-  mutate(primary_fuel_type = if_else(primary_fuel_type == "MSB", "MSW", "MSB")) %>% # Changing "MSB" fuel codes to "MSW"
+  mutate(primary_fuel_type = if_else(primary_fuel_type == "MSB", "MSW", primary_fuel_type)) %>% # Changing "MSB" fuel codes to "MSW"
   rows_patch(botfirty_eia %>% 
                rename("unit_id" = "boiler_id", 
                       "botfirty" = eGRID),
@@ -1105,6 +1103,19 @@ units_estimated_fuel <- # df that will be used to calculate so2 emissions
          heat_input_oz = heat_input_oz_923 * dist_prop) %>% 
   select(-c(ends_with("_923"))) 
 
+### creating physical units table for SO2
+emission_factors_so2_pu <- emission_factors %>%
+  filter(primary_fuel_type != "OTH" |
+           so2_ef != 2.8,
+         unit_flag == "PhysicalUnits") %>%
+  select(!starts_with("nox"))
+
+## creating heat input table for SO2
+emission_factors_so2_heat <- emission_factors %>%
+  mutate(unit_flag = ifelse(unit_flag == "heatinput", "HeatInput", unit_flag)) %>%
+  filter(unit_flag == "HeatInput") %>%
+  select(!starts_with("nox"))
+
 ### estimating so2 emissions - coal --------
 
 so2_emissions_pu_coal <-
@@ -1112,7 +1123,7 @@ so2_emissions_pu_coal <-
   left_join(default_sulfur_content_coal, # renaming for consistent naming
             by = c("plant_state",
                    "primary_fuel_type" = "fuel_type")) %>% 
-  left_join(emission_factors %>% 
+  left_join(emission_factors_so2_pu %>% 
               select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag, unit_flag), 
             by = c("prime_mover",
                    "botfirty",
@@ -1133,7 +1144,7 @@ so2_emissions_pu_noncoal <-
   units_estimated_fuel %>% 
   left_join(avg_sulfur_content_fuel %>% select(fuel_type, avg_sulfur_content), # renaming for consistent naming
             by = c("primary_fuel_type" = "fuel_type")) %>% 
-  left_join(emission_factors %>% 
+  left_join(emission_factors_so2_pu %>% 
               select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag, unit_flag), 
             by = c("prime_mover",
                    "botfirty",
@@ -1155,7 +1166,7 @@ so2_emissions_heat_coal <-
   left_join(default_sulfur_content_coal, # renaming for consistent naming
             by = c("primary_fuel_type" = "fuel_type",
                    "plant_state")) %>% 
-  left_join(emission_factors %>% 
+  left_join(emission_factors_so2_heat %>% 
               select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag, unit_flag), 
             by = c("prime_mover",
                    "botfirty",
@@ -1177,7 +1188,7 @@ so2_emissions_heat_noncoal <-
   units_estimated_fuel %>% 
   left_join(avg_sulfur_content_fuel %>% select(fuel_type, avg_sulfur_content), # renaming for consistent naming
             by = c("primary_fuel_type" = "fuel_type")) %>%
-  left_join(emission_factors %>% 
+  left_join(emission_factors_so2_heat %>%  
               select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag, unit_flag), 
             by = c("prime_mover",
                    "botfirty",
@@ -1263,10 +1274,17 @@ nox_emissions_rates <-
 
 ## NOx emissions - emissions factor -----
 
+### creating NOx physical units table
+emission_factors_nox_pu <- emission_factors %>%
+  filter(nox_unit_flag == "PhysicalUnits") %>%
+  select(!starts_with("so2") & -c(unit_flag)) %>%
+  distinct()
+
 ### estimating NOx annual emissions with EF --------
 nox_emissions_factor <-
   units_estimated_fuel %>% 
-  left_join(emission_factors %>%
+  filter(plant_id != 10025) %>% ## Removing duplicate Plant ID 10025/Unit ID 4B that was causing issues with rows_patch
+  left_join(emission_factors_nox_pu %>%
               select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
                    "botfirty",
@@ -1275,6 +1293,7 @@ nox_emissions_factor <-
   mutate(nox_mass = (fuel_consumption*nox_ef)/2000) %>%
   select(plant_id,
          unit_id,
+         prime_mover,
          nox_mass) %>% 
   filter(nox_mass > 0) %>% 
   mutate(nox_source = "Estimated using emissions factor")
@@ -1283,7 +1302,8 @@ nox_emissions_factor <-
 
 nox_oz_emissions_factor <- 
   units_estimated_fuel %>% 
-  left_join(emission_factors %>%
+  filter(plant_id != 10025) %>% ## Removing duplicate Plant ID 10025/Unit ID 4B that was causing issues with rows_patch
+  left_join(emission_factors_nox_pu %>%
               select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
                    "botfirty",
@@ -1292,42 +1312,45 @@ nox_oz_emissions_factor <-
   mutate(nox_mass_oz = (fuel_consumption_oz*nox_ef)/2000) %>%
   select(plant_id,
          unit_id,
+         prime_mover,
          nox_mass_oz) %>% 
   filter(nox_mass_oz > 0) %>% 
   mutate(nox_oz_source = "Estimated using emissions factor")
 
 ### estimating NOx annual emissions with heat input --------
 nox_emissions_heat_input <- nox_emissions_rates %>%
-  left_join(emission_factors %>%
+  left_join(emission_factors_nox_pu %>%
               select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
                    "botfirty",
                    "primary_fuel_type")) %>%
-  select(plant_id, unit_id, heat_input, nox_ef, nox_ef, nox_ef_num, nox_ef_denom) %>%
+  select(plant_id, unit_id, prime_mover, heat_input, nox_ef, nox_ef, nox_ef_num, nox_ef_denom) %>%
   group_by(plant_id, unit_id,nox_ef, nox_ef_num, nox_ef_denom) %>%
   mutate(nox_mass = sum((heat_input*nox_ef)/2000),
          nox_source = "Estimated using emissions factor") %>%
   ungroup() %>%
   select(plant_id,
          unit_id,
+         prime_mover,
          nox_mass,
          nox_source) %>%
   filter(nox_mass > 0)
 
 ### estimating NOx ozone emissions with heat input --------
 nox_oz_emissions_heat_input <- nox_emissions_rates %>%
-  left_join(emission_factors %>%
+  left_join(emission_factors_nox_pu %>%
               select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
                    "botfirty",
                    "primary_fuel_type")) %>%
-  select(plant_id, unit_id, heat_input_oz, nox_ef, nox_ef_num, nox_ef_denom) %>%
+  select(plant_id, unit_id, prime_mover, heat_input_oz, nox_ef, nox_ef_num, nox_ef_denom) %>%
   group_by(unit_id, plant_id, nox_ef, nox_ef_num, nox_ef_denom) %>%
   mutate(nox_mass_oz = sum((heat_input_oz*nox_ef)/2000),
          nox_oz_source = "Estimated using emissions factor") %>%
   ungroup() %>%
   select(plant_id,
          unit_id,
+         prime_mover,
          nox_mass_oz,
          nox_oz_source) %>%
   filter(nox_mass_oz > 0)
@@ -1335,16 +1358,16 @@ nox_oz_emissions_heat_input <- nox_emissions_rates %>%
 ### Updating units with estimating NOx --------
 all_units_nox_updates <- nox_emissions_rates %>%
   rows_patch(nox_emissions_factor,
-             by = c("plant_id", "unit_id"),
+             by = c("plant_id", "unit_id", "prime_mover"),
              unmatched = "ignore") %>%
   rows_patch(nox_oz_emissions_factor, 
-             by = c("plant_id", "unit_id"),
+             by = c("plant_id", "unit_id", "prime_mover"),
              unmatched = "ignore") %>%
   rows_patch(nox_emissions_heat_input,
-             by = c("plant_id", "unit_id"),
+             by = c("plant_id", "unit_id", "prime_mover"),
              unmatched = "ignore") %>% 
   rows_patch(nox_oz_emissions_heat_input,
-             by = c("plant_id", "unit_id"),
+             by = c("plant_id", "unit_id", "prime_mover"),
              unmatched = "ignore") 
 
 
@@ -1357,6 +1380,10 @@ all_units_nox_updates <- nox_emissions_rates %>%
 all_units_nox_ozone_update <- all_units_nox_updates %>%
   mutate(nox_mass_oz = case_when(nox_mass_oz > nox_mass ~ nox_mass,
                                  TRUE ~ nox_mass_oz))
+
+## Geothermal Emissions --------
+geo_emissions <- all_units_nox_ozone_update %>%
+  filter(primary_fuel_type == "GEO")
 
 
 # Final modifications -----  
