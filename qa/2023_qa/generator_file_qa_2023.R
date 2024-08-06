@@ -39,7 +39,7 @@ generator_r <-
          "generator_id" = "generator_id_r") %>% select(-seqgen_r)
 
 # load access dataset (from published 2021 eGRID excel sheet)  
-generator_access <- read_excel("archive/egrid2021_data.xlsx", sheet = "GEN21", 
+generator_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "GEN21", 
                                skip = 1, 
                                guess_max = 4000) %>% janitor::clean_names() %>% 
   select(-seqgen) %>% 
@@ -74,8 +74,8 @@ gen_comparison <-
 # check if any plants in R that are NOT in Access data set ---------
 check_diff_plant_r <- 
   generator_r %>% 
-  anti_join(generator_access, by = c("plant_id", "generator_id")) #%>% 
-  #select(plant_id) %>% distinct() %>% filter(!is.na(plant_id))
+  anti_join(generator_access, by = c("plant_id", "generator_id")) %>% 
+  filter(!is.na(plant_id))
 
 if(nrow(check_diff_plant_r) > 0) {
   write_csv(check_diff_plant_r, paste0(save_dir, "check_diff_plant_r.csv")) }
@@ -83,8 +83,8 @@ if(nrow(check_diff_plant_r) > 0) {
 # check if any plants or in Access that are NOT in R data set ----------
 check_diff_plant_access <- 
   generator_access %>% 
-  anti_join(generator_r, by = c("plant_id", "generator_id")) #%>% 
-  #select(plant_id) %>% distinct() %>% filter(!is.na(plant_id))
+  anti_join(generator_r, by = c("plant_id", "generator_id")) %>% 
+  filter(!is.na(plant_id))
 
 if(nrow(check_diff_plant_access) > 0) {
   write_csv(check_diff_plant_access, paste0(save_dir, "check_diff_plant_access.csv")) }
