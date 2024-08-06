@@ -1,3 +1,19 @@
+## -------------------------------
+##
+## Generator file create 
+## 
+## Purpose: 
+## 
+## This file creates the generator file for eGRID. 
+## This includes all operating generators for the specified eGRID data year
+## 
+## Authors:  
+##      Sean Bock
+##      Caroline Watson
+##      Teagan Goforth
+##
+## -------------------------------
+
 
 # Libraries 
 library(dplyr)
@@ -5,6 +21,11 @@ library(readr)
 library(stringr)
 library(glue)
 
+# Define params for eGRID data year
+# This is only necessary when running outside of the eGRID_master Quarto document
+
+params <- list()
+params$eGRID_year <- "2021"
 
 # Load in necessary 923 and 860 files ----------
 
