@@ -21,6 +21,7 @@
 library(dplyr)
 library(readr)
 library(readxl)
+library(stringr)
 
 # set directory for saving files 
 save_dir <- "data/outputs/qa/unit_file_differences/"
@@ -34,7 +35,7 @@ colnames(unit_r) <- paste0(colnames(unit_r), "_r")
 unit_r <- unit_r %>% rename("plant_id" = "plant_id_r", 
                             "unit_id" = "unit_id_r")
 
-unit_access <- read_excel("archive/egrid2021_data.xlsx", sheet = "UNT21", 
+unit_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "UNT21", 
                                skip = 1, 
                                guess_max = 4000) %>% janitor::clean_names() %>% 
   rename("sequnt_access" = "sequnt",
@@ -69,7 +70,8 @@ unit_access <- read_excel("archive/egrid2021_data.xlsx", sheet = "UNT21",
          "nox_controls_access" = "noxctldv", 
          "hg_controls_flag_access" = "hgctldv",
          "year_online_access" = "untyronl") %>% 
-  mutate(plant_id = as.character(plant_id))
+  mutate(plant_id = as.character(plant_id), 
+         program_code_access = gsub(",([[:alpha:]])", ", \\1", program_code_access)) # adding space between listed program codes
 
 # combine the two datasets
 unit_comparison <- 
@@ -171,8 +173,8 @@ if(nrow(check_num_gens) > 0) {
 # check primary fuel type
 check_fuel_type <- 
   unit_comparison %>% 
-  filter(!(num_generators_r == num_generators_access)) %>% 
-  select(plant_id, unit_id, num_generators_r, num_generators_access)
+  filter(!(primary_fuel_type_r == primary_fuel_type_access)) %>% 
+  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access)
 
 if(nrow(check_fuel_type) > 0) {
   write_csv(check_fuel_type, paste0(save_dir, "check_fuel_type.csv")) }
@@ -186,6 +188,36 @@ check_operating_hours <-
 if(nrow(check_operating_hours) > 0) {
   write_csv(check_operating_hours, paste0(save_dir, "check_operating_hours.csv")) }
 
-# check so2 controls
+# check SO2 controls
+check_so2_controls <- 
+  unit_comparison %>% 
+  filter(!(so2_controls_r == so2_controls_access)) %>% 
+  select(plant_id, unit_id, so2_controls_r, so2_controls_access)
 
 
+if(nrow(check_so2_controls) > 0) {
+  write_csv(check_so2_controls, paste0(save_dir, "check_so2_controls.csv")) }
+
+# check NOx controls
+check_nox_controls <- 
+  unit_comparison %>% 
+  filter(!(nox_controls_r == nox_controls_access)) %>% 
+  select(plant_id, unit_id, nox_controls_r, nox_controls_access)
+
+if(nrow(check_nox_controls) > 0) {
+  write_csv(check_nox_controls, paste0(save_dir, "check_nox_controls.csv")) }
+
+# check Hg controls flag
+check_hg_flag <- 
+  unit_comparison %>% 
+  filter(!(hg_controls_flag_r == hg_controls_flag_access)) %>% 
+  select(plant_id, unit_id, hg_controls_flag_r, hg_controls_flag_access)
+
+if(nrow(check_hg_flag) > 0) {
+  write_csv(check_hg_flag, paste0(save_dir, "check_hg_controls_flag.csv")) }
+
+# check year online
+check_year_online <- 
+  unit_comparison %>% 
+  filter(!(year_online_r == year_online_access)) %>% 
+  select(plant_id, unit_id, year_online_r, year_online_access)
