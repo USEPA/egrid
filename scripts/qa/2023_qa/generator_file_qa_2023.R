@@ -91,7 +91,8 @@ if(nrow(check_diff_plant_access) > 0) {
 # check if plant names match --------
 check_plant_names <- 
   gen_comparison %>% 
-  filter(!(plant_name_r == plant_name_access))  
+  filter(!(plant_name_r == plant_name_access)) %>% 
+  select(plant_id, plant_name_r, plant_name_access) %>% distinct()
 
 if(nrow(check_plant_names) > 0) {
   write_csv(check_plant_names, paste0(save_dir, "check_plant_names.csv")) }
@@ -99,7 +100,8 @@ if(nrow(check_plant_names) > 0) {
 # check if plant states match --------------
 check_plant_state <- 
   gen_comparison %>% 
-  filter(!(plant_state_r == plant_state_access))
+  filter(!(plant_state_r == plant_state_access)) %>% 
+  select(plant_id, plant_state_r, plant_state_access) %>% distinct()
 
 if(nrow(check_plant_state) > 0) {
   write_csv(check_plant_state, paste0(save_dir, "check_plant_state.csv")) }
@@ -143,7 +145,8 @@ if(nrow(check_fuel_type) > 0) {
 # check if nameplate capacity matches --------------
 check_nameplate_capacity <- 
   gen_comparison %>% 
-  filter(!(nameplate_capacity_r == nameplate_capacity_access))
+  filter(!(nameplate_capacity_r == nameplate_capacity_access)) %>% 
+  select(plant_id, unit_id, nameplate_capacity_r, nameplate_capacity_access)
 
 if(nrow(check_nameplate_capacity) > 0) {
   write_csv(check_nameplate_capacity, paste0(save_dir, "check_nameplate_capacity.csv")) }
