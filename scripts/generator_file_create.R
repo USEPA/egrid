@@ -79,6 +79,7 @@ eia_923_gen_r <-
       plant_id == 55596 & generator_id == 4 ~ "0004",
       plant_id == 54464 & generator_id == 5 ~ "0005",
       plant_id == 55596 & generator_id == 5 ~ "0005",
+      plant_id == 664 & generator_id == "8.1999999999999993" ~ "8.2",
       TRUE ~ generator_id  # Default value if no condition matches
       ) 
     )
@@ -165,7 +166,7 @@ eia_gen_genfuel_diff <-
   summarize(tot_generation_ann_gen = sum(generation_ann, na.rm = TRUE), # summing generation to plant/pm level to compare to gen_fuel file
             tot_generation_oz_gen = sum(generation_oz, na.rm = TRUE)) %>% 
   ungroup() %>% 
-  left_join(eia_gen_fuel_generation_sum) %>% # joing with gen_fuel file
+  left_join(eia_gen_fuel_generation_sum, by = c("plant_id", "prime_mover")) %>% # joining with gen_fuel file
   mutate(abs_diff_generation_ann = abs(tot_generation_ann_fuel - tot_generation_ann_gen), # calculating absolute differences between generation values
          abs_diff_generation_oz = abs(tot_generation_oz_fuel - tot_generation_oz_gen),
          perc_diff_generation_ann = if_else(abs_diff_generation_ann == 0, 0, abs_diff_generation_ann/tot_generation_ann_fuel), # calculating the percentage of the difference over the fuel levels in gen_fuel file
