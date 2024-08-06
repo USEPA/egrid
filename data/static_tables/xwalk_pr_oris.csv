@@ -1,0 +1,17 @@
+camd_plant_name,camd_plant_id,camd_unit_id,eia_plant_name,eia_plant_id,eia_unit_id
+"AES Puerto Rico, LP",880102,1,AES Puerto Rico,61082,UNIT1
+"AES Puerto Rico, LP",880102,2,AES Puerto Rico,61082,UNIT2
+Aguirre Steam Power Plant,880105,AG1,Aguirre Plant,61146,1
+Aguirre Steam Power Plant,880105,AG2,Aguirre Plant,61146,2
+Costa Sur Steam Power Plant,880104,COS3,Costa Sur Plant,61147,3
+Costa Sur Steam Power Plant,880104,COS4,Costa Sur Plant,61147,4
+Costa Sur Steam Power Plant,880104,COS5,Costa Sur Plant,61147,5
+Costa Sur Steam Power Plant,880104,COS6,Costa Sur Plant,61147,6
+San Juan Steam Power Plant,880106,SJ10,Central San Juan Plant,61148,10
+San Juan Steam Power Plant,880106,SJ7,Central San Juan Plant,61148,7
+San Juan Steam Power Plant,880107,SJ8,Central San Juan Plant,61148,8
+San Juan Steam Power Plant,880108,SJ9,Central San Juan Plant,61148,9
+Palo Seco Steam Power Plant,880103,PS1,Palo Seco Plant,61149,1
+Palo Seco Steam Power Plant,880103,PS2,Palo Seco Plant,61149,2
+Palo Seco Steam Power Plant,880103,PS3,Palo Seco Plant,61149,3
+Palo Seco Steam Power Plant,880103,PS4,Palo Seco Plant,61149,4

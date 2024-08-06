@@ -1,0 +1,16 @@
+plant_id,generator_id,generation_ann_r,generation_ann_access,diff_ann,gen_data_source_r,gen_data_source_access
+6045,1,7805145,7076842,728303,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+6045,2,7805145,7076842,728303,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+52028,OEC11,14773,0,14773,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+52028,OEC12,14773,0,14773,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+52028,OEC13,14773,0,14773,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+52028,OEC14,14773,0,14773,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+52028,OEC15,14773,0,14773,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+52028,OEC21,14773,0,14773,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+52028,OEC22,14773,0,14773,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+52028,OEC23,14773,0,14773,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+52028,OEC24,14773,0,14773,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+52028,OEC25,14773,0,14773,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+52028,OEC31,18012,91696,-73684,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+52028,OEC32,18012,91696,-73684,Distributed from 923 Generation and Fuel,Distributed from 923 Generation and Fuel
+6017,1,3566400,3254366,312034,EIA-923 Generator File,EIA-923 Generator File
