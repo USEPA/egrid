@@ -1,4 +1,9 @@
-plant_id
-63259
-60910
-3612
+year_access,plant_state_access,plant_name_access,plant_id,generator_id,n_boilers_access,status_access,prime_mover_access,fuel_code_access,nameplate_capacity_access,capfact_access,generation_ann_access,generation_oz_access,gen_data_source_access,operating_year_access,retirement_year_access
+2021,MI,Delta Energy Park,63259,DEPC2,NA,TS,CT,NG,58,NA,NA,NA,NA,NA,NA
+2021,MI,Delta Energy Park,63259,DEPC3,NA,TS,CT,NG,58,NA,NA,NA,NA,NA,NA
+2021,MI,Delta Energy Park,63259,DEPS1,NA,TS,GT,NG,58,NA,NA,NA,NA,NA,NA
+2021,MI,Delta Energy Park,63259,DEPST,NA,TS,CA,NG,89.2,NA,NA,NA,NA,NA,NA
+2021,TX,NET Power La Porte Station,60910,NPLPS,NA,OT,GT,NG,25.5,NA,NA,NA,NA,NA,NA
+2021,TX,V H Braunig,3612,01,NA,OP,CT,NG,187.5,0.513,842338,419677.5,Distributed from 923 Generation and Fuel,2000,NA
+2021,TX,V H Braunig,3612,02,NA,OP,CT,NG,187.5,0.513,842338,419677.5,Distributed from 923 Generation and Fuel,2000,NA
+2021,TX,V H Braunig,3612,03,NA,OP,CA,NG,200,0.573,1004248,493052,Distributed from 923 Generation and Fuel,2000,NA
