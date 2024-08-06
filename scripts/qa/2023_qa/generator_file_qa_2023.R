@@ -10,7 +10,7 @@
 ## The checks performed will output a CSV file with any differences 
 ## between Access and R generator files. 
 ## 
-## Author: Teagan Goforth 
+## Author: Teagan Goforth, teagan.goforth@abtglobal.com 
 ## 
 ## Date created: 7/29/2024 
 ##
@@ -25,7 +25,7 @@ library(glue)
 library(readxl)
 
 # set directory for saving files 
-save_dir <- "qa/2023_qa/generator_file_differences/"
+save_dir <- "data/outputs/qa/generator_file_differences/"
 
 # load R dataset
 generator_r <- read_rds("data/outputs/generator_file.RDS") 
@@ -68,8 +68,7 @@ generator_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "GEN21",
 gen_comparison <- 
   generator_r %>% 
   full_join(generator_access, by = c("plant_id", 
-                                     "generator_id")) %>% 
-  select(plant_id, generator_id, order(colnames(gen_comparison)))
+                                     "generator_id")) 
 
 # check if any plants in R that are NOT in Access data set ---------
 check_diff_plant_r <- 

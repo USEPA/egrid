@@ -9,8 +9,8 @@
 ## 
 ## Authors:  
 ##      Sean Bock
-##      Caroline Watson
-##      Teagan Goforth
+##      Caroline Watson, caroline.watson@abtglobal.com
+##      Teagan Goforth, teagan.goforth@abtglobal.com
 ##
 ## -------------------------------
 
