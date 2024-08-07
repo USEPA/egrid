@@ -90,7 +90,7 @@ eia_860_boiler_count <- # creating count of boilers for each generator
 
 # Determine generation ------------
 
-## Generation from 923 generator file ---
+## Generation from 923 generator file ------
 
 ozone_months_gen <- 
                 c("net_generation_may", # creating vector of ozone month generation columns for calculations
@@ -110,13 +110,13 @@ eia_gen_generation <-
          generation_ann = net_generation_year_to_date)
 
 
-## Distribute generation to plants not in generator file ----
+## Distribute generation to plants not in EIA-923 Generator file -------
 
 ### We create a distributional proportion based on nameplate capacity for plant/prime movers that are not in the 
-### Generator file and distribute the generation with proportion
+### EIA-923 Generator file and distribute the generation with proportion
 
 # first calculate generation at plant/pm level for gen_fuel file 
-## Generation from 923 gen and fuel file at the plant/prime mover level ---
+### Generation from 923 gen and fuel file at the plant/prime mover level ---------
 
 ozone_months_gen_fuel <- 
   c("netgen_may",
@@ -155,7 +155,7 @@ gen_distributed <-
   bind_rows(eia_gen_generation %>% filter(!is.na(gen_data_source))) # adding back 923 Generation source rows
 
 
-### determine differences between 923 Generator File and 923 Generation and Fuel file and identify and  distribute large cases --------- 
+### Determine differences between EIA-923 Generator File and EIA-923 Generation and Fuel file, and identify and distribute large cases --------- 
 
 eia_gen_genfuel_diff <- 
   gen_distributed %>% 
