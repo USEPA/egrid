@@ -146,7 +146,7 @@ if(nrow(check_fuel_type) > 0) {
 check_nameplate_capacity <- 
   gen_comparison %>% 
   filter(!(nameplate_capacity_r == nameplate_capacity_access)) %>% 
-  select(plant_id, unit_id, nameplate_capacity_r, nameplate_capacity_access)
+  select(plant_id, generator_id, nameplate_capacity_r, nameplate_capacity_access)
 
 if(nrow(check_nameplate_capacity) > 0) {
   write_csv(check_nameplate_capacity, paste0(save_dir, "check_nameplate_capacity.csv")) }
