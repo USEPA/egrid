@@ -22,7 +22,7 @@ library(stringr)
 library(glue)
 
 # Define params for eGRID data year
-# This is only necessary when running outside of the eGRID_master Quarto document
+# This is only necessary when running script outside of the eGRID_master.qmd document
 
 params <- list()
 params$eGRID_year <- "2021"
@@ -49,8 +49,6 @@ eia_860_combined <- eia_860_files$combined %>%
 
 
 # Create modified dfs that will be used to calculate generation values ---------
-
-
 
 eia_923_gen_r <- 
   eia_923_gen %>% 
@@ -94,7 +92,6 @@ eia_860_boiler_count <- # creating count of boilers for each generator
 
 ## Generation from 923 generator file ---
 
-
 ozone_months_gen <- 
                 c("net_generation_may", # creating vector of ozone month generation columns for calculations
                   "net_generation_june", 
@@ -111,7 +108,6 @@ eia_gen_generation <-
   mutate(generation_oz = rowSums(pick(all_of(ozone_months_gen)), na.rm = TRUE),
          gen_data_source = if_else(is.na(net_generation_year_to_date), NA_character_, "EIA-923 Generator File"),
          generation_ann = net_generation_year_to_date)
-
 
 
 ## Distribute generation to plants not in generator file ----
@@ -160,6 +156,7 @@ gen_distributed <-
 
 
 ### determine differences between 923 Generator File and 923 Generation and Fuel file and identify and  distribute large cases --------- 
+
 eia_gen_genfuel_diff <- 
   gen_distributed %>% 
   group_by(plant_id, prime_mover) %>% 
@@ -172,6 +169,7 @@ eia_gen_genfuel_diff <-
          perc_diff_generation_ann = if_else(abs_diff_generation_ann == 0, 0, abs_diff_generation_ann/tot_generation_ann_fuel), # calculating the percentage of the difference over the fuel levels in gen_fuel file
          perc_diff_generation_oz = if_else(abs_diff_generation_oz == 0, 0, abs_diff_generation_oz/tot_generation_oz_fuel),
          overwrite = if_else(perc_diff_generation_ann > 0.001, "overwrite", "EIA-923 Generator File"))
+
 
 ## Where overwrite == overwrite, we distribute the the generation figures in the Gen and Fuel file and 
 ## create a DF of generators that have large differences between EIA-923 Generator file and EIA-923 Generation and Fuel file 
@@ -203,6 +201,7 @@ gen_overwrite <-
          gen_data_source = "Data from EIA-923 Generator File overwritten with distributed data from EIA-923 Generation and Fuel") %>% 
   select(any_of(key_columns), overwrite) # reducing columns for clarity and to facilitate QA
 
+
 ## December generation ------
 # find plants in the EIA-923 Generator file that are using the same net generation amount in December and redistribute using GenFuel file 
 
@@ -220,6 +219,7 @@ december_netgen <-
     gen_data_source = "EIA-923 Generator File") %>% 
   filter(generation_ann_dec_equal == "yes") %>%
   select(any_of(key_columns), generation_ann_dec_equal) # keeping only necessary columns
+
 
 # Form generator file structure ------------
 
