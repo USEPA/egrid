@@ -34,7 +34,6 @@ if (res$status_code > 399){
 bulk_files <- fromJSON(rawToChar(res$content))
 
 
-
 ## facility data --------
 
 facility_path <- 
@@ -52,8 +51,8 @@ facility_df <-
   mutate(
     generator_ids = str_extract_all(associated_generators_nameplate_capacity_mwe, "\\S+(?= \\()"), # extracting associated generators
     nameplate_capacity_char = (str_extract_all(associated_generators_nameplate_capacity_mwe, "(?<=\\()\\d+(\\.\\d+)?(?=\\))")), # extracting nameplate capacity values
-    associated_generators = map_chr(generator_ids, ~ paste(.x, collapse = ", ")), # pasting togther associated generators
-    nameplate_capacity = map_dbl(nameplate_capacity_char, ~ sum(as.numeric(.x), na.rm = TRUE)),
+    associated_generators = purrr::map_chr(generator_ids, ~ paste(.x, collapse = ", ")), # pasting togther associated generators
+    nameplate_capacity = purrr::map_dbl(nameplate_capacity_char, ~ sum(as.numeric(.x), na.rm = TRUE)),
     year = as.character(year)) %>% # summing nameplate capacity from associated generators)
   select(-"nameplate_capacity_char")
 
@@ -95,7 +94,7 @@ ozone_months <- tolower(month.name)[5:9] # setting ozone months, which are May t
 
 emissions_data_r <- 
   emissions_data %>% 
-  rename_with(tolower) %>% # this protects NoX rates from getting split with clean_names()
+  rename_with(tolower) %>% # this protects NOx rates from getting split with clean_names()
   janitor::clean_names() %>% 
   mutate(year = as.character(year(date)), # extracting year from date
         month = as.character(month(date)), # extracting month from date
@@ -106,14 +105,15 @@ emissions_data_r <-
   summarize(across(cols_to_sum, ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first
   ungroup() %>% 
   group_by(facility_id, unit_id, primary_fuel_type, unit_type) %>% 
-  mutate(n_months = n(), # counting months to determine reporting frequency
-         reporting_frequency = if_else(n_months == 12, "Q", "OS")) %>% # 12 months identifies Q reporters
-  group_by(pick(-all_of(cols_to_sum), -c(month, n_months, reporting_frequency))) %>% 
+  mutate(reporting_months = paste(month, collapse = ", "), # creating column with list of reporting months 
+         reporting_frequency = if_else(grepl("january|february|march|october|november|december", # filtering out non-ozone season reporting months, excluding april
+                                             reporting_months), "Q", "OS")) %>% # assigning reporting frequency 
+  group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% 
   mutate(across(cols_to_sum, ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual")) %>% # calculating annual emissions
   filter(month %in% ozone_months) %>% # filtering to only ozone months 
   mutate(across(cols_to_sum, ~ sum(.x, na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
   select(-month) %>% # removing month so distinct() will aggregate to unit level
-  select(-all_of(cols_to_sum), n_months, reporting_frequency) %>% 
+  select(-all_of(cols_to_sum), reporting_months, reporting_frequency) %>% 
   rename_with(.cols = contains("_annual"), # removing annual suffix
               .fn = ~ str_remove(.x, "_annual")) %>% 
   ungroup() %>% 
@@ -133,7 +133,6 @@ mats_files <-
 # now iterating over each file path and binding into one dataframe.
 mats_data <- 
   purrr::map_df(mats_files$file_path, ~ read_csv(.x)) # making all columns characters to avoid mismatches
-
 
 
 cols <- # specifying columns to keep
@@ -162,7 +161,6 @@ mats_data_r <-
   ungroup() 
 
 ## joining facility, emissions, and MATS data --------
-
 
 camd_data_combined <- 
   facility_df %>% 
