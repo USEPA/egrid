@@ -333,8 +333,8 @@ check_nox_oz_unit <-
   select(plant_id, unit_id, nox_oz_mass_r, nox_oz_mass_access, nox_oz_source_r, 
          nox_oz_source_access)
 
-if(nrow(check_nox_ann_unit) > 0) {
-  write_csv(check_nox_ann_unit, paste0(save_dir, "check_nox_ann_unit.csv")) }
+if(nrow(check_nox_oz_unit) > 0) {
+  write_csv(check_nox_oz_unit, paste0(save_dir, "check_nox_oz_unit.csv")) }
 
 # check NOx sources 
 # annual NOx source
