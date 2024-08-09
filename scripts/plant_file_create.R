@@ -13,14 +13,14 @@ library(here)
 
 ## eia ------------
 
-eia_860 <- read_rds("data/clean_data/eia_860_clean.RDS")
-eia_861 <- read_rds("data/clean_data/eia_861_clean.RDS")
-eia_923 <- read_rds("data/clean_data/eia_923_clean.RDS")
+eia_860 <- read_rds(here("data/clean_data/eia_860_clean.RDS"))
+eia_861 <- read_rds(here("data/clean_data/eia_861_clean.RDS"))
+eia_923 <- read_rds(here("data/clean_data/eia_923_clean.RDS"))
 # note: eia-923 generation and fuel = generation_and_fuel_combined
 
 ## lower-level eGRID files ------------
 
-generator_file <- read_rds("data/outputs/generator_file.RDS")
+generator_file <- read_rds(here("data/outputs/generator_file.RDS"))
 #unit_file <- read_rds("data/outputs/unit_file.RDS") # This is where Unit file will be sourced once completed
 
 clean_names <- # renaming column names to match naming conventions used in other files. This can be removed once new unit file is completed
@@ -178,7 +178,7 @@ gen_860 <- gen_860 %>% mutate(capfac = ifelse(generation_ann / (nameplate_capaci
 # 6.	Calculate CH4 emissions & 7.	Calculate N2O emissions  ----------------------------------------
 
       # load static table with emissions factors
-emissions_CH4_N2O <- read_csv("data/static_tables/co2_ch4_n2o_ef.csv") %>% filter(!is.na(eia_fuel_code)) %>% 
+emissions_CH4_N2O <- read_csv(here("data/static_tables/co2_ch4_n2o_ef.csv")) %>% filter(!is.na(eia_fuel_code)) %>% 
   select(eia_fuel_code, ch4_ef, n2o_ef)
     
 #if(any( (!gen$fuel_code %in% emissions_CH4_N2O$eia_fuel_code )& !is.na(gen$fuel_code))) { 
@@ -193,10 +193,12 @@ eia_CH4_N2O <- eia_923$generation_and_fuel_combined %>% filter(prime_mover != "F
           plant_id = as.numeric(plant_id)) %>%
   group_by(plant_id) %>%
   summarise(unadj_ch4_mass = sum(unadj_ch4_mass, na.rm = TRUE),
-            unadj_n2o_mass = sum(unadj_n2o_mass, na.rm = TRUE))
+            unadj_n2o_mass = sum(unadj_n2o_mass, na.rm = TRUE),
+            ch4_source = "EIA",
+            n2o_source = "EIA")
   
 
-plant_file <- gen_860 %>% full_join(unit, by = c("plant_id", "plant_state"))  %>%
+plant_file <- gen_860 %>% full_join(unit, by = c("plant_id", "plant_state", "year"))  %>%
   rename(plant_name_gen = plant_name.x,
         plant_name_unit = plant_name.y )
 # names differ between sources, so only join on id and state.
@@ -264,7 +266,7 @@ rm(EIA_923_combust)
 
 # 11.	Biomass adjustment -------------
 ## Biomass Fuels adjustment (CO2) ----------------
-EFs_CO2 <- read_csv("data/static_tables/co2_ch4_n2o_ef.csv") %>% filter(!is.na(eia_fuel_code)) %>% 
+EFs_CO2 <- read_csv(here("data/static_tables/co2_ch4_n2o_ef.csv")) %>% filter(!is.na(eia_fuel_code)) %>% 
   select(eia_fuel_code, co2_ef)
 # seperate out co2 from biofuels and co2 from other sources
 biomass_fuels <- c("AB",  "BLQ",  "LFG", "MSB","MSW", "OBG", "OBL", "OBS", "PP", "SLW", "WDL", "WDS")
@@ -299,7 +301,7 @@ plant_file <- plant_file %>% left_join(EIA_923_non_biomass)  %>%
 rm(EFs_CO2, EIA_923_biomass, EIA_923_non_biomass)
 
 ## Landfill Gas adjustment (NOX, CH4, N2O, SO2) -----------------
-EFs <- read_csv("data/static_tables/co2_ch4_n2o_ef.csv") %>% 
+EFs <- read_csv(here("data/static_tables/co2_ch4_n2o_ef.csv")) %>% 
   select(eia_fuel_code, co2_ef, n2o_ef, ch4_ef)
 
 EIA_923_LFG <- eia_923$generation_and_fuel_combined %>% mutate(plant_id = as.numeric(plant_id)) %>%
@@ -626,14 +628,14 @@ plant_chp <- plant_chp %>%
 
 
 plant_chp <- plant_chp %>%
-  mutate(CHP_combust_heat_input = combust_heat_input_1/elec_allocation -  combust_heat_input,
-         CHP_combust_heat_input_oz =combust_heat_input_oz_1/elec_allocation  -  combust_heat_input_oz,
-         CHP_nox = nox_mass/elec_allocation -  nox_mass, 
-         CHP_nox_oz =nox_oz/elec_allocation -  nox_oz,
-         CHP_so2 = so2_mass/elec_allocation -  so2_mass,
-         CHP_co2 = co2_mass/elec_allocation -  co2_mass,
-         CHP_ch4 = ch4_mass/elec_allocation -  ch4_mass,
-         CHP_n2o = n2o_mass/elec_allocation -  n2o_mass) %>%
+  mutate(chp_combust_heat_input =  unadj_combust_heat_input -  combust_heat_input,
+         chp_combust_heat_input_oz =unadj_combust_heat_input_oz  -  combust_heat_input_oz,
+         chp_nox = nox_mass/elec_allocation -  nox_mass, 
+         chp_nox_oz =nox_oz/elec_allocation -  nox_oz,
+         chp_so2 = so2_mass/elec_allocation -  so2_mass,
+         chp_co2 = co2_mass/elec_allocation -  co2_mass,
+         chp_ch4 = ch4_mass/elec_allocation -  ch4_mass,
+         chp_n2o = n2o_mass/elec_allocation -  n2o_mass) %>%
   select(-combust_heat_input_1, - combust_heat_input_oz_1)
 
 
@@ -1106,3 +1108,6 @@ update_coal <- plant_file %>% filter(is.na(coal_flag) | coal_flag == 0) %>% sele
 plant_file  <- plant_file %>% mutate(coal_flag = ifelse(plant_id %in% update_coal$plant_id | coal_flag == 1, "Yes", "No" ))
 
 rm(update_coal)
+
+# Additional cleaning
+colnames(plant_file)
