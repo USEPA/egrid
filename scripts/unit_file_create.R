@@ -1008,7 +1008,7 @@ avg_sulfur_content_fuel <- # avg sulfur content grouped by fuel type
 
 estimated_so2_emissions_content <- 
   avg_sulfur_content %>%
-  left_join(all_units_2 %>% 
+  left_join(all_units_3 %>% 
               select(plant_id, unit_id, prime_mover, botfirty, primary_fuel_type), 
             by = c("plant_id",  "boiler_id" = "unit_id",  "fuel_type" = "primary_fuel_type")) %>% 
   left_join(schedule_8c_so2 %>% 
@@ -1248,20 +1248,23 @@ all_units_6 <-
 
 ## NOx Emissions Rate -----
 
-nox_rates_2 <- schedule_8c_nox %>%
+nox_rates_2 <- 
+  schedule_8c_nox %>%
   rename(unit_id = boiler_id) %>%
   group_by(unit_id, plant_id) %>%
   summarize(nox_rate = max(nox_emission_rate_entire_year_lbs_mmbtu),
             nox_oz_rate = max(nox_emission_rate_may_through_september_lbs_mmbtu)) 
 
-nox_rates_ann <- nox_rates_2 %>%
+nox_rates_ann <- 
+  nox_rates_2 %>%
   inner_join(all_units_6 %>%
                select(plant_id, unit_id, prime_mover, heat_input)) %>%
   mutate(nox_mass = (nox_rate*heat_input)/2000,
          nox_source = "Estimated based on unit-level NOx emission rates") %>%
   select(-c(nox_rate, nox_oz_rate))
 
-nox_rates_oz <- nox_rates_2 %>%
+nox_rates_oz <- 
+  nox_rates_2 %>%
   inner_join(all_units_6 %>%
                select(plant_id, unit_id, prime_mover, heat_input_oz)) %>%
   mutate(nox_oz_mass = (nox_oz_rate*heat_input_oz)/2000,
@@ -1280,7 +1283,8 @@ nox_emissions_rates <-
 ## NOx emissions - emissions factor -----
 
 ### creating NOx physical units table
-emission_factors_nox_pu <- emission_factors %>%
+emission_factors_nox_pu <- 
+  emission_factors %>%
   filter(nox_unit_flag == "PhysicalUnits") %>%
   select(!starts_with("so2") & -c(unit_flag)) %>%
   distinct()
@@ -1323,7 +1327,8 @@ nox_oz_emissions_factor <-
   mutate(nox_oz_source = "Estimated using emissions factor")
 
 ### estimating NOx annual emissions with heat input --------
-nox_emissions_heat_input <- nox_emissions_rates %>%
+nox_emissions_heat_input <- 
+  nox_emissions_rates %>%
   left_join(emission_factors_nox_pu %>%
               select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
@@ -1342,7 +1347,8 @@ nox_emissions_heat_input <- nox_emissions_rates %>%
   filter(nox_mass > 0)
 
 ### estimating NOx ozone emissions with heat input --------
-nox_oz_emissions_heat_input <- nox_emissions_rates %>%
+nox_oz_emissions_heat_input <- 
+  nox_emissions_rates %>%
   left_join(emission_factors_nox_pu %>%
               select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
@@ -1361,7 +1367,8 @@ nox_oz_emissions_heat_input <- nox_emissions_rates %>%
   filter(nox_oz_mass > 0)
 
 ### Updating units with estimating NOx --------
-all_units_nox_updates <- nox_emissions_rates %>%
+all_units_7 <- 
+  nox_emissions_rates %>%
   rows_patch(nox_emissions_factor,
              by = c("plant_id", "unit_id", "prime_mover"),
              unmatched = "ignore") %>%
@@ -1382,13 +1389,16 @@ all_units_nox_updates <- nox_emissions_rates %>%
 
 ## Fix Ozone Season ----------
 # IF NOx ozone emissions > annual NOx emissions, make the NOx ozone emissions equal the annual NOx emissions
-all_units_nox_ozone_update <- all_units_nox_updates %>%
+all_units_8 <- 
+  all_units_7 %>%
   mutate(nox_oz_mass = case_when(nox_oz_mass > nox_mass ~ nox_mass,
                                  TRUE ~ nox_oz_mass))
 
 ## Geothermal Emissions --------
-geo_emissions <- all_units_nox_ozone_update %>%
-  filter(primary_fuel_type == "GEO")
+geo_emissions <- 
+  all_units_8 %>%
+  filter(primary_fuel_type == "GEO") %>% 
+  left_join()
 
 
 # Final modifications -----  
@@ -1396,7 +1406,7 @@ geo_emissions <- all_units_nox_ozone_update %>%
 ## Clean up source flags --------
 
 clean_source_flags <- 
-  all_units_6 %>% 
+  all_units_8 %>% 
   mutate(nox_source = replace(nox_source, is.na(nox_mass), NA), # replacing NA emission masses with NA sources
          so2_source = replace(so2_source, is.na(so2_mass), NA), 
          co2_source = replace(co2_source, is.na(co2_mass), NA), 
@@ -1405,19 +1415,18 @@ clean_source_flags <-
 
 ## Change necessary plant names -------
 # Check for duplicates
-# TG: current duplicates at plant level have NA as names 
-# TG: I think this could be fixed earlier in the file by collecting plant_names in eia 860 data
 
 check_plant_names <- 
-  all_units_6 %>% select(plant_id, plant_name) %>% 
-  distinct(plant_id, plant_name) %>% 
-  group_by(plant_id) %>% 
-  filter(n()>1 & !is.na(plant_name))
+  all_units_8 %>% select(plant_id, plant_name) %>% 
+  group_by(plant_id, plant_name) %>% 
+  distinct() %>% 
+  #group_by(plant_id) %>% 
+  filter(n() > 1 & !is.na(plant_name))
   
 # update specified units
 
 update_eia_names <- 
-  all_units_6 %>% select(plant_id, plant_name) %>% 
+  all_units_8 %>% select(plant_id, plant_name) %>% 
   filter(plant_id %in% c("2847", "55248")) %>% 
   mutate(eia_plant_id = case_when(plant_id %in% c("2847", "55248") ~ "2847"), 
          eia_plant_name = case_when(plant_id %in% c("2847", "55248") ~ "Tait Electric Generating Station")) %>% 
@@ -1429,7 +1438,7 @@ update_eia_names <-
 # Update FC prime mover to null CO2 emissions 
 
 update_fc_data <- 
-  all_units_6 %>% select(plant_id, unit_id, prime_mover, co2_mass, co2_source) %>% 
+  all_units_8 %>% select(plant_id, unit_id, prime_mover, co2_mass, co2_source) %>% 
   filter((prime_mover == "FC") & ((!is.na(co2_mass)) | (!is.na(co2_source)))) %>%  # only update necessary rows 
   mutate(co2_mass = NA, 
          co2_source = NA, 
@@ -1448,7 +1457,7 @@ units_to_remove <-
 # Update prime mover for plant 7063 unit **1 from OT to CE 
 
 update_plant_mover <- 
-  all_units_6 %>% select(plant_id, unit_id, prime_mover) %>% 
+  all_units_8 %>% select(plant_id, unit_id, prime_mover) %>% 
   filter(plant_id == "7063" & unit_id == "**1") %>% 
   mutate(prime_mover = "CE")
 
@@ -1456,7 +1465,8 @@ update_plant_mover <-
 # Update operating status via EIA-923 schedule 8C, EIA-860 boiler info, EIA-860 combined
 # EIA-923 Schedule 8C has many duplicates, defaulting to "OP", then filling in with others if "OP" does not exist for unit
 
-schedule_8c_longer <- eia_923$air_emissions_control_info %>% 
+schedule_8c_longer <- 
+  eia_923$air_emissions_control_info %>% 
   pivot_longer(cols = contains("control"), 
                names_to = "unit_control", 
                values_to = "unit_id") %>% 
@@ -1488,7 +1498,7 @@ schedule_8c_re <-
 # update operating status 
 
 update_status <- 
-  all_units_6 %>% select(plant_id, unit_id, operating_status) %>% 
+  all_units_8 %>% select(plant_id, unit_id, operating_status) %>% 
   filter(is.na(operating_status)) %>%
   rows_patch(schedule_8c_op %>% select(plant_id, unit_id, operating_status), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
@@ -1525,8 +1535,8 @@ update_pr_camd_flag <- read_csv("data/static_tables/xwalk_pr_oris.csv") %>%
 
 # create CAMD flag 
 
-all_units_7 <- 
-  all_units_6 %>%  
+all_units_9 <- 
+  all_units_8 %>%  
   mutate(camd_flag = if_else(paste0(plant_id, unit_id) %in% camd_units, "Yes", "No")) %>% 
   rows_update(update_pr_camd_flag, by = c("plant_id", "unit_id"))
 
@@ -1544,15 +1554,15 @@ delete_retired_units <-
 # need to check this each year
 
 eia_units_to_delete <- 
-  all_units_7 %>% 
+  all_units_9 %>% 
   filter(plant_id == "2132" | plant_id == "7832") %>% 
   select(plant_id) %>% distinct()
 
 
 ## Implement changes in main unit file ------
 
-all_units_8 <- 
-  all_units_7 %>% # update to most recent unit file data frame
+all_units_10 <- 
+  all_units_9 %>% # update to most recent unit file data frame
   rows_delete(units_to_remove, 
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_delete(delete_retired_units, 
@@ -1614,7 +1624,7 @@ final_vars <-
     "UNTYRONL" = "year_online")
 
 units_formatted <-
-  all_units_8 %>%
+  all_units_10 %>%
   arrange(plant_state, plant_name) %>% 
   mutate(sequnt = row_number(), 
          year = params$eGRID_year) %>% 
