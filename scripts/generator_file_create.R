@@ -29,8 +29,8 @@ params$eGRID_year <- "2021"
 
 # Load in necessary 923 and 860 files ----------
 
-eia_923_files <- read_rds("data/clean_data/eia_923_clean.RDS") # read in all 923 files
-eia_860_files <- read_rds("data/clean_data/eia_860_clean.RDS") # read in all 860 files
+eia_923_files <- read_rds("data/clean_data/eia/eia_923_clean.RDS") # read in all 923 files
+eia_860_files <- read_rds("data/clean_data/eia/eia_860_clean.RDS") # read in all 860 files
 
 eia_923_gen <- eia_923_files$generator_data
 eia_923_gen_fuel <- eia_923_files$generation_and_fuel_combined
