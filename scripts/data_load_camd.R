@@ -1,4 +1,16 @@
-
+## -------------------------------
+##
+## Data load CAMD
+## 
+## Purpose: 
+## 
+## This file loads the CAMD data set from an API and aggregates hourly data to annual data
+## 
+## Authors:  
+##      Sean Bock, Abt Global
+##      Teagan Goforth, Abt Global, teagan.goforth@abtglobal.com
+##
+## -------------------------------
 
 library(httr)
 library(jsonlite)

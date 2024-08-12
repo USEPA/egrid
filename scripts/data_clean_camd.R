@@ -1,3 +1,17 @@
+## -------------------------------
+##
+## Data clean CAMD
+## 
+## Purpose: 
+## 
+## This file cleans CAMD datasets for the production of eGRID
+## 
+## Authors:  
+##      Sean Bock, Abt Global
+##      Teagan Goforth, Abt Global, teagan.goforth@abtglobal.com
+##
+## -------------------------------
+
 
 library(dplyr)
 library(readxl)

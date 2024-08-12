@@ -1,7 +1,19 @@
+## -------------------------------
+##
+## Data load EIA
+## 
+## Purpose: 
+## 
+## This file downloads the necessary data sets from the EIA website.  
+## 
+## Authors:  
+##      Sean Bock, Abt Global
+##      Teagan Goforth, Abt Global, teagan.goforth@abtglobal.com
+##
+## -------------------------------
 
 
-
-# Now iterating over each file, downloading, and unzipping
+# Iterating over each file, downloading, and unzipping
 
 invisible(purrr::map(c("860", "861", "923"), ~ download_eia_files(form = .x, year = params$eGRID_year)))
 

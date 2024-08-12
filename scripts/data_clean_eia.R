@@ -1,9 +1,21 @@
+## -------------------------------
+##
+## Data clean EIA
+## 
+## Purpose: 
+## 
+## This file cleans the EIA datasets for eGRID: EIA-860, EIA-861, and EIA-923 
+## 
+## Authors:  
+##      Sean Bock, Abt Global
+##      Teagan Goforth, Abt Global, teagan.goforth@abtglobal.com
+##
+## -------------------------------
+
 library(dplyr)
 library(readr)
 library(tidyr)
 library(purrr)
-
-
 
 
 # EIA-923 ------------
@@ -73,10 +85,17 @@ dfs_923 <- c(sched_2_3_4_5_m_12_dfs,
 
 ## Saving 923 Files --------
 
-write_rds(dfs_923, "data/clean_data/eia_923_clean.RDS")
+# create directory
+if(!dir.exists("data/clean_data/eia")){
+  dir.create("data/clean_data/eia")
+} else{
+  print("Folder data/clean_data/eia already exists.")
+}
+
+write_rds(dfs_923, "data/clean_data/eia/eia_923_clean.RDS")
 
 # printing confirmation message
-print(glue::glue("File eia_923_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_923), sep = ', ', last = ', and ')}, written to folder data/clean_data."))
+print(glue::glue("File eia_923_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_923), sep = ', ', last = ', and ')}, written to folder data/clean_data/eia."))
 
 
 # EIA-860 ----------------
@@ -293,10 +312,10 @@ dfs_860_final <-
 
 ## Saving 860 files ----------
 
-write_rds(dfs_860_final, "data/clean_data/eia_860_clean.RDS")
+write_rds(dfs_860_final, "data/clean_data/eia/eia_860_clean.RDS")
 
 # printing confirmation message
-print(glue::glue("File eia_860_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_860_final), sep = ', ', last = ', and ')}, written to folder data/clean_data."))
+print(glue::glue("File eia_860_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_860_final), sep = ', ', last = ', and ')}, written to folder data/clean_data/eia."))
 
 
 
@@ -365,7 +384,7 @@ dfs_861 <-
 
 ## Saving 861 Files -----------
 
-write_rds(dfs_861, "data/clean_data/eia_861_clean.RDS")
+write_rds(dfs_861, "data/clean_data/eia/eia_861_clean.RDS")
 
 # printing confirmation message
-print(glue::glue("File eia_861_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_861), sep = ', ', last = ', and ')}, written to folder data/clean_data."))
+print(glue::glue("File eia_861_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_861), sep = ', ', last = ', and ')}, written to folder data/clean_data/eia."))
