@@ -24,7 +24,20 @@ library(stringr)
 library(glue)
 library(readxl)
 
-# set directory for saving files 
+# create and set directory for saving files 
+
+if(dir.exists("data/outputs/qa")) {
+  print("Folder qa already exists.")
+}else{
+  dir.create("data/outputs/qa")
+}
+
+if(dir.exists("data/outputs/qa/generator_file_differences")) {
+  print("Folder generator_file_differences already exists.")
+}else{
+  dir.create("data/outputs/qa/generator_file_differences")
+}
+
 save_dir <- "data/outputs/qa/generator_file_differences/"
 
 # load R dataset
