@@ -102,7 +102,7 @@ eia_860_boiler_count <- # creating count of boilers for each generator
 
 # Determine generation ------------
 
-## Generation from 923 generator file ------
+## Generation from EIA-923 Generator file ------
 
 ozone_months_gen <- 
                 c("net_generation_may", # creating vector of ozone month generation columns for calculations
@@ -128,7 +128,7 @@ eia_gen_generation <-
 ### EIA-923 Generator file and distribute the generation with proportion
 
 # first calculate generation at plant/pm level for gen_fuel file 
-### Generation from 923 gen and fuel file at the plant/prime mover level ---------
+### Generation from EIA-923 Generation and Fuel file at the plant/prime mover level ---------
 
 ozone_months_gen_fuel <- 
   c("netgen_may",
@@ -183,7 +183,7 @@ eia_gen_genfuel_diff <-
          overwrite = if_else(perc_diff_generation_ann > 0.001, "overwrite", "EIA-923 Generator File"))
 
 
-## Where overwrite == overwrite, we distribute the the generation figures in the Gen and Fuel file and 
+## Where overwrite == overwrite, we distribute the the generation figures in the EIA-923 Gen and Fuel file and 
 ## create a DF of generators that have large differences between EIA-923 Generator file and EIA-923 Generation and Fuel file 
 ## and distribute the difference with EIA-923 Generation and Fuel File generation values.
 ## Note that generators incorrectly end up in overwrite if they share a plant prime mover id with another generator
