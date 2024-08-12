@@ -8,9 +8,9 @@
 ## This includes all operating generators for the specified eGRID data year
 ## 
 ## Authors:  
-##      Sean Bock
-##      Caroline Watson, caroline.watson@abtglobal.com
-##      Teagan Goforth, teagan.goforth@abtglobal.com
+##      Sean Bock, Abt Global
+##      Caroline Watson, Abt Global, caroline.watson@abtglobal.com
+##      Teagan Goforth, Abt Global, teagan.goforth@abtglobal.com
 ##
 ## -------------------------------
 
@@ -78,9 +78,21 @@ eia_923_gen_r <-
       plant_id == 54464 & generator_id == 5 ~ "0005",
       plant_id == 55596 & generator_id == 5 ~ "0005",
       plant_id == 664 & generator_id == "8.1999999999999993" ~ "8.2",
+      plant_id == 7512 & generator_id == 1 ~ "01", 
+      plant_id == 7512 & generator_id == 2 ~ "02", 
+      plant_id == 7512 & generator_id == 3 ~ "03", 
       TRUE ~ generator_id  # Default value if no condition matches
       ) 
     )
+
+eia_860_combined_r <- 
+  eia_860_combined %>% 
+  mutate(generator_id = case_when( # updating generator IDs for plant that gets combined under ORIS 3612
+    plant_id == 7512 & generator_id == 1 ~ "01", 
+    plant_id == 7512 & generator_id == 2 ~ "02", 
+    plant_id == 7512 & generator_id == 3 ~ "03", 
+    TRUE ~ generator_id  # Default value if no condition matches
+  ))
     
 eia_860_boiler_count <- # creating count of boilers for each generator
   eia_860_boiler %>% 
@@ -101,7 +113,7 @@ ozone_months_gen <-
 
 
 eia_gen_generation <-
-  eia_860_combined %>% 
+  eia_860_combined_r %>% 
   left_join(eia_923_gen_r %>% 
               select(plant_id, generator_id, starts_with("net")), # keeping only necessary columns
             by = c("plant_id", "generator_id")) %>% 
@@ -151,7 +163,7 @@ gen_distributed <-
   ungroup() %>% 
   mutate(generation_ann = generation_ann_diff * prop, # multiplying differences by proportion value
          generation_oz = generation_oz_diff * prop,
-         gen_data_source = "Distributed from 923 Generation and Fuel") %>% 
+         gen_data_source = "Distributed from EIA-923 Generation and Fuel") %>% 
   bind_rows(eia_gen_generation %>% filter(!is.na(gen_data_source))) # adding back 923 Generation source rows
 
 
@@ -189,7 +201,7 @@ key_columns <- # creating vector of column names that are essentials for modifie
 
 gen_overwrite <- 
   eia_gen_genfuel_diff %>% 
-  left_join(eia_860_combined %>% 
+  left_join(eia_860_combined_r %>% 
               select(plant_id, generator_id, prime_mover, nameplate_capacity)) %>%
   group_by(plant_id, prime_mover) %>% 
   mutate(tot_nameplate_cap = sum(nameplate_capacity),

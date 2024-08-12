@@ -61,7 +61,7 @@ generator_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "GEN21",
          "retirement_year_access" = "genyrret") %>% 
   mutate(plant_id = as.character(plant_id), 
          gen_data_source_access = if_else(gen_data_source_access == "Distributed from 923 Generation And Fuel", 
-                                          "Distributed from 923 Generation and Fuel", 
+                                          "Distributed from EIA-923 Generation and Fuel", 
                                           gen_data_source_access)) # updating capitalization difference in generation source
 
 # merge generator files from Access and R -------
