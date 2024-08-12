@@ -199,7 +199,7 @@ check_annual_generation_by_generator <-
          generation_ann_access = round(generation_ann_access, 0)) %>% 
   filter(!(generation_ann_r == generation_ann_access)) %>% 
   mutate(diff_ann = generation_ann_r - generation_ann_access) %>% 
-  filter(diff_ann > 1 | diff_ann < -1) %>% 
+  #filter(diff_ann > 1 | diff_ann < -1) %>% 
   select(plant_id, generator_id, generation_ann_r, generation_ann_access, diff_ann, 
          gen_data_source_r, gen_data_source_access)
 
