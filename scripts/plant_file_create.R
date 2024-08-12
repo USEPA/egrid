@@ -279,7 +279,7 @@ EIA_923_biomass <- eia_923$generation_and_fuel_combined %>% select(plant_id, tot
   group_by(plant_id) %>%
   summarise(co2_biomass = sum(co2_biomass, na.rm = TRUE),
             total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE)) %>%
-  mutate(biogas_adj_flag = 1)  # add a flag for this adjustment
+  mutate(biomass_adj_flag = 1)  # add a flag for this adjustment
 
 plant_file <- plant_file %>% left_join(EIA_923_biomass)  %>%
   mutate(co2_mass = unadj_co2_mass - co2_biomass)
@@ -330,7 +330,7 @@ plant_file <- plant_file %>% left_join(EIA_923_LFG) %>%
          hg_mass = unadj_hg_mass) %>% # no biomass variable for hg 
   mutate(nox_oz =  min(nox_oz,nox_mass),
          biomass_adj_flag = ifelse(biomass_adj_flag == 1 | biomass_adj_flag1 == 1, 1, 0)) %>%
-  select(-biomass_adj_flag)
+  select(-biomass_adj_flag1)
 
 rm(EIA_923_LFG, EFs)
 
@@ -350,8 +350,8 @@ rm(EIA_923_LFG, EFs)
 #  mutate(so2_mass = so2_ef * total_fuel_consumption_mmbtu)
 
 #plant_file <- plant_file %>% left_join(EIA_923_LFG_PM) %>%
- # mutate(biogas_adj_flag = ifelse(biogas_adj_flag==1 | biogas_adj_flag1==1,1,0)) %>% 
-  #select(-biogas_adj_flag1)
+ # mutate(biomass_adj_flag = ifelse(biomass_adj_flag==1 | biomass_adj_flag1==1,1,0)) %>% 
+  #select(-biomass_adj_flag1)
 
 ## This can't be run until we add code to create adjusted variables from the unadj_ columns
 
@@ -547,7 +547,7 @@ ann_gen_by_fuel <- ann_gen_by_fuel %>% mutate(plant_id = as.numeric(plant_id),
                perc_ann_gen_other = 100 * ann_gen_other / ann_gen,
                perc_ann_gen_non_renew = 100 * ann_gen_non_renew / ann_gen,
                perc_ann_gen_renew = 100 * ann_gen_renew / ann_gen,
-               perc_ann_gen_renew_non_hydro = 100 * ann_gen_renew_nonhydro / ann_gen,
+               perc_ann_gen_renew_nonhydro = 100 * ann_gen_renew_nonhydro / ann_gen,
                perc_ann_gen_combust = 100 * ann_gen_combust / ann_gen,
                perc_ann_gen_non_combust = 100 * ann_gen_combust / ann_gen,)
 
@@ -640,12 +640,12 @@ plant_chp <- plant_chp %>%
 
 
 plant_chp <- plant_chp %>% 
-  mutate(CHP_nox = ifelse(CHP_nox > unadj_nox_mass | CHP_nox < 0, unadj_nox_mass, CHP_nox),
-         CHP_nox_oz = ifelse(CHP_nox_oz > unadj_nox_oz | CHP_nox_oz < 0, unadj_nox_oz, CHP_nox_oz),
-         CHP_so2 = ifelse(CHP_so2 > unadj_so2_mass| CHP_so2 < 0, unadj_so2_mass, CHP_so2),
-         CHP_co2 = ifelse(CHP_co2 > unadj_co2_mass| CHP_co2 < 0, unadj_co2_mass, CHP_co2),
-         CHP_ch4 = ifelse(CHP_ch4 > unadj_ch4_mass| CHP_ch4 < 0, unadj_ch4_mass, CHP_ch4),
-         CHP_n2o = ifelse(CHP_n2o > unadj_n2o_mass| CHP_n2o < 0, unadj_n2o_mass, CHP_n2o)) %>%
+  mutate(chp_nox = ifelse(chp_nox > unadj_nox_mass | chp_nox < 0, unadj_nox_mass, chp_nox),
+         chp_nox_oz = ifelse(chp_nox_oz > unadj_nox_oz | chp_nox_oz < 0, unadj_nox_oz, chp_nox_oz),
+         chp_so2 = ifelse(chp_so2 > unadj_so2_mass| chp_so2 < 0, unadj_so2_mass, chp_so2),
+         chp_co2 = ifelse(chp_co2 > unadj_co2_mass| chp_co2 < 0, unadj_co2_mass, chp_co2),
+         chp_ch4 = ifelse(chp_ch4 > unadj_ch4_mass| chp_ch4 < 0, unadj_ch4_mass, chp_ch4),
+         chp_n2o = ifelse(chp_n2o > unadj_n2o_mass| chp_n2o < 0, unadj_n2o_mass, chp_n2o)) %>%
   mutate(nominal_heat_rate = combust_heat_input * 1000 / ann_gen_combust)
 
 plant_file <- plant_file %>% full_join(plant_chp) %>% 
@@ -823,7 +823,7 @@ plant_file = plant_file %>% mutate(nox_combust_out_emission_rate = ifelse(ann_ge
                                    co2_combust_out_emission_rate = ifelse(ann_gen_combust<0, 0,2000 * co2_mass / ann_gen_combust),
                                    ch4_combust_out_emission_rate = ifelse(ann_gen_combust<0, 0,2000 * ch4_mass / ann_gen_combust),
                                    n2o_combust_out_emission_rate = ifelse(ann_gen_combust<0, 0,2000 * n2o_mass / ann_gen_combust),
-                                   co2_combust_equiv_out_emission_rate = ifelse(ann_gen_combust<0, 0,2000 * co2_equivalent / ann_gen_combust),
+                                   co2_equiv_combust_out_emission_rate = ifelse(ann_gen_combust<0, 0,2000 * co2_equivalent / ann_gen_combust),
                                    hg_combust_out_emission_rate = ifelse(ann_gen_combust<0, 0,2000 * hg_mass / ann_gen_combust)  )
 
 
@@ -990,7 +990,7 @@ plant_file <- plant_file %>% mutate(capfac = round(capfac, 5), # a - capacity fa
                                     co2_combust_out_emission_rate = round(co2_combust_out_emission_rate, 3),
                                     ch4_combust_out_emission_rate = round(ch4_combust_out_emission_rate, 3),
                                     n2o_combust_out_emission_rate = round(n2o_combust_out_emission_rate, 3),
-                                    co2_combust_equiv_out_emission_rate = round(co2_combust_equiv_out_emission_rate, 3),
+                                    co2_equiv_combust_out_emission_rate = round(co2_equiv_combust_out_emission_rate, 3),
                                     hg_combust_out_emission_rate = round(hg_combust_out_emission_rate, 6),
                                     # g - undjusted mass
                                     unadj_nox_mass = round(unadj_nox_mass, 3), 
@@ -1036,12 +1036,12 @@ plant_file <- plant_file %>% mutate(capfac = round(capfac, 5), # a - capacity fa
                                     # no co2 equivalent biomass
                                     # no hg biomass
                                     # SQL - CHP mass
-                                    CHP_nox = round(nox_mass, 3), 
-                                    CHP_nox_oz = round(nox_oz, 3),
-                                    CHP_so2 = round(so2_mass, 3),
-                                    CHP_co2 = round(co2_mass, 3),
-                                    CHP_ch4 = round(ch4_mass, 3),
-                                    CHP_n2o = round(n2o_mass, 3),
+                                    chp_nox = round(chp_nox, 3), 
+                                    chp_nox_oz = round(chp_nox_oz, 3),
+                                    chp_so2 = round(chp_so2, 3),
+                                    chp_co2 = round(chp_co2, 3),
+                                    chp_ch4 = round(chp_ch4, 3),
+                                    chp_n2o = round(chp_n2o, 3),
                                     # no co2 equivalent CHP
                                     # no hg CHP
                                     ) 
@@ -1109,5 +1109,9 @@ plant_file  <- plant_file %>% mutate(coal_flag = ifelse(plant_id %in% update_coa
 
 rm(update_coal)
 
-# Additional cleaning
-colnames(plant_file)
+# Additional cleaning --------
+# Add sequence
+plant_file$seq <- 1:nrow(plant_file)
+
+# Save to outputs folder
+saveRDS(plant_file, file = here("data","outputs","plant_file.RDS"))
