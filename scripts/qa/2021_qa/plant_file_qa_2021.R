@@ -190,19 +190,21 @@ plant_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "PLNT21",
 ## 3. Compare Columns -------------------------
 r_cols <- lapply(colnames(plant_r), FUN=gsub, pattern="_r$", replacement="") %>% unlist()
 access_cols <- lapply(colnames(plant_access), FUN=gsub, pattern="_access$", replacement="") %>% unlist()
+other_cols <- c()
 
 access_cols[!access_cols %in% r_cols]
 # all access columns should appear in the r data
-# Difference Note - r does not have a sequence variable yet
+# Difference Note - r splits plant_name into 
+other_cols <- c(other_cols, plant_name_gen, plant_name_unit)
+
 r_cols[!r_cols %in% access_cols]
 # r can contain more columns
 # Difference Note - access does not create source columns that are unadj
 other_cols <- c(ch4_source, n2o_source, nox_source, nox_oz_source, co2_source, so2_source,
                 heat_input_source & heat_input_oz_source)
-# Difference Note - r splits plant_name into 
-other_cols <- c(other_cols, plant_name_gen, plant_name_unit)
+
 # Additional variables in R 
-other_cols <- c(other_cols, num_gen_op num_units_op) # Remove in plant_file_create
+other_cols <- c(other_cols, num_gen_op, num_units_op) # Remove in plant_file_create
 other_cols <- c(other_cols, ann_gen) # used as denominator of perc_ann_gen columns
 other_cols <- c(other_cols, ch4_ef, n2o_ef) # retains emissions factory - Remove in plant_file_create
 # - fuel code - ??
@@ -211,7 +213,7 @@ other_cols <- c(other_cols, ch4_ef, n2o_ef) # retains emissions factory - Remove
 # - co2_non_biomass - ??
 # - heat_input_oz_season - ??
 # - ann_gen_renew_nonhydro - ??
-# - nominal_heat_rate - ??          
+# - nominal_heat_rate - power_heat_ratio set to this when combust (flag) =1 or =0.5          
 # - co2_combust_equiv_out_emission_rate - ??
 
 
