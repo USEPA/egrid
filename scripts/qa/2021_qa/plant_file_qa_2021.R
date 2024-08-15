@@ -1,8 +1,6 @@
 ## -------------------------------
 ##
 ## Plant file QA 
-## 
-##  Q: Should the file folder/name be for 2021? since thats the data we are testing on?
 ##
 ## Purpose: 
 ## 
@@ -19,12 +17,15 @@
 ## 0. Setup -------------------------------
 # load libraries
 library(dplyr)
+library(here)
 library(readr)
 library(readxl)
 library(stringr)
 
 # set directory for saving files 
-save_dir <- "data/outputs/qa/plant_file_differences/"
+save_dir <- here("data/outputs/qa/plant_file_differences/")
+# create it if it doesn't already exist
+if(!dir.exists(save_dir)){ dir.create(save_dir,recursive = T)}
 
 ## 1. R Version --------------
 # load plant file R
@@ -184,387 +185,215 @@ plant_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "PLNT21",
          "perc_ann_gen_renew_access"="pltrpr",
          "perc_ann_gen_renew_nonhydro_access"="plthpr",
          "perc_ann_gen_combust_access"="plcypr",
-         "perc_ann_gen_non_combust_access"="plcnpr") %>% 
-  mutate(plant_id = as.character(plant_id))
+         "perc_ann_gen_non_combust_access"="plcnpr") 
 
 ## 3. Compare Columns -------------------------
+# remove suffix from column names
 r_cols <- lapply(colnames(plant_r), FUN=gsub, pattern="_r$", replacement="") %>% unlist()
 access_cols <- lapply(colnames(plant_access), FUN=gsub, pattern="_access$", replacement="") %>% unlist()
-other_cols <- c()
+# Check that all access columns appear in the r columns
+stopifnot(length(access_cols[!access_cols %in% r_cols])==0)
 
-access_cols[!access_cols %in% r_cols]
-# all access columns should appear in the r data
-# Difference Note - r splits plant_name into 
-other_cols <- c(other_cols, plant_name_gen, plant_name_unit)
-
-r_cols[!r_cols %in% access_cols]
-# r can contain more columns
+# r contains more columns
 # Difference Note - access does not create source columns that are unadj
-other_cols <- c(ch4_source, n2o_source, nox_source, nox_oz_source, co2_source, so2_source,
-                heat_input_source & heat_input_oz_source)
+other_cols <- c("ch4_source", "n2o_source", "nox_source", "nox_oz_source", "co2_source", "so2_source",
+                "heat_input_source" , "heat_input_oz_source")
 
 # Additional variables in R 
-other_cols <- c(other_cols, num_gen_op, num_units_op) # Remove in plant_file_create
-other_cols <- c(other_cols, ann_gen) # used as denominator of perc_ann_gen columns
-other_cols <- c(other_cols, ch4_ef, n2o_ef) # retains emissions factory - Remove in plant_file_create
-# - fuel code - ??
-# - combust_flag - ??
-# - total_fuel_consumption_mmbtu - ??
-# - co2_non_biomass - ??
-# - heat_input_oz_season - ??
-# - ann_gen_renew_nonhydro - ??
-# - nominal_heat_rate - power_heat_ratio set to this when combust (flag) =1 or =0.5          
-# - co2_combust_equiv_out_emission_rate - ??
+other_cols <- c(other_cols, "ann_gen") # used as denominator of perc_ann_gen columns
+other_cols <- c(other_cols, "ch4_ef", "n2o_ef") # retains emissions factor - Remove in plant_file_create
+other_cols <- c(other_cols, "fuel_code")  # fuel code - ??
+other_cols <- c(other_cols, "combust_flag") # combust_flag - ??
+other_cols <- c(other_cols, "total_fuel_consumption_mmbtu") # used to calculate uto  - Remove in plant_file_create
+other_cols <- c(other_cols, "co2_non_biomass") # co2_non_biomass - ??
+other_cols <- c(other_cols, "nominal_heat_rate") # set as power_heat_ratio when combust_flag =1 or =0.5 for CHP facilities        
 
+# check that all additional columns have been accounted for
+stopifnot(length(r_cols[!r_cols %in% access_cols & !r_cols %in% other_cols])==0)
 
-
-## 4. Combine & Compare Values ------------------------------
+## 4. Combine ------------------------------
 # combine the two datasets
 plant_comparison <- 
-  plant_r %>% 
-  full_join(plant_access, by = c("plant_id", 
-                                "plant_id")) 
-
-# Column by column checks -------------
-# identify if there are any plants in R that are NOT in Access dataset
-# anti_join() pulls out differences
+  plant_r %>%
+  full_join(plant_access, by = c("plant_id" = "plant_id")) 
+## 5. Compare Values ------------------
+# a1. plant_id in R that are NOT in Access dataset ---------
 check_diff_plant_r <- 
   plant_r %>% 
-  anti_join(plant_access, by = c("plant_id", "plant_id")) %>% 
-  filter(!is.na(plant_id))
+  filter(!is.na(plant_id)) %>%
+  anti_join(plant_access, by = c("plant_id" = "plant_id"))
+  
 
 if(nrow(check_diff_plant_r) > 0) {
   write_csv(check_diff_plant_r, paste0(save_dir, "check_diff_plant_r.csv")) }
 
-# check if there are any plants in Access that are NOT in R dataset
+# a2. plant_id in Access that are NOT in R dataset ---------
 check_diff_plant_access <- 
   plant_access %>% 
-  anti_join(plant_r, by = c("plant_id", "plant_id")) %>% 
+  anti_join(plant_r, by = c("plant_id" ="plant_id")) %>% 
   filter(!is.na(plant_id))
 
 if(nrow(check_diff_plant_access) > 0) {
   write_csv(check_diff_plant_access, paste0(save_dir, "check_diff_plant_access.csv")) }
 
-# check if plant names match 
-check_plant_names <- 
-  plant_comparison %>% 
-  filter(!(plant_name_r == plant_name_access)) %>% 
-  select(plant_id, plant_name_r, plant_name_access) %>% distinct()
 
-if(nrow(check_plant_names) > 0) {
-  write_csv(check_plant_names, paste0(save_dir, "check_plant_names.csv")) }
+# create function to make comparison ---------------
+plant_compare <- function(x, data = plant_comparison, outdir = save_dir){
+  r_name <- as.name(paste0(x,"_r"))
+  access_name <- as.name(paste0(x,"_access"))
+  comp <- data %>% 
+    filter(!(!!r_name == !!access_name)) %>% 
+    select(plant_id, !!r_name, !!access_name) %>% distinct()
+  if(nrow(comp) > 0) {
+    write_csv(comp, paste0(outdir, "check_", x, ".csv")) }
+  return(comp)
+}
 
-# check if plant states match 
-check_plant_state <- 
-  plant_comparison %>% 
-  filter(!(plant_state_r == plant_state_access)) %>% 
-  select(plant_id, plant_state_r, plant_state_access) %>% distinct()
+# b. Loop over list of columns ----------
+#  - exclude plant_id and other_cols by looking at access_cols
+cols <- access_cols[access_cols!="plant_id"]
 
-if(nrow(check_plant_state) > 0) {
-  write_csv(check_plant_state, paste0(save_dir, "check_plant_state.csv")) }
-
-# check if plant prime movers match
-check_prime_mover <- 
-  plant_comparison %>% 
-  filter(!(prime_mover_r == prime_mover_access)) %>% 
-  select(plant_id, plant_id, prime_mover_r, prime_mover_access)
-
-if(nrow(check_prime_mover) > 0) {
-  write_csv(check_prime_mover, paste0(save_dir, "check_prime_mover.csv")) }
-
-# check operating status
-check_operating_status <- 
-  plant_comparison %>% 
-  filter(!(operating_status_r == operating_status_access)) %>% 
-  select(plant_id, plant_id, operating_status_r, operating_status_access)
-
-if(nrow(check_operating_status) > 0) {
-  write_csv(check_operating_status, paste0(save_dir, "check_operating_status.csv")) }
-
-# check CAMD flag
-check_camd_flag <- 
-  plant_comparison %>% 
-  filter(!(camd_flag_r == camd_flag_access)) %>% 
-  select(plant_id, plant_id, camd_flag_r, camd_flag_access)
-
-if(nrow(check_camd_flag) > 0) {
-  write_csv(check_camd_flag, paste0(save_dir, "check_camd_flag.csv")) }
-
-# check program code
-check_program_code <- 
-  plant_comparison %>% 
-  separate_wider_delim(program_code_access, delim = ",", names = c("program_1_access", 
-                                                                   "program_2_access", 
-                                                                   "program_3_access", 
-                                                                   "program_4_access", 
-                                                                   "program_5_access", 
-                                                                   "program_6_access"), 
-                       too_few = "align_start", too_many = "error") %>% # fix delimiter to match R 
-  plante("program_code_access", c(program_1_access, program_2_access, program_3_access, 
-                                 program_4_access, program_5_access, program_6_access), 
-        sep = ",", na.rm = TRUE) %>% 
-  filter(!(program_code_r == program_code_access)) %>% 
-  select(plant_id, plant_id, program_code_r, program_code_access)
-
-if(nrow(check_program_code) > 0) {
-  write_csv(check_program_code, paste0(save_dir, "check_program_code.csv")) }
-
-# check boiler firing type
-check_botfirty <- 
-  plant_comparison %>% 
-  filter(!(botfirty_r == botfirty_access)) %>% 
-  select(plant_id, plant_id, botfirty_r, botfirty_access)
-
-if(nrow(check_botfirty) > 0) {
-  write_csv(check_botfirty, paste0(save_dir, "check_botfirty.csv")) }
-
-# check number of generators
-check_num_gens <- 
-  plant_comparison %>% 
-  filter(!(num_generators_r == num_generators_access)) %>% 
-  select(plant_id, plant_id, num_generators_r, num_generators_access)
-
-if(nrow(check_num_gens) > 0) {
-  write_csv(check_num_gens, paste0(save_dir, "check_num_gens.csv")) }
-
-# check primary fuel type
-check_fuel_type <- 
-  plant_comparison %>% 
-  filter(!(primary_fuel_type_r == primary_fuel_type_access)) %>% 
-  select(plant_id, plant_id, primary_fuel_type_r, primary_fuel_type_access)
-
-if(nrow(check_fuel_type) > 0) {
-  write_csv(check_fuel_type, paste0(save_dir, "check_fuel_type.csv")) }
-
-# check operating hours
-check_operating_hours <- 
-  plant_comparison %>% 
-  filter(!(operating_hours_r == operating_hours_access)) %>% 
-  select(plant_id, plant_id, operating_hours_r, operating_hours_access)
-
-if(nrow(check_operating_hours) > 0) {
-  write_csv(check_operating_hours, paste0(save_dir, "check_operating_hours.csv")) }
-
-# check SO2 controls
-check_so2_controls <- 
-  plant_comparison %>% 
-  filter(!(so2_controls_r == so2_controls_access)) %>% 
-  select(plant_id, plant_id, so2_controls_r, so2_controls_access)
+for(i in cols){
+  x <- plant_compare(i)
+  if(nrow(x)> 0){
+    assign(paste0("check_", i), x)
+    rm(x)
+  }else{
+    rm(x)
+  }
+}
 
 
-if(nrow(check_so2_controls) > 0) {
-  write_csv(check_so2_controls, paste0(save_dir, "check_so2_controls.csv")) }
 
-# check NOx controls
-check_nox_controls <- 
-  plant_comparison %>% 
-  filter(!(nox_controls_r == nox_controls_access)) %>% 
-  select(plant_id, plant_id, nox_controls_r, nox_controls_access)
+## 6. Explain Difference ----------
+# a. ann_gen by fuel type vars [16 vars]- differences explained by new raw EIA data?
+    # ann_gen_biomass (354), ann_gen_coal (302), ann_gen_combust (1243), 
+    # ann_gen_gas (1140), ann_gen_geothermal (13), ann_gen_hydro (308), 
+    # ann_gen_non_combust (587), ann_gen_non_renew (1311), ann_gen_nuclear (9),
+    # ann_gen_oil (999), ann_gen_other (187), ann_gen_other_ff (164), 
+    # ann_gen_renew (919) ann_gen_renew_nonhydro (618), ann_gen_solar (232), 
+    # ann_gen_wind
+# b. ba_id & ba_name [2 vars] - 30 differences, mostly missing in R
+    # investigate
+# c. biomass_adj_flag - updated plant_file_create to change 1 to "Yes"
+    # fixed?
+# d. capfac - 58 differences, very close so look at differences in nameplate_capacity?
+    # investigate
+# e. CH4 variables [4 vars]
+    # ch4_combust_out_emission_rate (44) - ?
+    # ch4_in_emission_rate (16) - ?
+    # ch4_mass (1) - plant_id 58186 - same as other mass variables?
+    # ch4_out_emission_rate (44) - same as with combustion
+# f. CHP variables [7 vars]- from different EIA data?
+    # chp_ch4 (1) - plant_id 58186 - same as with N2O
+    # chp_co2 (9)
+    # chp_combust_heat_input (747)
+    # chp_combust_heat_input_oz (721)
+    # chp_n20 (1) -  plant_id 58186 - same as with CH4
+    # chp_nox (14)
+    # chp_so2 (1) - plant_id 57557 - different plant
+# g. CO2 variables [4 vars]
+    # co2_combust_out_emission_rate (15)
+    # co2_in_emission_rate (11)
+    # co2_mass (9)
+    # co2_out_emission_rate (8)
+# h. CO2 Equivalent variables [4 vars]
+    # co2_equiv_combust_out_emission_rate (2932)
+    # co2_equiv_in_emission_rate (888)
+    # co2_equiv_out_emission_rate (2968)
+    # co2_equivalent (3037)
+# i. coal_flag - 4 differences No instead of Yes
+    # investigate
+# j. combust_heat_input (745) & combust_heat_input_oz (718) [2 vars]
+    # investigate
+# k. county - 22 differences seem to be the alaska renaming
+    # investigate the static table
+# l. elec_allocation - 60 differences
+    # investigate
+# m. generation_ann (299) & generation_oz (774) [2 vars]
+    # investigate
+# n. heat_input (135) & heat_input_oz (125) [2 vars]
+    # investigate
+# o. lat & lon [2 vars] - 10 differences - they start in the 2nd decimal place
+    # investigate
+# p. N2O variables [4 vars] - exact same counts as CH4
+    # n2o_combust_out_emission_rate (44)
+    # n2o_in_emission_rate (16)
+    # n2o_mass (1) - plant_id 58186
+    # n2o_out_emission_rate (44)
+# q. nameplate_capacity - 537 differences
+    # investigate
+# r. NERC variables [3 vars]
+    # nerc (11)
+    # nerc_subregion (3)
+    # nerc_subregion_name (3)
+# s. nonbaseload - 1425 differences
+    # investigate
+# t. NOX variables [4 vars] 
+    # nox_combust_out_emission_rate (308)
+    # nox_in_emission_rate (29)
+    # nox_mass (1425) - plant_id 58186
+    # nox_out_emission_rate (308)
+# u. num_gen & num_units [2 vars] - 1 difference in each, caused by different plants
+    # investigate
+# v. perc_ann_gen variables [16 vars] 
+    # perc_ann_gen_biomass (648), perc_ann_gen_coal (313), perc_ann_gen_combust (3586),
+    # perc_ann_gen_gas (2189), perc_ann_gen_geothermal (59), perc_ann_gen_hydro (1352),
+    # perc_ann_gen_non_combust (10512), perc_ann_gen_non_renew (3278), perc_ann_gen_nuclear (56),
+    # perc_ann_gen_oil (1429), perc_ann_gen_other (218), perc_ann_gen_other_ff (167),
+    # perc_ann_gen_renew (7735), perc_ann_gen_renew_nonhydro (6390), perc_ann_gen_solar (4443),
+    # perc_ann_gen_wind (1259)
+# w. power_heat_ratio - 906 differences
+    # investigate
+# x. power_to_heat - 751 differences
+    # investigate
+# y. primary_fuel_type (58) & primary_fuel_category (53) [2 vars]
+    # investigate
+# z. sector - plant_id 55481
+# aa. seq - produced based on sort order...
+# ab. SO2 variables [4 vars]
+    # so2_combust_out_emission_rate (9)
+    # so2_in_emission_rate (3)
+    # so2_mass (7) 
+    # so2_out_emission_rate (6)
+# ac. system_owner (1) & system_owner_id (12) - [2 vars]
+    # investigate
+# ad. unadjusted mass variables [3 vars]
+    # unadj_ch4_mass (30)
+    # unadj_n2o_mass (17)
+    # unadj_so2_mass  (47)
 
-if(nrow(check_nox_controls) > 0) {
-  write_csv(check_nox_controls, paste0(save_dir, "check_nox_controls.csv")) }
+mass_diff <- check_unadj_ch4_mass %>% full_join(check_unadj_n2o_mass)
+# all 17 n2o differences coincide with ch4 differences
+mass_diff <- mass_diff %>% full_join(check_unadj_so2_mass)
+# all 47 so2 diffrences DO NOT coincide with the n2o & ch4 differences
+x <- unit_file %>% filter(plant_id %in% check_unadj_so2_mass$plant_id) %>% 
+  select(plant_id, so2_mass) %>% group_by(plant_id) %>% summarise(so2 = sum(so2_mass, na.rm = T))
+y <- x %>% full_join(check_unadj_so2_mass)
+# all differences come from rounding.. r version is rounding 5 to the nearest even integer instead of up
+# fixed plant_file_create to use round_half_up from janitor package
 
-# check Hg controls flag
-check_hg_flag <- 
-  plant_comparison %>% 
-  filter(!(hg_controls_flag_r == hg_controls_flag_access)) %>% 
-  select(plant_id, plant_id, hg_controls_flag_r, hg_controls_flag_access)
+# ae. unadjusted source variables [7 vars]
+    # unadj_co2_source (2295)
+    # unadj_heat_input_source (9368)
+    # unadj_heat_input_oz_source (9404)
+    # unadj_hg_source (185)
+    # unadj_nox_oz_source (2189)
+    # unadj_nox_source (2189)
+    # unadj_so2_source (2149)
+# af. unadjusted heat input variables [2 vars]
+    # unadj_combust_heat_input (10)
+    # unadj_combust_heat_input_oz (9)
+chi <- check_unadj_combust_heat_input %>% full_join(check_unadj_combust_heat_input_oz)
+# same 10 plants
+# uses the same unit_file, so could be difference in list of combustion fuels?
+# that would make sense since there are no differences in total heat_input and heat_input_oz
 
-if(nrow(check_hg_flag) > 0) {
-  write_csv(check_hg_flag, paste0(save_dir, "check_hg_controls_flag.csv")) }
 
-# check year online
-check_year_online <- 
-  plant_comparison %>% 
-  filter(!(year_online_r == year_online_access)) %>% 
-  select(plant_id, plant_id, year_online_r, year_online_access)
+# ag. utility_id & utility_name [2 vars] - 6 differences - explained by coming from EIA-860
 
-if(nrow(check_year_online) > 0) {
-  write_csv(check_year_online, paste0(save_dir, "check_year_online.csv")) }
+# ah. uto - 292 differences
+    # investigate
 
-# Heat input checks ---------
-# compare sums of heat input annual and ozone season
-check_total_heat_input <- 
-  plant_comparison %>% 
-  summarize(sum_heat_input_r = sum(heat_input_r, na.rm = TRUE), 
-            sum_heat_input_access = sum(heat_input_access, na.rm = TRUE), 
-            sum_heat_input_oz_r = sum(heat_input_oz_r, na.rm = TRUE), 
-            sum_heat_input_oz_access = sum(heat_input_oz_access, na.rm = TRUE)) %>% 
-  select(contains("sum")) %>% 
-  mutate(diff_heat_input = sum_heat_input_r - sum_heat_input_access, 
-         diff_heat_input_oz = sum_heat_input_oz_r - sum_heat_input_oz_access)
-  
-if(!(check_total_heat_input$diff_heat_input == 0) | !(check_total_heat_input$diff_heat_input_oz == 0)) {
-  write_csv(check_total_heat_input %>% select(sum_heat_input_r, sum_heat_input_access, diff_heat_input, 
-                                        sum_heat_input_oz_r, sum_heat_input_oz_access, diff_heat_input_oz), 
-            paste0(save_dir, "check_total_heat_input.csv")) }
 
-# check heat input at plant level 
-# annual heat input check 
-check_heat_input_ann_plant <- 
-  plant_comparison %>% 
-  filter(!(heat_input_r == heat_input_access)) %>% 
-  mutate(diff_heat_input = heat_input_r - heat_input_access) %>% 
-  filter(diff_heat_input > 1 | diff_heat_input < -1) %>% 
-  select(plant_id, plant_id, heat_input_r, heat_input_access, diff_heat_input)
 
-if(nrow(check_heat_input_ann_plant) > 0) {
-  write_csv(check_heat_input_ann_plant, paste0(save_dir, "check_heat_input_ann_plant.csv")) }
-
-# ozone season heat input check 
-check_heat_input_oz_plant <- 
-  plant_comparison %>% 
-  filter(!(heat_input_oz_r == heat_input_oz_access)) %>% 
-  mutate(diff_heat_input_oz = heat_input_oz_r - heat_input_oz_access) %>% 
-  filter(diff_heat_input_oz > 1 | diff_heat_input_oz < -1) %>% 
-  select(plant_id, plant_id, heat_input_oz_r, heat_input_oz_access, diff_heat_input_oz)
-
-if(nrow(check_heat_input_oz_plant) > 0) {
-  write_csv(check_heat_input_oz_plant, paste0(save_dir, "check_heat_input_oz_plant.csv")) }
-
-# check heat input sources
-# annual heat input source
-check_heat_input_ann_source <- 
-  plant_comparison %>% 
-  filter(!(heat_input_source_r == heat_input_source_access)) %>% 
-  select(plant_id, plant_id, heat_input_r, heat_input_access, heat_input_source_r, heat_input_source_access)
-
-if(nrow(check_heat_input_ann_source) > 0) {
-  write_csv(check_heat_input_ann_source, paste0(save_dir, "check_heat_input_ann_source.csv")) }
-
-# ozone heat input source 
-check_heat_input_oz_source <- 
-  plant_comparison %>% 
-  filter(!(heat_input_oz_source_r == heat_input_oz_source_access)) %>% 
-  select(plant_id, plant_id, heat_input_oz_r, heat_input_oz_access, heat_input_oz_source_r, heat_input_oz_source_access)
-
-if(nrow(check_heat_input_oz_source) > 0) {
-  write_csv(check_heat_input_oz_source, paste0(save_dir, "check_heat_input_oz_source.csv")) }
-
-# Check emissions ------------
-## Check NOx emissions -------------
-check_total_nox_mass <- 
-  plant_comparison %>% 
-  summarize(sum_nox_mass_r = sum(nox_mass_r, na.rm = TRUE), 
-            sum_nox_mass_access = sum(nox_mass_access, na.rm = TRUE), 
-            sum_nox_oz_mass_r = sum(nox_oz_mass_r, na.rm = TRUE), 
-            sum_nox_oz_mass_access = sum(nox_oz_mass_access, na.rm = TRUE)) %>% 
-  select(contains("sum")) %>% 
-  mutate(diff_nox_ann = sum_nox_mass_r - sum_nox_mass_access,
-         diff_nox_oz = sum_nox_oz_mass_r - sum_nox_oz_mass_access)
-
-if(!(check_total_nox_mass$diff_nox_ann == 0) | !(check_total_nox_mass$diff_nox_oz == 0)) {
-  write_csv(check_total_nox_mass %>% select(sum_nox_mass_r, sum_nox_mass_access, diff_nox_ann, 
-                                        sum_nox_oz_mass_r, sum_nox_oz_mass_access, diff_nox_oz), 
-            paste0(save_dir, "check_total_nox_mass.csv")) }
-
-# plant level NOx emissions
-# annual NOx
-check_nox_ann_plant <- 
-  plant_comparison %>% 
-  filter(!(nox_mass_r == nox_mass_access)) %>% 
-  mutate(diff_nox_mass = nox_mass_r - nox_mass_access) %>% 
-  filter(diff_nox_mass > 1 | diff_nox_mass < -1) %>% 
-  select(plant_id, plant_id, nox_mass_r, nox_mass_access, nox_source_r, nox_source_access)
-
-if(nrow(check_nox_ann_plant) > 0) {
-  write_csv(check_nox_ann_plant, paste0(save_dir, "check_nox_ann_plant.csv")) }
-
-# ozone season NOx
-check_nox_oz_plant <- 
-  plant_comparison %>% 
-  filter(!(nox_oz_mass_r == nox_oz_mass_access)) %>% 
-  mutate(diff_nox_oz_mass = nox_oz_mass_r - nox_oz_mass_access) %>% 
-  filter(diff_nox_oz_mass > 1 | diff_nox_oz_mass < -1) %>% 
-  select(plant_id, plant_id, nox_oz_mass_r, nox_oz_mass_access, nox_oz_source_r, 
-         nox_oz_source_access)
-
-if(nrow(check_nox_oz_plant) > 0) {
-  write_csv(check_nox_oz_plant, paste0(save_dir, "check_nox_oz_plant.csv")) }
-
-# check NOx sources 
-# annual NOx source
-check_nox_ann_source <- 
-  plant_comparison %>% 
-  filter(!(nox_source_r == nox_source_access)) %>% 
-  select(plant_id, plant_id, nox_mass_r, nox_mass_access, nox_source_r, nox_source_access)
-
-if(nrow(check_nox_ann_source) > 0) {
-  write_csv(check_nox_ann_source, paste0(save_dir, "check_nox_ann_source.csv")) }
-
-# ozone NOx source 
-check_nox_oz_source <- 
-  plant_comparison %>% 
-  filter(!(nox_oz_source_r == nox_oz_source_access)) %>% 
-  select(plant_id, plant_id, nox_oz_mass_r, nox_oz_mass_access, nox_oz_source_r, nox_oz_source_access)
-
-if(nrow(check_nox_oz_source) > 0) {
-  write_csv(check_nox_oz_source, paste0(save_dir, "check_nox_oz_source.csv")) }
-
-## Check SO2 emissions -------------
-# SO2 emissions mass 
-check_total_so2_mass <- 
-  plant_comparison %>% 
-  summarize(sum_so2_mass_r = sum(so2_mass_r, na.rm = TRUE), 
-            sum_so2_mass_access = sum(so2_mass_access, na.rm = TRUE)) %>% 
-  select(contains("sum")) %>% 
-  mutate(diff_so2 = sum_so2_mass_r - sum_so2_mass_access)
-
-if(!(check_total_so2_mass$diff_so2 == 0) | !(check_total_so2_mass$diff_so2 == 0)) {
-  write_csv(check_total_so2_mass %>% select(sum_so2_mass_r, sum_so2_mass_access, diff_so2), 
-            paste0(save_dir, "check_total_so2_mass.csv")) }
-
-# plant level SO2 emissions
-check_so2_plant <- 
-  plant_comparison %>% 
-  filter(!(so2_mass_r == so2_mass_access)) %>% 
-  mutate(diff_so2_mass = so2_mass_r - so2_mass_access) %>% 
-  filter(diff_so2_mass > 1 | diff_so2_mass < -1) %>% 
-  select(plant_id, plant_id, so2_mass_r, so2_mass_access, diff_so2_mass, 
-         so2_source_r, so2_source_access)
-
-if(nrow(check_so2_plant) > 0) {
-  write_csv(check_so2_plant, paste0(save_dir, "check_so2_plant.csv")) }
-
-# check SO2 source
-check_so2_source <- 
-  plant_comparison %>% 
-  filter(!(so2_source_r == so2_source_access)) %>% 
-  select(plant_id, plant_id, so2_mass_r, so2_mass_access, so2_source_r, so2_source_access)
-
-if(nrow(check_so2_source) > 0) {
-  write_csv(check_so2_source, paste0(save_dir, "check_so2_source.csv")) }
-
-## Check CO2 emissions ----------
-# CO2 emissions mass 
-check_total_co2_mass <- 
-  plant_comparison %>% 
-  summarize(sum_co2_mass_r = sum(co2_mass_r, na.rm = TRUE), 
-            sum_co2_mass_access = sum(co2_mass_access, na.rm = TRUE)) %>% 
-  select(contains("sum")) %>% 
-  mutate(diff_co2 = sum_co2_mass_r - sum_co2_mass_access)
-
-if(!(check_total_co2_mass$diff_co2 == 0) | !(check_total_co2_mass$diff_co2 == 0)) {
-  write_csv(check_total_co2_mass %>% select(sum_co2_mass_r, sum_co2_mass_access, diff_co2), 
-            paste0(save_dir, "check_total_co2_mass.csv")) }
-
-# plant level CO2 emissions
-check_co2_plant <- 
-  plant_comparison %>% 
-  filter(!(co2_mass_r == co2_mass_access)) %>% 
-  mutate(diff_co2_mass = co2_mass_r - co2_mass_access) %>% 
-  filter(diff_co2_mass > 1 | diff_co2_mass < -1) %>% 
-  select(plant_id, plant_id, co2_mass_r, co2_mass_access, diff_co2_mass, 
-         co2_source_r, co2_source_access)
-
-if(nrow(check_co2_plant) > 0) {
-  write_csv(check_co2_plant, paste0(save_dir, "check_co2_plant.csv")) }
-
-# check CO2 source
-check_co2_source <- 
-  plant_comparison %>% 
-  filter(!(co2_source_r == co2_source_access)) %>% 
-  select(plant_id, plant_id, co2_mass_r, co2_mass_access, co2_source_r, co2_source_access)
-
-if(nrow(check_co2_source) > 0) {
-  write_csv(check_co2_source, paste0(save_dir, "check_co2_source.csv")) }
