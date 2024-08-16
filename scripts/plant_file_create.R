@@ -206,9 +206,6 @@ A6_fips <- read_excel(here("data", "static_tables", "Appendix 6 State and County
 A6_newnames <- read_excel(here("data", "static_tables", "FIPS Appendix 6 crosswalk - name updates.xlsx"))
 # this contains 3 counties with no EIA name. These do not appear in A6_fips
 
-#A6_alaska <- read_excel(here("data", "static_tables", "FIPS Alaska Crosswalk.xlsx"))
-# not necessary. A6_fips is already using these names
-
 A6_fips <- A6_fips %>% left_join(A6_newnames, by = c( "Postal State Code" = "State",
                                                        "County Name" = "Appendix 6 County Name")) %>%
   mutate("County Name" = ifelse(is.na(`EIA County Name`), `County Name`, `EIA County Name`)) %>%
@@ -216,10 +213,22 @@ A6_fips <- A6_fips %>% left_join(A6_newnames, by = c( "Postal State Code" = "Sta
   rename("State" ="Postal State Code", "County" = "County Name", 
          "FIPS_state" = "FIPS State Code", "FIPS_county" = "FIPS County Code")
 
+
 plant_file <- plant_file %>% left_join(A6_fips, by = c( "plant_state" = "State" ,
                                                         "county" = "County"))
 
-rm(A6_fips, A6_newnames)
+A6_alaska <- read_excel(here("data", "static_tables", "FIPS Alaska Crosswalk.xlsx")) %>%
+  select("State", "Plant Code", "County", "Appendix 6 County Name") %>% 
+  rename("plant_state" = "State",
+         "plant_id" = "Plant Code",
+         "county" = "County",
+         "new_county" = "Appendix 6 County Name")
+
+plant_file <- plant_file %>% left_join(A6_alaska) %>% 
+  mutate(county = ifelse(!is.na(new_county), new_county, county)) %>% select(-new_county)
+
+
+rm(A6_fips, A6_newnames, A6_alaska)
 
 
 # 9.	Coal flag -----------------
@@ -686,7 +695,8 @@ plant_file <- plant_file %>% filter(!is.na(plant_id)) %>%
 BAX <- read_xlsx(here("data", "static_tables", "BAsubregionCrosswalk.xlsx")) %>%
   rename(ba_id = "Balancing Authority Code",
          ba_name = "Balancing Authority Name",
-         nerc_subregion_new = "SUBRGN") %>% select(-Flag)
+         nerc_subregion_new = "SUBRGN") %>% select(-Flag) %>%
+  mutate(ba_name = str_trim(ba_name))
 
 plant_file <- plant_file %>% left_join(BAX) %>%
   mutate(nerc_subregion = ifelse(is.na(nerc_subregion), nerc_subregion_new, nerc_subregion)) %>% 
