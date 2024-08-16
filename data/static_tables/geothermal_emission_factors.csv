@@ -1,0 +1,4 @@
+﻿GeoTypeCode,GeoType Description,nox_ef_lb_mwh,so_ef_lb_mwh,co2_ef_lb_mwh,nox_ef_lb_mmbtu,so2_ef_lb_mmbtu,co2_ef_lb_mmbtu
+BT,Binary,0,0,0,0,0,0
+F,Flash,0,0.35,60,0,0.102579132,17.58499414
+ST,Steam,0.00104,0.000215,88.8,0.000304807,6.30E-05,26.02579132
