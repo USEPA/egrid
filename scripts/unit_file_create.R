@@ -244,7 +244,7 @@ camd_oz_reporters_dist <-
             by = c("plant_id", "prime_mover")) %>% 
   mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% # sum to plant/pm/ for distributional proportion 
   filter(!any(reporting_frequency == "Q")) %>% # Remove any plants with annual reporters
-  mutate(prop = heat_input_oz/sum_heat_input_oz) %>%  # determining distributional proportion
+  mutate(prop = heat_input_oz / sum_heat_input_oz) %>%  # determining distributional proportion
   ungroup() %>% 
   mutate(heat_input_nonoz = heat_input_nonoz_923 * prop, # distributing nonoz 
          heat_input = heat_input_oz + heat_input_nonoz, # annual heat input =   distributed non-oz heat + ozone heat
@@ -430,8 +430,8 @@ eia_boilers_to_add <-
   mutate(id = paste0(plant_id, "_", boiler_id)) %>%
   filter(!plant_id %in% camd_7$plant_id) %>%  # removing boilers that are in plants in CAMD
   filter(id %in% eia_860_boil_gen_ids | id %in% eia_860_combined_ids) %>%  # keeping only boilers that are in 860, under boiler or unit id
-  mutate(heat_input_source = "EIA Unit-Level Data",
-         heat_input_oz_source = "EIA Unit-Level Data",
+  mutate(heat_input_source = "EIA Unit-level Data",
+         heat_input_oz_source = "EIA Unit-level Data",
          co2_source = "Estimated using emissions factor") %>% 
   left_join(primary_fuel_types_923_boilers) # adding primary fuel type as determined by fuel type of max heat input of boiler 
 
@@ -489,7 +489,7 @@ gen_fuel_types_to_update <-
   group_by(plant_id) %>% 
   slice_max(n = 1, total_fuel_consumption_quantity) %>% # identifying primary fuel
   ungroup() %>%
-  filter(total_fuel_consumption_quantity !=0, # where max fuel isn't 0
+  filter(total_fuel_consumption_quantity != 0, # where max fuel isn't 0
          !is.na(total_fuel_consumption_quantity)) %>% 
   select(plant_id, total_fuel_consumption_quantity, fuel_type) %>% 
   inner_join(
@@ -571,7 +571,6 @@ print(glue::glue("{nrow(units_missing_heat)} units with missing heat inputs to u
 
 ## Update heat input with EIA prime-mover level data --------
 
-
 # We calculate a distributional proportion to distribute heat to generators based on nameplate capacity using 923 gen and fuel and generator file.
 
 # calculating ratio from generator file based on nameplate capacity to distribute heat
@@ -586,14 +585,14 @@ dist_props_923 <- # determining distributional proportions to distribute heat
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_namecap = sum(nameplate_capacity)) %>%
   ungroup() %>% 
-  mutate(proportion = nameplate_capacity / sum_namecap) %>% # ? There is an if_else statement here about missing nameplate capacity involing 860--notsure why that file is invovled
-  select(plant_id, prime_mover, generator_id, proportion)
+  mutate(prop = nameplate_capacity / sum_namecap) %>% # ? There is an if_else statement here about missing nameplate capacity involing 860--notsure why that file is invovled
+  select(plant_id, prime_mover, generator_id, prop)
 
 distributed_heat_input <- 
   dist_props_923 %>% 
   left_join(eia_fuel_consum_pm %>% select(plant_id, prime_mover, heat_input_ann_923, heat_input_oz_923)) %>% 
-  mutate(heat_input = proportion * heat_input_ann_923,
-         heat_input_oz = proportion * heat_input_oz_923) %>% 
+  mutate(heat_input = prop * heat_input_ann_923,
+         heat_input_oz = prop * heat_input_oz_923) %>% 
   select(plant_id, 
          prime_mover, 
          generator_id, 
@@ -610,7 +609,7 @@ units_heat_updated_pm_data <- # dataframe with units having heat input updated b
               unmatched = "ignore") %>% # ignore rows in distributed_heat_input that aren't in units_missing_heat
   filter(!is.na(heat_input)) %>% 
   mutate(heat_input_source = "EIA Prime Mover-level Data",
-         heat_input_oz_source = "EIA Prime Mover-level Data") # (SB: there might need to be a condition here)
+         heat_input_oz_source = "EIA Prime Mover-level Data") 
 
 print(glue::glue("{nrow(units_heat_updated_pm_data)} units updated with EIA Prime Mover-level Data. {nrow(units_missing_heat) - nrow(units_heat_updated_pm_data)} with missing heat input remain."))
 
@@ -670,7 +669,7 @@ boiler_dist_props <-  # determining distributional proportions for 923 boilers
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_totfuel = sum(total_fuel_consumption_quantity),
          proportion = total_fuel_consumption_quantity/sum_totfuel) %>% 
-  select(plant_id, prime_mover, boiler_id, proportion)
+  select(plant_id, prime_mover, boiler_id, prop)
 
 heat_differences <- # calculating prime mover-level heat differences between units included in unit file and 923 gen&fuel file
   all_units %>% 
@@ -690,11 +689,11 @@ units_heat_updated_boiler_distributed <-
   select(plant_id, unit_id) %>%
   inner_join(boiler_dist_props, # now joining missing heat units with boiler dist group to keep boilers where we have a distributional proportion
             by = c("plant_id", "unit_id" = "boiler_id")) %>% 
-  filter(!is.na(proportion)) %>%
+  filter(!is.na(prop)) %>%
   left_join(heat_differences) %>%
   filter(!is.na(heat_diff)) %>% 
-  mutate(heat_input = heat_diff * proportion,
-         heat_input_oz = heat_oz_diff * proportion,
+  mutate(heat_input = heat_diff * prop,
+         heat_input_oz = heat_oz_diff * prop,
          heat_input_source = "EIA Prime Mover-level data",
          heat_input_oz_source = "EIA Prime Mover-level data") %>%
   select(plant_id, 
@@ -726,7 +725,7 @@ camd_missing_props <-
   mutate(sum_nameplate = sum(nameplate_capacity)) %>%
   ungroup() %>%
   select(plant_id, unit_id, primary_fuel_type, nameplate_capacity, sum_nameplate) %>%
-  mutate(prop = nameplate_capacity/sum_nameplate) %>% 
+  mutate(prop = nameplate_capacity / sum_nameplate) %>% 
   filter(!is.na(prop))
 
   
@@ -1414,8 +1413,13 @@ geo_emissions <-
   mutate(nox_mass = (heat_input * nox_ef_lb_mmbtu) / 2000, 
          nox_oz_mass = (heat_input_oz * nox_ef_lb_mmbtu) / 2000, 
          so2_mass = (heat_input * so2_ef_lb_mmbtu) / 2000, 
-         co2_mass = (heat_input * co2_ef_lb_mmbtu) / 2000) %>% 
-  select(plant_id, unit_id, nox_mass, nox_oz_mass, so2_mass, co2_mass)
+         co2_mass = (heat_input * co2_ef_lb_mmbtu) / 2000, 
+         nox_source = "Estimated using emissions factor", 
+         nox_oz_source = "Estimated using emissions factor", 
+         so2_source = "Estimated using emissions factor", 
+         co2_source = "Estimated using emissions factor") %>% 
+  select(plant_id, unit_id, nox_mass, nox_oz_mass, so2_mass, co2_mass, 
+         nox_source, nox_oz_source, so2_source, co2_source)
 
 
 # update all_units with geothermal emissions 
@@ -1592,7 +1596,7 @@ all_units_11 <-
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_update(update_plant_mover, 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  rows_patch(check_plant_names, 
+  rows_patch(check_plant_names, # all plant name duplicates are NA characters, so replacing with plant name
              by = c("plant_id"), unmatched = "ignore") %>% 
   rows_update(update_status, 
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
