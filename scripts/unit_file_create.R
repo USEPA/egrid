@@ -106,6 +106,7 @@ camd_2 <-
   )
 
 
+
 ### Updating fuel types ---------
 
 # Updating fuel types to EIA codes for oil, other solid fuel, and coal 
@@ -205,14 +206,12 @@ camd_6 <- # updating units where available
 
 camd_plants_to_delete <- 
   read_csv("data/static_tables/camd_plants_to_delete.csv") %>% 
-  select("plant_id" = "ORIS Code", 
-         "plant_name" = "Facility Name") %>% 
-  mutate(plant_id = as.character(plant_id)) %>% 
-  pull(plant_id)
+  select("plant_id" = "ORIS Code") %>% 
+  mutate(plant_id = as.character(plant_id)) 
 
 camd_7 <- 
   camd_6 %>% 
-  filter(!plant_id %in% camd_plants_to_delete)
+  rows_delete(camd_plants_to_delete, by = c("plant_id"), unmatched = "ignore") # delete specified plants from CAMD dataframe
 
 
 ## Gap fill CAMD ozone season reporters with EIA data ----------
@@ -569,8 +568,7 @@ biomass_units <-
   read_csv("data/static_tables/biomass_units_to_add_to_unit_file.csv") %>%
   rename("primary_fuel_type" = fuel_type, 
          "plant_id" = plant_code) %>% 
-  mutate(plant_id = as.character(plant_id), 
-         year = "2021")
+  mutate(plant_id = as.character(plant_id))
 
 
 # Fill missing heat inputs for all units --------
@@ -1482,17 +1480,7 @@ check_plant_names <-
   group_by(plant_id) %>% 
   filter(n() > 1 & !is.na(plant_name), 
          source == "CAMD") # default to CAMD names
-  
 
-# update specified units
-
-update_eia_names <- 
-  all_units_10 %>% select(plant_id, plant_name) %>% 
-  filter(plant_id %in% c("2847", "55248")) %>% 
-  mutate(eia_plant_id = case_when(plant_id %in% c("2847", "55248") ~ "2847"), 
-         eia_plant_name = case_when(plant_id %in% c("2847", "55248") ~ "Tait Electric Generating Station")) %>% 
-  distinct()
-   
   
 ## Update FC prime mover CO2 emissions data ------
 # Update FC prime mover to null CO2 emissions 
