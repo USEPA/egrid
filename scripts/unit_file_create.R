@@ -96,7 +96,13 @@ camd_2 <-
     unit_type %in% pm_ct ~ "CT",
     unit_type %in% pm_ot ~ "OT",
     TRUE ~ "EIA PM"),
-    operating_status = if_else(operating_status == "Operating", "OP", NA_character_) # Abbreviating operating status
+    operating_status = if_else(operating_status == "Operating", "OP", operating_status), # Abbreviating operating status
+    unit_id = case_when( # modifying unit IDs to match 860 files
+      plant_id == 2707 & unit_id == 1 ~ "GT1",
+      plant_id == 2707 & unit_id == 2 ~ "GT2",
+      plant_id == 2707 & unit_id == 3 ~ "GT3",
+      plant_id == 2707 & unit_id == 4 ~ "GT4",
+      TRUE ~ unit_id) 
   )
 
 
@@ -139,13 +145,13 @@ camd_3 <-
 camd_4 <- # These units require manual updates (Note: Need to check to see if this is required each year)
   camd_3 %>% 
   mutate(primary_fuel_type = case_when(
-    plant_id == 10075 & unit_id == "1" ~ "SUB" ,
-    plant_id == 10075 & unit_id == "2" ~ "SUB",
-    plant_id == 10849 & unit_id == "PB1" ~ "SUB" ,
-    plant_id == 10849 & unit_id == "PB2" ~ "SUB",
-    plant_id == 54748 & unit_id == "GT1" ~ "NG",
-    TRUE ~ primary_fuel_type
-  ))
+            plant_id == 10075 & unit_id == "1" ~ "SUB" ,
+            plant_id == 10075 & unit_id == "2" ~ "SUB",
+            plant_id == 10849 & unit_id == "PB1" ~ "SUB" ,
+            plant_id == 10849 & unit_id == "PB2" ~ "SUB",
+            plant_id == 54748 & unit_id == "GT1" ~ "NG",
+            TRUE ~ primary_fuel_type)
+         )
 
 ## identify units remaining with missing primary_fuel_types
 missing_fuel_types <- 
@@ -194,6 +200,22 @@ camd_6 <- # updating units where available
   select(-eGRID) 
 
 
+### Delete specified plants -----------
+# Some plants in CAMD are not connected to the grid or are retired, so they are excluded from eGRID
+# Note: this table will need to be checked and updated  each year 
+
+camd_plants_to_delete <- 
+  read_csv("data/static_tables/camd_plants_to_delete.csv") %>% 
+  select("plant_id" = "ORIS Code", 
+         "plant_name" = "Facility Name") %>% 
+  mutate(plant_id = as.character(plant_id)) %>% 
+  pull(plant_id)
+
+camd_7 <- 
+  camd_6 %>% 
+  filter(!plant_id %in% camd_plants_to_delete)
+
+
 ## Gap fill CAMD ozone season reporters with EIA data ----------
 
 # a.	Some CAMD plants are “ozone season reporters” – which means that they only report data during the ozone season, which is May to September each year. 
@@ -203,12 +225,12 @@ camd_6 <- # updating units where available
 ### Gap fill heat input for OS reporters --------------
 
 camd_oz_reporter_plants <- # getting list of plant ids that include ozone season reporters. Note that some plants include both OS only and OS and Annual reporters.
-  camd_6 %>% 
+  camd_7 %>% 
   filter(reporting_frequency == "OS") %>% 
   pull(plant_id)
 
 camd_oz_reporters <- # creating dataframe with all plants and associated units that include "OS" reporters.
-  camd_6 %>%
+  camd_7 %>%
   filter(plant_id %in% camd_oz_reporter_plants)
 
 
@@ -354,8 +376,8 @@ if(nrow(camd_oz_reporters_dist) < nrow(camd_oz_reporters_dist_final)) { # check 
 
 # Updating heat input and emissions for OS reporters in full CAMD dataframe
 
-camd_7 <- # Updated with gap-filled OS reporters
-  camd_6 %>% 
+camd_8 <- # Updated with gap-filled OS reporters
+  camd_7 %>% 
   rows_update(camd_oz_reporters_dist_final, # Updating OS reporters with new distributed heat inputs, nox_mass, and the source variables for both
               by = c("plant_id","unit_id"))
 
@@ -471,7 +493,7 @@ renewable_ids <-
 eia_860_generators_to_add <- 
   eia_860$combined %>% 
   mutate(id = paste0(plant_id, "_", generator_id)) %>% 
-  filter(!plant_id %in% camd_7$plant_id & !id %in% renewable_ids, # removing generators from plants in CAMD, unless it is a renewable generator
+  filter(!(plant_id %in% camd_7$plant_id & !id %in% renewable_ids), # removing generators from plants in CAMD, unless it is a renewable generator
          !id %in% eia_860_gens_to_remove)  %>%
   select(plant_id, 
          plant_name,
@@ -544,11 +566,13 @@ eia_860_generators_to_add_3 <-
 # Include additional biomass units ------
 
 # We include additional biomass units. This is a static table that is created each year after the plant file.
-# (SB: not sure if these should be added to EIA generators/boilers, or what)
 
 biomass_units <- 
   read_csv("data/static_tables/biomass_units_to_add_to_unit_file.csv") %>%
-  rename("primary_fuel_type" = fuel_type)
+  rename("primary_fuel_type" = fuel_type, 
+         "plant_id" = plant_code) %>% 
+  mutate(plant_id = as.character(plant_id), 
+         year = "2021")
 
 
 # Fill missing heat inputs for all units --------
@@ -558,9 +582,10 @@ biomass_units <-
 ## Combine all units ------
 
 all_units <- # binding all units together, and adding a source column to track row origins
-  bind_rows((camd_7 %>% mutate(source = "CAMD")),
+  bind_rows((camd_8 %>% mutate(source = "CAMD")),
             (eia_boilers_to_add %>% mutate(source = "923 boilers") %>% rename("unit_id" = boiler_id)),
-            (eia_860_generators_to_add_3 %>% mutate(source = "860 generators") %>% rename("unit_id" = generator_id)))
+            (eia_860_generators_to_add_3 %>% mutate(source = "860 generators") %>% rename("unit_id" = generator_id)), 
+            (biomass_units %>% mutate(source = "plant file")))
 
 units_missing_heat <- # creating separate dataframe of units with missing heat input to update
   all_units %>% 
@@ -668,7 +693,7 @@ boiler_dist_props <-  # determining distributional proportions for 923 boilers
   ungroup() %>%
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_totfuel = sum(total_fuel_consumption_quantity),
-         proportion = total_fuel_consumption_quantity/sum_totfuel) %>% 
+         prop = total_fuel_consumption_quantity / sum_totfuel) %>% 
   select(plant_id, prime_mover, boiler_id, prop)
 
 heat_differences <- # calculating prime mover-level heat differences between units included in unit file and 923 gen&fuel file
@@ -710,8 +735,6 @@ print(glue::glue("{nrow(units_heat_updated_boiler_distributed)} units updated wi
 
 
 ## Update heat input for null CAMD plants ----------
-
-# SB 6/10/24: skipping step here to fill in missing fuel types. Need to address at some point.
 
 camd_missing_props <-   
   units_missing_heat_4 %>% 
@@ -1444,12 +1467,14 @@ clean_source_flags <-
 # Check for duplicates
 
 check_plant_names <- 
-  all_units_9 %>% select(plant_id, plant_name) %>% 
+  all_units_9 %>% select(plant_id, plant_name, source) %>% 
   group_by(plant_id, plant_name) %>% 
   distinct() %>% 
   group_by(plant_id) %>% 
-  filter(n() > 1 & !is.na(plant_name))
+  filter(n() > 1 & !is.na(plant_name), 
+         source == "CAMD") # default to CAMD names
   
+
 # update specified units
 
 update_eia_names <- 
@@ -1596,7 +1621,7 @@ all_units_11 <-
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_update(update_plant_mover, 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  rows_patch(check_plant_names, # all plant name duplicates are NA characters, so replacing with plant name
+  rows_update(check_plant_names, 
              by = c("plant_id"), unmatched = "ignore") %>% 
   rows_update(update_status, 
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
