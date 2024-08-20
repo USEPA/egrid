@@ -257,7 +257,7 @@ puerto_rico_dfs <-
 
 puerto_rico_dfs_mod <- 
   puerto_rico_dfs %>%
-  purrr::map_at("operating_pr", # modifying optaring pr df
+  purrr::map_at("operating_pr", # modifying operating pr df
                 ~ .x %>% 
                   mutate(Status = str_extract(Status, "(?<=\\().*?(?=\\))")) %>% # updating status variable to match other files (extracting abb. inside of parantheses).
                   rename(any_of(names_860_PR_op))) %>% # renaming columns to match other forms based on lookup table
