@@ -23,6 +23,21 @@ library(readr)
 library(readxl)
 library(stringr)
 
+
+# create save directory 
+
+if(dir.exists("data/outputs/qa")) {
+  print("Folder qa already exists.")
+}else{
+  dir.create("data/outputs/qa")
+}
+
+if(dir.exists("data/outputs/qa/unit_file_differences")) {
+  print("Folder unit_file_differences already exists.")
+}else{
+  dir.create("data/outputs/qa/unit_file_differences")
+}
+
 # set directory for saving files 
 save_dir <- "data/outputs/qa/unit_file_differences/"
 
