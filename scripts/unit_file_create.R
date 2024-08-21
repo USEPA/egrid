@@ -536,8 +536,8 @@ eia_860_generators_to_add_2 <-
 
 
 ### Add NUC and GEO generators -------
-# some generators that are type "NUC" and "GEO" are in 860 but not included in CAMD. These don't get added above because their associated plant_ids are in CAMD. 
-# We add these and distribute heat from 923 file 
+# some generators that are type "NUC" and "GEO" are in EIA-860 but not included in CAMD. These don't get added above because their associated plant_ids are in CAMD. 
+# We add these and distribute heat from EIA-923 file 
 
 nuc_geo_gens_to_add <- 
   eia_860$combined %>% 
@@ -901,11 +901,11 @@ schedule_8c_nox <-
   filter(!is.na(nox_emission_rate_entire_year_lbs_mmbtu)) %>% 
   left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, boiler_id) %>% filter(!is.na(boiler_id)) %>% distinct(), ## SB: causes m:m join
             by = c("plant_id","nox_control_id")) %>% 
-  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id,"nox_control_id" =  `860_nox_control_id`) %>% drop_na(),
+  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id, "nox_control_id" = `860_nox_control_id`) %>% drop_na(),
              by = c("plant_id", "nox_control_id"),
-             unmatched = "ignore")
-  
-schedule_8c_so2  <-
+             unmatched = "ignore") 
+
+schedule_8c_so2 <-
   eia_923$air_emissions_control_info %>% 
   distinct(plant_id, so2_control_id, so2_removal_efficiency_rate_at_annual_operating_factor) %>% 
   filter(!is.na(so2_removal_efficiency_rate_at_annual_operating_factor),
@@ -931,7 +931,6 @@ schedule_8c_pm <-
              by = c("plant_id", "pm_control_id"),
              unmatched = "ignore")
   
-
 schedule_8c_hg <- 
   eia_923$air_emissions_control_info %>% 
   distinct(plant_id, mercury_control, mercury_emission_rate) %>% 
@@ -948,14 +947,14 @@ schedule_8c_hg <-
 
 all_units_4 <-  
   all_units_3 %>% 
-  rows_patch(so2_controls_860 %>% # updating with available 860 SO2 controls
-               rename("unit_id" = "boiler_id"),
-            by = c("plant_id","unit_id"),
-            unmatched = "ignore") %>%
   rows_patch(nox_controls_860 %>%  # updating with available 860 NOx controls
                rename("unit_id" = "boiler_id"),
              by = c("plant_id", "unit_id"),
              unmatched = "ignore") %>%
+  rows_patch(so2_controls_860 %>% # updating with available 860 SO2 controls
+               rename("unit_id" = "boiler_id"),
+            by = c("plant_id","unit_id"),
+            unmatched = "ignore") %>%
   mutate(primary_fuel_type = if_else(primary_fuel_type == "MSB", "MSW", primary_fuel_type)) %>% # Changing "MSB" fuel codes to "MSW"
   rows_patch(botfirty_eia %>% 
                rename("unit_id" = "boiler_id", 
@@ -1502,12 +1501,18 @@ units_to_remove <-
   mutate(plant_id = as.character(plant_id))
 
 ## Update prime mover -------
-# Update prime mover for plant 7063 unit **1 from OT to CE 
+# Manual updates to prime mover for specific plants 
+# (Note: check these in future data years)
 
-update_plant_mover <- 
+update_prime_mover <- 
   all_units_10 %>% select(plant_id, unit_id, prime_mover) %>% 
-  filter(plant_id == "7063" & unit_id == "**1") %>% 
-  mutate(prime_mover = "CE")
+  filter(plant_id == "7063" & unit_id == "**1" | 
+           plant_id == "50973" & prime_mover == "CT") %>% 
+  mutate(prime_mover = case_when ( 
+            plant_id == "7063" & unit_id == "**1" ~ "CE", # Update prime mover for plant 7063 unit **1 from OT to CE 
+            plant_id == "50973" ~ "CA", # Update PM for plant 50973 since boilers have multiple PMs
+            TRUE ~ prime_mover)) 
+  
 
 ## Update status ------
 # Update operating status via EIA-923 schedule 8C, EIA-860 boiler info, EIA-860 combined
@@ -1590,12 +1595,15 @@ all_units_11 <-
 # delete plants based on operating status from EIA-860 Boiler Info & Design Parameters
 
 delete_retired_units <- 
-  update_status %>% 
-  filter(operating_status == "RE")
+  eia_860$boiler_info_design_parameters %>% 
+  filter(boiler_status == "RE" & as.numeric(retirement_year) < params$eGRID_year) %>% 
+  select(plant_id, 
+         unit_id = "boiler_id", 
+         boiler_status, retirement_year)
 
 
 ## EIA units to delete ------ 
-# need to check this each year
+# (Note: need to check this each data year)
 
 eia_units_to_delete <- 
   all_units_11 %>% 
@@ -1608,19 +1616,19 @@ eia_units_to_delete <-
 all_units_12 <- 
   all_units_11 %>% # update to most recent unit file data frame
   rows_delete(units_to_remove, 
-              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+                by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_delete(delete_retired_units, 
-              by= c("plant_id", "unit_id"), unmatched = "ignore") %>%
+                by= c("plant_id", "unit_id"), unmatched = "ignore") %>%
   rows_delete(eia_units_to_delete, 
-              by = c("plant_id"), unmatched = "ignore") %>% 
+                by = c("plant_id"), unmatched = "ignore") %>% 
   rows_update(update_fc_data, 
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  rows_update(update_plant_mover, 
-             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_update(update_prime_mover, 
+                by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_update(check_plant_names, 
-             by = c("plant_id"), unmatched = "ignore") %>% 
+                by = c("plant_id"), unmatched = "ignore") %>% 
   rows_update(update_status, 
-              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+                by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   mutate(heat_input = round(heat_input, 3), 
          heat_input_oz = round(heat_input_oz, 3), 
          nox_mass = round(nox_mass, 3), 
