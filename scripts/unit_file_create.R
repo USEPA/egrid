@@ -91,13 +91,16 @@ pm_ot <- c("OT")
 camd_2 <- 
   camd %>% 
   mutate(
-    prime_mover = case_when( # creating prime_mover based on mapping above
+    # creating prime_mover based on mapping above
+    prime_mover = case_when( 
       unit_type %in% pm_st ~ "ST",
       unit_type %in% pm_gt ~ "GT",
       unit_type %in% pm_ct ~ "CT",
       unit_type %in% pm_ot ~ "OT",
       TRUE ~ "EIA PM"),
-    unit_id = case_when( # modifying unit IDs to match 860 files
+    # modifying unit IDs to match 860 files
+    ### Note: check for updates or changes each data year ###
+    unit_id = case_when( 
       plant_id == 2707 & unit_id == 1 ~ "GT1",
       plant_id == 2707 & unit_id == 2 ~ "GT2",
       plant_id == 2707 & unit_id == 3 ~ "GT3",
@@ -142,7 +145,9 @@ camd_3 <-
   mutate(primary_fuel_type = if_else(is.na(primary_fuel_type), fuel_type, primary_fuel_type)) %>% # filling missing primary_fuel_types with 923 value
   select(-fuel_type)
 
-camd_4 <- # These units require manual updates (Note: Need to check to see if this is required each year)
+# These units require manual updates 
+### Note: check for updates or changes each data year ###
+camd_4 <- 
   camd_3 %>% 
   mutate(primary_fuel_type = case_when(
             plant_id == 10075 & unit_id == "1" ~ "SUB" ,
@@ -161,16 +166,13 @@ missing_fuel_types <-
 print(glue::glue("{nrow(missing_fuel_types)} units having missing primary fuel types."))
 
 
-# Checking for missing after update
-# Each of these that are still missing were not included in unit file, so will get removed at some point, apparently (SB 7/3/2023)
-
-
 ### Add boiler firing type ------------
 # A crosswalk is used to create a boiler firing type variable, based on unit type. 
 # some units have more specific boiler firing types available in the 860 boiler info file
 # and these are used where available
+### Note: check for updates or changes each data year ###
 
-xwalk_botfirty <- read_csv("data/static_tables/boiler_firing_type_xwalk.csv")
+xwalk_botfirty <- read_csv("data/static_tables/xwalk_boiler_firing_type.csv")
 
 camd_5 <- 
   camd_4 %>% 
@@ -202,7 +204,7 @@ camd_6 <- # updating units where available
 
 ### Delete specified plants -----------
 # Some plants in CAMD are not connected to the grid or are retired, so they are excluded from eGRID
-# Note: this table will need to be checked and updated  each year 
+### Note: check for updates or changes each data year ###
 
 camd_plants_to_delete <- 
   read_csv("data/static_tables/camd_plants_to_delete.csv") %>% 
@@ -563,6 +565,7 @@ eia_860_generators_to_add_3 <-
 # Include additional biomass units ------
 
 # We include additional biomass units. This is a static table that is created each year after the plant file.
+### Note: check for updates or changes each data year ###
 
 biomass_units <- 
   read_csv("data/static_tables/biomass_units_to_add_to_unit_file.csv") %>%
@@ -611,7 +614,7 @@ gen_file <- # load generator file
   read_rds("data/outputs/generator_file.RDS")
 
 
-dist_props_923 <- # determining distributional proportions to distribute heat 
+dist_props_923 <- # determining distributional proportions to distribute heat inputs
   gen_file %>% 
   select(plant_id, prime_mover, generator_id, nameplate_capacity) %>%
   group_by(plant_id, prime_mover) %>% 
@@ -620,7 +623,7 @@ dist_props_923 <- # determining distributional proportions to distribute heat
   mutate(prop = nameplate_capacity / sum_namecap) %>% # ? There is an if_else statement here about missing nameplate capacity involing 860--notsure why that file is invovled
   select(plant_id, prime_mover, generator_id, prop)
 
-distributed_heat_input <- 
+distributed_heat_input <- # determining distributional heat input via proportion of nameplate capacity
   dist_props_923 %>% 
   left_join(eia_fuel_consum_pm %>% select(plant_id, prime_mover, heat_input_ann_923, heat_input_oz_923)) %>% 
   mutate(heat_input = prop * heat_input_ann_923,
@@ -684,7 +687,6 @@ units_missing_heat_3 <-
 print(glue::glue("{nrow(units_heat_updated_boiler_matches)} units updated with EIA Unit-level Data from direct matches in EIA 923 boiler file. {nrow(units_missing_heat_3)} with missing heat input remain."))
 
 
-
 ## Update heat input with distributed heat to boilers ----------
 
 # here we estimate heat to be distributed to boilers based on differences between pm level heat we have included and what is in 923 gen and fuel 
@@ -703,7 +705,7 @@ boiler_dist_props <-  # determining distributional proportions for 923 boilers
          prop = total_fuel_consumption_quantity / sum_totfuel) %>% 
   select(plant_id, prime_mover, boiler_id, prop)
 
-heat_differences <- # calculating prime mover-level heat differences between units included in unit file and 923 gen&fuel file
+heat_differences <- # calculating prime mover-level heat differences between units included in unit file and EIA-923 gen&fuel file
   all_units_2 %>% 
   rows_update(units_heat_updated_pm_data, by = c("plant_id", "unit_id")) %>% 
   rows_update(units_heat_updated_boiler_matches, by = c("plant_id", "unit_id")) %>% 
@@ -716,7 +718,7 @@ heat_differences <- # calculating prime mover-level heat differences between uni
   select(plant_id, prime_mover, ends_with("diff"))
 
 
-units_heat_updated_boiler_distributed <- 
+units_heat_updated_boiler_distributed <- # distributing heat input via proportion to units that do not yet have heat input values
   units_missing_heat_3 %>% 
   select(plant_id, unit_id) %>%
   inner_join(boiler_dist_props, # now joining missing heat units with boiler dist group to keep boilers where we have a distributional proportion
@@ -733,7 +735,7 @@ units_heat_updated_boiler_distributed <-
          starts_with("heat_input"),
          ends_with("source"))
 
-units_missing_heat_4 <- 
+units_missing_heat_4 <- # identify units still missing heat input
   units_missing_heat_3 %>% 
   anti_join(units_heat_updated_boiler_distributed,
             by = c("plant_id", "unit_id"))
@@ -882,13 +884,17 @@ hg_flags_to_update <- # boilers that have strategy == "ACI" get mercury controls
 
 
 ## Update OG fuel types  --------
+### Note: check for updates or changes each data year ###
 
 og_fuel_types_update <- 
   read_csv("data/static_tables/og_oth_units_to_change_fuel_type.csv") %>% 
   mutate(across(everything(), ~ as.character(.x))) %>%
-  select(plant_id, unit_id,  fuel_code)
+  select(plant_id, unit_id, fuel_code)
 
 ## Schedule 8c updates ------
+
+# Load crosswalk to add additional boiler IDs
+### Note: check for updates or changes each data year ###
 
 xwalk_control_ids <- # xwalk to add additional boiler ids
   read_csv("data/static_tables/xwalk_860_boiler_control_id.csv") %>% 
@@ -955,7 +961,7 @@ all_units_4 <-
                rename("unit_id" = "boiler_id"),
             by = c("plant_id","unit_id"),
             unmatched = "ignore") %>%
-  mutate(primary_fuel_type = if_else(primary_fuel_type == "MSB", "MSW", primary_fuel_type)) %>% # Changing "MSB" fuel codes to "MSW"
+  mutate(primary_fuel_type = if_else(primary_fuel_type %in% c("MSB", "MSN"), "MSW", primary_fuel_type)) %>% # Changing "MSB" and "MSN" fuel codes to "MSW"
   rows_patch(botfirty_eia %>% 
                rename("unit_id" = "boiler_id", 
                       "botfirty" = eGRID),
@@ -1425,8 +1431,10 @@ all_units_9 <-
 
 ## Geothermal Emissions --------
 
-# this table is sourced from NREL, they will not update it until
+### Note: check for updates or changes each data year ###
+# this table is sourced from NREL, they will not update it until 2025
 # check in 2025 for updated table 
+
 nrel_geo_type <- read_csv("data/static_tables/nrel_geothermal_table.csv") %>% 
   rename("plant_id" = "ORISPL") %>% janitor::clean_names() %>% 
   mutate(plant_id = as.character(plant_id)) %>% distinct()
@@ -1470,7 +1478,7 @@ clean_source_flags <-
 
 
 ## Change necessary plant names -------
-# Check for duplicates
+# Check for duplicate plant names and default to CAMD names
 
 check_plant_names <- 
   all_units_10 %>% select(plant_id, plant_name, source) %>% 
@@ -1495,6 +1503,7 @@ update_fc_data <-
 
 ## Delete specified units -------- 
 # Delete units in "Units to remove" table, which is manually updated 
+### Note: check for updates or changes each data year ###
 
 units_to_remove <- 
   read_csv("data/static_tables/units_to_remove.csv") %>% 
@@ -1502,7 +1511,7 @@ units_to_remove <-
 
 ## Update prime mover -------
 # Manual updates to prime mover for specific plants 
-# (Note: check these in future data years)
+### Note: check for updates or changes each data year ###
 
 update_prime_mover <- 
   all_units_10 %>% select(plant_id, unit_id, prime_mover) %>% 
@@ -1603,7 +1612,7 @@ delete_retired_units <-
 
 
 ## EIA units to delete ------ 
-# (Note: need to check this each data year)
+### Note: check for updates or changes each data year ###
 
 eia_units_to_delete <- 
   all_units_11 %>% 
@@ -1627,7 +1636,7 @@ all_units_12 <-
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_update(check_plant_names, 
                 by = c("plant_id"), unmatched = "ignore") %>% 
-  rows_update(update_status, 
+  rows_patch(update_status, 
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   mutate(heat_input = round(heat_input, 3), 
          heat_input_oz = round(heat_input_oz, 3), 
