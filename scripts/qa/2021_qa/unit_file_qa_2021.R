@@ -50,11 +50,11 @@ colnames(unit_r) <- paste0(colnames(unit_r), "_r")
 unit_r <- unit_r %>% rename("plant_id" = "plant_id_r", 
                             "unit_id" = "unit_id_r")
 
-unit_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "UNT21", 
-                               skip = 1, 
+unit_access <- read_excel("archive/access_unit_file_8_22_24.xlsx", sheet = "Unit_File", 
+                               #skip = 1, 
                                guess_max = 4000) %>% janitor::clean_names() %>% 
   rename("sequnt_access" = "sequnt",
-         "year_access" = "year", 
+         #"year_access" = "year", 
          "plant_id" = "orispl",
          "plant_name_access" = "pname", 
          "plant_state_access" = "pstatabb", 
@@ -275,7 +275,8 @@ check_heat_input_ann_unit <-
   filter(!(heat_input_r == heat_input_access)) %>% 
   mutate(diff_heat_input = heat_input_r - heat_input_access) %>% 
   filter(diff_heat_input > 1 | diff_heat_input < -1) %>% 
-  select(plant_id, unit_id, heat_input_r, heat_input_access, diff_heat_input)
+  select(plant_id, unit_id, heat_input_r, heat_input_access, diff_heat_input, 
+         heat_input_source_r, heat_input_source_access)
 
 if(nrow(check_heat_input_ann_unit) > 0) {
   write_csv(check_heat_input_ann_unit, paste0(save_dir, "check_heat_input_ann_unit.csv")) }
@@ -286,7 +287,8 @@ check_heat_input_oz_unit <-
   filter(!(heat_input_oz_r == heat_input_oz_access)) %>% 
   mutate(diff_heat_input_oz = heat_input_oz_r - heat_input_oz_access) %>% 
   filter(diff_heat_input_oz > 1 | diff_heat_input_oz < -1) %>% 
-  select(plant_id, unit_id, heat_input_oz_r, heat_input_oz_access, diff_heat_input_oz)
+  select(plant_id, unit_id, heat_input_oz_r, heat_input_oz_access, diff_heat_input_oz, 
+         heat_input_oz_source_r, heat_input_oz_source_access)
 
 if(nrow(check_heat_input_oz_unit) > 0) {
   write_csv(check_heat_input_oz_unit, paste0(save_dir, "check_heat_input_oz_unit.csv")) }
@@ -334,7 +336,8 @@ check_nox_ann_unit <-
   filter(!(nox_mass_r == nox_mass_access)) %>% 
   mutate(diff_nox_mass = nox_mass_r - nox_mass_access) %>% 
   filter(diff_nox_mass > 1 | diff_nox_mass < -1) %>% 
-  select(plant_id, unit_id, nox_mass_r, nox_mass_access, nox_source_r, nox_source_access)
+  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+         nox_mass_r, nox_mass_access, nox_source_r, nox_source_access)
 
 if(nrow(check_nox_ann_unit) > 0) {
   write_csv(check_nox_ann_unit, paste0(save_dir, "check_nox_ann_unit.csv")) }
@@ -345,8 +348,8 @@ check_nox_oz_unit <-
   filter(!(nox_oz_mass_r == nox_oz_mass_access)) %>% 
   mutate(diff_nox_oz_mass = nox_oz_mass_r - nox_oz_mass_access) %>% 
   filter(diff_nox_oz_mass > 1 | diff_nox_oz_mass < -1) %>% 
-  select(plant_id, unit_id, nox_oz_mass_r, nox_oz_mass_access, nox_oz_source_r, 
-         nox_oz_source_access)
+  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+         nox_oz_mass_r, nox_oz_mass_access, nox_oz_source_r, nox_oz_source_access)
 
 if(nrow(check_nox_oz_unit) > 0) {
   write_csv(check_nox_oz_unit, paste0(save_dir, "check_nox_oz_unit.csv")) }
@@ -356,7 +359,8 @@ if(nrow(check_nox_oz_unit) > 0) {
 check_nox_ann_source <- 
   unit_comparison %>% 
   filter(!(nox_source_r == nox_source_access)) %>% 
-  select(plant_id, unit_id, nox_mass_r, nox_mass_access, nox_source_r, nox_source_access)
+  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+         nox_mass_r, nox_mass_access, nox_source_r, nox_source_access)
 
 if(nrow(check_nox_ann_source) > 0) {
   write_csv(check_nox_ann_source, paste0(save_dir, "check_nox_ann_source.csv")) }
@@ -365,7 +369,8 @@ if(nrow(check_nox_ann_source) > 0) {
 check_nox_oz_source <- 
   unit_comparison %>% 
   filter(!(nox_oz_source_r == nox_oz_source_access)) %>% 
-  select(plant_id, unit_id, nox_oz_mass_r, nox_oz_mass_access, nox_oz_source_r, nox_oz_source_access)
+  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+         nox_oz_mass_r, nox_oz_mass_access, nox_oz_source_r, nox_oz_source_access)
 
 if(nrow(check_nox_oz_source) > 0) {
   write_csv(check_nox_oz_source, paste0(save_dir, "check_nox_oz_source.csv")) }
@@ -389,7 +394,8 @@ check_so2_unit <-
   filter(!(so2_mass_r == so2_mass_access)) %>% 
   mutate(diff_so2_mass = so2_mass_r - so2_mass_access) %>% 
   filter(diff_so2_mass > 1 | diff_so2_mass < -1) %>% 
-  select(plant_id, unit_id, so2_mass_r, so2_mass_access, diff_so2_mass, 
+  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+         so2_mass_r, so2_mass_access, diff_so2_mass, 
          so2_source_r, so2_source_access)
 
 if(nrow(check_so2_unit) > 0) {
@@ -399,7 +405,8 @@ if(nrow(check_so2_unit) > 0) {
 check_so2_source <- 
   unit_comparison %>% 
   filter(!(so2_source_r == so2_source_access)) %>% 
-  select(plant_id, unit_id, so2_mass_r, so2_mass_access, so2_source_r, so2_source_access)
+  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+         so2_mass_r, so2_mass_access, so2_source_r, so2_source_access)
 
 if(nrow(check_so2_source) > 0) {
   write_csv(check_so2_source, paste0(save_dir, "check_so2_source.csv")) }
@@ -423,7 +430,8 @@ check_co2_unit <-
   filter(!(co2_mass_r == co2_mass_access)) %>% 
   mutate(diff_co2_mass = co2_mass_r - co2_mass_access) %>% 
   filter(diff_co2_mass > 1 | diff_co2_mass < -1) %>% 
-  select(plant_id, unit_id, co2_mass_r, co2_mass_access, diff_co2_mass, 
+  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+         co2_mass_r, co2_mass_access, diff_co2_mass, 
          co2_source_r, co2_source_access)
 
 if(nrow(check_co2_unit) > 0) {
@@ -433,7 +441,8 @@ if(nrow(check_co2_unit) > 0) {
 check_co2_source <- 
   unit_comparison %>% 
   filter(!(co2_source_r == co2_source_access)) %>% 
-  select(plant_id, unit_id, co2_mass_r, co2_mass_access, co2_source_r, co2_source_access)
+  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+         co2_mass_r, co2_mass_access, co2_source_r, co2_source_access)
 
 if(nrow(check_co2_source) > 0) {
   write_csv(check_co2_source, paste0(save_dir, "check_co2_source.csv")) }
