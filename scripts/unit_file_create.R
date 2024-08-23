@@ -350,9 +350,9 @@ distinct_cols <- c("plant_id", "unit_id", "heat_input", "heat_input_source", "no
 
 camd_oz_reporters_dist_final <- # combining all distributed ozone season reporters and keeping only necessary columns 
   camd_oz_reporters_dist_nox_rates %>% 
-  distinct(pick(distinct_cols)) %>%
+  distinct(pick(all_of(distinct_cols))) %>%
   bind_rows(camd_oz_reporters_dist_nox_ef %>% 
-              distinct(pick(distinct_cols)))
+              distinct(pick(all_of(distinct_cols))))
 
 # check number of ozone reporting units, and compare to number of units that have distributed values
 print(glue::glue("There are {nrow(camd_oz_reporters_dist)} total OS reporting units. The dataframe with distributed values contains {nrow(camd_oz_reporters_dist_final)}"))
@@ -404,24 +404,11 @@ eia_923_boilers_grouped <-
   mutate(heat_input = sum(heat_input),
          heat_input_oz = sum(heat_input_oz))
 
-
-# read in co2 emissions table
-
-co2_ef <- 
-  read_csv("data/static_tables/co2_ch4_n2o_ef.csv")
-
-# Manually step that happens in Access: `FirstOfPrime Mover` = if_else(`FirstOfPrime Mover` == "CT" & `Plant Id` == "50973", "CA", `FirstOfPrime Mover`
-
-eia_923_boilers_heat_co2 <- 
+eia_923_boilers_heat <- 
   eia_923_boilers %>% 
-  left_join(co2_ef %>% 
-              select(eia_fuel_code, co2_ef),
-            by = c("fuel_type" = "eia_fuel_code")) %>% 
-  mutate(co2_mass = heat_input * co2_ef) %>% # calculate CO2 emissions
   group_by(pick(starts_with("plant")), prime_mover, boiler_id) %>% 
   summarize(heat_input = sum(heat_input),
-            heat_input_oz = sum(heat_input_oz),
-            co2_mass = sum(co2_mass)) 
+            heat_input_oz = sum(heat_input_oz)) 
 
 ## Determining primary fuel type for EIA-923 boilers based on type of unit with max fuel consumption 
 
@@ -447,16 +434,15 @@ eia_860_combined_ids <- eia_860$combined %>% mutate(id = paste0(plant_id, "_", g
 
 
 eia_boilers_to_add <- 
-  eia_923_boilers_heat_co2 %>% 
+  eia_923_boilers_heat %>% 
   mutate(id = paste0(plant_id, "_", boiler_id)) %>%
   filter(!plant_id %in% camd_7$plant_id) %>%  # removing boilers that are in plants in CAMD
   filter(id %in% eia_860_boil_gen_ids | id %in% eia_860_combined_ids) %>%  # keeping only boilers that are in 860, under boiler or unit id
   mutate(heat_input_source = "EIA Unit-level Data",
-         heat_input_oz_source = "EIA Unit-level Data",
-         co2_source = "Estimated using emissions factor") %>% 
+         heat_input_oz_source = "EIA Unit-level Data") %>% 
   left_join(primary_fuel_types_923_boilers) # adding primary fuel type as determined by fuel type of max heat input of boiler 
 
-print(glue::glue("{nrow(eia_923_boilers_heat_co2) - nrow(eia_boilers_to_add)} EIA-923 boilers removed because:\n 
+print(glue::glue("{nrow(eia_923_boilers_heat) - nrow(eia_boilers_to_add)} EIA-923 boilers removed because:\n 
                   1) plant_id is already in CAMD, or\n
                   2) boiler does not match plant/boiler in EIA-860 files (EIA-860 Boiler Generator, EIA-860 Combined)"))
 
@@ -1253,9 +1239,12 @@ all_units_6 <-
 
 ### Estimating CO2 emissions --------  
 
+# read in co2 emissions table
+co2_ef <- 
+  read_csv("data/static_tables/co2_ch4_n2o_ef.csv")
+
 co2_emissions <- 
   all_units_6 %>%
-  filter(plant_id != 10025) %>% ## Removing duplicate Plant ID 10025/Unit ID 4B that was causing issues with rows_patch
   select(plant_id, unit_id, primary_fuel_type, prime_mover, heat_input, co2_mass) %>%
   inner_join(co2_ef %>%
               filter(!is.na(eia_fuel_code)) %>%
@@ -1268,7 +1257,6 @@ co2_emissions <-
 
 all_units_7 <- 
   all_units_6 %>% 
-  filter(plant_id != 10025) %>% ## Removing duplicate Plant ID 10025/Unit ID 4B that was causing issues with rows_patch
   rows_patch(co2_emissions %>% distinct(),
              by = c("plant_id", "unit_id", "prime_mover"),
              unmatched = "ignore")
@@ -1417,10 +1405,6 @@ all_units_8 <-
              unmatched = "ignore") 
 
 
-## SO2/NOx emissions from OG/OTH fuel crosswalk ----------
-
-### NOx emissions factor (OTH/OG crosswalk) ----------
-
 ## Fix Ozone Season ----------
 # IF NOx ozone emissions > annual NOx emissions, make the NOx ozone emissions equal the annual NOx emissions
 
@@ -1502,12 +1486,33 @@ update_fc_data <-
   select(plant_id, unit_id, co2_mass, co2_source) 
 
 ## Delete specified units -------- 
-# Delete units in "Units to remove" table, which is manually updated 
+### Delete units in "Units to remove" table, which is manually updated each year ----------
 ### Note: check for updates or changes each data year ###
 
 units_to_remove <- 
   read_csv("data/static_tables/units_to_remove.csv") %>% 
   mutate(plant_id = as.character(plant_id))
+
+
+### Delete retired units  ------- 
+# delete plants based on operating status from EIA-860 Boiler Info & Design Parameters
+
+delete_retired_units <- 
+  eia_860$boiler_info_design_parameters %>% 
+  filter(boiler_status == "RE" & as.numeric(retirement_year) < params$eGRID_year) %>% 
+  select(plant_id, 
+         unit_id = "boiler_id", 
+         boiler_status, retirement_year)
+
+
+### Delete noted EIA units ------ 
+### Note: check for updates or changes each data year ###
+
+eia_units_to_delete <- 
+  all_units_11 %>% 
+  filter(plant_id == "2132" | plant_id == "7832") %>% 
+  select(plant_id) %>% distinct()
+
 
 ## Update prime mover -------
 # Manual updates to prime mover for specific plants 
@@ -1600,25 +1605,6 @@ all_units_11 <-
   mutate(camd_flag = if_else(paste0(plant_id, unit_id) %in% camd_units, "Yes", NA_character_)) %>% 
   rows_update(update_pr_camd_flag, by = c("plant_id", "unit_id"))
 
-## Retired units to delete ------- 
-# delete plants based on operating status from EIA-860 Boiler Info & Design Parameters
-
-delete_retired_units <- 
-  eia_860$boiler_info_design_parameters %>% 
-  filter(boiler_status == "RE" & as.numeric(retirement_year) < params$eGRID_year) %>% 
-  select(plant_id, 
-         unit_id = "boiler_id", 
-         boiler_status, retirement_year)
-
-
-## EIA units to delete ------ 
-### Note: check for updates or changes each data year ###
-
-eia_units_to_delete <- 
-  all_units_11 %>% 
-  filter(plant_id == "2132" | plant_id == "7832") %>% 
-  select(plant_id) %>% distinct()
-
 
 ## Implement changes in main unit file ------
 
@@ -1646,6 +1632,7 @@ all_units_12 <-
          co2_mass = round(co2_mass, 3), 
          hg_mass = round(hg_mass, 3), 
          plant_id = case_when( # update plant_id and plant_name to EIA ID and name
+           ### Note: check for updates or changes each data year ###
            plant_id %in% c("2847", "55248") ~ "2847", 
            TRUE ~ plant_id), 
          plant_name = case_when(
