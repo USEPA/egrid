@@ -109,7 +109,6 @@ camd_2 <-
   )
 
 
-
 ### Updating fuel types ---------
 
 # Updating fuel types to EIA codes for oil, other solid fuel, and coal 
@@ -145,6 +144,7 @@ camd_3 <-
   mutate(primary_fuel_type = if_else(is.na(primary_fuel_type), fuel_type, primary_fuel_type)) %>% # filling missing primary_fuel_types with 923 value
   select(-fuel_type)
 
+
 # These units require manual updates 
 ### Note: check for updates or changes each data year ###
 camd_4 <- 
@@ -157,6 +157,7 @@ camd_4 <-
             plant_id == 54748 & unit_id == "GT1" ~ "NG",
             TRUE ~ primary_fuel_type)
          )
+
 
 ## identify units remaining with missing primary_fuel_types
 missing_fuel_types <- 
@@ -395,7 +396,6 @@ eia_923_boilers <-
          heat_input_oz = rowSums(pick(all_of(paste0("heat_input_",tolower(month.name[5:9])))))) %>%  # summing across ozone months
   select(plant_id, plant_name, plant_state, prime_mover, boiler_id, fuel_type, heat_input, heat_input_oz, total_fuel_consumption_quantity)  
 
-
 eia_923_boilers_grouped <- 
   eia_923_boilers %>% 
   group_by(plant_id,
@@ -423,6 +423,7 @@ primary_fuel_types_923_boilers <-  # this will be joined with final dataframe of
          "primary_fuel_type" = fuel_type) %>% 
   ungroup()
 
+
 # We only want to keep EIA-923 boilers that are: 
 # 1) from plants that are not already in CAMD
 # 2) matches in the EIA-860 combined file
@@ -440,8 +441,11 @@ eia_boilers_to_add <-
   filter(id %in% eia_860_boil_gen_ids | id %in% eia_860_combined_ids) %>%  # keeping only boilers that are in 860, under boiler or unit id
   mutate(heat_input_source = "EIA Unit-level Data",
          heat_input_oz_source = "EIA Unit-level Data") %>% 
-  left_join(primary_fuel_types_923_boilers) # adding primary fuel type as determined by fuel type of max heat input of boiler 
-
+  left_join(primary_fuel_types_923_boilers) %>%  # adding primary fuel type as determined by fuel type of max heat input of boiler 
+  group_by(plant_id, boiler_id) %>% # some units have multiple prime movers, identify prime mover with max heat input
+  slice_max(heat_input, 
+            with_ties = FALSE)
+  
 print(glue::glue("{nrow(eia_923_boilers_heat) - nrow(eia_boilers_to_add)} EIA-923 boilers removed because:\n 
                   1) plant_id is already in CAMD, or\n
                   2) boiler does not match plant/boiler in EIA-860 files (EIA-860 Boiler Generator, EIA-860 Combined)"))
@@ -571,6 +575,7 @@ all_units <- # binding all units together, and adding a source column to track r
             (eia_boilers_to_add %>% mutate(source = "923 boilers") %>% rename("unit_id" = boiler_id)),
             (eia_860_generators_to_add_3 %>% mutate(source = "860 generators") %>% rename("unit_id" = generator_id)), 
             (biomass_units %>% mutate(source = "plant file")))
+
 
 # Remove plants from EIA that are in CAMD 
 # These plants are duplicated since they have different plant IDs, so we are removing the EIA units 
@@ -1020,6 +1025,10 @@ estimated_so2_emissions_content <-
             by = c("plant_id",  "boiler_id" = "unit_id",  "fuel_type" = "primary_fuel_type")) %>% 
   left_join(schedule_8c_so2 %>% 
               select(plant_id, boiler_id, so2_removal_efficiency_rate_at_annual_operating_factor)) %>% 
+  ###### CHECK - do we want to do this to include units that do not have so2 scrubbers? ######
+  mutate(so2_removal_efficiency_rate_at_annual_operating_factor = 
+           if_else(is.na(so2_removal_efficiency_rate_at_annual_operating_factor), 0, 
+                   so2_removal_efficiency_rate_at_annual_operating_factor)) %>% 
   left_join(emission_factors %>%
               select(prime_mover, botfirty, so2_ef, so2_flag, unit_flag, primary_fuel_type),
             by = c("prime_mover", "botfirty", "fuel_type" = "primary_fuel_type")) %>%
@@ -1095,7 +1104,7 @@ default_sulfur_content_coal <-
          avg_sulfur_content)
 
 
-units_estimated_fuel <- # df that will be used to calculate SO2 emissions 
+units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emissions 
   all_units_5 %>% 
   group_by(plant_state, plant_id, prime_mover, primary_fuel_type) %>% 
   mutate(total_heat_input = sum(heat_input, na.rm = TRUE)) %>% 
@@ -1509,7 +1518,7 @@ delete_retired_units <-
 ### Note: check for updates or changes each data year ###
 
 eia_units_to_delete <- 
-  all_units_11 %>% 
+  all_units_10 %>% 
   filter(plant_id == "2132" | plant_id == "7832") %>% 
   select(plant_id) %>% distinct()
 
@@ -1564,8 +1573,10 @@ schedule_8c_re <-
 
 # update operating status 
 
-update_status <- 
+update_status <- # operating status updated in this order if there are duplicate operating statuses for units
   all_units_10 %>% select(plant_id, unit_id, operating_status) %>% 
+  rows_patch(eia_860$combined %>% select(plant_id, "operating_status" = status, "unit_id" = generator_id), 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(schedule_8c_op %>% select(plant_id, unit_id, operating_status), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(schedule_8c_os %>% select(plant_id, unit_id, operating_status), 
@@ -1577,8 +1588,6 @@ update_status <-
   rows_patch(schedule_8c_re %>% select(plant_id, unit_id, operating_status), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(eia_860$boiler_info_design_parameters %>% select(plant_id, "unit_id" = boiler_id, "operating_status" = boiler_status), 
-             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  rows_patch(eia_860$combined %>% select(plant_id, "operating_status" = status, "unit_id" = generator_id), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   mutate(operating_status = toupper(operating_status)) %>% 
   filter(!is.na(operating_status)) %>% distinct()
