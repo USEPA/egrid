@@ -287,7 +287,7 @@ camd_q_oz_reporters_dist <-
   mutate(annual_heat_diff = heat_input_ann_923 - tot_heat_input, # calculating annual heat difference 
          annual_heat_diff_wout_oz = annual_heat_diff - heat_input_oz_923) %>% # calculating difference - ozone month totals to get the leftover nonozone heat input
   filter(annual_heat_diff_wout_oz > 0) %>%  # annual heat difference without ozone must be positive to have heat input to distribute
-  mutate(prop = heat_input_oz/sum_heat_input_oz, # calculate proportion of heat input for each unit
+  mutate(prop = heat_input_oz / sum_heat_input_oz, # calculate proportion of heat input for each unit
          heat_input_nonoz = annual_heat_diff_wout_oz * prop, # calculate non-ozone heat input 
          heat_input = heat_input_nonoz + heat_input_oz, # calculate total heat input
          heat_input_source = if_else(is.na(heat_input), "EPA/CAMD", "EIA non-ozone season distributed and EPA/CAMD ozone season")) 
@@ -1019,19 +1019,18 @@ avg_sulfur_content_fuel <- # avg sulfur content grouped by fuel type
 ### Estimate SO2 emissions using sulfur content ---------
 
 estimated_so2_emissions_content <- 
-  avg_sulfur_content %>%
-  left_join(all_units_4 %>% 
-              select(plant_id, unit_id, prime_mover, botfirty, primary_fuel_type), 
-            by = c("plant_id",  "boiler_id" = "unit_id",  "fuel_type" = "primary_fuel_type")) %>% 
+  all_units_4 %>% select(plant_id, unit_id, prime_mover, botfirty, primary_fuel_type) %>% 
+  left_join(avg_sulfur_content, by = c("plant_id", "unit_id" = "boiler_id", "primary_fuel_type" = "fuel_type")) %>% 
   left_join(schedule_8c_so2 %>% 
-              select(plant_id, boiler_id, so2_removal_efficiency_rate_at_annual_operating_factor)) %>% 
+              select(plant_id, boiler_id, so2_removal_efficiency_rate_at_annual_operating_factor), 
+            by = c("plant_id", "unit_id" = "boiler_id")) %>% 
   ###### CHECK - do we want to do this to include units that do not have so2 scrubbers? ######
   mutate(so2_removal_efficiency_rate_at_annual_operating_factor = 
            if_else(is.na(so2_removal_efficiency_rate_at_annual_operating_factor), 0, 
                    so2_removal_efficiency_rate_at_annual_operating_factor)) %>% 
   left_join(emission_factors %>%
               select(prime_mover, botfirty, so2_ef, so2_flag, unit_flag, primary_fuel_type),
-            by = c("prime_mover", "botfirty", "fuel_type" = "primary_fuel_type")) %>%
+            by = c("prime_mover", "botfirty", "primary_fuel_type")) %>%
   mutate(avg_sulfur_content = if_else(is.na(so2_flag), 1, avg_sulfur_content), # if so2_flag is missing, change avg_sulfur_content to 1
          so2_mass = if_else(unit_flag == "PhysicalUnits", 
                                  (so2_ef * avg_sulfur_content * total_fuel_consumption_quantity * (1 - so2_removal_efficiency_rate_at_annual_operating_factor)) / 2000,
@@ -1039,8 +1038,8 @@ estimated_so2_emissions_content <-
          ) %>% 
   filter(so2_mass > 0) %>% 
   mutate(so2_source = "Estimated using emissions factor and plant-specific sulfur content") %>% 
-  select(plant_id, boiler_id, so2_mass, so2_source, unit_flag) %>%
-  add_count(plant_id ,boiler_id, sort = TRUE) %>% # Some units match to multiple EF under different unit_flags. We want default to be "PhysicalUnits", so where there are multiple rows per unit, we take only "PhysicalUnits"
+  select(plant_id, unit_id, so2_mass, so2_source, unit_flag) %>%
+  add_count(plant_id, unit_id, sort = TRUE) %>% # Some units match to multiple EF under different unit_flags. We want default to be "PhysicalUnits", so where there are multiple rows per unit, we take only "PhysicalUnits"
   filter(unit_flag == "PhysicalUnits" & n == 1 |
          unit_flag == "PhysicalUnits" & n == 2 |
          unit_flag != "PhsycialUnits" & n == 1  ) %>%
@@ -1051,7 +1050,8 @@ estimated_so2_emissions_content <-
 
 all_units_5 <- 
   all_units_4 %>%
-  rows_update(estimated_so2_emissions_content %>% rename("unit_id" = "boiler_id") %>% select(-unit_flag),
+  rows_update(estimated_so2_emissions_content %>% #rename("unit_id" = "boiler_id") %>% 
+                select(-unit_flag),
               by = c("plant_id", "unit_id"))
 
 
@@ -1504,11 +1504,15 @@ units_to_remove <-
 
 
 ### Delete retired units  ------- 
-# delete plants based on operating status from EIA-860 Boiler Info & Design Parameters
+# delete units with operating status "RE" based on operating status ("RE") from EIA-860 Boiler Info & Design Parameters 
+# check if the unit retires before the current data year
 
 delete_retired_units <- 
   eia_860$boiler_info_design_parameters %>% 
-  filter(boiler_status == "RE" & as.numeric(retirement_year) < params$eGRID_year) %>% 
+  left_join(all_units_10 %>% select(plant_id, unit_id, operating_status), 
+            by = c("plant_id", "boiler_id" = "unit_id")) %>% 
+  filter(boiler_status == "RE" & as.numeric(retirement_year) < params$eGRID_year &
+           operating_status == "RE") %>% 
   select(plant_id, 
          unit_id = "boiler_id", 
          boiler_status, retirement_year)
