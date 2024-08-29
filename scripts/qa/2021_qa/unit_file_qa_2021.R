@@ -200,7 +200,7 @@ if(nrow(check_num_gens) > 0) {
 check_fuel_type <- 
   unit_comparison %>% 
   filter(!(primary_fuel_type_r == primary_fuel_type_access)) %>% 
-  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access)
+  select(plant_id, unit_id, prime_mover_r, prime_mover_access, primary_fuel_type_r, primary_fuel_type_access)
 
 if(nrow(check_fuel_type) > 0) {
   write_csv(check_fuel_type, paste0(save_dir, "check_fuel_type.csv")) }
