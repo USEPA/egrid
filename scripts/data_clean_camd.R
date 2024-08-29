@@ -82,7 +82,7 @@ camd_r <-
       operating_status == "Operating" ~ "OP",
       startsWith(operating_status, "Operating") ~ "OP", # Units that started operating in current year have "Operating" plus the date of operation.
       operating_status == "Retired" ~ "RE",
-      TRUE ~ NA_character_),
+      TRUE ~ operating_status),
     unit_type = str_replace(unit_type, "\\(.*?\\)", "") %>% str_trim(), # removing notes about start dates and getting rid of extra white space
     unit_type_abb = recode(unit_type, !!!unit_abbs), ## Recoding values based on lookup table. need to looking into cases with multipe types (SB 3/28/2024)
     year_online = lubridate::year(commercial_operation_date)
