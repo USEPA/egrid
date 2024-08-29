@@ -751,72 +751,12 @@ units_missing_heat_4 <- # identify units still missing heat input
 print(glue::glue("{nrow(units_heat_updated_boiler_distributed)} units updated with EIA Prime Mover-level Data, distributed from 923 Generation and Fuel File. {nrow(units_missing_heat_4)} with missing heat input remain."))
 
 
-## Update heat input for null CAMD plants ----------
-
-# camd_missing_props <-
-#   units_missing_heat_4 %>%
-#   select(plant_id, unit_id) %>%
-#   inner_join(camd_8,
-#              by = c("plant_id", "unit_id")) %>%
-#   filter(!is.na(operating_hours), # removing units that were not operating in year
-#          operating_hours != 0) %>%
-#   mutate(primary_fuel_type = if_else(primary_fuel_type == "PRG", "OG", primary_fuel_type)) %>% # need to temporarily change this to match 923
-#   group_by(plant_id, prime_mover, primary_fuel_type) %>%
-#   mutate(sum_nameplate = sum(nameplate_capacity)) %>%
-#   ungroup() %>%
-#   select(plant_id, unit_id, primary_fuel_type, nameplate_capacity, sum_nameplate) %>%
-#   mutate(prop = nameplate_capacity / sum_nameplate) %>%
-#   filter(!is.na(prop))
-# 
-# 
-# eia_923_heat_fuel_type <- # summing fuel to fuel type level
-#   eia_923$generation_and_fuel_combined %>%
-#   mutate(unit_heat_nonoz = rowSums(pick(all_of(heat_923_nonoz_months)), na.rm = TRUE),
-#          unit_heat_oz = rowSums(pick(all_of(heat_923_oz_months)), na.rm = TRUE)) %>%
-#   group_by(plant_id, prime_mover, fuel_type) %>%
-#   summarize(heat_input_nonoz_923 = sum(unit_heat_nonoz, na.rm = TRUE),
-#             heat_input_oz_923 = sum(unit_heat_oz, na.rm = TRUE),
-#             heat_input_ann_923 = sum(total_fuel_consumption_mmbtu, na.rm = TRUE)) # consumption in mmbtus is referred to as "heat input"
-# 
-# units_heat_updated_camd <-
-#   camd_8 %>%
-#   filter(plant_id %in% camd_missing_props$plant_id) %>%
-#   mutate(primary_fuel_type = if_else(primary_fuel_type == "PRG", "OG", primary_fuel_type)) %>% # need to temporarily change this to match 923
-#   group_by(plant_id, prime_mover, primary_fuel_type) %>%
-#   summarize(across(c("heat_input","heat_input_oz"), ~ sum(.x, na.rm = TRUE))) %>%
-#   ungroup() %>%
-#   left_join(eia_923_heat_fuel_type,
-#             by = c("plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>%
-#   mutate(heat_diff_annual = heat_input_ann_923 - heat_input,
-#          heat_diff_oz = heat_input_oz_923 - heat_input_oz) %>%
-#   filter(heat_diff_annual > 0,
-#          !is.na(heat_diff_annual)) %>%
-#   select(plant_id, prime_mover, primary_fuel_type, heat_diff_annual, heat_diff_oz) %>%
-#   right_join(camd_missing_props) %>%
-#   mutate(heat_input = prop * heat_diff_annual,
-#          heat_input_oz = prop * heat_diff_oz,
-#          heat_input_source = "EIA Prime Mover-level Data",
-#          heat_input_oz_source = "EIA Prime Mover-level Data") %>%
-#   select(plant_id, unit_id, prime_mover, heat_input, heat_input_oz) %>%
-#   filter(!is.na(heat_input))
-# 
-# 
-# units_missing_heat_5 <-
-#   units_missing_heat_4 %>%
-#   anti_join(units_heat_updated_camd,
-#             by = c("plant_id", "unit_id"))
-# 
-# 
-# print(glue::glue("{nrow(units_heat_updated_camd)} null CAMD units updated with EIA Prime Mover-level Data, distributed from 923 Generation and Fuel File. {nrow(units_missing_heat_5)} with missing heat input remain."))
-
-
 ## Updating all units with filled heat input
 
 filled_heat_inputs <- 
   bind_rows(units_heat_updated_pm_data, 
             units_heat_updated_boiler_matches, 
             units_heat_updated_boiler_distributed) %>% 
-            #units_heat_updated_camd) %>% 
   select(plant_id, unit_id, heat_input, heat_input_oz, heat_input_source, heat_input_oz_source)
 
 
