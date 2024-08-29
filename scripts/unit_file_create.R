@@ -6,7 +6,10 @@
 ## 
 ## This file creates the unit file for eGRID. 
 ## This includes all operating units for the specified eGRID data year
-## 
+##
+## For data or manual changes that need to be checked every year, they are denoted with this note:
+## ### Note: check for updates or changes each data year ###
+##
 ## Authors:  
 ##      Sean Bock, Abt Global
 ##      Caroline Watson, Abt Global, caroline.watson@abtglobal.com
@@ -212,12 +215,11 @@ camd_plants_to_delete <-
   select("plant_id" = "ORIS Code") %>% 
   mutate(plant_id = as.character(plant_id)) 
 
-# delete plants with null heat inputs
+# delete plants with null heat inputs for all units
 # some plants will be added back in from EIA data
 camd_null_heat_input <- 
-  camd_6 %>% 
-  filter(is.na(heat_input)) %>% 
-  ###### CHECK - deleting all entries of plants that have any null heat inputs #####
+  camd_6 %>% group_by(plant_id) %>% 
+  filter(all(is.na(heat_input))) %>% 
   select(plant_id) %>% distinct()
 
 camd_7 <- 
@@ -380,7 +382,7 @@ if(nrow(camd_oz_reporters_dist) < nrow(camd_oz_reporters_dist_final)) { # check 
   
   stop(glue::glue("There are more rows than there should be in the distributed dataframe. There are multiple rows for the following units: {\n dupe_ids}.\n Check for possible sources of duplicate unit_ids."))
 } else{
-  "The number of rows in the distrubted dataframe matches the total OS-reporting units."
+  "The number of rows in the distributed dataframe matches the total OS-reporting units."
 }
   
 
@@ -399,7 +401,7 @@ camd_8 <- # Updated with gap-filled OS reporters
 
 eia_923_boilers <- 
   eia_923$boiler_fuel_data %>% 
-  mutate(across( # calculating monthly unit heat input, based on correponding consumption and mmbtu_per_unit
+  mutate(across( # calculating monthly unit heat input, based on corresponding consumption and mmbtu_per_unit
                 .cols = starts_with("quantity_of_fuel_consumed_"),
                 .fns = ~ . * get(str_replace(cur_column(), "quantity_of_fuel_consumed_", "mmbtu_per_unit_")), # identifies corresponding mmbtu_per_unit and multiplies by quantity column
                 .names = "heat_input_{str_replace(.col, 'quantity_of_fuel_consumed_','')}"),
@@ -584,11 +586,11 @@ biomass_units <-
 
 all_units <- # binding all units together, and adding a source column to track row origins
   bind_rows((camd_8 %>% mutate(source = "CAMD", id = paste0(plant_id, "_", unit_id))),
-            (eia_boilers_to_add %>% mutate(source = "923 boilers", id = paste0(plant_id, "_", boiler_id)) %>% 
+            (eia_boilers_to_add %>% mutate(source = "923_boilers", id = paste0(plant_id, "_", boiler_id)) %>% 
                rename("unit_id" = boiler_id)),
-            (eia_860_generators_to_add_3 %>% mutate(source = "860 generators", id = paste0(plant_id, "_", generator_id)) %>% 
+            (eia_860_generators_to_add_3 %>% mutate(source = "860_generators", id = paste0(plant_id, "_", generator_id)) %>% 
                rename("unit_id" = generator_id)), 
-            (biomass_units %>% mutate(source = "plant file", id = paste0(plant_id, "_", unit_id)) %>% 
+            (biomass_units %>% mutate(source = "plant_file", id = paste0(plant_id, "_", unit_id)) %>% 
                filter(!id %in% camd_8$id, 
                       !id %in% eia_boilers_to_add$id, 
                       !id %in% eia_860_generators_to_add_3$id)))  # filter out plant and units already in other data sources
@@ -704,7 +706,7 @@ boiler_dist_props <-  # determining distributional proportions for EIA-923 boile
            prime_mover) %>% 
   slice_max(total_fuel_consumption_quantity, 
             n = 1,
-            with_ties = FALSE) %>%  # This is done automatically in Access. Need to check
+            with_ties = FALSE) %>%  
   ungroup() %>%
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_totfuel = sum(total_fuel_consumption_quantity),
@@ -949,7 +951,7 @@ schedule_8c_hg <-
          !is.na(mercury_control)) %>%
   left_join(eia_860$boiler_mercury %>% select(plant_id, mercury_control_id, boiler_id) %>% filter(!is.na(boiler_id)) %>% distinct(), 
             by = c("plant_id", "mercury_control" = "mercury_control_id")) %>% 
-  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id, "mercury_control" =  `860_pm_control_id`) %>% drop_na(),
+  rows_patch(xwalk_control_ids %>% select(plant_id, boiler_id, "mercury_control" =  `860_hg_control_id`) %>% drop_na(),
              by = c("plant_id", "mercury_control"),
              unmatched = "ignore")
 
@@ -1038,7 +1040,6 @@ estimated_so2_emissions_content <-
   left_join(schedule_8c_so2 %>% 
               select(plant_id, boiler_id, so2_removal_efficiency_rate_at_annual_operating_factor), 
             by = c("plant_id", "unit_id" = "boiler_id")) %>% 
-  ###### CHECK - do we want to do this to include units that do not have so2 scrubbers? ######
   mutate(so2_removal_efficiency_rate_at_annual_operating_factor = 
            if_else(is.na(so2_removal_efficiency_rate_at_annual_operating_factor), 0, 
                    so2_removal_efficiency_rate_at_annual_operating_factor)) %>% 
@@ -1056,7 +1057,7 @@ estimated_so2_emissions_content <-
   add_count(plant_id, unit_id, sort = TRUE) %>% # Some units match to multiple EF under different unit_flags. We want default to be "PhysicalUnits", so where there are multiple rows per unit, we take only "PhysicalUnits"
   filter(unit_flag == "PhysicalUnits" & n == 1 |
          unit_flag == "PhysicalUnits" & n == 2 |
-         unit_flag != "PhsycialUnits" & n == 1  ) %>%
+         unit_flag != "PhysicalUnits" & n == 1  ) %>%
   select(-n)
 
   
@@ -1145,15 +1146,18 @@ emission_factors_so2_pu <- emission_factors %>%
   filter(primary_fuel_type != "OTH" |
            so2_ef != 2.8,
          unit_flag == "PhysicalUnits") %>%
-  select(!starts_with("nox"))
-
+  select(!starts_with("nox")) %>% 
+  mutate(botfirty = if_else(botfirty %in% c("null", "N/A"), NA_character_, botfirty)) %>% # fill null or N/A botfirty with NA
+  distinct()
+  
 ## creating heat input table for SO2
 
 emission_factors_so2_heat <- emission_factors %>%
   mutate(unit_flag = if_else(unit_flag == "heatinput", "HeatInput", unit_flag)) %>%
   filter(unit_flag == "HeatInput") %>%
-  select(!starts_with("nox"))
-
+  select(!starts_with("nox")) %>% 
+  mutate(botfirty = if_else(botfirty %in% c("null", "N/A"), NA_character_, botfirty)) %>%  # fill null or N/A botfirty with NA
+  distinct()
 
 ### estimating so2 emissions - coal --------
 
@@ -1213,8 +1217,7 @@ so2_emissions_heat_coal <-
                    "primary_fuel_type")) %>%
   mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
          so2_mass = if_else(unit_flag == "HeatInput",
-                            so2_ef * avg_sulfur_content * heat_input / 2000,
-                            so2_ef * avg_sulfur_content * 0 / 2000)) %>%
+                            so2_ef * avg_sulfur_content * heat_input / 2000, 0)) %>%
   select(plant_id,
          unit_id,
          so2_mass) %>% 
@@ -1235,8 +1238,7 @@ so2_emissions_heat_noncoal <-
                    "primary_fuel_type")) %>%
   mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
          so2_mass = if_else(unit_flag == "HeatInput",
-                            so2_ef * avg_sulfur_content * heat_input / 2000,
-                            so2_ef * avg_sulfur_content * 0 / 2000)) %>%
+                            so2_ef * avg_sulfur_content * heat_input / 2000, 0)) %>%
   select(plant_id,
          unit_id,
          so2_mass) %>% 
@@ -1291,7 +1293,7 @@ all_units_7 <-
 nox_rates_2 <- 
   schedule_8c_nox %>%
   rename(unit_id = boiler_id) %>%
-  group_by(unit_id, plant_id) %>%
+  group_by(plant_id, unit_id) %>%
   summarize(nox_rate = max(nox_emission_rate_entire_year_lbs_mmbtu),
             nox_oz_rate = max(nox_emission_rate_may_through_september_lbs_mmbtu)) 
 
@@ -1328,8 +1330,9 @@ emission_factors_nox_pu <-
   emission_factors %>%
   filter(nox_unit_flag == "PhysicalUnits") %>%
   select(!starts_with("so2") & -c(unit_flag)) %>%
-  distinct()
-
+  mutate(botfirty = if_else(botfirty %in% c("null", "N/A"), NA_character_, botfirty)) %>% # some null or NA botfirty are text, fill with NA
+  distinct() 
+  
 #### estimating NOx annual emissions with EF --------
 
 nox_emissions_factor <-
@@ -1556,65 +1559,30 @@ update_prime_mover <-
   
 
 ## Update status ------
-# Update operating status via EIA-923 schedule 8C, EIA-860 boiler info, EIA-860 combined
-# EIA-923 Schedule 8C has many duplicates, defaulting to "OP", then filling in with others if "OP" does not exist for unit
+# Update operating status via EIA-860 Boiler Info and Design Parameters for boilers and EIA-860 Generator file for EIA generators
 
-schedule_8c_longer <- 
-  eia_923$air_emissions_control_info %>% 
-  pivot_longer(cols = contains("control"), 
-               names_to = "unit_control", 
-               values_to = "unit_id") %>% 
-  select(plant_id, status, unit_id) %>% 
-  filter(!is.na(unit_id)) %>% distinct() %>% 
-  rename("operating_status" = "status")  
-
-# split out by operating status   
-schedule_8c_op <- 
-  schedule_8c_longer %>% 
-  filter(operating_status == "OP") 
-
-schedule_8c_os <- 
-  schedule_8c_longer %>% 
-  filter(operating_status == "OS")
-
-schedule_8c_oa <- 
-  schedule_8c_longer %>% 
-  filter(operating_status == "OA")
-
-schedule_8c_sb <- 
-  schedule_8c_longer %>% 
-  filter(operating_status == "SB")
-
-schedule_8c_re <- 
-  schedule_8c_longer %>% 
-  filter(operating_status == "RE")
-
-# update operating status 
-
-update_status <- # operating status updated in this order if there are duplicate operating statuses for units
-  all_units_10 %>% select(plant_id, unit_id, operating_status) %>% 
+update_status_generators <- # operating status for generators updated via EIA-860 
+  all_units_10 %>% select(plant_id, unit_id, operating_status, source) %>% 
+  filter(source == "860_generators", is.na(operating_status)) %>% # only update status for those that are NA
   rows_patch(eia_860$combined %>% select(plant_id, "operating_status" = status, "unit_id" = generator_id), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  rows_patch(schedule_8c_op %>% select(plant_id, unit_id, operating_status), 
-             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  rows_patch(schedule_8c_os %>% select(plant_id, unit_id, operating_status), 
-             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  rows_patch(schedule_8c_oa %>% select(plant_id, unit_id, operating_status), 
-             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  rows_patch(schedule_8c_sb %>% select(plant_id, unit_id, operating_status), 
-             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  rows_patch(schedule_8c_re %>% select(plant_id, unit_id, operating_status), 
-             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  mutate(operating_status = toupper(operating_status)) %>% 
+  filter(!is.na(operating_status)) %>% distinct() %>% select(-source)
+  
+  
+update_status_boilers <- # operating status for boilers updated via EIA-860 Boiler Info and Design Parameters
+  all_units_10 %>% select(plant_id, unit_id, operating_status, source) %>% 
+  filter(source == "923 boilers", is.na(operating_status)) %>% # only update status for those that are NA
   rows_patch(eia_860$boiler_info_design_parameters %>% select(plant_id, "unit_id" = boiler_id, "operating_status" = boiler_status), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   mutate(operating_status = toupper(operating_status)) %>% 
-  filter(!is.na(operating_status)) %>% distinct()
+  filter(!is.na(operating_status)) %>% distinct() %>% select(-source)
 
 
 ## Create and edit CAMD flag ----- 
 # ID CAMD units 
 
-camd_units <- camd_7 %>% mutate(id = paste0(plant_id, unit_id)) %>% pull(id)
+camd_units <- camd_8 %>% mutate(id = paste0(plant_id, unit_id)) %>% pull(id)
 
 # update PR CAMD flag from crosswalk
 
@@ -1649,8 +1617,10 @@ all_units_12 <-
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_update(check_plant_names, 
                 by = c("plant_id"), unmatched = "ignore") %>% 
-  rows_patch(update_status, 
+  rows_patch(update_status_generators, 
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_patch(update_status_boilers, 
+             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   mutate(heat_input = round(heat_input, 3), 
          heat_input_oz = round(heat_input_oz, 3), 
          nox_mass = round(nox_mass, 3), 
