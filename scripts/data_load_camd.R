@@ -58,12 +58,12 @@ facility_path <-
 
 facility_df <- 
   read_csv(paste0(bucket_url_base,facility_path)) %>% 
-  rename_with(tolower) %>% # this protects NoX rates from getting split with clean_names()
+  rename_with(tolower) %>% # this protects NOx rates from getting split with clean_names()
   janitor::clean_names() %>% 
   mutate(
     generator_ids = str_extract_all(associated_generators_nameplate_capacity_mwe, "\\S+(?= \\()"), # extracting associated generators
     nameplate_capacity_char = (str_extract_all(associated_generators_nameplate_capacity_mwe, "(?<=\\()\\d+(\\.\\d+)?(?=\\))")), # extracting nameplate capacity values
-    associated_generators = purrr::map_chr(generator_ids, ~ paste(.x, collapse = ", ")), # pasting togther associated generators
+    associated_generators = purrr::map_chr(generator_ids, ~ paste(.x, collapse = ", ")), # pasting together associated generators
     nameplate_capacity = purrr::map_dbl(nameplate_capacity_char, ~ sum(as.numeric(.x), na.rm = TRUE)),
     year = as.character(year)) %>% # summing nameplate capacity from associated generators)
   select(-"nameplate_capacity_char")
