@@ -154,7 +154,7 @@ coal_biomass_plants <-
               select(plant_id, prime_mover, fuel_type),
             by = c("plant_id", "prime_mover")) %>% 
   mutate(primary_fuel_type = fuel_type) %>%  # filling missing primary_fuel_types with 923 value
-  select(plant_id, unit_id, primary_fuel_type) 
+  select(plant_id, unit_id, plant_name, primary_fuel_type) 
 
 #### Update all primary fuels --------  
 
@@ -195,24 +195,10 @@ camd_3 <-
   select(-fuel_type) 
 
 
-# These units require manual updates 
-### Note: check for updates or changes each data year ###
-camd_4 <- 
-  camd_3 %>% 
-  mutate(primary_fuel_type = case_when(
-            plant_id == 10075 & unit_id == "1" ~ "SUB" ,
-            plant_id == 10075 & unit_id == "2" ~ "SUB",
-            plant_id == 10849 & unit_id == "PB1" ~ "SUB" ,
-            plant_id == 10849 & unit_id == "PB2" ~ "SUB",
-            plant_id == 54748 & unit_id == "GT1" ~ "NG",
-            TRUE ~ primary_fuel_type)
-         )
-
-
 ## identify units remaining with missing primary_fuel_types
 missing_fuel_types <- 
-  camd_4 %>% 
-  filter(is.na(camd_4$primary_fuel_type))
+  camd_3 %>% 
+  filter(is.na(camd_3$primary_fuel_type))
 
 print(glue::glue("{nrow(missing_fuel_types)} units having missing primary fuel types."))
 
@@ -225,15 +211,15 @@ print(glue::glue("{nrow(missing_fuel_types)} units having missing primary fuel t
 
 xwalk_botfirty <- read_csv("data/static_tables/xwalk_boiler_firing_type.csv")
 
-camd_5 <- 
-  camd_4 %>% 
+camd_4 <- 
+  camd_3 %>% 
   left_join(xwalk_botfirty,
             by = c("unit_type" = "CAMD/EPA")) %>% 
   mutate(botfirty = eGRID) %>% 
   select(-any_of(names(xwalk_botfirty)))
 
 botfirty_to_update <- # matching with 860 data to see if more specific botfirty type exists
-  camd_5 %>% 
+  camd_4 %>% 
   select(plant_id, unit_id, botfirty) %>% 
   filter(botfirty %in% c("OTHER BOILER", "OTHER TURBINE", NA_character_)) %>% 
   left_join(eia_860$boiler_info_design_parameters %>% 
@@ -246,8 +232,8 @@ botfirty_to_update <- # matching with 860 data to see if more specific botfirty 
   select(plant_id, unit_id, eGRID)
 
 
-camd_6 <- # updating units where available
-  camd_5 %>% 
+camd_5 <- # updating units where available
+  camd_4 %>% 
   left_join(botfirty_to_update) %>% 
   mutate(botfirty = if_else(!is.na(eGRID), eGRID, botfirty)) %>% 
   select(-eGRID) 
@@ -265,12 +251,12 @@ camd_plants_to_delete <-
 # delete plants with null heat inputs for all units
 # some plants will be added back in from EIA data
 camd_null_heat_input <- 
-  camd_6 %>% group_by(plant_id) %>% 
+  camd_5 %>% group_by(plant_id) %>% 
   filter(all(is.na(heat_input))) %>% 
   select(plant_id) %>% distinct()
 
-camd_7 <- 
-  camd_6 %>% 
+camd_6 <- 
+  camd_5 %>% 
   rows_delete(camd_plants_to_delete, by = c("plant_id"), unmatched = "ignore") %>% # delete specified plants from CAMD dataframe
   rows_delete(camd_null_heat_input, by = c("plant_id"), unmatched = "ignore") # delete plants with null heat input
 
@@ -284,12 +270,12 @@ camd_7 <-
 ### Gap fill heat input for OS reporters --------------
 
 camd_oz_reporter_plants <- # getting list of plant ids that include ozone season reporters. Note that some plants include both OS only and OS and Annual reporters.
-  camd_7 %>% 
+  camd_6 %>% 
   filter(reporting_frequency == "OS") %>% 
   pull(plant_id)
 
 camd_oz_reporters <- # creating dataframe with all plants and associated units that include "OS" reporters.
-  camd_7 %>%
+  camd_6 %>%
   filter(plant_id %in% camd_oz_reporter_plants)
 
 
@@ -441,8 +427,8 @@ if(nrow(camd_oz_reporters_dist) < nrow(camd_oz_reporters_dist_final)) { # check 
 
 # Updating heat input and emissions for OS reporters in full CAMD dataframe
 
-camd_8 <- # Updated with gap-filled OS reporters
-  camd_7 %>% 
+camd_7 <- # Updated with gap-filled OS reporters
+  camd_6 %>% 
   rows_update(camd_oz_reporters_dist_final, # Updating OS reporters with new distributed heat inputs, nox_mass, and the source variables for both
               by = c("plant_id","unit_id")) %>% 
   mutate(id = paste0(plant_id, "_", unit_id))
@@ -504,7 +490,7 @@ eia_860_combined_ids <- eia_860$combined %>% mutate(id = paste0(plant_id, "_", g
 eia_boilers_to_add <- 
   eia_923_boilers_heat %>% 
   mutate(id = paste0(plant_id, "_", boiler_id)) %>%
-  filter(!plant_id %in% camd_8$plant_id) %>%  # removing boilers that are in plants in CAMD
+  filter(!plant_id %in% camd_7$plant_id) %>%  # removing boilers that are in plants in CAMD
   filter(id %in% eia_860_boil_gen_ids | id %in% eia_860_combined_ids) %>%  # keeping only boilers that are in 860, under boiler or unit id
   mutate(heat_input_source = "EIA Unit-level Data",
          heat_input_oz_source = "EIA Unit-level Data") %>% 
@@ -541,7 +527,7 @@ eia_860_gens_to_remove <-
 # identify EIA renewable units from plants in CAMD. These will be excluded when filtering out CAMD plants below
 renewable_ids <- 
   eia_860$combined %>% 
-  filter(plant_id %in% camd_8$plant_id, # only plants in CAMD
+  filter(plant_id %in% camd_7$plant_id, # only plants in CAMD
          energy_source_1 %in% c("SUN", "WAT", "WND")) %>% # identifying renewable sources
   mutate(id = paste0(plant_id, "_", generator_id)) %>%
   pull(id)
@@ -549,7 +535,7 @@ renewable_ids <-
 eia_860_generators_to_add <- 
   eia_860$combined %>% 
   mutate(id = paste0(plant_id, "_", generator_id)) %>% 
-  filter(!(plant_id %in% camd_8$plant_id & !id %in% renewable_ids), # removing generators from plants in CAMD, unless it is a renewable generator
+  filter(!(plant_id %in% camd_7$plant_id & !id %in% renewable_ids), # removing generators from plants in CAMD, unless it is a renewable generator
          !id %in% eia_860_gens_to_remove) %>%  
   select(plant_id, 
          plant_name,
@@ -644,13 +630,13 @@ biomass_units <-
 ## Combine all units ------
 
 all_units <- # binding all units together, and adding a source column to track row origins
-  bind_rows((camd_8 %>% mutate(source = "CAMD", id = paste0(plant_id, "_", unit_id))),
+  bind_rows((camd_7 %>% mutate(source = "CAMD", id = paste0(plant_id, "_", unit_id))),
             (eia_boilers_to_add %>% mutate(source = "923_boilers", id = paste0(plant_id, "_", boiler_id)) %>% 
                rename("unit_id" = boiler_id)),
             (eia_860_generators_to_add_3 %>% mutate(source = "860_generators", id = paste0(plant_id, "_", generator_id)) %>% 
                rename("unit_id" = generator_id)), 
             (biomass_units %>% mutate(source = "plant_file", id = paste0(plant_id, "_", unit_id)) %>% 
-               filter(!id %in% camd_8$id, 
+               filter(!id %in% camd_7$id, 
                       !id %in% eia_boilers_to_add$id, 
                       !id %in% eia_860_generators_to_add_3$id)))  # filter out plant and units already in other data sources
   
@@ -1579,7 +1565,7 @@ update_status_boilers <- # operating status for boilers updated via EIA-860 Boil
 ## Create and edit CAMD flag ----- 
 # ID CAMD units 
 
-camd_units <- camd_8 %>% mutate(id = paste0(plant_id, unit_id)) %>% pull(id)
+camd_units <- camd_7 %>% mutate(id = paste0(plant_id, unit_id)) %>% pull(id)
 
 # update PR CAMD flag from crosswalk
 
