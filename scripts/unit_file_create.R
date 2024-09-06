@@ -112,7 +112,51 @@ camd_2 <-
   )
 
 
-### Updating fuel types ---------
+### Update fuel types ---------
+
+#### Update coal fuel types ---------
+
+# Units identified in CAMD as "Coal" are matched via an EPA / EIA crosswalk
+# Energy_source_1 for Coal units default to EIA-860 
+# Plants with Coal and Biomass units require a manual update to Coal fuel types, ignoring max fuel consumption from Biomass fuel types
+
+# Power Sector Data Crosswalk matches units between CAMD and EIA data sets
+# this will be used to help update Coal units in CAMD and assign correct primary fuel type
+xwalk_eia_epa <- read_csv("data/static_tables/xwalk_epa_eia_power_sector.csv") %>% janitor::clean_names() %>% 
+  mutate(camd_plant_id = as.character(camd_plant_id), eia_plant_id = as.character(eia_plant_id)) %>% 
+  filter(camd_fuel_type == "Coal") %>% # extract only Coal units 
+  select(camd_plant_id, camd_unit_id, camd_fuel_type, eia_plant_id, eia_generator_id, eia_fuel_type, eia_unit_type)
+
+# identify coal fuels in CAMD use crosswalk to identify primary fuel type  
+coal_fuel_type_update <- 
+  xwalk_eia_epa %>% 
+  left_join(camd_2, by = c("camd_plant_id" = "plant_id", "camd_unit_id" = "unit_id", "eia_unit_type" = "prime_mover")) %>%  # use power sector crosswalk to update energy source 1 in EIA-860 
+  inner_join(eia_860$combined, by = c("eia_plant_id" = "plant_id", "eia_generator_id" = "generator_id", "eia_unit_type" = "prime_mover")) %>% 
+  mutate(energy_source_1 = eia_fuel_type) %>% 
+  select(plant_id = camd_plant_id, 
+         unit_id = camd_unit_id, 
+         prime_mover = eia_unit_type, 
+         energy_source_1) %>%
+  drop_na() %>% distinct() %>% group_by(plant_id, unit_id) %>% filter(!n() > 1) # only include units with 1 fuel type listed
+
+# some plants have both biomass and coal units, and biomass fuel types may have highest fuel consumption
+# for CAMD identified coal units, we want to default to Coal fuel types for the primary fuel type assignment
+biomass_units <- 
+  read_csv("data/static_tables/biomass_units_to_add_to_unit_file.csv")  
+
+coal_biomass_plants <- 
+  camd_2 %>% filter(primary_fuel_type == "Coal" & plant_id %in% biomass_units$plant_code) %>% 
+  left_join(eia_923$generation_and_fuel_combined %>%  # joining generation and fuel file, based on max fuel consumption by plant
+              select(plant_id, prime_mover, fuel_type, total_fuel_consumption_mmbtu) %>%
+              filter(fuel_type %in% c("ANT", "BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG")) %>% 
+              group_by(plant_id, prime_mover) %>%
+              slice_max(total_fuel_consumption_mmbtu, n = 1, with_ties = FALSE) %>% # identify fuel type associate with max fuel consumption by plant
+              select(plant_id, prime_mover, fuel_type),
+            by = c("plant_id", "prime_mover")) %>% 
+  mutate(primary_fuel_type = fuel_type) %>%  # filling missing primary_fuel_types with 923 value
+  select(plant_id, unit_id, primary_fuel_type) 
+
+#### Update all primary fuels --------  
 
 # Updating fuel types to EIA codes for oil, other solid fuel, and coal 
 # When there is match in EIA-860, we take the EIA-860 fuel code. For non-matches, we check EIA-923 Gen and Fuel file
@@ -120,11 +164,13 @@ camd_2 <-
 # There are some left over, resulting from a) `UNIT ID` and GENID not matching and b) 0 fuel consumption values in the EIA-923 Gen and Fuel file.
 # These cases may require individual updates once identified.
 
+# update CAMD with primary fuel types by matching EIA fuel codes or using EIA data  
 camd_3 <-
   camd_2 %>%
   left_join(eia_860$combined %>% # joining with 860_combined to get EIA primary fuel codes
-              distinct(plant_id, plant_name, generator_id, energy_source_1),
-            by = c("plant_id", "plant_name", "unit_id" = "generator_id")) %>% 
+              distinct(plant_id, generator_id, energy_source_1), 
+            by = c("plant_id", "unit_id" = "generator_id")) %>% 
+  rows_patch(coal_fuel_type_update, by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% # update Coal energy sources
   mutate(primary_fuel_type = case_when(
     primary_fuel_type %in% c("Other Oil", "Other Solid Fuel", "Coal") ~ energy_source_1,
     primary_fuel_type == "Diesel Oil" ~ "DFO",
@@ -137,7 +183,8 @@ camd_3 <-
     primary_fuel_type == "Tire Derived Fuel" ~ "TDF",
     primary_fuel_type == "Coal Refuse" ~ "WC",
     primary_fuel_type == "Wood" ~ "WDS",
-    TRUE ~ NA_character_ )) %>% 
+    TRUE ~ NA_character_)) %>% 
+  rows_update(coal_biomass_plants, by = c("plant_id", "unit_id"), unmatched = "ignore") %>% # update Coal units from plants that also have biomass units
   left_join(eia_923$generation_and_fuel_combined %>%  # joining generation and fuel file, based on max fuel consumption by plant
               select(plant_id, prime_mover, fuel_type, total_fuel_consumption_mmbtu) %>%
               group_by(plant_id, prime_mover) %>%
@@ -145,7 +192,7 @@ camd_3 <-
               select(plant_id, prime_mover, fuel_type),
             by = c("plant_id", "prime_mover")) %>% 
   mutate(primary_fuel_type = if_else(is.na(primary_fuel_type), fuel_type, primary_fuel_type)) %>%  # filling missing primary_fuel_types with 923 value
-  select(-fuel_type)
+  select(-fuel_type) 
 
 
 # These units require manual updates 
@@ -260,7 +307,7 @@ eia_fuel_consum_pm <- # summing fuel and consum to pm level
          unit_heat_oz = rowSums(pick(all_of(heat_923_oz_months)), na.rm = TRUE),
          unit_consum_nonoz = rowSums(pick(all_of(consum_923_nonoz_months)), na.rm = TRUE),
          unit_consum_oz = rowSums(pick(all_of(consum_923_oz_months)), na.rm = TRUE)) %>%
-  group_by(plant_id, prime_mover) %>%
+  group_by(plant_id, prime_mover) %>% 
   summarize(heat_input_nonoz_923 = sum(unit_heat_nonoz, na.rm = TRUE),
             heat_input_oz_923 = sum(unit_heat_oz, na.rm = TRUE),
             heat_input_ann_923 = sum(total_fuel_consumption_mmbtu, na.rm = TRUE), # consumption in mmbtus is referred to as "heat input"
@@ -273,32 +320,38 @@ eia_fuel_consum_pm <- # summing fuel and consum to pm level
 camd_oz_reporters_dist <- 
   camd_oz_reporters %>%
   group_by(plant_id, prime_mover) %>% 
-  mutate(tot_heat_input = sum(heat_input, na.rm = TRUE)) %>%
   left_join(eia_fuel_consum_pm, 
             by = c("plant_id", "prime_mover")) %>% 
   mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% # sum to plant/pm/ for distributional proportion 
-  filter(!any(reporting_frequency == "Q")) %>% # Remove any plants with annual reporters
-  mutate(prop = heat_input_oz / sum_heat_input_oz) %>%  # determining distributional proportion
   ungroup() %>% 
-  mutate(heat_input_nonoz = heat_input_nonoz_923 * prop, # distributing nonoz 
-         heat_input = heat_input_oz + heat_input_nonoz, # annual heat input =   distributed non-oz heat + ozone heat
+  group_by(plant_id) %>% 
+  filter(!any(reporting_frequency == "Q")) %>% # Remove any plants with annual reporters
+  ungroup() %>% 
+  mutate(prop = heat_input_oz / sum_heat_input_oz,
+         heat_input_nonoz = heat_input_nonoz_923 * prop, # distributing nonoz 
+         heat_input = heat_input_oz + heat_input_nonoz, # annual heat input = distributed non-oz heat + ozone heat
          heat_input_source = if_else(is.na(heat_input), "EPA/CAMD", "EIA non-ozone season distributed and EPA/CAMD ozone season"))
 
 # distributing heat input from plants with both annual and ozone reporting units
 camd_q_oz_reporters_dist <- 
   camd_oz_reporters %>% 
-  group_by(plant_id, prime_mover) %>% 
+  group_by(plant_id) %>% 
   filter(any(reporting_frequency == "Q")) %>% # selecting plants that have both annual and ozone reporting units
-  mutate(tot_heat_input = sum(heat_input, na.rm = TRUE)) %>%
+  ungroup() %>% 
+  group_by(plant_id, unit_id, prime_mover, botfirty) %>% 
+  mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  group_by(plant_id, prime_mover) %>% 
   left_join(eia_fuel_consum_pm, 
             by = c("plant_id", "prime_mover")) %>% 
-  mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% 
+  mutate(tot_heat_input = sum(heat_input, na.rm = TRUE),
+         sum_heat_input_oz_pm = sum(heat_input_oz, na.rm = TRUE)) %>% 
   ungroup() %>% 
   filter(reporting_frequency == "OS") %>% # select only ozone reporting units 
   mutate(annual_heat_diff = heat_input_ann_923 - tot_heat_input, # calculating annual heat difference 
          annual_heat_diff_wout_oz = annual_heat_diff - heat_input_oz_923) %>% # calculating difference - ozone month totals to get the leftover nonozone heat input
   filter(annual_heat_diff_wout_oz > 0) %>%  # annual heat difference without ozone must be positive to have heat input to distribute
-  mutate(prop = heat_input_oz / sum_heat_input_oz, # calculate proportion of heat input for each unit
+  mutate(prop = sum_heat_input_oz / sum_heat_input_oz_pm, # calculate proportion of heat input for each unit
          heat_input_nonoz = annual_heat_diff_wout_oz * prop, # calculate non-ozone heat input 
          heat_input = heat_input_nonoz + heat_input_oz, # calculate total heat input
          heat_input_source = if_else(is.na(heat_input), "EPA/CAMD", "EIA non-ozone season distributed and EPA/CAMD ozone season")) 
@@ -412,6 +465,7 @@ eia_923_boilers <-
 eia_923_boilers_grouped <- 
   eia_923_boilers %>% 
   group_by(plant_id,
+           boiler_id, 
            prime_mover,
            fuel_type) %>% 
   mutate(heat_input = sum(heat_input),
@@ -427,12 +481,12 @@ eia_923_boilers_heat <-
 
 primary_fuel_types_923_boilers <-  # this will be joined with final dataframe of boilers to be added 
   eia_923_boilers_grouped %>% 
-  group_by(plant_id, boiler_id) %>%
-  slice_max(total_fuel_consumption_quantity, # identifying row with highest heat input to get primary_fuel_type
+  group_by(plant_id, boiler_id) %>% 
+  slice_max(heat_input, # identifying row with highest heat input to get primary_fuel_type
             n = 1, 
             with_ties = FALSE) %>% # only retain first row
   select(plant_id, 
-         boiler_id,
+         boiler_id, 
          "primary_fuel_type" = fuel_type) %>% 
   ungroup()
 
@@ -501,6 +555,7 @@ eia_860_generators_to_add <-
          plant_name,
          plant_state, 
          generator_id, 
+         nameplate_capacity,
          prime_mover,
          "operating_status" = status,
          "primary_fuel_type" = energy_source_1)
@@ -510,26 +565,28 @@ eia_860_generators_to_add <-
 
 gen_fuel_types_to_update <- 
   eia_923$generation_and_fuel_combined %>% 
-  group_by(plant_id) %>% 
+  group_by(plant_id, prime_mover) %>% 
   slice_max(n = 1, total_fuel_consumption_quantity) %>% # identifying primary fuel
   ungroup() %>%
   filter(total_fuel_consumption_quantity != 0, # where max fuel isn't 0
          !is.na(total_fuel_consumption_quantity)) %>% 
-  select(plant_id, total_fuel_consumption_quantity, fuel_type) %>% 
+  select(plant_id, prime_mover, total_fuel_consumption_quantity, fuel_type) %>% 
   inner_join(
     (eia_860_generators_to_add %>% # finding primary fuels in 860
        select(plant_id,
               generator_id,
+              prime_mover,
               fuel_type_860 = primary_fuel_type) %>%
        group_by(plant_id) %>% 
        mutate(n_gens = n()) %>% 
        filter(n_gens == 1)), # only for plants with 1 generator
-    by = "plant_id") %>% 
+    by = c("plant_id", "prime_mover")) %>% 
   mutate(diffs = if_else(fuel_type != fuel_type_860, TRUE, FALSE)) %>%  # identifying discrepancies
   filter(diffs == TRUE) %>% 
-  mutate(primary_fuel_type = fuel_type_860) %>% # use EIA-860 fuel type for differences
+  mutate(primary_fuel_type = fuel_type) %>% # use EIA-923 fuel type for differences
   select(plant_id, 
-         generator_id, 
+         generator_id,
+         prime_mover,
          primary_fuel_type)
 
 # update primary fuel types 
@@ -553,6 +610,8 @@ nuc_geo_gens_to_add <-
   mutate(heat_input = total_fuel_consumption_mmbtu,
          heat_input_oz = rowSums(pick(all_of(heat_923_oz_months)), na.rm = TRUE)) %>% 
   select(plant_id,
+         plant_name, 
+         plant_state,
          generator_id,
          prime_mover,
          primary_fuel_type = energy_source_1,
@@ -572,7 +631,7 @@ eia_860_generators_to_add_3 <-
 ### Note: check for updates or changes each data year ###
 
 biomass_units <- 
-  read_csv("data/static_tables/biomass_units_to_add_to_unit_file.csv") %>%
+  biomass_units %>% # this CSV is read in while updating coal fuel types
   rename("primary_fuel_type" = fuel_type, 
          "plant_id" = plant_code) %>% 
   mutate(plant_id = as.character(plant_id))
@@ -611,7 +670,7 @@ all_units_2 <-
 
 units_missing_heat <- # creating separate dataframe of units with missing heat input to update
   all_units_2 %>% 
-  filter(is.na(heat_input))
+  filter(is.na(heat_input)) 
 
 print(glue::glue("{nrow(units_missing_heat)} units with missing heat inputs to update."))
 
@@ -621,20 +680,19 @@ print(glue::glue("{nrow(units_missing_heat)} units with missing heat inputs to u
 # calculating ratio from generator file based on nameplate capacity to distribute heat
 
 gen_file <- # load generator file
-  read_rds("data/outputs/generator_file.RDS")
+  read_rds("data/outputs/generator_file.RDS") 
 
-
-dist_props_923 <- # determining distributional proportions to distribute heat inputs
+dist_props <- # determining distributional proportions to distribute heat inputs
   gen_file %>% 
-  select(plant_id, prime_mover, generator_id, nameplate_capacity) %>%
+  select(plant_id, generator_id, prime_mover, nameplate_capacity) %>%
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_namecap = sum(nameplate_capacity)) %>%
   ungroup() %>% 
-  mutate(prop = nameplate_capacity / sum_namecap) %>% # ? There is an if_else statement here about missing nameplate capacity involing 860--notsure why that file is invovled
-  select(plant_id, prime_mover, generator_id, prop)
+  mutate(prop = nameplate_capacity / sum_namecap) %>% 
+  select(plant_id, prime_mover, generator_id, prop) 
 
 distributed_heat_input <- # determining distributional heat input via proportion of nameplate capacity
-  dist_props_923 %>% 
+  dist_props %>% 
   left_join(eia_fuel_consum_pm %>% select(plant_id, prime_mover, heat_input_ann_923, heat_input_oz_923)) %>% 
   mutate(heat_input = prop * heat_input_ann_923,
          heat_input_oz = prop * heat_input_oz_923) %>% 
@@ -649,7 +707,7 @@ distributed_heat_input <- # determining distributional heat input via proportion
 
 units_heat_updated_pm_data <- # dataframe with units having heat input updated by 923 gen and fuel file
   units_missing_heat %>% 
-  rows_update(y = distributed_heat_input %>% rename("unit_id" = generator_id, -prime_mover), # updating heat input and source columns where available
+  rows_update(distributed_heat_input %>% rename("unit_id" = generator_id, -prime_mover), # updating heat input and source columns where available
               by = c("plant_id", "unit_id"),
               unmatched = "ignore") %>% # ignore rows in distributed_heat_input that aren't in units_missing_heat
   filter(!is.na(heat_input)) %>% 
@@ -713,7 +771,7 @@ boiler_dist_props <-  # determining distributional proportions for EIA-923 boile
          prop = total_fuel_consumption_quantity / sum_totfuel) %>% 
   select(plant_id, prime_mover, boiler_id, prop)
 
-heat_differences <- # calculating prime mover-level heat differences between units included in unit file and EIA-923 gen&fuel file
+heat_differences <- # calculating prime mover-level heat differences between units included in unit file and EIA-923 Gen & Fuel file
   all_units_2 %>% 
   rows_update(units_heat_updated_pm_data, by = c("plant_id", "unit_id")) %>% 
   rows_update(units_heat_updated_boiler_matches, by = c("plant_id", "unit_id")) %>% 
@@ -725,7 +783,6 @@ heat_differences <- # calculating prime mover-level heat differences between uni
   filter(heat_diff > 0) %>% # keeping only differences where 923 values are greater than boiler values
   select(plant_id, prime_mover, ends_with("diff"))
 
-
 units_heat_updated_boiler_distributed <- # distributing heat input via proportion to units that do not yet have heat input values
   units_missing_heat_3 %>% 
   select(plant_id, unit_id) %>%
@@ -736,8 +793,8 @@ units_heat_updated_boiler_distributed <- # distributing heat input via proportio
   filter(!is.na(heat_diff)) %>% 
   mutate(heat_input = heat_diff * prop,
          heat_input_oz = heat_oz_diff * prop,
-         heat_input_source = "EIA Prime Mover-level data",
-         heat_input_oz_source = "EIA Prime Mover-level data") %>%
+         heat_input_source = "EIA Prime Mover-level Data",
+         heat_input_oz_source = "EIA Prime Mover-level Data") %>%
   select(plant_id, 
          unit_id, 
          starts_with("heat_input"),
