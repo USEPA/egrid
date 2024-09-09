@@ -657,7 +657,12 @@ all_units_2 <-
 
 units_missing_heat <- # creating separate dataframe of units with missing heat input to update
   all_units_2 %>% 
-  filter(is.na(heat_input)) 
+  filter(is.na(heat_input)) %>% 
+  mutate(id = paste0(plant_id, "_", unit_id))
+
+units_missing_heat_w_heat_oz <- # some units have positive ozone heat inputs (heat_input_oz) - identify them here
+  units_missing_heat %>% 
+  filter(!is.na(heat_input_oz)) %>% pull(id)
 
 print(glue::glue("{nrow(units_missing_heat)} units with missing heat inputs to update."))
 
@@ -691,15 +696,14 @@ distributed_heat_input <- # determining distributional heat input via proportion
   filter(!is.na(heat_input), # keeping only heat inputs that aren't missing or aren't 0
          heat_input != 0) 
   
-
 units_heat_updated_pm_data <- # dataframe with units having heat input updated by 923 gen and fuel file
   units_missing_heat %>% 
-  rows_update(distributed_heat_input %>% rename("unit_id" = generator_id, -prime_mover), # updating heat input and source columns where available
+  rows_patch(distributed_heat_input %>% rename("unit_id" = generator_id, -prime_mover), # updating heat input and source columns where available
               by = c("plant_id", "unit_id"),
               unmatched = "ignore") %>% # ignore rows in distributed_heat_input that aren't in units_missing_heat
   filter(!is.na(heat_input)) %>% 
-  mutate(heat_input_source = "EIA Prime Mover-level Data",
-         heat_input_oz_source = "EIA Prime Mover-level Data") 
+  mutate(heat_input_source = "EIA Prime Mover-level Data", 
+         heat_input_oz_source = if_else(id %in% units_missing_heat_w_heat_oz, heat_input_oz_source, "EIA Prime Mover-level Data")) # only update source for NA ozone heat input values
 
 print(glue::glue("{nrow(units_heat_updated_pm_data)} units updated with EIA Prime Mover-level Data. {nrow(units_missing_heat) - nrow(units_heat_updated_pm_data)} with missing heat input remain."))
 
@@ -772,16 +776,16 @@ heat_differences <- # calculating prime mover-level heat differences between uni
 
 units_heat_updated_boiler_distributed <- # distributing heat input via proportion to units that do not yet have heat input values
   units_missing_heat_3 %>% 
-  select(plant_id, unit_id) %>%
+  select(plant_id, unit_id, starts_with("heat_input")) %>%
   inner_join(boiler_dist_props, # now joining missing heat units with boiler dist group to keep boilers where we have a distributional proportion
             by = c("plant_id", "unit_id" = "boiler_id")) %>% 
   filter(!is.na(prop)) %>%
   left_join(heat_differences) %>%
   filter(!is.na(heat_diff)) %>% 
   mutate(heat_input = heat_diff * prop,
-         heat_input_oz = heat_oz_diff * prop,
+         heat_input_oz = if_else(!is.na(heat_input_oz), heat_input_oz, heat_oz_diff * prop), # keep ozone heat inputs that already exist
          heat_input_source = "EIA Prime Mover-level Data",
-         heat_input_oz_source = "EIA Prime Mover-level Data") %>%
+         heat_input_oz_source = if_else(!is.na(heat_input_oz_source), heat_input_oz_source, "EIA Prime Mover-level Data")) %>%
   select(plant_id, 
          unit_id, 
          starts_with("heat_input"),
