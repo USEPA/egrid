@@ -468,9 +468,10 @@ eia_923_boilers_heat <-
 primary_fuel_types_923_boilers <-  # this will be joined with final dataframe of boilers to be added 
   eia_923_boilers_grouped %>% 
   group_by(plant_id, boiler_id) %>% 
+  arrange(plant_id, boiler_id, fuel_type) %>% # order primary fuels alphabetically 
   slice_max(heat_input, # identifying row with highest heat input to get primary_fuel_type
             n = 1, 
-            with_ties = FALSE) %>% # only retain first row
+            with_ties = FALSE) %>% # only retain first row, if there are ties, it will take the first fuel alphabetically
   select(plant_id, 
          boiler_id, 
          "primary_fuel_type" = fuel_type) %>% 
