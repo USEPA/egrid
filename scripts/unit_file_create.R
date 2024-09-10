@@ -116,9 +116,10 @@ camd_2 <-
 
 #### Update coal fuel types ---------
 
-# Units identified in CAMD as "Coal" are matched via an EPA / EIA crosswalk
-# Energy_source_1 for Coal units default to EIA-860 
-# Plants with Coal and Biomass units require a manual update to Coal fuel types, ignoring max fuel consumption from Biomass fuel types
+# Units identified in CAMD as "Coal" are updated in this order: 
+    # 1) matched via an EPA / EIA crosswalk and Energy_source_1 assigned for Coal units default to EIA-860 
+    # 2) Coal fuel type with highest fuel consumption in EIA-923 
+    # 3) Plants with Coal and Biomass units require a manual update to Coal fuel types, ignoring max fuel consumption from Biomass fuel types
 
 # Power Sector Data Crosswalk matches units between CAMD and EIA data sets
 # this will be used to help update Coal units in CAMD and assign correct primary fuel type
@@ -128,16 +129,30 @@ xwalk_eia_epa <- read_csv("data/static_tables/xwalk_epa_eia_power_sector.csv") %
   select(camd_plant_id, camd_unit_id, camd_fuel_type, eia_plant_id, eia_generator_id, eia_fuel_type, eia_unit_type)
 
 # identify coal fuels in CAMD use crosswalk to identify primary fuel type  
-coal_fuel_type_update <- 
+coal_xwalk_update <- 
   xwalk_eia_epa %>% 
-  left_join(camd_2, by = c("camd_plant_id" = "plant_id", "camd_unit_id" = "unit_id", "eia_unit_type" = "prime_mover")) %>%  # use power sector crosswalk to update energy source 1 in EIA-860 
-  inner_join(eia_860$combined, by = c("eia_plant_id" = "plant_id", "eia_generator_id" = "generator_id", "eia_unit_type" = "prime_mover")) %>% 
-  mutate(energy_source_1 = eia_fuel_type) %>% 
+  left_join(camd_2, by = c("camd_plant_id" = "plant_id", "camd_unit_id" = "unit_id", "eia_unit_type" = "prime_mover")) %>% 
+  left_join(eia_860$combined, by = c("eia_plant_id" = "plant_id", "eia_generator_id" = "generator_id", "eia_unit_type" = "prime_mover")) %>% 
+  mutate(energy_source_1 = if_else(eia_fuel_type %in% c("ANT", "BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG"), eia_fuel_type, NA_character_)) %>%  # only use EIA fuel type if it is a coal fuel type
   select(plant_id = camd_plant_id, 
          unit_id = camd_unit_id, 
          prime_mover = eia_unit_type, 
-         energy_source_1) %>%
-  drop_na() %>% distinct() %>% group_by(plant_id, unit_id) %>% filter(!n() > 1) # only include units with 1 fuel type listed
+         energy_source_1_coal = energy_source_1) %>%
+  distinct() %>% group_by(plant_id, unit_id) %>% filter(!n() > 1) %>% drop_na() # keep units with only 1 fuel type 
+
+# identify coal fuel types in CAMD and match to primary coal fuel types in EIA-923
+# these coal fuel types will update the primary fuel type for those that do not have an energy_source_1 listed in EIA-860
+coal_fuel_type_923 <- 
+  camd_2 %>% filter(primary_fuel_type == "Coal") %>% 
+  left_join(eia_923$generation_and_fuel_combined %>% # identify Coal units in CAMD and match to EIA-923, and default to highest consumption Coal fuel in EIA-923
+              select(plant_id, prime_mover, fuel_type, total_fuel_consumption_mmbtu) %>%
+              filter(fuel_type %in% c("ANT", "BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG")) %>% 
+              group_by(plant_id, prime_mover) %>%
+              slice_max(total_fuel_consumption_mmbtu, n = 1, with_ties = FALSE) %>% # identify fuel type associate with max fuel consumption by plant
+              select(plant_id, prime_mover, fuel_type),
+            by = c("plant_id", "prime_mover")) %>% 
+  mutate(primary_fuel_type = fuel_type) %>% 
+  select(-fuel_type) %>% distinct()
 
 # some plants have both biomass and coal units, and biomass fuel types may have highest fuel consumption
 # for CAMD identified coal units, we want to default to Coal fuel types for the primary fuel type assignment
@@ -170,7 +185,11 @@ camd_3 <-
   left_join(eia_860$combined %>% # joining with 860_combined to get EIA primary fuel codes
               distinct(plant_id, generator_id, energy_source_1), 
             by = c("plant_id", "unit_id" = "generator_id")) %>% 
-  rows_patch(coal_fuel_type_update, by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% # update Coal energy sources
+  left_join(coal_xwalk_update, by = c("plant_id", "unit_id", "prime_mover")) %>% # update Coal energy sources if energy_source_1 is NA or energy_source_1 is not a Coal fuel type for Coal CAMD units
+  mutate(energy_source_1 = if_else(primary_fuel_type == "Coal" &
+                                   (is.na(energy_source_1) | 
+                                   !energy_source_1 %in% c("ANT", "BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG")), 
+                                   energy_source_1_coal, energy_source_1)) %>% 
   mutate(primary_fuel_type = case_when(
     primary_fuel_type %in% c("Other Oil", "Other Solid Fuel", "Coal") ~ energy_source_1,
     primary_fuel_type == "Diesel Oil" ~ "DFO",
@@ -184,6 +203,7 @@ camd_3 <-
     primary_fuel_type == "Coal Refuse" ~ "WC",
     primary_fuel_type == "Wood" ~ "WDS",
     TRUE ~ NA_character_)) %>% 
+  rows_patch(coal_fuel_type_923, by = c("plant_id", "unit_id"), unmatched = "ignore") %>% # update Coal units from Coal fuel type with highest consumption in EIA-923
   rows_update(coal_biomass_plants, by = c("plant_id", "unit_id"), unmatched = "ignore") %>% # update Coal units from plants that also have biomass units
   left_join(eia_923$generation_and_fuel_combined %>%  # joining generation and fuel file, based on max fuel consumption by plant
               select(plant_id, prime_mover, fuel_type, total_fuel_consumption_mmbtu) %>%
@@ -469,7 +489,7 @@ primary_fuel_types_923_boilers <-  # this will be joined with final dataframe of
   eia_923_boilers_grouped %>% 
   group_by(plant_id, boiler_id) %>% 
   arrange(plant_id, boiler_id, fuel_type) %>% # order primary fuels alphabetically 
-  slice_max(heat_input, # identifying row with highest heat input to get primary_fuel_type
+  slice_max(if_else(!is.na(heat_input), heat_input, total_fuel_consumption_quantity), # identifying row with highest heat input to get primary_fuel_type
             n = 1, 
             with_ties = FALSE) %>% # only retain first row, if there are ties, it will take the first fuel alphabetically
   select(plant_id, 
@@ -545,7 +565,8 @@ eia_860_generators_to_add <-
          nameplate_capacity,
          prime_mover,
          "operating_status" = status,
-         "primary_fuel_type" = energy_source_1)
+         "primary_fuel_type" = energy_source_1, 
+         id)
 
 
 ### Update fuel types where mismatch between EIA sources -----
@@ -563,10 +584,12 @@ gen_fuel_types_to_update <-
        select(plant_id,
               generator_id,
               prime_mover,
-              fuel_type_860 = primary_fuel_type) %>%
+              fuel_type_860 = primary_fuel_type, 
+              id) %>%
        group_by(plant_id) %>% 
        mutate(n_gens = n()) %>% 
-       filter(n_gens == 1)), # only for plants with 1 generator
+       filter(n_gens == 1, # only for plants with 1 generator
+              !id %in% renewable_ids)), # exclude renewable generators
     by = c("plant_id", "prime_mover")) %>% 
   mutate(diffs = if_else(fuel_type != fuel_type_860, TRUE, FALSE)) %>%  # identifying discrepancies
   filter(diffs == TRUE) %>% 
@@ -821,7 +844,7 @@ all_units_3 <-
 so2_controls_860 <- # creating DF of so2_controls to update where available
   eia_860$emissions_control_equipment %>% 
   filter(status == "OP") %>%
-  select(plant_id, so2_control_id, equipment_type) %>% 
+  select(plant_id, so2_control_id, equipment_type) %>% distinct() %>% # delete any duplicates
   inner_join(eia_860$boiler_so2 %>% select(plant_id, boiler_id, so2_control_id)) %>%  # adding matching boiler ids for so2
   group_by(plant_id, boiler_id) %>% 
   mutate(so2_controls = paste(equipment_type, collapse =  ", ")) %>% 
@@ -831,7 +854,7 @@ so2_controls_860 <- # creating DF of so2_controls to update where available
 nox_controls_860 <- # creating DF of no2_controls to update where available
   eia_860$emissions_control_equipment %>% 
   filter(status == "OP") %>%
-  select(plant_id, nox_control_id, equipment_type) %>% 
+  select(plant_id, nox_control_id, equipment_type) %>% distinct() %>% # delete any duplicates
   inner_join(eia_860$boiler_nox %>% select(plant_id, boiler_id, nox_control_id)) %>%  # adding matching boiler ids for so2
   group_by(plant_id, boiler_id) %>% 
   mutate(nox_controls = paste(equipment_type, collapse =  ", ")) %>% 

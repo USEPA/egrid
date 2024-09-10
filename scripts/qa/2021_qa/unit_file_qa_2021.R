@@ -220,7 +220,6 @@ check_so2_controls <-
   filter(!(so2_controls_r == so2_controls_access)) %>% 
   select(plant_id, unit_id, so2_controls_r, so2_controls_access)
 
-
 if(nrow(check_so2_controls) > 0) {
   write_csv(check_so2_controls, paste0(save_dir, "check_so2_controls.csv")) }
 
