@@ -50,7 +50,7 @@ colnames(unit_r) <- paste0(colnames(unit_r), "_r")
 unit_r <- unit_r %>% rename("plant_id" = "plant_id_r", 
                             "unit_id" = "unit_id_r")
 
-unit_access <- read_excel("archive/access_unit_file_8_26_24.xlsx", sheet = "Unit_File", 
+unit_access <- read_excel("archive/access_unit_file_8_29_24.xlsx", sheet = "Unit_File", 
                                #skip = 1, 
                                guess_max = 4000) %>% janitor::clean_names() %>% 
   rename("sequnt_access" = "sequnt",
@@ -393,7 +393,7 @@ check_so2_unit <-
   filter(!(so2_mass_r == so2_mass_access)) %>% 
   mutate(diff_so2_mass = so2_mass_r - so2_mass_access) %>% 
   filter(diff_so2_mass > 1 | diff_so2_mass < -1) %>% 
-  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, botfirty_r,  
          so2_mass_r, so2_mass_access, diff_so2_mass, 
          so2_source_r, so2_source_access)
 
