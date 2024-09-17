@@ -574,11 +574,11 @@ eia_860_generators_to_add <-
 gen_fuel_types_to_update <- 
   eia_923$generation_and_fuel_combined %>% 
   group_by(plant_id, prime_mover) %>% 
-  slice_max(n = 1, total_fuel_consumption_quantity) %>% # identifying primary fuel
+  slice_max(n = 1, total_fuel_consumption_mmbtu) %>% # identifying primary fuel
   ungroup() %>%
-  filter(total_fuel_consumption_quantity != 0, # where max fuel isn't 0
-         !is.na(total_fuel_consumption_quantity)) %>% 
-  select(plant_id, prime_mover, total_fuel_consumption_quantity, fuel_type) %>% 
+  filter(total_fuel_consumption_mmbtu != 0, # where max fuel isn't 0
+         !is.na(total_fuel_consumption_mmbtu)) %>% 
+  select(plant_id, prime_mover, total_fuel_consumption_mmbtu, fuel_type) %>% 
   inner_join(
     (eia_860_generators_to_add %>% # finding primary fuels in 860
        select(plant_id,
@@ -588,8 +588,7 @@ gen_fuel_types_to_update <-
               id) %>%
        group_by(plant_id) %>% 
        mutate(n_gens = n()) %>% 
-       filter(n_gens == 1)),#, # only for plants with 1 generator
-              #!id %in% renewable_ids)), # exclude renewable generators
+       filter(n_gens == 1)), # only for plants with 1 generator
     by = c("plant_id", "prime_mover")) %>% 
   mutate(diffs = if_else(fuel_type != fuel_type_860, TRUE, FALSE)) %>%  # identifying discrepancies
   filter(diffs == TRUE) %>% 
@@ -1021,16 +1020,12 @@ avg_sulfur_content <-
          total_heat_input = rowSums(pick(starts_with("heat_input")), na.rm = TRUE),
          avg_sulfur_content = if_else(total_fuel_consumption_quantity > 0, # calculating avg sulfur content with condition to ignore if total_fuel_consumption is 0
                                       rowSums(pick(starts_with("sulfur_content")), na.rm = TRUE) / total_fuel_consumption_quantity, 
-                                      rowSums(pick(starts_with("sulfur_content")), na.rm = TRUE) / 1), 
-         botfirty = NA_character_) %>% # create a botfirty column, and fill in with data from all_units_4
-  rows_update(all_units_4 %>% select(plant_id, boiler_id = unit_id, botfirty), by = c("plant_id", "boiler_id"), 
-              unmatched = "ignore") %>% 
+                                      rowSums(pick(starts_with("sulfur_content")), na.rm = TRUE) / 1)) %>% 
   arrange(as.numeric(plant_id)) %>%
   select(plant_id, 
          boiler_id,
          prime_mover,
          fuel_type,
-         botfirty,
          physical_unit_label,
          avg_sulfur_content,
          total_heat_input,
@@ -1053,7 +1048,7 @@ avg_sulfur_content_fuel <- # avg sulfur content grouped by fuel type
 
 estimated_so2_emissions_content <- 
   all_units_4 %>% select(plant_id, unit_id, prime_mover, botfirty, primary_fuel_type) %>% 
-  inner_join(avg_sulfur_content, by = c("plant_id", "unit_id" = "boiler_id", "primary_fuel_type" = "fuel_type", "prime_mover", "botfirty")) %>% # inner join to only include units with sulfur content
+  inner_join(avg_sulfur_content, by = c("plant_id", "unit_id" = "boiler_id", "primary_fuel_type" = "fuel_type", "prime_mover")) %>% # inner join to only include units with sulfur content
   left_join(schedule_8c_so2 %>% 
               select(plant_id, boiler_id, so2_removal_efficiency_rate_at_annual_operating_factor), 
             by = c("plant_id", "unit_id" = "boiler_id")) %>% 
@@ -1061,7 +1056,9 @@ estimated_so2_emissions_content <-
            if_else(is.na(so2_removal_efficiency_rate_at_annual_operating_factor), 0, 
                    so2_removal_efficiency_rate_at_annual_operating_factor)) %>%  
   left_join(emission_factors %>%
-              select(prime_mover, botfirty, so2_ef, so2_flag, unit_flag, primary_fuel_type),
+              select(prime_mover, botfirty, so2_ef, so2_flag, unit_flag, primary_fuel_type) %>% 
+              mutate(botfirty = if_else(botfirty %in% c("null", "N/A"), NA_character_, botfirty)) %>% # fill null or N/A botfirty with NA
+                       distinct(), 
             by = c("prime_mover", "botfirty", "primary_fuel_type")) %>%
   mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1), # if so2_flag is not S, change avg_sulfur_content to 1
          so2_mass = if_else(unit_flag == "PhysicalUnits", 
@@ -1078,40 +1075,43 @@ estimated_so2_emissions_content <-
   select(-n)
 
   
-  # determine SO2 mass for PR coal plant 
-  ### Note: check for updates or changes each data year ###
-  
-  so2_pr <- # calculate average sulfur content and removal rate given BIT fuel type 
-    avg_sulfur_content %>% 
-    left_join(schedule_8c_so2 %>% 
-                select(plant_id, boiler_id, so2_removal_efficiency_rate_at_annual_operating_factor), 
-              by = c("plant_id", "boiler_id")) %>% 
-    filter(fuel_type == "BIT", prime_mover == "ST", botfirty == "FLUIDIZED") %>% 
-    group_by(fuel_type, prime_mover, botfirty) %>% 
-    summarize(avg_sulfur_content = mean(avg_sulfur_content, na.rm = TRUE), 
-              so2_removal_efficiency_rate_at_annual_operating_factor = mean(so2_removal_efficiency_rate_at_annual_operating_factor, na.rm = TRUE)) 
-  
-  estimated_so2_emissions_content_pr <- # estimate SO2 mass for PR coal plant 61082
-    eia_923$generation_and_fuel_combined %>% 
-    filter(plant_id == "61082", fuel_type == "BIT") %>% 
-    select(plant_id, prime_mover, 
-           "primary_fuel_type" = fuel_type, 
-           physical_unit_label, 
-           total_fuel_consumption_quantity, 
-           total_fuel_consumption_mmbtu) %>% 
-    left_join(dist_props) %>% 
-    mutate(total_fuel_consumption_quantity = prop * total_fuel_consumption_quantity, 
-           total_heat_input = prop * total_fuel_consumption_mmbtu) %>%
-    left_join(so2_pr, by = c("primary_fuel_type" = "fuel_type", "prime_mover")) %>% 
-    left_join(emission_factors %>%
-                select(prime_mover, botfirty, so2_ef, so2_flag, unit_flag, primary_fuel_type),
-              by = c("prime_mover", "botfirty", "primary_fuel_type")) %>%
-    mutate(so2_mass = if_else(unit_flag == "PhysicalUnits", 
-                              (so2_ef * avg_sulfur_content * total_fuel_consumption_quantity * (1 - so2_removal_efficiency_rate_at_annual_operating_factor)) / 2000,
-                              (so2_ef * avg_sulfur_content * total_heat_input * (1 - so2_removal_efficiency_rate_at_annual_operating_factor)) / 2000), 
-           so2_source = "Estimated using emissions factor and plant-specific sulfur content") %>% 
-    select(plant_id, unit_id = generator_id, so2_mass, so2_source) 
-  
+# determine SO2 mass for PR coal plant 
+### Note: check for updates or changes each data year ###
+
+so2_pr <- # calculate average sulfur content and removal rate given BIT fuel type 
+  avg_sulfur_content %>% 
+  left_join(schedule_8c_so2 %>% 
+              select(plant_id, boiler_id, so2_removal_efficiency_rate_at_annual_operating_factor), 
+            by = c("plant_id", "boiler_id")) %>% 
+  mutate(botfirty = NA_character_) %>% # create a botfirty column, and fill in with data from all_units_4
+  rows_update(all_units_4 %>% select(plant_id, boiler_id = unit_id, botfirty), by = c("plant_id", "boiler_id"), 
+              unmatched = "ignore") %>% 
+  filter(fuel_type == "BIT", prime_mover == "ST", botfirty == "FLUIDIZED") %>% 
+  group_by(fuel_type, prime_mover, botfirty) %>% 
+  summarize(avg_sulfur_content = mean(avg_sulfur_content, na.rm = TRUE), 
+            so2_removal_efficiency_rate_at_annual_operating_factor = mean(so2_removal_efficiency_rate_at_annual_operating_factor, na.rm = TRUE)) 
+
+estimated_so2_emissions_content_pr <- # estimate SO2 mass for PR coal plant 61082
+  eia_923$generation_and_fuel_combined %>% 
+  filter(plant_id == "61082", fuel_type == "BIT") %>% 
+  select(plant_id, prime_mover, 
+         "primary_fuel_type" = fuel_type, 
+         physical_unit_label, 
+         total_fuel_consumption_quantity, 
+         total_fuel_consumption_mmbtu) %>% 
+  left_join(dist_props) %>% 
+  mutate(total_fuel_consumption_quantity = prop * total_fuel_consumption_quantity, 
+         total_heat_input = prop * total_fuel_consumption_mmbtu) %>%
+  left_join(so2_pr, by = c("primary_fuel_type" = "fuel_type", "prime_mover")) %>% 
+  left_join(emission_factors %>%
+              select(prime_mover, botfirty, so2_ef, so2_flag, unit_flag, primary_fuel_type),
+            by = c("prime_mover", "botfirty", "primary_fuel_type")) %>%
+  mutate(so2_mass = if_else(unit_flag == "PhysicalUnits", 
+                            (so2_ef * avg_sulfur_content * total_fuel_consumption_quantity * (1 - so2_removal_efficiency_rate_at_annual_operating_factor)) / 2000,
+                            (so2_ef * avg_sulfur_content * total_heat_input * (1 - so2_removal_efficiency_rate_at_annual_operating_factor)) / 2000), 
+         so2_source = "Estimated using emissions factor and plant-specific sulfur content") %>% 
+  select(plant_id, unit_id = generator_id, so2_mass, so2_source) 
+
 ### Join sulfur emissions to all units df  --------
 
 all_units_5 <- 
@@ -1143,11 +1143,12 @@ eia_fuel_consum_fuel_type <- # summing fuel and consum to PM fuel_type level
 
 units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emissions with distributed heat input and fuel consumption
   all_units_5 %>% 
-  group_by(plant_id, prime_mover, primary_fuel_type, botfirty) %>% 
+  group_by(plant_id, plant_state, prime_mover, primary_fuel_type, botfirty) %>% 
   mutate(total_heat_input = sum(heat_input, na.rm = TRUE)) %>% 
   ungroup() %>% 
   mutate(prop = heat_input / total_heat_input) %>% 
   select(plant_id, 
+         plant_state,
          prime_mover, 
          unit_id, 
          primary_fuel_type,
@@ -1214,7 +1215,7 @@ emission_factors_so2_heat <- emission_factors %>%
 
 so2_emissions_pu_coal <-
   units_estimated_fuel %>% 
-  left_join(default_sulfur_content_coal, # renaming for consistent naming
+  left_join(default_sulfur_content_coal, 
             by = c("plant_state",
                    "primary_fuel_type" = "fuel_type")) %>% 
   left_join(emission_factors_so2_pu %>% 
@@ -1236,7 +1237,7 @@ so2_emissions_pu_coal <-
 
 so2_emissions_pu_noncoal <- 
   units_estimated_fuel %>% 
-  left_join(avg_sulfur_content_fuel %>% select(fuel_type, avg_sulfur_content), # renaming for consistent naming
+  left_join(avg_sulfur_content_fuel %>% select(fuel_type, avg_sulfur_content), 
             by = c("primary_fuel_type" = "fuel_type")) %>% 
   left_join(emission_factors_so2_pu %>% 
               select(prime_mover, primary_fuel_type, botfirty, so2_ef, so2_flag, unit_flag), 
