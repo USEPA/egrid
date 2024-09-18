@@ -50,7 +50,7 @@ colnames(unit_r) <- paste0(colnames(unit_r), "_r")
 unit_r <- unit_r %>% rename("plant_id" = "plant_id_r", 
                             "unit_id" = "unit_id_r")
 
-unit_access <- read_excel("archive/access_unit_file_8_29_24.xlsx", sheet = "Unit_File", 
+unit_access <- read_excel("archive/access_unit_file.xlsx", sheet = "Unit_File", 
                                #skip = 1, 
                                guess_max = 4000) %>% janitor::clean_names() %>% 
   rename("sequnt_access" = "sequnt",
@@ -336,7 +336,7 @@ check_nox_ann_unit <-
   mutate(diff_nox_mass = nox_mass_r - nox_mass_access) %>% 
   filter(diff_nox_mass > 1 | diff_nox_mass < -1) %>% 
   select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
-         nox_mass_r, nox_mass_access, nox_source_r, nox_source_access)
+         nox_mass_r, nox_mass_access, diff_nox_mass, nox_source_r, nox_source_access)
 
 if(nrow(check_nox_ann_unit) > 0) {
   write_csv(check_nox_ann_unit, paste0(save_dir, "check_nox_ann_unit.csv")) }
@@ -348,7 +348,7 @@ check_nox_oz_unit <-
   mutate(diff_nox_oz_mass = nox_oz_mass_r - nox_oz_mass_access) %>% 
   filter(diff_nox_oz_mass > 1 | diff_nox_oz_mass < -1) %>% 
   select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
-         nox_oz_mass_r, nox_oz_mass_access, nox_oz_source_r, nox_oz_source_access)
+         nox_oz_mass_r, nox_oz_mass_access, diff_nox_oz_mass, nox_oz_source_r, nox_oz_source_access)
 
 if(nrow(check_nox_oz_unit) > 0) {
   write_csv(check_nox_oz_unit, paste0(save_dir, "check_nox_oz_unit.csv")) }

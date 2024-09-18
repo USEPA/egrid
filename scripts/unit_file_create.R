@@ -1225,7 +1225,7 @@ so2_emissions_pu_coal <-
                    "primary_fuel_type")) %>%
   mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
          so2_mass = if_else(unit_flag == "PhysicalUnits",
-                            so2_ef * avg_sulfur_content * fuel_consumption, 0)) %>% 
+                            so2_ef * avg_sulfur_content * fuel_consumption / 2000, 0)) %>% 
   select(plant_id,
          unit_id,
          so2_mass) %>% 
@@ -1246,7 +1246,7 @@ so2_emissions_pu_noncoal <-
                    "primary_fuel_type")) %>%
   mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
          so2_mass = if_else(unit_flag == "PhysicalUnits",
-                            so2_ef * avg_sulfur_content * fuel_consumption, 0)) %>% 
+                            so2_ef * avg_sulfur_content * fuel_consumption / 2000, 0)) %>% 
   select(plant_id,
          unit_id,
          so2_mass) %>% 
