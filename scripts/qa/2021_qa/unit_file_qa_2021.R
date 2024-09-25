@@ -336,6 +336,7 @@ check_nox_ann_unit <-
   mutate(diff_nox_mass = nox_mass_r - nox_mass_access) %>% 
   filter(diff_nox_mass > 1 | diff_nox_mass < -1) %>% 
   select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+         prime_mover_r, prime_mover_access, 
          nox_mass_r, nox_mass_access, diff_nox_mass, nox_source_r, nox_source_access)
 
 if(nrow(check_nox_ann_unit) > 0) {
@@ -348,6 +349,7 @@ check_nox_oz_unit <-
   mutate(diff_nox_oz_mass = nox_oz_mass_r - nox_oz_mass_access) %>% 
   filter(diff_nox_oz_mass > 1 | diff_nox_oz_mass < -1) %>% 
   select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+         prime_mover_r, prime_mover_access,
          nox_oz_mass_r, nox_oz_mass_access, diff_nox_oz_mass, nox_oz_source_r, nox_oz_source_access)
 
 if(nrow(check_nox_oz_unit) > 0) {
@@ -358,7 +360,7 @@ if(nrow(check_nox_oz_unit) > 0) {
 check_nox_ann_source <- 
   unit_comparison %>% 
   filter(!(nox_source_r == nox_source_access)) %>% 
-  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access,
          nox_mass_r, nox_mass_access, nox_source_r, nox_source_access)
 
 if(nrow(check_nox_ann_source) > 0) {
@@ -369,6 +371,7 @@ check_nox_oz_source <-
   unit_comparison %>% 
   filter(!(nox_oz_source_r == nox_oz_source_access)) %>% 
   select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+         prime_mover_r, prime_mover_access, 
          nox_oz_mass_r, nox_oz_mass_access, nox_oz_source_r, nox_oz_source_access)
 
 if(nrow(check_nox_oz_source) > 0) {
@@ -393,7 +396,8 @@ check_so2_unit <-
   filter(!(so2_mass_r == so2_mass_access)) %>% 
   mutate(diff_so2_mass = so2_mass_r - so2_mass_access) %>% 
   filter(diff_so2_mass > 1 | diff_so2_mass < -1) %>% 
-  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, botfirty_r,  
+  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+         prime_mover_r, prime_mover_access, 
          so2_mass_r, so2_mass_access, diff_so2_mass, 
          so2_source_r, so2_source_access)
 
@@ -430,6 +434,7 @@ check_co2_unit <-
   mutate(diff_co2_mass = co2_mass_r - co2_mass_access) %>% 
   filter(diff_co2_mass > 1 | diff_co2_mass < -1) %>% 
   select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+         prime_mover_r, prime_mover_access, 
          co2_mass_r, co2_mass_access, diff_co2_mass, 
          co2_source_r, co2_source_access)
 
