@@ -920,10 +920,11 @@ xwalk_control_ids <- # xwalk to add additional boiler ids
 # EIA-923 does not have Boiler IDs in the Air & Emissions Control Info 
 # We use EIA-860 Boiler data to fill the Boiler IDs
 # Because EIA-823 Air & Emissions Control Info lists rows by unique control technologies, 
-# we have to update the Boiler ID as a 3-step process:
+# we have to update the Boiler ID as a 4-step process:
 #     1) match EIA-860 Boiler data for each emission control type 
 #     2) update boiler ID using a crosswalk between EIA-860 and EIA-923 data 
 #     3) identify where boiler ID is NA, and fill with boiler IDs from each emission control type 
+#     4) fill any remaining NA boiler IDs with the NOx control ID 
 
 schedule_8c <- 
   eia_923$air_emissions_control_info %>%
@@ -1228,7 +1229,8 @@ so2_emissions_pu_coal <-
                    "primary_fuel_type")) %>%
   mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
          so2_mass = if_else(unit_flag == "PhysicalUnits",
-                            so2_ef * avg_sulfur_content * fuel_consumption / 2000, 0)) %>% 
+                            so2_ef * avg_sulfur_content * fuel_consumption / 2000, 
+                            so2_ef * avg_sulfur_content * heat_input / 2000)) %>% 
   select(plant_id,
          unit_id,
          so2_mass) %>% 
@@ -1249,7 +1251,8 @@ so2_emissions_pu_noncoal <-
                    "primary_fuel_type")) %>%
   mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
          so2_mass = if_else(unit_flag == "PhysicalUnits",
-                            so2_ef * avg_sulfur_content * fuel_consumption / 2000, 0)) %>% 
+                            so2_ef * avg_sulfur_content * fuel_consumption / 2000, 
+                            so2_ef * avg_sulfur_content * heat_input / 2000)) %>% 
   select(plant_id,
          unit_id,
          so2_mass) %>% 
@@ -1460,7 +1463,7 @@ nox_emissions_heat_input <-
 
 nox_oz_emissions_heat_input <- 
   nox_emissions_rates %>%
-  left_join(emission_factors_nox_pu %>% ##### CHECK - using physical units with heat input values causes mismatch in unit outputs? #########
+  left_join(emission_factors_nox_hi %>% 
               select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
                    "botfirty",
