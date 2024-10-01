@@ -18,51 +18,21 @@ eia_923 <- read_rds(here("data/clean_data/eia_923_clean.RDS"))
 # note: eia-923 generation and fuel = generation_and_fuel_combined
 
 ## lower-level eGRID files ------------
-
-generator_file <- read_rds(here("data/outputs/generator_file.RDS"))
-#unit_file <- read_rds("data/outputs/unit_file.RDS") # This is where Unit file will be sourced once completed
-
-clean_names <- # renaming column names to match naming conventions used in other files. This can be removed once new unit file is completed
-  c("seq" = "SEQUNT",
-    "year" = "YEAR",
-    "plant_state" = "PSTATABB",
-    "plant_name" = "PNAME",
-    "plant_id" = "ORISPL",
-    "unit_id" = "UNITID",
-    "prime_mover" = "PRMVR",
-    "operating_status" = "UNTOPST",
-    "camd_flag" = "CAMDFLAG",
-    "program_code" = "PRGCODE",
-    "botfirty" = "BOTFIRTY",
-    "n_generators" = "NUMGEN",
-    "primary_fuel_type" = "FUELU1",
-    "operating_hours" = "HRSOP",
-    "heat_input" = "HTIAN",
-    "heat_input_oz" = "HTIOZ",
-    "nox_mass" = "NOXAN",
-    "nox_oz" = "NOXOZ",
-    "so2_mass" = "SO2AN",
-    "co2_mass" = "CO2AN",
-    "hg_mass" = "HGAN",
-    "heat_input_source" = "HTIANSRC",
-    "heat_input_oz_source" = "HTIOZSRC",
-    "nox_source" = "NOXANSRC",
-    "nox_oz_source" = "NOXOZSRC",
-    "so2_source" = "SO2SRC",
-    "co2_source" = "CO2SRC",
-    "hg_source" = "HGSRC",
-    "so2_controls" = "SO2CTLDV",
-    "nox_controls" = "NOXCTLDV",
-    "hg_controls" = "HGCTLDV",
-    "year_online" = "UNTYRONL")
-
+source(here("scripts", "gen_rename.r"))
+#generator_file <- read_rds(here("data/outputs/generator_file.RDS"))
+generator_file <- read_xlsx(here("data/outputs/qa/Gen file 9_25_24.xlsx")) 
+generator_file <- gen_rename(generator_file)
+#generator_file <- generator_file %>%
+  #select("plant_id", "generator_id", ends_with("_access")) %>% 
+#  mutate(seqgen = 1:nrow(generator_file) ) 
+#colnames(generator_file) <- gsub("_access","", colnames(generator_file))
 
 unit_file <- # using unit file from Access production for now
-  read_excel(here("data/raw_data/eGRID_2021.xlsx"), 
-             sheet = "UNT21",
-             skip = 1) %>% 
-  rename(all_of(clean_names)) # rename columns based on named vector above
+  read_xlsx(here("data/outputs/qa/Unit File 9_17_24.xlsx")
+  )
 
+source(here("scripts", "unit_rename.r"))
+unit_file <- unit_rename(unit_file, alt = TRUE)
 library(tidyverse)
 
 # 0. create a file to string concatenate unique values that are not NA ----------

@@ -23,9 +23,10 @@ library(readxl)
 library(stringr)
 
 # set directory for saving files 
-save_dir <- here("data/outputs/qa/plant_file_differences/")
+save_dir <- here("data/outputs/qa/plant_file_differences", Sys.Date(),"")
 # create it if it doesn't already exist
 if(!dir.exists(save_dir)){ dir.create(save_dir,recursive = T)}
+do.call(file.remove, list(dir(save_dir, full.names = TRUE)))
 
 ## 1. R Version --------------
 # load plant file R
@@ -37,33 +38,35 @@ colnames(plant_r) <- paste0(colnames(plant_r), "_r")
 plant_r <- plant_r %>% rename("plant_id" = "plant_id_r")
 
 ## 2. Access Version ---------------------
-excel_sheets("data/raw_data/eGRID_2021.xlsx")
+#excel_sheets("data/raw_data/eGRID_2021.xlsx")
+#excel_sheets("data/outputs/qa/access_unit_file.xlsx")
 
-plant_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "PLNT21", 
-                               skip = 1, 
+plant_access <- read_excel("data/outputs/qa/eGRID2021 Plant file 9_19.xlsx", #sheet = "PLNT21", 
+                               #skip = 1, 
                                guess_max = 4000) %>% janitor::clean_names() %>% 
-  rename("seq_access" = "seqplt", # need to add sequnt to plant_r create script
+  mutate(year = 2021) %>%
+  rename("seq_access" = "sequence_number", # need to add sequnt to plant_r create script
          "year_access" = "year", 
-         "plant_id" = "orispl",
-         "plant_name_access" = "pname", 
-         "plant_state_access" = "pstatabb", 
+         "plant_id" = "plant_code",
+         "plant_name_access" = "plant_name", 
+         "plant_state_access" = "state", 
          #"plant_id" = "plantid", 
-         "system_owner_access" = "oprname",
-         "system_owner_id_access" = "oprcode",
-         "utility_name_access" = "utlsrvnm",
-         "utility_id_access" = "utlsrvid",
+         "system_owner_access" = "transmission_or_distribution_system_owner",
+         "system_owner_id_access" = "transmission_or_distribution_system_owner_id",
+         "utility_name_access" = "utility_name",
+         "utility_id_access" = "utility_id",
          "sector_access" = "sector",
-         "ba_name_access" = "baname",
-         "ba_id_access" = "bacode",
-         "nerc_access" = "nerc",
+         "ba_name_access" = "balancing_authority_name",
+         "ba_id_access" = "balancing_authority_code",
+         "nerc_access" = "nerc_region",
          "nerc_subregion_access" = "subrgn",
          "nerc_subregion_name_access" = "srname",
          "isorto_access" = "isorto",
          "FIPS_state_access" = "fipsst",
          "FIPS_county_access" = "fipscnty",
-         "county_access" = "cntyname",
-         "lat_access" = "lat",
-         "lon_access" = "lon",
+         "county_access" = "county",
+         "lat_access" = "latitude",
+         "lon_access" = "longitude",
          "camd_flag_access" = "camdflag",
          "num_units_access" = "numunt", # REMOVE num_units_op
          "num_gen_access"= "numgen",   # REMOVE num_gen_op
@@ -73,17 +76,17 @@ plant_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "PLNT21",
          #"combust_access"
          "capfac_access" = "capfac",
          "nameplate_capacity_access" = "namepcap",
-         "nonbaseload_access"="nbfactor",
+         "nonbaseload_access"="non_baseload",
          "biomass_adj_flag_access"="rmbmflag",
          "chp_flag_access"="chpflag",
          "uto_access"="usethrmo",
          "power_to_heat_access"="pwrtoht", # figure out difference with power_heat_ratio
          "elec_allocation_access"="elcalloc",
          "ps_flag_access"="psflag",
-         "combust_heat_input_access"="plhtian",
-         "combust_heat_input_oz_access"="plhtioz",
-         "heat_input_access"="plhtiant",
-         "heat_input_oz_access"="plhtiozt",
+         "combust_heat_input_access"="combust_hti",
+         "combust_heat_input_oz_access"="combust_htioz",
+         "heat_input_access"="plhtian",
+         "heat_input_oz_access"="plhtioz",
          "generation_ann_access"="plngenan", # "ann_gen_access" gets created for denominator when creating fuel %
          "generation_oz_access" = "plngenoz",
          "nox_mass_access"="plnoxan",
@@ -125,19 +128,19 @@ plant_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "PLNT21",
          "unadj_ch4_mass_access"="unch4",
          "unadj_n2o_mass_access"="unn2o",
          "unadj_hg_mass_access"="unhg",
-         "unadj_combust_heat_input_access"="unhti",
-         "unadj_combust_heat_input_oz_access"="unhtioz",
-         "unadj_heat_input_access"="unhtit",
-         "unadj_heat_input_oz_access"="unhtiozt",
-         "unadj_nox_source_access"="unnoxsrc",
-         "unadj_nox_oz_source_access"="unnozsrc",
-         "unadj_so2_source_access"="unso2src",
-         "unadj_co2_source_access"="unco2src",
-         "ch4_source_access"="unch4src",
-         "n2o_source_access"="unn2osrc",
-         "unadj_hg_source_access"="unhgsrc",
-         "unadj_heat_input_source_access"="unhtisrc",
-         "unadj_heat_input_oz_source_access"="unhozsrc",
+         "unadj_combust_heat_input_access"="un_combust_hti",
+         "unadj_combust_heat_input_oz_access"="un_combust_htioz",
+         "unadj_heat_input_access"="unhti",
+         "unadj_heat_input_oz_access"="unhtioz",
+         "nox_source_access"="unnox_source",
+         "nox_oz_source_access"="unnoxoz_source",
+         "so2_source_access"="unso2_source",
+         "co2_source_access"="unco2_source",
+         "ch4_source_access"="unch4_source",
+         "n2o_source_access"="unn2o_source",
+         "unadj_hg_source_access"="unhg_source",
+         "heat_input_source_access"="unhti_source",
+         "heat_input_oz_source_access"="unhtioz_source",
          "nox_biomass_access"="bionox",
          "nox_bio_oz_access"="bionoxoz",
          "so2_biomass_access"="bioso2",
@@ -195,19 +198,21 @@ access_cols <- lapply(colnames(plant_access), FUN=gsub, pattern="_access$", repl
 stopifnot(length(access_cols[!access_cols %in% r_cols])==0)
 
 # r contains more columns
-# Difference Note - access does not create source columns that are unadj
-other_cols <- c("ch4_source", "n2o_source", "nox_source", "nox_oz_source", "co2_source", "so2_source",
-                "heat_input_source" , "heat_input_oz_source")
-
+# Difference Note - access labels the adjusted values as unadjusted and does not keep the true unadjusted values
+# we assign 
+other_cols <- c("unadj_nox_source", "unadj_nox_oz_source", "unadj_co2_source", "unadj_so2_source",
+                "unadj_heat_input_source" , "unadj_heat_input_oz_source")
+# missing n2o and ch4 since those come from EIA adjustment factors not the unit file
 # Additional variables in R 
-other_cols <- c(other_cols, "ann_gen") # used as denominator of perc_ann_gen columns
-other_cols <- c(other_cols, "ch4_ef", "n2o_ef") # retains emissions factor - Remove in plant_file_create
+other_cols <- c(other_cols, "ann_gen") # used as denominator of perc_ann_gen columns - weird rounding 
+# other_cols <- c(other_cols, "ch4_ef", "n2o_ef") # removed from plant file
 other_cols <- c(other_cols, "fuel_code")  # fuel code - ??
 other_cols <- c(other_cols, "combust_flag") # combust_flag - ??
 other_cols <- c(other_cols, "total_fuel_consumption_mmbtu") # used to calculate uto  - Remove in plant_file_create
-other_cols <- c(other_cols, "co2_non_biomass") # co2_non_biomass - ??
+other_cols <- c(other_cols, "co2_non_biomass") # co2_non_biomass - used to adjust co2_mass in a weird way not done for others
 other_cols <- c(other_cols, "nominal_heat_rate") # set as power_heat_ratio when combust_flag =1 or =0.5 for CHP facilities        
 
+other_cols[!other_cols %in% r_cols]
 # check that all additional columns have been accounted for
 stopifnot(length(r_cols[!r_cols %in% access_cols & !r_cols %in% other_cols])==0)
 
@@ -263,7 +268,18 @@ for(i in cols){
   }
 }
 
+# c. Summarise objects
+obj_tab <- data.frame("object" = objects())
+obj_tab <- obj_tab %>% filter(startsWith(object, "check"))
+obj_tab$diffs <- lapply(obj_tab$object, FUN=function(x){nrow(get(x))}) %>% as.numeric()
+#obj_tab$n_plants <- lapply(obj_tab$object, FUN=function(x){nrow(unique(get(x)[,"plant_id"]))})
 
+helperfunc <- function(x){paste(unique(get(x)[,"plant_id"]))}
+obj_tab$plants <- lapply(obj_tab$object, FUN=helperfunc) %>% as.character()
+obj_tab$plants <- ifelse(nchar(obj_tab$plants)> 100, substr(obj_tab$plants,1,100), obj_tab$plants)
+
+library(writexl)
+write_xlsx(obj_tab,paste0( save_dir, "/differences_summary.xlsx"))
 
 ## 6. Explain Differences ----------
 # a. ann_gen by fuel type vars [16 vars] - ? -------------------------
@@ -273,6 +289,17 @@ for(i in cols){
     # ann_gen_oil (999), ann_gen_other (187), ann_gen_other_ff (164), 
     # ann_gen_renew (919) ann_gen_renew_nonhydro (618), ann_gen_solar (232), 
     # ann_gen_wind (46)
+
+ann_gen_err <- check_ann_gen_biomass %>% full_join(check_ann_gen_coal) %>%
+  full_join(check_ann_gen_combust) %>% full_join(check_ann_gen_gas) %>%
+  full_join(check_ann_gen_geothermal) %>% full_join(check_ann_gen_hydro) %>%
+  full_join(check_ann_gen_non_combust) %>% full_join(check_ann_gen_non_renew) %>%
+  full_join(check_ann_gen_nuclear) %>% full_join(check_ann_gen_oil) %>%
+  full_join(check_ann_gen_other) %>% full_join(check_ann_gen_other_ff) %>%
+  full_join(check_ann_gen_renew) %>% full_join(check_ann_gen_renew_nonhydro) %>%
+  full_join(check_ann_gen_solar) %>% full_join(check_ann_gen_wind) 
+  
+
 # b. ba_id & ba_name [2 vars] - 30 differences - Explained by EIA-860? --------
     # mostly missing in R
     ba <- check_ba_id %>% full_join(check_ba_name)
