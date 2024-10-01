@@ -114,6 +114,7 @@ check_diff_plant_access <-
 if(nrow(check_diff_plant_access) > 0) {
   write_csv(check_diff_plant_access, paste0(save_dir, "check_diff_plant_access.csv")) }
 
+
 # check if plant names match 
 check_plant_names <- 
   unit_comparison %>% 
@@ -162,14 +163,14 @@ if(nrow(check_camd_flag) > 0) {
 # check program code
 check_program_code <- 
   unit_comparison %>% 
-  separate_wider_delim(program_code_access, delim = ",", names = c("program_1_access", 
+  tidyr::separate_wider_delim(program_code_access, delim = ",", names = c("program_1_access", 
                                                                    "program_2_access", 
                                                                    "program_3_access", 
                                                                    "program_4_access", 
                                                                    "program_5_access", 
                                                                    "program_6_access"), 
                        too_few = "align_start", too_many = "error") %>% # fix delimiter to match R 
-  unite("program_code_access", c(program_1_access, program_2_access, program_3_access, 
+  tidyr::unite("program_code_access", c(program_1_access, program_2_access, program_3_access, 
                                  program_4_access, program_5_access, program_6_access), 
         sep = ",", na.rm = TRUE) %>% 
   filter(!(program_code_r == program_code_access)) %>% 
@@ -305,7 +306,9 @@ if(nrow(check_heat_input_ann_source) > 0) {
 # ozone heat input source 
 check_heat_input_oz_source <- 
   unit_comparison %>% 
-  filter(!(heat_input_oz_source_r == heat_input_oz_source_access)) %>% 
+  filter(!(heat_input_oz_source_r == heat_input_oz_source_access) |
+           is.na(heat_input_oz_source_r) & !is.na(heat_input_oz_source_access) | 
+           !is.na(heat_input_oz_source_r) & is.na(heat_input_oz_source_access)) %>% 
   select(plant_id, unit_id, heat_input_oz_r, heat_input_oz_access, heat_input_oz_source_r, heat_input_oz_source_access)
 
 if(nrow(check_heat_input_oz_source) > 0) {
@@ -332,9 +335,11 @@ if(!(check_total_nox_mass$diff_nox_ann == 0) | !(check_total_nox_mass$diff_nox_o
 # annual NOx
 check_nox_ann_unit <- 
   unit_comparison %>% 
-  filter(!(nox_mass_r == nox_mass_access)) %>% 
+  filter(!(nox_mass_r == nox_mass_access) |
+         is.na(nox_mass_r) & !is.na(nox_mass_access) | 
+         !is.na(nox_mass_r) & is.na(nox_mass_access)) %>% 
   mutate(diff_nox_mass = nox_mass_r - nox_mass_access) %>% 
-  filter(diff_nox_mass > 1 | diff_nox_mass < -1) %>% 
+  filter(diff_nox_mass > 1 | diff_nox_mass < -1 | is.na(diff_nox_mass)) %>% 
   select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
          prime_mover_r, prime_mover_access, 
          nox_mass_r, nox_mass_access, diff_nox_mass, nox_source_r, nox_source_access)
@@ -345,9 +350,11 @@ if(nrow(check_nox_ann_unit) > 0) {
 # ozone season NOx
 check_nox_oz_unit <- 
   unit_comparison %>% 
-  filter(!(nox_oz_mass_r == nox_oz_mass_access)) %>% 
+  filter(!(nox_oz_mass_r == nox_oz_mass_access) |
+         is.na(nox_oz_mass_r) & !is.na(nox_oz_mass_access) | 
+         !is.na(nox_oz_mass_r) & is.na(nox_oz_mass_access)) %>% 
   mutate(diff_nox_oz_mass = nox_oz_mass_r - nox_oz_mass_access) %>% 
-  filter(diff_nox_oz_mass > 1 | diff_nox_oz_mass < -1) %>% 
+  filter(diff_nox_oz_mass > 1 | diff_nox_oz_mass < -1 | is.na(diff_nox_oz_mass)) %>% 
   select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
          prime_mover_r, prime_mover_access,
          nox_oz_mass_r, nox_oz_mass_access, diff_nox_oz_mass, nox_oz_source_r, nox_oz_source_access)
@@ -359,7 +366,9 @@ if(nrow(check_nox_oz_unit) > 0) {
 # annual NOx source
 check_nox_ann_source <- 
   unit_comparison %>% 
-  filter(!(nox_source_r == nox_source_access)) %>% 
+  filter(!(nox_source_r == nox_source_access) |
+         is.na(nox_source_r) & !is.na(nox_source_r) | 
+         !is.na(nox_source_r) & is.na(nox_source_access)) %>% 
   select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access,
          nox_mass_r, nox_mass_access, nox_source_r, nox_source_access)
 
@@ -369,7 +378,9 @@ if(nrow(check_nox_ann_source) > 0) {
 # ozone NOx source 
 check_nox_oz_source <- 
   unit_comparison %>% 
-  filter(!(nox_oz_source_r == nox_oz_source_access)) %>% 
+  filter(!(nox_oz_source_r == nox_oz_source_access) |
+         is.na(nox_oz_source_r) & !is.na(nox_oz_source_access) | 
+         !is.na(nox_oz_source_r) & is.na(nox_oz_source_access)) %>% 
   select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
          prime_mover_r, prime_mover_access, 
          nox_oz_mass_r, nox_oz_mass_access, nox_oz_source_r, nox_oz_source_access)
@@ -393,9 +404,11 @@ if(!(check_total_so2_mass$diff_so2 == 0) | !(check_total_so2_mass$diff_so2 == 0)
 # unit level SO2 emissions
 check_so2_unit <- 
   unit_comparison %>% 
-  filter(!(so2_mass_r == so2_mass_access)) %>% 
+  filter(!(so2_mass_r == so2_mass_access) |
+         is.na(so2_mass_r) & !is.na(so2_mass_access) | 
+         !is.na(so2_mass_r) & is.na(so2_mass_access)) %>% 
   mutate(diff_so2_mass = so2_mass_r - so2_mass_access) %>% 
-  filter(diff_so2_mass > 1 | diff_so2_mass < -1) %>% 
+  filter(diff_so2_mass > 1 | diff_so2_mass < -1 | is.na(diff_so2_mass)) %>% 
   select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
          prime_mover_r, prime_mover_access, 
          so2_mass_r, so2_mass_access, diff_so2_mass, 
