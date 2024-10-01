@@ -1649,7 +1649,7 @@ update_status_boilers <- # operating status for boilers updated via EIA-860 Boil
 ## Create and edit CAMD flag ----- 
 # ID CAMD units 
 
-camd_units <- camd_7 %>% mutate(id = paste0(plant_id, unit_id)) %>% pull(id)
+camd_units <- camd_7 %>% mutate(id = paste0(plant_id, "_", unit_id)) %>% pull(id)
 
 # update PR CAMD flag from crosswalk
 
@@ -1664,7 +1664,7 @@ update_pr_camd_flag <- read_csv("data/static_tables/xwalk_pr_oris.csv") %>%
 
 all_units_11 <- 
   all_units_10 %>%  
-  mutate(camd_flag = if_else(paste0(plant_id, unit_id) %in% camd_units, "Yes", NA_character_)) %>% 
+  mutate(camd_flag = if_else(paste0(plant_id, "_", unit_id) %in% camd_units, "Yes", NA_character_)) %>% 
   rows_update(update_pr_camd_flag, by = c("plant_id", "unit_id"))
 
 
