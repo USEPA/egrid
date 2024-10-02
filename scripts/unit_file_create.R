@@ -730,7 +730,7 @@ gen_file <- # load generator file
 dist_props <- # determining distributional proportions to distribute heat inputs
   gen_file %>% 
   select(plant_id, generator_id, prime_mover, nameplate_capacity, generation_ann) %>%
-  filter(generation_ann > 0) %>% 
+  filter(generation_ann != 0) %>% 
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_namecap = sum(nameplate_capacity)) %>%
   ungroup() %>% 
