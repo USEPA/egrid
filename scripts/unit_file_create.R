@@ -689,6 +689,36 @@ units_missing_heat_w_heat_oz <- # some units have positive ozone heat inputs (he
 
 print(glue::glue("{nrow(units_missing_heat)} units with missing heat inputs to update."))
 
+## Update heat input for direct boiler matches ------
+
+### Match units EIA-923 boiler file on plant and boiler id -------
+
+units_heat_updated_boiler_matches <- 
+  units_missing_heat %>% 
+  inner_join(eia_923_boilers %>% select(plant_id, boiler_id, "total_fuel_consumption_quantity", heat_input, heat_input_oz),
+             by = c("plant_id", "unit_id" = "boiler_id")) %>% 
+  group_by(plant_id, unit_id) %>% 
+  filter(!is.na(heat_input.y) & heat_input.y != 0) %>%  #keeping only non-missing heat input values and non-zero values
+  slice_max(total_fuel_consumption_quantity, n = 1) %>% # taking unit row with highest fuel consumption
+  mutate(heat_input = heat_input.y, # replacing heat input with value from 923 boilers
+         heat_input_oz = if_else(!is.na(heat_input_oz.x), heat_input_oz.x, heat_input_oz.y), # if ozone heat is missing, use eia_923_boilers
+         heat_input_source = "EIA Unit-level Data",
+         heat_input_oz_source = if_else(!is.na(heat_input_oz_source), heat_input_oz_source, "EIA Unit-level Data")) %>% 
+  select(plant_id, 
+         unit_id, 
+         heat_input,
+         heat_input_oz,
+         heat_input_source,
+         heat_input_oz_source) 
+
+units_missing_heat_2 <- 
+  units_missing_heat %>% 
+  anti_join(units_heat_updated_boiler_matches,
+            by = c("plant_id", "unit_id"))
+
+print(glue::glue("{nrow(units_heat_updated_boiler_matches)} units updated with EIA Unit-level Data from direct matches in EIA 923 boiler file. {nrow(units_missing_heat_3)} with missing heat input remain."))
+
+
 ## Update heat input with EIA prime-mover level data --------
 
 # We calculate a distributional proportion to distribute heat to generators based on nameplate capacity using 923 gen and fuel and generator file.
@@ -699,7 +729,8 @@ gen_file <- # load generator file
 
 dist_props <- # determining distributional proportions to distribute heat inputs
   gen_file %>% 
-  select(plant_id, generator_id, prime_mover, nameplate_capacity) %>%
+  select(plant_id, generator_id, prime_mover, nameplate_capacity, generation_ann) %>%
+  filter(generation_ann > 0) %>% 
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_namecap = sum(nameplate_capacity)) %>%
   ungroup() %>% 
@@ -720,7 +751,7 @@ distributed_heat_input <- # determining distributional heat input via proportion
          heat_input != 0) 
   
 units_heat_updated_pm_data <- # dataframe with units having heat input updated by 923 gen and fuel file
-  units_missing_heat %>% 
+  units_missing_heat_2 %>% 
   rows_patch(distributed_heat_input %>% rename("unit_id" = generator_id, -prime_mover), # updating heat input and source columns where available
               by = c("plant_id", "unit_id"),
               unmatched = "ignore") %>% # ignore rows in distributed_heat_input that aren't in units_missing_heat
@@ -731,40 +762,10 @@ units_heat_updated_pm_data <- # dataframe with units having heat input updated b
 print(glue::glue("{nrow(units_heat_updated_pm_data)} units updated with EIA Prime Mover-level Data. {nrow(units_missing_heat) - nrow(units_heat_updated_pm_data)} with missing heat input remain."))
 
 
-units_missing_heat_2 <- # creating updated dataframe with remaining missing heat inputs
-  units_missing_heat %>% 
+units_missing_heat_3 <- # creating updated dataframe with remaining missing heat inputs
+  units_missing_heat_2 %>% 
   anti_join(units_heat_updated_pm_data, # removing units that were updated with PM data.
             by = c("plant_id", "unit_id"))
-
-## Update heat input for direct boiler matches ------
-
-### Match units EIA-923 boiler file on plant and boiler id -------
-
-units_heat_updated_boiler_matches <- 
-  units_missing_heat_2 %>% 
-  inner_join(eia_923_boilers %>% select(plant_id, boiler_id, "total_fuel_consumption_quantity", heat_input, heat_input_oz),
-             by = c("plant_id", "unit_id" = "boiler_id")) %>% 
-  group_by(plant_id, unit_id) %>% 
-  filter(!is.na(heat_input.y) & heat_input.y != 0) %>%  #keeping only non-missing heat input values and non-zero values
-  slice_max(total_fuel_consumption_quantity, n = 1) %>% # taking unit row with highest fuel consumption
-  mutate(heat_input = heat_input.y, # replacing heat input with value from 923 boilers
-         heat_input_oz = if_else(!is.na(heat_input_oz.x), heat_input_oz.x, heat_input_oz.y), # if ozone heat is missing, use eia_923_boilers
-         heat_input_source = "EIA Unit-level Data",
-         heat_input_oz_source = if_else(!is.na(heat_input_oz_source), heat_input_oz_source, "EIA Unit-level Data")) %>% 
-  select(plant_id, 
-         unit_id, 
-         heat_input,
-         heat_input_oz,
-         heat_input_source,
-         heat_input_oz_source) 
-
-units_missing_heat_3 <- 
-  units_missing_heat_2 %>% 
-  anti_join(units_heat_updated_boiler_matches,
-            by = c("plant_id", "unit_id"))
-
-print(glue::glue("{nrow(units_heat_updated_boiler_matches)} units updated with EIA Unit-level Data from direct matches in EIA 923 boiler file. {nrow(units_missing_heat_3)} with missing heat input remain."))
-
 
 ## Update heat input with distributed heat to boilers ----------
 
@@ -1147,7 +1148,7 @@ eia_fuel_consum_fuel_type <- # summing fuel and consum to PM fuel_type level
 
 units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emissions with distributed heat input and fuel consumption
   all_units_5 %>% 
-  group_by(plant_id, plant_state, prime_mover, primary_fuel_type, botfirty) %>% 
+  group_by(plant_id, plant_state, prime_mover, primary_fuel_type) %>% 
   mutate(total_heat_input = sum(heat_input, na.rm = TRUE)) %>% 
   ungroup() %>% 
   mutate(prop = heat_input / total_heat_input) %>% 
@@ -1156,7 +1157,6 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
          prime_mover, 
          unit_id, 
          primary_fuel_type,
-         botfirty,
          prop) %>%
   inner_join(eia_fuel_consum_fuel_type,
              by = c("plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>%
