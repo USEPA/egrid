@@ -1156,6 +1156,7 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
          plant_state,
          prime_mover, 
          unit_id, 
+         botfirty,
          primary_fuel_type,
          prop) %>%
   inner_join(eia_fuel_consum_fuel_type,
