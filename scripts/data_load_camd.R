@@ -109,21 +109,20 @@ emissions_data_r <-
   rename_with(tolower) %>% # this protects NOx rates from getting split with clean_names()
   janitor::clean_names() %>% 
   mutate(year = as.character(year(date)), # extracting year from date
-        month = as.character(month(date)), # extracting month from date
-        month = recode(month, !!!month_name_map)) %>% # updating month to name
+         month = as.character(month(date)), # extracting month from date
+         month = recode(month, !!!month_name_map)) %>% # updating month to name
   select(-date) %>%
   mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) %>% # SB 6/4/2024: Temporary fix for issue in API where there are a mix of pipes and commas in some character values
   group_by(pick(-c(all_of(cols_to_sum)))) %>% 
-  summarize(across(cols_to_sum, ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first
+  summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first
   ungroup() %>% 
   group_by(facility_id, unit_id, primary_fuel_type, unit_type) %>% 
   mutate(reporting_months = paste(month, collapse = ", "), # creating column with list of reporting months 
          reporting_frequency = if_else(grepl("january|february|march|october|november|december", # filtering out non-ozone season reporting months, excluding april
                                              reporting_months), "Q", "OS")) %>% # assigning reporting frequency 
   group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% 
-  mutate(across(cols_to_sum, ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual")) %>% # calculating annual emissions
-  filter(month %in% ozone_months) %>% # filtering to only ozone months 
-  mutate(across(cols_to_sum, ~ sum(.x, na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
+  mutate(across(cols_to_sum, ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions
+         across(cols_to_sum, ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
   select(-month) %>% # removing month so distinct() will aggregate to unit level
   select(-all_of(cols_to_sum), reporting_months, reporting_frequency) %>% 
   rename_with(.cols = contains("_annual"), # removing annual suffix
