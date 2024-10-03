@@ -32,6 +32,7 @@ do.call(file.remove, list(dir(save_dir, full.names = TRUE)))
 # load plant file R
 plant_r <- read_rds("data/outputs/plant_file.RDS")
 
+write.csv(plant_r, paste0(save_dir,"/plant_file_qa.csv"))
 # add "_r" after each variable to easily identify dataset 
 colnames(plant_r) <- paste0(colnames(plant_r), "_r")
 

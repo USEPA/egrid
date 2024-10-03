@@ -62,7 +62,7 @@ unit <- unit_file %>% group_by(plant_id) %>%
             plant_state = paste_concat(plant_state),
             year = paste_concat(year),
             camd_flag = paste_concat(camd_flag),
-            num_units = length(unique(unit_id)), # count
+            num_units = n(), #length(unique(paste0(unit_id, prime_mover))), # count
             unadj_heat_input = sum(heat_input, na.rm = TRUE), # MMBtu
             unadj_heat_input_source = paste_concat(heat_input_source),
             unadj_heat_input_oz = sum(heat_input_oz, na.rm = TRUE), # MMBtu 
@@ -203,9 +203,11 @@ rm(A6_fips, A6_newnames, A6_alaska)
 
 # 9.	Coal flag -----------------
 
-OTH_OG_recode <- read_excel(here("data", "static_tables", "OG_OTH units to change fuel type.xlsx"))  %>% 
-  select("ORIS Code", "Fuel Type (Primary)", "Fuel Code") %>%
-  rename("plant_id" = "ORIS Code", "fuel_type" = "Fuel Type (Primary)", "new_code" = "Fuel Code") %>%
+OTH_OG_recode <- read_csv(here("data", "static_tables", "og_oth_units_to_change_fuel_type.csv"))  %>% 
+  select(plant_id, primary_fuel_type, fuel_code) %>%
+  rename(fuel_type = primary_fuel_type) %>%
+  #select("ORIS Code", "Fuel Type (Primary)", "Fuel Code") %>%
+  #rename("plant_id" = "ORIS Code", "fuel_type" = "Fuel Type (Primary)", "new_code" = "Fuel Code") %>%
   mutate(plant_id = as.numeric(plant_id))
 
 coal_fuels <- c("ANT","BIT", "COG", "LIG", "RC", "SGC", "SUB", "WC")
@@ -214,7 +216,7 @@ coal_fuels <- c("ANT","BIT", "COG", "LIG", "RC", "SGC", "SUB", "WC")
 coal_plants <- eia_923$generation_and_fuel_data  %>% group_by(plant_id, fuel_type)  %>% 
   summarise(total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE)) %>%
   mutate(plant_id = as.numeric(plant_id)) %>% full_join(OTH_OG_recode) %>%
-  mutate(coal_flag = ifelse( (fuel_type %in% coal_fuels|new_code %in% coal_fuels) & 
+  mutate(coal_flag = ifelse( (fuel_type %in% coal_fuels|fuel_code %in% coal_fuels) & 
                                total_fuel_consumption_mmbtu > 0, 1, 0))
 
 # taking the max here chooses 1 if any rows for that plant contain a 1
@@ -291,7 +293,7 @@ EIA_923_LFG <- eia_923$generation_and_fuel_combined %>% mutate(plant_id = as.num
     n2o_biomass = n2o_ef* total_fuel_consumption_mmbtu,
     so2_biomass = 0.0115/2000 * max(total_fuel_consumption_mmbtu,0), 
     biomass_adj_flag1 = 1) %>%
-  select(-heat_input_oz_season, -total_fuel_consumption_mmbtu) 
+  select(-heat_input_oz_season, -total_fuel_consumption_mmbtu, -ch4_ef, -n2o_ef) 
   
 # take the max to avoid negative values
 plant_file <- plant_file %>% left_join(EIA_923_LFG) %>%
@@ -401,7 +403,8 @@ rm(ult_ba, lu_ba, eia_861_use)
 
 # first summarise the unit file to get the sum of heat input for each fuel type
 # then ungroup and filter to the row (fuel type) with the max value
-unit_fuel_by_plant <- unit_file %>% group_by(plant_id, primary_fuel_type) %>% summarise(heat_input = sum(heat_input, na.rm = T)) %>%
+unit_fuel_by_plant <- unit_file %>% group_by(plant_id, primary_fuel_type) %>% 
+  summarise(heat_input = sum(heat_input, na.rm = T)) %>%
   mutate(heat_input = ifelse(is.na(heat_input),0,heat_input),
          plant_id = as.numeric(plant_id)) %>% # replace NA with 0 so rows with only NA do not get filtered out
   ungroup %>% group_by(plant_id) %>% filter(heat_input == max(heat_input)  )
@@ -1017,6 +1020,8 @@ plant_file <- plant_file %>% mutate(capfac = round(capfac, 5), # a - capacity fa
                                     chp_n2o = round(chp_n2o, 3),
                                     # no co2 equivalent CHP
                                     # no hg CHP
+                                    # i - uto
+                                    uto = round(uto,3)
                                     ) 
 
 
