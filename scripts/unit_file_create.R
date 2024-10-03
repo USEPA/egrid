@@ -716,7 +716,7 @@ units_missing_heat_2 <-
   anti_join(units_heat_updated_boiler_matches,
             by = c("plant_id", "unit_id"))
 
-print(glue::glue("{nrow(units_heat_updated_boiler_matches)} units updated with EIA Unit-level Data from direct matches in EIA 923 boiler file. {nrow(units_missing_heat_3)} with missing heat input remain."))
+print(glue::glue("{nrow(units_heat_updated_boiler_matches)} units updated with EIA Unit-level Data from direct matches in EIA 923 boiler file. {nrow(units_missing_heat_2)} with missing heat input remain."))
 
 
 ## Update heat input with EIA prime-mover level data --------
@@ -759,7 +759,7 @@ units_heat_updated_pm_data <- # dataframe with units having heat input updated b
   mutate(heat_input_source = "EIA Prime Mover-level Data", 
          heat_input_oz_source = if_else(id %in% units_missing_heat_w_heat_oz, heat_input_oz_source, "EIA Prime Mover-level Data")) # only update source for NA ozone heat input values
 
-print(glue::glue("{nrow(units_heat_updated_pm_data)} units updated with EIA Prime Mover-level Data. {nrow(units_missing_heat) - nrow(units_heat_updated_pm_data)} with missing heat input remain."))
+print(glue::glue("{nrow(units_heat_updated_pm_data)} units updated with EIA Prime Mover-level Data. {nrow(units_missing_heat_2) - nrow(units_heat_updated_pm_data)} with missing heat input remain."))
 
 
 units_missing_heat_3 <- # creating updated dataframe with remaining missing heat inputs
