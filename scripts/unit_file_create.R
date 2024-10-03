@@ -730,7 +730,7 @@ gen_file <- # load generator file
 dist_props <- # determining distributional proportions to distribute heat inputs
   gen_file %>% 
   select(plant_id, generator_id, prime_mover, nameplate_capacity, generation_ann) %>%
-  filter(generation_ann > 0) %>% 
+  filter(generation_ann != 0) %>% 
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_namecap = sum(nameplate_capacity)) %>%
   ungroup() %>% 
@@ -1156,6 +1156,7 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
          plant_state,
          prime_mover, 
          unit_id, 
+         botfirty,
          primary_fuel_type,
          prop) %>%
   inner_join(eia_fuel_consum_fuel_type,
