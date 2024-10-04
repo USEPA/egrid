@@ -1,5 +1,5 @@
 prime_mover,botfirty,primary_fuel_type,so2_ef,so2_flag,so2_ef_num,so2_ef_denom,unit_flag,so2_source,so2_ef_based_on,nox_ef,nox_ef_num,nox_ef_denom,nox_unit_flag,nox_source,nox_ef_based_on
-ST,DRY DUCTBURNER,OG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY DUCTBURNER,OG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY FLUIDIZED,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY FLUIDIZED,BLQ,0.7,NA,lb,short tons,PhysicalUnits,NA,NA,1.5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY FLUIDIZED,LIG,30,S,lb,short tons,PhysicalUnits,AP-42,NA,3.6,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
@@ -8,76 +8,76 @@ ST,DRY FLUIDIZED,SUB,35,S,lb,short tons,PhysicalUnits,AP-42,NA,5,lb,ton,Physical
 ST,DRY FLUIDIZED,WC,30,S,lb,short tons,PhysicalUnits,AP-42,NA,3.6,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY FLUIDIZED,WDS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,2,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY STOKER,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,11,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY STOKER,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY STOKER,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY STOKER,WDS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,1.5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY TANGENTIAL,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,10,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY TANGENTIAL,BLQ,7,NA,lb,short tons,PhysicalUnits,NA,NA,1.5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY TANGENTIAL,DFO,6.3,S,lb,barrels,PhysicalUnits,AP-42,NA,1.008,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY TANGENTIAL,LIG,30,S,lb,short tons,PhysicalUnits,AP-42,NA,7.1,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY TANGENTIAL,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY TANGENTIAL,OG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY TANGENTIAL,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY TANGENTIAL,OG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY TANGENTIAL,RC,38,S,lb,short tons,PhysicalUnits,AP-42,NA,10,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY TANGENTIAL,RFO,6.594,S,lb,barrels,PhysicalUnits,AP-42,NA,1.344,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY TANGENTIAL,SUB,35,S,lb,short tons,PhysicalUnits,AP-42,NA,7.2,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY TANGENTIAL,WDS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,2.51,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY VERTICAL,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,12,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY VERTICAL,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY VERTICAL,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY WALL,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,12,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY WALL,BLQ,7,NA,lb,short tons,PhysicalUnits,NA,NA,1.5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY WALL,DFO,6.3,S,lb,barrels,PhysicalUnits,AP-42,NA,1.008,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY WALL,LIG,30,S,lb,short tons,PhysicalUnits,AP-42,NA,6.3,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY WALL,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY WALL,OG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY WALL,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY WALL,OG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY WALL,PC,0.362,S,lb,MMBtu,HeatInput,AP-42,NA,21,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY WALL,PRG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
+ST,DRY WALL,PRG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
 ST,DRY WALL,RFO,6.594,S,lb,barrels,PhysicalUnits,AP-42,NA,1.974,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY WALL,SUB,35,S,lb,short tons,PhysicalUnits,AP-42,NA,7.4,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY WALL,WDS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,2.51,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY WALL,WO,6.174,S,lb,barrels,PhysicalUnits,AP-42,NA,0.798,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
-ST,DUCTBURNER,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,DUCTBURNER,OG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,DUCTBURNER,PRG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
+ST,DUCTBURNER,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DUCTBURNER,OG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DUCTBURNER,PRG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
 ST,FLUIDIZED,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,FLUIDIZED,LIG,10,S,lb,short tons,PhysicalUnits,AP-42,NA,3.6,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,FLUIDIZED,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,FLUIDIZED,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,FLUIDIZED,PC,0.362,S,lb,MMBtu,HeatInput,AP-42,NA,5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,FLUIDIZED,SUB,35,S,lb,short tons,PhysicalUnits,AP-42,NA,5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,FLUIDIZED,WC,30,S,lb,short tons,PhysicalUnits,AP-42,NA,3.6,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,FLUIDIZED,WDS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,2,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,N/A,DFO,5.964,S,lb,barrels,PhysicalUnits,AP-42,NA,1.008,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
-ST,N/A,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,N/A,OG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,N/A,PRG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
+ST,N/A,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,N/A,OG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,N/A,PRG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
 ST,N/A,SGC,38,S,lb,short tons,PhysicalUnits,AP-42,BIT,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,OTHER,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,12,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,OTHER,BLQ,7,NA,lb,short tons,PhysicalUnits,NA,NA,1.5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,OTHER,DFO,5.964,S,lb,barrels,PhysicalUnits,AP-42,NA,1.008,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,OTHER,MSW,1.7,NA,lb,short tons,PhysicalUnits,EIA Electricity Annual,NA,5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,OTHER,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,OTHER,OG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,OTHER,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,OTHER,OG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,OTHER,PC,0.362,S,lb,MMBtu,HeatInput,AP-42,NA,21,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,OTHER,PRG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
+ST,OTHER,PRG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
 ST,OTHER,WDS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,2,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,STOKER,AB,0.025,NA,lb,MMBtu,HeatInput,AP-42,WDS,1.2,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,STOKER,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,11,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,STOKER,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,STOKER,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,STOKER,TDF,38,S,lb,short tons,PhysicalUnits,NA,NA,11,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,STOKER,WDS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,1.5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,TANGENTIAL,BFG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,TANGENTIAL,BFG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,TANGENTIAL,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,10,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,TANGENTIAL,BLQ,7,NA,lb,short tons,PhysicalUnits,NA,NA,1.5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,TANGENTIAL,LIG,30,S,lb,short tons,PhysicalUnits,AP-42,NA,7.1,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,TANGENTIAL,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,TANGENTIAL,PRG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
+ST,TANGENTIAL,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,TANGENTIAL,PRG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
 ST,TANGENTIAL,RFO,6.594,S,lb,barrels,PhysicalUnits,AP-42,NA,1.344,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,TANGENTIAL,SUB,35,S,lb,short tons,PhysicalUnits,AP-42,NA,7.2,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,WALL,BFG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,WALL,BFG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,WALL,BLQ,7,NA,lb,short tons,PhysicalUnits,NA,NA,1.5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,WALL,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,WALL,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,WALL,RFO,6.594,S,lb,barrels,PhysicalUnits,AP-42,NA,1.974,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,WET CYCLONE,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,33,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,WET CYCLONE,LIG,30,S,lb,short tons,PhysicalUnits,AP-42,NA,15,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,WET CYCLONE,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,WET CYCLONE,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,WET CYCLONE,SUB,35,S,lb,short tons,PhysicalUnits,AP-42,NA,17,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,WET FLUIDIZED,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,WET FLUIDIZED,LIG,10,S,lb,short tons,PhysicalUnits,AP-42,NA,3.6,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
@@ -100,7 +100,7 @@ CA,null,OBG,0.0065,NA,lb,MMBtu,HeatInput,AP-42,NA,0.3136,lb,mcf,PhysicalUnits,EI
 CA,null,RFO,1.01,S,lb,MMBtu,HeatInput,AP-42,DFO,5.5314,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 CA,null,SGP,0.362,S,lb,MMBtu,HeatInput,AP-42,PC from boilers,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 CA,null,WO,1.01,S,lb,MMBtu,HeatInput,AP-42,DFO,3.8724,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
-CA,DUCTBURNER,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CA,DUCTBURNER,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 CS,null,DFO,1.01,S,lb,MMBtu,HeatInput,AP-42,NA,5.124,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 CS,null,LFG,0.045,NA,lb,MMBtu,HeatInput,AP-42,NA,0.087,lb,mcf,PhysicalUnits,AP-42,NA
 CS,null,NG,0.003196,NA,lb,MMBtu,HeatInput,AP-42,NA,0.32,lb,MMBtu,NA,EIA Electricity Annual,NA
@@ -109,18 +109,18 @@ CS,null,RFO,1.01,S,lb,MMBtu,HeatInput,AP-42,DFO,5.5314,lb,barrels,PhysicalUnits,
 CS,null,SGP,0.362,S,lb,MMBtu,HeatInput,AP-42,PC from boilers,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 CS,null,WO,1.01,S,lb,MMBtu,HeatInput,AP-42,DFO,3.8724,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,OTHER BOILER,MSW,1.7,NA,lb,short tons,PhysicalUnits,EIA Electricity Annual,NA,5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-CA,WALL,OG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CA,null,OG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CA,WALL,OG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CA,null,OG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 OT,null,PC,0.362,S,lb,MMBtu,HeatInput,AP-42,NA,21,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-GT,null,PRG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
-ST,null,PRG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
+GT,null,PRG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
+ST,null,PRG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
 ST,TANGENTIAL,WDS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,2.51,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 NA,null,DFO,1.01,S,lb,MMBtu,HeatInput,AP-42,DFO for turbines,NA,NA,NA,NA,NA,NA
 NA,null,JF,0.003021,NA,lb,barrels,PhysicalUnits,AP-42,assumes 600 ppm sulfur content,NA,NA,NA,NA,NA,NA
 NA,null,KER,1.01,S,lb,MMBtu,HeatInput,AP-42,NA,NA,NA,NA,NA,NA,NA
 NA,null,NG,0.003196,NA,lb,MMBtu,HeatInput,AP-42,NA,NA,NA,NA,NA,NA,NA
-NA,null,OG,6e-4,NA,lb,MCf,PhysicalUnits,AP-42,NG,NA,NA,NA,NA,NA,NA
-NA,null,PRG,6e-4,NA,lb,MCf,PhysicalUnits,AP-42,NG,NA,NA,NA,NA,NA,NG
+NA,null,OG,6.00E-04,NA,lb,MCf,PhysicalUnits,AP-42,NG,NA,NA,NA,NA,NA,NA
+NA,null,PRG,6.00E-04,NA,lb,MCf,PhysicalUnits,AP-42,NG,NA,NA,NA,NA,NA,NG
 CT,null,DFO,1.01,S,lb,MMBtu,HeatInput,AP-42,NA,5.124,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 CT,null,LFG,0.045,NA,lb,MMBtu,HeatInput,AP-42,NA,0.087,lb,mcf,PhysicalUnits,AP-42,NA
 CT,null,NG,0.003196,NA,lb,MMBtu,HeatInput,AP-42,NA,0.32,lb,MMBtu,NA,EIA Electricity Annual,NA
@@ -128,7 +128,7 @@ CT,null,OBG,0.0065,NA,lb,MMBtu,HeatInput,AP-42,NA,0.3136,lb,mcf,PhysicalUnits,EI
 CT,null,RFO,1.01,S,lb,MMBtu,HeatInput,AP-42,DFO,5.5314,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 CT,null,SGP,0.362,S,lb,MMBtu,HeatInput,AP-42,PC from boilers,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 CT,null,WO,1.01,S,lb,MMBtu,HeatInput,AP-42,DFO,3.8724,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
-CT,DUCTBURNER,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CT,DUCTBURNER,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 GT,null,DFO,1.01,S,lb,MMBtu,HeatInput,AP-42,NA,5.124,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 GT,null,JF,0.003021,NA,lb,barrels,PhysicalUnits,AP-42,assumes 600 ppm sulfur content,4.9896,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 GT,null,KER,1.01,S,lb,MMBtu,HeatInput,AP-42,NA,4.9896,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
@@ -136,32 +136,32 @@ GT,null,LFG,0.045,NA,lb,MMBtu,HeatInput,AP-42,NA,0.087,lb,mcf,PhysicalUnits,EIA 
 GT,null,NG,0.003196,NA,lb,MMBtu,HeatInput,AP-42,NA,0.32,lb,MMBtu,NA,EIA Electricity Annual,NA
 GT,null,OBG,0.0065,NA,lb,MMBtu,HeatInput,AP-42,NA,0.3136,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 GT,null,OBL,0.0065,NA,lb,MMBtu,HeatInput,AP-42,OBG,4.7166,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
-GT,null,OG,6e-4,NA,lb,MCf,PhysicalUnits,AP-42,NG,0.26382,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-GT,null,PG,6e-4,NA,lb,MCf,PhysicalUnits,EIA Electricity Annual,NA,0.80336,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+GT,null,OG,6.00E-04,NA,lb,MCf,PhysicalUnits,AP-42,NG,0.26382,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+GT,null,PG,6.00E-04,NA,lb,MCf,PhysicalUnits,EIA Electricity Annual,NA,0.80336,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 GT,null,RFO,1.01,S,lb,MMBtu,HeatInput,AP-42,DFO,5.5314,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 GT,null,WO,1.01,S,lb,MMBtu,HeatInput,AP-42,DFO,3.8724,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
-GT,TANGENTIAL,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+GT,TANGENTIAL,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 IC,null,DFO,0.29,NA,lb,MMBtu,HeatInput,AP-42,NA,18.6396,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 IC,null,JF,0.003021,NA,lb,barrels,PhysicalUnits,AP-42,assumes 600 ppm sulfur content,18.144,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 IC,null,LFG,0.045,NA,lb,MMBtu,HeatInput,AP-42,LFG for turbines,0.725,lb,mcf,PhysicalUnits,AP-42,NA
 IC,null,NG,0.003196,NA,lb,MMBtu,HeatInput,AP-42,NA,2.768,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 IC,null,OBG,0.0065,NA,lb,MMBtu,HeatInput,AP-42,OBG for turbines,2.64648,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 IC,null,OBL,0.0065,NA,lb,MMBtu,HeatInput,AP-42,OBG for turbines,17.1486,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
-IC,null,OG,5.88e-4,NA,lb,MMBtu,HeatInput,AP-42,NG,2.22641,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+IC,null,OG,5.88E-04,NA,lb,MMBtu,HeatInput,AP-42,NG,2.22641,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 IC,null,RFO,0.29,NA,lb,MMBtu,HeatInput,AP-42,DFO,20.118,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 IC,null,WO,0.29,NA,lb,MMBtu,HeatInput,AP-42,DFO,14.0784,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,null,AB,0.025,NA,lb,MMBtu,HeatInput,AP-42,WDS,1.2,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,null,BFG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,null,BFG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,null,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,12,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,null,BLQ,7,NA,lb,short tons,PhysicalUnits,NA,NA,1.5,lb,ton,NA,NA,NA
+ST,null,BLQ,7,NA,lb,short tons,PhysicalUnits,NA,NA,1.5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,null,DFO,5.964,S,lb,barrels,PhysicalUnits,AP-42,NA,1.008,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,null,JF,0.003021,NA,lb,barrels,PhysicalUnits,AP-42,JF from turbines; assumes 600 ppm sulfur content,1.008,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
-ST,null,LFG,6e-4,NA,lb,MCf,PhysicalUnits,NA,NA,0.042,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,null,LFG,6.00E-04,NA,lb,MCf,PhysicalUnits,NA,NA,0.042,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,null,MSW,1.7,NA,lb,short tons,PhysicalUnits,EIA Electricity Annual,NA,5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,null,NG,0.003196,NA,lb,MMBtu,HeatInput,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,null,OBG,6e-4,NA,lb,MCf,PhysicalUnits,NA,NA,0.11283,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,null,OBG,6.00E-04,NA,lb,MCf,PhysicalUnits,NA,NA,0.11283,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,null,OBS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,2,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,null,OG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,null,OG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,null,PC,0.362,S,lb,MMBtu,HeatInput,AP-42,NA,21,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,null,RFO,6.594,S,lb,barrels,PhysicalUnits,AP-42,NA,1.974,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,null,SUB,35,S,lb,short tons,PhysicalUnits,AP-42,NA,5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
@@ -171,68 +171,68 @@ ST,null,WDS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,2,lb,ton,PhysicalUnits,EIA Elec
 ST,null,WO,6.174,S,lb,barrels,PhysicalUnits,AP-42,NA,0.798,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,CYCLONE,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,33,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,CYCLONE,BLQ,7,NA,lb,short tons,PhysicalUnits,NA,NA,1.5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,CYCLONE,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,CYCLONE,OG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,CYCLONE,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,CYCLONE,OG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,CYCLONE,SUB,35,S,lb,short tons,PhysicalUnits,AP-42,NA,17,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY CYCLONE,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,33,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY CYCLONE,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY DUCTBURNER,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CS,DUCTBURNER,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY CYCLONE,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY DUCTBURNER,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CS,DUCTBURNER,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 CT,N/A,DFO,1.01,S,lb,MMBtu,HeatInput,AP-42,NA,5.124,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 CT,N/A,RFO,1.01,S,lb,MMBtu,HeatInput,AP-42,DFO,5.5314,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
-CA,DRY DUCTBURNER,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CA,DRY WALL,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CA,DRY DUCTBURNER,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CA,DRY WALL,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,null,MSB,1.7,NA,lb,short tons,PhysicalUnits,NA,NA,5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-CT,N/A,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CT,N/A,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 CA,OTHER,PC,0.362,S,lb,MMBtu,HeatInput,AP-42,NA,21,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 GT,CT,DFO,1.01,S,lb,MMBtu,HeatInput,AP-42,NA,5.124,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 GT,CT,JF,0.003021,NA,lb,barrels,PhysicalUnits,AP-42,assumes 600 ppm sulfur content,4.9896,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 GT,CT,KER,1.01,S,lb,MMBtu,HeatInput,AP-42,NA,4.9896,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
-GT,CT,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-GT,CT,OG,6e-4,NA,lb,MCf,PhysicalUnits,AP-42,NG,0.26382,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CA,DUCTBURNER,OG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CT,CC,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,OTHER BOILER,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+GT,CT,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+GT,CT,OG,6.00E-04,NA,lb,MCf,PhysicalUnits,AP-42,NG,0.26382,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CA,DUCTBURNER,OG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CT,CC,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,OTHER BOILER,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,WALL,BIT,38,S,lb,short tons,PhysicalUnits,AP-42,NA,12,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,OTHER BOILER,BLQ,7,NA,lb,short tons,PhysicalUnits,NA,NA,1.5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,FLUIDIZED,BLQ,0.7,NA,lb,short tons,PhysicalUnits,NA,NA,1.5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-OT,null,COG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,BFG
+OT,null,COG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,BFG
 NA,NA,SLW,2.8,NA,lb,ton,PhysicalUnits,EIA Electricity Annual,NA,5,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,STOKER,SUB,35,S,lb,short tons,PhysicalUnits,AP-42,NA,8.8,lb,ton,PhysicalUnits,AP-42,NA
 ST,OTHER BOILER,WDS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,2,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,WALL,WDS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,2.51,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-CT,CC,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-GT,CT,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,CYCLONE,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY CYCLONE,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CA,DRY DUCTBURNER,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY DUCTBURNER,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY STOKER,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY TANGENTIAL,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY VERTICAL,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CA,DRY WALL,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,DRY WALL,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CS,DUCTBURNER,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,DUCTBURNER,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CT,DUCTBURNER,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CA,DUCTBURNER,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,FLUIDIZED,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CT,N/A,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,N/A,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CA,null,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CT,null,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-GT,null,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-IC,null,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,2.768,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CS,null,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-NA,null,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,NA,NA,NA,NA,NA,NA
-ST,null,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,OTHER,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,OTHER BOILER,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,STOKER,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,TANGENTIAL,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-GT,TANGENTIAL,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,WALL,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,WET CYCLONE,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CT,CC,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+GT,CT,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,CYCLONE,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY CYCLONE,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CA,DRY DUCTBURNER,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY DUCTBURNER,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY STOKER,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY TANGENTIAL,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY VERTICAL,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CA,DRY WALL,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DRY WALL,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CS,DUCTBURNER,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,DUCTBURNER,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CT,DUCTBURNER,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CA,DUCTBURNER,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,FLUIDIZED,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CT,N/A,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,N/A,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CA,null,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CT,null,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+GT,null,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+IC,null,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,2.768,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CS,null,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+NA,null,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,NA,NA,NA,NA,NA,NA
+ST,null,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,OTHER,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,OTHER BOILER,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,STOKER,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,TANGENTIAL,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+GT,TANGENTIAL,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,WALL,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,WET CYCLONE,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY STOKER,OTH,2.8,NA,lb,ton,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY TANGENTIAL,OTH,2.8,NA,lb,ton,PhysicalUnits,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,DRY VERTICAL,OTH,2.8,NA,lb,ton,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
@@ -260,25 +260,25 @@ GT,TANGENTIAL,OTH,2.8,NA,lb,ton,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnit
 ST,WALL,OTH,2.8,NA,lb,ton,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,WET CYCLONE,OTH,2.8,NA,lb,ton,PhysicalUnits,AP-42,NA,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 OT,OTHER,WDS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,2,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,WALL,PRG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
+ST,WALL,PRG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
 ST,TANGENTIAL,DFO,6.3,S,lb,barrels,PhysicalUnits,AP-42,NA,1.008,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 OT,null,WDS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,2,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,null,COG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,BFG
-ST,WALL,PG,6e-4,NA,lb,MCf,PhysicalUnits,EIA Electricity Annual,NA,0.52226,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,TANGENTIAL,PG,6e-4,NA,lb,MCf,PhysicalUnits,EIA Electricity Annual,NA,0.52226,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-CT,CC,PG,6e-4,NA,lb,MCf,PhysicalUnits,EIA Electricity Annual,NA,0.80336,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,null,COG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,BFG
+ST,WALL,PG,6.00E-04,NA,lb,MCf,PhysicalUnits,EIA Electricity Annual,NA,0.52226,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,TANGENTIAL,PG,6.00E-04,NA,lb,MCf,PhysicalUnits,EIA Electricity Annual,NA,0.52226,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+CT,CC,PG,6.00E-04,NA,lb,MCf,PhysicalUnits,EIA Electricity Annual,NA,0.80336,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 ST,null,LIG,30,S,lb,short tons,PhysicalUnits,AP-42,NA,6.3,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,OTHER BOILER,DFO,5.964,S,lb,barrels,PhysicalUnits,AP-42,NA,1.008,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
-ST,OTHER BOILER,PRG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
+ST,OTHER BOILER,PRG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
 ST,WALL,SUB,35,S,lb,short tons,PhysicalUnits,AP-42,NA,NA,NA,NA,NA,NA,NA
-ST,CYCLONE,COG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,BFG
-ST,WALL,COG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,BFG
+ST,CYCLONE,COG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,BFG
+ST,WALL,COG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,BFG
 CT,CC,DFO,1.01,S,lb,MMBtu,HeatInput,AP-42,NA,5.124,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,WALL,DFO,6.3,S,lb,barrels,PhysicalUnits,AP-42,NA,1.008,lb,barrels,PhysicalUnits,EIA Electricity Annual,NA
 ST,STOKER,OBS,0.025,NA,lb,MMBtu,HeatInput,AP-42,NA,2,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-ST,WALL,OG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,TANGENTIAL,OG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-OT,null,OTH,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,WALL,OG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,TANGENTIAL,OG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.15282,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+OT,null,OTH,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 OT,null,OTH,2.8,NA,lb,ton,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
 CT,CC,NG,0.003196,NA,lb,MMBtu,HeatInput,AP-42,NA,0.32,lb,MMBtu,NA,EIA Electricity Annual,NA
 ST,OTHER BOILER,NG,0.003196,NA,lb,MMBtu,HeatInput,AP-42,NA,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
@@ -287,7 +287,7 @@ ST,WALL,OG,0.003196,NA,lb,MMBtu,HeatInput,AP-42,NA,0.15282,lb,mcf,PhysicalUnits,
 ST,WALL,PRG,0.003196,NA,lb,MMBtu,HeatInput,AP-42,NG,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
 ST,OTHER BOILER,BIT,1.971977167,S,lb,MMBtu,heatinput,AP-42,NA,12,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
 ST,WALL,BIT,1.971977167,S,lb,MMBtu,heatinput,AP-42,NA,12,lb,ton,PhysicalUnits,EIA Electricity Annual,NA
-OT,null,PRG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
-IC,null,PG,6e-4,NA,lb,MCf,PhysicalUnits,EIA Electricity Annual,NA,0.80336,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
-ST,TANGENTIAL,COG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,BFG
-CA,OTHER BOILER,NG,6e-4,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+OT,null,PRG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,NG
+IC,null,PG,6.00E-04,NA,lb,MCf,PhysicalUnits,EIA Electricity Annual,NA,0.80336,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
+ST,TANGENTIAL,COG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NG,0.0154,lb,mcf,PhysicalUnits,EIA Electricity Annual,BFG
+CA,OTHER BOILER,NG,6.00E-04,NA,lb,Mcf,PhysicalUnits,AP-42,NA,0.328,lb,mcf,PhysicalUnits,EIA Electricity Annual,NA
