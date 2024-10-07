@@ -370,24 +370,83 @@ camd_oz_reporters_dist_2 <-
 
 ### Gap fill NOx emissions ozone season reporters -----------
 
+#### Schedule 8c updates ------
+
+# To identify unit level NOx rates, we need to fill EIA-923 Air Emissions & Control Info with Boiler IDs 
+
+# Load crosswalk to add additional boiler IDs
+### Note: check for updates or changes each data year ###
+
+xwalk_control_ids <- # xwalk to add additional boiler ids
+  read_csv("data/static_tables/xwalk_860_boiler_control_id.csv") %>% 
+  mutate(across(everything(), as.character))
+
+# EIA-923 does not have Boiler IDs in the Air & Emissions Control Info 
+# We use EIA-860 Boiler data to fill the Boiler IDs
+# Because EIA-823 Air & Emissions Control Info lists rows by unique control technologies, 
+# we have to update the Boiler ID as a 4-step process:
+#     1) match EIA-860 Boiler data for each emission control type 
+#     2) update boiler ID using a crosswalk between EIA-860 and EIA-923 data 
+#     3) identify where boiler ID is NA, and fill with boiler IDs from each emission control type 
+#     4) fill any remaining NA boiler IDs with the NOx control ID 
+
+schedule_8c <- 
+  eia_923$air_emissions_control_info %>%
+  # join EIA-860 boiler data with unique boiler ID columns 
+  left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, "boiler_id_nox" = boiler_id) %>% 
+              filter(!is.na(boiler_id_nox)) %>% distinct(), 
+            by = c("plant_id","nox_control_id")) %>%  
+  left_join(eia_860$boiler_so2 %>% select(plant_id, so2_control_id, "boiler_id_so2" = boiler_id) %>% 
+              filter(!is.na(boiler_id_so2)) %>% distinct(), 
+            by = c("plant_id", "so2_control_id")) %>%  
+  left_join(eia_860$boiler_particulate_matter %>% select(plant_id, "pm_control_id" = particulate_matter_control_id, "boiler_id_pm" = boiler_id) %>% 
+              filter(!is.na(boiler_id_pm)) %>% distinct(), 
+            by = c("plant_id", "pm_control_id")) %>% 
+  left_join(eia_860$boiler_mercury %>% select(plant_id, mercury_control_id, "boiler_id_hg" = boiler_id) %>% 
+              filter(!is.na(boiler_id_hg)) %>% distinct(), 
+            by = c("plant_id", "mercury_control" = "mercury_control_id")) %>% 
+  # use control ID crosswalk to match EIA-860 boiler IDs to EIA-923 control IDs
+  rows_patch(xwalk_control_ids %>% select(plant_id, "boiler_id_nox" = boiler_id, "nox_control_id" = `923_8c_nox_control_id`) %>% drop_na(),
+             by = c("plant_id", "nox_control_id"),
+             unmatched = "ignore") %>% 
+  rows_patch(xwalk_control_ids %>% select(plant_id, "boiler_id_so2" = boiler_id, "so2_control_id" =  `923_8c_so2_control`) %>% drop_na(),
+             by = c("plant_id", "so2_control_id"),
+             unmatched = "ignore") %>% 
+  rows_patch(xwalk_control_ids %>% select(plant_id, "boiler_id_pm" = boiler_id, "pm_control_id" =  `923_8c_pm_control_id`) %>% drop_na(),
+             by = c("plant_id", "pm_control_id"),
+             unmatched = "ignore") %>%
+  rows_patch(xwalk_control_ids %>% select(plant_id, "boiler_id_hg" = boiler_id, "mercury_control" =  `hg_8c_pm_control_id`) %>% drop_na(),
+             by = c("plant_id", "mercury_control"),
+             unmatched = "ignore") %>% 
+  # assign boiler ID by identifying non-NA IDs
+  mutate(boiler_id = case_when(
+    !is.na(boiler_id_nox) ~ boiler_id_nox, 
+    is.na(boiler_id_nox) & !is.na(boiler_id_so2) ~ boiler_id_so2, 
+    is.na(boiler_id_nox) & is.na(boiler_id_so2) & !is.na(boiler_id_pm) ~ boiler_id_pm, 
+    is.na(boiler_id_nox) & is.na(boiler_id_so2) & is.na(boiler_id_pm) & !is.na(boiler_id_hg) ~ boiler_id_hg, 
+    TRUE ~ NA_character_), 
+    boiler_id = if_else(is.na(boiler_id), nox_control_id, boiler_id)) %>% # if boiler ID is still NA, assign NOx control ID as the Boiler ID
+  select(-contains("boiler_id_"))
+
 #### NOx Rate ---------
 
 # where available, NOx rates are used to estimates NOx emissions
 
 nox_rates <- # calculating NOx emission rates used to estimate NOx emissions
-  eia_923$air_emissions_control_info %>% 
-  left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, boiler_id),
-            by = c("plant_id", "nox_control_id")) %>% 
-  group_by(plant_id, boiler_id, nox_control_id) %>%
-  summarize(nox_rate_ann = max(nox_emission_rate_entire_year_lbs_mmbtu),
-            nox_rate_oz = max(nox_emission_rate_may_through_september_lbs_mmbtu)) 
+  schedule_8c %>% 
+  rename(unit_id = boiler_id) %>%
+  select(plant_id, unit_id, contains("nox_emission"), status) %>%
+  drop_na() %>% filter(status == "OP") %>% 
+  group_by(plant_id, unit_id) %>%
+  summarize(nox_rate_ann = min(nox_emission_rate_entire_year_lbs_mmbtu, na.rm = TRUE),
+            nox_rate_oz = min(nox_emission_rate_may_through_september_lbs_mmbtu, na.rm = TRUE)) 
 
 camd_oz_reporters_dist_nox_rates <- # filling annual NOx mass with nox_rates where available
   camd_oz_reporters_dist_2 %>%
   inner_join(nox_rates,
-             by = c("plant_id", "unit_id" = "boiler_id")) %>%
+             by = c("plant_id", "unit_id")) %>%
   mutate(nox_nonoz_mass = (heat_input_nonoz * nox_rate_ann) / 2000, 
-         nox_mass = nox_nonoz_mass + nox_oz_mass, # I think there should be a reporting frequency condition here. 
+         nox_mass = if_else(reporting_frequency == "OS", nox_nonoz_mass + nox_oz_mass, nox_mass), 
          nox_source = if_else(is.na(nox_mass), nox_source ,"Estimated based on unit-level NOx emission rates and EPA/CAMD ozone season emissions"))
 
 nox_rates_ids <- # creating unique ids to filter out later
@@ -909,61 +968,7 @@ og_fuel_types_update <-
   mutate(across(everything(), ~ as.character(.x))) %>%
   select(plant_id, unit_id, fuel_code)
 
-## Schedule 8c updates ------
 
-# Load crosswalk to add additional boiler IDs
-### Note: check for updates or changes each data year ###
-
-xwalk_control_ids <- # xwalk to add additional boiler ids
-  read_csv("data/static_tables/xwalk_860_boiler_control_id.csv") %>% 
-  mutate(across(everything(), as.character))
-
-# EIA-923 does not have Boiler IDs in the Air & Emissions Control Info 
-# We use EIA-860 Boiler data to fill the Boiler IDs
-# Because EIA-823 Air & Emissions Control Info lists rows by unique control technologies, 
-# we have to update the Boiler ID as a 4-step process:
-#     1) match EIA-860 Boiler data for each emission control type 
-#     2) update boiler ID using a crosswalk between EIA-860 and EIA-923 data 
-#     3) identify where boiler ID is NA, and fill with boiler IDs from each emission control type 
-#     4) fill any remaining NA boiler IDs with the NOx control ID 
-
-schedule_8c <- 
-  eia_923$air_emissions_control_info %>%
-  # join EIA-860 boiler data with unique boiler ID columns 
-  left_join(eia_860$boiler_nox %>% select(plant_id, nox_control_id, "boiler_id_nox" = boiler_id) %>% 
-              filter(!is.na(boiler_id_nox)) %>% distinct(), 
-            by = c("plant_id","nox_control_id")) %>%  
-  left_join(eia_860$boiler_so2 %>% select(plant_id, so2_control_id, "boiler_id_so2" = boiler_id) %>% 
-              filter(!is.na(boiler_id_so2)) %>% distinct(), 
-            by = c("plant_id", "so2_control_id")) %>%  
-  left_join(eia_860$boiler_particulate_matter %>% select(plant_id, "pm_control_id" = particulate_matter_control_id, "boiler_id_pm" = boiler_id) %>% 
-              filter(!is.na(boiler_id_pm)) %>% distinct(), 
-            by = c("plant_id", "pm_control_id")) %>% 
-  left_join(eia_860$boiler_mercury %>% select(plant_id, mercury_control_id, "boiler_id_hg" = boiler_id) %>% 
-              filter(!is.na(boiler_id_hg)) %>% distinct(), 
-            by = c("plant_id", "mercury_control" = "mercury_control_id")) %>% 
-  # use control ID crosswalk to match EIA-860 boiler IDs to EIA-923 control IDs
-  rows_patch(xwalk_control_ids %>% select(plant_id, "boiler_id_nox" = boiler_id, "nox_control_id" = `923_8c_nox_control_id`) %>% drop_na(),
-             by = c("plant_id", "nox_control_id"),
-             unmatched = "ignore") %>% 
-  rows_patch(xwalk_control_ids %>% select(plant_id, "boiler_id_so2" = boiler_id, "so2_control_id" =  `923_8c_so2_control`) %>% drop_na(),
-             by = c("plant_id", "so2_control_id"),
-             unmatched = "ignore") %>% 
-  rows_patch(xwalk_control_ids %>% select(plant_id, "boiler_id_pm" = boiler_id, "pm_control_id" =  `923_8c_pm_control_id`) %>% drop_na(),
-             by = c("plant_id", "pm_control_id"),
-             unmatched = "ignore") %>%
-  rows_patch(xwalk_control_ids %>% select(plant_id, "boiler_id_hg" = boiler_id, "mercury_control" =  `hg_8c_pm_control_id`) %>% drop_na(),
-             by = c("plant_id", "mercury_control"),
-             unmatched = "ignore") %>% 
-  # assign boiler ID by identifying non-NA IDs
-  mutate(boiler_id = case_when(
-    !is.na(boiler_id_nox) ~ boiler_id_nox, 
-    is.na(boiler_id_nox) & !is.na(boiler_id_so2) ~ boiler_id_so2, 
-    is.na(boiler_id_nox) & is.na(boiler_id_so2) & !is.na(boiler_id_pm) ~ boiler_id_pm, 
-    is.na(boiler_id_nox) & is.na(boiler_id_so2) & is.na(boiler_id_pm) & !is.na(boiler_id_hg) ~ boiler_id_hg, 
-    TRUE ~ NA_character_), 
-    boiler_id = if_else(is.na(boiler_id), nox_control_id, boiler_id)) %>% # if boiler ID is still NA, assign NOx control ID as the Boiler ID
-  select(-contains("boiler_id_"))
   
 
 ## Updating units with available values ------
@@ -974,11 +979,11 @@ all_units_4 <-
                rename("unit_id" = "boiler_id"),
              by = c("plant_id", "unit_id"),
              unmatched = "ignore") %>%
+  mutate(primary_fuel_type = if_else(primary_fuel_type %in% c("MSB", "MSN"), "MSW", primary_fuel_type)) %>%  # Changing "MSB" and "MSN" fuel codes to "MSW", necessary for EF methodology
   rows_patch(so2_controls_860 %>% # updating with available 860 SO2 controls
                rename("unit_id" = "boiler_id"),
             by = c("plant_id","unit_id"),
             unmatched = "ignore") %>%
-  mutate(primary_fuel_type = if_else(primary_fuel_type %in% c("MSB", "MSN"), "MSW", primary_fuel_type)) %>% # Changing "MSB" and "MSN" fuel codes to "MSW"
   rows_patch(botfirty_eia %>% 
                rename("unit_id" = "boiler_id", 
                       "botfirty" = eGRID),
@@ -1019,7 +1024,11 @@ avg_sulfur_content <-
          total_heat_input = rowSums(pick(starts_with("heat_input")), na.rm = TRUE),
          avg_sulfur_content = if_else(total_fuel_consumption_quantity > 0, # calculating avg sulfur content with condition to ignore if total_fuel_consumption is 0
                                       rowSums(pick(starts_with("sulfur_content")), na.rm = TRUE) / total_fuel_consumption_quantity, 
-                                      rowSums(pick(starts_with("sulfur_content")), na.rm = TRUE) / 1)) %>% 
+                                      rowSums(pick(starts_with("sulfur_content")), na.rm = TRUE) / 1), 
+         fuel_type = if_else(fuel_type %in% c("MSN", "MSB"), "MSW", fuel_type)) %>% 
+  group_by(plant_id, boiler_id, prime_mover, fuel_type, physical_unit_label) %>% 
+  slice_max(total_fuel_consumption_quantity) %>% # take maximum value of total fuel consumption if there are duplicates
+  ungroup() %>% 
   arrange(as.numeric(plant_id)) %>%
   select(plant_id, 
          boiler_id,
@@ -1062,19 +1071,21 @@ estimated_so2_emissions_content <-
               mutate(botfirty = if_else(botfirty %in% c("null", "N/A"), NA_character_, botfirty)) %>% # fill null or N/A botfirty with NA
                        distinct(), 
             by = c("prime_mover", "botfirty", "primary_fuel_type")) %>%
-  mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1), # if so2_flag is not S, change avg_sulfur_content to 1
+  mutate(avg_sulfur_content = if_else(so2_flag == "S" & !is.na(so2_flag), avg_sulfur_content, 1), # if so2_flag is not S, change avg_sulfur_content to 1
          so2_mass = if_else(unit_flag == "PhysicalUnits", 
                                  (so2_ef * avg_sulfur_content * total_fuel_consumption_quantity * (1 - so2_removal_efficiency_rate_at_annual_operating_factor)) / 2000,
                                  (so2_ef * avg_sulfur_content * total_heat_input * (1 - so2_removal_efficiency_rate_at_annual_operating_factor)) / 2000)
          ) %>% 
-  filter(so2_mass > 0) %>% 
+  filter(so2_mass >= 0) %>% 
   mutate(so2_source = "Estimated using emissions factor and plant-specific sulfur content") %>% 
   select(plant_id, unit_id, so2_mass, so2_source, unit_flag) %>%
   add_count(plant_id, unit_id, sort = TRUE) %>% # Some units match to multiple EF under different unit_flags. We want default to be "PhysicalUnits", so where there are multiple rows per unit, we take only "PhysicalUnits"
+  group_by(plant_id, unit_id) %>% 
+  mutate(flags = tolower(paste(unit_flag, collapse = ", "))) %>% ungroup() %>% # listing unit flags to only keep units that have 1 "PhysicalUnits" EF estimation
   filter(unit_flag == "PhysicalUnits" & n == 1 |
-         unit_flag == "PhysicalUnits" & n == 2 |
-         unit_flag != "PhysicalUnits" & n == 1  ) %>%
-  select(-n)
+         unit_flag == "PhysicalUnits" & n == 2 & flags == "physicalunits, heatinput" | 
+         unit_flag != "PhysicalUnits" & n == 1) %>%
+  select(-n, -flags)
 
   
 # determine SO2 mass for PR coal plant 
@@ -1124,8 +1135,7 @@ all_units_5 <-
   rows_patch(estimated_so2_emissions_content %>% select(-unit_flag),  
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(estimated_so2_emissions_content_pr, 
-              by = c("plant_id", "unit_id"), unmatched = "ignore")
-
+              by = c("plant_id", "unit_id"), unmatched = "ignore") 
 
 ## SO2 emissions - physical units ----------
 
@@ -1144,14 +1154,25 @@ eia_fuel_consum_fuel_type <- # summing fuel and consum to PM fuel_type level
             fuel_consum_nonoz_923 = sum(unit_consum_nonoz, na.rm = TRUE),
             fuel_consum_oz_923 = sum(unit_consum_oz, na.rm = TRUE),
             fuel_consum_ann_923 = sum(total_fuel_consumption_quantity, na.rm = TRUE) # consumption in quantity is referred to as "fuel consumption"
-  )
+  ) %>% ungroup() 
+
+biomass_consum_edits <- 
+  eia_fuel_consum_fuel_type %>% 
+  filter(fuel_type %in% c("MSN", "MSB")) %>% 
+  mutate(fuel_type = "MSW") %>% 
+  group_by(plant_id, prime_mover, fuel_type) %>% 
+  slice_max(fuel_consum_ann_923) %>% ungroup()
+
+eia_fuel_consum_fuel_type_2 <- 
+  rbind(eia_fuel_consum_fuel_type %>% filter(!fuel_type %in% c("MSN", "MSB")), 
+        biomass_consum_edits)
 
 units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emissions with distributed heat input and fuel consumption
   all_units_5 %>% 
-  group_by(plant_id, plant_state, prime_mover, primary_fuel_type) %>% 
+  group_by(plant_id, plant_state, prime_mover, primary_fuel_type, botfirty) %>% 
   mutate(total_heat_input = sum(heat_input, na.rm = TRUE)) %>% 
   ungroup() %>% 
-  mutate(prop = heat_input / total_heat_input) %>% 
+  mutate(prop = if_else(total_heat_input != 0, heat_input / total_heat_input, 1)) %>% # handle divide by 0 by assigning prop of 1 to zero total_heat_input values
   select(plant_id, 
          plant_state,
          prime_mover, 
@@ -1159,7 +1180,7 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
          botfirty,
          primary_fuel_type,
          prop) %>%
-  inner_join(eia_fuel_consum_fuel_type,
+  inner_join(eia_fuel_consum_fuel_type_2,
              by = c("plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>%
   mutate(fuel_consumption = fuel_consum_ann_923 * prop,
          fuel_consumption_oz = fuel_consum_oz_923 * prop,
@@ -1228,14 +1249,15 @@ so2_emissions_pu_coal <-
             by = c("prime_mover",
                    "botfirty",
                    "primary_fuel_type")) %>%
-  mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
+  mutate(avg_sulfur_content = if_else(so2_flag == "S" & !is.na(so2_flag), avg_sulfur_content, 1),
          so2_mass = if_else(unit_flag == "PhysicalUnits",
                             so2_ef * avg_sulfur_content * fuel_consumption / 2000, 
                             so2_ef * avg_sulfur_content * heat_input / 2000)) %>% 
   select(plant_id,
          unit_id,
-         so2_mass) %>% 
-  filter(so2_mass > 0) %>% 
+         so2_mass, 
+         heat_input) %>% 
+  filter(so2_mass >= 0 & !is.na(heat_input)) %>% 
   mutate(so2_source = "Estimated using emissions factor")
 
 
@@ -1250,14 +1272,15 @@ so2_emissions_pu_noncoal <-
             by = c("prime_mover",
                    "botfirty",
                    "primary_fuel_type")) %>%
-  mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
+  mutate(avg_sulfur_content = if_else(so2_flag == "S" & !is.na(so2_flag), avg_sulfur_content, 1),
          so2_mass = if_else(unit_flag == "PhysicalUnits",
                             so2_ef * avg_sulfur_content * fuel_consumption / 2000, 
                             so2_ef * avg_sulfur_content * heat_input / 2000)) %>% 
   select(plant_id,
          unit_id,
-         so2_mass) %>% 
-  filter(so2_mass > 0) %>% 
+         so2_mass, 
+         heat_input) %>% 
+  filter(so2_mass >= 0 & !is.na(heat_input)) %>% 
   mutate(so2_source = "Estimated using emissions factor")
   
 ### estimating so2 emissions with heat input - coal ------
@@ -1272,13 +1295,14 @@ so2_emissions_heat_coal <-
             by = c("prime_mover",
                    "botfirty",
                    "primary_fuel_type")) %>%
-  mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
+  mutate(avg_sulfur_content = if_else(so2_flag == "S" & !is.na(so2_flag), avg_sulfur_content, 1),
          so2_mass = if_else(unit_flag == "HeatInput",
                             so2_ef * avg_sulfur_content * heat_input / 2000, 0)) %>%
   select(plant_id,
          unit_id,
-         so2_mass) %>% 
-  filter(so2_mass > 0) %>% 
+         so2_mass, 
+         heat_input) %>% 
+  filter(so2_mass >= 0 & !is.na(heat_input)) %>% 
   mutate(so2_source = "Estimated using emissions factor")
 
 
@@ -1293,13 +1317,14 @@ so2_emissions_heat_noncoal <-
             by = c("prime_mover",
                    "botfirty",
                    "primary_fuel_type")) %>%
-  mutate(avg_sulfur_content = if_else(so2_flag == "S", avg_sulfur_content, 1),
+  mutate(avg_sulfur_content = if_else(so2_flag == "S" & !is.na(so2_flag), avg_sulfur_content, 1),
          so2_mass = if_else(unit_flag == "HeatInput",
                             so2_ef * avg_sulfur_content * heat_input / 2000, 0)) %>%
   select(plant_id,
          unit_id,
-         so2_mass) %>% 
-  filter(so2_mass > 0) %>% 
+         so2_mass, 
+         heat_input) %>% 
+  filter(so2_mass >= 0 & !is.na(heat_input)) %>% 
   mutate(so2_source = "Estimated using emissions factor")
 
 
@@ -1333,7 +1358,8 @@ co2_emissions <-
               select(eia_fuel_code, co2_ef), by = c("primary_fuel_type" = "eia_fuel_code")) %>%
   mutate(co2_mass = heat_input * co2_ef, 
          co2_source = "Estimated using emissions factor") %>%
-  select(-c(co2_ef, heat_input, primary_fuel_type))
+  select(-c(co2_ef, heat_input, primary_fuel_type)) %>% 
+  filter(!is.na(co2_mass))
 
 ### Updating units with estimated CO2 emissions --------
 
@@ -1347,29 +1373,20 @@ all_units_7 <-
 
 ### NOx emissions - rate -------
 
-nox_rates_2 <- 
-  schedule_8c %>%
-  rename(unit_id = boiler_id) %>%
-  select(plant_id, unit_id, contains("nox_emission"), status) %>% 
-  drop_na() %>% filter(status == "OP") %>% 
-  group_by(plant_id, unit_id) %>% 
-  summarize(nox_rate = min(nox_emission_rate_entire_year_lbs_mmbtu, na.rm = TRUE), # use minimum NOx rate listed for units
-            nox_oz_rate = min(nox_emission_rate_may_through_september_lbs_mmbtu, na.rm = TRUE)) 
-
 nox_rates_ann <- 
   all_units_7 %>% select(plant_id, unit_id, prime_mover, heat_input) %>% 
-  inner_join(nox_rates_2) %>% 
-  mutate(nox_mass = (nox_rate * heat_input) / 2000,
+  inner_join(nox_rates) %>% 
+  mutate(nox_mass = (nox_rate_ann * heat_input) / 2000,
          nox_source = "Estimated based on unit-level NOx emission rates") %>%
-  select(-c(nox_rate, nox_oz_rate)) %>% 
+  select(-c(nox_rate_ann, nox_rate_oz)) %>% 
   filter(!is.na(nox_mass))
 
 nox_rates_oz <- 
   all_units_7 %>% select(plant_id, unit_id, prime_mover, heat_input_oz) %>% 
-  inner_join(nox_rates_2) %>% 
-  mutate(nox_oz_mass = (nox_oz_rate * heat_input_oz) / 2000,
+  inner_join(nox_rates) %>% 
+  mutate(nox_oz_mass = (nox_rate_oz * heat_input_oz) / 2000,
          nox_oz_source = "Estimated based on unit-level NOx ozone season emission rates") %>%
-  select(-c(nox_rate, nox_oz_rate)) %>% 
+  select(-c(nox_rate_ann, nox_rate_oz)) %>% 
   filter(!is.na(nox_oz_mass))
 
 nox_emissions_rates <- 
@@ -1403,13 +1420,15 @@ nox_emissions_factor <-
                    "botfirty",
                    "primary_fuel_type")) %>%
   group_by(plant_id, unit_id) %>%
-  mutate(nox_mass = (fuel_consumption * nox_ef) / 2000) %>%
+  mutate(nox_mass = (fuel_consumption * nox_ef) / 2000,
+         nox_source = "Estimated using emissions factor") %>%
+  ungroup() %>% 
+  filter(nox_mass >= 0 & !is.na(heat_input)) %>% 
   select(plant_id,
          unit_id,
          prime_mover,
-         nox_mass) %>% 
-  filter(nox_mass > 0) %>% 
-  mutate(nox_source = "Estimated using emissions factor")
+         nox_mass, 
+         nox_source) 
 
 
 #### estimating NOx ozone emissions with EF --------
@@ -1422,13 +1441,15 @@ nox_oz_emissions_factor <-
                    "botfirty",
                    "primary_fuel_type")) %>%
   group_by(plant_id, unit_id) %>%
-  mutate(nox_oz_mass = (fuel_consumption_oz * nox_ef) / 2000) %>%
+  mutate(nox_oz_mass = (fuel_consumption_oz * nox_ef) / 2000,
+         nox_oz_source = "Estimated using emissions factor") %>% 
+  ungroup() %>% 
+  filter(nox_oz_mass >= 0 & !is.na(heat_input)) %>% 
   select(plant_id,
          unit_id,
          prime_mover,
-         nox_oz_mass) %>% 
-  filter(nox_oz_mass > 0) %>% 
-  mutate(nox_oz_source = "Estimated using emissions factor")
+         nox_oz_mass, 
+         nox_oz_source) 
 
 
 #### estimating NOx annual emissions with heat input --------
@@ -1452,13 +1473,13 @@ nox_emissions_heat_input <-
   mutate(nox_mass = (heat_input * nox_ef) / 2000,
          nox_source = "Estimated using emissions factor") %>%
   ungroup() %>%
+  filter(nox_mass >= 0 & !is.na(heat_input)) %>% 
   select(plant_id,
          unit_id,
          prime_mover,
          primary_fuel_type, 
          nox_mass,
-         nox_source) %>%
-  filter(nox_mass > 0) 
+         nox_source) 
 
 #### estimating NOx ozone emissions with heat input --------
 
@@ -1469,17 +1490,17 @@ nox_oz_emissions_heat_input <-
             by = c("prime_mover",
                    "botfirty",
                    "primary_fuel_type")) %>%
-  select(plant_id, unit_id, primary_fuel_type, prime_mover, heat_input_oz, nox_ef, nox_ef_num, nox_ef_denom) %>%
+  select(plant_id, unit_id, primary_fuel_type, prime_mover, heat_input_oz, heat_input, nox_ef, nox_ef_num, nox_ef_denom) %>%
   group_by(unit_id, plant_id, primary_fuel_type, nox_ef, nox_ef_num, nox_ef_denom) %>%
   mutate(nox_oz_mass = (heat_input_oz * nox_ef) / 2000,
          nox_oz_source = "Estimated using emissions factor") %>%
   ungroup() %>%
+  filter(nox_oz_mass >= 0 & !is.na(heat_input)) %>% 
   select(plant_id,
          unit_id,
          prime_mover,
          nox_oz_mass,
-         nox_oz_source) %>%
-  filter(nox_oz_mass > 0)
+         nox_oz_source) 
 
 #### Updating units with estimating NOx --------
 
@@ -1523,16 +1544,19 @@ geo_emission_factors <- read_csv("data/static_tables/geothermal_emission_factors
 geo_emissions <- 
   all_units_9 %>%
   filter(primary_fuel_type == "GEO") %>% 
-  left_join(nrel_geo_type, by = "plant_id") %>% 
-  left_join(geo_emission_factors, by = "geo_type_code") %>% 
+  left_join(nrel_geo_type %>% filter(table_flag == "new"), 
+            by = "plant_id") %>% 
+  rows_patch(nrel_geo_type %>% filter(table_flag == "old"), # gap fill with old geothermal data for units that do not have a geo_code in newest data table
+                by = "plant_id", unmatched = "ignore") %>% 
+  left_join(geo_emission_factors , by = "geo_type_code") %>% 
   mutate(nox_mass = (heat_input * nox_ef_lb_mmbtu) / 2000, 
          nox_oz_mass = (heat_input_oz * nox_ef_lb_mmbtu) / 2000, 
          so2_mass = (heat_input * so2_ef_lb_mmbtu) / 2000, 
          co2_mass = (heat_input * co2_ef_lb_mmbtu) / 2000, 
-         nox_source = "Estimated using emissions factor", 
-         nox_oz_source = "Estimated using emissions factor", 
-         so2_source = "Estimated using emissions factor", 
-         co2_source = "Estimated using emissions factor") %>% 
+         nox_source = if_else(!is.na(nox_mass), "Estimated using emissions factor", NA_character_), 
+         nox_oz_source = if_else(!is.na(nox_oz_mass), "Estimated using emissions factor", NA_character_), 
+         so2_source = if_else(!is.na(so2_mass), "Estimated using emissions factor", NA_character_), 
+         co2_source = if_else(!is.na(co2_mass), "Estimated using emissions factor", NA_character_)) %>% 
   select(plant_id, unit_id, nox_mass, nox_oz_mass, so2_mass, co2_mass, 
          nox_source, nox_oz_source, so2_source, co2_source)
 
@@ -1640,7 +1664,7 @@ update_status_generators <- # operating status for generators updated via EIA-86
   
 update_status_boilers <- # operating status for boilers updated via EIA-860 Boiler Info and Design Parameters
   all_units_10 %>% select(plant_id, unit_id, operating_status, source) %>% 
-  filter(source == "923 boilers", is.na(operating_status)) %>% # only update status for those that are NA
+  filter(source == "923_boilers", is.na(operating_status)) %>% # only update status for those that are NA
   rows_patch(eia_860$boiler_info_design_parameters %>% select(plant_id, "unit_id" = boiler_id, "operating_status" = boiler_status), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   mutate(operating_status = toupper(operating_status)) %>% 
