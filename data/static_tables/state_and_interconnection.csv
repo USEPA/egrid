@@ -1,0 +1,58 @@
+State Postal Code,State,Interconnect
+AL,Alabama,Eastern
+AK,Alaska,Alaska
+AZ,Arizona,Western
+AR,Arkansas,Eastern
+CA,California,Western
+CO,Colorado,Western
+CT,Connecticut,Eastern
+DE,Delaware,Eastern
+DC,District of Columbia,Eastern
+FL,Florida,Eastern
+GA,Georgia,Eastern
+HI,Hawaii,Hawaii
+ID,Idaho,Western
+IL,Illinois,Eastern
+IN,Indiana,Eastern
+IA,Iowa,Eastern
+KS,Kansas,Eastern
+KY,Kentucky,Eastern
+LA,Louisiana,Eastern
+ME,Maine,Eastern
+MD,Maryland,Eastern
+MA,Massachusetts,Eastern
+MI,Michigan,Eastern
+MN,Minnesota,Eastern
+MS,Mississippi,Eastern
+MO,Missouri,Eastern
+MT,Montana,Western
+MT,Montana,Eastern
+NE,Nebraska,Eastern
+NE,Nebraska,Western
+NV,Nevada,Western
+NH,New Hampshire,Eastern
+NJ,New Jersey,Eastern
+NM,New Mexico,Western
+NM,New Mexico,Eastern
+NY,New York,Eastern
+NC,North Carolina,Eastern
+ND,North Dakota,Eastern
+OH,Ohio,Eastern
+OK,Oklahoma,Eastern
+OR,Oregon,Western
+PA,Pennsylvania,Eastern
+RI,Rhode Island,Eastern
+SC,South Carolina,Eastern
+SD,South Dakota,Eastern
+SD,South Dakota,Western
+TN,Tennessee,Eastern
+TX,Texas,ERCOT
+TX,Texas,Eastern
+TX,Texas,Western
+UT,Utah,Western
+VT,Vermont,Eastern
+VA,Virginia,Eastern
+WA,Washington,Western
+WV,West Virginia,Eastern
+WI,Wisconsin,Eastern
+WY,Wyoming,Western
