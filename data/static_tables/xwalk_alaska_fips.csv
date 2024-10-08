@@ -1,0 +1,24 @@
+State,Plant Name,Plant Code,County,Latitude,Longitude,Appendix 6 County Name,FIPS County,FIPS State
+AK,Craig (AK),421,Prince of Wales Ketchikan,55.4764,-133.1483,Prince of Wales-Hyder,198,02
+AK,Hydaburg,423,Prince of Wales Ketchikan,55.2081,-132.8267,Prince of Wales-Hyder,198,02
+AK,Thorne Bay Plant,7414,Prince of Wales Ketchikan,55.5156,-132.9672,Prince of Wales-Hyder,198,02
+AK,Black Bear Lake,7752,Prince of Wales Ketchikan,55.476472,-133.14772,Prince of Wales-Hyder,198,02
+AK,False Island,56146,Prince of Wales Ketchikan,55.4889,-133.1339,Prince of Wales-Hyder,198,02
+AK,Viking,56147,Prince of Wales Ketchikan,55.4886,-133.1408,Prince of Wales-Hyder,198,02
+AK,South Fork,56265,Prince of Wales Ketchikan,55.563333,-132.891111,Prince of Wales-Hyder,198,02
+AK,Reynolds Creek,59037,Prince of Wales Ketchikan,55.216389,-132.603611,Prince of Wales-Hyder,198,02
+AK,Purple Lake,6302,Prince of Wales Ketchikan,55.091263,-131.544978,Prince of Wales-Hyder,198,02
+AK,Centennial,7112,Prince of Wales Ketchikan,55.1139,-131.5481,Prince of Wales-Hyder,198,02
+AK,Chester Lake,7168,Prince of Wales Ketchikan,55.116879,-131.545879,Prince of Wales-Hyder,198,02
+AK,Klawock,7466,Prince of Wales Ketchikan,55.557778,-132.981389,Prince of Wales-Hyder,198,02
+AK,Skagway,66,Skagway Hoonah Angoon,59.4545,-135.3131,Skagway,230,02
+AK,Goat Lake Hydro,7751,Skagway Hoonah Angoon,59.5357,-135.2123,Skagway,230,02
+AK,Kasidaya Creek Hydro,56542,Skagway Hoonah Angoon,59.4072,-135.3408,Skagway,230,02
+AK,Angoon,7462,Skagway Hoonah Angoon,57.447778,-134.492778,Hoonah-Angoon,105,02
+AK,Hoonah,7463,Skagway Hoonah Angoon,58.114167,-135.407778,Hoonah-Angoon,105,02
+AK,Pelican,6702,Skagway Hoonah Angoon,57.957197,-136.220095,Hoonah-Angoon,105,02
+AK,Petersburg,91,Wrangell Petersburg,56.81104,-132.957091,Petersburg,195,02
+AK,Kake,7464,Wrangell Petersburg,56.957857,-133.908103,Petersburg,195,02
+AK,Wrangell,95,Wrangell Petersburg,56.4522,-132.3683,Wrangell,275,02
+AK,Tyee Lake Hydroelectric Facility,61166,Wrangell Petersburg,56.216403,-131.504344,Wrangell,275,02
+AK,Klawock Power Generation Station,61684,Prince of Wales Ketchikan,55.553197,-133.08535,Prince of Wales-Hyder,198,02
