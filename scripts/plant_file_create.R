@@ -48,7 +48,7 @@ generator_file <- read_rds("data/outputs/generator_file.RDS")
 
 unit_file <- read_rds("data/outputs/unit_file.RDS")
 
-# Create a file to string concatenate unique values that are not NA ----------
+# Create a function to string concatenate unique values that are not NA ----------
 
 paste_concat <- function(l, number = FALSE, concat = TRUE){
   l <- l[!is.na(l)]
@@ -86,17 +86,17 @@ plant_unit <-
             unadj_so2_source = paste_concat(so2_source),
             unadj_co2_mass = sum(co2_mass, na.rm = TRUE), # units: tons
             unadj_co2_source = paste_concat(co2_source),
-            unadj_hg_mass = ifelse("hg_mass" %in% colnames(unit_file), sum(hg_mass, na.rm = TRUE) , NA_character_),
-            unadj_hg_source = ifelse("hg_source" %in% colnames(unit_file), paste_concat(hg_source) , NA_character_)) %>% 
+            unadj_hg_mass = if_else("hg_mass" %in% colnames(unit_file), sum(hg_mass, na.rm = TRUE) , NA_real_),
+            unadj_hg_source = if_else("hg_source" %in% colnames(unit_file), paste_concat(hg_source) , NA_character_)) %>% 
   ungroup()
 
-# Aggregate gen file to plant level----------------------------
+# Aggregate generator file to plant level----------------------------
 
 plant_gen <- 
   generator_file %>% 
   filter(!is.na(plant_id)) %>% # remove rows with NA plant ID 
   group_by(year, plant_id, plant_state, plant_name) %>%
-  summarize(num_gen = n(), # count
+  summarize(num_generators = n(), # count
             nameplate_capacity = sum(nameplate_capacity, na.rm = TRUE), # units?
             generation_ann = sum(generation_ann, na.rm = TRUE), # units?
             generation_oz = sum(generation_oz, na.rm = TRUE), # units?
@@ -229,7 +229,7 @@ plant_file_2 <-
   plant_file %>% 
   left_join(state_county_fips, by = c("plant_state", "county")) %>% 
   left_join(xwalk_alaska_fips, by = c("plant_state", "plant_id", "county")) %>% 
-  mutate(county = ifelse(!is.na(new_county), new_county, county)) %>% 
+  mutate(county = if_else(!is.na(new_county), new_county, county)) %>% 
   select(-new_county)
 
 ### Balancing authority assignments --------------
@@ -241,7 +241,8 @@ utility_ba <-
   summarize(count = n(), #length(paste_concat(ba_id, concat = FALSE)),
             ba_code = paste_concat(ba_code),
             ba_name = paste_concat(ba_name)) %>% 
-  filter(count == 1)
+  filter(count == 1) %>% 
+  ungroup()
 
 # replace ba_code and ba_name for these utilities 
 plant_file_3 <- 
@@ -415,7 +416,7 @@ unit_fuel_by_plant <-
   mutate(heat_input = if_else(is.na(heat_input), 0, heat_input)) %>% # replace NA with 0 so rows with only NA do not get filtered out
   ungroup() %>% 
   group_by(plant_id) %>% 
-  filter(heat_input == max(heat_input))
+  filter(heat_input == max(heat_input)) %>% ungroup()
 
 # do the same for the generator file with nameplate_capacity       
 gen_fuel_by_plant <- 
@@ -424,7 +425,7 @@ gen_fuel_by_plant <-
   mutate(nameplate_capacity = if_else(is.na(nameplate_capacity), 0, nameplate_capacity)) %>% # replace NA with 0 so rows with only NA do not get filtered out
   ungroup() %>% 
   group_by(plant_id) %>% 
-  filter(nameplate_capacity == max(nameplate_capacity)) 
+  filter(nameplate_capacity == max(nameplate_capacity)) %>% ungroup()
 
 # join these tables together
 # update primary fuel type as fuel_code (from gen file) if heat_input is 0 and primary_fuel_type (from unit file) otherwise
@@ -533,8 +534,9 @@ coal_plants <-
                                total_fuel_consumption_mmbtu > 0, "Yes", NA_character_)) %>%  # if the fuel type is in coal_fuels, set the flag to "Yes", otherwise NA
   ungroup() %>% 
   group_by(plant_id) %>% 
-  summarize(coal_flag = max(coal_flag)) # if any generation comes from coal, flag as a coal plant
-
+  summarize(coal_flag = max(coal_flag)) %>%  # if any generation comes from coal, flag as a coal plant
+  ungroup()
+  
 plant_file_9 <- 
   plant_file_8 %>% 
   left_join(coal_plants, by = c("plant_id")) 
@@ -600,8 +602,9 @@ eia_923_biomass <-
   group_by(plant_id) %>%
   summarize(co2_biomass = sum(co2_biomass, na.rm = TRUE),
             total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE)) %>%
-  mutate(biomass_adj_flag = "Yes")  # add a flag for this adjustment
-
+  mutate(biomass_adj_flag = "Yes") %>%   # add a flag for this adjustment
+  ungroup()
+  
 plant_file_13 <- 
   plant_file_12 %>% 
   left_join(eia_923_biomass, by = c("plant_id"))  %>%
@@ -701,7 +704,8 @@ ann_gen_by_fuel <-
   replace_na(list(ann_gen = 0, ann_gen_coal = 0, ann_gen_oil = 0, 
                   ann_gen_gas = 0,ann_gen_nuclear = 0,ann_gen_hydro = 0,ann_gen_biomass = 0,
                   ann_gen_wind = 0,ann_gen_solar = 0,ann_gen_geothermal = 0 ,ann_gen_other_ff = 0, 
-                  ann_gen_other = 0))
+                  ann_gen_other = 0)) %>% 
+  ungroup()
 
 ## Calculate resource mix generation by fuel type and % resource mix by fuel type ------------
 
@@ -734,7 +738,7 @@ ann_gen_by_fuel_3 <-
          perc_ann_gen_combust = 100 * ann_gen_combust / ann_gen,
          perc_ann_gen_non_combust = 100 * ann_gen_combust / ann_gen)
 
-# checks for negative generations
+# checks for negative generation values
 stopifnot(sum(isTRUE(as.matrix(ann_gen_by_fuel) < 0), na.rm = TRUE) == 0)
 
 plant_file_16 <- 
@@ -743,13 +747,13 @@ plant_file_16 <-
   mutate(primary_fuel_type = if_else(perc_ann_gen_nuclear > 50, "NUC", primary_fuel_type),
          primary_fuel_category = if_else(perc_ann_gen_nuclear > 50, "NUCLEAR", primary_fuel_category))
 
-# there is some weird v small differences, but rounding fixes
 # checks the sum of all = 100
 stopifnot(all(100 == round(plant_file_16$perc_ann_gen_renew + plant_file_16$perc_ann_gen_non_renew, 0) |
       is.na(round(plant_file_16$perc_ann_gen_renew + plant_file_16$perc_ann_gen_non_renew, 0))))
       
 
 # CHP plants ---------------
+
 ## Calculate useful thermal output, power heat ratio , and electric allocation factor ---------------------
 
 # sum total fuel consumption and electric fuel consumption to the plant level
@@ -757,7 +761,8 @@ eia_923_thermal_output <-
   eia_923$generation_and_fuel_combined %>% 
   group_by(plant_id) %>%
   summarize(total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE),
-            elec_fuel_consumption_mmbtu = sum(elec_fuel_consumption_mmbtu, na.rm = TRUE))
+            elec_fuel_consumption_mmbtu = sum(elec_fuel_consumption_mmbtu, na.rm = TRUE)) %>% 
+  ungroup()
 
 chp <- 
   read_csv("data/static_tables/chp_plants.csv") %>% janitor::clean_names() %>% 
@@ -828,9 +833,6 @@ plant_file_18 <-
          heat_input_oz = if_else(is.na(heat_input_oz), unadj_heat_input_oz, heat_input_oz), 
          combust_heat_input = if_else(is.na(combust_heat_input), unadj_combust_heat_input, combust_heat_input), 
          combust_heat_input_oz = if_else(is.na(combust_heat_input_oz), unadj_combust_heat_input_oz, combust_heat_input_oz))
-
-
-
 
 
 # Calculate CO2 equivalent and update negative emissions values ----------------------------------------
@@ -1147,7 +1149,7 @@ final_vars <-
     "LON" = "lon", 
     "CAMDFLAG" = "camd_flag", 
     "NUMUNT" = "num_units", 
-    "NUMGEN" = "num_gen", 
+    "NUMGEN" = "num_generators", 
     "PLPRMFL" = "primary_fuel_type", 
     "PLFUELCT" = "primary_fuel_category", 
     "COALFLAG" = "coal_flag", 
