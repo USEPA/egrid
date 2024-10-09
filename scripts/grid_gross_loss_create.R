@@ -303,5 +303,54 @@ nerc_interconnect <- read_xlsx("data/static_tables/nerc_region_and_interconnect.
 
 ## 01: Create GGL table at state level for non duplicate states -----
 
-# select - state and interconnection, state postal code, state 
+# vector of duplicate states
+dup_state <- c('Montana','Nebrasksa','New Mexico','South Dakota','Texas')
+
+# cleaning R_ggl file and creating initial GGL calculation
+R_ggl <- R_ggl %>%
+  rename(state = State,
+         direct_use = "Direct Use",
+         est_losses = "Estimated Losses",
+         tot_disp = "Total Disposition",
+         net_interstate_im = "Net Interstate Imports",
+         net_interstate_ex = "Net Interstate Exports",
+         tot_disp_sub_ex = "Total Disposition-Exports") %>%
+  mutate(across(c(direct_use, 
+                  est_losses,
+                  tot_disp, 
+                  net_interstate_im, 
+                  net_interstate_ex, 
+                  tot_disp_sub_ex), ~as.numeric(.))) %>%
+  select(state, direct_use, est_losses, tot_disp, net_interstate_ex, tot_disp_sub_ex) %>%
+  mutate(ggl = est_losses / (tot_disp_sub_ex - direct_use))
+
+# creating initial GGL table with non-duplicate states
+ggl_table <- state_interconnect %>% inner_join(R_ggl, by = c(State = "state")) %>%
+  filter(!State %in% dup_state)
+
+### 02: States with multiple interconnects -----
+
+# create vector, count number of interconnects
+multi_interconnect_states <- state_interconnect %>%
+  rename(state_abbr = `State Postal Code`,
+         state = State,
+         interconnect = Interconnect) %>%
+  group_by(state_abbr, state) %>%
+  mutate(interconnect_count = n_distinct(interconnect)) %>%
+  ungroup() %>%
+  filter(interconnect_count > 1)
+
+### 03: Sum of generation for multiple interconnect states ------
+
+# create sum of total generation by state
+sum_tot_generation <- eia_923_generation_and_fuel %>%
+  select(plant_state, nerc_region, net_generation_megawatthours) %>%
+  group_by(plant_state) %>%
+  summarise(sum_net_generation = sum(net_generation_megawatthours)) 
+
+# join with states with multiple interconnection
+multi_interconnect_states <- multi_interconnect_states %>% 
+  inner_join(sum_tot_generation, by = c("state_abbr" = "plant_state"))
+
+
 
