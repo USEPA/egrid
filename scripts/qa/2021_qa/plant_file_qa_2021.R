@@ -164,7 +164,7 @@ plant_access <- read_excel("data/outputs/qa/eGRID2021 Plant file 9_19.xlsx", #sh
          "chp_co2_access"="chpco2",
          "chp_ch4_access"="chpch4",
          "chp_n2o_access"="chpn2o",
-         #"power_heat_ratio_access"="plhtrt", # check - already used above..
+         "nominal_heat_rate_access"="plhtrt", 
          "ann_gen_coal_access"="plgenacl",
          "ann_gen_oil_access"="plgenaol",
          "ann_gen_gas_access"="plgenags",
