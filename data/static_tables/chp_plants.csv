@@ -1,0 +1,1150 @@
+﻿Plant Code,Plant Name,State,EIA-860,EIA-923,DOE CHP Database,Old eGRID,Total,Any EIA
+7,Gadsden,AL,1,1,1,1,4,1
+79,Aurora Energy LLC Chena,AK,1,1,1,1,4,1
+90,Snake River,AK,0,0,1,1,2,0
+126,H Wilson Sundt Generating Station,AZ,1,1,1,1,4,1
+992,CC Perry K,IN,1,1,1,1,4,1
+1073,Prairie Creek,IA,1,1,0,1,3,1
+1082,Walter Scott Jr Energy Center,IA,1,1,0,1,3,1
+1167,Muscatine Plant #1,IA,1,1,1,1,4,1
+1180,Rockford,IA,0,0,1,1,2,0
+1274,Ellinwood,KS,0,0,0,1,1,0
+1391,Louisiana 1,LA,1,1,1,1,4,1
+1393,R S Nelson,LA,1,1,1,0,3,1
+1595,Kendall Square Station,MA,1,1,1,1,4,1
+1897,M L Hibbard,MN,1,1,1,1,4,1
+1979,Hibbing,MN,1,1,1,1,4,1
+2001,New Ulm,MN,1,1,1,1,4,1
+2013,Spring Valley,MN,0,0,1,1,2,0
+2018,Virginia,MN,0,0,1,1,2,0
+2022,Willmar,MN,0,0,0,1,1,0
+2047,Chevron Oil,MS,1,1,1,1,4,1
+2098,Lake Road (MO),MO,1,1,1,1,4,1
+2115,Butler Municipal Power Plant,MO,0,0,1,1,2,0
+2316,Wisner,NE,0,0,1,1,2,0
+2398,Bergen Generating Station,NJ,0,0,0,1,1,0
+2493,East River,NY,1,1,1,1,4,1
+2500,Ravenswood,NY,0,0,1,1,2,0
+2682,S A Carlson,NY,0,0,1,1,2,0
+2878,FirstEnergy Bay Shore,OH,1,1,0,1,3,1
+2917,Hamilton (OH),OH,0,0,1,1,2,0
+3406,Johnsonville,TN,0,0,1,1,2,0
+4042,Valley (WI),WI,1,1,1,1,4,1
+4125,Manitowoc,WI,1,1,1,1,4,1
+6030,Coal Creek,ND,1,1,0,1,3,1
+6041,H L Spurlock,KY,1,1,0,1,3,1
+6090,Sherburne County,MN,1,1,1,1,4,1
+6098,Big Stone,SD,1,1,1,1,4,1
+6288,Healy,AK,0,0,1,1,2,0
+6299,Unalakleet,AK,0,0,1,1,2,0
+6301,Naknek,AK,1,1,1,1,4,1
+6314,Emmonak,AK,0,0,1,1,2,0
+6338,St Marys IC,AK,0,0,1,1,2,0
+6348,Togiak,AK,0,0,1,1,2,0
+6481,Intermountain Power Project,UT,0,0,0,1,1,0
+6555,McGrath,AK,0,0,1,1,2,0
+6566,Bethel,AK,0,0,1,1,2,0
+6637,Yakutat,AK,0,0,1,1,2,0
+6705,Warrick,IN,1,1,1,1,4,1
+7028,Whitehead,UT,1,1,1,1,4,1
+7131,Brandon Station,TX,1,1,1,1,4,1
+7173,Barrow,AK,0,0,1,1,2,0
+7174,Gwitchyaa Zhee,AK,1,1,1,1,4,1
+7232,Santa Clara Cogen,CA,1,1,1,1,4,1
+7266,Woodland,CA,0,0,1,1,2,0
+7294,Central Energy Plant,FL,0,0,1,0,1,0
+7325,San Jacinto Steam Electric Station,TX,0,0,1,1,2,0
+7343,George Neal South,IA,1,1,0,1,3,1
+7345,University of Florida,FL,0,0,1,1,2,0
+7350,Coyote Springs,OR,1,1,1,1,4,1
+7437,Galena Electric Utility,AK,0,0,1,1,2,0
+7462,Angoon,AK,0,0,1,1,2,0
+7464,Kake,AK,0,0,1,1,2,0
+7480,Rowesville Rd Plant,SC,0,0,1,1,2,0
+7482,NSB Atqasuk Utility,AK,0,0,1,1,2,0
+7483,NSB Kaktovik Utility,AK,0,0,1,1,2,0
+7484,NSB Nuiqsut Utility,AK,0,0,1,1,2,0
+7485,NSB Point Hope Utility,AK,0,0,1,1,2,0
+7486,NSB Point Lay Utility,AK,0,0,1,1,2,0
+7487,NSB Anaktuvuk Pass,AK,0,0,1,1,2,0
+7488,NSB Wainwright Utility,AK,0,0,1,1,2,0
+7493,King Cove,AK,0,0,1,1,2,0
+7527,Carson Ice-Gen Project,CA,1,1,1,1,4,1
+7551,SCA Cogen 2,CA,1,1,1,1,4,1
+7552,SPA Cogen 3,CA,1,1,1,1,4,1
+7697,Washington County Cogeneration Facility,AL,1,1,1,1,4,1
+7698,General Electric Plastic,AL,1,1,1,1,4,1
+7721,Theodore Cogen Facility,AL,1,1,1,1,4,1
+7725,Coffin Butte,OR,0,0,1,1,2,0
+7737,Kapstone,SC,1,1,1,1,4,1
+7841,Valdez Cogen,AK,1,1,1,1,4,1
+7930,Russell Energy Center,KS,1,1,0,1,3,1
+7991,West Campus Cogeneration Facility,WI,1,1,1,1,4,1
+10003,Colorado Energy Nations Company,CO,1,1,1,1,4,1
+10004,Mosaic South Pierce Operations,FL,1,1,0,1,3,1
+10008,Baptist Medical Center,FL,1,1,1,1,4,1
+10013,Covanta Hennepin Energy,MN,0,0,1,1,2,0
+10017,WestRock-West Point Mill,VA,1,1,1,1,4,1
+10025,"RED-Rochester, LLC",NY,1,1,1,1,4,1
+10026,Encina Water Pollution Control,CA,0,0,1,1,2,0
+10029,General Electric Aircraft Engines,MA,0,0,1,1,2,0
+10030,Energy Center Dover,DE,1,1,1,1,4,1
+10034,Gilroy Power Plant,CA,1,1,1,1,4,1
+10042,Kaweah Delta District Hospital,CA,0,0,1,1,2,0
+10043,Logan Generating Plant,NJ,1,1,1,1,4,1
+10050,Fourche Creek Wastewater,AR,1,1,1,1,4,1
+10058,General Electric Diesel Engine Plant,PA,0,0,1,1,2,0
+10061,"Mars Wrigley Confectionery US, LLC",NJ,1,1,1,1,4,1
+10072,Engineered Carbons Borger Cogen,TX,0,0,1,1,2,0
+10091,Total Energy Facilities,CA,1,1,1,1,4,1
+10093,Tesoro Hawaii,HI,1,1,1,1,4,1
+10099,Pedricktown Cogeneration Company LP,NJ,0,0,1,1,2,0
+10108,Hampton Facility,NH,1,1,1,1,4,1
+10110,Frito-Lay Cogen Plant,CA,1,1,1,1,4,1
+10113,John B Rich Memorial Power Station,PA,1,1,1,1,4,1
+10115,Grossmont Hospital,CA,1,1,1,1,4,1
+10118,Harrisburg Facility,PA,1,1,1,1,4,1
+10120,PInova Inc,GA,1,1,0,1,3,1
+10122,CIP II/AR Bridgewater Holdings - NJCOE,NJ,1,1,1,1,4,1
+10123,Hoffmann LaRoche,NJ,1,1,1,1,4,1
+10129,Indiana University of Pennsylvania,PA,1,1,1,1,4,1
+10144,Sierra Pacific Lincoln Facility,CA,1,1,1,1,4,1
+10149,Decorative Panels Intl,MI,1,1,1,1,4,1
+10151,Grant Town Power Plant,WV,0,0,1,1,2,0
+10154,Power Island,TX,1,1,1,1,4,1
+10156,Fresno Cogen Partners,CA,1,1,1,1,4,1
+10167,Seadrift Coke LP,TX,1,1,1,1,4,1
+10169,Carson Cogeneration,CA,0,0,1,1,2,0
+10175,Childrens Hospital,CA,1,1,1,1,4,1
+10180,Metro Wastewater Reclamation District,CO,1,1,1,1,4,1
+10184,Central Utility Plant,TX,1,1,1,1,4,1
+10186,Anson Abenaki Hydros,ME,0,0,1,1,2,0
+10194,Hawaii Cogen,HI,1,1,1,1,4,1
+10195,CF Industries Yazoo City Complex,MS,1,1,1,1,4,1
+10198,Mosaic Phosphates Uncle Sam,LA,1,1,1,1,4,1
+10202,Fernandina Beach Mill,FL,1,1,1,1,4,1
+10204,Mosaic Co Tampa Facility,FL,1,1,0,1,3,1
+10206,Loma Linda University Cogen,CA,1,1,1,1,4,1
+10208,Escanaba Mill,MI,1,1,1,1,4,1
+10213,El Segundo Cogen,CA,1,1,1,1,4,1
+10215,Snowbird Power Plant,UT,0,1,1,1,3,1
+10216,Alabama River Pulp,AL,1,1,1,1,4,1
+10224,Merck Rahway Power Plant,NJ,1,1,1,1,4,1
+10233,Leaf River Cellulose LLC,MS,1,1,1,1,4,1
+10234,Biron Mill,WI,1,1,1,1,4,1
+10243,Ticona Polymers Inc,TX,1,1,1,1,4,1
+10244,Pixelle Specialty Solutions LLC - Chillicothe Facility,OH,1,1,1,1,4,1
+10245,ArcelorMittal Burns Harbor,IN,1,1,1,1,4,1
+10252,Domtar Kingsport Mill,TN,1,1,1,1,4,1
+10261,Enterprise Products Operating,TX,1,1,1,1,4,1
+10262,California Institute of Technology,CA,1,1,1,1,4,1
+10275,Florida's Natural Growers,FL,1,1,1,1,4,1
+10294,King City Power Plant,CA,1,1,1,1,4,1
+10298,Bayou Cogen Plant,TX,1,1,1,1,4,1
+10301,Louisiana Sugar Refining,LA,1,1,1,1,4,1
+10305,Dutchess Cnty Resource Recovery Facility,NY,1,1,1,1,4,1
+10307,Bellingham Cogeneration Facility,MA,0,0,1,1,2,0
+10308,Sayreville Cogeneration Facility,NJ,0,0,1,1,2,0
+10319,Geismar,LA,1,1,1,1,4,1
+10328,T B Simon Power Plant,MI,1,1,1,1,4,1
+10339,Southside Water Reclamation Plant,NM,1,1,1,1,4,1
+10342,Marathon Bay Area Cogen,CA,1,1,1,1,4,1
+10343,Foster Wheeler Mt Carmel Cogen,PA,1,1,1,1,4,1
+10349,Greenleaf 2 Power Plant,CA,1,1,1,1,4,1
+10360,Consumer Operations LLC,WI,1,1,1,1,4,1
+10361,Savannah River Mill,GA,1,1,1,1,4,1
+10362,Georgia-Pacific Muskogee LLC,OK,1,1,1,1,4,1
+10378,CPI USA NC Southport,NC,0,1,1,1,3,1
+10379,CPI USA NC Roxboro,NC,0,0,1,1,2,0
+10382,Lumberton,NC,1,1,0,1,3,1
+10397,Indiana Harbor West,IN,1,1,1,0,3,1
+10398,Arcelormittal Cleveland Inc,OH,1,1,1,1,4,1
+10405,Kingsburg Cogen,CA,1,1,1,1,4,1
+10408,Clark University,MA,1,1,1,1,4,1
+10416,Pensacola Florida Plant,FL,1,1,1,1,4,1
+10417,Indian Orchard Plant 1,MA,1,1,1,1,4,1
+10418,Ascend Performance Materials Texas Inc.,TX,1,1,1,1,4,1
+10425,International Paper - Orange,TX,1,1,1,1,4,1
+10426,Inland Paperboard Packaging Rome,GA,1,1,1,1,4,1
+10427,New-Indy Ontario Mill,CA,0,0,1,1,2,0
+10430,Anheuser-Busch St Louis,MO,1,1,1,1,4,1
+10431,Anheuser-Busch Jacksonville,FL,1,1,1,1,4,1
+10434,Mosaic New Wales Operations,FL,1,1,1,1,4,1
+10435,Camden Resource Recovery Facility,NJ,0,0,1,1,2,0
+10436,ExxonMobil Baytown Refinery,TX,1,1,1,1,4,1
+10477,Wisconsin Rapids Pulp Mill,WI,1,1,1,1,4,1
+10486,Boise Cascade International Falls,MN,1,1,1,1,4,1
+10488,DeRidder Mill,LA,1,1,1,1,4,1
+10491,Mead Rumford Cogen,ME,1,1,1,1,4,1
+10495,Rumford Cogeneration,ME,1,1,1,1,4,1
+10496,Kern River Cogeneration,CA,1,1,1,1,4,1
+10501,Mid-Set Cogeneration,CA,1,1,1,1,4,1
+10503,Wheelabrator Hudson Falls,NY,0,0,1,1,2,0
+10504,Amalgamated Sugar Twin Falls,ID,1,1,1,1,4,1
+10511,Finch Paper,NY,1,1,1,1,4,1
+10521,Lederle Laboratories,NY,1,1,1,1,4,1
+10525,Craven County Wood Energy LP,NC,0,0,1,1,2,0
+10548,San Jose Cogeneration,CA,1,1,1,1,4,1
+10553,Anderson Power Products Division,MA,0,0,1,1,2,0
+10554,Formosa Utility Venture Ltd,TX,1,1,1,1,4,1
+10560,Jesup Plant,GA,1,1,1,1,4,1
+10562,Fernandina Plant,FL,1,1,1,1,4,1
+10566,Chambers Cogeneration LP,NJ,1,1,1,1,4,1
+10567,Algonquin Windsor Locks,CT,1,1,1,1,4,1
+10568,Port Arthur Texas Refinery,TX,1,1,1,1,4,1
+10593,Agrilectric Power Partners Ltd,LA,0,0,1,1,2,0
+10601,Tesoro Wilmington Calciner,CA,1,1,1,1,4,1
+10603,Ebensburg Power,PA,0,0,1,1,2,0
+10605,Brunswick Cellulose,GA,1,1,1,1,4,1
+10606,Georgia-Pacific Crossett LLC,AR,1,1,1,1,4,1
+10610,Georgia-Pacific Monticello Paper,MS,1,1,1,1,4,1
+10611,Georgia-Pacific Palatka Operations,FL,1,1,1,1,4,1
+10612,Georgia-Pacific Port Hudson,LA,0,1,1,1,3,1
+10613,"Woodland Pulp, LLC",ME,1,1,1,1,4,1
+10617,CH Resources Beaver Falls,NY,1,1,1,1,4,1
+10623,Civic Center,CA,1,1,1,1,4,1
+10627,Pine Bluff Mill,AR,1,1,1,1,4,1
+10629,Wheelabrator Baltimore Refuse,MD,1,1,1,1,4,1
+10633,Hopewell Cogeneration,VA,1,1,1,1,4,1
+10642,Covanta Hempstead,NY,0,0,1,1,2,0
+10643,Covanta Essex Company,NJ,0,0,1,1,2,0
+10649,Bear Mountain Limited,CA,1,1,1,1,4,1
+10650,Badger Creek Limited,CA,1,1,1,1,4,1
+10652,Burney Forest Products,CA,1,1,1,1,4,1
+10661,Collins Pine Project,CA,1,1,0,1,3,1
+10671,River Valley,OK,0,0,1,1,2,0
+10673,AES Hawaii,HI,1,1,1,1,4,1
+10677,CES Placerita Power Plant,CA,0,0,1,1,2,0
+10678,AES Warrior Run Cogeneration Facility,MD,1,1,1,1,4,1
+10684,Argus Cogen Plant,CA,1,1,1,1,4,1
+10685,Westend Facility,CA,1,0,0,1,2,1
+10686,Rapids Energy Center,MN,1,1,1,1,4,1
+10690,ExxonMobil Baton Rouge Turbine Generator,LA,1,1,1,1,4,1
+10692,ExxonMobil Baytown Turbine,TX,1,1,1,1,4,1
+10693,Eastern Correctional Institute,MD,1,1,1,1,4,1
+10697,St Francisville Mill,LA,1,1,1,1,4,1
+10698,Graphic Packaging,MI,1,0,1,1,3,1
+10699,Georgia-Pacific Consr Prods LP-Naheola,AL,1,1,1,1,4,1
+10700,Red Shield Envir Old Town Facility,ME,1,1,0,1,3,1
+10720,Kyocera America Project,CA,1,1,1,1,4,1
+10725,Selkirk Cogen,NY,1,0,1,1,3,1
+10726,Masspower,MA,1,1,1,1,4,1
+10743,Morgantown Energy Facility,WV,1,0,0,1,2,1
+10745,Midland Cogeneration Venture,MI,1,1,1,1,4,1
+10751,Camden Plant Holdings LLC,NJ,0,0,1,1,2,0
+10771,Hopewell Power Station,VA,0,0,1,1,2,0
+10774,Southampton Power Station,VA,0,0,1,1,2,0
+10776,E F Oxnard Energy Facility,CA,0,0,0,1,1,0
+10789,Sabine River Works,TX,1,1,1,0,3,1
+10790,Victoria Texas Plant,TX,1,1,1,1,4,1
+10795,Camden South Carolina,SC,1,1,1,1,4,1
+10803,Ogdensburg Power,NY,1,0,0,1,2,1
+10805,Kenilworth Energy Facility,NJ,1,1,1,1,4,1
+10819,Ada Cogeneration LP,MI,1,1,1,1,4,1
+10823,Deer Island Treatment Plant,MA,1,1,1,1,4,1
+10849,Silver Bay Power,MN,1,1,1,1,4,1
+10855,Cargill Corn Milling Division,IA,1,1,1,1,4,1
+10860,Archer Daniels Midland Clinton,IA,1,1,1,1,4,1
+10861,Archer Daniels Midland Des Moines,IA,1,1,1,1,4,1
+10862,Archer Daniels Midland Lincoln,NE,1,1,1,1,4,1
+10863,Archer Daniels Midland Mankato,MN,1,1,1,1,4,1
+10864,Archer Daniels Midland Cedar Rapids,IA,1,1,1,1,4,1
+10865,Archer Daniels Midland Decatur,IL,1,1,1,1,4,1
+10866,Archer Daniels Midland Peoria,IL,1,1,1,1,4,1
+10867,Primient Decatur Plant Cogen,IL,1,1,1,1,4,1
+10869,Biomass One LP,OR,0,0,1,1,2,0
+10883,Medical Area Total Energy Plant,MA,1,1,1,1,4,1
+10884,Olive View Medical Center,CA,1,1,1,1,4,1
+50002,Pittsfield Generating LP,MA,1,1,1,1,4,1
+50003,Chalk Cliff Limited,CA,1,1,1,1,4,1
+50006,Linden Cogen Plant,NJ,1,1,1,1,4,1
+50026,Corpus Refinery,TX,1,1,1,1,4,1
+50028,Plant 31 Paper Mill,LA,1,1,1,1,4,1
+50035,MMWAC Resource Recovery Facility,ME,0,0,1,1,2,0
+50041,Norton Powerhouse,MA,1,1,1,1,4,1
+50043,Houston Chemical Complex Battleground,TX,1,1,1,1,4,1
+50049,Humboldt Sawmill Company,CA,1,1,1,1,4,1
+50054,Rice University,TX,1,1,1,1,4,1
+50060,Brown Station Road Plant I,MD,0,0,1,1,2,0
+50061,San Diego State University,CA,1,1,1,1,4,1
+50064,Univ of Calif Santa Cruz Cogeneration,CA,1,1,1,1,4,1
+50067,Borger Plant,TX,1,1,1,1,4,1
+50087,Univ of Massachusetts Medical Center,MA,1,1,1,1,4,1
+50088,University of Northern Iowa,IA,1,1,1,1,4,1
+50089,Univ of San Francisco Cogen,CA,1,1,1,1,4,1
+50094,"Vicinity Energy Trenton, L.P.",NJ,1,1,1,1,4,1
+50099,Tamarack Energy Partnership,ID,1,1,1,1,4,1
+50101,WestRock (TX),TX,1,1,1,1,4,1
+50110,Sierra Pacific Burney Facility,CA,1,1,1,1,4,1
+50112,Sierra Pacific Quincy Facility,CA,0,0,1,1,2,0
+50115,US Borax,CA,1,1,1,1,4,1
+50118,Hal C Weaver Power Plant,TX,1,1,1,1,4,1
+50119,Phillips 66 Rodeo Refinery,CA,1,1,1,1,4,1
+50121,Valero Refinery Corpus Christi West,TX,0,0,1,1,2,0
+50131,Coalinga Cogeneration,CA,1,1,1,1,4,1
+50134,Sycamore Cogeneration,CA,1,1,1,1,4,1
+50136,South Oaks Hospital,NY,1,1,1,1,4,1
+50141,Snider Industries,TX,1,1,1,1,4,1
+50146,Imperial Savannah LP,GA,1,1,1,1,4,1
+50148,Linde Wilmington,CA,1,1,1,1,4,1
+50150,Union Carbide Seadrift Cogen,TX,1,1,1,1,4,1
+50152,Dow St Charles Operations,LA,1,1,1,1,4,1
+50153,Texas City Plant Union Carbide,TX,1,1,1,1,4,1
+50169,Wichita Plant,KS,1,1,1,1,4,1
+50170,Berry Cogen,CA,1,1,1,1,4,1
+50184,Columbus MS,MS,1,1,1,1,4,1
+50185,Cosmo Specialty Fibers Plant,WA,1,1,1,1,4,1
+50187,Nippon Dynawave Packaging Longview WA,WA,1,1,1,1,4,1
+50188,International Paper Co. - New Bern Mill,NC,1,1,1,1,4,1
+50189,Domtar Paper Co LLC Plymouth NC,NC,1,1,1,1,4,1
+50190,Domtar Paper Company Rothschild,WI,0,0,0,1,1,0
+50191,IP Springfield Oregon,OR,1,1,1,1,4,1
+50192,International Paper Valliant OK,OK,1,1,1,1,4,1
+50200,B Braun Medical,CA,1,1,1,1,4,1
+50201,"Multitrade Rabun Gap, LLC",GA,0,0,1,1,2,0
+50203,US Gypsum Oakfield,NY,1,1,1,1,4,1
+50205,Williams Ignacio Natural Gas Plant,CO,0,0,1,1,2,0
+50216,Watson Cogeneration,CA,1,1,1,1,4,1
+50224,Oxnard Wastewater Treatment Plant,CA,1,1,1,1,4,1
+50229,Texas Petrochemicals,TX,1,1,1,1,4,1
+50230,Robbins Lumber,ME,1,1,1,1,4,1
+50231,SDS Lumber Gorge Energy Division,WA,0,1,1,1,3,1
+50234,San Antonio Regional Hospital,CA,1,1,1,1,4,1
+50240,Purdue University,IN,1,1,1,1,4,1
+50241,Tenet Hospital,TX,1,1,0,1,3,1
+50243,Bucksport Generation LLC,ME,0,0,0,1,1,0
+50244,Canton North Carolina,NC,1,1,1,1,4,1
+50250,International Paper Pensacola,FL,1,1,1,1,4,1
+50251,Verso Paper Quinnesec Mich Mill,MI,1,1,1,1,4,1
+50254,KapStone Kraft Paper Corp,NC,1,1,1,1,4,1
+50270,ExxonMobil Santa Ynez Facility,CA,1,0,1,1,3,1
+50273,Pioneer Valley Resource Recovery,MA,0,0,1,1,2,0
+50274,Simplot Leasing Don Plant,ID,1,1,0,1,3,1
+50275,Park 500 Philip Morris USA,VA,1,1,1,1,4,1
+50279,Archbald Power Station,PA,0,0,1,1,2,0
+50292,Bethpage Power Plant,NY,0,0,1,1,2,0
+50296,Packaging Corp of America,TN,1,1,1,1,4,1
+50299,AltaGas Ripon Energy Inc.,CA,0,0,1,1,2,0
+50300,VESI Pomona,CA,0,0,1,1,2,0
+50304,Shell Deer Park,TX,1,1,1,1,4,1
+50305,Alpena Cement Plant,MI,1,1,1,1,4,1
+50307,University of Oklahoma,OK,1,1,1,1,4,1
+50308,Utility Plants Section,AK,1,1,1,1,4,1
+50310,Standby Generation Plant,FL,0,0,1,1,2,0
+50316,Bunge North America East LLC,IN,1,1,1,1,4,1
+50326,Nalco,IL,1,1,1,1,4,1
+50329,West Point Treatment Plant,WA,1,1,1,1,4,1
+50337,Mooseheart Power House,IL,1,1,1,1,4,1
+50359,Sloss Industries Corp,AL,1,1,1,1,4,1
+50366,University of Notre Dame,IN,1,1,1,1,4,1
+50368,Cornell University Central Heat,NY,1,1,1,1,4,1
+50373,Paxton Creek Cogeneration,PA,1,1,1,1,4,1
+50388,Phillips 66 Carbon Plant,CA,1,1,1,1,4,1
+50389,Port Allen (LA),LA,1,1,1,1,4,1
+50392,Eielson AFB Central Heat & Power Plant,AK,1,1,1,1,4,1
+50395,Georgia-Pacific Corp - Nekoosa Mill,WI,1,1,1,1,4,1
+50396,Dillard Complex,OR,1,1,0,1,3,1
+50397,Pixelle Specialty Solutions LLC - Spring Grove Facility,PA,1,1,1,1,4,1
+50398,International Paper Savanna Mill,GA,1,1,1,1,4,1
+50404,BP Chemicals Green Lake Plant,TX,0,0,1,1,2,0
+50406,Somerset Plant,ME,1,1,1,1,4,1
+50410,Chester Operations,PA,1,1,1,1,4,1
+50411,Rutgers Biomedical and Health Cogen,NJ,1,1,1,1,4,1
+50413,Olmsted Waste Energy,MN,1,1,1,1,4,1
+50427,Bronx Zoo,NY,1,1,1,1,4,1
+50431,University of Michigan,MI,1,1,1,1,4,1
+50447,S D Warren Westbrook,ME,1,1,1,1,4,1
+50449,Indeck Silver Springs Energy Center,NY,1,1,1,1,4,1
+50450,Indeck Oswego Energy Center,NY,1,1,1,1,4,1
+50451,Indeck Yerkes Energy Center,NY,1,1,1,1,4,1
+50456,Procter & Gamble Cincinnati Plant,OH,1,1,1,1,4,1
+50458,Indeck Corinth Energy Center,NY,1,1,1,1,4,1
+50463,Procter & Gamble Mehoopany Mill,PA,1,1,1,1,4,1
+50464,Oxnard,CA,1,1,1,1,4,1
+50465,Flint River Operations,GA,1,1,1,1,4,1
+50466,Buckeye Florida LP,FL,1,1,1,1,4,1
+50472,"Covanta Niagara I, LLC",NY,1,1,1,1,4,1
+50474,Swift Creek Chemical Complex,FL,1,1,1,1,4,1
+50475,Corpus Christi,TX,1,1,1,1,4,1
+50476,Packaging of America Tomahawk Mill,WI,1,1,1,1,4,1
+50479,Georgia-Pacific Big Island,VA,1,1,1,1,4,1
+50481,Tennessee Eastman Operations,TN,1,1,1,1,4,1
+50482,Clewiston Sugar House,FL,1,1,1,1,4,1
+50487,PPG Powerhouse A,LA,0,0,1,1,2,0
+50488,PPG Riverside,LA,0,0,1,1,2,0
+50489,PPG Powerhouse C,LA,1,1,1,1,4,1
+50490,PPG Plant C Caustic,LA,1,1,1,1,4,1
+50491,Axiall Natrium Plant,WV,1,1,1,1,4,1
+50492,Gas Utilization Facility,CA,1,1,1,1,4,1
+50495,High Sierra Limited,CA,1,1,1,1,4,1
+50498,Capitol District Energy Center,CT,0,1,1,1,3,1
+50509,PCS Phosphate,NC,1,1,1,1,4,1
+50530,Equilon Los Angeles Refining,CA,1,1,1,1,4,1
+50537,SRI International Cogen Project,CA,1,1,1,1,4,1
+50541,Harbor Cogen,CA,0,0,1,1,2,0
+50544,Port Townsend Paper,WA,1,1,1,1,4,1
+50555,Rosemary Power Station,NC,0,0,0,1,1,0
+50558,Frontier,OK,0,0,0,1,1,0
+50610,Saint Johns Health Center,CA,1,0,1,1,3,1
+50612,McKittrick Limited,CA,1,1,1,1,4,1
+50614,Mosinee Mill,WI,1,1,1,1,4,1
+50621,Central Power Plant,RI,1,1,1,1,4,1
+50622,Berry Cogen Tanne Hills 18,CA,1,1,1,1,4,1
+50624,"Torrance Refining Company, LLC",CA,1,1,1,1,4,1
+50625,ExxonMobil Beaumont Refinery,TX,1,1,1,1,4,1
+50626,Chalmette Refining LLC,LA,0,0,1,1,2,0
+50627,ExxonMobil Oil Joliet Refinery,IL,1,1,1,1,4,1
+50628,Paulsboro Refinery,NJ,1,1,1,1,4,1
+50630,Covanta Marion Inc,OR,0,0,1,1,2,0
+50633,Mosaic Co Bartow Facility,FL,1,1,0,1,3,1
+50637,Clearwater Paper IPP Lewiston,ID,1,1,1,1,4,1
+50638,Clearwater Paper APP CB,AR,1,1,1,1,4,1
+50639,Sappi Cloquet Mill,MN,1,1,1,1,4,1
+50647,Covanta Indianapolis Energy,IN,1,1,1,1,4,1
+50649,Covanta Babylon Inc,NY,0,0,1,1,2,0
+50660,Covanta Tulsa Renewable Energy LLC,OK,1,1,1,1,4,1
+50674,Municipal Cogen Plant,CA,0,0,1,1,2,0
+50696,Plant No 1 Orange County,CA,1,1,1,1,4,1
+50707,JM Shafer Generating Station,CO,1,1,1,1,4,1
+50711,University of Alaska Fairbanks,AK,1,1,1,1,4,1
+50722,INEOS Naperville Cogeneration Plant,IL,1,1,1,1,4,1
+50729,Clairton Works,PA,1,1,1,1,4,1
+50732,Mon Valley Works,PA,1,1,1,1,4,1
+50733,Gary Works,IN,1,1,1,1,4,1
+50744,Sterling Power Plant,NY,0,0,1,1,2,0
+50750,Coalinga Cogeneration Facility,CA,1,1,1,1,4,1
+50751,Southeast Kern River Cogen,CA,1,1,1,1,4,1
+50752,South Belridge Cogeneration Facility,CA,1,1,1,1,4,1
+50772,Viking Energy of Lincoln,MI,0,0,1,1,2,0
+50776,Panther Creek Energy Facility,PA,0,0,0,1,1,0
+50799,Parlin Power Plant,NJ,0,0,1,1,2,0
+50803,Seminole Mill,FL,1,1,0,1,3,1
+50804,Port Wentworth Mill,GA,1,1,1,1,4,1
+50806,Florence Mill,SC,1,1,1,1,4,1
+50807,WestRock Panama City Mill,FL,1,1,1,1,4,1
+50810,Westrock Hodge (LA),LA,1,1,1,1,4,1
+50813,Hopewell Mill,VA,1,1,1,1,4,1
+50815,"Odyssey Energy Altura Cogen, LLC",TX,1,1,1,1,4,1
+50835,TES Filer City Station,MI,1,1,1,1,4,1
+50837,Southeast Resource Recovery,CA,1,1,0,1,3,1
+50846,Gramercy Holdings LLC,LA,1,1,1,1,4,1
+50849,PE Berkeley,CA,1,1,1,1,4,1
+50850,OLS Energy Chino,CA,1,1,0,1,3,1
+50851,CSUCI Site Authority,CA,1,1,0,1,3,1
+50860,Kent County Waste to Energy Facility,MI,0,0,1,1,2,0
+50864,Sargent Canyon Cogeneration,CA,1,1,1,1,4,1
+50865,Salinas River Cogeneration,CA,1,1,1,1,4,1
+50882,Wheelabrator Westchester,NY,1,1,0,0,2,1
+50884,Pinellas County Resource Recovery,FL,0,0,1,1,2,0
+50888,Northampton Generating Company LP,PA,0,0,1,1,2,0
+50900,Covington Facility,VA,1,1,1,1,4,1
+50903,Sagamore Plant Cogeneration,IN,1,1,1,1,4,1
+50906,Ford Utilities Center,NM,1,1,1,1,4,1
+50907,Oswego County Energy Recovery,NY,1,1,1,1,4,1
+50921,Co-Gen LLC,OR,1,1,0,1,3,1
+50931,Yellowstone Energy LP,MT,1,1,1,1,4,1
+50932,Des Moines Wastewater Reclamation Fac,IA,1,1,1,1,4,1
+50933,Rhinelander Mill,WI,1,1,1,1,4,1
+50935,Caterpillar,IN,0,0,1,1,2,0
+50936,Winnebago County Landfill Gas,WI,1,1,1,1,4,1
+50937,William Beaumont Hospital,MI,0,0,1,1,2,0
+50942,Lagoon Cogeneration Facility,UT,1,1,1,1,4,1
+50951,Sunnyside Cogen Associates,UT,0,0,1,1,2,0
+50952,Saint Francis Hospital,IL,1,0,0,1,2,1
+50955,Rousselot Inc,MA,1,1,1,1,4,1
+50956,Bowater Newsprint Calhoun Operation,TN,1,1,1,1,4,1
+50960,Union County Resource Recovery,NJ,0,0,1,1,2,0
+50963,Naval Hospital Medical Center,CA,1,1,1,1,4,1
+50965,Toledo Ref Power Recovery Train,OH,1,1,1,1,4,1
+50969,MU Combined Heat and Power Plant,MO,1,1,1,1,4,1
+50971,Tropicana Products Bradent,FL,1,1,1,1,4,1
+50973,Motiva Enterprises Port Arthur Refinery,TX,1,1,1,1,4,1
+50974,Scrubgrass Reclamation CO. LP.,PA,0,0,0,1,1,0
+50978,Carr Street Generating Station,NY,0,0,1,1,2,0
+50985,Solano County Cogen Plant,CA,1,1,1,1,4,1
+50993,Co-Gen II LLC,OR,1,1,1,1,4,1
+51008,Enterprise Sugar Factory,LA,1,1,1,1,4,1
+51038,MacArthur Waste to Energy Facility,NY,0,0,1,1,2,0
+52006,LaO Energy Systems,LA,1,1,1,1,4,1
+52021,ITT Cogen Facility,IL,1,1,0,1,3,1
+52024,Rhode Island Hospital,RI,1,1,1,1,4,1
+52031,Alliance Refinery,LA,0,0,1,1,2,0
+52048,Vanderbilt University Power Plant,TN,1,1,1,1,4,1
+52056,Nassau Energy Corp,NY,1,1,1,1,4,1
+52061,Hartford Hospital Cogeneration,CT,1,1,1,1,4,1
+52063,Martinez Sulfuric Acid Regeneration Plt,CA,1,1,1,1,4,1
+52064,Dominguez Plant,CA,1,1,1,1,4,1
+52065,Houston Plant,TX,1,1,1,1,4,1
+52072,Radford Army Ammunition Plant,VA,0,0,1,1,2,0
+52073,UCLA So Campus Cogen Project,CA,1,1,1,1,4,1
+52076,McKittrick Cogen,CA,1,1,1,1,4,1
+52077,Lost Hills Cogeneration Plant,CA,1,1,1,1,4,1
+52078,North Midway Cogen,CA,1,0,1,1,3,1
+52081,Cymric 31X Cogen,CA,1,1,1,1,4,1
+52082,Cymric 6Z Cogen,CA,1,1,1,1,4,1
+52083,Coalinga 6C Cogen,CA,1,0,1,1,3,1
+52085,Taft 26C Cogen,CA,1,1,1,1,4,1
+52086,Coalinga 25D Cogen,CA,1,1,1,1,4,1
+52088,Texas City Power Plant,TX,1,1,1,1,4,1
+52089,Celanese Acetate LLC,VA,1,1,1,1,4,1
+52091,NewYork-Presbyterian Brooklyn Methodist Hospital,NY,0,0,1,1,2,0
+52096,Berry Placerita Cogen,CA,1,1,1,1,4,1
+52099,Plant No 2 Orange County,CA,1,1,1,1,4,1
+52104,Cymric 36W Cogen,CA,1,1,1,1,4,1
+52107,Kern River Eastridge Cogen,CA,1,1,1,1,4,1
+52109,Richmond Cogen,CA,1,1,1,1,4,1
+52120,Freeport Energy,TX,1,1,0,1,3,1
+52122,Wasson CO2 Removal Plant,TX,1,1,1,1,4,1
+52127,Elk Basin Gasoline Plant,WY,1,1,1,1,4,1
+52130,Whiting Refinery,IN,1,1,1,1,4,1
+52132,Power Station 4,TX,1,1,1,1,4,1
+52133,Tesoro Mandan Cogeneration Plant,ND,1,1,1,1,4,1
+52140,International Paper Prattville Mill,AL,1,1,1,1,4,1
+52147,C P Kelco San Diego Plant,CA,1,1,1,1,4,1
+52148,Elkton,VA,1,1,1,1,4,1
+52149,West Point (PA),PA,1,1,1,1,4,1
+52151,Sylvamo Corporation Eastover Facility,SC,1,1,1,1,4,1
+52152,International Paper Franklin Mill,VA,1,1,1,1,4,1
+52168,Riverbay,NY,1,0,1,1,3,1
+52169,Midway Sunset Cogen,CA,1,1,1,1,4,1
+52175,CITGO Refinery Powerhouse,LA,1,1,1,1,4,1
+52176,C R Wing Cogen Plant,TX,1,1,1,1,4,1
+52184,Tesoro Kenai Cogeneration Plant,AK,1,1,1,1,4,1
+52186,Yuba City Cogen Partners,CA,1,1,1,1,4,1
+52193,Delaware City Plant,DE,1,1,1,1,4,1
+54004,"WestRock Southeast, LLC.",GA,1,1,1,1,4,1
+54041,Lockport Energy Associates LP,NY,1,1,1,1,4,1
+54044,University of Illinois Cogen Facility,IL,1,1,1,1,4,1
+54056,Pawtucket Power Associates,RI,0,0,0,1,1,0
+54076,Indeck Olean Energy Center,NY,1,1,1,1,4,1
+54081,Spruance Operating Services LLC,VA,1,1,1,1,4,1
+54085,Androscoggin Mill,ME,1,1,1,1,4,1
+54087,International Paper Georgetown Mill,SC,1,1,1,1,4,1
+54091,Mansfield Mill,LA,1,1,1,1,4,1
+54096,International Paper Riverdale Mill,AL,1,1,1,1,4,1
+54097,International Paper Texarkana Mill,TX,1,1,1,1,4,1
+54098,Kaukauna Paper Mill,WI,1,1,1,1,4,1
+54099,Ticonderoga Mill,NY,1,1,1,1,4,1
+54100,International Paper Vicksburg Mill,MS,1,1,1,1,4,1
+54101,Georgia-Pacific Cedar Springs,GA,1,1,1,1,4,1
+54104,Ashdown,AR,1,1,1,1,4,1
+54114,Kennedy International Airport Cogen,NY,1,1,1,1,4,1
+54131,Fortistar North Tonawanda,NY,1,1,1,1,4,1
+54149,Stony Brook Cogen Plant,NY,1,1,1,1,4,1
+54201,Iowa State University,IA,1,1,1,1,4,1
+54203,Mississippi Baptist Medical Center,MS,1,1,1,1,4,1
+54207,Clevelandcliffs Warren,OH,1,1,1,1,4,1
+54210,American Crystal Sugar Hillsboro,ND,1,1,1,1,4,1
+54211,American Crystal Sugar Moorhead,MN,1,0,1,1,3,1
+54212,American Crystal Sugar Crookston,MN,1,1,1,1,4,1
+54213,American Crystal Sugar Drayton,ND,1,1,1,1,4,1
+54214,American Crystal Sugar East Grand Forks,MN,1,1,1,1,4,1
+54216,U S Alliance Coosa Pines,AL,1,1,1,1,4,1
+54224,Franklin Heating Station,MN,1,1,1,1,4,1
+54225,Gillette SBMC,MA,1,1,1,1,4,1
+54228,Erving Paper Mills,MA,1,1,1,1,4,1
+54236,Pfizer Groton Plant,CT,1,1,1,1,4,1
+54238,Stockton Biomass,CA,1,1,1,1,4,1
+54240,Louisiana Tech University Power Plant,LA,1,1,1,1,4,1
+54250,Newman (PA),PA,1,1,1,1,4,1
+54262,Saint Marys Hospital Power Plant,MN,1,1,1,1,4,1
+54265,Akron Recycle Energy Plant,OH,1,0,0,1,2,1
+54268,Puget Sound Refinery,WA,1,1,1,1,4,1
+54271,Saguaro Power,NV,1,1,1,1,4,1
+54276,Univ of NC Chapel Hill Cogen Facility,NC,1,1,1,1,4,1
+54281,Interstate Paper LLC Riceboro,GA,1,1,1,1,4,1
+54290,Inforum,GA,0,0,1,1,2,0
+54296,Biola University Hybrid,CA,1,1,1,1,4,1
+54304,Birchwood Power,VA,0,0,1,1,2,0
+54305,Westward Seafoods,AK,1,1,1,1,4,1
+54316,Archer Daniels Midland Southport,NC,1,1,1,1,4,1
+54318,General Chemical,WY,1,1,1,1,4,1
+54321,Goodyear Beaumont Chemical Plant,TX,1,1,1,1,4,1
+54323,CNN Center,GA,0,0,1,1,2,0
+54330,Westhollow Technology Center,TX,1,1,1,1,4,1
+54333,Bucknell University,PA,1,1,1,1,4,1
+54335,Morton Salt Rittman,OH,1,1,1,1,4,1
+54338,Rio Grande Valley Sugar Growers,TX,1,1,1,1,4,1
+54347,Howard F Curren Advncd Wastewater Plant,FL,0,0,1,1,2,0
+54349,Nevada Cogen Associates 2 Black Mountain,NV,1,1,1,1,4,1
+54350,Nevada Cogen Assoc#1 GarnetVly,NV,1,1,1,1,4,1
+54358,Graphic Packaging International Augusta Mill,GA,1,1,1,1,4,1
+54365,Orange Cogeneration Facility,FL,1,1,1,1,4,1
+54372,University of Colorado,CO,1,1,1,1,4,1
+54374,Sinclair Oil Refinery,WY,1,1,1,1,4,1
+54407,Waupun Correctional Central Heating Plt,WI,1,1,1,1,4,1
+54408,UW Madison Charter Street Plant,WI,1,1,0,1,3,1
+54409,Dartmouth College Heating Plant,NH,1,1,1,1,4,1
+54410,Western Power & Steam Inc,CA,1,1,1,1,4,1
+54415,Cadillac Renewable Energy,MI,0,0,1,1,2,0
+54422,Unisea G 2,AK,0,0,1,1,2,0
+54426,Mulberry Cogeneration Facility,FL,1,1,1,1,4,1
+54427,Gaylord Container Bogalusa,LA,1,1,1,1,4,1
+54429,Alabama Pine Pulp,AL,1,1,1,1,4,1
+54447,Welport Lease Project,CA,1,1,1,1,4,1
+54449,Dome Project,CA,1,1,1,1,4,1
+54451,Los Angeles Refinery Wilmington,CA,1,1,1,1,4,1
+54452,Agrium Kenai Nitrogen Operations,AK,1,0,0,1,2,1
+54464,Riverwood International Macon Mill,GA,1,1,1,1,4,1
+54466,Orlando Cogen LP,FL,1,1,1,1,4,1
+54472,Simplot Phosphates,WY,1,1,1,1,4,1
+54476,Sumas Power Plant,WA,1,1,1,1,4,1
+54477,Oroville Cogeneration LP,CA,1,1,1,1,4,1
+54512,Domino Sugar Arabi Plant,LA,1,1,1,1,4,1
+54515,Crotched Mountain Rehabilitation Center,NH,1,0,1,1,3,1
+54517,Sierra Pacific Sonora,CA,0,0,0,1,1,0
+54518,Formosa Plastics,LA,1,1,1,1,4,1
+54520,Village Creek Water Reclamation Facility,TX,1,1,1,1,4,1
+54533,Southern Minnesota Beet Sugar,MN,1,1,1,1,4,1
+54537,Ferndale Generating Station,WA,1,1,1,1,4,1
+54540,Charter Dura-Bar,IL,0,0,1,1,2,0
+54547,Sithe Independence Station,NY,1,1,1,1,4,1
+54550,W&T Onshore Treating Facility (OTF),AL,1,1,1,1,4,1
+54556,Ingredion Incorporated,IL,1,1,1,1,4,1
+54562,Longview Fibre,WA,1,1,1,1,4,1
+54569,Bayville Central Facility,NJ,1,1,0,1,3,1
+54574,Saranac Facility,NY,0,0,1,1,2,0
+54586,Tanner Street Generation,MA,0,0,1,1,2,0
+54592,Massena Energy Facility,NY,0,0,1,1,2,0
+54593,Batavia Power Plant,NY,0,0,1,1,2,0
+54604,Warner Lambert,MI,1,1,1,1,4,1
+54605,Pratt & Whitney,CT,1,1,1,1,4,1
+54618,Ingredion Winston Salem,NC,1,1,1,1,4,1
+54623,Central District Wastewater Treat Plant,FL,1,1,1,1,4,1
+54624,South District Wastewater Treatment Plt,FL,1,1,1,1,4,1
+54626,Mt Poso Cogeneration,CA,1,1,1,1,4,1
+54627,Okeelanta Cogeneration,FL,1,1,1,1,4,1
+54628,Phelps Dodge Refining,TX,1,1,1,1,4,1
+54630,American Gypsum Cogeneration,CO,1,1,1,1,4,1
+54634,St Nicholas Cogen Project,PA,1,1,1,1,4,1
+54637,JCO Oxides Olefins Plant,TX,1,1,1,1,4,1
+54638,Johnsonburg Mill,PA,1,1,1,1,4,1
+54646,Kalaeloa Cogen Plant,HI,1,1,1,1,4,1
+54656,International Paper Riegelwood Mill,NC,1,1,1,1,4,1
+54667,Chino Mines,NM,0,0,1,1,2,0
+54676,Oyster Creek Unit VIII,TX,1,1,1,1,4,1
+54677,CII Carbon LLC,LA,1,1,1,1,4,1
+54690,Amalgamated Sugar LLC Nampa,ID,1,1,1,1,4,1
+54693,York Generation Company LLC,PA,0,1,1,1,3,1
+54694,Yuma Cogeneration Associates,AZ,1,1,1,1,4,1
+54700,Metro Methane Recovery Facility,IA,0,0,1,1,2,0
+54730,Yellowhammer Gas Plant,AL,0,0,1,1,2,0
+54748,Port Neches Plant,TX,1,1,1,1,4,1
+54749,Goal Line LP,CA,1,1,1,1,4,1
+54752,International Paper Pine Hill Mill,AL,1,1,1,1,4,1
+54761,Hermiston Generating Plant,OR,1,1,1,1,4,1
+54763,WestRock Demopolis Mill,AL,1,1,1,1,4,1
+54768,Live Oak Limited,CA,1,1,1,1,4,1
+54769,NYU Luthern Medical Center,NY,1,1,1,1,4,1
+54775,University of Iowa Main Power Plant,IA,1,1,1,1,4,1
+54780,University of Illinois Abbott Power Plt,IL,1,1,1,1,4,1
+54782,Seneca Energy,NY,0,0,1,1,2,0
+54785,Grays Ferry Cogeneration,PA,1,1,1,1,4,1
+54789,Georgia-Pacific Brewton Mill,AL,1,1,1,1,4,1
+54790,CSL Behring LLC,IL,1,1,1,1,4,1
+54795,Domino Sugar Baltimore,MD,1,1,1,1,4,1
+54800,Saint Agnes Medical Center,CA,1,1,1,1,4,1
+54802,Mead Coated Board,AL,1,1,1,1,4,1
+54803,Plymouth State College Cogeneration,NH,1,1,1,1,4,1
+54808,New York University Central Plant,NY,1,1,1,1,4,1
+54809,University of Washington Power Plant,WA,1,1,1,1,4,1
+54818,191 Peachtree Tower,GA,0,0,1,1,2,0
+54823,Smithfield Farmland Corp Bladen,NC,0,0,1,1,2,0
+54829,Bristol Myers Squibb New Brunswick,NJ,1,1,1,1,4,1
+54832,Brandywine Power Facility,MD,1,1,1,1,4,1
+54850,Cox Waste to Energy,KY,1,1,1,1,4,1
+54851,MMSD Jones Island Wastewater,WI,1,1,1,1,4,1
+54855,Mars Snackfood US,IL,1,0,1,1,3,1
+54858,Southwestern Bell Telephone,MO,0,0,1,1,2,0
+54867,Neenah Paper Munising Mill,MI,1,1,1,1,4,1
+54886,Presence Saint Mary of Nazareth Hospital,IL,0,0,1,1,2,0
+54887,DSM Pharmaceuticals,NC,1,1,1,1,4,1
+54890,Peoples Generating Station,MI,0,0,1,1,2,0
+54903,Adrian Energy Associates LLC,MI,0,0,1,1,2,0
+54907,Mass Inst Tech Cntrl Utilities/Cogen Plt,MA,1,1,1,1,4,1
+54908,Enderlin,ND,1,1,1,1,4,1
+54912,Martinez Refining,CA,1,1,1,1,4,1
+54914,Brooklyn Navy Yard Cogeneration,NY,1,1,1,1,4,1
+54915,Michigan Power LP,MI,1,1,1,1,4,1
+54918,Ergon Refining Vicksburg,MS,1,1,1,1,4,1
+54933,Mondelez Global LLC,IL,1,0,1,1,3,1
+54936,Richard J Donovan Correctional Facility,CA,1,1,1,1,4,1
+54937,Wellesley College Central Utility Plant,MA,1,1,1,1,4,1
+54950,Univ of Oregon Central Power Station,OR,1,1,1,1,4,1
+54951,Monterey One Water,CA,1,1,1,1,4,1
+54965,Cargill Salt,MI,1,1,1,1,4,1
+54974,Sauder Power Plant,OH,1,1,1,1,4,1
+54975,New Mexico State University,NM,1,1,1,1,4,1
+54984,Salem Energy Systems LLC,NC,0,0,1,1,2,0
+54985,Crestwood Dothan,AL,0,0,1,1,2,0
+54995,Indiana Harbor E 5 AC Station,IN,1,1,1,0,3,1
+54998,Wheelabrator Portsmouth,VA,1,1,1,1,4,1
+55004,Thornwood High School,IL,0,0,1,1,2,0
+55010,LSP-Cottage Grove LP,MN,1,1,1,1,4,1
+55011,LSP-Whitewater LP,WI,1,1,1,1,4,1
+55015,Sweeny Cogen Facility,TX,1,1,1,1,4,1
+55027,Papillion Creek Wastewater,NE,1,1,1,1,4,1
+55029,De Pere Energy Center,WI,0,0,1,1,2,0
+55031,Androscoggin Energy Center,ME,1,1,1,1,4,1
+55033,Missouri River Wastewater Treatment,NE,1,1,1,1,4,1
+55035,Davenport Water Pollution Control Plant,IA,1,1,1,1,4,1
+55036,University of Tennessee Steam Plant,TN,1,1,1,1,4,1
+55037,Opryland USA,TN,1,1,1,1,4,1
+55040,Mid-Georgia Cogeneration Facility,GA,1,1,1,1,4,1
+55043,Cherokee County Cogen,SC,1,1,1,1,4,1
+55044,Packaging Corporation of America Jackson Mill,AL,1,1,1,1,4,1
+55047,Pasadena Cogeneration,TX,1,1,1,1,4,1
+55051,Axiall Plaquemine,LA,1,1,1,1,4,1
+55064,Black Hawk Station,TX,1,1,1,1,4,1
+55066,Heat Recovery Coke Facility,IN,0,0,1,1,2,0
+55075,Pine Bluff Energy Center,AR,1,1,1,1,4,1
+55084,Crockett Cogen Project,CA,1,1,1,1,4,1
+55086,Gregory Power Plant,TX,0,0,0,1,1,0
+55088,Dearborn Industrial Generation,MI,1,1,1,1,4,1
+55089,Taft Cogeneration Facility,LA,1,1,1,1,4,1
+55090,Plummer Cogen,ID,1,1,1,1,4,1
+55094,MM San Diego-Miramar,CA,1,1,1,1,4,1
+55096,Portside Energy,IN,1,1,1,1,4,1
+55103,Klamath Cogeneration Plant,OR,1,1,1,1,4,1
+55117,RS Cogen,LA,1,1,1,1,4,1
+55122,NAFTA Region Olefins Complex Cogen Fac,TX,1,1,1,1,4,1
+55152,Bank of America Plaza,GA,0,0,1,1,2,0
+55176,Eastman Cogeneration Facility,TX,1,1,1,1,4,1
+55184,Aera San Ardo Cogen Facility,CA,1,1,1,1,4,1
+55187,Channelview Cogeneration Plant,TX,1,1,1,1,4,1
+55206,Corpus Christi Energy Center,TX,1,1,1,1,4,1
+55207,Valmont Combustion Turbine Project,CO,0,0,1,1,2,0
+55216,Morris Cogeneration LLC,IL,1,1,1,1,4,1
+55217,Los Medanos Energy Center,CA,1,1,1,1,4,1
+55241,Hog Bayou Energy Center,AL,0,0,1,1,2,0
+55242,Santa Rosa Energy Center,FL,0,0,1,1,2,0
+55245,Tuscola Station,IL,0,1,1,1,3,1
+55259,Whiting Clean Energy,IN,1,1,0,1,3,1
+55278,Beaver Creek Gas Plant,WY,1,1,1,1,4,1
+55292,Decatur Energy Center,AL,0,0,1,1,2,0
+55293,Morgan Energy Center,AL,1,1,1,1,4,1
+55299,Channel Energy Center LLC,TX,1,1,1,1,4,1
+55308,Calvert City,KY,1,1,1,1,4,1
+55309,Air Products Port Arthur,TX,1,1,1,1,4,1
+55311,BASF Freeport Works,TX,1,1,1,1,4,1
+55313,Ingleside Cogeneration,TX,1,1,1,1,4,1
+55327,Baytown Energy Center,TX,1,1,1,1,4,1
+55386,Columbia Energy Center (SC),SC,1,1,1,1,4,1
+55400,Elk Hills Power LLC,CA,1,1,0,1,3,1
+55404,Carville Energy LLC,LA,1,1,1,1,4,1
+55419,Plaquemine Cogeneration Plant,LA,1,1,1,1,4,1
+55429,Kentucky Mills,KY,1,1,1,1,4,1
+55464,Deer Park Energy Center,TX,1,1,1,1,4,1
+55470,Green Power 2,TX,1,1,1,1,4,1
+55488,Blackburn Landfill Co-Generation,NC,1,1,1,1,4,1
+55525,MMSD South Shore Wastewater,WI,1,1,1,1,4,1
+55557,Wilmington Hydrogen Plant,CA,1,1,1,1,4,1
+55558,Combined Locks Energy Center,WI,1,1,1,1,4,1
+55597,GRS C&C,MI,0,0,1,1,2,0
+55757,Model City Energy Facility,NY,0,0,1,1,2,0
+55799,Otsego Mill Power Plant,MI,1,1,1,1,4,1
+55801,Marcus Hook Energy LP,PA,1,1,1,1,4,1
+55851,Valero Refinery Cogeneration Unit 1,CA,1,1,1,1,4,1
+55857,Oak Point Cogen,LA,1,1,1,1,4,1
+55861,Stevens Point Mill,WI,1,1,1,1,4,1
+55882,Sierra Pacific Aberdeen,WA,1,1,1,1,4,1
+55950,Elk Hills Cogen,CA,1,1,1,1,4,1
+55990,Ashtabula,OH,1,1,1,1,4,1
+56035,Smithfield Packaged Meats Corp.,NC,1,1,1,1,4,1
+56036,WWTP Power Generation Station,CA,1,1,1,1,4,1
+56038,UMCP CHP Plant,MD,1,0,1,1,3,1
+56050,Inner Harbor East Heating,MD,1,1,1,1,4,1
+56076,ABC Coke,AL,1,1,1,1,4,1
+56079,Riceland Foods Cogeneration Plant,AR,0,1,1,1,3,1
+56080,SJ/SC WPCP,CA,1,1,1,1,4,1
+56119,Middlesex County Utilities Authority,NJ,1,1,1,1,4,1
+56127,Macon Energy Center,MO,1,1,1,1,4,1
+56134,Regional Wastewater Control Facility,CA,1,1,1,1,4,1
+56139,Neptune Gas Processing Plant,LA,1,1,1,1,4,1
+56152,Freeport Energy Center,TX,1,1,1,1,4,1
+56163,Kennecott Power Plant,UT,1,1,1,1,4,1
+56190,Central Michigan University,MI,1,1,1,1,4,1
+56192,Georgia-Pacific Wauna Mill,OR,1,1,1,1,4,1
+56193,Medford Operation,OR,1,0,0,1,2,1
+56229,Cogeneration 1,AZ,1,1,1,1,4,1
+56233,EG178 Facility,TX,0,0,1,1,2,0
+56248,Shell Chemical,LA,1,1,1,1,4,1
+56259,Empire Generating Co LLC,NY,1,1,0,1,3,1
+56309,Trigen St. Louis,MO,1,1,1,1,4,1
+56312,Shute Creek Facility,WY,1,1,1,1,4,1
+56339,Albemarle Hospital Unit,NC,0,0,1,1,2,0
+56356,Clearwater Power Plant,CA,1,1,1,1,4,1
+56374,Robert Mueller Energy Center,TX,1,1,1,1,4,1
+56406,Sierra Pacific Burlington Facility,WA,1,1,1,1,4,1
+56461,Dry Creek LFG to Energy Project,OR,0,0,1,1,2,0
+56469,Roseburg Forest Products Biomass,CA,1,1,1,1,4,1
+56478,MJMEUC Generating Station #1,MO,1,1,1,1,4,1
+56509,Tesoro SLC Cogeneration Plant,UT,1,1,1,1,4,1
+56510,Frey Farm Landfill,PA,1,1,1,1,4,1
+56513,Whitemarsh Central Utility Plant,PA,0,0,1,1,2,0
+56518,South Energy Center,FL,1,1,1,1,4,1
+56523,Two Pine Landfill Gas Recovery,AR,0,0,1,1,2,0
+56643,St Paul Cogeneration,MN,1,1,1,1,4,1
+56668,NIH Cogeneration Facility,MD,0,0,0,1,1,0
+56692,Rockville 1 & 2,VA,0,0,1,1,2,0
+56781,Evergreen BioPower LLC,OR,1,1,1,1,4,1
+56785,Virginia Tech Power Plant,VA,1,1,1,1,4,1
+56786,Spiritwood Station,ND,1,1,1,1,4,1
+56787,Geismar Cogen,LA,1,1,1,1,4,1
+56848,Haverhill North Cogeneration Facility,OH,1,1,1,1,4,1
+56928,Fairfield University CHP Plant,CT,1,1,1,1,4,1
+57042,CSU East Bay,CA,0,1,1,1,3,1
+57043,SF State University,CA,0,1,0,1,2,1
+57046,Archer Daniels Midland Columbus,NE,1,1,1,1,4,1
+57051,Noatak,AK,1,1,1,1,4,1
+57052,Savoonga,AK,1,1,1,1,4,1
+57053,Alakanuk,AK,1,1,1,1,4,1
+57054,Upper Kalskag,AK,1,1,1,1,4,1
+57055,Stebbins,AK,0,0,1,1,2,0
+57056,Scammon Bay,AK,1,1,1,1,4,1
+57057,Quinhagak,AK,1,1,1,1,4,1
+57058,Pilot Station,AK,1,1,1,1,4,1
+57059,Koyuk,AK,1,1,1,1,4,1
+57060,Elim,AK,1,1,1,1,4,1
+57061,St. Michael,AK,1,0,1,1,3,1
+57062,Gambell,AK,1,1,1,1,4,1
+57063,Shungnak,AK,1,1,1,1,4,1
+57064,Kotlik,AK,1,1,1,1,4,1
+57065,Kivalina,AK,1,1,1,1,4,1
+57066,Kasigluk,AK,1,1,1,1,4,1
+57067,Toksook Bay,AK,1,1,1,1,4,1
+57072,Granite City Works,IL,1,1,1,1,4,1
+57076,South Columbus Water Resource Facility,GA,1,1,1,1,4,1
+57099,WestRock (WA),WA,1,1,1,1,4,1
+57100,Santa Maria LFG Power Plant,CA,1,0,1,1,3,1
+57101,J&A-Santa Maria II LLC,CA,1,0,1,1,3,1
+57102,Whittier LFG Power Plant #1,CA,1,0,1,1,3,1
+57103,Newark America Mill,MA,1,0,1,1,3,1
+57119,Koda Biomass Plant,MN,1,1,1,1,4,1
+57122,UCI Facilities Management Central Plant,CA,1,1,1,1,4,1
+57138,Savannah River Site Biomass Cogen,SC,1,1,1,1,4,1
+57163,Calabasas Gas to Energy Facility,CA,0,0,1,1,2,0
+57179,HSCo CHP,CT,1,1,1,1,4,1
+57298,Cedar Hills,WA,0,0,1,1,2,0
+57322,Mont Belvieu Cogeneration Unit,TX,1,1,1,1,4,1
+57341,Silver Lake Solar Farm,NJ,0,0,0,1,1,0
+57343,Cargill B6 Biofactory,ID,1,1,1,1,4,1
+57345,"Kettle Butte Digester, LLC",ID,1,1,1,1,4,1
+57348,CityCenter Central Plant Cogen Units,NV,1,1,1,1,4,1
+57393,Big Sky Dairy Digester,ID,0,0,1,1,2,0
+57457,Seneca Sustainable Energy LLC,OR,1,1,1,1,4,1
+57467,Westervelt Moundville Cogen,AL,1,1,1,1,4,1
+57470,Marlboro Mill,SC,1,1,1,1,4,1
+57504,TECO CHP-1,TX,1,1,1,1,4,1
+57544,Cal State Univ San Bernardino FC01,CA,1,1,1,1,4,1
+57557,Sunnyvale City of WPCP,CA,1,1,1,1,4,1
+57564,Algonquin Power Sanger LLC,CA,0,0,1,1,2,0
+57573,CCCSD Wastewater Treatment Plnt,CA,1,1,1,1,4,1
+57580,Broadridge Cogen,CA,1,1,1,1,4,1
+57584,University of California San Diego Hybrid,CA,1,1,1,1,4,1
+57585,Oxnard Paper Mill,CA,1,1,1,1,4,1
+57653,Oregon State University Energy Center,OR,1,1,1,1,4,1
+57666,Foxwoods CoGen,CT,1,1,1,1,4,1
+57696,Power Generation Station (PGS) 2,CA,1,1,1,1,4,1
+57788,US GSA Heating and Transmission,DC,1,1,0,1,3,1
+57789,Peak Power 1 Cogen,NY,1,1,1,1,4,1
+57798,OBP Cogen,NY,1,1,1,1,4,1
+57804,Middlebury College,VT,1,1,1,1,4,1
+57822,"Middletown Coke Company, LLC",OH,1,1,1,1,4,1
+57908,Central Utility Plant Cincinnati,OH,1,1,1,1,4,1
+57914,Sidney MT Plant,MT,1,1,1,1,4,1
+57915,Genesis Alkali,WY,1,1,1,1,4,1
+57916,Spreckels Sugar Company,CA,1,1,1,1,4,1
+57919,Sonoco Products Co,SC,1,1,1,1,4,1
+57928,SIUC,IL,1,1,1,1,4,1
+57937,Western Sugar Coop - Scottsbluff,NE,1,1,0,1,3,1
+57938,ADA Carbon Solutions Red River,LA,1,1,1,1,4,1
+57949,MSC Sebewaing,MI,1,1,1,1,4,1
+57950,MSC Croswell,MI,1,1,1,1,4,1
+57953,Roquette America,IA,1,1,1,1,4,1
+57966,Southeast Steam Plant,MN,1,1,1,1,4,1
+57969,Darrington,WA,1,1,1,1,4,1
+57977,High Sierra Cogeneration Plant,CA,1,1,1,1,4,1
+58052,Battle Creek Mill,MI,1,1,1,1,4,1
+58058,Paramount Refinery,CA,1,0,1,1,3,1
+58063,SABIC Innovative Plastics Mt. Vernon,IN,1,1,1,1,4,1
+58066,"PCA, Filer City Mill",MI,1,1,0,1,3,1
+58069,PRSI FCC Generator,TX,1,1,1,1,4,1
+58075,El Dorado Refinery,KS,1,1,1,1,4,1
+58081,Western Sugar Coop- Ft Morgan,CO,1,1,1,1,4,1
+58084,"Kimberly Clark-Unit 1,2,3",CT,1,1,1,1,4,1
+58105,Foundation Wal-Mart Red Bluff,CA,0,0,0,1,1,0
+58108,International Paper Red River Mill,LA,1,0,1,1,3,1
+58109,Georgia-Pacific Toledo Mill,OR,1,1,1,1,4,1
+58124,Rothschild Biomass Cogen Facility,WI,1,1,1,1,4,1
+58129,Prairies Edge Generating Facility,IN,0,0,1,1,2,0
+58130,Blue Mountain Biogas,UT,0,0,1,1,2,0
+58136,Adkins Energy LLC,IL,1,1,1,1,4,1
+58138,Otter Creek Ethanol Poet - Ashton,IA,1,1,1,1,4,1
+58140,Summit Street Power Plant,OH,1,1,1,1,4,1
+58146,Twin Rivers Paper Co LLC,ME,1,1,1,1,4,1
+58151,Central Utility Plant - Texas A&M,TX,1,1,1,1,4,1
+58152,Danbury Hospital Cogen Plant,CT,1,1,1,1,4,1
+58153,Eastern Maine Medical Center,ME,1,1,1,1,4,1
+58157,University of Rochester,NY,1,1,1,1,4,1
+58158,Wesleyan University Cogen 1,CT,1,1,1,1,4,1
+58159,UCONN Cogen Facility,CT,1,1,1,1,4,1
+58160,Williams College - Campus CHP,MA,1,1,1,1,4,1
+58161,Western Michigan University Power Plant,MI,1,1,1,1,4,1
+58165,College of New Jersey,NJ,1,1,1,1,4,1
+58166,Smith College Central Heating Plant,MA,1,1,1,1,4,1
+58167,William Floyd School District,NY,1,1,1,1,4,1
+58168,Energy Center,CA,1,1,1,1,4,1
+58169,CSUF Trigeneration,CA,1,1,1,1,4,1
+58173,BMW Manufacturing Co,SC,1,1,0,1,3,1
+58177,Kishwaukee CHP Plant,IL,1,1,0,1,3,1
+58179,MTSU Power Co-Gen Plant,TN,1,1,1,1,4,1
+58180,UNH 7.9 MW Plant,NH,1,1,1,1,4,1
+58181,Loyola University Health Plant,IL,1,1,0,1,3,1
+58183,Prairie Horizon Agri Energy,KS,1,1,1,1,4,1
+58184,Rand Whitney CHP Plant,CT,1,1,1,1,4,1
+58185,Amherst College Co Gen,MA,1,1,1,1,4,1
+58186,HVCC Cogen Plant,NY,1,1,1,1,4,1
+58191,US Magnesium,UT,1,1,1,1,4,1
+58192,Arkalon Ethanol LLC,KS,1,1,1,1,4,1
+58193,Bonanza BioEnergy LLC,KS,1,1,1,1,4,1
+58194,West Campus Steam Plant,PA,1,1,1,1,4,1
+58195,East Campus Steam Plant,PA,1,1,1,1,4,1
+58196,Cargill Salt Hersey,MI,1,1,1,1,4,1
+58197,POET Biorefining Lake Crystal,MN,1,1,1,1,4,1
+58198,Parnassus Central Utility Plant,CA,1,1,1,1,4,1
+58199,Arizona State University CHP,AZ,1,1,1,1,4,1
+58201,Monroe Community College Plant,NY,1,1,1,1,4,1
+58205,Grand Ave Plant,MO,1,1,1,1,4,1
+58207,Central Utility Plant at White Oak,MD,1,1,1,1,4,1
+58222,E.B. Eddy Paper Inc,MI,1,1,1,1,4,1
+58223,Hoag Hospital Cogen Plant,CA,1,1,1,1,4,1
+58224,CCSU Co-Gen-STBY Gen,CT,1,1,1,1,4,1
+58237,CCSU Fuel Cell Project,CT,1,1,0,1,3,1
+58245,Northeastern Illinois University Cogen,IL,1,1,1,1,4,1
+58251,C&H Sugar Plant,CA,1,1,0,1,3,1
+58258,Central Utilities Plant LAX 2,CA,1,1,1,1,4,1
+58263,Bay View Cogeneration Facility,OH,1,0,0,1,2,1
+58265,NCAH Central Utility Plant,IA,1,1,1,1,4,1
+58310,Lake Charles Plant,LA,0,0,0,1,1,0
+58326,PWD Northeast WPCP Biogas Cogen Plant,PA,1,1,1,1,4,1
+58327,Bradley Energy Center,CT,1,1,1,1,4,1
+58328,North Chicago Energy Center,IL,1,1,1,1,4,1
+58330,The Andersons Albion Ethanol LLC,MI,1,1,1,1,4,1
+58375,Triton East and West Cogen,IL,1,1,0,1,3,1
+58378,W.A. Parish Carbon Capture Plant,TX,1,1,0,0,2,1
+58382,Threemile Digester,OR,1,1,1,1,4,1
+58422,CSU Northridge Plant,CA,0,0,0,1,1,0
+58427,Lansing BWL REO Town Plant,MI,1,1,1,1,4,1
+58428,LSU Cogen,LA,1,1,1,1,4,1
+58432,Glass House Camarillo Cultivation,CA,1,1,1,1,4,1
+58476,Dart Container Corp,PA,1,1,1,1,4,1
+58484,MAS ASB Cogen Plant,GA,1,1,1,1,4,1
+58507,Montefieor Medical Center Moses Division,NY,1,1,1,1,4,1
+58523,Stoltze CoGen1,MT,1,1,1,1,4,1
+58525,City of Hayward WWTP,CA,1,1,1,1,4,1
+58563,Hometown Bio Energy LLC,MN,1,1,1,1,4,1
+58565,Gettysburg Energy & Nutrient Rec Facility,PA,1,0,1,1,3,1
+58575,Smithfield Packaged Meats Corp.,NC,1,1,1,1,4,1
+58584,Princeton University Cogeneration,NJ,1,1,1,1,4,1
+58585,Sierra Nevada Brewing Co Hybrid,CA,1,1,1,1,4,1
+58593,DGS Central Utility Plant,CA,1,1,1,1,4,1
+58597,HTW Plant 303 COGEN,UT,1,1,1,1,4,1
+58607,One Market Plaza,CA,1,1,1,1,4,1
+58617,Water Reclamation Plant,MN,1,1,1,1,4,1
+58619,Transamerica Pyramid,CA,1,1,1,1,4,1
+58625,Santa Rita Jail Hybrid,CA,1,1,1,1,4,1
+58635,Museum of Science and Industry,IL,1,1,0,1,3,1
+58747,Viresco Turtle Lake,WI,1,1,1,1,4,1
+58815,Hilton NY Co Gen Plant,NY,1,0,1,1,3,1
+58825,MTHS Co-Gen Buildings,IL,1,1,0,1,3,1
+58834,Richland Center Renewable Energy LLC,WI,1,1,1,1,4,1
+58865,Reventure Park,NC,1,1,1,1,4,1
+58870,Rentech Nitrogen Pasadena Cogeneration,TX,1,1,1,1,4,1
+58914,MCAGCC Cogen Plant,CA,1,1,1,1,4,1
+58933,Shell Chemical Appalachia LLC,PA,1,1,0,0,2,1
+58947,Bristol Myers Squibb Lawrenceville,NJ,1,1,0,1,3,1
+58960,Laguna Water Reclamation Facility,CA,1,1,1,1,4,1
+58980,Akron WRF,OH,1,1,1,1,4,1
+59012,DC Water CHP,DC,1,1,1,1,4,1
+59093,Holland Energy Park,MI,1,1,1,1,4,1
+59145,Freeport LP Pretreatment Facility,TX,1,1,1,1,4,1
+59181,AgriReNew,IA,1,1,1,1,4,1
+59197,Univ Minnesota CHP Plant,MN,1,1,1,1,4,1
+59233,Cogeneration 2,AZ,1,1,0,1,3,1
+59335,MCLB Landfill Gas to Energy,GA,1,1,1,1,4,1
+59373,Broshco Fabricated Products,OH,1,1,1,1,4,1
+59381,"The Methodist Hospital, Gas Turbine",TX,1,1,1,1,4,1
+59395,City of Tulare Water Facility,CA,0,0,0,1,1,0
+59448,Waxdale,WI,1,1,1,1,4,1
+59452,East. Michigan Univ. Heating Plant,MI,1,1,1,1,4,1
+59453,Albany Medical Ctr Cogen Plant,NY,1,1,1,1,4,1
+59456,P Plant,CA,1,1,1,1,4,1
+59457,Q Plant,CA,1,1,1,1,4,1
+59458,W Plant,CA,1,1,1,1,4,1
+59496,BYUI Central Energy Facility,ID,1,1,1,1,4,1
+59658,SPI Anderson 2,CA,1,1,1,1,4,1
+59704,"Shell New Energies, Junction City",OR,1,0,1,1,3,1
+59774,BioTown Ag,IN,1,1,1,1,4,1
+59783,Croda Atlas Point CHP,DE,1,1,1,1,4,1
+59785,"Fremont Community Digester, LLC",MI,1,1,1,1,4,1
+59794,Chicago West Side Energy Center,IL,1,1,1,1,4,1
+59847,Northwest Community Hospital,IL,1,1,0,1,3,1
+59860,HP Hood CT,VA,1,1,1,1,4,1
+59877,Riverside RWQCP Fuel Cell,CA,1,1,1,1,4,1
+59931,FCPC Renewable Generation,WI,1,1,1,1,4,1
+59967,Pepperidge Farm Bloomfield,CT,1,0,1,1,3,1
+60025,Eight Flags Energy,FL,1,1,1,1,4,1
+60047,Middlebury Solar,IN,0,0,0,1,1,0
+60084,PCA-Valdosta Mill,GA,1,1,1,1,4,1
+60102,Lorin Industries,MI,1,1,0,1,3,1
+60120,UCI Fuel Cell,CA,1,1,1,1,4,1
+60220,Zero Waste Energy Development Co LLC,CA,1,1,1,1,4,1
+60242,"Algonquin SKIC 10 Solar, LLC",CA,0,0,1,1,2,0
+60249,Silicon Valley Clean Water,CA,1,1,1,1,4,1
+60263,Durham AWTF,OR,1,1,1,1,4,1
+60276,West Groton CHP,MA,1,1,1,1,4,1
+60340,Albany Green Energy,GA,1,1,1,1,4,1
+60385,Santa Rita Jail Fuel Cell,CA,1,1,0,1,3,1
+60392,Pfizer Groton Fuel Cell,CT,1,1,1,1,4,1
+60421,Veyo Heat Recovery Project,UT,0,0,1,1,2,0
+60536,UA Central Utility Plant,AR,1,1,1,1,4,1
+60647,Shakopee Energy Park,MN,1,1,1,1,4,1
+60683,TRS Fuel Cell,CT,1,1,1,1,4,1
+60742,Argonne National Laboratory CHP,IL,1,1,1,1,4,1
+60933,Hopewell Cogeneration NJ,NJ,1,1,1,1,4,1
+61034,EcoElectrica,PR,0,1,0,1,2,1
+61146,Aguirre Plant,PR,0,1,0,1,2,1
+61147,Costa Sur Plant,PR,0,1,0,1,2,1
+61148,Central San Juan Plant,PR,0,1,0,1,2,1
+61186,Boston Medical Center CHP Plant,MA,1,1,1,1,4,1
+61238,NY - Presbyt. Hospital - 525 E 68TH St,NY,1,1,1,1,4,1
+61282,APG Combined Heat and Power Plant,MD,1,1,1,1,4,1
+61292,Jackson Solar Farm,NC,0,0,0,1,1,0
+61467,City of Lexington,NE,0,0,0,1,1,0
+61488,NYU LANGONE HEALTH,NY,1,1,0,1,3,1
+61652,"Fiber Recovery, Inc.",WI,1,1,1,1,4,1
+61675,NCSU CCUP Cogeneration Plant,NC,1,1,1,1,4,1
+61676,NCSU Cates Cogeneration Plant,NC,1,1,0,1,3,1
+61703,Sikorsky Aircraft CHP,CT,1,1,1,1,4,1
+61754,SunSelect1,CA,1,0,1,1,3,1
+61761,Douglas County Forest Products,OR,1,1,1,1,4,1
+61822,"Princeton Energy Center, LLC",NJ,1,1,1,1,4,1
+61838,Cleveland Thermal,OH,1,1,1,1,4,1
+61846,Tulare BioMAT Fuel Cell,CA,1,1,1,1,4,1
+61857,Toray Plastic America's CHP Plant,RI,1,1,1,1,4,1
+61927,Georgia-Pacific Taylorsville Plywood,MS,1,1,1,1,4,1
+62117,Beloit Memorial Hospital Power Plant,WI,1,1,0,1,3,1
+62176,Berry NMW Cogens,CA,1,1,0,0,2,1
+62289,Dearborn Energy Center,MI,1,1,1,1,4,1
+62319,Western Sugar Cooperative - Billings,MT,1,1,1,1,4,1
+62410,Cervecera de Puerto Rico,PR,0,1,0,0,1,1
+62424,Iola Powerhouse & Cogeneration Facility,NY,0,1,1,1,3,1
+62449,Kimberly Clark Mobile - CHP Plant,AL,1,1,1,1,4,1
+62622,Overlook Medical Center,NJ,1,1,1,1,4,1
+62657,DWW Solar ll,CT,0,0,1,1,2,0
+62736,Harbec Energy,NY,1,1,0,1,3,1
+62741,Mount Joy Wire,PA,1,1,1,1,4,1
+62757,Bridgewater Complex Co-Generation Plant,MA,1,1,1,1,4,1
+62762,NASA Johnson Space Center CHP,TX,1,1,1,1,4,1
+62873,Carolina Poultry Power Farmville,NC,1,1,1,1,4,1
+62901,Phoenix Contact - CCHP Plant,PA,1,1,1,1,4,1
+62920,Burrstone Energy Center,NY,1,1,1,1,4,1
+63023,Jefferson Torresdale Hospital,PA,1,1,1,1,4,1
+63236,Kings Plaza Total Energy Plant (TEP),NY,1,1,1,1,4,1
+63285,Valero Wilmington Cogeneration Plant,CA,1,1,1,1,4,1
+63347,"AOC, Capitol Power Plant",DC,1,1,1,1,4,1
+63423,BYU Central Heating Plant,UT,1,1,1,1,4,1
+63438,UB Fuel Cell,CT,1,1,1,1,4,1
+63439,Central CA Fuel Cell 1,CA,1,1,0,1,3,1
+63478,Ross Hall Central Utility Plant,DC,1,0,1,1,3,1
+63483,ACM - Midtown Thermal,NJ,1,1,1,1,4,1
+63485,ECP Uptown Campus,PA,1,1,1,1,4,1
+63492,DCO Burlington,NJ,1,1,1,1,4,1
+63501,Montclair State University Cogen,NJ,1,1,1,1,4,1
+63540,Essex County Correctional Facility Cogen,NJ,1,1,1,1,4,1
+63632,Tate & Lyle Loudon Plant,TN,1,1,1,1,4,1
+63673,Norwalk Hospital Plant,CT,1,1,0,1,3,1
+63826,POET Biorefining - Jewell,IA,1,1,1,1,4,1
+63829,"POET Biorefining - Marion, LLC",OH,1,1,1,1,4,1
+63831,"POET Biorefining Caro, LLC",MI,1,1,1,1,4,1
+63832,"POET Biorefining-Hanlontown, LLC",IA,1,1,1,1,4,1
+63852,"POET Biorefining - North Manchester, LLC",IN,1,1,1,1,4,1
+63853,POET Biorefining - Chancellor,SD,1,1,0,1,3,1
+63918,POET Biorefining - Hudson,SD,1,1,1,1,4,1
+63919,POET Biorefining LLC - Corning,IA,1,1,1,1,4,1
+63920,POET Biorefining - Fostoria,OH,1,1,1,1,4,1
+63922,POET Biorefining - Portland,IN,1,1,1,1,4,1
+63923,POET Biorefining - Gowrie,IA,1,1,1,1,4,1
+63924,"POET Biorefining- Alexandria, LLC",IN,1,1,1,1,4,1
+63927,"POET Biorefining - Leipsic, LLC",OH,1,1,1,1,4,1
+64027,SB Water Reclamation Fuel Cell,CA,1,1,0,0,2,1
+64408,Georges River Energy,ME,1,1,0,1,3,1
+64663,WLWPCF Cogeneration Facility,OR,1,1,0,1,3,1
+64854,Tate & Lyle Lafayette South Plant,IN,1,1,0,0,2,1
+65367,POET Bioprocessing- Mitchell,SD,1,1,0,0,2,1
+65405,"Flint Hills Resources Pine Bend, LLC",MN,1,0,0,0,1,1
+65512,"Kansas Ethanol, LLC",KS,1,0,0,0,1,1
+10350,Greenleaf 1,,0,1,0,0,1,1
+50976,Indiantown Cogeneration LP,,0,1,0,1,2,1
+54987,Woodridge Greene Valley Treatment Plant,,0,1,1,1,3,1
+57940,Wausau Paper Middletown,,0,1,0,1,2,1
+,,,0,0,1,0,1,0
+478,,,0,1,1,0,2,1
+1594,,,0,1,1,0,2,1
+6316,,,0,1,1,0,2,1
+6317,,,0,1,1,0,2,1
+6327,,,0,1,1,0,2,1
+6334,,,0,1,1,0,2,1
+7337,,,0,1,1,1,3,1
+7460,,,0,1,1,0,2,1
+7509,,,0,1,1,0,2,1
+7701,,,0,1,1,1,3,1
+10032,,,0,1,1,0,2,1
+10039,,,0,1,1,0,2,1
+10284,,,0,1,1,0,2,1
+10297,,,0,1,1,0,2,1
+10381,,,0,1,1,0,2,1
+10466,,,0,1,1,1,3,1
+10569,,,0,1,1,0,2,1
+10596,,,0,1,1,0,2,1
+10722,,,0,1,1,0,2,1
+10729,,,0,1,1,0,2,1
+10802,,,0,1,1,0,2,1
+10812,,,0,1,1,0,2,1
+50027,,,0,1,1,0,2,1
+50117,,,0,1,1,0,2,1
+50291,,,0,1,1,0,2,1
+50424,,,0,1,1,1,3,1
+50459,,,0,1,1,0,2,1
+50620,,,0,1,1,1,3,1
+50640,,,0,1,1,0,2,1
+50651,,,0,1,1,0,2,1
+50727,,,0,1,1,0,2,1
+50743,,,0,1,1,0,2,1
+50771,,,0,1,1,0,2,1
+50811,,,0,1,1,0,2,1
+50989,,,0,1,1,0,2,1
+52051,,,0,1,1,1,3,1
+52052,,,0,1,1,0,2,1
+52084,,,0,1,1,0,2,1
+52188,,,0,1,1,0,2,1
+53041,,,0,1,1,0,2,1
+54248,,,0,1,1,0,2,1
+54286,,,0,1,1,0,2,1
+54441,,,0,1,1,0,2,1
+54443,,,0,1,1,0,2,1
+54522,,,0,1,1,0,2,1
+54578,,,0,1,1,0,2,1
+54670,,,0,1,1,0,2,1
+54842,,,0,1,1,1,3,1
+54913,,,0,1,1,1,3,1
+55059,,,0,1,1,0,2,1
+55416,,,0,1,1,0,2,1
+55611,,,0,1,1,0,2,1
+55770,,,0,1,1,0,2,1
+57425,,,0,1,1,0,2,1
+58077,,,0,1,1,0,2,1
+58352,,,0,1,1,1,3,1
+58442,,,0,1,1,0,2,1
+58663,,,0,1,1,1,3,1
