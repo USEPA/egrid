@@ -24,6 +24,12 @@ library(readr)
 library(readxl)
 library(stringr)
 
+# define params for eGRID data year 
+# this is only necessary when running the script outside of egrid_master.qmd
+
+params <- list()
+params$eGRID_year <- "2021"
+
 # Load necessary data ----------
 
 ### Load EIA data ------------
@@ -481,11 +487,13 @@ stopifnot(all(!duplicated(fuel_by_plant_3$plant_id))) # check there are no more 
 
 # Assign plant primary fuel category  ---------------
 
-# identify oil, gas, other fossil, and other fuel types
+# identify coal, oil, gas, other fossil, and other fuel types
+coal_fuels <- c("ANT","BIT", "COG", "LIG", "RC", "SGC", "SUB", "WC")
 oil_fuels <- c("DFO", "JF", "KER", "PC", "RFO", "WO", "SGP") 
 gas_fuels <- c("NG", "PG", "BU") 
 oth_FF <- c("BFG", "OG", "TDF", "MSN") 
 oth_fuels <- c("H", "MWH", "OTH", "PRG", "PUR", "WH")
+biomass_fuels <- c("AB",  "BLQ",  "LFG", "MSB","MSW", "OBG", "OBL", "OBS", "PP", "SLW", "WDL", "WDS")
 
 fuel_by_plant_4 <- 
   fuel_by_plant_3 %>%
@@ -521,8 +529,6 @@ oth_og_recode <-
   read_csv("data/static_tables/og_oth_units_to_change_fuel_type.csv") %>% 
   select(plant_id, "fuel_type" = primary_fuel_type, fuel_code) %>% 
   mutate(plant_id = as.character(plant_id))
-
-coal_fuels <- c("ANT","BIT", "COG", "LIG", "RC", "SGC", "SUB", "WC")
 
 # create a flag that identifies which plants are coal
 coal_plants <- 
@@ -589,8 +595,6 @@ plant_file_12 <-
 
 ## Biomass Fuels adjustment (CO2) ----------------
 
-# separate out CO2 from biofuels and CO2 from other sources
-biomass_fuels <- c("AB",  "BLQ",  "LFG", "MSB","MSW", "OBG", "OBL", "OBS", "PP", "SLW", "WDL", "WDS")
 
 # subtract CO2 from biofuels from the unadj_co2_mass to  create co2_mass
 eia_923_biomass <- 
@@ -1231,6 +1235,7 @@ final_vars <-
     "CHPNOX" = "chp_nox", 
     "CHPNOXOZ" = "chp_nox_oz", 
     "CHPSO2" = "chp_so2", 
+    "CHPCO2" = "chp_co2",
     "CHPCH4" = "chp_ch4", 
     "CHPN2O" = "chp_n2o", 
     "PLHTRT" = "nominal_heat_rate", 
@@ -1272,8 +1277,8 @@ plant_formatted <-
   arrange(plant_state, plant_name) %>% 
   mutate(seqplt = row_number(), 
          year = params$eGRID_year) %>% 
-  select(as_tibble(final_vars)$value) # keeping columns with tidy names for QA steps
-
+  select(as_tibble(final_vars)$value) %>%  # keeping columns with tidy names for QA steps
+  filter(!is.na(plant_id))
 
 # Export plant file -------------
 

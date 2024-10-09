@@ -14,6 +14,7 @@
 ## 
 ## Date created: 8/9/2024
 ##
+
 ## 0. Setup -------------------------------
 # load libraries
 library(dplyr)
@@ -45,8 +46,14 @@ plant_r <- plant_r %>% rename("plant_id" = "plant_id_r")
 plant_access <- read_excel("data/outputs/qa/eGRID2021 Plant file 9_19.xlsx", #sheet = "PLNT21", 
                                #skip = 1, 
                                guess_max = 4000) %>% janitor::clean_names() %>% 
-  mutate(year = 2021) %>%
-  rename("seq_access" = "sequence_number", # need to add sequnt to plant_r create script
+  mutate(year = 2021, 
+         plant_code = as.character(plant_code), 
+         numunt = as.integer(numunt), 
+         numgen = as.integer(numgen), 
+         utility_id = as.character(utility_id), 
+         transmission_or_distribution_system_owner_id = as.character(transmission_or_distribution_system_owner_id), 
+         sequence_number = as.integer(sequence_number)) %>%
+  rename("seqplt_access" = "sequence_number", # need to add sequnt to plant_r create script
          "year_access" = "year", 
          "plant_id" = "plant_code",
          "plant_name_access" = "plant_name", 
@@ -56,21 +63,21 @@ plant_access <- read_excel("data/outputs/qa/eGRID2021 Plant file 9_19.xlsx", #sh
          "system_owner_id_access" = "transmission_or_distribution_system_owner_id",
          "utility_name_access" = "utility_name",
          "utility_id_access" = "utility_id",
-         "sector_access" = "sector",
+         "sector_name_access" = "sector",
          "ba_name_access" = "balancing_authority_name",
-         "ba_id_access" = "balancing_authority_code",
+         "ba_code_access" = "balancing_authority_code",
          "nerc_access" = "nerc_region",
-         "nerc_subregion_access" = "subrgn",
-         "nerc_subregion_name_access" = "srname",
+         "egrid_subregion_access" = "subrgn",
+         "egrid_subregion_name_access" = "srname",
          "isorto_access" = "isorto",
-         "FIPS_state_access" = "fipsst",
-         "FIPS_county_access" = "fipscnty",
+         "fips_state_code_access" = "fipsst",
+         "fips_county_code_access" = "fipscnty",
          "county_access" = "county",
          "lat_access" = "latitude",
          "lon_access" = "longitude",
          "camd_flag_access" = "camdflag",
          "num_units_access" = "numunt", # REMOVE num_units_op
-         "num_gen_access"= "numgen",   # REMOVE num_gen_op
+         "num_generators_access"= "numgen",   # REMOVE num_gen_op
          "primary_fuel_type_access" = "plprmfl",
          "primary_fuel_category_access"="plfuelct",
          "coal_flag_access"="coalflag",
@@ -80,8 +87,8 @@ plant_access <- read_excel("data/outputs/qa/eGRID2021 Plant file 9_19.xlsx", #sh
          "nonbaseload_access"="non_baseload",
          "biomass_adj_flag_access"="rmbmflag",
          "chp_flag_access"="chpflag",
-         "uto_access"="usethrmo",
-         "power_to_heat_access"="pwrtoht", # figure out difference with power_heat_ratio
+         "useful_thermal_output_access"="usethrmo",
+         "power_heat_ratio_access"="pwrtoht", # figure out difference with power_heat_ratio
          "elec_allocation_access"="elcalloc",
          "ps_flag_access"="psflag",
          "combust_heat_input_access"="combust_hti",
@@ -91,12 +98,12 @@ plant_access <- read_excel("data/outputs/qa/eGRID2021 Plant file 9_19.xlsx", #sh
          "generation_ann_access"="plngenan", # "ann_gen_access" gets created for denominator when creating fuel %
          "generation_oz_access" = "plngenoz",
          "nox_mass_access"="plnoxan",
-         "nox_oz_access"="plnoxoz",
+         "nox_oz_mass_access"="plnoxoz",
          "so2_mass_access"="plso2an",
          "co2_mass_access"="plco2an",
          "ch4_mass_access"="plch4an",
          "n2o_mass_access"="pln2oan",
-         "co2_equivalent_access"="plco2eqa",
+         "co2e_mass_access"="plco2eqa",
          "hg_mass_access"="plhgan",
          "nox_out_emission_rate_access"="plnoxrta", 
          "nox_out_emission_rate_oz_access"="plnoxrto",
@@ -104,7 +111,7 @@ plant_access <- read_excel("data/outputs/qa/eGRID2021 Plant file 9_19.xlsx", #sh
          "co2_out_emission_rate_access"="plco2rta",
          "ch4_out_emission_rate_access"="plch4rta",
          "n2o_out_emission_rate_access"="pln2orta",
-         "co2_equiv_out_emission_rate_access"="plc2erta",
+         "co2e_out_emission_rate_access"="plc2erta",
          "hg_out_emission_rate_access"="plhgrta",
          "nox_in_emission_rate_access"="plnoxra",
          "nox_in_emission_rate_oz_access"="plnoxro",
@@ -112,7 +119,7 @@ plant_access <- read_excel("data/outputs/qa/eGRID2021 Plant file 9_19.xlsx", #sh
          "co2_in_emission_rate_access"="plco2ra",
          "ch4_in_emission_rate_access"="plch4ra",
          "n2o_in_emission_rate_access"="pln2ora",
-         "co2_equiv_in_emission_rate_access"= "plc2era",
+         "co2e_in_emission_rate_access"= "plc2era",
          "hg_in_emission_rate_access"="plhgra",
          "nox_combust_out_emission_rate_access"="plnoxcrt",
          "nox_combust_out_emission_rate_oz_access"="plnoxcro",
@@ -120,10 +127,10 @@ plant_access <- read_excel("data/outputs/qa/eGRID2021 Plant file 9_19.xlsx", #sh
          "co2_combust_out_emission_rate_access"="plco2crt",
          "ch4_combust_out_emission_rate_access"="plch4crt",
          "n2o_combust_out_emission_rate_access"="pln2ocrt",
-         "co2_equiv_combust_out_emission_rate_access"="plc2ecrt",
+         "co2e_combust_out_emission_rate_access"="plc2ecrt",
          "hg_combust_out_emission_rate_access"="plhgcrt",
          "unadj_nox_mass_access"="unnox",
-         "unadj_nox_oz_access"="unnoxoz",
+         "unadj_nox_oz_mass_access"="unnoxoz",
          "unadj_so2_mass_access"="unso2",
          "unadj_co2_mass_access"="unco2",
          "unadj_ch4_mass_access"="unch4",
@@ -133,15 +140,15 @@ plant_access <- read_excel("data/outputs/qa/eGRID2021 Plant file 9_19.xlsx", #sh
          "unadj_combust_heat_input_oz_access"="un_combust_htioz",
          "unadj_heat_input_access"="unhti",
          "unadj_heat_input_oz_access"="unhtioz",
-         "nox_source_access"="unnox_source",
-         "nox_oz_source_access"="unnoxoz_source",
-         "so2_source_access"="unso2_source",
-         "co2_source_access"="unco2_source",
-         "ch4_source_access"="unch4_source",
-         "n2o_source_access"="unn2o_source",
+         "unadj_nox_source_access"="unnox_source",
+         "unadj_nox_oz_source_access"="unnoxoz_source",
+         "unadj_so2_source_access"="unso2_source",
+         "unadj_co2_source_access"="unco2_source",
+         "unadj_ch4_source_access"="unch4_source",
+         "unadj_n2o_source_access"="unn2o_source",
          "unadj_hg_source_access"="unhg_source",
-         "heat_input_source_access"="unhti_source",
-         "heat_input_oz_source_access"="unhtioz_source",
+         "unadj_heat_input_source_access"="unhti_source",
+         "unadj_heat_input_oz_source_access"="unhtioz_source",
          "nox_biomass_access"="bionox",
          "nox_bio_oz_access"="bionoxoz",
          "so2_biomass_access"="bioso2",
@@ -157,7 +164,7 @@ plant_access <- read_excel("data/outputs/qa/eGRID2021 Plant file 9_19.xlsx", #sh
          "chp_co2_access"="chpco2",
          "chp_ch4_access"="chpch4",
          "chp_n2o_access"="chpn2o",
-         "power_heat_ratio_access"="plhtrt", # check - already used above..
+         #"power_heat_ratio_access"="plhtrt", # check - already used above..
          "ann_gen_coal_access"="plgenacl",
          "ann_gen_oil_access"="plgenaol",
          "ann_gen_gas_access"="plgenags",
@@ -221,13 +228,13 @@ stopifnot(length(r_cols[!r_cols %in% access_cols & !r_cols %in% other_cols])==0)
 # combine the two datasets
 plant_comparison <- 
   plant_r %>%
-  full_join(plant_access, by = c("plant_id" = "plant_id")) 
+  full_join(plant_access, by = c("plant_id")) 
 ## 5. Compare Values ------------------
 # a1. plant_id in R that are NOT in Access dataset ---------
 check_diff_plant_r <- 
   plant_r %>% 
   filter(!is.na(plant_id)) %>%
-  anti_join(plant_access, by = c("plant_id" = "plant_id"))
+  anti_join(plant_access, by = c("plant_id"))
   
 
 if(nrow(check_diff_plant_r) > 0) {
@@ -248,7 +255,8 @@ plant_compare <- function(x, data = plant_comparison, outdir = save_dir){
   r_name <- as.name(paste0(x,"_r"))
   access_name <- as.name(paste0(x,"_access"))
   comp <- data %>% 
-    filter(!(!!r_name == !!access_name)) %>% 
+    #filter(!(!!r_name == !!access_name)) %>% 
+    filter(mapply(identical, !!!r_name, !!!access_name) == FALSE) %>% 
     select(plant_id, !!r_name, !!access_name) %>% distinct()
   if(nrow(comp) > 0) {
     write_csv(comp, paste0(outdir, "check_", x, ".csv")) }
