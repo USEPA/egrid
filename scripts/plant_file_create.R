@@ -164,6 +164,7 @@ plant_gen_3 <-
 # Calculate CH4 emissions N2O emissions  ----------------------------------------
 
 # load static table with emissions factors
+
 ef_co2_ch4_n2o <- 
   read_csv("data/static_tables/co2_ch4_n2o_ef.csv") %>% 
   filter(!is.na(eia_fuel_code)) 
@@ -185,7 +186,9 @@ emissions_ch4_n2o <-
   ungroup()
 
 # Create plant file ------------
+
 # combine generator and unit aggregation files into one plant file
+
 plant_file <- 
   plant_gen_3 %>% 
   select(-plant_name) %>% # names differ between sources, so default to names in unit file
@@ -194,6 +197,7 @@ plant_file <-
 
 
 # Plant region assignments -----------
+
 # assign plants to counties, states, ISORTOs, balancing authorities, and NERC regions
 
 ### Add in FIPS codes for state and county ----------------
@@ -387,6 +391,7 @@ plant_file_7 <-
          lat = if_else(lat == 0, NA_real_, lat),
          lon = if_else(lon == 0, NA_real_, lon), 
          # manual lat/lon updates for some plant IDs
+         ### Note: check for updates or changes each data year ###
          lat = case_when(plant_id==54975 ~ 32.380032,
                          plant_id==62262 ~ 42.899029,
                          plant_id==63003 ~ 41,
@@ -540,7 +545,7 @@ plant_file_9 <-
 # check if plants missing coal flags have a primary_fuel_category == "COAL"
 update_coal <- 
   plant_file_9 %>% 
-  filter(is.na(coal_flag) | coal_flag == 0) %>% 
+  filter(is.na(coal_flag)) %>% 
   select(plant_id, primary_fuel_category) %>%
   filter(primary_fuel_category == "COAL")
 
@@ -1268,7 +1273,7 @@ plant_formatted <-
   select(as_tibble(final_vars)$value) # keeping columns with tidy names for QA steps
 
 
-# Export unit file -------------
+# Export plant file -------------
 
 if(dir.exists("data/outputs")) {
   print("Folder output already exists.")
