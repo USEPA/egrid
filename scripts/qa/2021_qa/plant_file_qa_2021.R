@@ -198,6 +198,24 @@ plant_access <- read_excel("data/outputs/qa/eGRID2021 Plant file 9_19.xlsx", #sh
          "perc_ann_gen_combust_access"="plcypr",
          "perc_ann_gen_non_combust_access"="plcnpr") 
 
+# load plant differences from unit and gen files
+
+gen_diffs <- 
+  read_csv("data/outputs/qa/generator_file_differences/plant_gen_difference_ids.csv") %>% 
+  select(plant_id, source_diff) %>% distinct()
+
+unit_diffs <- 
+  read_csv("data/outputs/qa/unit_file_differences/plant_unit_difference_ids.csv") %>% 
+  select(plant_id, source_diff) %>% distinct()
+
+gen_unit_diffs <- 
+  unit_diffs %>% 
+  full_join(gen_diffs) %>% 
+  group_by(plant_id) %>% 
+  mutate(source_diff = paste(source_diff, collapse = ", "), 
+         plant_id = as.character(plant_id))
+
+
 ## 3. Compare Columns -------------------------
 # remove suffix from column names
 r_cols <- lapply(colnames(plant_r), FUN=gsub, pattern="_r$", replacement="") %>% unlist()
@@ -228,7 +246,9 @@ stopifnot(length(r_cols[!r_cols %in% access_cols & !r_cols %in% other_cols])==0)
 # combine the two datasets
 plant_comparison <- 
   plant_r %>%
-  full_join(plant_access, by = c("plant_id")) 
+  full_join(plant_access, by = c("plant_id")) %>% 
+  left_join(gen_unit_diffs)
+
 ## 5. Compare Values ------------------
 # a1. plant_id in R that are NOT in Access dataset ---------
 check_diff_plant_r <- 
@@ -255,9 +275,8 @@ plant_compare <- function(x, data = plant_comparison, outdir = save_dir){
   r_name <- as.name(paste0(x,"_r"))
   access_name <- as.name(paste0(x,"_access"))
   comp <- data %>% 
-    #filter(!(!!r_name == !!access_name)) %>% 
     filter(mapply(identical, !!!r_name, !!!access_name) == FALSE) %>% 
-    select(plant_id, !!r_name, !!access_name) %>% distinct()
+    select(plant_id, !!r_name, !!access_name, source_diff) %>% distinct()
   if(nrow(comp) > 0) {
     write_csv(comp, paste0(outdir, "check_", x, ".csv")) }
   return(comp)
