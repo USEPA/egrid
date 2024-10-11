@@ -22,6 +22,7 @@ library(dplyr)
 library(readr)
 library(readxl)
 library(stringr)
+library(vroom)
 
 
 # create save directory 
@@ -447,3 +448,16 @@ check_co2_source <-
 
 if(nrow(check_co2_source) > 0) {
   write_csv(check_co2_source, paste0(save_dir, "check_co2_source.csv")) }
+
+# Identify all unique plant and unit IDs that have differences ------------
+
+files <- grep("check", dir("data/outputs/qa/unit_file_differences"), value = TRUE)
+
+plant_unit_diffs <- 
+  purrr::map_df(paste0("data/outputs/qa/unit_file_differences/", files), 
+                read.csv) %>% 
+  select(plant_id, unit_id) %>% 
+  distinct() %>% 
+  mutate(source_diff = "unit_file")
+
+write_csv(plant_unit_diffs, "data/outputs/qa/unit_file_differences/plant_unit_difference_ids.csv")
