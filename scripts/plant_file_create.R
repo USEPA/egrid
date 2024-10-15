@@ -24,11 +24,18 @@ library(readr)
 library(readxl)
 library(stringr)
 
-# define params for eGRID data year 
+# check if parameters for eGRID data year need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
+# user will be prompted to input eGRID year in the console if params does not exist
 
-params <- list()
-params$eGRID_year <- "2021"
+if ("eGRID_year" %in% names(params)) {
+  print("eGRID year parameter is already defined.")
+} else { 
+  params <- list()
+  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+  params$eGRID_year <- as.character(params$eGRID_year)
+    }
+
 
 # Load necessary data ----------
 
@@ -39,19 +46,11 @@ eia_861 <- read_rds("data/clean_data/eia/eia_861_clean.RDS")
 eia_923 <- read_rds("data/clean_data/eia/eia_923_clean.RDS") 
 
 ### Load lower-level eGRID files (unit and generator files) ------------
-#source(here("scripts", "gen_rename.r"))
+
+# load generator file
 generator_file <- read_rds("data/outputs/generator_file.RDS")
-#generator_file <- read_xlsx(here("data/outputs/qa/Gen file 9_25_24.xlsx")) 
-#generator_file <- gen_rename(generator_file)
-#generator_file <- generator_file %>%
-  #select("plant_id", "generator_id", ends_with("_access")) %>% 
-#  mutate(seqgen = 1:nrow(generator_file) ) 
-#colnames(generator_file) <- gsub("_access","", colnames(generator_file))
 
-#unit_file <- # using unit file from Access production for now
-#  read_xlsx(here("data/outputs/qa/Unit File 9_17_24.xlsx")
-#  )
-
+# load unit file
 unit_file <- read_rds("data/outputs/unit_file.RDS")
 
 # Create a function to string concatenate unique values that are not NA ----------
@@ -141,6 +140,19 @@ plant_gen_2 <-
                    "nerc" = nerc_region) %>%
              distinct(), 
             by = c("plant_id")) %>% 
+  rows_update(eia_860$operating_pr %>% # update rows with Puerto Rico data 
+              select(plant_id, 
+                     county, 
+                     "lat" = latitude, 
+                     "lon" = longitude, 
+                     utility_name, 
+                     utility_id, 
+                     "ba_code" = balancing_authority_code, 
+                     sector_name) %>% 
+                mutate(lat = as.character(lat), 
+                       lon = as.character(lon)) %>% 
+                distinct(), 
+              by = "plant_id", unmatched = "ignore") %>% 
   mutate(county = if_else(grepl('not in file|Not in file|NOT IN FILE', county), NA_character_ , county)) 
 
 # update plant IDs that do not have CAMD plant ID matches to EIA-860 
@@ -162,7 +174,20 @@ plant_gen_eia_xwalk <-
                      sector_name, 
                      "nerc" = nerc_region) %>%
               distinct(), 
-            by = c("eia_plant_id"), unmatched = "ignore") %>% 
+            by = c("eia_plant_id"), unmatched = "ignore") %>%
+  rows_update(eia_860$operating_pr %>% # update rows with Puerto Rico data 
+                select(plant_id, 
+                       county, 
+                       "lat" = latitude, 
+                       "lon" = longitude, 
+                       utility_name, 
+                       utility_id, 
+                       "ba_code" = balancing_authority_code, 
+                       sector_name) %>% 
+                mutate(lat = as.character(lat), 
+                       lon = as.character(lon)) %>% 
+                distinct(), 
+              by = "plant_id", unmatched = "ignore") %>% 
   mutate(county = if_else(grepl('not in file|Not in file|NOT IN FILE', county), NA_character_ , county)) %>% 
   select(-eia_plant_id)  
 
@@ -324,7 +349,7 @@ plant_file_3 <-
                                (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
                              "Hawaii Miscellaneous", # assign Hawaii BAs with no BA to Misc. 
                              plant_state == "AK" & 
-                               (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ ### CHECK: do we want to just filter for NO BA or also No balancing Authortiy ---------------------
+                               (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
                              "Alaska Miscellaneous",# assign Alaska BAs with no BA to Misc. 
                              plant_state == "PR" & 
                                (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
@@ -726,7 +751,7 @@ ann_gen_by_fuel <-
          ann_gen_geothermal = if_else(is.na(ann_gen), NA_real_, 
                                       sum(ann_gen[which(fuel_type == "GEO")], na.rm = TRUE)),
          ann_gen_other_ff = if_else(is.na(ann_gen), NA_real_, 
-                                    sum(ann_gen[which(fuel_type %in% oth_FF)], na.rm = TRUE)),
+                                    sum(ann_gen[which(fuel_type %in% oth_ff)], na.rm = TRUE)),
          ann_gen_other = if_else(is.na(ann_gen), NA_real_, 
                                   sum(ann_gen[which(fuel_type %in% oth_fuels)], na.rm = TRUE))) %>%
   ungroup() %>% 
@@ -820,9 +845,9 @@ chp <-
          chp_flag = "Yes") %>% # assign CHP flags to all plants in this object
   select(plant_id, useful_thermal_output, chp_flag) %>% 
   left_join(plant_file_11 %>% select(plant_id, generation_ann), by = c("plant_id")) %>% 
-  mutate(power_to_heat = if_else(useful_thermal_output != 0, 
-                                 3.413 * generation_ann / useful_thermal_output, # calculate power to heat ratio
-                                 NA_real_), 
+  mutate(power_heat_ratio = if_else(useful_thermal_output == 0 | is.na(useful_thermal_output), 
+                                 NA_real_,
+                                 3.413 * generation_ann / useful_thermal_output), # calculate power to heat ratio
          elec_allocation = if_else(useful_thermal_output != 0, # calculate electric allocation
                                    3.413 * generation_ann / (0.75 * useful_thermal_output + 3.413 * generation_ann), 
                                    1), 
@@ -840,41 +865,50 @@ plant_file_15 <-
 plant_chp <- 
   plant_file_15 %>% 
   filter(chp_flag == "Yes") %>% 
+  # rename adjusted emission masses to include biomass adjustments, since we are now applying CHP adjustments
+  rename("nox_mass_bio_adj" = nox_mass, 
+         "nox_oz_mass_bio_adj" = nox_oz_mass, 
+         "so2_mass_bio_adj" = so2_mass, 
+         "co2_mass_bio_adj" = co2_mass, 
+         "ch4_mass_bio_adj" = ch4_mass, 
+         "n2o_mass_bio_adj" = n2o_mass) %>% 
   mutate(# calculate adjusted values 
          heat_input = (elec_allocation * unadj_combust_heat_input) + (unadj_heat_input - unadj_combust_heat_input),
          heat_input_oz = (elec_allocation * unadj_combust_heat_input_oz) + (unadj_heat_input_oz - unadj_combust_heat_input_oz),
          combust_heat_input = elec_allocation * unadj_combust_heat_input,
          combust_heat_input_oz = elec_allocation * unadj_combust_heat_input_oz, 
-         nox_mass = elec_allocation * nox_mass,
-         nox_oz_mass = elec_allocation * nox_oz_mass, 
-         so2_mass = elec_allocation * so2_mass, 
-         co2_mass =  elec_allocation * co2_mass, 
-         ch4_mass = elec_allocation * ch4_mass, 
-         n2o_mass =  elec_allocation * n2o_mass, 
+         nox_mass = elec_allocation * nox_mass_bio_adj,
+         nox_oz_mass = elec_allocation * nox_oz_mass_bio_adj, 
+         so2_mass = elec_allocation * so2_mass_bio_adj, 
+         co2_mass =  elec_allocation * co2_mass_bio_adj, 
+         ch4_mass = elec_allocation * ch4_mass_bio_adj, 
+         n2o_mass =  elec_allocation * n2o_mass_bio_adj, 
          # calculate CHP adjustment values
          chp_combust_heat_input = unadj_combust_heat_input - combust_heat_input,
          chp_combust_heat_input_oz = unadj_combust_heat_input_oz - combust_heat_input_oz,
-         chp_nox = nox_mass / elec_allocation - nox_mass, 
-         chp_nox_oz = nox_oz_mass / elec_allocation - nox_oz_mass,
-         chp_so2 = so2_mass / elec_allocation - so2_mass,
-         chp_co2 = co2_mass / elec_allocation - co2_mass,
-         chp_ch4 = ch4_mass / elec_allocation - ch4_mass,
-         chp_n2o = n2o_mass / elec_allocation - n2o_mass, 
+         chp_nox = nox_mass_bio_adj - nox_mass, 
+         chp_nox_oz = nox_oz_mass_bio_adj - nox_oz_mass,
+         chp_so2 = so2_mass_bio_adj - so2_mass,
+         chp_co2 = co2_mass_bio_adj - co2_mass,
+         chp_ch4 = ch4_mass_bio_adj - ch4_mass,
+         chp_n2o = n2o_mass_bio_adj - n2o_mass, 
          # check if CHP emission masses are greater than unadjusted values, and assign unadjusted values if TRUE
          chp_nox = if_else(chp_nox > unadj_nox_mass | chp_nox < 0, unadj_nox_mass, chp_nox),
          chp_nox_oz = if_else(chp_nox_oz > unadj_nox_oz_mass | chp_nox_oz < 0, unadj_nox_oz_mass, chp_nox_oz),
          chp_so2 = if_else(chp_so2 > unadj_so2_mass| chp_so2 < 0, unadj_so2_mass, chp_so2),
          chp_co2 = if_else(chp_co2 > unadj_co2_mass| chp_co2 < 0, unadj_co2_mass, chp_co2),
          chp_ch4 = if_else(chp_ch4 > unadj_ch4_mass| chp_ch4 < 0, unadj_ch4_mass, chp_ch4),
-         chp_n2o = if_else(chp_n2o > unadj_n2o_mass| chp_n2o < 0, unadj_n2o_mass, chp_n2o), 
-         # calculate nominal heat rate
-         nominal_heat_rate = combust_heat_input * 1000 / ann_gen_combust)
+         chp_n2o = if_else(chp_n2o > unadj_n2o_mass| chp_n2o < 0, unadj_n2o_mass, chp_n2o)) %>% 
+  select(-contains("bio_adj"))
 
 plant_file_16 <- 
   plant_file_15 %>% 
   filter(is.na(chp_flag)) %>% # filter out CHP flags to easily join in new CHP data
   full_join(plant_chp) %>% 
-  mutate(power_heat_ratio = if_else(combust_flag == 1 | combust_flag == 0.5, nominal_heat_rate, NA_real_), 
+  mutate(# calculate nominal heat rate
+        nominal_heat_rate = if_else(combust_flag == 1 | combust_flag == 0.5, 
+                                    combust_heat_input * 1000 / ann_gen_combust,
+                                    NA_real_),
          # assign adjusted values to non-CHP plants 
          heat_input = if_else(is.na(heat_input), unadj_heat_input, heat_input), 
          heat_input_oz = if_else(is.na(heat_input_oz), unadj_heat_input_oz, heat_input_oz), 
