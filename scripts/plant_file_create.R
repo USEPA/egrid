@@ -701,45 +701,46 @@ plant_file_13 <-
 
 # use generator file to summarize generation by fuel type 
 ann_gen_by_fuel <- 
-  #generator_file %>% group_by(fuel_code, plant_id) %>% 
   eia_923$generation_and_fuel_combined %>% group_by(plant_id, fuel_type) %>% 
   summarize(ann_gen = if_else(all(is.na(net_generation_megawatthours)), NA_real_, 
                               sum(net_generation_megawatthours, na.rm = TRUE))) %>% 
   ungroup() %>% 
   group_by(plant_id) %>%
-  summarize(ann_gen = if_else(all(is.na(ann_gen)), NA_real_, sum(ann_gen, na.rm = TRUE)),
-            ann_gen_coal = if_else(is.na(ann_gen), NA_real_, 
-                                   sum(ann_gen[which(fuel_type %in% coal_fuels)], na.rm = TRUE)),
-            ann_gen_oil = if_else(is.na(ann_gen), NA_real_, 
-                                  sum(ann_gen[which(fuel_type %in% oil_fuels)], na.rm = TRUE)),
-            ann_gen_gas = if_else(is.na(ann_gen), NA_real_, 
-                                  sum(ann_gen[which(fuel_type %in% gas_fuels)], na.rm = TRUE)),
-            ann_gen_nuclear = if_else(is.na(ann_gen), NA_real_, 
-                                      sum(ann_gen[which(fuel_type == "NUC")], na.rm = TRUE)),
-            ann_gen_hydro = if_else(is.na(ann_gen), NA_real_, 
-                                    sum(ann_gen[which(fuel_type == "WAT")], na.rm = TRUE)),
-            ann_gen_biomass = if_else(is.na(ann_gen), NA_real_, 
-                                      sum(ann_gen[which(fuel_type %in% biomass_fuels)], na.rm = TRUE)),
-            ann_gen_wind = if_else(is.na(ann_gen), NA_real_, 
-                                   sum(ann_gen[which(fuel_type == "WND")], na.rm = TRUE)),
-            ann_gen_solar = if_else(is.na(ann_gen), NA_real_, 
-                                    sum(ann_gen[which(fuel_type == "SUN")], na.rm = TRUE)),
-            ann_gen_geothermal = if_else(is.na(ann_gen), NA_real_, 
-                                         sum(ann_gen[which(fuel_type == "GEO")], na.rm = TRUE)),
-            ann_gen_other_ff = if_else(is.na(ann_gen), NA_real_, 
-                                       sum(ann_gen[which(fuel_type %in% oth_FF)], na.rm = TRUE)),
-            ann_gen_other = if_else(is.na(ann_gen), NA_real_, 
-                                    sum(ann_gen[which(fuel_type %in% oth_fuels)], na.rm = TRUE))) %>%
+  mutate(plant_ann_gen = if_else(all(is.na(ann_gen)), NA_real_, sum(ann_gen, na.rm = TRUE)),
+         ann_gen_coal = if_else(is.na(ann_gen), NA_real_, 
+                                sum(ann_gen[which(fuel_type %in% coal_fuels)], na.rm = TRUE)),
+         ann_gen_oil = if_else(is.na(ann_gen), NA_real_, 
+                                sum(ann_gen[which(fuel_type %in% oil_fuels)], na.rm = TRUE)),
+         ann_gen_gas = if_else(is.na(ann_gen), NA_real_, 
+                                sum(ann_gen[which(fuel_type %in% gas_fuels)], na.rm = TRUE)),
+         ann_gen_nuclear = if_else(is.na(ann_gen), NA_real_, 
+                                    sum(ann_gen[which(fuel_type == "NUC")], na.rm = TRUE)),
+         ann_gen_hydro = if_else(is.na(ann_gen), NA_real_, 
+                                  sum(ann_gen[which(fuel_type == "WAT")], na.rm = TRUE)),
+         ann_gen_biomass = if_else(is.na(ann_gen), NA_real_, 
+                                    sum(ann_gen[which(fuel_type %in% biomass_fuels)], na.rm = TRUE)),
+         ann_gen_wind = if_else(is.na(ann_gen), NA_real_, 
+                                sum(ann_gen[which(fuel_type == "WND")], na.rm = TRUE)),
+         ann_gen_solar = if_else(is.na(ann_gen), NA_real_, 
+                                  sum(ann_gen[which(fuel_type == "SUN")], na.rm = TRUE)),
+         ann_gen_geothermal = if_else(is.na(ann_gen), NA_real_, 
+                                      sum(ann_gen[which(fuel_type == "GEO")], na.rm = TRUE)),
+         ann_gen_other_ff = if_else(is.na(ann_gen), NA_real_, 
+                                    sum(ann_gen[which(fuel_type %in% oth_FF)], na.rm = TRUE)),
+         ann_gen_other = if_else(is.na(ann_gen), NA_real_, 
+                                  sum(ann_gen[which(fuel_type %in% oth_fuels)], na.rm = TRUE))) %>%
   ungroup() %>% 
+  select(-fuel_type, -ann_gen) %>% 
+  distinct() %>% 
   rowwise() %>%
-  mutate(ann_gen = if_else(abs(ann_gen - sum(ann_gen_coal, ann_gen_oil, ann_gen_gas, ann_gen_nuclear, 
-                                             ann_gen_hydro, ann_gen_biomass, ann_gen_wind, ann_gen_solar,
-                                             ann_gen_geothermal, ann_gen_other_ff, ann_gen_other, 
-                                             na.rm = TRUE)) > 2,
+  mutate(plant_ann_gen = if_else(abs(plant_ann_gen - sum(ann_gen_coal, ann_gen_oil, ann_gen_gas, ann_gen_nuclear, 
+                                                         ann_gen_hydro, ann_gen_biomass, ann_gen_wind, ann_gen_solar,
+                                                         ann_gen_geothermal, ann_gen_other_ff, ann_gen_other, 
+                                                         na.rm = TRUE)) > 2,
                           sum(ann_gen_coal, ann_gen_oil, ann_gen_gas, ann_gen_nuclear, 
                               ann_gen_hydro, ann_gen_biomass, ann_gen_wind, ann_gen_solar,
                               ann_gen_geothermal, ann_gen_other_ff, ann_gen_other, na.rm = TRUE),
-                          ann_gen))
+                          plant_ann_gen))
 
 ## Calculate resource mix generation by fuel type and % resource mix by fuel type ------------
 
@@ -754,24 +755,24 @@ ann_gen_by_fuel_2 <-
 
 ann_gen_by_fuel_3 <- 
   ann_gen_by_fuel_2 %>% 
-  mutate(perc_ann_gen_coal = if_else(ann_gen != 0, ann_gen_coal / ann_gen, NA_real_), 
-         perc_ann_gen_oil = if_else(ann_gen != 0, ann_gen_oil / ann_gen, NA_real_),
-         perc_ann_gen_gas = if_else(ann_gen != 0, ann_gen_gas / ann_gen, NA_real_), 
-         perc_ann_gen_nuclear = if_else(ann_gen != 0, ann_gen_nuclear / ann_gen, NA_real_), 
-         perc_ann_gen_hydro = if_else(ann_gen != 0, ann_gen_hydro / ann_gen, NA_real_), 
-         perc_ann_gen_biomass = if_else(ann_gen != 0, ann_gen_biomass / ann_gen, NA_real_), 
-         perc_ann_gen_wind = if_else(ann_gen != 0, ann_gen_wind / ann_gen, NA_real_), 
-         perc_ann_gen_solar = if_else(ann_gen != 0, ann_gen_solar / ann_gen, NA_real_), 
-         perc_ann_gen_geothermal = if_else(ann_gen != 0, ann_gen_geothermal / ann_gen, NA_real_), 
-         perc_ann_gen_solar = if_else(ann_gen != 0, ann_gen_solar / ann_gen, NA_real_), 
-         perc_ann_gen_other_ff = if_else(ann_gen != 0, ann_gen_other_ff / ann_gen, NA_real_), 
-         perc_ann_gen_other = if_else(ann_gen != 0, ann_gen_other / ann_gen, NA_real_), 
-         perc_ann_gen_non_renew = if_else(ann_gen != 0, ann_gen_non_renew / ann_gen, NA_real_), 
-         perc_ann_gen_renew = if_else(ann_gen != 0, ann_gen_renew / ann_gen, NA_real_), 
-         perc_ann_gen_renew_nonhydro = if_else(ann_gen != 0, ann_gen_renew_nonhydro / ann_gen, NA_real_), 
-         perc_ann_gen_combust = if_else(ann_gen != 0, ann_gen_combust / ann_gen, NA_real_), 
-         perc_ann_gen_non_combust = if_else(ann_gen != 0, ann_gen_non_combust / ann_gen, NA_real_)) %>% 
-  select(-ann_gen)
+  mutate(perc_ann_gen_coal = if_else(plant_ann_gen != 0, ann_gen_coal / plant_ann_gen, NA_real_), 
+         perc_ann_gen_oil = if_else(plant_ann_gen != 0, ann_gen_oil / plant_ann_gen, NA_real_),
+         perc_ann_gen_gas = if_else(plant_ann_gen != 0, ann_gen_gas / plant_ann_gen, NA_real_), 
+         perc_ann_gen_nuclear = if_else(plant_ann_gen != 0, ann_gen_nuclear / plant_ann_gen, NA_real_), 
+         perc_ann_gen_hydro = if_else(plant_ann_gen != 0, ann_gen_hydro / plant_ann_gen, NA_real_), 
+         perc_ann_gen_biomass = if_else(plant_ann_gen != 0, ann_gen_biomass / plant_ann_gen, NA_real_), 
+         perc_ann_gen_wind = if_else(plant_ann_gen != 0, ann_gen_wind / plant_ann_gen, NA_real_), 
+         perc_ann_gen_solar = if_else(plant_ann_gen != 0, ann_gen_solar / plant_ann_gen, NA_real_), 
+         perc_ann_gen_geothermal = if_else(plant_ann_gen != 0, ann_gen_geothermal / plant_ann_gen, NA_real_), 
+         perc_ann_gen_solar = if_else(plant_ann_gen != 0, ann_gen_solar / plant_ann_gen, NA_real_), 
+         perc_ann_gen_other_ff = if_else(plant_ann_gen != 0, ann_gen_other_ff / plant_ann_gen, NA_real_), 
+         perc_ann_gen_other = if_else(plant_ann_gen != 0, ann_gen_other / plant_ann_gen, NA_real_), 
+         perc_ann_gen_non_renew = if_else(plant_ann_gen != 0, ann_gen_non_renew / plant_ann_gen, NA_real_), 
+         perc_ann_gen_renew = if_else(plant_ann_gen != 0, ann_gen_renew / plant_ann_gen, NA_real_), 
+         perc_ann_gen_renew_nonhydro = if_else(plant_ann_gen != 0, ann_gen_renew_nonhydro / plant_ann_gen, NA_real_), 
+         perc_ann_gen_combust = if_else(plant_ann_gen != 0, ann_gen_combust / plant_ann_gen, NA_real_), 
+         perc_ann_gen_non_combust = if_else(plant_ann_gen != 0, ann_gen_non_combust / plant_ann_gen, NA_real_)) %>% 
+  select(-plant_ann_gen)
 
 # checks for negative generation values
 stopifnot(sum(isTRUE(as.matrix(ann_gen_by_fuel) < 0), na.rm = TRUE) == 0)
