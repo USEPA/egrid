@@ -309,6 +309,7 @@ dup_state <- c('Montana','Nebrasksa','New Mexico','South Dakota','Texas')
 # cleaning R_ggl file and creating initial GGL calculation
 R_ggl <- R_ggl %>%
   rename(state = State,
+         state_abbr = "State Postal Code",
          direct_use = "Direct Use",
          est_losses = "Estimated Losses",
          tot_disp = "Total Disposition",
@@ -325,7 +326,7 @@ R_ggl <- R_ggl %>%
   mutate(ggl = est_losses / (tot_disp_sub_ex - direct_use))
 
 # creating initial GGL table with non-duplicate states
-ggl_table <- state_interconnect %>% inner_join(R_ggl, by = c(State = "state")) %>%
+ggl_state <- state_interconnect %>% inner_join(R_ggl, by = c(State = "state")) %>%
   filter(!State %in% dup_state)
 
 ### 02: States with multiple interconnects -----
@@ -337,8 +338,9 @@ multi_interconnect_states <- state_interconnect %>%
          interconnect = Interconnect) %>%
   group_by(state_abbr, state) %>%
   mutate(interconnect_count = n_distinct(interconnect)) %>%
-  ungroup() %>%
-  filter(interconnect_count > 1)
+  filter(interconnect_count > 1) %>%
+  select(state_abbr, state, interconnect_count) %>% 
+  unique()
 
 ### 03: Sum of generation for multiple interconnect states ------
 
@@ -352,5 +354,46 @@ sum_tot_generation <- eia_923_generation_and_fuel %>%
 multi_interconnect_states <- multi_interconnect_states %>% 
   inner_join(sum_tot_generation, by = c("state_abbr" = "plant_state"))
 
+### 04: Sum of gen for multiple interconnect states by NERC ---------
 
+# find the sum of generation for only the states with multiple interconnects 
+multi_interconnect_sum <- eia_923_generation_and_fuel %>%
+  select(-nerc_region) %>%    # prevent duplicate nerc_region columns
+  inner_join(eia_860_plant, by = c("plant_id" , "plant_state")) %>%
+  inner_join(nerc_interconnect, by = c("nerc_region", "plant_state" = "state")) %>%
+  inner_join(multi_interconnect_states, by = c("plant_state" = "state_abbr", "interconnect")) %>%
+  select(plant_state, net_generation_megawatthours, nerc_region, interconnect) %>%
+  group_by(plant_state, interconnect, nerc_region) %>%
+  summarise(sum_tot_generation = sum(net_generation_megawatthours)) 
+
+
+### 05: Grouped generation by interconnect ------- 
+
+# sum of generation at each interconnect level within the state
+grouped_gen_by_interconnect <- multi_interconnect_states_sum %>%
+  select(plant_state, sum_tot_generation, interconnect) %>%
+  group_by(plant_state, interconnect) %>%
+  summarise(sum_tot_gen_interconnect = sum(sum_tot_generation))
+
+### 06: Ratio of generation for multiple interconnect states ------
+
+# create a ratio using the sum of the generation at the interconnect level divided by the total generation in the state
+ratio_gen_multi_interconnect <- grouped_gen_by_interconnect %>%
+  inner_join(multi_interconnect_states, by = c("plant_state" = "state_abbr")) %>%
+  select_all %>%
+  mutate(sum_tot_gen_interconnect = as.numeric(sum_tot_gen_interconnect),
+         sum_net_generation = as.numeric(sum_net_generation),
+         ratio = sum_tot_gen_interconnect / sum_net_generation)
+
+### 07: Append multiple interconnect states to GGL -----
+
+# create new values for energy distribution using ratio created in step 6
+insert_multi_interconnect <- ratio_gen_multi_interconnect %>% 
+  inner_join(R_ggl, by =  c("plant_state" = "state_abbr", "state")) %>%
+  mutate(direct_use_dist = direct_use * ratio,
+         est_losses_dist = est_losses * ratio,
+         tot_disp_raw = tot_disp * ratio,
+         net_interstate_ex_raw = net_interstate_ex * ratio, 
+         tot_disp_dist = tot_disp_sub_ex * ratio,
+         ggl = est_losses_dist / (tot_disp_dist - direct_use_dist))
 
