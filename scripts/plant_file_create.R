@@ -28,13 +28,18 @@ library(stringr)
 # this is only necessary when running the script outside of egrid_master.qmd
 # user will be prompted to input eGRID year in the console if params does not exist
 
-if ("eGRID_year" %in% names(params)) {
-  print("eGRID year parameter is already defined.")
-} else { 
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
-    }
+if (exists("params")) {
+  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+    print("eGRID year parameter is already defined.") 
+  } else { # if params() is defined, but eGRID_year is not, define it here 
+    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+    params$eGRID_year <- as.character(params$eGRID_year) 
+  }
+} else { # if params() and eGRID_year are not defined, define them here
+    params <- list()
+    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+    params$eGRID_year <- as.character(params$eGRID_year)
+}
 
 
 # Load necessary data ----------
@@ -43,9 +48,9 @@ if ("eGRID_year" %in% names(params)) {
 
 eia_860 <- read_rds("data/clean_data/eia/eia_860_clean.RDS")
 eia_861 <- read_rds("data/clean_data/eia/eia_861_clean.RDS")
-eia_923 <- read_rds("data/clean_data/eia/eia_923_clean.RDS") 
+eia_923 <- read_rds("data/clean_data/eia/eia_923_clean.RDS")
 
-### Load lower-level eGRID files (unit and generator files) ------------
+### Load lower-level eGRID files (unit and generator files) -  -----------
 
 # load generator file
 generator_file <- read_rds("data/outputs/generator_file.RDS")
@@ -60,15 +65,15 @@ paste_concat <- function(l, number = FALSE, concat = TRUE){
   l <- l[l!="NA" & l!=""]
   l[order(l)]
   
-  if(length(unique(l)) == 0){txt <- NA
-  }else if(concat){
-    txt <- paste0(unique(l), collapse = ", ")
-    if(txt == ""){txt <- NA}
-  }else{
+  if(length(unique(l)) == 0){txt <- NA_character_
+  } else if(concat){
+      txt <- paste0(unique(l), collapse = ", ")
+      if(txt == ""){txt <- NA_character_}
+  } else{
     txt = unique(l)
   }
-  if(number){return(as.numeric(txt)) # convert to numeric if it can
-    }else{return(txt)}
+   if(number){return(as.numeric(txt)) # convert to numeric if it can
+    } else{return(txt)}
 }
 
 
@@ -140,7 +145,7 @@ plant_gen_2 <-
                    "nerc" = nerc_region) %>%
              distinct(), 
             by = c("plant_id")) %>% 
-  rows_update(eia_860$operating_pr %>% # update rows with Puerto Rico data 
+  rows_patch(eia_860$operating_pr %>% # update rows with Puerto Rico data 
               select(plant_id, 
                      county, 
                      "lat" = latitude, 
@@ -175,7 +180,7 @@ plant_gen_eia_xwalk <-
                      "nerc" = nerc_region) %>%
               distinct(), 
             by = c("eia_plant_id"), unmatched = "ignore") %>%
-  rows_update(eia_860$operating_pr %>% # update rows with Puerto Rico data 
+  rows_patch(eia_860$operating_pr %>% # update rows with Puerto Rico data 
                 select(plant_id, 
                        county, 
                        "lat" = latitude, 
@@ -206,9 +211,9 @@ unit_heat_input <-
             unadj_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% 
   ungroup()
 
-combustion_fuels <- c("AB","ANT", "BFG","BIT","BLQ","COG","DFO","JF","KER","LFG","LIG",
-                      "MSB","MSN","MSW","NG","OBG","OBL","OBS","OG","PC","PG","RC","RFO",
-                      "SGC","SGP","SLW","SUB","TDF","WC","WDL","WDS","WO") 
+combustion_fuels <- c("AB", "ANT", "BFG", "BIT", "BLQ", "COG", "DFO", "JF", "KER", "LFG", "LIG",
+                      "MSB", "MSN", "MSW", "NG", "OBG", "OBL", "OBS", "OG", "PC", "PG", "RC", "RFO",
+                      "SGC", "SGP", "SLW", "SUB", "TDF", "WC", "WDL", "WDS", "WO") 
 
 combust_heat_input <- 
   unit_heat_input %>% 
@@ -288,6 +293,13 @@ state_county_fips <-
          fips_state_code, 
          fips_county_code) 
 
+# match county data to EIA-860 
+eia_860_plant_county <- 
+  eia_860$plant %>% 
+  select(plant_state, county) %>% 
+  left_join(state_county_fips, by = c("plant_state", "county")) %>% 
+  distinct()
+
 # adjust Alaska county names via static crosswalk table
 xwalk_alaska_fips <- 
   read_csv("data/static_tables/xwalk_alaska_fips.csv") %>%
@@ -330,7 +342,7 @@ eia_861_ba <-
 ba_codes <- 
   read_csv("data/static_tables/ba_codes.csv") %>% janitor::clean_names() %>% 
   rename("ba_code" = bacode, 
-         "ba_name_new"= baname)
+         "ba_name"= baname)
 
 # update plant_file with the lookup
 plant_file_3 <- 
@@ -338,9 +350,7 @@ plant_file_3 <-
   rows_patch(eia_861_ba, by = c("plant_state", "ba_name"), unmatched = "ignore") %>% 
   rows_patch(eia_861_utility %>% select(-count), by = c("utility_id"), unmatched = "ignore") %>% 
   rows_patch(eia_861_ba, by = c("plant_state", "ba_code"), unmatched = "ignore") %>% 
-  mutate(ba_code = case_when(plant_state == "HI" & is.na(ba_code) ~ "NA", # assign NA Hawaii BAs
-                             plant_state == "AK" & is.na(ba_code) ~ "NA", # assign NA Alaska BAs
-                             plant_state == "PR" & is.na(ba_code) ~ "NA", # assign NA Puerto Rico BAs
+  mutate(ba_code = case_when(ba_code == "NA" ~ NA_character_, # if BA code is "NA", set as an NA character
                              ba_name == "No BA" ~ NA_character_, 
                              ba_code == "PS" ~ "PSCO", 
                              ba_name == "Hawaiian Electric Co Inc" ~ "HECO",
@@ -356,9 +366,8 @@ plant_file_3 <-
                              "Puerto Rico Miscellaneous", # assign Puerto Rico BAs with no BA to Misc. 
                              ba_name == "No BA" ~ NA_character_, 
                              TRUE ~ ba_name)) %>% 
-  left_join(ba_codes, by = c("ba_code")) %>%  # update ba_name by ba_code 
-  mutate(ba_name = if_else(!is.na(ba_name_new), ba_name_new, ba_name)) %>% 
-  select(-ba_name_new) 
+  rows_update(ba_codes, by = c("ba_code"), unmatched = "ignore") # update ba_name by ba_code
+
 
 ### NERC and eGRID subregion assignments ----------------------------------------
 
@@ -425,16 +434,21 @@ plant_file_4 <-
                           nerc == "" ~ "NA",
                           TRUE ~ nerc), 
          egrid_subregion = case_when(nerc == "TRE" ~ "ERCT",
-                                    nerc == "FRCC" ~ "FRCC",
-                                    nerc == "PR" ~ "PRMS",
+                                     nerc == "FRCC" ~ "FRCC",
+                                     nerc == "PR" ~ "PRMS",
                                     TRUE ~ NA_character_),
          system_owner_id = if_else(is.na(system_owner_id), "-9999", system_owner_id)) %>% 
-  rows_patch(xwalk_ba, by = c("ba_code", "ba_name"), unmatched = "ignore") %>% 
+  rows_patch(xwalk_ba, by = c("ba_code"), unmatched = "ignore") %>% 
   rows_patch(xwalk_ba_transmission, by = c("nerc", "ba_code", "system_owner_id"), unmatched = "ignore") %>% 
   rows_patch(xwalk_ba_pjm, by =  c("nerc", "ba_code", "system_owner_id", "utility_id"), unmatched = "ignore") %>% 
   rows_patch(xwalk_oris_wecc, by = c("plant_state", "plant_id"), unmatched = "ignore") %>% 
   rows_patch(xwalk_nerc_assessment, by = c("plant_id"), unmatched = "ignore") %>% 
-  left_join(egrid_subregions, by = c("egrid_subregion")) 
+  left_join(egrid_subregions, by = c("egrid_subregion")) %>% 
+  # update BA code for AK, HI, PR
+  mutate(ba_code = case_when(plant_state == "HI" & is.na(ba_code) ~ "NA", # assign NA Hawaii BAs
+                             plant_state == "AK" & is.na(ba_code) ~ "NA", # assign NA Alaska BAs
+                             plant_state == "PR" & is.na(ba_code) ~ "NA", # assign NA Puerto Rico BAs
+                             TRUE ~ ba_code)) 
 
 ### ISO/RTO assignments -----------------
 
@@ -462,15 +476,15 @@ plant_file_6 <-
          lon = if_else(lon == 0, NA_real_, lon), 
          # manual lat/lon updates for some plant IDs
          ### Note: check for updates or changes each data year ###
-         lat = case_when(plant_id==54975 ~ 32.380032,
-                         plant_id==62262 ~ 42.899029,
-                         plant_id==63003 ~ 41,
-                         plant_id==64850 ~ 36.169,
+         lat = case_when(plant_id == 54975 ~ 32.380032,
+                         plant_id == 62262 ~ 42.899029,
+                         plant_id == 63003 ~ 41,
+                         plant_id == 64850 ~ 36.169,
                          TRUE ~ lat),
-         lon = case_when(plant_id==54975 ~ -106.753716,
-                         plant_id==62262 ~ -75.458456,
-                         plant_id==63003 ~ -89.996844,
-                         plant_id==64850 ~ -81.042,
+         lon = case_when(plant_id == 54975 ~ -106.753716,
+                         plant_id == 62262 ~ -75.458456,
+                         plant_id == 63003 ~ -89.996844,
+                         plant_id == 64850 ~ -81.042,
                          TRUE ~ lon))
 
 
@@ -711,7 +725,7 @@ plant_file_13 <-
          ch4_mass = if_else(!is.na(ch4_biomass), pmax(unadj_ch4_mass - ch4_biomass, 0), unadj_ch4_mass),
          n2o_mass = if_else(!is.na(n2o_biomass), pmax(unadj_n2o_mass - n2o_biomass, 0), unadj_n2o_mass),
          hg_mass = pmax(unadj_hg_mass, 0), # no biomass variable for hg 
-         nox_oz_mass = pmin(nox_oz_mass, nox_mass), # if annual NOx mass is lower than ozone NOx mass, use the annual NOx mass 
+         nox_oz_mass = pmin(nox_oz_mass, nox_mass, na.rm = TRUE), # if annual NOx mass is lower than ozone NOx mass, use the annual NOx mass 
          biomass_adj_flag = if_else(biomass_adj_flag == "Yes" | biomass_adj_flag1 == "Yes", "Yes", NA_character_)) %>%
   select(-biomass_adj_flag1) %>% 
   mutate(nox_biomass = pmin(nox_biomass, unadj_nox_mass), # assign the minimum between biomass mass and unadjusted mass to biomass emissions
@@ -941,20 +955,21 @@ plant_file_17 <-
 
 plant_file_18 <- 
   plant_file_17 %>% 
-  mutate(nox_combust_out_emission_rate = if_else(ann_gen_combust <= 0, NA_real_, 2000 * nox_mass / ann_gen_combust),
-         nox_combust_out_emission_rate_oz = if_else(ann_gen_combust * (generation_oz / generation_ann) <= 0, 
+  mutate(nox_combust_out_emission_rate = if_else(ann_gen_combust <= 0 | is.na(ann_gen_combust), NA_real_, 
+                                                 2000 * nox_mass / ann_gen_combust),
+         nox_combust_out_emission_rate_oz = if_else(ann_gen_combust * (generation_oz / generation_ann) <= 0 | is.na(ann_gen_combust), 
                                                     NA_real_, 2000 * nox_oz_mass / (ann_gen_combust * (generation_oz / generation_ann))),
-         so2_combust_out_emission_rate = if_else(ann_gen_combust <= 0, NA_real_, 
+         so2_combust_out_emission_rate = if_else(ann_gen_combust <= 0 | is.na(ann_gen_combust), NA_real_, 
                                                  2000 * so2_mass / ann_gen_combust),
-         co2_combust_out_emission_rate = if_else(ann_gen_combust <= 0, NA_real_, 
+         co2_combust_out_emission_rate = if_else(ann_gen_combust <= 0 | is.na(ann_gen_combust), NA_real_, 
                                                  2000 * co2_mass / ann_gen_combust),
-         ch4_combust_out_emission_rate = if_else(ann_gen_combust <= 0, NA_real_, 
+         ch4_combust_out_emission_rate = if_else(ann_gen_combust <= 0 | is.na(ann_gen_combust), NA_real_, 
                                                  ch4_mass / ann_gen_combust),
-         n2o_combust_out_emission_rate = if_else(ann_gen_combust <= 0, NA_real_, 
+         n2o_combust_out_emission_rate = if_else(ann_gen_combust <= 0 | is.na(ann_gen_combust), NA_real_, 
                                                  n2o_mass / ann_gen_combust),
-         co2e_combust_out_emission_rate = if_else(ann_gen_combust <= 0, NA_real_, 
+         co2e_combust_out_emission_rate = if_else(ann_gen_combust <= 0 | is.na(ann_gen_combust), NA_real_, 
                                                   2000 * co2e_mass / ann_gen_combust),
-         hg_combust_out_emission_rate = if_else(ann_gen_combust <= 0, NA_real_,
+         hg_combust_out_emission_rate = if_else(ann_gen_combust <= 0 | is.na(ann_gen_combust), NA_real_,
                                                 hg_mass / ann_gen_combust))
 
 ### Input emission rates ----------------------------------------
@@ -984,7 +999,7 @@ plant_file_20 <-
   plant_file_19 %>% 
   mutate(nox_out_emission_rate = if_else(generation_ann <= 0 | is.na(generation_ann), NA_real_, 
                                          2000 * nox_mass / generation_ann),
-         nox_out_emission_rate_oz =if_else(generation_oz <= 0 | is.na(generation_oz), NA_real_, 
+         nox_out_emission_rate_oz = if_else(generation_oz <= 0 | is.na(generation_oz), NA_real_, 
                                            2000 * nox_oz_mass / generation_oz),
          so2_out_emission_rate = if_else(generation_ann <= 0 | is.na(generation_ann), NA_real_, 
                                          2000 * so2_mass / generation_ann),
@@ -1045,7 +1060,7 @@ update_source <- function(x, unit_f){
   return(unique(unit_source))
 }
 
-check_list <- c("EIA" ,"EPA/CAMD", NA_character_, "EPA/CAMD; EIA")
+check_source_list <- c("EIA" ,"EPA/CAMD", NA_character_, "EPA/CAMD; EIA")
 
 
 ### Update heat_input_source ----------
@@ -1055,7 +1070,7 @@ unit_source_heat_input <-
   rename(unadj_heat_input_source = heat_input_source) # rename to match plant file
   
 # check if sources updated correctly, stop if not
-stopifnot(all(unit_source_heat_input$unadj_heat_input_source %in% check_list))
+stopifnot(all(unit_source_heat_input$unadj_heat_input_source %in% check_source_list))
 
 
 ### Update heat_input_oz_source ----------
@@ -1065,7 +1080,7 @@ unit_source_heat_input_oz <-
   rename(unadj_heat_input_oz_source = heat_input_oz_source) # rename to match plant file
 
 # check if sources updated correctly, stop if not
-stopifnot(all(unit_source_heat_input_oz$unadj_heat_input_oz_source %in% check_list))
+stopifnot(all(unit_source_heat_input_oz$unadj_heat_input_oz_source %in% check_source_list))
 
 
 ### Update nox_source ---------
@@ -1074,7 +1089,7 @@ unit_source_nox <- update_source(x = "nox_source", unit_f = unit_file) %>%
   rename(unadj_nox_source = nox_source)
 
 # check if sources updated correctly, stop if not
-stopifnot(all(unit_source_nox$unadj_nox_source %in% check_list))
+stopifnot(all(unit_source_nox$unadj_nox_source %in% check_source_list))
 
 
 ### Update nox_oz_source --------
@@ -1084,7 +1099,7 @@ unit_source_nox_oz <-
   rename(unadj_nox_oz_source = nox_oz_source) # rename to match plant file
 
 # check if sources updated correctly, stop if not
-stopifnot(all(unit_source_nox_oz$unadj_nox_oz_source %in% check_list))
+stopifnot(all(unit_source_nox_oz$unadj_nox_oz_source %in% check_source_list))
 
 
 ### Update co2_source ---------
@@ -1094,7 +1109,7 @@ unit_source_co2 <-
   rename(unadj_co2_source = co2_source) # rename to match plant file
 
 # check if sources updated correctly, stop if not
-stopifnot(all(unit_source_co2$unadj_co2_source %in% check_list))
+stopifnot(all(unit_source_co2$unadj_co2_source %in% check_source_list))
 
 
 ### Update so2_source ----------
@@ -1104,7 +1119,7 @@ unit_source_so2 <-
   rename(unadj_so2_source = so2_source) # rename to match plant file
 
 # check if sources updated correctly, stop if not
-stopifnot(all(unit_source_so2$unadj_so2_source %in% check_list))
+stopifnot(all(unit_source_so2$unadj_so2_source %in% check_source_list))
 
 ### Update plant file with source updates -------------
 
