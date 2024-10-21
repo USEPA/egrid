@@ -34,7 +34,9 @@ eia_923 <- read_rds("data/clean_data/eia/eia_923_clean.RDS")
 
 params <- list()
 params$eGRID_year <- "2021"
+data_year <- "2021"
 
+### Extracting EIA tables and data -----
 
 ## assign variables for necessary EIA tables
 eia_operable <- eia_860$operable
@@ -207,7 +209,7 @@ download_eia_ggl <- function(year) {
   writeData(ggl_wb, sheet = summary_sheet_name, formatted_table)
   
   
-  ggl_file <- glue::glue("{new_folder2}/R_ggl.xlsx")
+  ggl_file <- glue::glue("{new_folder2}/R_ggl_{year}.xlsx")
   saveWorkbook(ggl_wb, ggl_file, overwrite = TRUE)
   
   # if (!download_and_unzip(url, dest_file, new_folder) && stringr::str_detect(url, "/archive")) {
@@ -220,7 +222,7 @@ download_eia_ggl <- function(year) {
   
 }
 
-download_eia_ggl("2022")
+download_eia_ggl(data_year)
 
 ## area to develop new parts of the function :-3 ------
 
@@ -299,7 +301,7 @@ download_eia_ggl("2022")
 ## load in datasets ----
 
 # R_ggl = Table 10: State supply and disposition data (from EIA website) compiled into a summary sheet
-R_ggl <- read_xlsx("data/clean_data/eia_ggl/R_ggl.xlsx") # might need to label to 2022
+R_ggl <- read_xlsx(glue::glue("data/clean_data/eia_ggl/R_ggl_{data_year}.xlsx")) 
 # state_and_interconnection = states and their interconnections
 state_interconnect <- read_csv("data/static_tables/state_and_interconnection.csv")
 # nerc_region_and_interconnect = states, interconnections, and NERC region
@@ -342,6 +344,11 @@ R_ggl <- R_ggl %>%
 # creating initial GGL table with non-duplicate states
 ggl_state <- state_interconnect %>% inner_join(R_ggl, by = c("state", "state_abbr")) %>%
   filter(!state %in% dup_state) # only states that fall into one interconnection 
+ # group_by(interconnect) %>%
+ # summarise(sum1 = sum(direct_use),
+          #  sum2 = sum(est_losses), 
+          #  sum3 = sum(tot_disp))
+
 
 ### 02: States with multiple interconnects -----
 
@@ -367,21 +374,23 @@ multi_interconnect_states <- multi_interconnect_states %>%
 
 # find the sum of generation for only the states with multiple interconnects 
 multi_interconnect_sum <- eia_923_generation_and_fuel %>%
-  select(-nerc_region) %>%    # prevent duplicate nerc_region columns
+  # select(-nerc_region) %>%    # prevent duplicate nerc_region columns
   inner_join(eia_860_plant, by = c("plant_id" , "plant_state")) %>%
+  # mutate(nerc_region = if_else(!is.na(nerc_region.x), nerc_region.x, nerc_region.y)) %>%
+  mutate(nerc_region = if_else(!is.na(nerc_region.y), nerc_region.y, nerc_region.x)) %>%
   inner_join(nerc_interconnect, by = c("nerc_region", "plant_state" = "state")) %>%
   inner_join(multi_interconnect_states, by = c("plant_state" = "state_abbr", "interconnect")) %>%
   select(plant_state, net_generation_megawatthours, nerc_region, interconnect) %>%
   group_by(plant_state, interconnect, nerc_region) %>%
-  summarise(sum_tot_generation = sum(net_generation_megawatthours)) 
+  summarise(sum_net_generation = sum(net_generation_megawatthours)) 
 
 ### 05: Grouped generation by interconnect ------- 
 
 # sum of generation at each interconnect level within the state
 grouped_gen_by_interconnect <- multi_interconnect_sum %>%
-  select(plant_state, sum_tot_generation, interconnect) %>%
+  select(plant_state, sum_net_generation, interconnect) %>%
   group_by(plant_state, interconnect) %>%
-  summarise(sum_tot_gen_interconnect = sum(sum_tot_generation))
+  summarise(sum_net_gen_interconnect = sum(sum_net_generation))
 
 ### 06: Ratio of generation for multiple interconnect states ------
 
@@ -394,9 +403,9 @@ multi_interconnect_states2 <- multi_interconnect_states %>%
 ratio_gen_multi_interconnect <- grouped_gen_by_interconnect %>%
   inner_join(multi_interconnect_states2, by = c("plant_state" = "state_abbr")) %>%
   select_all %>%
-  mutate(sum_tot_gen_interconnect = as.numeric(sum_tot_gen_interconnect),
+  mutate(sum_tot_gen_interconnect = as.numeric(sum_net_gen_interconnect),
          sum_net_generation = as.numeric(sum_net_generation),
-         ratio = sum_tot_gen_interconnect / sum_net_generation)
+         ratio = sum_net_gen_interconnect / sum_net_generation)
 
 ### 07: Append multiple interconnect states to GGL -----
 
@@ -431,4 +440,29 @@ insert_multi_interconnect <- ratio_gen_multi_interconnect %>%
 # add rows into initially created ggl_state table  
 ggl_state <- rbind(ggl_state, insert_multi_interconnect)
 
+### 08: Create GGL table at interconnect level
+ggl_interconnect <- ggl_state %>%
+  group_by(interconnect) %>%
+  summarise(est_losses_sum = sum(est_losses),
+            tot_disp_sub_ex_sum = sum(tot_disp_sub_ex),
+            direct_use_sum = sum(direct_use))
+
+### 09: Update GGL interconnect table with GGL values
+ggl_interconnect <- ggl_interconnect %>%
+  mutate(ggl = est_losses_sum /(tot_disp_sub_ex_sum - direct_use_sum),
+         ggl = round(ggl, 3))
+
+### 10: Sum generation and disposition to US
+ggl_us <- ggl_interconnect %>%
+  summarise(est_losses_sum = sum(est_losses_sum),
+            tot_disp_sub_ex_sum = sum (tot_disp_sub_ex_sum),
+            direct_use_sum = sum(direct_use_sum)) %>%
+  mutate(interconnect = "U.S.",
+         ggl = est_losses_sum /(tot_disp_sub_ex_sum - direct_use_sum),
+         ggl = round(ggl, 3))
+
+### 11: Append US
+ggl_interconnect <- rbind(ggl_interconnect, ggl_us)
+
+### 12: Match GGL to subregions
 
