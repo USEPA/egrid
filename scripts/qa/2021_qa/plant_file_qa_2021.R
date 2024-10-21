@@ -53,8 +53,7 @@ plant_access <- read_excel("data/outputs/qa/eGRID2021 Plant file 9_19.xlsx", #sh
          utility_id = as.character(utility_id), 
          transmission_or_distribution_system_owner_id = as.character(transmission_or_distribution_system_owner_id), 
          sequence_number = as.integer(sequence_number), 
-         year = as.character(year), 
-         unhg = as.numeric(unhg)) %>%
+         year = as.character(year)) %>%  
   rename("seqplt_access" = "sequence_number",
          "year_access" = "year", 
          "plant_id" = "plant_code",
