@@ -704,7 +704,7 @@ plant_file_12 <-
 
 eia_923_lfg <- 
   eia_923$generation_and_fuel_combined %>% 
-  filter(fuel_type == "LFG" & plant_id != 999999) %>% 
+  filter(fuel_type == "LFG" & plant_id != 999999 & total_fuel_consumption_mmbtu > 0) %>% 
   left_join(ef_co2_ch4_n2o, by = c("fuel_type" = "eia_fuel_code")) %>%
   group_by(plant_id) %>%
   summarize(heat_input_oz_season = sum(tot_mmbtu_may, tot_mmbtu_june, tot_mmbtu_july, tot_mmbtu_august, tot_mmbtu_september, na.rm = TRUE), 
@@ -972,7 +972,7 @@ plant_file_18 <-
   plant_file_17 %>% 
   mutate(nox_combust_out_emission_rate = if_else(ann_gen_combust <= 0 | is.na(ann_gen_combust), NA_real_, 
                                                  2000 * nox_mass / ann_gen_combust),
-         nox_combust_out_emission_rate_oz = if_else(ann_gen_combust * (generation_oz / generation_ann) <= 0 | is.na(ann_gen_combust), 
+         nox_oz_combust_out_emission_rate = if_else(ann_gen_combust * (generation_oz / generation_ann) <= 0 | is.na(ann_gen_combust), 
                                                     NA_real_, 2000 * nox_oz_mass / (ann_gen_combust * (generation_oz / generation_ann))),
          so2_combust_out_emission_rate = if_else(ann_gen_combust <= 0 | is.na(ann_gen_combust), NA_real_, 
                                                  2000 * so2_mass / ann_gen_combust),
@@ -992,7 +992,7 @@ plant_file_19 <-
   plant_file_18 %>% 
   mutate(nox_in_emission_rate = if_else(heat_input <= 0 | is.na(heat_input), NA_real_,
                                         2000 * nox_mass / heat_input),
-         nox_in_emission_rate_oz = if_else(heat_input_oz <= 0 | is.na(heat_input_oz), NA_real_, 
+         nox_oz_in_emission_rate = if_else(heat_input_oz <= 0 | is.na(heat_input_oz), NA_real_, 
                                            2000 * nox_oz_mass / heat_input_oz),
          so2_in_emission_rate = if_else(heat_input <= 0 | is.na(heat_input), NA_real_,
                                         2000 * so2_mass / heat_input),
@@ -1012,7 +1012,7 @@ plant_file_20 <-
   plant_file_19 %>% 
   mutate(nox_out_emission_rate = if_else(generation_ann <= 0 | is.na(generation_ann), NA_real_, 
                                          2000 * nox_mass / generation_ann),
-         nox_out_emission_rate_oz = if_else(generation_oz <= 0 | is.na(generation_oz), NA_real_, 
+         nox_oz_out_emission_rate = if_else(generation_oz <= 0 | is.na(generation_oz), NA_real_, 
                                            2000 * nox_oz_mass / generation_oz),
          so2_out_emission_rate = if_else(generation_ann <= 0 | is.na(generation_ann), NA_real_, 
                                          2000 * so2_mass / generation_ann),
@@ -1172,7 +1172,7 @@ plant_file_23 <-
          co2e_mass = round(co2e_mass, 3),
          # output emissions rates
          nox_out_emission_rate = round(nox_out_emission_rate, 3), 
-         nox_out_emission_rate_oz = round(nox_out_emission_rate_oz, 3),
+         nox_oz_out_emission_rate = round(nox_oz_out_emission_rate, 3),
          so2_out_emission_rate = round(so2_out_emission_rate, 3),
          co2_out_emission_rate = round(co2_out_emission_rate, 3),
          ch4_out_emission_rate = round(ch4_out_emission_rate, 3),
@@ -1180,7 +1180,7 @@ plant_file_23 <-
          co2e_out_emission_rate = round(co2e_out_emission_rate, 3),
          # input emissions rates
          nox_in_emission_rate = round(nox_in_emission_rate, 3), 
-         nox_in_emission_rate_oz = round(nox_in_emission_rate_oz, 3),
+         nox_oz_in_emission_rate = round(nox_oz_in_emission_rate, 3),
          so2_in_emission_rate = round(so2_in_emission_rate, 3),
          co2_in_emission_rate = round(co2_in_emission_rate, 3),
          ch4_in_emission_rate = round(ch4_in_emission_rate, 3),
@@ -1188,7 +1188,7 @@ plant_file_23 <-
          co2e_in_emission_rate = round(co2e_in_emission_rate, 3),
          # combustion output emissions rates
          nox_combust_out_emission_rate = round(nox_combust_out_emission_rate, 3), 
-         nox_combust_out_emission_rate_oz = round(nox_combust_out_emission_rate_oz, 3),
+         nox_oz_combust_out_emission_rate = round(nox_oz_combust_out_emission_rate, 3),
          so2_combust_out_emission_rate = round(so2_combust_out_emission_rate, 3),
          co2_combust_out_emission_rate = round(co2_combust_out_emission_rate, 3),
          ch4_combust_out_emission_rate = round(ch4_combust_out_emission_rate, 3),
@@ -1304,7 +1304,7 @@ final_vars <-
     "PLCO2EQA" = "co2e_mass", 
     "PLHGAN" = "hg_mass", 
     "PLNOXRTA" = "nox_out_emission_rate", 
-    "PLNOXRTO" = "nox_out_emission_rate_oz", 
+    "PLNOXRTO" = "nox_oz_out_emission_rate", 
     "PLSO2RTA" = "so2_out_emission_rate", 
     "PLCO2RTA" = "co2_out_emission_rate", 
     "PLCH4RTA" = "ch4_out_emission_rate", 
@@ -1312,7 +1312,7 @@ final_vars <-
     "PLC2ERTA" = "co2e_out_emission_rate", 
     "PLHGRTA" = "hg_out_emission_rate", 
     "PLNOXRA" = "nox_in_emission_rate", 
-    "PLNOXRO" = "nox_in_emission_rate_oz", 
+    "PLNOXRO" = "nox_oz_in_emission_rate", 
     "PLSO2RA" = "so2_in_emission_rate", 
     "PLCO2RA" = "co2_in_emission_rate", 
     "PLCH4RA" = "ch4_in_emission_rate", 
@@ -1320,7 +1320,7 @@ final_vars <-
     "PLC2ERA" = "co2e_in_emission_rate", 
     "PLHGRA" = "hg_in_emission_rate", 
     "PLNOXCRT" = "nox_combust_out_emission_rate", 
-    "PLNOXCRO" = "nox_combust_out_emission_rate_oz", 
+    "PLNOXCRO" = "nox_oz_combust_out_emission_rate", 
     "PLSO2CRT" = "so2_combust_out_emission_rate", 
     "PLCO2CRT" = "co2_combust_out_emission_rate", 
     "PLCH4CRT" = "ch4_combust_out_emission_rate", 
