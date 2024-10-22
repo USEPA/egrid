@@ -58,8 +58,13 @@ download_eia_ggl <- function(year) {
   #' @examples
   #' download_eia_files("2022") # Downloads all data and summarizes all states for year 2022
   
-  state <- gsub(" ", "", tolower(datasets::state.name))
+  state_lower <- gsub(" ", "", tolower(datasets::state.name))
+  state_title <- datasets::state.name
   state_abbr <- tolower(datasets::state.abb)
+  
+  state_lower <- c(state_lower, "districtofcolumbia")
+  state_title <- c(state_title, "District of Columbia")
+  state_abbr <- c(state_abbr, "dc")
 
   
   # create a eia_ggl folder if one does not already exists
@@ -112,7 +117,8 @@ download_eia_ggl <- function(year) {
   for (i in 1:length(state_abbr)){
     
     # initialize variables for i
-    name <- state[i]
+    name <- state_lower[i]
+    label <- state_title[i]
     abbr <- state_abbr[i]
     
     # download file for corresponding state i from EIA
@@ -165,8 +171,7 @@ download_eia_ggl <- function(year) {
     
     # compile all variables into a single row
     ggl_summary_data[[i]] <- c(toupper(abbr), 
-                    tools::toTitleCase(name), 
-                    direct_use, estimated_losses, total_disp, net_interstate_i, net_interstate_e, total_disp_sub_e)
+                    label, direct_use, estimated_losses, total_disp, net_interstate_i, net_interstate_e, total_disp_sub_e)
     
     
   }
@@ -321,7 +326,7 @@ nerc_interconnect <- nerc_interconnect %>%
 ## 01: Create GGL table at state level for non duplicate states -----
 
 # vector of duplicate states
-dup_state <- c('Montana','Nebrasksa','New Mexico','South Dakota','Texas')
+dup_state <- c('Montana','Nebraska','New Mexico','South Dakota','Texas')
 
 # cleaning R_ggl file and creating initial GGL calculation
 R_ggl <- R_ggl %>%
@@ -344,11 +349,6 @@ R_ggl <- R_ggl %>%
 # creating initial GGL table with non-duplicate states
 ggl_state <- state_interconnect %>% inner_join(R_ggl, by = c("state", "state_abbr")) %>%
   filter(!state %in% dup_state) # only states that fall into one interconnection 
- # group_by(interconnect) %>%
- # summarise(sum1 = sum(direct_use),
-          #  sum2 = sum(est_losses), 
-          #  sum3 = sum(tot_disp))
-
 
 ### 02: States with multiple interconnects -----
 
@@ -464,5 +464,13 @@ ggl_us <- ggl_interconnect %>%
 ### 11: Append US
 ggl_interconnect <- rbind(ggl_interconnect, ggl_us)
 
-### 12: Match GGL to subregions
+### 12: Match GGL to subregions # need to ask for subregion and interconnect
+
+
+### 13: Adding year to dataframe
+ggl_interconnect <- cbind(year=data_year,ggl_interconnect)
+
+### 14: Export table to Excel
+write.xlsx(ggl_interconnect, 'data/outputs/egrid_ggl_final.xlsx')
+
 
