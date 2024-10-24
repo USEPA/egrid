@@ -91,7 +91,7 @@ nerc_interconnect <-
 # check if needed to update every year
 dup_state <- c('Montana','Nebraska','New Mexico','South Dakota','Texas')
 
-# cleaning R_ggl file and creating initial GGL calculation
+# cleaning ggl_r file and creating initial GGL calculation
 ggl_r <- 
   ggl_r %>%
   rename(state = State,
@@ -113,7 +113,7 @@ ggl_r <-
 # creating initial GGL table with non-duplicate states
 ggl_state <- 
   state_interconnect %>% 
-  inner_join(R_ggl, by = c("state", "state_abbr")) %>%
+  inner_join(ggl_r, by = c("state", "state_abbr")) %>%
   filter(!state %in% dup_state) # only states that fall into one interconnection 
 
 ### 02: States with multiple interconnects -----
@@ -245,6 +245,6 @@ ggl_interconnect <- rbind(ggl_interconnect, ggl_us)
 ggl_interconnect <- cbind(year=data_year,ggl_interconnect)
 
 ### 14: Export table to Excel
-write.xlsx(ggl_interconnect, 'data/outputs/egrid_ggl_final.xlsx')
+write_rds(ggl_interconnect, "data/outputs/egrid_ggl_final.RDS")
 
 
