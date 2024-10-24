@@ -74,8 +74,11 @@ generator_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "GEN21",
          "retirement_year_access" = "genyrret") %>% 
   mutate(plant_id = as.character(plant_id), 
          gen_data_source_access = if_else(gen_data_source_access == "Distributed from 923 Generation And Fuel", 
-                                          "Distributed from EIA-923 Generation and Fuel", 
-                                          gen_data_source_access)) # updating capitalization difference in generation source
+                                          "Distributed from EIA-923 Generation and Fuel", # updating capitalization difference in generation source
+                                          gen_data_source_access), 
+         n_boilers_access = as.integer(n_boilers_access), 
+         operating_year_access = as.character(operating_year_access), 
+         retirement_year_access = as.character(retirement_year_access)) 
 
 # merge generator files from Access and R -------
 gen_comparison <- 
@@ -104,7 +107,7 @@ if(nrow(check_diff_plant_access) > 0) {
 # check if plant names match --------
 check_plant_names <- 
   gen_comparison %>% 
-  filter(!(plant_name_r == plant_name_access)) %>% 
+  filter(mapply(identical, plant_name_r, plant_name_access) == FALSE) %>% 
   select(plant_id, plant_name_r, plant_name_access) %>% distinct()
 
 if(nrow(check_plant_names) > 0) {
@@ -113,7 +116,7 @@ if(nrow(check_plant_names) > 0) {
 # check if plant states match --------------
 check_plant_state <- 
   gen_comparison %>% 
-  filter(!(plant_state_r == plant_state_access)) %>% 
+  filter(mapply(identical, plant_state_r, plant_state_access) == FALSE) %>% 
   select(plant_id, plant_state_r, plant_state_access) %>% distinct()
 
 if(nrow(check_plant_state) > 0) {
@@ -122,7 +125,7 @@ if(nrow(check_plant_state) > 0) {
 # check if number of boilers match --------------
 check_n_boilers <- 
   gen_comparison %>% 
-  filter(!(n_boilers_r == n_boilers_access)) %>% 
+  filter(mapply(identical, n_boilers_r, n_boilers_access) == FALSE) %>% 
   select(plant_id, generator_id, n_boilers_r, n_boilers_access)
 
 if(nrow(check_n_boilers) > 0) {
@@ -131,7 +134,7 @@ if(nrow(check_n_boilers) > 0) {
 # check if operating status matches ---------------
 check_status <- 
   gen_comparison %>% 
-  filter(!(status_r == status_access)) %>% 
+  filter(mapply(identical, status_r, status_access) == FALSE) %>% 
   select(plant_id, generator_id, status_r, status_access)
 
 if(nrow(check_status) > 0) {
@@ -140,7 +143,7 @@ if(nrow(check_status) > 0) {
 # check if prime mover matches -----------
 check_prime_mover <- 
   gen_comparison %>% 
-  filter(!(prime_mover_r == prime_mover_access)) %>% 
+  filter(mapply(identical, prime_mover_r, prime_mover_access) == FALSE) %>% 
   select(plant_id, generator_id, prime_mover_r, prime_mover_access)
 
 if(nrow(check_prime_mover) > 0) {
@@ -149,7 +152,7 @@ if(nrow(check_prime_mover) > 0) {
 # check if fuel types match --------------
 check_fuel_type <- 
   gen_comparison %>% 
-  filter(!(fuel_code_r == fuel_code_access)) %>% 
+  filter(mapply(identical, fuel_code_r, fuel_code_access) == FALSE) %>% 
   select(plant_id, generator_id, fuel_code_r, fuel_code_access)
 
 if(nrow(check_fuel_type) > 0) {
@@ -158,7 +161,7 @@ if(nrow(check_fuel_type) > 0) {
 # check if nameplate capacity matches --------------
 check_nameplate_capacity <- 
   gen_comparison %>% 
-  filter(!(nameplate_capacity_r == nameplate_capacity_access)) %>% 
+  filter(mapply(identical, nameplate_capacity_r, nameplate_capacity_access) == FALSE) %>% 
   select(plant_id, generator_id, nameplate_capacity_r, nameplate_capacity_access)
 
 if(nrow(check_nameplate_capacity) > 0) {
@@ -167,7 +170,7 @@ if(nrow(check_nameplate_capacity) > 0) {
 # check if capacity factor matches ----------
 check_capacity_factor <- 
   gen_comparison %>% 
-  filter(!(capfact_r == capfact_access)) %>% 
+  filter(mapply(identical, capfact_r, capfact_access) == FALSE) %>% 
   select(plant_id, generator_id, fuel_code_r, nameplate_capacity_r, generation_ann_r, capfact_r, 
          fuel_code_access, nameplate_capacity_access, generation_ann_access, capfact_access)
 
@@ -177,7 +180,7 @@ if(nrow(check_capacity_factor) > 0) {
 # check if year online matches ------------
 check_year_online <- 
   gen_comparison %>% 
-  filter(!(operating_year_r == operating_year_access)) %>% 
+  filter(mapply(identical, operating_year_r, operating_year_access) == FALSE) %>% 
   select(plant_id, generator_id, operating_year_r, operating_year_access)
 
 if(nrow(check_year_online) > 0) {
@@ -186,7 +189,7 @@ if(nrow(check_year_online) > 0) {
 # check if year retired matches ------------
 check_year_retired <- 
   gen_comparison %>% 
-  filter(!(retirement_year_r == retirement_year_access)) %>% 
+  filter(mapply(identical, retirement_year_r, retirement_year_access) == FALSE) %>% 
   select(plant_id, generator_id, retirement_year_r, retirement_year_access)
 
 if(nrow(check_year_retired) > 0) {
@@ -210,9 +213,9 @@ check_annual_generation_by_generator <-
   gen_comparison %>% 
   mutate(generation_ann_r = round(generation_ann_r, 0), 
          generation_ann_access = round(generation_ann_access, 0)) %>% 
-  filter(!(generation_ann_r == generation_ann_access)) %>% 
+  filter(mapply(identical, generation_ann_r, generation_ann_access) == FALSE) %>% 
   mutate(diff_ann = generation_ann_r - generation_ann_access) %>% 
-  #filter(diff_ann > 1 | diff_ann < -1) %>% 
+  filter(diff_ann > 1 | diff_ann < -1 | is.na(diff_ann)) %>% 
   select(plant_id, generator_id, generation_ann_r, generation_ann_access, diff_ann, 
          gen_data_source_r, gen_data_source_access)
 
@@ -224,9 +227,9 @@ check_ozone_generation_by_generator <-
   gen_comparison %>% 
   mutate(generation_oz_r = round(generation_oz_r, 0), 
          generation_oz_access = round(generation_oz_access, 0)) %>% 
-  filter(!(generation_oz_r == generation_oz_access)) %>% 
+  filter(mapply(identical, generation_oz_r, generation_oz_access) == FALSE) %>% 
   mutate(diff_oz = generation_oz_r - generation_oz_access) %>% 
-  filter(diff_oz > 1 | diff_oz < -1) %>% 
+  filter(diff_oz > 1 | diff_oz < -1 | is.na(diff_oz)) %>% 
   select(plant_id, generator_id, 
          generation_oz_r, generation_oz_access, diff_oz, 
          gen_data_source_r, gen_data_source_access)
@@ -237,9 +240,22 @@ if(nrow(check_ozone_generation_by_generator) > 0) {
 # check if generation source matches -------------
 check_gen_source <- 
   gen_comparison %>% 
-  filter(!(gen_data_source_r == gen_data_source_access)) %>% 
+  filter(mapply(identical, gen_data_source_r, gen_data_source_access) == FALSE) %>% 
   select(plant_id, generator_id, gen_data_source_access, gen_data_source_r)
 
 if(nrow(check_gen_source) > 0) {
-  write_csv(check_gen_source, paste0(save_dir, "check_generation_source.csv")) }
+  write_csv(check_gen_source, paste0(save_dir, "check_generation_source.csv"))}
+
+# Identify all unique plant and unit IDs that have differences ------------
+
+files <- grep("check", dir("data/outputs/qa/generator_file_differences"), value = TRUE)
+
+plant_gen_diffs <- 
+  purrr::map_df(paste0("data/outputs/qa/generator_file_differences/", files), 
+                read.csv) %>% 
+  select(plant_id, generator_id) %>% 
+  distinct() %>% 
+  mutate(source_diff = "gen_file")
+
+write_csv(plant_gen_diffs, "data/outputs/qa/generator_file_differences/plant_gen_difference_ids.csv")
 

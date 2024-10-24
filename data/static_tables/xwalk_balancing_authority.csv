@@ -1,0 +1,76 @@
+Flag,SUBRGN,Balancing Authority Code,Balancing Authority Name
+,SRSO,AEC,PowerSouth Energy Cooperative
+,SRMW,AECI,"Associated Electric Cooperative, Inc."
+,NWPP,AVA,Avista Corporation
+,AZNM,AZPS,Arizona Public Service Company
+,CAMX,BANC,Balancing Authority of Northern California
+,NWPP,BPAT,Bonneville Power Administration
+,NWPP,CHPD,Public Utility District No. 1 of Chelan County
+,CAMX,CISO,California Independent System Operator
+,SRVC,CPLE,Progress Energy Carolinas - EAST
+,SRVC,CPLW,Duke Energy Progress West
+,NWPP,CSTO,"Constellation Energy Control and Dispatch, LLC"
+,AZNM,DEAA,"Arlington Valley, LLC - AVBA"
+,NWPP,DOPD,PUD No. 1 of Douglas County
+,SRVC,DUK,Duke Energy Carolinas
+,SRMW,EEI,"Electric Energy, Inc."
+,AZNM,EPE,El Paso Electric Company
+,ERCT,ERCO,"Electric Reliability Council of Texas, Inc."
+,FRCC,FMPP,Florida Municipal Power Pool
+,FRCC,FPC,Progress Energy Florida
+,FRCC,FPL,Florida Power & Light Company
+,NWPP,GCPD,"Public Utility District No. 2 of Grant County, Washington"
+,AZNM,GRIF,"Griffith Energy, LLC"
+,AZNM,GRMA,"Gila River Power, LLC"
+,FRCC,GVL,Gainesville Regional Utilities
+,NWPP,GWA,"NaturEner Power Watch, LLC (GWA)"
+,AZNM,HGMA,"New Harquahala Generating Company, LLC - HGBA"
+,FRCC,HST,City of Homestead
+,AZNM,IID,Imperial Irrigation District
+,NWPP,IPCO,Idaho Power Company
+,NEWE,ISNE,ISO New England Inc.
+,FRCC,JEA,JEA
+,CAMX,LDWP,Los Angeles Department of Water and Power
+,SRTV,LGEE,LG&E and KU Services Company as agent for Louisville Gas and Electric Company and Kentucky Utilities
+,,MISO,"Midcontinent Independent Transmission System Operator, Inc.."
+,,NEVP,Nevada Power Company
+,FRCC,NSB,"New Smyrna Beach, Utilities Commission of"
+,NWPP,NWMT,NorthWestern Energy (NWMT)
+,,NYIS,New York Independent System Operator
+,RFCW,OVEC,Ohio Valley Electric Corporation
+,NWPP,PACE,PacifiCorp - East
+,NWPP,PACW,PacifiCorp - West
+,NWPP,PGE,Portland General Electric Company
+,,PJM,"PJM Interconnection, LLC"
+,AZNM,PNM,Public Service Company of New Mexico
+,RMPA,PSCO,Public Service Company of Colorado
+,NWPP,PSEI,Puget Sound Energy
+,SRVC,SC,South Carolina Public Service Authority
+,SRVC,SCEG,South Carolina Electric & Gas Company
+,NWPP,SCL,Seattle City Light
+,FRCC,SEC,Seminole Electric Cooperative
+,SRVC,SEPA,Southeastern Power Administration
+,SRSO,SOCO,"Southern Company Services, Inc. - Trans"
+,,SPA,Southwestern Power Administration
+,AZNM,SRP,Salt River Project
+,,SWPP,Southwest Power Pool
+,FRCC,TAL,City of Tallahassee
+,FRCC,TEC,Tampa Electric Company
+,AZNM,TEPC,Tucson Electric Power Company
+,CAMX,TIDC,Turlock Irrigation District
+,NWPP,TPWR,"City of Tacoma, Department of Public Utilities, Light Division"
+,SRTV,TVA,Tennessee Valley Authority
+,,WACM,Western Area Power Administration - Rocky Mountain Region
+,,WALC,Western Area Power Administration - Desert Southwest Region
+,MROW,WAUE,Western Area Power Administration - Upper Great Plains East
+,,WAUW,Western Area Power Administration UGP West
+,NWPP,WWA,"NaturEner Wind Watch, LLC"
+,SRVC,YAD,"Alcoa Power Generating, Inc. - Yadkin Division"
+,NEWE,NBSO,New Brunswick System Operator
+,CAMX,CA,California Independent System Operator
+,AKGD,CEA,Chugach Electric Assn Inc
+,,GRID,"Gridforce Energy Management, LLC"
+,,GRIS,Gridforce South
+,,HECO,Hawaiian Electric Co Inc
+,AKGD,AMPL,Anchorage Municipal Light & Power
+,NWPP,AVRN,Avangrid Renewables LLC
