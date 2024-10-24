@@ -96,27 +96,32 @@ download_eia_ggl <- function(year) {
     colnames(select_table) <- gsub("\r\n", "", colnames(select_table))
     
     ## extracting desired rows for the indicated year
-    direct_use <- select_table %>%
+    direct_use <- 
+      select_table %>%
       filter(Category == "Direct use") %>%
       pull(year) %>%
       as.numeric() 
     
-    estimated_losses <- select_table %>%
+    estimated_losses <- 
+      select_table %>%
       filter(Category == "Estimated losses") %>%
       pull(year) %>%
       as.numeric() 
     
-    total_disp <- select_table %>%
+    total_disp <- 
+      select_table %>%
       filter(Category == "Total disposition") %>%
       pull(year) %>%
       as.numeric() 
     
-    net_interstate_i <- select_table %>%
+    net_interstate_i <- 
+      select_table %>%
       filter(Category == "Net interstate imports") %>%
       pull(year) %>%
       as.numeric() 
     
-    net_interstate_e <- select_table %>%
+    net_interstate_e <- 
+      select_table %>%
       filter(Category == "Net interstate exports") %>%
       pull(year) %>%
       as.numeric() 
@@ -149,7 +154,8 @@ download_eia_ggl <- function(year) {
                                  "Net Interstate Exports",
                                  "Total Disposition-Exports")
   
-  formatted_table <- formatted_table %>%
+  formatted_table <- 
+    formatted_table %>%
     mutate(across(c("Direct Use", 
                     "Estimated Losses", 
                     "Total Disposition", 
