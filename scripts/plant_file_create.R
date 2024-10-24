@@ -845,7 +845,8 @@ plant_file_14 <-
                                         sum(ann_gen_coal, ann_gen_oil, ann_gen_gas, ann_gen_nuclear, 
                                             ann_gen_hydro, ann_gen_biomass, ann_gen_wind, ann_gen_solar,
                                             ann_gen_geothermal, ann_gen_other_ff, ann_gen_other, na.rm = TRUE),
-                                        generation_ann))
+                                        generation_ann)) %>% 
+  ungroup()
       
 
 # CHP plants ---------------
