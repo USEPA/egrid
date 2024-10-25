@@ -59,6 +59,8 @@ year <- as.numeric(params$eGRID_year) %% 1000
 contents <- "data/outputs/formatting/egrid_contents_page.xlsx"
 wb <- loadWorkbook(contents)
 
+
+### Create styles ------
 # extract base style
 default_style <- getStyles(wb)
   
@@ -70,19 +72,55 @@ header_style <- createStyle(textDecoration = "bold",
                             fontSize = 8.5,
                             border = "TopBottomLeftRight",
                             borderStyle = "thin")
-
+# description style
 desc_style <- createStyle(wrapText = TRUE,
                           halign = "center",
-                          valign = "center")
+                          valign = "center",
+                          textDecoration = "bold",
+                          fgFill = "#F2F2F2", 
+                          fontName = "Arial",
+                          fontSize = 8.5,
+                          border = "TopBottomLeftRight",
+                          borderStyle = "thin")
 
+# bold style (for text/characters)
 bold <- createStyle(fontName = "Arial",
                     fontSize = 8.5,
                     textDecoration = "bold")
+
+# basic style (for text/characters)
+basic <- createStyle(fontName = "Arial",
+                     fontSize = 8.5)
+
+# basic style (for larger integers)
+integer <- createStyle(numFmt = "#,##0",
+                       fontName = "Arial",
+                       fontSize = 8.5)
+
+# basic style (for percentages with 1 decimal place)
+percent <- createStyle(numFmt = "0.0%",
+                       fontName = "Arial",
+                       fontSize = 8.5)
+
+# bold style (for large integers)
+integer_bold <- createStyle(numFmt = "#,##0",
+                            fontName = "Arial",
+                            fontSize = 8.5,
+                            textDecoration = "bold")
+
+# bold style (for percentages with 1 decimal place)
+percent_bold <- createStyle(numFmt = "0.0%",
+                            fontName = "Arial",
+                            fontSize = 8.5,
+                            textDecoration = "bold")
+
+# number <- createStyle(numFmt = "0")
 
 ### GGL Formatting -----
 ggl <- glue::glue("GGL{year}")
 addWorksheet(wb, ggl)
 ggl_output <- readRDS('data/outputs/egrid_ggl_final.RDS')
+
 
 # column names
 ggl_header <- c("YEAR",
@@ -101,33 +139,53 @@ ggl_desc <- c("Data Year",
               "Grid gross loss [Estimated losses/(Total disposition without exports - Direct use)]")
 
 # set up header and descriptions format
-colnames(ggl_output) <- ggl_desc
-ggl_output <- rbind(ggl_header, ggl_output)
+#colnames(ggl_output) <- ggl_desc
+#ggl_output <- rbind(ggl_header, ggl_output)
+colnames(ggl_output) <- ggl_header
+
+
+# FIX THIS: ONLY PRODUCING ONE CELL!!
+writeData(wb, sheet = ggl, ggl_desc, startRow = 1)
+addStyle(wb, sheet = ggl, style = desc_style, rows = 1, cols = 1:6, gridExpand = TRUE)
 
 # write data to sheet
 writeData(wb, 
           sheet = ggl, 
-          ggl_output)
+          ggl_output,
+          startRow = 2)
 
 ## set column widths
 
-# column A
 setColWidths(wb, sheet = ggl, cols = 1, widths = 10)
-
-# column B
 setColWidths(wb, sheet = ggl, cols = 2, widths = 21.29)
-
-# column C:E
 setColWidths(wb, sheet = ggl, cols = 3:5, widths = 11.14)
-
-# column F
 setColWidths(wb, sheet = ggl, cols = 6, widths = 23)
 
-## set up first row
+## set row heights
+
 setRowHeights(wb, sheet = ggl, row = 1, heights = 60.75)
 
+## add header + desc styles
+
+addStyle(wb, sheet = ggl, style = header_style, rows = 2, cols = 1:6, gridExpand = TRUE)
 addStyle(wb, sheet = ggl, style = desc_style, rows = 1, cols = 1:6, gridExpand = TRUE)
-addStyle(wb, sheet = ggl, style = header_style, rows = 1:2, cols = 1:6, gridExpand = TRUE)
+
+## add number styles
+
+addStyle(wb, sheet = ggl, style = integer, rows = 3:7, cols = 3:5, gridExpand = TRUE)
+addStyle(wb, sheet = ggl, style = percent, rows = 3:7, cols = 6, gridExpand = TRUE)
+
+# bolded
+addStyle(wb, sheet = ggl, style = integer_bold, rows = 8, cols = 3:5, gridExpand = TRUE)
+addStyle(wb, sheet = ggl, style = percent_bold, rows = 8, cols = 6, gridExpand = TRUE)
+
+## add text styles
+
+# first two columns
+addStyle(wb, sheet = ggl, style = basic, rows = 3:7, cols = 1:2, gridExpand = TRUE)
+addStyle(wb, sheet = ggl, style = bold, rows = 8, cols = 1:2, gridExpand = TRUE)
+
+
 
 saveWorkbook(wb, "data/outputs/text1.xlsx", overwrite=TRUE)
 
