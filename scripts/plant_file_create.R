@@ -815,7 +815,9 @@ ann_gen_by_fuel_3 <-
          perc_ann_gen_renew_nonhydro = if_else(plant_ann_gen != 0, ann_gen_renew_nonhydro / plant_ann_gen, NA_real_), 
          perc_ann_gen_combust = if_else(plant_ann_gen != 0, ann_gen_combust / plant_ann_gen, NA_real_), 
          perc_ann_gen_non_combust = if_else(plant_ann_gen != 0, ann_gen_non_combust / plant_ann_gen, NA_real_)) %>% 
-  select(-plant_ann_gen)
+  select(-plant_ann_gen) %>% 
+  mutate(across(contains("perc"), 
+                ~ if_else(. < 0, 0, .)))
   
 
 # checks for negative generation values
