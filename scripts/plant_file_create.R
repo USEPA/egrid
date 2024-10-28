@@ -755,7 +755,8 @@ ann_gen_by_fuel <-
   mutate(plant_id = if_else(!is.na(camd_plant_id), camd_plant_id, plant_id)) %>% 
   group_by(plant_id, fuel_type) %>% 
   summarize(ann_gen = if_else(all(is.na(net_generation_megawatthours)), NA_real_, 
-                              sum(net_generation_megawatthours, na.rm = TRUE))) %>% 
+                              sum(net_generation_megawatthours, na.rm = TRUE)), 
+            ann_gen = if_else(ann_gen < 0, 0, ann_gen)) %>% 
   ungroup() %>% 
   group_by(plant_id) %>%
   mutate(plant_ann_gen = if_else(all(is.na(ann_gen)), NA_real_, sum(ann_gen, na.rm = TRUE)),
