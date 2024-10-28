@@ -106,6 +106,7 @@ percent <- createStyle(numFmt = "0.0%",
                        fontName = "Arial",
                        fontSize = 8.5)
 
+# different decimal styles for different purposes
 decimal1 <- createStyle(numFmt = "#,##0; (#,##0)",
                     fontName = "Arial",
                     fontSize = 8.5)
@@ -154,13 +155,23 @@ ann_vals_desc <- createStyle(wrapText = TRUE,
                             borderStyle = "thin")
 
 # 2. Unadjusted Annual Values ()
-unadj_ann_style <- createStyle(textDecoration = "bold",
-                                fgFill = "#F2DCDB", 
+unadj_ann_header <- createStyle(textDecoration = "bold",
+                                fgFill = "#E6B8B7", 
                                 wrapText = TRUE,
                                 fontName = "Arial",
                                 fontSize = 8.5,
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin")
+
+unadj_ann_desc <- createStyle(wrapText = TRUE,
+                              halign = "center",
+                              valign = "center",
+                              textDecoration = "bold",
+                              fgFill = "#E6B8B7", 
+                              fontName = "Arial",
+                              fontSize = 8.5,
+                              border = "TopBottomLeftRight",
+                              borderStyle = "thin")
 
 # 3. Adjustment Values ()
 adj_vals_style <- createStyle(textDecoration = "bold",
@@ -171,16 +182,159 @@ adj_vals_style <- createStyle(textDecoration = "bold",
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin")
 
+### UNT Formatting -----
+# create sheet
+unt <- glue::glue("UNT{year}")
+addWorksheet(wb, unt)
+
+# changing values to numeric
+unt_file <- unt_file %>%
+  mutate(year = as.numeric(year),
+         plant_id = as.numeric(plant_id))
+
+# create name for sequnt based on data year
+sequnt <- glue::glue("SEQUNT{year}") 
+
+# collect number of rows based on data frame
+unt_rows <- nrow(unt_file)
+
+# column names
+unt_header <-  c(sequnt,
+                 "YEAR",
+                 "PSTATABB", 
+                 "PNAME", 
+                 "ORISPL",
+                 "UNITID", 
+                 "PRMVR", 
+                 "UNTOPST", 
+                 "CAMDFLAG", 
+                 "PRGCODE", 
+                 "BOTFIRTY", 
+                 "NUMGEN", 
+                 "FUELU1", 
+                 "HRSOP", 
+                 "HTIAN", 
+                 "HTIOZ",
+                 "NOXAN",
+                 "NOXOZ",
+                 "SO2AN",
+                 "CO2AN",
+                 "HGAN",
+                 "HTIANSRC",
+                 "HTIOZSRC",
+                 "NOXANSRC",
+                 "NOXOZSRC",
+                 "SO2SRC",
+                 "CO2SRC",
+                 "HGSRC",
+                 "SO2CTLDV",
+                 "NOXCTLDV",
+                 "HGCTLDV",
+                 "UNTYRONL")
+
+# description of column names
+unt_desc <- c("Unit file sequence number",
+              "Data Year",
+              "Plant state abbreviation",
+              "Plant name",
+              "DOE/EIA ORIS plant or facility code",
+              "Unit ID",
+              "Prime Mover",
+              "Unit Operational Status",
+              "CAMD Program flag",
+              "Program code(s)",
+              "Unit bottom and firing type",
+              "Number of associated generators",
+              "Unit primary fuel",
+              "Unit operating hours",
+              "Unit unadjusted annual heat input (MMBtu)",
+              "Unit unadjusted ozone season heat input (MMBtu)",
+              "Unit unadjusted annual NOx emissions (tons)",
+              "Unit unadjusted ozone season NOx emissions (tons)",
+              "Unit unadjusted annual SO2 emissions (tons)",
+              "Unit unadjusted annual CO2 emissions (tons)",
+              "Unit unadjusted annual Hg emissions (lbs)",
+              "Unit unadjusted annual heat input source",
+              "Unit unadjusted ozone season heat input source",
+              "Unit unadjusted annual NOx emissions source",
+              "Unit unadjusted ozone season NOx emissions source",
+              "Unit unadjusted annual SO2 emissions source",
+              "Unit unadjusted annual CO2 emissions source",
+              "Unit unadjusted annual Hg emissions source",
+              "Unit SO2 (scrubber) first control device",
+              "Unit NOx first control device",
+              "Unit Hg Activated carbon injection system flag",
+              "Unit year on-line")
+
+
+# change column names
+colnames(unt_file) <- unt_header
+
+# write data for first row only
+writeData(wb, sheet = unt, t(unt_desc), startRow = 1, colNames = FALSE)
+
+# add first row styles
+addStyle(wb, sheet = unt, style = desc_style, rows = 1, cols = 1:14, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = unadj_ann_desc, rows = 1, cols = 15:28, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = desc_style, rows = 1, cols = 29:32, gridExpand = TRUE)
+
+# write data to sheet
+writeData(wb, 
+          sheet = unt, 
+          unt_file,
+          startRow = 2)
+
+## set column widths
+
+setColWidths(wb, sheet = unt, cols = 1, widths = 12.43)
+setColWidths(wb, sheet = unt, cols = 3, widths = 12.43)
+setColWidths(wb, sheet = unt, cols = 4, widths = 34.71)
+setColWidths(wb, sheet = unt, cols = 5:9, widths = 12.43)
+setColWidths(wb, sheet = unt, cols = 10, widths = 17)
+setColWidths(wb, sheet = unt, cols = 11:32, widths = 12.43)
+
+## set row heights
+
+setRowHeights(wb, sheet = unt, row = 1, heights = 60.75)
+
+## add header style
+
+addStyle(wb, sheet = unt, style = header_style, rows = 2, cols = 1:14, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = unadj_ann_header, rows = 2, cols = 15:28, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = header_style, rows = 2, cols = 29:32, gridExpand = TRUE)
+
+## add number styles
+
+addStyle(wb, sheet = unt, style = integer, rows = 3:unt_rows, cols = 15:16, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = decimal2, rows = 3:unt_rows, cols = 14, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = decimal2, rows = 3:unt_rows, cols = 17:21, gridExpand = TRUE)
+
+## add text styles
+
+addStyle(wb, sheet = unt, style = basic, rows = 3:unt_rows, cols = 1:13, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = basic, rows = 3:unt_rows, cols = 22:32, gridExpand = TRUE)
+
+
 ### GEN Formatting -----
 
 ## create "GEN" sheet
-gen_file <- readRDS('data/outputs/generator_file.RDS')
 gen <- glue::glue("GEN{year}")
 addWorksheet(wb, gen)
 
+# changing values to numeric
+gen_file <- gen_file %>%
+  mutate(year = as.numeric(year),
+         plant_id = as.numeric(plant_id),
+         operating_year = as.numeric(operating_year),
+         retirement_year = as.numeric(retirement_year))
+
+# create name for seqgen based on data year
 seqgen <- glue::glue("SEQGEN{year}") 
+
+# select number of rows based on length of dataframe
 gen_rows <- nrow(gen_file)
 
+# column names
 gen_header <- c(seqgen,
                 "YEAR",
                 "PSTATEABB", 
@@ -199,6 +353,7 @@ gen_header <- c(seqgen,
                 "GENYRONL",
                 "GENYRRET")
 
+# description of column names
 gen_desc <- c("Generator file sequence number",
               "Data Year",
               "Plant state abbreviation",
@@ -217,6 +372,7 @@ gen_desc <- c("Generator file sequence number",
               "Generator year on-line",
               "Generator planned or actual retirement year")
 
+# change dataframe column names
 colnames(gen_file) <- gen_header
 
 # write data for first row only
@@ -264,9 +420,11 @@ addStyle(wb, sheet = gen, style = decimal3, rows = 3:gen_rows, cols = 12, gridEx
 addStyle(wb, sheet = gen, style = decimal1, rows = 3:gen_rows, cols = 13:14, gridExpand = TRUE)
 
 ## add text styles
+
 addStyle(wb, sheet = gen, style = basic, rows = 3:gen_rows, cols = 1:6, gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = basic, rows = 3:gen_rows, cols = 6:10, gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = basic, rows = 3:gen_rows, cols = 14:17, gridExpand = TRUE)
+
 
 ### GGL Formatting -----
 
@@ -345,36 +503,3 @@ saveWorkbook(wb, "data/outputs/text1.xlsx", overwrite=TRUE)
 
 
 
-### UNT Formatting -----
-#   rename("sequnt" = "sequnt",
-#          #"year" = "year", 
-#          "plant_id" = "orispl",
-#          "plant_name" = "pname", 
-#          "plant_state" = "pstatabb", 
-#          "unit_id" = "unitid", 
-#          "prime_mover" = "prmvr", 
-#          "operating_status" = "untopst", 
-#          "camd_flag" = "camdflag", 
-#          "program_code" = "prgcode", 
-#          "botfirty" = "botfirty", 
-#          "num_generators" = "numgen", 
-#          "primary_fuel_type" = "fuelu1", 
-#          "operating_hours" = "hrsop", 
-#          "heat_input" = "htian", 
-#          "heat_input_oz" = "htioz", 
-#          "nox_mass" = "noxan", 
-#          "nox_oz_mass" = "noxoz", 
-#          "so2_mass" = "so2an", 
-#          "co2_mass" = "co2an", 
-#          "hg_mass" = "hgan", 
-#          "heat_input_source" = "htiansrc", 
-#          "heat_input_oz_source" = "htiozsrc", 
-#          "nox_source" = "noxansrc", 
-#          "nox_oz_source" = "noxozsrc", 
-#          "so2_source" = "so2src", 
-#          "co2_source" = "co2src", 
-#          "hg_controls" = "hgsrc", 
-#          "so2_controls" = "so2ctldv", 
-#          "nox_controls" = "noxctldv", 
-#          "hg_controls_flag" = "hgctldv",
-#          "year_online" = "untyronl")
