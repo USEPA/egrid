@@ -28,9 +28,9 @@ library(stringr)
 library(openxlsx)
 
 ### Load in data ------ 
-unit_file <- readRDS('data/outputs/unit_file.RDS')
-generator_file <- readRDS('data/outputs/generator_file.RDS')
-plant_file <- readRDS('data/outputs/plant_file.RDS')
+unt_file <- readRDS('data/outputs/unit_file.RDS')
+gen_file <- readRDS('data/outputs/generator_file.RDS')
+plnt_file <- readRDS('data/outputs/plant_file.RDS')
 ggl_file <- readRDS('data/outputs/egrid_ggl_final.RDS') # maybe change file name to match others
 
 
@@ -61,9 +61,10 @@ wb <- loadWorkbook(contents)
 
 
 ### Create styles ------
-# extract base style
-default_style <- getStyles(wb)
-  
+
+
+### header & description style ###
+
 # header style
 header_style <- createStyle(textDecoration = "bold",
                             fgFill = "#F2F2F2", 
@@ -82,6 +83,7 @@ desc_style <- createStyle(wrapText = TRUE,
                           fontSize = 8.5,
                           border = "TopBottomLeftRight",
                           borderStyle = "thin")
+### text styles ###
 
 # bold style (for text/characters)
 bold <- createStyle(fontName = "Arial",
@@ -92,6 +94,8 @@ bold <- createStyle(fontName = "Arial",
 basic <- createStyle(fontName = "Arial",
                      fontSize = 8.5)
 
+### number styles ### 
+
 # basic style (for larger integers)
 integer <- createStyle(numFmt = "#,##0",
                        fontName = "Arial",
@@ -101,6 +105,20 @@ integer <- createStyle(numFmt = "#,##0",
 percent <- createStyle(numFmt = "0.0%",
                        fontName = "Arial",
                        fontSize = 8.5)
+
+decimal1 <- createStyle(numFmt = "#,##0; (#,##0)",
+                    fontName = "Arial",
+                    fontSize = 8.5)
+
+decimal2 <- createStyle(numFmt = "#,##0.0",
+                        fontName = "Arial",
+                        fontSize = 8.5)
+
+decimal3 <- createStyle(numFmt = "#,##0.000; (#,##0.000)",
+                        fontName = "Arial",
+                        fontSize = 8.5)
+
+### bold number styles ### 
 
 # bold style (for large integers)
 integer_bold <- createStyle(numFmt = "#,##0",
@@ -114,12 +132,151 @@ percent_bold <- createStyle(numFmt = "0.0%",
                             fontSize = 8.5,
                             textDecoration = "bold")
 
-# number <- createStyle(numFmt = "0")
+### Header Styles (colors) -----
+
+# 1. Annual Values (#F2DCDB)
+ann_vals_header <- createStyle(textDecoration = "bold",
+                                fgFill = "#F2DCDB", 
+                                wrapText = TRUE,
+                                fontName = "Arial",
+                                fontSize = 8.5,
+                                border = "TopBottomLeftRight",
+                                borderStyle = "thin")
+
+ann_vals_desc <- createStyle(wrapText = TRUE,
+                            halign = "center",
+                            valign = "center",
+                            textDecoration = "bold",
+                            fgFill = "#F2DCDB", 
+                            fontName = "Arial",
+                            fontSize = 8.5,
+                            border = "TopBottomLeftRight",
+                            borderStyle = "thin")
+
+# 2. Unadjusted Annual Values ()
+unadj_ann_style <- createStyle(textDecoration = "bold",
+                                fgFill = "#F2DCDB", 
+                                wrapText = TRUE,
+                                fontName = "Arial",
+                                fontSize = 8.5,
+                                border = "TopBottomLeftRight",
+                                borderStyle = "thin")
+
+# 3. Adjustment Values ()
+adj_vals_style <- createStyle(textDecoration = "bold",
+                                fgFill = "#F2DCDB", 
+                                wrapText = TRUE,
+                                fontName = "Arial",
+                                fontSize = 8.5,
+                                border = "TopBottomLeftRight",
+                                borderStyle = "thin")
+
+### GEN Formatting -----
+
+## create "GEN" sheet
+gen_file <- readRDS('data/outputs/generator_file.RDS')
+gen <- glue::glue("GEN{year}")
+addWorksheet(wb, gen)
+
+seqgen <- glue::glue("SEQGEN{year}") 
+gen_rows <- nrow(gen_file)
+
+gen_header <- c(seqgen,
+                "YEAR",
+                "PSTATEABB", 
+                "PNAME",
+                "ORISPL",
+                "GENID",
+                "NUMBLR",
+                "GENSTAT",
+                "PRMVR",
+                "FUELG1",
+                "NAMEPCAP",
+                "CFACT",
+                "GENNTAN",
+                "GENNTOZ",
+                "GENERSRC",
+                "GENYRONL",
+                "GENYRRET")
+
+gen_desc <- c("Generator file sequence number",
+              "Data Year",
+              "Plant state abbreviation",
+              "Plant name",
+              "DOE/EIA ORIS plant or facility code",
+              "Generator ID",
+              "Number of associated boilers",
+              "Generator status",
+              "Generator prime mover type",
+              "Generator primary fuel",
+              "Generator nameplate capacity (MW)",
+              "Generator capacity factor",
+              "Generator annual net generation (MWh)",
+              "Generator ozone season net generation (MWh)",
+              "Generation data source",
+              "Generator year on-line",
+              "Generator planned or actual retirement year")
+
+colnames(gen_file) <- gen_header
+
+# write data for first row only
+writeData(wb, sheet = gen, t(gen_desc), startRow = 1, colNames = FALSE)
+
+# add first row styles
+addStyle(wb, sheet = gen, style = desc_style, rows = 1, cols = 1:12, gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = ann_vals_desc, rows = 1, cols = 13:14, gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = desc_style, rows = 1, cols = 15:17, gridExpand = TRUE)
+
+# write data to sheet
+writeData(wb, 
+          sheet = gen, 
+          gen_file,
+          startRow = 2)
+
+## set column widths
+
+setColWidths(wb, sheet = gen, cols = 1, widths = 12.57)
+setColWidths(wb, sheet = gen, cols = 3, widths = 12.43)
+setColWidths(wb, sheet = gen, cols = 4, widths = 34.71)
+setColWidths(wb, sheet = gen, cols = 5:7, widths = 12.57)
+setColWidths(wb, sheet = gen, cols = 8:10, widths = 12.43)
+setColWidths(wb, sheet = gen, cols = 11, widths = 12.57)
+setColWidths(wb, sheet = gen, cols = 12:14, widths = 13.14)
+setColWidths(wb, sheet = gen, cols = 15, widths = 29.43)
+setColWidths(wb, sheet = gen, cols = 16, widths = 12.29)
+setColWidths(wb, sheet = gen, cols = 17, widths = 15.14)
+
+## set row heights
+
+setRowHeights(wb, sheet = gen, row = 1, heights = 60.75)
+
+## add header style
+
+addStyle(wb, sheet = gen, style = header_style, rows = 2, cols = 1:12, gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = ann_vals_header, rows = 2, cols = 13:14, gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = header_style, rows = 2, cols = 15:17, gridExpand = TRUE)
+
+## add number styles
+
+addStyle(wb, sheet = gen, style = integer, rows = 3:gen_rows, cols = 7, gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = decimal2, rows = 3:gen_rows, cols = 11, gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = decimal3, rows = 3:gen_rows, cols = 12, gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = decimal1, rows = 3:gen_rows, cols = 13:14, gridExpand = TRUE)
+
+## add text styles
+addStyle(wb, sheet = gen, style = basic, rows = 3:gen_rows, cols = 1:6, gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = basic, rows = 3:gen_rows, cols = 6:10, gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = basic, rows = 3:gen_rows, cols = 14:17, gridExpand = TRUE)
 
 ### GGL Formatting -----
+
+# create "GGL" sheet
 ggl <- glue::glue("GGL{year}")
 addWorksheet(wb, ggl)
-ggl_output <- readRDS('data/outputs/egrid_ggl_final.RDS')
+
+# convert year to numeric value
+ggl_file <- ggl_file %>%
+  mutate(year = as.numeric(year))
 
 
 # column names
@@ -139,19 +296,16 @@ ggl_desc <- c("Data Year",
               "Grid gross loss [Estimated losses/(Total disposition without exports - Direct use)]")
 
 # set up header and descriptions format
-#colnames(ggl_output) <- ggl_desc
-#ggl_output <- rbind(ggl_header, ggl_output)
-colnames(ggl_output) <- ggl_header
+colnames(ggl_file) <- ggl_header
 
-
-# FIX THIS: ONLY PRODUCING ONE CELL!!
-writeData(wb, sheet = ggl, ggl_desc, startRow = 1)
+# write data for first row only
+writeData(wb, sheet = ggl, t(ggl_desc), startRow = 1, colNames = FALSE)
 addStyle(wb, sheet = ggl, style = desc_style, rows = 1, cols = 1:6, gridExpand = TRUE)
 
 # write data to sheet
 writeData(wb, 
           sheet = ggl, 
-          ggl_output,
+          ggl_file,
           startRow = 2)
 
 ## set column widths
@@ -165,17 +319,16 @@ setColWidths(wb, sheet = ggl, cols = 6, widths = 23)
 
 setRowHeights(wb, sheet = ggl, row = 1, heights = 60.75)
 
-## add header + desc styles
+## add header style
 
 addStyle(wb, sheet = ggl, style = header_style, rows = 2, cols = 1:6, gridExpand = TRUE)
-addStyle(wb, sheet = ggl, style = desc_style, rows = 1, cols = 1:6, gridExpand = TRUE)
 
 ## add number styles
 
 addStyle(wb, sheet = ggl, style = integer, rows = 3:7, cols = 3:5, gridExpand = TRUE)
 addStyle(wb, sheet = ggl, style = percent, rows = 3:7, cols = 6, gridExpand = TRUE)
 
-# bolded
+# bold
 addStyle(wb, sheet = ggl, style = integer_bold, rows = 8, cols = 3:5, gridExpand = TRUE)
 addStyle(wb, sheet = ggl, style = percent_bold, rows = 8, cols = 6, gridExpand = TRUE)
 
@@ -186,10 +339,13 @@ addStyle(wb, sheet = ggl, style = basic, rows = 3:7, cols = 1:2, gridExpand = TR
 addStyle(wb, sheet = ggl, style = bold, rows = 8, cols = 1:2, gridExpand = TRUE)
 
 
-
+### Save and export -----
 saveWorkbook(wb, "data/outputs/text1.xlsx", overwrite=TRUE)
 
-### Unit File Formatting -----
+
+
+
+### UNT Formatting -----
 #   rename("sequnt" = "sequnt",
 #          #"year" = "year", 
 #          "plant_id" = "orispl",
