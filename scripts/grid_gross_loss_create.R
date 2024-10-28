@@ -220,14 +220,14 @@ ggl_interconnect <-
             direct_use_sum = sum(direct_use))
 
 ### 09: Update GGL interconnect table with GGL values
-ggl_interconnect <- 
+ggl_interconnect_2 <- 
   ggl_interconnect %>%
-  mutate(ggl = est_losses_sum /(tot_disp_sub_ex_sum - direct_use_sum),
+  mutate(ggl = est_losses_sum / (tot_disp_sub_ex_sum - direct_use_sum),
          ggl = round(ggl, 3))
 
 ### 10: Sum generation and disposition to US
 ggl_us <- 
-  ggl_interconnect %>%
+  ggl_interconnect_2 %>%
   summarise(est_losses_sum = sum(est_losses_sum),
             tot_disp_sub_ex_sum = sum (tot_disp_sub_ex_sum),
             direct_use_sum = sum(direct_use_sum)) %>%
@@ -236,15 +236,13 @@ ggl_us <-
          ggl = round(ggl, 3))
 
 ### 11: Append US
-ggl_interconnect <- rbind(ggl_interconnect, ggl_us)
-
-### 12: Match GGL to subregions # need to ask for subregion and interconnect
+ggl_interconnect_3 <- rbind(ggl_interconnect_2, ggl_us)
 
 
-### 13: Adding year to dataframe
-ggl_interconnect <- cbind(year=data_year,ggl_interconnect)
+### 12: Adding year to dataframe
+ggl_interconnect_4 <- cbind(data_year, ggl_interconnect_3)
 
-### 14: Export table to Excel
-write_rds(ggl_interconnect, "data/outputs/egrid_ggl_final.RDS")
+### 13: Export table to Excel
+write_rds(ggl_interconnect_4, "data/outputs/egrid_ggl_final.RDS")
 
 

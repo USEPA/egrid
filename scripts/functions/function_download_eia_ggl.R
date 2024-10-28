@@ -43,21 +43,21 @@ download_eia_ggl <- function(year) {
     return(end)
   }
   
-  
+  # commenting this out for now - we need to check if the files already exist, not just the number of files in the folder (Issue #75)
   # Check if there are other files in each folder
-  existing_files <- list.files(new_folder)
+  #existing_files <- list.files(new_folder)
   
-  if (length(existing_files) > 1) {
-    print(glue::glue("Files already exist in folder:{new_folder}. Stopping"))
-    return(TRUE)
-  }
+  #if (length(existing_files) > 1) {
+  #  print(glue::glue("Files already exist in folder:{new_folder}. Stopping"))
+  #  return(TRUE)
+  #}
   
-  existing_files2 <- list.files(new_folder2)
+  #existing_files2 <- list.files(new_folder2)
   
-  if (length(existing_files2) > 1) {
-    print(glue:glue("Files already exist in folder:{new_folder2}. Stopping"))
-    return(TRUE)
-  }
+  #if (length(existing_files2) > 1) {
+  #  print(glue:glue("Files already exist in folder:{new_folder2}. Stopping"))
+  #  return(TRUE)
+  #}
   
   # initialize list of tables and workbook
   ggl_data <- list()
