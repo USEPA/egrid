@@ -62,7 +62,6 @@ wb <- loadWorkbook(contents)
 
 ### Create styles ------
 
-
 ### header & description style ###
 
 # header style
@@ -136,7 +135,7 @@ percent_bold <- createStyle(numFmt = "0.0%",
 ### Header Styles (colors) -----
 
 # 1. Annual Values (#F2DCDB)
-ann_vals_header <- createStyle(textDecoration = "bold",
+color1_header <- createStyle(textDecoration = "bold",
                                 fgFill = "#F2DCDB", 
                                 wrapText = TRUE,
                                 fontName = "Arial",
@@ -144,7 +143,7 @@ ann_vals_header <- createStyle(textDecoration = "bold",
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin")
 
-ann_vals_desc <- createStyle(wrapText = TRUE,
+color1_desc <- createStyle(wrapText = TRUE,
                             halign = "center",
                             valign = "center",
                             textDecoration = "bold",
@@ -154,8 +153,8 @@ ann_vals_desc <- createStyle(wrapText = TRUE,
                             border = "TopBottomLeftRight",
                             borderStyle = "thin")
 
-# 2. Unadjusted Annual Values ()
-unadj_ann_header <- createStyle(textDecoration = "bold",
+# 2. Unadjusted Annual Values (#E6B8B7)
+color2_header <- createStyle(textDecoration = "bold",
                                 fgFill = "#E6B8B7", 
                                 wrapText = TRUE,
                                 fontName = "Arial",
@@ -163,7 +162,7 @@ unadj_ann_header <- createStyle(textDecoration = "bold",
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin")
 
-unadj_ann_desc <- createStyle(wrapText = TRUE,
+color2_desc <- createStyle(wrapText = TRUE,
                               halign = "center",
                               valign = "center",
                               textDecoration = "bold",
@@ -173,14 +172,239 @@ unadj_ann_desc <- createStyle(wrapText = TRUE,
                               border = "TopBottomLeftRight",
                               borderStyle = "thin")
 
-# 3. Adjustment Values ()
-adj_vals_style <- createStyle(textDecoration = "bold",
-                                fgFill = "#F2DCDB", 
+# 3. Adjustment Values (#D58785)
+color3_header <- createStyle(textDecoration = "bold",
+                                fgFill = "#D58785", 
                                 wrapText = TRUE,
                                 fontName = "Arial",
                                 fontSize = 8.5,
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin")
+
+color3_desc <- createStyle(wrapText = TRUE,
+                           halign = "center",
+                           valign = "center",
+                           textDecoration = "bold",
+                           fgFill = "#D58785", 
+                           fontName = "Arial",
+                           fontSize = 8.5,
+                           border = "TopBottomLeftRight",
+                           borderStyle = "thin")
+
+# 4. Output Emission Rates (#EBF1DE)
+color4_header <- createStyle(textDecoration = "bold",
+                             fgFill = "#EBF1DE", 
+                             wrapText = TRUE,
+                             fontName = "Arial",
+                             fontSize = 8.5,
+                             border = "TopBottomLeftRight",
+                             borderStyle = "thin")
+
+color4_desc <- createStyle(wrapText = TRUE,
+                           halign = "center",
+                           valign = "center",
+                           textDecoration = "bold",
+                           fgFill = "#EBF1DE", 
+                           fontName = "Arial",
+                           fontSize = 8.5,
+                           border = "TopBottomLeftRight",
+                           borderStyle = "thin")
+
+# 5. Input Emission Rates (#C4D79B)
+color5_header <- createStyle(textDecoration = "bold",
+                             fgFill = "#C4D79B", 
+                             wrapText = TRUE,
+                             fontName = "Arial",
+                             fontSize = 8.5,
+                             border = "TopBottomLeftRight",
+                             borderStyle = "thin")
+
+color5_desc <- createStyle(wrapText = TRUE,
+                           halign = "center",
+                           valign = "center",
+                           textDecoration = "bold",
+                           fgFill = "#C4D79B", 
+                           fontName = "Arial",
+                           fontSize = 8.5,
+                           border = "TopBottomLeftRight",
+                           borderStyle = "thin")
+
+# 6. Combustion Output Rates
+color6_header <- createStyle(textDecoration = "bold",
+                             fgFill = "#76933C", 
+                             wrapText = TRUE,
+                             fontName = "Arial",
+                             fontSize = 8.5,
+                             border = "TopBottomLeftRight",
+                             borderStyle = "thin",
+                             fontColour = "white")
+
+color6_desc <- createStyle(wrapText = TRUE,
+                           halign = "center",
+                           valign = "center",
+                           textDecoration = "bold",
+                           fgFill = "#76933C", 
+                           fontName = "Arial",
+                           fontSize = 8.5,
+                           border = "TopBottomLeftRight",
+                           borderStyle = "thin",
+                           fontColour = "white")
+
+# 7. Generation by Fuel Type (#DAEEF3)
+color7_header <- createStyle(textDecoration = "bold",
+                             fgFill = "#DAEEF3", 
+                             wrapText = TRUE,
+                             fontName = "Arial",
+                             fontSize = 8.5,
+                             border = "TopBottomLeftRight",
+                             borderStyle = "thin")
+
+color7_desc <- createStyle(wrapText = TRUE,
+                           halign = "center",
+                           valign = "center",
+                           textDecoration = "bold",
+                           fgFill = "#DAEEF3", 
+                           fontName = "Arial",
+                           fontSize = 8.5,
+                           border = "TopBottomLeftRight",
+                           borderStyle = "thin")
+
+# 8. Renewable and Non-Renewable Generation (#92CDDC)
+color8_header <- createStyle(textDecoration = "bold",
+                             fgFill = "#92CDDC", 
+                             wrapText = TRUE,
+                             fontName = "Arial",
+                             fontSize = 8.5,
+                             border = "TopBottomLeftRight",
+                             borderStyle = "thin")
+
+color8_desc <- createStyle(wrapText = TRUE,
+                           halign = "center",
+                           valign = "center",
+                           textDecoration = "bold",
+                           fgFill = "#92CDDC", 
+                           fontName = "Arial",
+                           fontSize = 8.5,
+                           border = "TopBottomLeftRight",
+                           borderStyle = "thin")
+
+# 9. Combustion and Non-Combustion Generation (#3DA2BD) #31869B
+color9_header <- createStyle(textDecoration = "bold",
+                             fgFill = "#3DA2BD", 
+                             wrapText = TRUE,
+                             fontName = "Arial",
+                             fontSize = 8.5,
+                             border = "TopBottomLeftRight",
+                             borderStyle = "thin")
+
+color9_desc <- createStyle(wrapText = TRUE,
+                           halign = "center",
+                           valign = "center",
+                           textDecoration = "bold",
+                           fgFill = "#3DA2BD", 
+                           fontName = "Arial",
+                           fontSize = 8.5,
+                           border = "TopBottomLeftRight",
+                           borderStyle = "thin")
+
+color9v2_header <- createStyle(textDecoration = "bold",
+                             fgFill = "#31869B", 
+                             wrapText = TRUE,
+                             fontName = "Arial",
+                             fontSize = 8.5,
+                             border = "TopBottomLeftRight",
+                             borderStyle = "thin",
+                             fontColour = "white")
+
+color9v2_desc <- createStyle(wrapText = TRUE,
+                           halign = "center",
+                           valign = "center",
+                           textDecoration = "bold",
+                           fgFill = "#31869B", 
+                           fontName = "Arial",
+                           fontSize = 8.5,
+                           border = "TopBottomLeftRight",
+                           borderStyle = "thin",
+                           fontColour = "white")
+
+# 10. Resource Mix (#FDE9D9)
+color10_header <- createStyle(textDecoration = "bold",
+                             fgFill = "#FDE9D9", 
+                             wrapText = TRUE,
+                             fontName = "Arial",
+                             fontSize = 8.5,
+                             border = "TopBottomLeftRight",
+                             borderStyle = "thin")
+
+color10_desc <- createStyle(wrapText = TRUE,
+                           halign = "center",
+                           valign = "center",
+                           textDecoration = "bold",
+                           fgFill = "#FDE9D9", 
+                           fontName = "Arial",
+                           fontSize = 8.5,
+                           border = "TopBottomLeftRight",
+                           borderStyle = "thin")
+
+# 11. Renewable and Non-Renewable Resource Mix (#FABF8F)
+color11_header <- createStyle(textDecoration = "bold",
+                             fgFill = "#FABF8F", 
+                             wrapText = TRUE,
+                             fontName = "Arial",
+                             fontSize = 8.5,
+                             border = "TopBottomLeftRight",
+                             borderStyle = "thin")
+
+color11_desc <- createStyle(wrapText = TRUE,
+                           halign = "center",
+                           valign = "center",
+                           textDecoration = "bold",
+                           fgFill = "#FABF8F", 
+                           fontName = "Arial",
+                           fontSize = 8.5,
+                           border = "TopBottomLeftRight",
+                           borderStyle = "thin")
+
+# 12. Combustion and Non-Combustion Resource Mix (#F6903C) (#E26B0A)
+color12_header <- createStyle(textDecoration = "bold",
+                             fgFill = "#F6903C", 
+                             wrapText = TRUE,
+                             fontName = "Arial",
+                             fontSize = 8.5,
+                             border = "TopBottomLeftRight",
+                             borderStyle = "thin")
+
+color12_desc <- createStyle(wrapText = TRUE,
+                           halign = "center",
+                           valign = "center",
+                           textDecoration = "bold",
+                           fgFill = "#F6903C", 
+                           fontName = "Arial",
+                           fontSize = 8.5,
+                           border = "TopBottomLeftRight",
+                           borderStyle = "thin")
+
+color12v2_header <- createStyle(textDecoration = "bold",
+                              fgFill = "#E26B0A", 
+                              wrapText = TRUE,
+                              fontName = "Arial",
+                              fontSize = 8.5,
+                              border = "TopBottomLeftRight",
+                              borderStyle = "thin")
+
+color12v2_desc <- createStyle(wrapText = TRUE,
+                            halign = "center",
+                            valign = "center",
+                            textDecoration = "bold",
+                            fgFill = "#E26B0A", 
+                            fontName = "Arial",
+                            fontSize = 8.5,
+                            border = "TopBottomLeftRight",
+                            borderStyle = "thin")
+
+
+
+
 
 ### UNT Formatting -----
 # create sheet
@@ -275,7 +499,7 @@ writeData(wb, sheet = unt, t(unt_desc), startRow = 1, colNames = FALSE)
 
 # add first row styles
 addStyle(wb, sheet = unt, style = desc_style, rows = 1, cols = 1:14, gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = unadj_ann_desc, rows = 1, cols = 15:28, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = color2_desc, rows = 1, cols = 15:28, gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = desc_style, rows = 1, cols = 29:32, gridExpand = TRUE)
 
 # write data to sheet
@@ -300,7 +524,7 @@ setRowHeights(wb, sheet = unt, row = 1, heights = 60.75)
 ## add header style
 
 addStyle(wb, sheet = unt, style = header_style, rows = 2, cols = 1:14, gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = unadj_ann_header, rows = 2, cols = 15:28, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = color2_header, rows = 2, cols = 15:28, gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = header_style, rows = 2, cols = 29:32, gridExpand = TRUE)
 
 ## add number styles
@@ -380,7 +604,7 @@ writeData(wb, sheet = gen, t(gen_desc), startRow = 1, colNames = FALSE)
 
 # add first row styles
 addStyle(wb, sheet = gen, style = desc_style, rows = 1, cols = 1:12, gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = ann_vals_desc, rows = 1, cols = 13:14, gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = color1_desc, rows = 1, cols = 13:14, gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = desc_style, rows = 1, cols = 15:17, gridExpand = TRUE)
 
 # write data to sheet
@@ -409,7 +633,7 @@ setRowHeights(wb, sheet = gen, row = 1, heights = 60.75)
 ## add header style
 
 addStyle(wb, sheet = gen, style = header_style, rows = 2, cols = 1:12, gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = ann_vals_header, rows = 2, cols = 13:14, gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = color1_header, rows = 2, cols = 13:14, gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = header_style, rows = 2, cols = 15:17, gridExpand = TRUE)
 
 ## add number styles
@@ -424,6 +648,366 @@ addStyle(wb, sheet = gen, style = decimal1, rows = 3:gen_rows, cols = 13:14, gri
 addStyle(wb, sheet = gen, style = basic, rows = 3:gen_rows, cols = 1:6, gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = basic, rows = 3:gen_rows, cols = 6:10, gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = basic, rows = 3:gen_rows, cols = 14:17, gridExpand = TRUE)
+
+### PLNT Formatting -----
+
+## create "PLNT" sheet
+plnt <- glue::glue("PLNT{year}")
+addWorksheet(wb, plnt)
+
+# create sqtplnt name using year
+seqplnt <- glue::glue("SEQPLNT{year}") 
+
+# select number of rows from data frame
+plnt_rows <- nrow(plnt_file)
+
+## vector of names -----
+
+# column names
+plnt_header <- c(seqplnt,
+                 "YEAR",
+                 "PSTATABB",
+                 "PNAME",
+                 "ORISPL",
+                 "OPRNAME",
+                 "OPRCODE",
+                 "UTLSRVNM",
+                 "UTLSRVID",
+                 "SECTOR",
+                 "BANAME",
+                 "BACODE",
+                 "NERC",
+                 "SUBRGN",
+                 "SRNAME",
+                 "ISORTO",
+                 "FIPSST",
+                 "FIPSCNTY",
+                 "CNTYNAME",
+                 "LAT",
+                 "LON",
+                 "CAMDFLAG",
+                 "NUMUNT",
+                 "NUMGEN",
+                 "PLPRMFL",
+                 "PLFUELCT",
+                 "COALFLAG",
+                 "CAPFAC",
+                 "NAMEPCAP",
+                 "NBFACTOR",
+                 "RMBMFLAG",
+                 "CHPFLAG",
+                 "USETHRMO",
+                 "PWRTOHT",
+                 "ELCALLOC",
+                 "PSFLAG",
+                 "PLHTIAN",
+                 "PLHTIOZ",
+                 "PLHTIANT",
+                 "PLHTIOZT",
+                 "PLNGENAN",
+                 "PLNGENOZ",
+                 "PLNOXAN",
+                 "PLSO2AN",
+                 "PLCO2AN",
+                 "PLCH4AN",
+                 "PLN2OAN",
+                 "PLCO2EQA",
+                 "PLHGAN",
+                 "PLNOXRTA",
+                 "PLNOXRTO",
+                 "PLSO2RTA",
+                 "PLCO2RTA",
+                 "PLCH4RTA",
+                 "PLN2ORTA",
+                 "PLC2ERTA",
+                 "PLHGRTA",
+                 "PLNOXRA",
+                 "PLNOXRO",
+                 "PLSO2RA",
+                 "PLCO2RA",
+                 "PLCH4RA",
+                 "PLN2ORA",
+                 "PLC2ERA",
+                 "PLHGRA",
+                 "PLNOXCRT",
+                 "PLNOXCRO",
+                 "PLSO2CRT",
+                 "PLCO2CRT",
+                 "PLCH4CRT",
+                 "PLN2OCRT",
+                 "PLC2ECRT",
+                 "PLHGCRT",
+                 "UNNOX",
+                 "UNNOXOZ",
+                 "UNSO2",
+                 "UNCO2",
+                 "UNCH4",
+                 "UNN2O",
+                 "UNHG",
+                 "UNHTI",
+                 "UNHTIOZ",
+                 "UNHTIT",
+                 "UNHTIOZT",
+                 "UNNOXSRC",
+                 "UNNOZSRC",
+                 "UNSO2SRC",
+                 "UNCO2SRC",
+                 "UNCH4SRC",
+                 "UNN2OSRC",
+                 "UNHGSRC",
+                 "UNHTISRC",
+                 "UNHOZSRC",
+                 "BIONOX",
+                 "BIONOXOZ",
+                 "BIOSO2",
+                 "BIOCO2",
+                 "BIOCH4",
+                 "BION2O",
+                 "CHPCHTI",
+                 "CHPCHTIOZ",
+                 "CHPNOX",
+                 "CHPNOXOZ",
+                 "CHPSO2",
+                 "CHPCO2",
+                 "CHPCH4",
+                 "CHPN2O",
+                 "PLHTRT",
+                 "PLGENACL",
+                 "PLGENAOL",
+                 "PLGENAGS",
+                 "PLGENANC",
+                 "PLGENAHY",
+                 "PLGENABM",
+                 "PLGENAWI",
+                 "PLGENASO",
+                 "PLGENAGT",
+                 "PLGENAOF",
+                 "PLGENAOP",
+                 "PLGENATN",
+                 "PLGENATR",
+                 "PLGENATH",
+                 "PLGENACY",
+                 "PLGENACN",
+                 "PLCLPR",
+                 "PLOLPR",
+                 "PLGSPR",
+                 "PLNCPR",
+                 "PLHYPR",
+                 "PLBMPR",
+                 "PLWIPR",
+                 "PLSOPR",
+                 "PLGTPR",
+                 "PLOFPR",
+                 "PLOPPR",
+                 "PLTNPR",
+                 "PLTRPR",
+                 "PLTHPR",
+                 "PLCYPR",
+                 "PLCNPR")
+
+# description of column names 
+plnt_desc <- c("Plant file sequence number",
+               "Data Year",
+               "Plant state abbreviation",
+               "Plant name",
+               "DOE/EIA ORIS plant or facility code",
+               "Plant transmission or distribution system owner name",
+               "Plant transmission or distribution system owner ID",
+               "Utility name",
+               "Utility ID",
+               "Plant-level sector",
+               "Balancing Authority Name",
+               "Balancing Authority Code",
+               "NERC region acronym",
+               "eGRID subregion acronym",
+               "eGRID subregion name",
+               "Plant associated ISO/RTO Territory",
+               "Plant FIPS state code",
+               "Plant FIPS county code",
+               "Plant county name",
+               "Plant latitude",
+               "Plant longitude",
+               "CAMD Program Flag",
+               "Number of units",
+               "Number of generators",
+               "Plant primary fuel",
+               "Plant primary fuel category",
+               "Flag indicating if the plant burned or generated any amount of coal",
+               "Plant capacity factor",
+               "Plant nameplate capacity (MW)",
+               "Nonbaseload Factor",
+               "Biogas/ biomass plant adjustment flag","Combined heat and power (CHP) plant adjustment flag",
+               "CHP plant useful thermal output (MMBtu)",
+               "CHP plant power to heat ratio",
+               "CHP plant electric allocation factor",
+               "Plant pumped storage flag",
+               "Plant annual heat input from combustion (MMBtu)",
+               "Plant ozone season heat input from combustion (MMBtu)",
+               "Plant total annual heat input (MMBtu)",
+               "Plant total ozone season heat input (MMBtu)",
+               "Plant annual net generation (MWh)",
+               "Plant ozone season net generation (MWh)",
+               "Plant annual NOx emissions (tons)",
+               "Plant ozone season NOx emissions (tons)",
+               "Plant annual SO2 emissions (tons)",
+               "Plant annual CO2 emissions (tons)",
+               "Plant annual CH4 emissions (lbs)",
+               "Plant annual N2O emissions (lbs)",
+               "Plant annual CO2 equivalent emissions (tons)",
+               "Plant annual Hg emissions (lbs)",
+               "Plant annual NOx total output emission rate (lb/MWh)",
+               "Plant ozone season NOx total output emission rate (lb/MWh)",
+               "Plant annual SO2 total output emission rate (lb/MWh)",
+               "Plant annual CO2 total output emission rate (lb/MWh)",
+               "Plant annual CH4 total output emission rate (lb/MWh)",
+               "Plant annual N2O total output emission rate (lb/MWh)",
+               "Plant annual CO2 equivalent total output emission rate (lb/MWh)",
+               "Plant annual Hg total output emission rate (lb/MWh)",
+               "Plant annual NOx input emission rate (lb/MMBtu)",
+               "Plant ozone season NOx input emission rate (lb/MMBtu)",
+               "Plant annual SO2 input emission rate (lb/MMBtu)",
+               "Plant annual CO2 input emission rate (lb/MMBtu)",
+               "Plant annual CH4 input emission rate (lb/MMBtu)",
+               "Plant annual N2O input emission rate (lb/MMBtu)",
+               "Plant annual CO2 equivalent input emission rate (lb/MMBtu)",
+               "Plant annual Hg input emission rate (lb/MMBtu)",
+               "Plant annual NOx combustion output emission rate (lb/MWh)",
+               "Plant ozone season NOx combustion output emission rate (lb/MWh)",
+               "Plant annual SO2 combustion output emission rate (lb/MWh)",
+               "Plant annual CO2 combustion output emission rate (lb/MWh)",
+               "Plant annual CH4 combustion output emission rate (lb/MWh)",
+               "Plant annual N2O combustion output emission rate (lb/MWh)",
+               "Plant annual CO2 equivalent combustion output emission rate (lb/MWh)",
+               "Plant annual Hg combustion output emission rate (lb/MWh)",
+               "Plant unadjusted annual NOx emissions (tons)",
+               "Plant unadjusted ozone season NOx emissions (tons)",
+               "Plant unadjusted annual SO2 emissions (tons)",
+               "Plant unadjusted annual CO2 emissions (tons)",
+               "Plant unadjusted annual CH4 emissions (lbs)",
+               "Plant unadjusted annual N2O emissions (lbs)",
+               "Plant unadjusted annual Hg emissions (lbs)",
+               "Plant unadjusted annual heat input from combustion (MMBtu)",
+               "Plant unadjusted ozone season heat input from combustion (MMBtu)",
+               "Plant unadjusted total annual heat input (MMBtu)",
+               "Plant unadjusted total ozone season heat input (MMBtu)",
+               "Plant unadjusted annual NOx emissions source",
+               "Plant unadjusted ozone season NOx emissions source",
+               "Plant unadjusted annual SO2 emissions source",
+               "Plant unadjusted annual CO2 emissions source",
+               "Plant unadjusted annual CH4 emissions source",
+               "Plant unadjusted annual N2O emissions source",
+               "Plant unadjusted annual Hg emissions source",
+               "Plant unadjusted annual heat input source",
+               "Plant unadjusted ozone season heat input source",
+               "Plant annual NOx biomass emissions (tons)",
+               "Plant ozone season NOx biomass emissions (tons)",
+               "Plant annual SO2 biomass emissions (tons)",
+               "Plant annual CO2 biomass emissions (tons)",
+               "Plant annual CH4 biomass emissions (lbs)",
+               "Plant annual N2O biomass emissions (lbs)",
+               "Plant combustion heat input CHP adjustment value (MMBtu)",
+               "Plant combustion annual ozone season heat input CHP adjustment value (MMBtu)",
+               "Plant annual NOx emissions CHP adjustment value (tons)",
+               "Plant ozone season NOx emissions CHP adjustment value (tons)",
+               "Plant annual SO2 emissions CHP adjustment value (tons)",
+               "Plant annual CO2 emissions CHP adjustment value (tons)",
+               "Plant annual CH4 emissions CHP adjustment value (lbs)",
+               "Plant annual N2O emissions CHP adjustment value (lbs)",
+               "Plant nominal heat rate (Btu/kWh)",
+               "Plant annual coal net generation (MWh)",
+               "Plant annual oil net generation (MWh)",
+               "Plant annual gas net generation (MWh)",
+               "Plant annual nuclear net generation (MWh)",
+               "Plant annual hydro net generation (MWh)",
+               "Plant annual biomass net generation (MWh)",
+               "Plant annual wind net generation (MWh)",
+               "Plant annual solar net generation (MWh)",
+               "Plant annual geothermal net generation (MWh)",
+               "Plant annual other fossil net generation (MWh)",
+               "Plant annual other unknown/ purchased fuel net generation (MWh)",
+               "Plant annual total nonrenewables net generation (MWh)",
+               "Plant annual total renewables net generation (MWh)",
+               "Plant annual total nonhydro renewables net generation (MWh)",
+               "Plant annual total combustion net generation (MWh)",
+               "Plant annual total noncombustion net generation (MWh)",
+               "Plant coal generation percent (resource mix)",
+               "Plant oil generation percent (resource mix)",
+               "Plant gas generation percent (resource mix)",
+               "Plant nuclear generation percent (resource mix)",
+               "Plant hydro generation percent (resource mix)",
+               "Plant biomass generation percent (resource mix)",
+               "Plant wind generation percent (resource mix)",
+               "Plant solar generation percent (resource mix)",
+               "Plant geothermal generation percent (resource mix)",
+               "Plant other fossil generation percent (resource mix)",
+               "Plant other unknown / purchased fuel generation percent (resource mix)",
+               "Plant total nonrenewables generation percent (resource mix)",
+               "Plant total renewables generation percent (resource mix)",
+               "Plant total nonhydro renewables generation percent (resource mix)",
+               "Plant total combustion generation percent (resource mix)",
+               "Plant total noncombustion generation percent (resource mix)")
+
+# change columns name                   
+colnames(plnt_file) <- plnt_header
+
+## add data and styles ----
+
+# write data for first row only
+writeData(wb, sheet = plnt, t(plnt_desc), startRow = 1, colNames = FALSE)
+
+# add style for first row only
+addStyle(wb, sheet = plnt, style = desc_style, rows = 1, cols = 1:36, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color1_desc, rows = 1, cols = 37:50, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color4_desc, rows = 1, cols = 51:58, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color5_desc, rows = 1, cols = 59:66, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color6_desc, rows = 1, cols = 67:74, gridExpand = TRUE) # white font
+addStyle(wb, sheet = plnt, style = color2_desc, rows = 1, cols = 75:94, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color3_desc, rows = 1, cols = 95:108, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = desc_style, rows = 1, cols = 109, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color7_desc, rows = 1, cols = 110:120, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color8_desc, rows = 1, cols = 121:122, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color9_desc, rows = 1, cols = 123, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color9v2_desc, rows = 1, cols = 124:125, gridExpand = TRUE) # white font
+addStyle(wb, sheet = plnt, style = color10_desc, rows = 1, cols = 126:136, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color11_desc, rows = 1, cols = 137:138, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color12_desc, rows = 1, cols = 139, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color12v2_desc, rows = 1, cols = 140:141, gridExpand = TRUE)
+
+
+# write data to sheet
+writeData(wb, 
+          sheet = plnt, 
+          plnt_file,
+          startRow = 2)
+
+## add header styles
+addStyle(wb, sheet = plnt, style = header_style, rows = 1, cols = 1:36, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color1_header, rows = 1, cols = 37:50, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color4_header, rows = 1, cols = 51:58, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color5_header, rows = 1, cols = 59:66, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color6_header, rows = 1, cols = 67:74, gridExpand = TRUE) # white font
+addStyle(wb, sheet = plnt, style = color2_header, rows = 1, cols = 75:94, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color3_header, rows = 1, cols = 95:108, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = header_style, rows = 1, cols = 109, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color7_header, rows = 1, cols = 110:120, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color8_header, rows = 1, cols = 121:122, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color9_header, rows = 1, cols = 123, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color9v2_header, rows = 1, cols = 124:125, gridExpand = TRUE) # white font
+addStyle(wb, sheet = plnt, style = color10_header, rows = 1, cols = 126:136, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color11_header, rows = 1, cols = 137:138, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color12_header, rows = 1, cols = 139, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color12v2_header, rows = 1, cols = 140:141, gridExpand = TRUE)
+
+## set column widths
+
+setColWidths(wb, sheet = plnt, cols = 1, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 3, widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 4, widths = 34.71)
+setColWidths(wb, sheet = plnt, cols = 5, widths = 12.71)
+
+## set row heights
+
+setRowHeights(wb, sheet = plnt, row = 1, heights = 60.75)
 
 
 ### GGL Formatting -----
