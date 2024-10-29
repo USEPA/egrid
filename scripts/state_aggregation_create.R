@@ -1,4 +1,15 @@
-
+## -------------------------------
+##
+## State aggregation file create 
+## 
+## Purpose: 
+## 
+## This file creates the state aggregation file for eGRID. 
+##
+## Authors:  
+##      Teagan Goforth, Abt Global, teagan.goforth@abtglobal.com
+##
+## -------------------------------
 
 # Load libraries  ----
 
@@ -11,76 +22,76 @@ library(stringr)
 
 # Load and clean necessary data ------
 
-# rename columns 
+# columns to keep from plant file 
 
 columns_to_keep <- 
   c("year", 
-    "state" = "pstatabb", 
-    "state_fips_code" = "fipsst", 
-    "plant_name", 
-    "plant_id", 
-    "nerc", 
-    "sub_region", 
-    "sub_region_name" = "srname",
-    "balance_authority_name", 
-    "balance_authority_code",
-    "primary_fuel_type" = "plprmfl", 
-    "primary_fuel_category" = "plfuelct", 
-    "plant_nameplate_capacity" = "namepcap", 
-    "capacity_factor" = "capfac", 
-    "nonbaseload_factor" = "nbfactor", 
-    "plant_heat_input_comb" = "plhtian", 
-    "plant_heat_input_comb_oz" = "plhtioz", 
-    "plant_heat_input_ann" = "plhtiant", 
-    "plant_heat_input_oz" = "plhtiozt", 
-    "plant_gen_ann" = "plngenan", 
-    "plant_gen_oz" = "plngenoz", 
-    "plant_nox_mass" = "plnoxan", 
-    "plant_nox_oz_mass" = "plnoxoz", 
-    "plant_so2_mass" = "plso2an", 
-    "plant_co2_mass" = "plco2an", 
-    "plant_ch4_mass" = "plch4an", 
-    "plant_n2o_mass" = "pln2oan", 
-    "plant_co2e_mass" = "plco2eqa",
-    "plant_hg_mass" = "plhgan", 
-    "plant_coal_gen" = "plgenacl", 
-    "plant_oil_gen" = "plgenaol", 
-    "plant_gas_gen" = "plgenags", 
-    "plant_nuclear_gen" = "plgenanc", 
-    "plant_hydro_gen" = "plgenahy",
-    "plant_biomass_gen" = "plgenabm", 
-    "plant_wind_gen" = "plgenawi", 
-    "plant_solar_gen" = "plgenaso", 
-    "plant_geothermal_gen" = "plgenagt", 
-    "plant_other_fossil_gen" = "plgenaof", 
-    "plant_other_purchased_gen" = "plgenaop", 
-    "plant_nonre_gen" = "plgenatn", 
-    "plant_re_gen" = "plgenatr", 
-    "plant_re_nonhydro_gen" = "plgenath", 
-    "plant_combustion_gen" = "plgenacy", 
-    "plant_noncombustion_gen" = "plgenacn"
-    )  
+    "state" = "plant_state",
+    "fips_state_code",
+    "plant_name",
+    "plant_id",
+    "nerc",
+    "sub_region" = "egrid_subregion",
+    "sub_region_name" = "egrid_subregion_name",
+    "ba_name",
+    "ba_code",
+    "primary_fuel_type",
+    "primary_fuel_category",
+    "nameplate_capacity",
+    "capfac",
+    "nonbaseload",
+    "combust_heat_input",
+    "combust_heat_input_oz",
+    "heat_input",
+    "heat_input_oz",
+    "generation_ann",
+    "generation_oz",
+    "nox_mass",
+    "nox_oz_mass",
+    "so2_mass",
+    "co2_mass",
+    "ch4_mass",
+    "n2o_mass",
+    "co2e_mass",
+    "hg_mass",
+    "ann_gen_coal",
+    "ann_gen_oil",
+    "ann_gen_gas",
+    "ann_gen_nuclear",
+    "ann_gen_hydro",
+    "ann_gen_biomass",
+    "ann_gen_wind",
+    "ann_gen_solar",
+    "ann_gen_geothermal",
+    "ann_gen_other_ff",
+    "ann_gen_other",
+    "ann_gen_non_renew",
+    "ann_gen_renew",
+    "ann_gen_renew_nonhydro",
+    "ann_gen_combust",
+    "ann_gen_non_combust"
+  )
 
 
 # read in plant file 
 
-plant <- 
-  read_rds("data/outputs/plant_file_2021.RDS") %>% 
+plant_file <- 
+  read_rds("data/outputs/plant_file.RDS") %>% 
   select(any_of(columns_to_keep))
 
 # factor plant_fuel_category to final eGRID output order
-plant$primary_fuel_category <- factor(plant$primary_fuel_category, 
-                                      levels = c("COAL", 
-                                                 "OIL", 
-                                                 "GAS",
-                                                 "NUCLEAR", 
-                                                 "HYDRO", 
-                                                 "BIOMASS", 
-                                                 "WIND", 
-                                                 "SOLAR", 
-                                                 "GEOTHERMAL", 
-                                                 "OFSL", 
-                                                 "OTHF"))
+plant_file$primary_fuel_category <- factor(plant_file$primary_fuel_category, 
+                                            levels = c("COAL", 
+                                                       "OIL", 
+                                                       "GAS",
+                                                       "NUCLEAR", 
+                                                       "HYDRO", 
+                                                       "BIOMASS", 
+                                                       "WIND", 
+                                                       "SOLAR", 
+                                                       "GEOTHERMAL", 
+                                                       "OFSL", 
+                                                       "OTHF"))
 
 
 # State level aggregation ------
@@ -88,15 +99,15 @@ plant$primary_fuel_category <- factor(plant$primary_fuel_category,
 # sum capacity, generation, emissions mass to state level 
 
 state <- 
-  plant %>% 
-  group_by(year, state, state_fips_code) %>% 
-  summarize(across(.cols = c("plant_nameplate_capacity", 
+  plant_file %>% 
+  group_by(year, state, fips_state_code) %>% 
+  summarize(across(.cols = c("nameplate_capacity", 
                              contains("heat_input"), 
-                             "plant_gen_ann", 
-                             "plant_gen_oz", 
+                             "generation_ann", 
+                             "generation_oz", 
                              contains("_mass")), 
                    .fns = ~ sum(.x, na.rm = TRUE),
-                   .names = "{str_replace(.col, 'plant_', 'state_')}")) %>% 
+                   .names = "state_{.col}")) %>% 
   mutate(state_hg_mass = "--") %>% 
   ungroup()
 
@@ -112,12 +123,12 @@ state_output_rates <-
                           "state_so2_mass", 
                           "state_co2_mass", 
                           "state_co2e_mass"), 
-                .fns = ~ 2000 * . / state_gen_ann, 
+                .fns = ~ 2000 * . / state_generation_ann, 
                 .names = "{str_replace(.col, '_mass', '')}_output_rate"), 
-         state_nox_oz_output_rate = 2000 * state_nox_oz_mass / state_gen_oz, 
+         state_nox_oz_output_rate = 2000 * state_nox_oz_mass / state_generation_oz, 
          across(.cols = c("state_ch4_mass", 
                           "state_n2o_mass"),
-                .fns = ~ . / state_gen_ann, 
+                .fns = ~ . / state_generation_ann, 
                 .names = "{str_replace(.col, '_mass', '')}_output_rate"),
          state_hg_output_rate = "--") %>% 
   relocate(state_nox_oz_output_rate, .after = state_nox_output_rate) %>% 
@@ -134,12 +145,12 @@ state_input_rates <-
                           "state_so2_mass", 
                           "state_co2_mass", 
                           "state_co2e_mass"), 
-                .fns = ~ 2000 * . / state_heat_input_comb, 
+                .fns = ~ 2000 * . / state_combust_heat_input, 
                 .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-         state_nox_oz_input_rate = 2000 * state_nox_oz_mass / state_heat_input_comb_oz, 
+         state_nox_oz_input_rate = 2000 * state_nox_oz_mass / state_combust_heat_input_oz, 
          across(.cols = c("state_ch4_mass", 
                           "state_n2o_mass"),
-                .fns = ~ . / state_heat_input_comb, 
+                .fns = ~ . / state_combust_heat_input, 
                 .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
          state_hg_input_rate = "--") %>% 
   relocate(state_nox_oz_input_rate, .after = state_nox_input_rate) %>% 
@@ -150,9 +161,9 @@ state_input_rates <-
 ### Combustion emission rates (lb/MWh) -----
 
 state_combustion_rates <- 
-  plant %>% 
+  plant_file %>% 
   group_by(state) %>% 
-  summarize(state_combustion_gen = sum(plant_combustion_gen, na.rm = TRUE)) %>% 
+  summarize(state_combustion_gen = sum(ann_gen_combust, na.rm = TRUE)) %>% 
   left_join(state, by = c("state")) %>% 
   mutate(# calculating combustion emissions rates (lb/MWh)
          across(.cols = c("state_nox_mass",  
@@ -161,10 +172,10 @@ state_combustion_rates <-
                           "state_co2e_mass"), 
                 .fns = ~ 2000 * . / state_combustion_gen, 
                 .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
-         state_nox_oz_combustion_rate = 2000 * state_nox_oz_mass / (state_combustion_gen * (state_gen_oz / state_gen_ann)), 
+         state_nox_oz_combustion_rate = 2000 * state_nox_oz_mass / (state_combustion_gen * (state_generation_oz / state_generation_ann)), 
          across(.cols = c("state_ch4_mass", 
                           "state_n2o_mass"),
-                .fns = ~ . / state_gen_ann, 
+                .fns = ~ . / state_generation_ann, 
                 .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
          state_hg_combustion_rate = "--") %>% 
   relocate(state_nox_oz_combustion_rate, .after = state_nox_combustion_rate) %>%  
@@ -182,46 +193,46 @@ fossil_fuels <- c("COAL",
                   "OSFL")
 
 state_fuel_rates <-
-  plant %>% 
+  plant_file %>% 
   group_by(state, primary_fuel_category) %>% 
   filter(primary_fuel_category %in% fossil_fuels, 
          !primary_fuel_category == 'OSFL') %>% # do not include other fossil in individual fuel rate calculations
   summarize(across(.cols = c(contains("heat_input"), 
-                             "plant_gen_ann", 
-                             "plant_gen_oz", 
+                             "generation_ann", 
+                             "generation_oz", 
                              contains("mass"), 
-                             "plant_coal_gen", 
-                             "plant_oil_gen", 
-                             "plant_gas_gen", 
-                             "plant_other_fossil_gen"), 
+                             "ann_gen_coal", 
+                             "ann_gen_oil", 
+                             "ann_gen_gas"), 
                    .fns = ~ sum(.x, na.rm = TRUE),
-                   .names = "{str_replace(.col, 'plant_', 'state_')}")) %>% 
-  mutate(# output emission rates (lb/MWh)
-         across(.cols = c("state_nox_mass",  
-                          "state_so2_mass", 
-                          "state_co2_mass", 
-                          "state_co2e_mass"), 
-                .fns = ~ 2000 * . / state_gen_ann, 
-                .names = "{str_replace(.col, '_mass', '')}_output_rate"), 
-         state_nox_oz_output_rate = 2000 * state_nox_oz_mass / state_gen_oz, 
-         across(.cols = c("state_ch4_mass", 
-                         "state_n2o_mass"),
-                .fns = ~ . / state_gen_ann, 
-                .names = "{str_replace(.col, '_mass', '')}_output_rate"),
-         
-         # input emission rates (lb/MMBtu)
-         across(.cols = c("state_nox_mass",  
-                          "state_so2_mass", 
-                          "state_co2_mass", 
-                          "state_co2e_mass"), 
-                .fns = ~ 2000 * . / state_heat_input_comb, 
-                .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-         state_nox_oz_input_rate = 2000 * state_nox_oz_mass / state_heat_input_comb_oz, 
-         across(.cols = c("state_ch4_mass", 
-                          "state_n2o_mass"),
-                .fns = ~ . / state_heat_input_comb, 
-                .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
-  select(state, primary_fuel_category, contains("rate")) %>% 
+                   .names = "state_{.col}")) %>% 
+  mutate(
+     # output emission rates (lb/MWh)
+     across(.cols = c("state_nox_mass",  
+                      "state_so2_mass", 
+                      "state_co2_mass", 
+                      "state_co2e_mass"), 
+            .fns = ~ 2000 * . / state_generation_ann, 
+            .names = "{str_replace(.col, '_mass', '')}_output_rate"), 
+     state_nox_oz_output_rate = 2000 * state_nox_oz_mass / state_generation_oz, 
+     across(.cols = c("state_ch4_mass", 
+                     "state_n2o_mass"),
+            .fns = ~ . / state_generation_ann, 
+            .names = "{str_replace(.col, '_mass', '')}_output_rate"),
+     
+     # input emission rates (lb/MMBtu)
+     across(.cols = c("state_nox_mass",  
+                      "state_so2_mass", 
+                      "state_co2_mass", 
+                      "state_co2e_mass"), 
+            .fns = ~ 2000 * . / state_combust_heat_input, 
+            .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
+     state_nox_oz_input_rate = 2000 * state_nox_oz_mass / state_combust_heat_input_oz, 
+     across(.cols = c("state_ch4_mass", 
+                      "state_n2o_mass"),
+            .fns = ~ . / state_combust_heat_input, 
+            .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
+    select(state, primary_fuel_category, contains("rate")) %>% 
   relocate(state_nox_oz_output_rate, .after = state_nox_output_rate) %>% 
   relocate(state_co2e_output_rate, .after = state_n2o_output_rate) %>% 
   relocate(state_nox_oz_input_rate, .after = state_nox_input_rate) %>% 
@@ -230,7 +241,7 @@ state_fuel_rates <-
               values_from = contains("rate")) %>% 
   janitor::clean_names() %>% 
   mutate(across(where(is.numeric), ~ replace_na(., 0)), 
-         state_hg_output_rate_coal = "--", 
+         state_hg_output_rate_coal = "--", # assign Hg values as "--" 
          state_hg_output_rate_fossil = "--", 
          state_hg_input_rate_coal = "--", 
          state_hg_input_rate_fossil = "--")
@@ -239,30 +250,31 @@ state_fuel_rates <-
 # calculate all fossil fuel output and input emission rates 
          
 state_fossil_rates <-
-  plant %>% 
+  plant_file %>% 
   group_by(state) %>% 
   filter(primary_fuel_category %in% fossil_fuels) %>% 
   summarize(across(.cols = c(contains("heat_input"), 
-                             "plant_gen_ann", 
-                             "plant_gen_oz", 
+                             "generation_ann", 
+                             "generation_oz", 
                              contains("mass"), 
-                             "plant_coal_gen", 
-                             "plant_oil_gen", 
-                             "plant_gas_gen", 
-                             "plant_other_fossil_gen"), 
+                             "ann_gen_coal", 
+                             "ann_gen_oil", 
+                             "ann_gen_gas", 
+                             "ann_gen_other_ff"), 
                    .fns = ~ sum(.x, na.rm = TRUE),
-                   .names = "{str_replace(.col, 'plant_', 'state_')}")) %>% 
-  mutate(# output emission rates (lb/MWh)
+                   .names = "state_{.col}")) %>% 
+  mutate(
+    # output emission rates (lb/MWh)
     across(.cols = c("state_nox_mass",  
                      "state_so2_mass", 
                      "state_co2_mass", 
                      "state_co2e_mass"), 
-           .fns = ~ 2000 * . / state_gen_ann, 
+           .fns = ~ 2000 * . / state_generation_ann, 
            .names = "{str_replace(.col, '_mass', '')}_output_rate_fossil"), 
-    state_nox_oz_output_rate_fossil = 2000 * state_nox_oz_mass / state_gen_oz, 
+    state_nox_oz_output_rate_fossil = 2000 * state_nox_oz_mass / state_generation_oz, 
     across(.cols = c("state_ch4_mass", 
                      "state_n2o_mass"),
-           .fns = ~ . / state_gen_ann, 
+           .fns = ~ . / state_generation_ann, 
            .names = "{str_replace(.col, '_mass', '')}_output_rate_fossil"),
     
     # input emission rates (lb/MMBtu)
@@ -270,12 +282,12 @@ state_fossil_rates <-
                      "state_so2_mass", 
                      "state_co2_mass", 
                      "state_co2e_mass"), 
-           .fns = ~ 2000 * . / state_heat_input_comb, 
+           .fns = ~ 2000 * . / state_combust_heat_input, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
-    state_nox_oz_input_rate_fossil = 2000 * state_nox_oz_mass / state_heat_input_comb_oz, 
+    state_nox_oz_input_rate_fossil = 2000 * state_nox_oz_mass / state_combust_heat_input_oz, 
     across(.cols = c("state_ch4_mass", 
                      "state_n2o_mass"),
-           .fns = ~ . / state_heat_input_comb, 
+           .fns = ~ . / state_combust_heat_input, 
            .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
     across(where(is.numeric), ~ replace_na(., 0))) %>% 
   relocate(state_nox_oz_input_rate_fossil, .after = state_nox_input_rate_fossil) %>% 
@@ -286,23 +298,23 @@ state_fossil_rates <-
 ### Non-baseload output emission rates (lb/MWh) -----
 
 state_nonbaseload_rates <- 
-  plant %>% 
+  plant_file %>% 
   group_by(state) %>% 
-  summarize(across(.cols = c("plant_gen_ann", 
-                          "plant_gen_oz", 
-                          contains("mass")), 
-                .fns = ~ sum(. * nonbaseload_factor, na.rm = TRUE), 
-                .names = "{str_replace(.col, 'plant_', 'state_')}")) %>% 
+  summarize(across(.cols = c("generation_ann", 
+                             "generation_oz", 
+                             contains("mass")), 
+                .fns = ~ sum(. * nonbaseload, na.rm = TRUE), 
+                .names = "state_{.col}")) %>% 
   mutate(across(.cols = c("state_nox_mass",  
                           "state_so2_mass", 
                           "state_co2_mass", 
                           "state_co2e_mass"), 
-                .fns = ~ 2000 * . / state_gen_ann, 
+                .fns = ~ 2000 * . / state_generation_ann, 
                 .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"), 
-         state_nox_oz_output_rate_nonbaseload = 2000 * state_nox_oz_mass / state_gen_oz, 
+         state_nox_oz_output_rate_nonbaseload = 2000 * state_nox_oz_mass / state_generation_oz, 
          across(.cols = c("state_ch4_mass", 
                           "state_n2o_mass"),
-                .fns = ~ . / state_gen_ann, 
+                .fns = ~ . / state_generation_ann, 
                 .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"),
          state_hg_output_rate_nonbaseload = "--") %>% 
   relocate(state_nox_oz_output_rate_nonbaseload, .after = state_nox_output_rate_nonbaseload) %>% 
@@ -315,23 +327,23 @@ state_nonbaseload_rates <-
 ### Generation by fuel category (MWh) -----
 
 state_gen <- 
-  plant %>% 
+  plant_file %>% 
   group_by(state) %>% 
   summarize(across(.cols = c(contains("gen")), 
                    .fns = ~ sum(.x, na.rm = TRUE),
-                   .names = "{str_replace(.col, 'plant_', 'state_')}")) 
+                   .names = "state_{.col}")) 
 
 state_gen_2 <- 
   state_gen %>% 
-  select(-state_gen_ann, -state_gen_oz) # remove duplicate columns for final formatting
+  select(-state_generation_ann, -state_generation_oz) # remove duplicate columns for final formatting
 
 ### Resource mix by fuel category (%) -----
 
 state_resource_mix <- 
   state_gen %>% 
-  select(-state_gen_oz) %>%   
-  mutate(across(.cols = -c("state", "state_gen_ann"), 
-                .fns = ~ . / state_gen_ann,  
+  select(-state_generation_oz) %>%   
+  mutate(across(.cols = -c("state", "state_generation_ann"), 
+                .fns = ~ . / state_generation_ann,  
                 .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>%
   select(state, contains("resource_mix"))
 
@@ -339,9 +351,9 @@ state_resource_mix <-
 ### Nonbaseload generation (MWh) -----
 
 state_nonbaseload_gen <- 
-  plant %>% 
+  plant_file %>% 
   group_by(state, primary_fuel_category) %>% 
-  summarize(state_nonbaseload_gen = sum(plant_gen_ann * nonbaseload_factor, na.rm = TRUE)) %>% 
+  summarize(state_nonbaseload_gen = sum(generation_ann * nonbaseload, na.rm = TRUE)) %>% 
   arrange(primary_fuel_category) %>% 
   pivot_wider(names_from = primary_fuel_category, 
               values_from = state_nonbaseload_gen, 
@@ -424,7 +436,5 @@ if(dir.exists("data/outputs")) {
 print("Saving state aggregation file to folder data/outputs/")
 
 write_rds(state_formatted, "data/outputs/state_aggregation.RDS")
-
-
 
 
