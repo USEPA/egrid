@@ -31,7 +31,11 @@ library(openxlsx)
 unt_file <- readRDS('data/outputs/unit_file.RDS')
 gen_file <- readRDS('data/outputs/generator_file.RDS')
 plnt_file <- readRDS('data/outputs/plant_file.RDS')
-ggl_file <- readRDS('data/outputs/egrid_ggl_final.RDS') # maybe change file name to match others
+st_file <- readRDS('data/outputs/state_aggregation.RDS')
+ba_file <- readRDS('data/outputs/BA_aggregation.RDS')
+nrl_file <- readRDS('data/outputs/nerc_aggregation.RDS')
+us_file <- readRDS('data/outputs/us_aggregation.RDS')
+ggl_file <- readRDS('data/outputs/egrid_ggl_final.RDS') # maybe change file name to match other
 
 
 # check if parameters for eGRID data year need to be defined
@@ -412,6 +416,103 @@ color12v2_desc <- createStyle(wrapText = TRUE,
                             border = "TopBottomLeftRight",
                             borderStyle = "thin")
 
+# 13. Output Emission Rates by Fuel Type
+color13_header <- createStyle(textDecoration = "bold",
+                              fgFill = "#FFFFCC", 
+                              wrapText = TRUE,
+                              fontName = "Arial",
+                              fontSize = 8.5,
+                              border = "TopBottomLeftRight",
+                              borderStyle = "thin")
+
+color13_desc <- createStyle(wrapText = TRUE,
+                            halign = "center",
+                            valign = "center",
+                            textDecoration = "bold",
+                            fgFill = "#FFFFCC", 
+                            fontName = "Arial",
+                            fontSize = 8.5,
+                            border = "TopBottomLeftRight",
+                            borderStyle = "thin")
+
+# 14. Input Emission Rates by Fuel Type
+color14_header <- createStyle(textDecoration = "bold",
+                              fgFill = "#FFFF99", 
+                              wrapText = TRUE,
+                              fontName = "Arial",
+                              fontSize = 8.5,
+                              border = "TopBottomLeftRight",
+                              borderStyle = "thin")
+
+color14_desc <- createStyle(wrapText = TRUE,
+                            halign = "center",
+                            valign = "center",
+                            textDecoration = "bold",
+                            fgFill = "#FFFF99", 
+                            fontName = "Arial",
+                            fontSize = 8.5,
+                            border = "TopBottomLeftRight",
+                            borderStyle = "thin")
+
+# 15. Nonbaseload Output Emission Rates
+color15_header <- createStyle(textDecoration = "bold",
+                              fgFill = "#E4DFEC", 
+                              wrapText = TRUE,
+                              fontName = "Arial",
+                              fontSize = 8.5,
+                              border = "TopBottomLeftRight",
+                              borderStyle = "thin")
+
+color15_desc <- createStyle(wrapText = TRUE,
+                            halign = "center",
+                            valign = "center",
+                            textDecoration = "bold",
+                            fgFill = "#E4DFEC", 
+                            fontName = "Arial",
+                            fontSize = 8.5,
+                            border = "TopBottomLeftRight",
+                            borderStyle = "thin")
+
+# 16. Nonbaseload Generation by Fuel Type
+color16_header <- createStyle(textDecoration = "bold",
+                              fgFill = "#B1A0C7", 
+                              wrapText = TRUE,
+                              fontName = "Arial",
+                              fontSize = 8.5,
+                              border = "TopBottomLeftRight",
+                              borderStyle = "thin")
+
+color16_desc <- createStyle(wrapText = TRUE,
+                            halign = "center",
+                            valign = "center",
+                            textDecoration = "bold",
+                            fgFill = "#B1A0C7", 
+                            fontName = "Arial",
+                            fontSize = 8.5,
+                            border = "TopBottomLeftRight",
+                            borderStyle = "thin")
+
+# 17. Nonbaseload Resource Mix
+color17_header <- createStyle(textDecoration = "bold",
+                              fgFill = "#60497A", 
+                              wrapText = TRUE,
+                              fontName = "Arial",
+                              fontSize = 8.5,
+                              border = "TopBottomLeftRight",
+                              borderStyle = "thin",
+                              fontColour = "white")
+
+color17_desc <- createStyle(wrapText = TRUE,
+                            halign = "center",
+                            valign = "center",
+                            textDecoration = "bold",
+                            fgFill = "#60497A", 
+                            fontName = "Arial",
+                            fontSize = 8.5,
+                            border = "TopBottomLeftRight",
+                            borderStyle = "thin",
+                            fontColour = "white")
+
 
 ### UNT Formatting -----
 # create sheet
@@ -669,7 +770,7 @@ plnt_file <- plnt_file %>%
          system_owner_id = as.numeric(system_owner_id),
          utility_id = as.numeric(utility_id))
 
-# create sqtplnt name using year
+# create sqtplt name using year
 seqplt <- glue::glue("SEQPLT{year}") 
 
 # select number of rows from data frame
@@ -1084,6 +1185,407 @@ addStyle(wb, sheet = plnt, style = basic, rows = 3:plnt_rows, cols = 31:32, grid
 addStyle(wb, sheet = plnt, style = basic, rows = 3:plnt_rows, cols = 36, gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = basic, rows = 3:plnt_rows, cols = 86:94, gridExpand = TRUE)
 
+
+### ST Formatting -----
+
+# create "ST" sheet
+st <- glue::glue("ST{year}")
+addWorksheet(wb, st)
+
+# convert variables to numeric values
+
+# select number of rows from data frame
+st_rows <- nrow(st_file)+2 
+
+## vector of names -----
+# column names
+st_header <- c("YEAR",
+               "PSTATABB",
+               "FIPSST",
+               "STNAMEPCAP",
+               "STHTIAN",
+               "STHTIOZ",	
+               "STHTIANT",
+               "STHTIOZT",
+               "STNGENAN",
+               "STNGENOZ",	
+               "STNOXAN",
+               "STNOXOZ",
+               "STSO2AN",
+               "STCO2AN",
+               "STCH4AN",
+               "STN2OAN",
+               "STCO2EQA",
+               "STHGAN",
+               "STNOXRTA",
+               "STNOXRTO",
+               "STSO2RTA",
+               "STCO2RTA",
+               "STCH4RTA",
+               "STN2ORTA",
+               "STC2ERTA",
+               "STHGRTA",	
+               "STNOXRA",	
+               "STNOXRO",
+               "STSO2RA",	
+               "STCO2RA",	
+               "STCH4RA",
+               "STN2ORA",	
+               "STC2ERA",
+               "STHGRA",	
+               "STNOXCRT",
+               "STNOXCRO",	
+               "STSO2CRT",	
+               "STCO2CRT",	
+               "STCH4CRT",	
+               "STN2OCRT",	
+               "STC2ECRT",	
+               "STHGCRT",	
+               "STCNOXRT",	
+               "STONOXRT",	
+               "STGNOXRT",	
+               "STFSNXRT",
+               "STCNXORT",	
+               "STONXORT",
+               "STGNXORT",	
+               "STFSNORT",
+               "STCSO2RT",	
+               "STOSO2RT",	
+               "STGSO2RT",	
+               "STFSS2RT",
+               "STCCO2RT",	
+               "STOCO2RT",	
+               "STGCO2RT",
+               "STFSC2RT",	
+               "STCCH4RT",
+               "STOCH4RT",	
+               "STGCH4RT",	
+               "STFCH4RT",
+               "STCN2ORT",
+               "STON2ORT",
+               "STGN2ORT",
+               "STFN2ORT",
+               "STCC2ERT",
+               "STOC2ERT",
+               "STGC2ERT",
+               "STFSC2ERT",	
+               "STCHGRT",	
+               "STFSHGRT",	
+               "STCNOXR",	
+               "STONOXR",	
+               "STGNOXR",	
+               "STFSNXR",	
+               "STCNXOR",	
+               "STONXOR",
+               "STGNXOR",	
+               "STFSNOR",	
+               "STCSO2R",	
+               "STOSO2R",	
+               "STGSO2R",	
+               "STFSS2R",	
+               "STCCO2R",	
+               "STOCO2R",	
+               "STGCO2R",	
+               "STFSC2R",
+               "STCCH4R",
+               "STOCH4R",
+               "STGCH4R",
+               "STFCH4R", 
+               "STCN2OR",	
+               "STON2OR",	
+               "STGN2OR",
+               "STFN2OR",	
+               "STCC2ER",	
+               "STOC2ER",
+               "STGC2ER",	
+               "STFSC2ER",	
+               "STCHGR",	
+               "STFSHGR",	
+               "STNBNOX",	
+               "STNBNXO",	
+               "STNBSO2",	
+               "STNBCO2",	
+               "STNBCH4",	
+               "STNBN2O",	
+               "STNBC2E",	
+               "STNBHG",	
+               "STGENACL",	
+               "STGENAOL",	
+               "STGENAGS",	
+               "STGENANC",	
+               "STGENAHY",	
+               "STGENABM",	
+               "STGENAWI",	
+               "STGENASO",	
+               "STGENAGT",	
+               "STGENAOF",	
+               "STGENAOP",	
+               "STGENATN",	
+               "STGENATR",	
+               "STGENATH",	
+               "STGENACY",	
+               "STGENACN",	
+               "STCLPR",	
+               "STOLPR",	
+               "STGSPR",	
+               "STNCPR",	
+               "STHYPR",	
+               "STBMPR",	
+               "STWIPR",	
+               "STSOPR",	
+               "STGTPR",	
+               "STOFPR",
+               "STOPPR",	
+               "STTNPR",	
+               "STTRPR",	
+               "STTHPR",	
+               "STCYPR",
+               "STCNPR",	
+               "STNBGNCL",
+               "STNBGNOL",	
+               "STNBGNGS",	
+               "STNBGNNC",	
+               "STNBGNHY",	
+               "STNBGNBM",	
+               "STNBGNWI",	
+               "STNBGNSO",
+               "STNBGNGT",
+               "STNBGNOF",	
+               "STNBGNOP",	
+               "STNBCLPR",	
+               "STNBOLPR",	
+               "STNBGSPR",	
+               "STNBNCPR",	
+               "STNBHYPR",	
+               "STNBBMPR",
+               "STNBWIPR",	
+               "STNBSOPR",
+               "STNBGTPR",	
+               "STNBOFPR",
+               "STNBOPPR")
+
+# description of column names
+st_desc <- c("Data Year","
+             State abbreviation",
+             "FIPS State code",
+             "State nameplate capacity (MW)",
+             "State annual heat input from combustion (MMBtu)",
+             "State ozone season heat input from combustion (MMBtu)",
+             "State total annual heat input (MMBtu)",
+             "State total ozone season heat input (MMBtu)",
+             "State annual net generation (MWh)",
+             "State ozone season net generation (MWh)",
+             "State annual NOx emissions (tons)",
+             "State ozone season NOx emissions (tons)",
+             "State annual SO2 emissions (tons)",
+             "State annual CO2 emissions (tons)",
+             "State annual CH4 emissions (lbs)",
+             "State annual N2O emissions (lbs)",
+             "State annual CO2 equivalent emissions (tons)",
+             "State annual Hg emissions (lbs)",
+             "State annual NOx total output emission rate (lb/MWh)",
+             "State ozone season NOx total output emission rate (lb/MWh)",
+             "State annual SO2 total output emission rate (lb/MWh)",
+             "State annual CO2 total output emission rate (lb/MWh)",
+             "State annual CH4 total output emission rate (lb/MWh)",
+             "State annual N2O total output emission rate (lb/MWh)",
+             "State annual CO2 equivalent total output emission rate (lb/MWh)",
+             "State annual Hg total output emission rate (lb/MWh)",
+             "State annual NOx input emission rate (lb/MMBtu)",
+             "State ozone season NOx input emission rate (lb/MMBtu)",
+             "State annual SO2 input emission rate (lb/MMBtu)",
+             "State annual CO2 input emission rate (lb/MMBtu)",
+             "State annual CH4 input emission rate (lb/MMBtu)",
+             "State annual N2O input emission rate (lb/MMBtu)",
+             "State annual CO2 equivalent input emission rate (lb/MMBtu)",
+             "State annual Hg input emission rate (lb/MMBtu)",
+             "State annual NOx combustion output emission rate (lb/MWh)",
+             "State ozone season NOx combustion output emission rate (lb/MWh)",
+             "State annual SO2 combustion output emission rate (lb/MWh)",
+             "State annual CO2 combustion output emission rate (lb/MWh)",
+             "State annual CH4 combustion output emission rate (lb/MWh)",
+             "State annual N2O combustion output emission rate (lb/MWh)",
+             "State annual CO2 equivalent combustion output emission rate (lb/MWh)",
+             "State annual Hg combustion output emission rate (lb/MWh)",
+             "State annual NOx coal output emission rate (lb/MWh)",
+             "State annual NOx oil output emission rate (lb/MWh)",
+             "State annual NOx gas output emission rate (lb/MWh)",
+             "State annual NOx fossil fuel output emission rate (lb/MWh)",
+             "State ozone season NOx coal output emission rate (lb/MWh)",
+             "State ozone season NOx oil output emission rate (lb/MWh)",
+             "State ozone season NOx gas output emission rate (lb/MWh)",
+             "State ozone season NOx fossil fuel output emission rate (lb/MWh)",
+             "State annual SO2 coal output emission rate (lb/MWh)",
+             "State annual SO2 oil output emission rate (lb/MWh)",
+             "State annual SO2 gas output emission rate (lb/MWh)",
+             "State annual SO2 fossil fuel output emission rate (lb/MWh)",
+             "State annual CO2 coal output emission rate (lb/MWh)",
+             "State annual CO2 oil output emission rate (lb/MWh)",
+             "State annual CO2 gas output emission rate (lb/MWh)",
+             "State annual CO2 fossil fuel output emission rate (lb/MWh)",
+             "State annual CH4 coal output emission rate (lb/MWh)",
+             "State annual CH4 oil output emission rate (lb/MWh)",
+             "State annual CH4 gas output emission rate (lb/MWh)",
+             "State annual CH4 fossil fuel output emission rate (lb/MWh)",
+             "State annual N2O coal output emission rate (lb/MWh)",
+             "State annual N2O oil output emission rate (lb/MWh)",
+             "State annual N2O gas output emission rate (lb/MWh)",
+             "State annual N2O fossil fuel output emission rate (lb/MWh)",
+             "State annual CO2 equivalent coal output emission rate (lb/MWh)",
+             "State annual CO2 equivalent oil output emission rate (lb/MWh)",
+             "State annual CO2 equivalent gas output emission rate (lb/MWh)",
+             "State annual CO2 equivalent fossil fuel output emission rate (lb/MWh)",
+             "State annual Hg coal output emission rate (lb/MWh)",
+             "State annual Hg fossil fuel output emission rate (lb/MWh)",
+             "State annual NOx coal input emission rate (lb/MMBtu)",
+             "State annual NOx oil input emission rate (lb/MMBtu)",
+             "State annual NOx gas input emission rate (lb/MMBtu)",
+             "State annual NOx fossil fuel input emission rate (lb/MMBtu)",
+             "State ozone season NOx coal input emission rate (lb/MMBtu)",
+             "State ozone season NOx oil input emission rate (lb/MMBtu)",
+             "State ozone season NOx gas input emission rate (lb/MMBtu)",
+             "State ozone season NOx fossil fuel input emission rate (lb/MMBtu)",
+             "State annual SO2 coal input emission rate (lb/MMBtu)",
+             "State annual SO2 oil input emission rate (lb/MMBtu)",
+             "State annual SO2 gas input emission rate (lb/MMBtu)",
+             "State annual SO2 fossil fuel input emission rate (lb/MMBtu)",
+             "State annual CO2 coal input emission rate (lb/MMBtu)",
+             "State annual CO2 oil input emission rate (lb/MMBtu)",
+             "State annual CO2 gas input emission rate (lb/MMBtu)",
+             "State annual CO2 fossil fuel input emission rate (lb/MMBtu)",
+             "State annual CH4 coal input emission rate (lb/MMBtu)",
+             "State annual CH4 oil input emission rate (lb/MMBtu)",
+             "State annual CH4 gas input emission rate (lb/MMBtu)", 
+             "State annual CH4 fossil fuel input emission rate (lb/MMBtu)",
+             "State annual N2O coal input emission rate (lb/MMBtu)",
+             "State annual N2O oil input emission rate (lb/MMBtu)",
+             "State annual N2O gas input emission rate (lb/MMBtu)",
+             "State annual N2O fossil fuel input emission rate (lb/MMBtu)",
+             "State annual CO2 equivalent coal input emission rate (lb/MMBtu)",
+             "State annual CO2 equivalent oil input emission rate (lb/MMBtu)",
+             "State annual CO2 equivalent gas input emission rate (lb/MMBtu)",
+             "State annual CO2 equivalent fossil fuel input emission rate (lb/MMBtu)",
+             "State annual Hg coal input emission rate (lb/MMBtu)",
+             "State annual Hg fossil fuel input emission rate (lb/MMBtu)",
+             "State annual NOx non-baseload output emission rate (lb/MWh)",
+             "State ozone season NOx non-baseload output emission rate (lb/MWh)",
+             "State annual SO2 non-baseload output emission rate (lb/MWh)",
+             "State annual CO2 non-baseload output emission rate (lb/MWh)",
+             "State annual CH4 non-baseload output emission rate (lb/MWh)",
+             "State annual N2O non-baseload output emission rate (lb/MWh)",
+             "State annual CO2 equivalent non-baseload output emission rate (lb/MWh)",
+             "State annual Hg non-baseload output emission rate (lb/MWh)",
+             "State annual coal net generation (MWh)",
+             "State annual oil net generation (MWh)",
+             "State annual gas net generation (MWh)",
+             "State annual nuclear net generation (MWh)",
+             "State annual hydro net generation (MWh)",
+             "State annual biomass net generation (MWh)",
+             "State annual wind net generation (MWh)",
+             "State annual solar net generation (MWh)",
+             "State annual geothermal net generation (MWh)",
+             "State annual other fossil net generation (MWh)",
+             "State annual other unknown/ purchased fuel net generation (MWh)",
+             "State annual total nonrenewables net generation (MWh)",
+             "State annual total renewables net generation (MWh)",
+             "State annual total nonhydro renewables net generation (MWh)",
+             "State annual total combustion net generation (MWh)",
+             "State annual total noncombustion net generation (MWh)",
+             "State coal generation percent (resource mix)",
+             "State oil generation percent (resource mix)",
+             "State gas generation percent (resource mix)",
+             "State nuclear generation percent (resource mix)",
+             "State hydro generation percent (resource mix)",
+             "State biomass generation percent (resource mix)",
+             "State wind generation percent (resource mix)",
+             "State solar generation percent (resource mix)",
+             "State geothermal generation percent (resource mix)",
+             "State other fossil generation percent (resource mix)",
+             "State other unknown/ purchased fuel generation percent (resource mix)",
+             "State total nonrenewables generation percent (resource mix)",
+             "State total renewables generation percent (resource mix)",
+             "State total nonhydro renewables generation percent (resource mix)",
+             "State total combustion generation percent (resource mix)",
+             "State total noncombustion generation percent (resource mix)",
+             "State annual nonbaseload coal net generation (MWh)",
+             "State annual nonbaseload oil net generation (MWh)",
+             "State annual nonbaseload gas net generation (MWh)",
+             "State annual nonbaseload nuclear net generation (MWh)",
+             "State annual nonbaseload hydro net generation (MWh)",
+             "State annual nonbaseload biomass net generation (MWh)",
+             "State annual nonbaseload wind net generation (MWh)",
+             "State annual nonbaseload solar net generation (MWh)",
+             "State annual nonbaseload geothermal net generation (MWh)",
+             "State annual nonbaseload other fossil net generation (MWh)",
+             "State annual nonbaseload other unknown/ purchased fuel net generation (MWh)",
+             "State nonbaseload coal generation percent (resource mix)",
+             "State nonbaseload oil generation percent (resource mix)",
+             "State nonbaseload gas generation percent (resource mix)",
+             "State nonbaseload nuclear generation percent (resource mix)",
+             "State nonbaseload hydro generation percent (resource mix)",
+             "State nonbaseload biomass generation percent (resource mix)",
+             "State nonbaseload wind generation percent (resource mix)",
+             "State nonbaseload solar generation percent (resource mix)",
+             "State nonbaseload geothermal generation percent (resource mix)",
+             "State nonbaseload other fossil generation percent (resource mix)",
+             "State nonbaseload other unknown/ purchased fuel generation percent (resource mix)")
+
+# set up header format
+colnames(st_file) <- st_header
+
+
+## add styles to document ------
+
+# write data for first row only
+writeData(wb, sheet = st, t(st_desc), startRow = 1, colNames = FALSE)
+
+# add styles for first row only 
+addStyle(wb, sheet = st, style = desc_style, rows = 1, cols = 1:4, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color1_desc, rows = 1, cols = 5:18, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color4_desc, rows = 1, cols = 19:26, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color5_desc, rows = 1, cols = 27:34, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color6_desc, rows = 1, cols = 35:42, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color13_desc, rows = 1, cols = 43:72, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color14_desc, rows = 1, cols = 73:102, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color15_desc, rows = 1, cols = 103:110, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color7_desc, rows = 1, cols = 111:121, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color8_desc, rows = 1, cols = 122:123, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color9_desc, rows = 1, cols = 124, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color9v2_desc, rows = 1, cols = 125:126, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color10_desc, rows = 1, cols = 127:137, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color11_desc, rows = 1, cols = 138:139, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color12_desc, rows = 1, cols = 140, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color12v2_desc, rows = 1, cols = 141:142, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color16_desc, rows = 1, cols = 143:153, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color17_desc, rows = 1, cols = 154:164, gridExpand = TRUE)
+
+# write data to sheet
+writeData(wb, 
+          sheet = st, 
+          st_file,
+          startRow = 2)
+
+## add header style
+addStyle(wb, sheet = st, style = header_style, rows = 2, cols = 1:4, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color1_header, rows = 2, cols = 5:18, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color4_header, rows = 2, cols = 19:26, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color5_header, rows = 2, cols = 27:34, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color6_header, rows = 2, cols = 35:42, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color13_header, rows = 2, cols = 43:72, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color14_header, rows = 2, cols = 73:102, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color15_header, rows = 2, cols = 103:110, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color7_header, rows = 2, cols = 111:121, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color8_header, rows = 2, cols = 122:123, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color9_header, rows = 2, cols = 124, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color9v2_header, rows = 2, cols = 125:126, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color10_header, rows = 2, cols = 127:137, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color11_header, rows = 2, cols = 138:139, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color12_header, rows = 2, cols = 140, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color12v2_header, rows = 2, cols = 141:142, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color16_header, rows = 2, cols = 143:153, gridExpand = TRUE)
+addStyle(wb, sheet = st, style = color17_header, rows = 2, cols = 154:164, gridExpand = TRUE)
+
+
 ### GGL Formatting -----
 
 # create "GGL" sheet
@@ -1159,5 +1661,7 @@ addStyle(wb, sheet = ggl, style = bold, rows = 8, cols = 1:2, gridExpand = TRUE)
 saveWorkbook(wb, "data/outputs/text1.xlsx", overwrite=TRUE)
 
 
+# remove to save space
+rm(unt_file, gen_file, plnt_file)
 
 
