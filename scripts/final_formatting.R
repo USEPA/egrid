@@ -100,15 +100,19 @@ integer <- createStyle(numFmt = "#,##0",
                        fontName = "Arial",
                        fontSize = 8.5)
 
+integer2 <- createStyle(numFmt = "#,##0; (#,##0)",
+                        fontName = "Arial",
+                        fontSize = 8.5)
+
 # basic style (for percentages with 1 decimal place)
 percent <- createStyle(numFmt = "0.0%",
                        fontName = "Arial",
                        fontSize = 8.5)
 
 # different decimal styles for different purposes
-decimal1 <- createStyle(numFmt = "#,##0; (#,##0)",
-                    fontName = "Arial",
-                    fontSize = 8.5)
+decimal1 <- createStyle(numFmt = "#,##0.000",
+                        fontName = "Arial",
+                        fontSize = 8.5)
 
 decimal2 <- createStyle(numFmt = "#,##0.0",
                         fontName = "Arial",
@@ -117,6 +121,12 @@ decimal2 <- createStyle(numFmt = "#,##0.0",
 decimal3 <- createStyle(numFmt = "#,##0.000; (#,##0.000)",
                         fontName = "Arial",
                         fontSize = 8.5)
+
+decimal4 <- createStyle(numFmt = "#,##0.0000",
+                        fontName = "Arial",
+                        fontSize = 8.5)
+
+
 
 ### bold number styles ### 
 
@@ -403,9 +413,6 @@ color12v2_desc <- createStyle(wrapText = TRUE,
                             borderStyle = "thin")
 
 
-
-
-
 ### UNT Formatting -----
 # create sheet
 unt <- glue::glue("UNT{year}")
@@ -420,7 +427,7 @@ unt_file <- unt_file %>%
 sequnt <- glue::glue("SEQUNT{year}") 
 
 # collect number of rows based on data frame
-unt_rows <- nrow(unt_file)
+unt_rows <- nrow(unt_file)+2
 
 # column names
 unt_header <-  c(sequnt,
@@ -556,7 +563,7 @@ gen_file <- gen_file %>%
 seqgen <- glue::glue("SEQGEN{year}") 
 
 # select number of rows based on length of dataframe
-gen_rows <- nrow(gen_file)
+gen_rows <- nrow(gen_file)+2
 
 # column names
 gen_header <- c(seqgen,
@@ -641,7 +648,7 @@ addStyle(wb, sheet = gen, style = header_style, rows = 2, cols = 15:17, gridExpa
 addStyle(wb, sheet = gen, style = integer, rows = 3:gen_rows, cols = 7, gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = decimal2, rows = 3:gen_rows, cols = 11, gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = decimal3, rows = 3:gen_rows, cols = 12, gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = decimal1, rows = 3:gen_rows, cols = 13:14, gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = integer2, rows = 3:gen_rows, cols = 13:14, gridExpand = TRUE)
 
 ## add text styles
 
@@ -655,16 +662,23 @@ addStyle(wb, sheet = gen, style = basic, rows = 3:gen_rows, cols = 14:17, gridEx
 plnt <- glue::glue("PLNT{year}")
 addWorksheet(wb, plnt)
 
+# convert variables to numeric value
+plnt_file <- plnt_file %>%
+  mutate(year = as.numeric(year),
+         plant_id = as.numeric(plant_id),
+         system_owner_id = as.numeric(system_owner_id),
+         utility_id = as.numeric(utility_id))
+
 # create sqtplnt name using year
-seqplnt <- glue::glue("SEQPLNT{year}") 
+seqplt <- glue::glue("SEQPLT{year}") 
 
 # select number of rows from data frame
-plnt_rows <- nrow(plnt_file)
+plnt_rows <- nrow(plnt_file)+2 
 
 ## vector of names -----
 
 # column names
-plnt_header <- c(seqplnt,
+plnt_header <- c(seqplt, # 1 
                  "YEAR",
                  "PSTATABB",
                  "PNAME",
@@ -707,6 +721,7 @@ plnt_header <- c(seqplnt,
                  "PLNGENAN",
                  "PLNGENOZ",
                  "PLNOXAN",
+                 "PLNOXOZ",
                  "PLSO2AN",
                  "PLCO2AN",
                  "PLCH4AN",
@@ -981,22 +996,22 @@ writeData(wb,
           startRow = 2)
 
 ## add header styles
-addStyle(wb, sheet = plnt, style = header_style, rows = 1, cols = 1:36, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = color1_header, rows = 1, cols = 37:50, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = color4_header, rows = 1, cols = 51:58, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = color5_header, rows = 1, cols = 59:66, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = color6_header, rows = 1, cols = 67:74, gridExpand = TRUE) # white font
-addStyle(wb, sheet = plnt, style = color2_header, rows = 1, cols = 75:94, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = color3_header, rows = 1, cols = 95:108, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = header_style, rows = 1, cols = 109, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = color7_header, rows = 1, cols = 110:120, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = color8_header, rows = 1, cols = 121:122, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = color9_header, rows = 1, cols = 123, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = color9v2_header, rows = 1, cols = 124:125, gridExpand = TRUE) # white font
-addStyle(wb, sheet = plnt, style = color10_header, rows = 1, cols = 126:136, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = color11_header, rows = 1, cols = 137:138, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = color12_header, rows = 1, cols = 139, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = color12v2_header, rows = 1, cols = 140:141, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = header_style, rows = 2, cols = 1:36, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color1_header, rows = 2, cols = 37:50, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color4_header, rows = 2, cols = 51:58, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color5_header, rows = 2, cols = 59:66, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color6_header, rows = 2, cols = 67:74, gridExpand = TRUE) # white font
+addStyle(wb, sheet = plnt, style = color2_header, rows = 2, cols = 75:94, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color3_header, rows = 2, cols = 95:108, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = header_style, rows = 2, cols = 109, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color7_header, rows = 2, cols = 110:120, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color8_header, rows = 2, cols = 121:122, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color9_header, rows = 2, cols = 123, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color9v2_header, rows = 2, cols = 124:125, gridExpand = TRUE) # white font
+addStyle(wb, sheet = plnt, style = color10_header, rows = 2, cols = 126:136, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color11_header, rows = 2, cols = 137:138, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color12_header, rows = 2, cols = 139, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = color12v2_header, rows = 2, cols = 140:141, gridExpand = TRUE)
 
 ## set column widths
 
@@ -1004,11 +1019,70 @@ setColWidths(wb, sheet = plnt, cols = 1, widths = 12.71)
 setColWidths(wb, sheet = plnt, cols = 3, widths = 12.43)
 setColWidths(wb, sheet = plnt, cols = 4, widths = 34.71)
 setColWidths(wb, sheet = plnt, cols = 5, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 6, widths = 32.14)
+setColWidths(wb, sheet = plnt, cols = 7, widths = 12.57)
+setColWidths(wb, sheet = plnt, cols = 8, widths = 35)
+setColWidths(wb, sheet = plnt, cols = 9, widths = 12.57)
+setColWidths(wb, sheet = plnt, cols = 10, widths = 14.86)
+setColWidths(wb, sheet = plnt, cols = 11, widths = 32)
+setColWidths(wb, sheet = plnt, cols = 12:14, widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 15, widths = 17.29)
+setColWidths(wb, sheet = plnt, cols = 16:22, widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 23, widths = 12.57)
+setColWidths(wb, sheet = plnt, cols = 24, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 25:26, widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 27, widths = 12.57)
+setColWidths(wb, sheet = plnt, cols = 28, widths = 13.14)
+setColWidths(wb, sheet = plnt, cols = 29, widths = 13.29)
+setColWidths(wb, sheet = plnt, cols = 30, widths = 13)
+setColWidths(wb, sheet = plnt, cols = 31:33, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 34, widths = 13.29)
+setColWidths(wb, sheet = plnt, cols = 35:53, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 54, widths = 13.14)
+setColWidths(wb, sheet = plnt, cols = 55:56, widths = 12.86)
+setColWidths(wb, sheet = plnt, cols = 57:76, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 77, widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 78, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 79, widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 80, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 81, widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 82, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 83, widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 84:87, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 88, widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 89, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 90:101, widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 102, widths = 14)
+setColWidths(wb, sheet = plnt, cols = 103:115, widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 116:141, widths = 12.71)
+
 
 ## set row heights
 
-setRowHeights(wb, sheet = plnt, row = 1, heights = 60.75)
+setRowHeights(wb, sheet = plnt, row = 1, heights = 67.5)
 
+## add number styles
+
+addStyle(wb, sheet = plnt, style = integer, rows = 3:plnt_rows, cols = 23:24, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = decimal4, rows = 3:plnt_rows, cols = 28, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = decimal2, rows = 3:plnt_rows, cols = 29, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = decimal4, rows = 3:plnt_rows, cols = 30, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = integer, rows = 3:plnt_rows, cols = 33:34, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = decimal4, rows = 3:plnt_rows, cols = 35, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = integer2, rows = 3:plnt_rows, cols = 37:50, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = decimal1, rows = 3:plnt_rows, cols = 51:74, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = integer, rows = 3:plnt_rows, cols = 75:85, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = integer, rows = 3:plnt_rows, cols = 95:108, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = decimal3, rows = 3:plnt_rows, cols = 109, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = integer2, rows = 3:plnt_rows, cols = 110:125, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = percent, rows = 3:plnt_rows, cols = 126:141, gridExpand = TRUE)
+
+## add text styles
+addStyle(wb, sheet = plnt, style = basic, rows = 3:plnt_rows, cols = 1:22, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = basic, rows = 3:plnt_rows, cols = 25:27, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = basic, rows = 3:plnt_rows, cols = 31:32, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = basic, rows = 3:plnt_rows, cols = 36, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = basic, rows = 3:plnt_rows, cols = 86:94, gridExpand = TRUE)
 
 ### GGL Formatting -----
 
