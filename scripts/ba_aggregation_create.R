@@ -396,9 +396,20 @@ ba_merged <-
 
 
 ## Round data ----
+
+n2o_ch4_fuel_rates <- c("n2o_input_rate_coal", "n2o_input_rate_oil", "n2o_input_rate_gas", 
+                        "n2o_input_rate_fossil", "n2o_output_rate_coal", "n2o_output_rate_oil", 
+                        "n2o_output_rate_gas", "n2o_output_rate_fossil", 
+                        "ch4_input_rate_coal", "ch4_input_rate_oil", "ch4_input_rate_gas", 
+                        "ch4_input_rate_fossil", "ch4_output_rate_coal", "ch4_output_rate_oil", 
+                        "ch4_output_rate_gas", "ch4_output_rate_fossil")
+
 ba_rounded <- 
   ba_merged %>% 
-  mutate(across(where(is.numeric), \(x) round(x, 3))) # round to three decimals
+  mutate(across(c(where(is.numeric), -contains(n2o_ch4_fuel_rates)), 
+                \(x) round(x, 3)), # round to three decimals
+         across(contains(n2o_ch4_fuel_rates), 
+                \(x) round(x, 4))) # round N2O and CH4 fuel specific rates to 4 decimal points
 
 
 ## Format to eGRID output -------
