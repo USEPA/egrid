@@ -33,6 +33,7 @@ gen_file <- readRDS('data/outputs/generator_file.RDS')
 plnt_file <- readRDS('data/outputs/plant_file.RDS')
 st_file <- readRDS('data/outputs/state_aggregation.RDS')
 ba_file <- readRDS('data/outputs/BA_aggregation.RDS')
+srl_file <- readRDS('data/outputs/egrid_subregion_aggregation.RDS')
 nrl_file <- readRDS('data/outputs/nerc_aggregation.RDS')
 us_file <- readRDS('data/outputs/us_aggregation.RDS')
 ggl_file <- readRDS('data/outputs/egrid_ggl_final.RDS') # maybe change file name to match other
@@ -973,6 +974,8 @@ addStyle(wb, sheet = unt, style = decimal2, rows = 3:unt_rows, cols = 17:21, gri
 addStyle(wb, sheet = unt, style = basic, rows = 3:unt_rows, cols = 1:13, gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = basic, rows = 3:unt_rows, cols = 22:32, gridExpand = TRUE)
 
+# freeze pane
+freezePane(wb, sheet = unt, firstActiveCol = 5)
 
 ### GEN Formatting -----
 
@@ -1083,6 +1086,9 @@ addStyle(wb, sheet = gen, style = integer2, rows = 3:gen_rows, cols = 13:14, gri
 addStyle(wb, sheet = gen, style = basic, rows = 3:gen_rows, cols = 1:6, gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = basic, rows = 3:gen_rows, cols = 6:10, gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = basic, rows = 3:gen_rows, cols = 14:17, gridExpand = TRUE)
+
+# freeze pane
+freezePane(wb, sheet = gen, firstActiveCol = 6)
 
 ### PLNT Formatting -----
 
@@ -1443,7 +1449,7 @@ addStyle(wb, sheet = plnt, style = color12v2_header, rows = 2, cols = 140:141, g
 
 ## set column widths
 
-setColWidths(wb, sheet = plnt, cols = 1, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 1:2, widths = 12.71)
 setColWidths(wb, sheet = plnt, cols = 3, widths = 12.43)
 setColWidths(wb, sheet = plnt, cols = 4, widths = 34.71)
 setColWidths(wb, sheet = plnt, cols = 5, widths = 12.71)
@@ -1484,7 +1490,6 @@ setColWidths(wb, sheet = plnt, cols = 102, widths = 14)
 setColWidths(wb, sheet = plnt, cols = 103:115, widths = 12.43)
 setColWidths(wb, sheet = plnt, cols = 116:141, widths = 12.71)
 
-
 ## set row heights
 
 setRowHeights(wb, sheet = plnt, row = 1, heights = 67.5)
@@ -1512,6 +1517,8 @@ addStyle(wb, sheet = plnt, style = basic, rows = 3:plnt_rows, cols = 31:32, grid
 addStyle(wb, sheet = plnt, style = basic, rows = 3:plnt_rows, cols = 36, gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = basic, rows = 3:plnt_rows, cols = 86:94, gridExpand = TRUE)
 
+# freeze panes
+freezePane(wb, sheet = plnt, firstActiveCol = 6)
 
 ### ST Formatting -----
 
@@ -1619,6 +1626,8 @@ addStyle(wb, sheet = st, style = percent, rows = 3:st_rows, cols = 154:164, grid
 
 addStyle(wb, sheet = st, style = basic, rows = 3:st_rows, cols = 1:3, gridExpand = TRUE)
 
+# freeze panes
+freezePane(wb, sheet = st, firstActiveCol = 4)
 
 ### BA Formatting -----
 
@@ -1626,20 +1635,439 @@ addStyle(wb, sheet = st, style = basic, rows = 3:st_rows, cols = 1:3, gridExpand
 ba <- glue::glue("BA{year}")
 addWorksheet(wb, ba)
 
+# select number of rows from data frame
+ba_rows <- nrow(ba_file)+2 
+
 # convert variables to numeric value
+ba_file <- ba_file %>%
+  mutate(year = as.numeric(year))
 
-
+# column names
 ba_header <- c("YEAR",	
                "BANAME",	
                "BACODE",
                paste0("BA", standard_header))
 
+# description of column names
 ba_desc <- c("Data Year",
              "Balancing Authority Name",
              "Balancing Authority Code",
-             paste0("BA", standard_desc))
+             paste0("BA ", standard_desc))
 
-# description of column names 
+# set up header and descriptions format
+colnames(ba_file) <- ba_header
+
+# write data for first row only
+writeData(wb, sheet = ba, t(ba_desc), startRow = 1, colNames = FALSE)
+
+# add style for first row only
+addStyle(wb, sheet = ba, style = desc_style, rows = 1, cols = 1:4, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color1_desc, rows = 1, cols = 5:18, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color4_desc, rows = 1, cols = 19:26, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color5_desc, rows = 1, cols = 27:34, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color6_desc, rows = 1, cols = 35:42, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color13_desc, rows = 1, cols = 43:72, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color14_desc, rows = 1, cols = 73:102, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color15_desc, rows = 1, cols = 103:110, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color7_desc, rows = 1, cols = 111:121, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color8_desc, rows = 1, cols = 122:123, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color9_desc, rows = 1, cols = 124, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color9v2_desc, rows = 1, cols = 125:126, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color10_desc, rows = 1, cols = 127:137, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color11_desc, rows = 1, cols = 138:139, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color12_desc, rows = 1, cols = 140, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color12v2_desc, rows = 1, cols = 141:142, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color16_desc, rows = 1, cols = 143:153, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color17_desc, rows = 1, cols = 154:164, gridExpand = TRUE)
+
+# write data to sheet
+writeData(wb, 
+          sheet = ba, 
+          ba_file,
+          startRow = 2)
+
+## add header style
+addStyle(wb, sheet = ba, style = header_style, rows = 2, cols = 1:4, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color1_header, rows = 2, cols = 5:18, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color4_header, rows = 2, cols = 19:26, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color5_header, rows = 2, cols = 27:34, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color6_header, rows = 2, cols = 35:42, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color13_header, rows = 2, cols = 43:72, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color14_header, rows = 2, cols = 73:102, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color15_header, rows = 2, cols = 103:110, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color7_header, rows = 2, cols = 111:121, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color8_header, rows = 2, cols = 122:123, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color9_header, rows = 2, cols = 124, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color9v2_header, rows = 2, cols = 125:126, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color10_header, rows = 2, cols = 127:137, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color11_header, rows = 2, cols = 138:139, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color12_header, rows = 2, cols = 140, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color12v2_header, rows = 2, cols = 141:142, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color16_header, rows = 2, cols = 143:153, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = color17_header, rows = 2, cols = 154:164, gridExpand = TRUE)
+
+## set column widths
+
+setColWidths(wb, sheet = ba, cols = 1, widths = 12)
+setColWidths(wb, sheet = ba, cols = 2, widths = 75.57)
+setColWidths(wb, sheet = ba, cols = 3, widths = 12.86)
+setColWidths(wb, sheet = ba, cols = 4:164, widths = 14)
+
+## set row heights
+
+setRowHeights(wb, sheet = ba, row = 1, heights = 67.5)
+
+## add number styles
+
+addStyle(wb, sheet = ba, style = integer2, rows = 3:ba_rows, cols = 4:18, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = decimal1, rows = 3:ba_rows, cols = 19:58, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = decimal4, rows = 3:ba_rows, cols = 59:66, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = decimal1, rows = 3:ba_rows, cols = 67:88, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = decimal4, rows = 3:ba_rows, cols = 89:96, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = decimal1, rows = 3:ba_rows, cols = 97:110, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = integer2, rows = 3:ba_rows, cols = 111:126, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = percent, rows = 3:ba_rows, cols = 127:142, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = integer2, rows = 3:ba_rows, cols = 143:153, gridExpand = TRUE)
+addStyle(wb, sheet = ba, style = percent, rows = 3:ba_rows, cols = 154:164, gridExpand = TRUE)
+
+## add text styles
+
+addStyle(wb, sheet = ba, style = basic, rows = 3:ba_rows, cols = 1:3, gridExpand = TRUE)
+
+# freeze panes
+freezePane(wb, sheet = ba, firstActiveCol = 4)
+
+### SRL Formatting -----
+srl <- glue::glue("SRL{year}")
+addWorksheet(wb, srl)
+
+# convert variables to numeric value
+srl_file <- srl_file %>%
+  mutate(year = as.numeric(year))
+
+# select number of rows from data frame
+srl_rows <- nrow(srl_file)+2
+
+# column names
+srl_header <- c("YEAR",	
+               "SUBRGN",	
+               "SRNAME",
+               paste0("SR", standard_header))
+
+
+# description of column names
+srl_desc <- c("Data Year",
+             "eGRID subregion acronym",
+             "eGRID subregion name",
+             paste0("eGRID subregion ", standard_desc))
+
+
+# set up header and descriptions format
+colnames(srl_file) <- srl_header
+
+# write data for first row only
+writeData(wb, sheet = srl, t(srl_desc), startRow = 1, colNames = FALSE)
+
+# add style for first row only
+addStyle(wb, sheet = srl, style = desc_style, rows = 1, cols = 1:4, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color1_desc, rows = 1, cols = 5:18, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color4_desc, rows = 1, cols = 19:26, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color5_desc, rows = 1, cols = 27:34, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color6_desc, rows = 1, cols = 35:42, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color13_desc, rows = 1, cols = 43:72, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color14_desc, rows = 1, cols = 73:102, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color15_desc, rows = 1, cols = 103:110, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color7_desc, rows = 1, cols = 111:121, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color8_desc, rows = 1, cols = 122:123, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color9_desc, rows = 1, cols = 124, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color9v2_desc, rows = 1, cols = 125:126, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color10_desc, rows = 1, cols = 127:137, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color11_desc, rows = 1, cols = 138:139, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color12_desc, rows = 1, cols = 140, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color12v2_desc, rows = 1, cols = 141:142, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color16_desc, rows = 1, cols = 143:153, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color17_desc, rows = 1, cols = 154:164, gridExpand = TRUE)
+
+
+# write data to sheet
+writeData(wb, 
+          sheet = srl, 
+          srl_file,
+          startRow = 2)
+
+## add header style
+addStyle(wb, sheet = srl, style = header_style, rows = 2, cols = 1:4, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color1_header, rows = 2, cols = 5:18, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color4_header, rows = 2, cols = 19:26, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color5_header, rows = 2, cols = 27:34, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color6_header, rows = 2, cols = 35:42, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color13_header, rows = 2, cols = 43:72, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color14_header, rows = 2, cols = 73:102, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color15_header, rows = 2, cols = 103:110, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color7_header, rows = 2, cols = 111:121, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color8_header, rows = 2, cols = 122:123, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color9_header, rows = 2, cols = 124, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color9v2_header, rows = 2, cols = 125:126, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color10_header, rows = 2, cols = 127:137, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color11_header, rows = 2, cols = 138:139, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color12_header, rows = 2, cols = 140, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color12v2_header, rows = 2, cols = 141:142, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color16_header, rows = 2, cols = 143:153, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = color17_header, rows = 2, cols = 154:164, gridExpand = TRUE)
+
+## set column widths
+
+setColWidths(wb, sheet = srl, cols = 1, widths = 12)
+setColWidths(wb, sheet = srl, cols = 2, widths = 14 )
+setColWidths(wb, sheet = srl, cols = 3, widths = 18.43)
+setColWidths(wb, sheet = srl, cols = 4:152, widths = 14)
+setColWidths(wb, sheet = srl, cols = 153, widths = 15.11)
+setColWidths(wb, sheet = srl, cols = 154:163, widths = 14)
+setColWidths(wb, sheet = srl, cols = 164, widths = 15.11)
+
+## set row heights
+
+setRowHeights(wb, sheet = srl, row = 1, heights = 67.5)
+
+## add number styles
+
+addStyle(wb, sheet = srl, style = integer2, rows = 3:srl_rows, cols = 4:18, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = decimal1, rows = 3:srl_rows, cols = 19:58, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = decimal4, rows = 3:srl_rows, cols = 59:66, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = decimal1, rows = 3:srl_rows, cols = 67:88, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = decimal4, rows = 3:srl_rows, cols = 89:96, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = decimal1, rows = 3:srl_rows, cols = 97:110, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = integer2, rows = 3:srl_rows, cols = 111:126, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = percent, rows = 3:srl_rows, cols = 127:142, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = integer2, rows = 3:srl_rows, cols = 143:153, gridExpand = TRUE)
+addStyle(wb, sheet = srl, style = percent, rows = 3:srl_rows, cols = 154:164, gridExpand = TRUE)
+
+## add text styles
+
+addStyle(wb, sheet = srl, style = basic, rows = 3:srl_rows, cols = 1:3, gridExpand = TRUE)
+
+
+freezePane(wb, sheet = srl, firstActiveCol = 4)
+
+### NRL Formatting -----
+nrl <- glue::glue("NRL{year}")
+addWorksheet(wb, nrl)
+
+# convert variables to numeric value
+nrl_file <- nrl_file %>%
+  mutate(year = as.numeric(year))
+
+# select number of rows from data frame
+nrl_rows <- nrow(nrl_file)+2
+
+# column names
+nrl_header <- c("YEAR",	
+                "NERC",	
+                "NERCNAME",
+                paste0("NR", standard_header))
+
+
+# description of column names
+nrl_desc <- c("Data Year",
+              "NERC region acronym",
+              "NERC region name",
+              paste0("NERC region ", standard_desc))
+
+
+# set up header and descriptions format
+colnames(nrl_file) <- nrl_header
+
+# write data for first row only
+writeData(wb, sheet = nrl, t(nrl_desc), startRow = 1, colNames = FALSE)
+
+# add style for first row only
+addStyle(wb, sheet = nrl, style = desc_style, rows = 1, cols = 1:4, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color1_desc, rows = 1, cols = 5:18, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color4_desc, rows = 1, cols = 19:26, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color5_desc, rows = 1, cols = 27:34, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color6_desc, rows = 1, cols = 35:42, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color13_desc, rows = 1, cols = 43:72, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color14_desc, rows = 1, cols = 73:102, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color15_desc, rows = 1, cols = 103:110, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color7_desc, rows = 1, cols = 111:121, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color8_desc, rows = 1, cols = 122:123, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color9_desc, rows = 1, cols = 124, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color9v2_desc, rows = 1, cols = 125:126, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color10_desc, rows = 1, cols = 127:137, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color11_desc, rows = 1, cols = 138:139, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color12_desc, rows = 1, cols = 140, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color12v2_desc, rows = 1, cols = 141:142, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color16_desc, rows = 1, cols = 143:153, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color17_desc, rows = 1, cols = 154:164, gridExpand = TRUE)
+
+
+# write data to sheet
+writeData(wb, 
+          sheet = nrl, 
+          nrl_file,
+          startRow = 2)
+
+## add header style
+addStyle(wb, sheet = nrl, style = header_style, rows = 2, cols = 1:4, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color1_header, rows = 2, cols = 5:18, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color4_header, rows = 2, cols = 19:26, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color5_header, rows = 2, cols = 27:34, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color6_header, rows = 2, cols = 35:42, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color13_header, rows = 2, cols = 43:72, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color14_header, rows = 2, cols = 73:102, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color15_header, rows = 2, cols = 103:110, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color7_header, rows = 2, cols = 111:121, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color8_header, rows = 2, cols = 122:123, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color9_header, rows = 2, cols = 124, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color9v2_header, rows = 2, cols = 125:126, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color10_header, rows = 2, cols = 127:137, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color11_header, rows = 2, cols = 138:139, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color12_header, rows = 2, cols = 140, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color12v2_header, rows = 2, cols = 141:142, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color16_header, rows = 2, cols = 143:153, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = color17_header, rows = 2, cols = 154:164, gridExpand = TRUE)
+
+## set column widths
+
+setColWidths(wb, sheet = nrl, cols = 1, widths = 12)
+setColWidths(wb, sheet = nrl, cols = 2, widths = 10.29)
+setColWidths(wb, sheet = nrl, cols = 3, widths = 29.43)
+setColWidths(wb, sheet = nrl, cols = 4:6, widths = 14.14)
+setColWidths(wb, sheet = nrl, cols = 7, widths = 14.43)
+setColWidths(wb, sheet = nrl, cols = 8:18, widths = 14.14)
+setColWidths(wb, sheet = nrl, cols = 19:152, widths = 14)
+setColWidths(wb, sheet = nrl, cols = 153, widths = 15.55)
+setColWidths(wb, sheet = nrl, cols = 154:163, widths = 14)
+setColWidths(wb, sheet = nrl, cols = 164, widths = 15.55)
+
+## set row heights
+
+setRowHeights(wb, sheet = nrl, row = 1, heights = 67.5)
+
+## add number styles
+
+addStyle(wb, sheet = nrl, style = integer2, rows = 3:nrl_rows, cols = 4:18, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = decimal1, rows = 3:nrl_rows, cols = 19:58, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = decimal4, rows = 3:nrl_rows, cols = 59:66, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = decimal1, rows = 3:nrl_rows, cols = 67:88, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = decimal4, rows = 3:nrl_rows, cols = 89:96, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = decimal1, rows = 3:nrl_rows, cols = 97:110, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = integer2, rows = 3:nrl_rows, cols = 111:126, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = percent, rows = 3:nrl_rows, cols = 127:142, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = integer2, rows = 3:nrl_rows, cols = 143:153, gridExpand = TRUE)
+addStyle(wb, sheet = nrl, style = percent, rows = 3:nrl_rows, cols = 154:164, gridExpand = TRUE)
+
+## add text styles
+
+addStyle(wb, sheet = nrl, style = basic, rows = 3:nrl_rows, cols = 1:3, gridExpand = TRUE)
+
+# freeze panes
+
+freezePane(wb, sheet = nrl, firstActiveCol = 4)
+
+### US Formatting -----
+
+# create US sheet
+us <- glue::glue("US{year}")
+addWorksheet(wb, us)
+
+# convert variables to numeric value
+us_file <- us_file %>%
+  mutate(year = as.numeric(year))
+
+# select number of rows from data frame
+us_rows <- nrow(us_file)+2
+
+# column names
+us_header <- c("YEAR",	
+               paste0("US", standard_header))
+
+
+# description of column names
+us_desc <- c("Data Year",
+              paste0("U.S. ", standard_desc))
+
+
+# set up header and descriptions format
+colnames(us_file) <- us_header
+
+# write data for first row only
+writeData(wb, sheet = us, t(us_desc), startRow = 1, colNames = FALSE)
+
+# add style for first row only
+addStyle(wb, sheet = us, style = desc_style, rows = 1, cols = 1:2, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color1_desc, rows = 1, cols = 3:16, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color4_desc, rows = 1, cols = 17:24, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color5_desc, rows = 1, cols = 25:32, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color6_desc, rows = 1, cols = 33:40, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color13_desc, rows = 1, cols = 41:70, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color14_desc, rows = 1, cols = 71:100, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color15_desc, rows = 1, cols = 101:108, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color7_desc, rows = 1, cols = 109:119, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color8_desc, rows = 1, cols = 120:121, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color9_desc, rows = 1, cols = 122, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color9v2_desc, rows = 1, cols = 123:124, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color10_desc, rows = 1, cols = 125:135, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color11_desc, rows = 1, cols = 136:137, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color12_desc, rows = 1, cols = 138, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color12v2_desc, rows = 1, cols = 139:140, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color16_desc, rows = 1, cols = 141:151, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color17_desc, rows = 1, cols = 152:162, gridExpand = TRUE)
+
+
+# write data to sheet
+writeData(wb, 
+          sheet = us, 
+          us_file,
+          startRow = 2)
+
+## add header style
+addStyle(wb, sheet = us, style = header_style, rows = 2, cols = 1:2, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color1_header, rows = 2, cols = 3:16, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color4_header, rows = 2, cols = 17:24, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color5_header, rows = 2, cols = 25:32, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color6_header, rows = 2, cols = 33:40, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color13_header, rows = 2, cols = 41:70, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color14_header, rows = 2, cols = 71:100, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color15_header, rows = 2, cols = 101:108, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color7_header, rows = 2, cols = 109:119, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color8_header, rows = 2, cols = 120:121, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color9_header, rows = 2, cols = 122, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color9v2_header, rows = 2, cols = 123:124, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color10_header, rows = 2, cols = 125:135, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color11_header, rows = 2, cols = 136:137, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color12_header, rows = 2, cols = 138, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color12v2_header, rows = 2, cols = 139:140, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color16_header, rows = 2, cols = 141:151, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = color17_header, rows = 2, cols = 152:162, gridExpand = TRUE)
+
+
+## set column widths
+
+setColWidths(wb, sheet = us, cols = 1:4, widths = 14.14)
+setColWidths(wb, sheet = us, cols = 5:6, widths = 14.43)
+setColWidths(wb, sheet = us, cols = 7:162, widths = 14.14)
+
+## set row heights
+
+setRowHeights(wb, sheet = us, row = 1, heights = 67.5)
+
+## add number styles
+
+addStyle(wb, sheet = us, style = integer2, rows = 3:us_rows, cols = 2:16, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = decimal1, rows = 3:us_rows, cols = 17:56, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = decimal4, rows = 3:us_rows, cols = 57:62, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = decimal1, rows = 3:us_rows, cols = 65:86, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = decimal4, rows = 3:us_rows, cols = 87:94, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = decimal1, rows = 3:us_rows, cols = 95:108, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = integer2, rows = 3:us_rows, cols = 109:124, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = percent, rows = 3:us_rows, cols = 125:140, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = integer2, rows = 3:us_rows, cols = 141:151, gridExpand = TRUE)
+addStyle(wb, sheet = us, style = percent, rows = 3:us_rows, cols = 152:162, gridExpand = TRUE)
+
+## add text styles
+
+addStyle(wb, sheet = us, style = basic, rows = 3:us_rows, cols = 1, gridExpand = TRUE)
 
 
 ### GGL Formatting -----
@@ -1714,7 +2142,8 @@ addStyle(wb, sheet = ggl, style = bold, rows = 8, cols = 1:2, gridExpand = TRUE)
 
 
 ### Save and export -----
-saveWorkbook(wb, "data/outputs/text1.xlsx", overwrite=TRUE)
+output <- glue::glue("data/outputs/egrid{params$eGRID_year}_data.xlsx")
+saveWorkbook(wb, output, overwrite=TRUE)
 
 
 # remove to save space
