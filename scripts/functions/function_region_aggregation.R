@@ -37,6 +37,7 @@ region_aggregation <- function(region, region_cols) {
       "plant_name",
       "plant_id",
       "nerc",
+      "nerc_name", 
       "subregion" = "egrid_subregion",
       "subregion_name" = "egrid_subregion_name",
       "ba_name",
@@ -78,12 +79,17 @@ region_aggregation <- function(region, region_cols) {
       "ann_gen_non_combust"
     )
   
+  # read in NERC names to add to plant file
+  
+  nerc_names <- read_csv("data/static_tables/nerc_region_names.csv") %>% janitor::clean_names()
   
   # read in plant file 
   
   plant_file <- 
     read_rds("data/outputs/plant_file.RDS") %>% 
+    left_join(nerc_names, by = c("nerc")) %>% 
     select(any_of(columns_to_keep))
+  
   
   # factor plant_fuel_category to final output order
   plant_file$primary_fuel_category <- factor(plant_file$primary_fuel_category, 
@@ -407,7 +413,8 @@ region_aggregation <- function(region, region_cols) {
       mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
              across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
       select(-contains("gen_na"),
-             -contains("mix_na")) # remove unnecessary columns
+             -contains("mix_na")) %>% # remove unnecessary columns 
+      drop_na({{ region_cols }})
     
     
     ## Round data ----
