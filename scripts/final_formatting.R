@@ -33,7 +33,7 @@ gen_file <- readRDS('data/outputs/generator_file.RDS')
 plnt_file <- readRDS('data/outputs/plant_file.RDS')
 st_file <- readRDS('data/outputs/state_aggregation.RDS')
 ba_file <- readRDS('data/outputs/BA_aggregation.RDS')
-srl_file <- readRDS('data/outputs/egrid_subregion_aggregation.RDS')
+srl_file <- readRDS('data/outputs/subregion_aggregation.RDS')
 nrl_file <- readRDS('data/outputs/nerc_aggregation.RDS')
 us_file <- readRDS('data/outputs/us_aggregation.RDS')
 ggl_file <- readRDS('data/outputs/egrid_ggl_final.RDS') # maybe change file name to match other
