@@ -36,7 +36,7 @@ ba_file <- readRDS('data/outputs/BA_aggregation.RDS')
 srl_file <- readRDS('data/outputs/subregion_aggregation.RDS')
 nrl_file <- readRDS('data/outputs/nerc_aggregation.RDS')
 us_file <- readRDS('data/outputs/us_aggregation.RDS')
-ggl_file <- readRDS('data/outputs/egrid_ggl_final.RDS') # maybe change file name to match other
+ggl_file <- readRDS('data/outputs/grid_gross_loss.RDS') 
 
 
 # check if parameters for eGRID data year need to be defined
@@ -2078,7 +2078,7 @@ addWorksheet(wb, ggl)
 
 # convert year to numeric value
 ggl_file <- ggl_file %>%
-  mutate(year = as.numeric(year))
+  mutate(data_year = as.numeric(data_year))
 
 
 # column names
