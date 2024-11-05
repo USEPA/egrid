@@ -9,8 +9,8 @@
 ## 
 ## Authors:  
 ##      Sean Bock, Abt Global
-##      Caroline Watson, Abt Global, caroline.watson@abtglobal.com
-##      Teagan Goforth, Abt Global, teagan.goforth@abtglobal.com
+##      Caroline Watson, Abt Global
+##      Teagan Goforth, Abt Global
 ##
 ## -------------------------------
 
@@ -332,6 +332,11 @@ print("Saving generator file to folder data/outputs/")
 
 write_rds(generators_formatted, "data/outputs/generator_file.RDS")
   
-  
+# check if file is successfully written to folder 
+if(file.exists("data/outputs/generator_file.RDS")){
+  print("File generator_file.RDS successfully written to folder data/raw_data/camd")
+} else {
+   print("File generator_file.RDS failed to write to folder.")
+}  
 
   

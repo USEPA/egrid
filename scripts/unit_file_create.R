@@ -12,8 +12,8 @@
 ##
 ## Authors:  
 ##      Sean Bock, Abt Global
-##      Caroline Watson, Abt Global, caroline.watson@abtglobal.com
-##      Teagan Goforth, Abt Global, teagan.goforth@abtglobal.com
+##      Caroline Watson, Abt Global
+##      Teagan Goforth, Abt Global
 ##
 ## -------------------------------
 

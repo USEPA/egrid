@@ -1,3 +1,16 @@
+## -------------------------------
+##
+## Install libraries
+## 
+## Purpose: 
+## 
+## This file installs all required packages for eGRID using the package "renv". 
+## 
+## Authors:  
+##      Sean Bock, Abt Global
+##      Teagan Goforth, Abt Global
+##
+## -------------------------------
 
 if(!require("renv", character.only = TRUE)){ # installing renv package if not already
   install.packages("renv")

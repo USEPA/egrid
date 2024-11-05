@@ -8,14 +8,33 @@
 ## 
 ## Authors:  
 ##      Sean Bock, Abt Global
-##      Teagan Goforth, Abt Global, teagan.goforth@abtglobal.com
+##      Teagan Goforth, Abt Global
 ##
 ## -------------------------------
+
+# Load libraries ---------
 
 library(dplyr)
 library(readr)
 library(tidyr)
 library(purrr)
+
+# check if parameters for eGRID data year need to be defined
+# this is only necessary when running the script outside of egrid_master.qmd
+# user will be prompted to input eGRID year in the console if params does not exist
+
+if (exists("params")) {
+  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+    print("eGRID year parameter is already defined.") 
+  } else { # if params() is defined, but eGRID_year is not, define it here 
+    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+    params$eGRID_year <- as.character(params$eGRID_year) 
+  }
+} else { # if params() and eGRID_year are not defined, define them here
+  params <- list()
+  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+  params$eGRID_year <- as.character(params$eGRID_year)
+}
 
 
 # EIA-923 ------------
@@ -45,7 +64,7 @@ sched_2_3_4_5_m_12_dfs <-
                   rename("reserved" = "reserved_10", # fixing issue of two "Reserved" columns. Need to figure out better way in case they're not 10 and 17
                          "balancing_authority_code" = "reserved_17"))
 
-### Adding Puerto Rico data to Gen and fuel ----
+### Adding Puerto Rico data to EIA-923 Generation and Fuel --------
 
 gen_fuel_combined <-
   bind_rows(sched_2_3_4_5_m_12_dfs$generation_and_fuel_data,
@@ -53,7 +72,6 @@ gen_fuel_combined <-
 
 
 ## EIA923_Schedule_8_Annual_Environmental_Information ------
-
 
 air_emissions_control_info <- 
  read_excel(glue::glue("data/raw_data/923/EIA923_Schedule_8_Annual_Environmental_Information_{params$eGRID_year}_Final_Revision.xlsx"),

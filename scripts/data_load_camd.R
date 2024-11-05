@@ -8,9 +8,11 @@
 ## 
 ## Authors:  
 ##      Sean Bock, Abt Global
-##      Teagan Goforth, Abt Global, teagan.goforth@abtglobal.com
+##      Teagan Goforth, Abt Global
 ##
 ## -------------------------------
+
+# Load libraries ------------
 
 library(httr)
 library(jsonlite)
@@ -18,6 +20,23 @@ library(stringr)
 library(readr)
 library(dplyr)
 library(lubridate)
+
+# check if parameters for eGRID data year need to be defined
+# this is only necessary when running the script outside of egrid_master.qmd
+# user will be prompted to input eGRID year in the console if params does not exist
+
+if (exists("params")) {
+  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+    print("eGRID year parameter is already defined.") 
+  } else { # if params() is defined, but eGRID_year is not, define it here 
+    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+    params$eGRID_year <- as.character(params$eGRID_year) 
+  }
+} else { # if params() and eGRID_year are not defined, define them here
+  params <- list()
+  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+  params$eGRID_year <- as.character(params$eGRID_year)
+}
 
 
 # Set your API key here
@@ -46,7 +65,7 @@ if (res$status_code > 399){
 bulk_files <- fromJSON(rawToChar(res$content))
 
 
-## facility data --------
+## Get facility data --------
 
 facility_path <- 
   bulk_files %>% 
@@ -69,7 +88,7 @@ facility_df <-
   select(-"nameplate_capacity_char")
 
 
-## emissions data -------
+## Get emissions data -------
 emissions_files <-
   bulk_files %>% 
   tidyr::unnest(cols = metadata) %>% 
@@ -130,7 +149,7 @@ emissions_data_r <-
   ungroup() %>% 
   distinct() # removing duplicate rows that aren't needed after ozone calculation
 
-## mats data --------------
+## Get MATS data --------------
 
 # creating dataframe of MATS data and relevant files paths to download
 mats_files <- 
@@ -171,7 +190,7 @@ mats_data_r <-
   summarize(hg_mass_lbs = sum(hg_mass_lbs, na.rm = TRUE)) %>% 
   ungroup() 
 
-## joining facility, emissions, and MATS data --------
+## Join facility, emissions, and MATS data --------
 
 camd_data_combined <- 
   facility_df %>% 
@@ -181,11 +200,16 @@ camd_data_combined <-
   left_join(mats_data_r) %>% 
   arrange(facility_id, unit_id)
   
-## Saving camd data 
+## Saving CAMD data 
 
 print("Writing file camd.RDS to folder data/raw_data/camd.")
 
 readr::write_rds(camd_data_combined, 
                  file = "data/raw_data/camd/camd_raw.RDS")
 
-
+# check if file is successfully written to folder 
+if(file.exists("data/raw_data/camd/camd_raw.RDS")){
+  print("File camd_raw.RDS successfully written to folder data/raw_data/camd")
+} else {
+   print("File camd_raw.RDS failed to write to folder.")
+}
