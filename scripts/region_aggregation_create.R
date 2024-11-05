@@ -47,10 +47,10 @@ source("scripts/functions/function_region_aggregation.R")
 # Call aggregation function for each region ------------
 
 # state regional aggregation
-state_agg <- region_aggregation(region = "state", region_cols = c(fips_state_code, state))
+state_agg <- region_aggregation(region = "state", region_cols = c(state, fips_state_code))
 
 # balance authority regional aggregation
-ba_agg <- region_aggregation(region = "ba", region_cols = c(ba_code, ba_name))
+ba_agg <- region_aggregation(region = "ba", region_cols = c(ba_name, ba_code))
 
 # NERC regional aggregation
 nerc_agg <- region_aggregation(region = "nerc", region_cols = c(nerc, nerc_name))

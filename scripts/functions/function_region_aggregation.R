@@ -18,7 +18,7 @@ region_aggregation <- function(region, region_cols) {
   #' 
   #' Function to create region aggregation files. 
   #' 
-  #' @region Region for data to be aggregated to
+  #' @region Region for data to be aggregated to, as a string
   #' @region_cols Relevant region columns from the plant file, as a vector
   #' @return .RDS file of aggregated region
   #' @examples
@@ -139,12 +139,13 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_),
                .names = "{str_replace(.col, '_mass', '')}_output_rate"), 
-        region_nox_oz_output_rate = 2000 * region_nox_oz_mass / region_generation_oz, 
+        region_nox_oz_output_rate = if_else(region_generation_oz != 0, 
+                                            2000 * region_nox_oz_mass / region_generation_oz, NA_real_),
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_output_rate"),
         region_hg_output_rate = "--") %>% 
       relocate(region_nox_oz_output_rate, .after = region_nox_output_rate) %>%  
@@ -162,12 +163,13 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_combust_heat_input, 
+               .fns = ~ if_else(region_combust_heat_input != 0, 2000 * . / region_combust_heat_input, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-        region_nox_oz_input_rate = 2000 * region_nox_oz_mass / region_combust_heat_input_oz, 
+        region_nox_oz_input_rate = if_else(region_combust_heat_input_oz != 0, 
+                                           2000 * region_nox_oz_mass / region_combust_heat_input_oz, NA_real_),  
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_combust_heat_input, 
+               .fns = ~ if_else(region_combust_heat_input != 0, . / region_combust_heat_input, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
         region_hg_input_rate = "--") %>% 
       relocate(region_nox_oz_input_rate, .after = region_nox_input_rate) %>%  
@@ -185,13 +187,16 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_ann_gen_combust, 
+               .fns = ~ if_else(region_ann_gen_combust != 0, 2000 * . / region_ann_gen_combust, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
-        region_nox_oz_combustion_rate = 2000 * region_nox_oz_mass / 
-          (region_ann_gen_combust * (region_generation_oz / region_generation_ann)), 
+        region_nox_oz_combustion_rate = if_else(region_generation_oz != 0 & 
+                                                  region_ann_gen_combust != 0 &
+                                                  region_generation_ann != 0, 
+                                                2000 * region_nox_oz_mass / 
+          (region_ann_gen_combust * (region_generation_oz / region_generation_ann)), NA_real_), 
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
         region_hg_combustion_rate = "--") %>% 
       relocate(region_nox_oz_combustion_rate, .after = region_nox_combustion_rate) %>%  
@@ -228,12 +233,13 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_output_rate"), 
-        region_nox_oz_output_rate = 2000 * region_nox_oz_mass / region_generation_oz, 
+        region_nox_oz_output_rate = if_else(region_generation_oz != 0, 
+                                            2000 * region_nox_oz_mass / region_generation_oz, NA_real_), 
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_output_rate"),
         
         # input emission rates (lb/MMBtu)
@@ -241,12 +247,13 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_combust_heat_input, 
+               .fns = ~ if_else(region_combust_heat_input != 0, 2000 * . / region_combust_heat_input, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-        region_nox_oz_input_rate = 2000 * region_nox_oz_mass / region_combust_heat_input_oz, 
+        region_nox_oz_input_rate = if_else(region_combust_heat_input_oz != 0, 
+                                           2000 * region_nox_oz_mass / region_combust_heat_input_oz, NA_real_),  
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_combust_heat_input, 
+               .fns = ~ if_else(region_combust_heat_input != 0, . / region_combust_heat_input, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
       select({{ region_cols }}, primary_fuel_category, contains("rate")) %>% 
       relocate(region_nox_oz_output_rate, .after = region_nox_output_rate) %>% 
@@ -286,12 +293,13 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_output_rate_fossil"), 
-        region_nox_oz_output_rate_fossil = 2000 * region_nox_oz_mass / region_generation_oz, 
+        region_nox_oz_output_rate_fossil = if_else(region_generation_oz != 0, 
+                                                   2000 * region_nox_oz_mass / region_generation_oz, NA_real_), 
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_output_rate_fossil"),
         
         # input emission rates (lb/MMBtu)
@@ -299,12 +307,14 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_combust_heat_input, 
+               .fns = ~ if_else(region_combust_heat_input != 0, 2000 * . / region_combust_heat_input, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
-        region_nox_oz_input_rate_fossil = 2000 * region_nox_oz_mass / region_combust_heat_input_oz, 
+        region_nox_oz_input_rate_fossil = if_else(region_combust_heat_input_oz != 0, 
+                                                  2000 * region_nox_oz_mass / region_combust_heat_input_oz, 
+                                                  NA_real_), 
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_combust_heat_input, 
+               .fns = ~ if_else(region_combust_heat_input != 0, . / region_combust_heat_input, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
         across(where(is.numeric), ~ replace_na(., 0))) %>% 
       relocate(region_co2e_input_rate_fossil, .after = region_n2o_input_rate_fossil) %>%  
@@ -330,12 +340,14 @@ region_aggregation <- function(region, region_cols) {
                               "region_so2_mass", 
                               "region_co2_mass", 
                               "region_co2e_mass"), 
-                    .fns = ~ 2000 * . / region_generation_ann, 
+                    .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
                     .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"), 
-             region_nox_oz_output_rate_nonbaseload = 2000 * region_nox_oz_mass / region_generation_oz, 
+             region_nox_oz_output_rate_nonbaseload = if_else(region_generation_oz != 0, 
+                                                             2000 * region_nox_oz_mass / region_generation_oz, 
+                                                             NA_real_), 
              across(.cols = c("region_ch4_mass", 
                               "region_n2o_mass"),
-                    .fns = ~ . / region_generation_ann, 
+                    .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
                     .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"),
              region_hg_output_rate_nonbaseload = "--") %>% 
       relocate(region_nox_oz_output_rate_nonbaseload, .after = region_nox_output_rate_nonbaseload) %>% 
@@ -362,7 +374,8 @@ region_aggregation <- function(region, region_cols) {
       region_gen %>% 
       select(-region_generation_oz) %>%   
       mutate(across(.cols = -c({{ region_cols }}, "region_generation_ann"), 
-                    .fns = ~ . / region_generation_ann, # convert to percentage 
+                    .fns = ~ if_else(region_generation_ann != 0, 
+                                     . / region_generation_ann, NA_real_), # convert to percentage 
                     .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
       select({{ region_cols }}, contains("resource_mix"))
     
@@ -389,7 +402,7 @@ region_aggregation <- function(region, region_cols) {
       region_nonbaseload_gen %>% 
       mutate(region_nonbaseload_gen = rowSums(pick(contains("nonbaseload"))), 
              across(.cols = -c({{ region_cols }}, "region_nonbaseload_gen"), 
-                    .fns = ~ . / region_nonbaseload_gen, 
+                    .fns = ~ if_else(region_nonbaseload_gen != 0, . / region_nonbaseload_gen, NA_real_), 
                     .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
       select({{ region_cols }}, contains("resource_mix"))
     
@@ -508,12 +521,13 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_output_rate"), 
-        region_nox_oz_output_rate = 2000 * region_nox_oz_mass / region_generation_oz, 
+        region_nox_oz_output_rate = if_else(region_generation_oz != 0, 
+                                            2000 * region_nox_oz_mass / region_generation_oz, NA_real_), 
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_output_rate"),
         region_hg_output_rate = "--") %>% 
       relocate(region_nox_oz_output_rate, .after = region_nox_output_rate) %>%  
@@ -531,12 +545,13 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_combust_heat_input, 
+               .fns = ~ if_else(region_combust_heat_input != 0, 2000 * . / region_combust_heat_input, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-        region_nox_oz_input_rate = 2000 * region_nox_oz_mass / region_combust_heat_input_oz, 
+        region_nox_oz_input_rate = if_else(region_combust_heat_input_oz != 0, 
+                                           2000 * region_nox_oz_mass / region_combust_heat_input_oz, NA_real_), 
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_combust_heat_input, 
+               .fns = ~ if_else(region_combust_heat_input != 0, . / region_combust_heat_input, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
         region_hg_input_rate = "--") %>% 
       relocate(region_nox_oz_input_rate, .after = region_nox_input_rate) %>%  
@@ -556,13 +571,16 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_combustion_gen, 
+               .fns = ~ if_else(region_combustion_gen != 0, 2000 * . / region_combustion_gen, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
-        region_nox_oz_combustion_rate = 2000 * region_nox_oz_mass / 
-          (region_combustion_gen * (region_generation_oz / region_generation_ann)), 
+        region_nox_oz_combustion_rate = if_else(region_combustion_gen != 0 & 
+                                                  region_generation_oz != 0 & 
+                                                  region_generation_ann != 0, 
+                                                2000 * region_nox_oz_mass / 
+          (region_combustion_gen * (region_generation_oz / region_generation_ann)), NA_real_),  
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
         region_hg_combustion_rate = "--") %>% 
       relocate(region_nox_oz_combustion_rate, .after = region_nox_combustion_rate) %>%  
@@ -599,12 +617,13 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_output_rate"), 
-        region_nox_oz_output_rate = 2000 * region_nox_oz_mass / region_generation_oz, 
+        region_nox_oz_output_rate = if_else(region_generation_oz != 0, 
+                                            2000 * region_nox_oz_mass / region_generation_oz, NA_real_), 
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_output_rate"),
         
         # input emission rates (lb/MMBtu)
@@ -612,12 +631,13 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_combust_heat_input, 
+               .fns = ~ if_else(region_combust_heat_input != 0, 2000 * . / region_combust_heat_input, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-        region_nox_oz_input_rate = 2000 * region_nox_oz_mass / region_combust_heat_input_oz, 
+        region_nox_oz_input_rate = if_else(region_combust_heat_input_oz != 0, 
+                                           2000 * region_nox_oz_mass / region_combust_heat_input_oz, NA_real_), 
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_combust_heat_input, 
+               .fns = ~ if_else(region_combust_heat_input != 0, . / region_combust_heat_input, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
       select(primary_fuel_category, contains("rate")) %>% 
       relocate(region_nox_oz_output_rate, .after = region_nox_output_rate) %>% 
@@ -656,12 +676,13 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_output_rate_fossil"), 
-        region_nox_oz_output_rate_fossil = 2000 * region_nox_oz_mass / region_generation_oz, 
+        region_nox_oz_output_rate_fossil = if_else(region_generation_oz != 0, 
+                                                   2000 * region_nox_oz_mass / region_generation_oz, NA_real_), 
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_generation_ann, 
+               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_output_rate_fossil"),
         
         # input emission rates (lb/MMBtu)
@@ -669,12 +690,14 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ 2000 * . / region_combust_heat_input, 
+               .fns = ~ if_else(region_combust_heat_input != 0, 2000 * . / region_combust_heat_input, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
-        region_nox_oz_input_rate_fossil = 2000 * region_nox_oz_mass / region_combust_heat_input_oz, 
+        region_nox_oz_input_rate_fossil = if_else(region_combust_heat_input_oz != 0, 
+                                                  2000 * region_nox_oz_mass / region_combust_heat_input_oz, 
+                                                  NA_real_), 
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ . / region_combust_heat_input, 
+               .fns = ~ if_else(region_combust_heat_input != 0, . / region_combust_heat_input, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
         across(where(is.numeric), ~ replace_na(., 0))) %>% 
       relocate(region_co2e_input_rate_fossil, .after = region_n2o_input_rate_fossil) %>%  
@@ -699,12 +722,14 @@ region_aggregation <- function(region, region_cols) {
                               "region_so2_mass", 
                               "region_co2_mass", 
                               "region_co2e_mass"), 
-                    .fns = ~ 2000 * . / region_generation_ann, 
+                    .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
                     .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"), 
-             region_nox_oz_output_rate_nonbaseload = 2000 * region_nox_oz_mass / region_generation_oz, 
+             region_nox_oz_output_rate_nonbaseload = if_else(region_generation_oz != 0, 
+                                                             2000 * region_nox_oz_mass / region_generation_oz, 
+                                                             NA_real_), 
              across(.cols = c("region_ch4_mass", 
                               "region_n2o_mass"),
-                    .fns = ~ . / region_generation_ann, 
+                    .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
                     .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"),
              region_hg_output_rate_nonbaseload = "--") %>% 
       relocate(region_nox_oz_output_rate_nonbaseload, .after = region_nox_output_rate_nonbaseload) %>% 
@@ -734,7 +759,8 @@ region_aggregation <- function(region, region_cols) {
       region_gen %>% 
       select(-region_generation_oz) %>%   
       mutate(across(.cols = -c("region_generation_ann"), 
-                    .fns = ~ . / region_generation_ann, # convert to percentage 
+                    .fns = ~ if_else(region_generation_ann != 0, 
+                                     . / region_generation_ann, NA_real_), # convert to percentage 
                     .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
       select(contains("resource_mix")) %>% 
       distinct()
@@ -760,7 +786,7 @@ region_aggregation <- function(region, region_cols) {
       region_nonbaseload_gen %>% 
       mutate(region_nonbaseload_gen = rowSums(pick(contains("nonbaseload"))), 
              across(.cols = -c("region_nonbaseload_gen"), 
-                    .fns = ~ . / region_nonbaseload_gen, 
+                    .fns = ~ if_else(region_nonbaseload_gen != 0, . / region_nonbaseload_gen, NA_real_), 
                     .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
       select(contains("resource_mix")) %>% 
       distinct()
