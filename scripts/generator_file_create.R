@@ -15,17 +15,29 @@
 ## -------------------------------
 
 
-# Libraries 
+# Load libraries ----------
+
 library(dplyr)
 library(readr)
 library(stringr)
 library(glue)
 
-# Define params for eGRID data year
-# This is only necessary when running script outside of the eGRID_master.qmd document
+# check if parameters for eGRID data year need to be defined
+# this is only necessary when running the script outside of egrid_master.qmd
+# user will be prompted to input eGRID year in the console if params does not exist
 
-params <- list()
-params$eGRID_year <- "2021"
+if (exists("params")) {
+  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+    print("eGRID year parameter is already defined.") 
+  } else { # if params() is defined, but eGRID_year is not, define it here 
+    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+    params$eGRID_year <- as.character(params$eGRID_year) 
+  }
+} else { # if params() and eGRID_year are not defined, define them here
+  params <- list()
+  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+  params$eGRID_year <- as.character(params$eGRID_year)
+}
 
 # Load in necessary 923 and 860 files ----------
 
@@ -98,7 +110,8 @@ eia_860_boiler_count <- # creating count of boilers for each generator
   eia_860_boiler %>% 
   group_by(plant_id, 
            generator_id) %>% 
-  summarize(n_boilers = n())
+  summarize(n_boilers = n()) %>% 
+  ungroup()
 
 # Determine generation ------------
 
@@ -143,7 +156,8 @@ eia_gen_fuel_generation_sum <-
   ungroup() %>% 
   group_by(plant_id, prime_mover) %>% 
   summarize(tot_generation_oz_fuel = sum(generation_oz, na.rm = TRUE), # ozone months total
-            tot_generation_ann_fuel = sum(net_generation_megawatthours, na.rm = TRUE)) # annual total
+            tot_generation_ann_fuel = sum(net_generation_megawatthours, na.rm = TRUE)) %>% # annual total
+  ungroup()
 
 gen_distributed <- 
   eia_gen_generation %>% 
@@ -159,7 +173,9 @@ gen_distributed <-
   filter(is.na(gen_data_source)) %>% # filtering to only generators with missing source
   group_by(plant_id, prime_mover) %>%
   mutate(tot_nameplate_capacity = sum(nameplate_capacity),
-         prop = nameplate_capacity/tot_nameplate_capacity) %>% # creating proportion based on nameplate_capacity used to distribute generation across generators
+         prop = if_else(tot_nameplate_capacity != 0, # creating proportion based on nameplate_capacity used to distribute generation across generators
+                        nameplate_capacity / tot_nameplate_capacity, 
+                        NA_real_)) %>% 
   ungroup() %>% 
   mutate(generation_ann = generation_ann_diff * prop, # multiplying differences by proportion value
          generation_oz = generation_oz_diff * prop,
@@ -178,8 +194,10 @@ eia_gen_genfuel_diff <-
   left_join(eia_gen_fuel_generation_sum, by = c("plant_id", "prime_mover")) %>% # joining with gen_fuel file
   mutate(abs_diff_generation_ann = abs(tot_generation_ann_fuel - tot_generation_ann_gen), # calculating absolute differences between generation values
          abs_diff_generation_oz = abs(tot_generation_oz_fuel - tot_generation_oz_gen),
-         perc_diff_generation_ann = if_else(abs_diff_generation_ann == 0, 0, abs_diff_generation_ann/tot_generation_ann_fuel), # calculating the percentage of the difference over the fuel levels in gen_fuel file
-         perc_diff_generation_oz = if_else(abs_diff_generation_oz == 0, 0, abs_diff_generation_oz/tot_generation_oz_fuel),
+         perc_diff_generation_ann = if_else(abs_diff_generation_ann == 0, 0, 
+                                            abs_diff_generation_ann / tot_generation_ann_fuel), # calculating the percentage of the difference over the fuel levels in gen_fuel file
+         perc_diff_generation_oz = if_else(abs_diff_generation_oz == 0, 0, 
+                                           abs_diff_generation_oz / tot_generation_oz_fuel),
          overwrite = if_else(perc_diff_generation_ann > 0.001, "overwrite", "EIA-923 Generator File"))
 
 
@@ -189,8 +207,9 @@ eia_gen_genfuel_diff <-
 ## Note that generators incorrectly end up in overwrite if they share a plant prime mover id with another generator
 ## that is indeed in generator file.
 
-
-key_columns <- # creating vector of column names that are essentials for modified dataframes. These are used to reduce clutter in dfs before they are combined in final structure below
+# creating vector of column names that are essentials for modified dataframes. 
+# These are used to reduce clutter in dfs before they are combined in final structure below. 
+key_columns <- 
   c("plant_id", 
     "prime_mover",
     "generator_id",
@@ -198,14 +217,15 @@ key_columns <- # creating vector of column names that are essentials for modifie
     "generation_oz",
     "gen_data_source")
 
-
 gen_overwrite <- 
   eia_gen_genfuel_diff %>% 
   left_join(eia_860_combined_r %>% 
               select(plant_id, generator_id, prime_mover, nameplate_capacity)) %>%
   group_by(plant_id, prime_mover) %>% 
-  mutate(tot_nameplate_cap = sum(nameplate_capacity),
-         prop = nameplate_capacity/tot_nameplate_cap) %>% 
+  mutate(tot_nameplate_capacity = sum(nameplate_capacity),
+         prop = if_else(tot_nameplate_capacity != 0, # creating proportion based on nameplate_capacity used to distribute generation across generators
+                        nameplate_capacity / tot_nameplate_capacity, 
+                        NA_real_)) %>% 
   ungroup() %>% 
   filter(overwrite == "overwrite") %>% 
   mutate(generation_ann = tot_generation_ann_fuel * prop,
@@ -219,11 +239,15 @@ gen_overwrite <-
 
 december_netgen <- 
   gen_distributed %>% 
-  mutate(generation_ann_dec_equal = if_else(net_generation_december != 0 & net_generation_december == net_generation_year_to_date, "yes", "no")) %>% # identifying cases where annual generation = december generation
+  mutate(generation_ann_dec_equal = if_else(net_generation_december != 0 & 
+                                              net_generation_december == net_generation_year_to_date, 
+                                            "yes", "no")) %>% # identifying cases where annual generation = december generation
   left_join(eia_gen_fuel_generation_sum) %>% ## pulling in Gen fuel data
   group_by(plant_id, prime_mover) %>%
   mutate(tot_nameplate_cap = sum(nameplate_capacity),
-         prop = nameplate_capacity/tot_nameplate_cap) %>% 
+         prop = if_else(tot_nameplate_capacity != 0, # creating proportion based on nameplate_capacity used to distribute generation across generators
+                        nameplate_capacity / tot_nameplate_capacity, 
+                        NA_real_)) %>% 
   ungroup() %>% 
   mutate(
     generation_oz = if_else(generation_ann_dec_equal == "yes", 
@@ -239,27 +263,28 @@ december_netgen <-
 december_and_overwritten <- 
   bind_rows(
     december_netgen,
-    gen_overwrite
-  ) %>% 
+    gen_overwrite) %>% 
   left_join(eia_gen_generation %>% # merging all columns back in
               select(-c(starts_with("generation"), gen_data_source)),
             by = c("plant_id", "generator_id", "prime_mover")) %>% 
-  mutate(id = paste0(plant_id,prime_mover,generator_id)) # creating unique id to identify duplicates
+  mutate(id = paste0(plant_id, "_", prime_mover, "_", generator_id)) # creating unique id to identify duplicates
+
+print(glue::glue("{nrow(december_and_overwritten)} generator data are either overwritten from EIA-923 Generator and Fuel or from December generation."))
 
 # now combining all generators 
 
 generators_combined <- 
   gen_distributed %>% 
-  mutate(id = paste0(plant_id,prime_mover,generator_id)) %>%
-  filter(!id %in% december_and_overwritten$id) %>%  #filtering out observations that are in modified df
+  mutate(id = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>%
+  filter(!(id %in% december_and_overwritten$id)) %>%  #filtering out observations that are in modified df
   bind_rows(december_and_overwritten)
-
 
 # Final modifications to generator file -----------
 
 xwalk_fuel_codes <- # this is xwalk for specific changes made to certain generator xwalks
   read_csv("data/static_tables/xwalk_fuel_type.csv") %>% 
-  mutate(id = paste0(plant_id, prime_mover, unit_id)) %>% # creating id to facilitate join
+  rename("generator_id" = unit_id) %>% 
+  mutate(id = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>% # creating id to facilitate join
   select(id, fuel_code)
 
 # creating lookup tables based on xwalk to use with recode() 
@@ -281,7 +306,7 @@ generators_edits <-
          plant_name = recode(plant_id, !!!lookup_camd_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
          gen_data_source = if_else(is.na(generation_ann), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
          year = params$eGRID_year,
-         capfact = generation_ann/(nameplate_capacity * 8760)) %>%  # calculating capacity factor
+         capfact = generation_ann / (nameplate_capacity * 8760)) %>%  # calculating capacity factor
   left_join(eia_860_boiler_count)
 
 # creating named vector of final variable order and variable name included in generator file
@@ -312,12 +337,7 @@ generators_formatted <-
   arrange(plant_state, plant_name) %>% 
   mutate(seqgen = row_number(),
          across(c("capfact", "generation_ann", "generation_oz"), ~ round(.x, 3))) %>% 
-  select(as_tibble(final_vars)$value) # keeping columns with tidy names for QA steps
-
-
-# generator_file <- # creating version with final generator file names for eGRID. (Note: This may be done differently when create final excel file)
-#   generators_formatted %>% 
-#   rename(all_of(final_vars))
+  select(as_tibble(final_vars)$value) # keeping columns with tidy names since the rename is done in the final formatting script
 
 
 # Export generator file -----------
@@ -334,7 +354,7 @@ write_rds(generators_formatted, "data/outputs/generator_file.RDS")
   
 # check if file is successfully written to folder 
 if(file.exists("data/outputs/generator_file.RDS")){
-  print("File generator_file.RDS successfully written to folder data/raw_data/camd")
+  print("File generator_file.RDS successfully written to folder data/outputs/")
 } else {
    print("File generator_file.RDS failed to write to folder.")
 }  
