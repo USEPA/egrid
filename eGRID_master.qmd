@@ -5,6 +5,7 @@ author:
   - "Claire Lay, Abt Global"
   - "Justin Stein, Abt Global"
   - "Teagan Goforth, Abt Global"
+  - "Emma Russell, Abt Global"
 freeze: true
 format: 
   html:
