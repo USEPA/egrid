@@ -17,7 +17,8 @@
 library(dplyr)
 library(readr)
 library(tidyr)
-library(purrr)
+library(stringr)
+library(readxl)
 
 # check if parameters for eGRID data year need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
@@ -36,6 +37,16 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
+# List file in EIA raw data folders ------------
+
+# file names are not always consistent from the EIA website
+# for example, some may have a "_Revision" addition if the data has been revised by EIA after initial release
+# to address this issue, we list file names that are extracted from the EIA website and identify file names based on consistent strings across years
+
+eia_923_files <- list.files("data/raw_data/923")
+eia_860_files <- list.files("data/raw_data/860")
+eia_861_files <- list.files("data/raw_data/861")
+
 
 # EIA-923 ------------
 
@@ -46,11 +57,12 @@ sheets_923_1 <- c("Page 1 Generation and Fuel Data", # defining list of sheets t
                   "Page 3 Boiler Fuel Data",
                   "Page 4 Generator Data")
 
+file_name_schedule_2_3_4_5_m_12 <- grep("2_3_4_5_M_12", eia_923_files, value = TRUE)
 
 sched_2_3_4_5_m_12_dfs <- 
   purrr::map2(sheets_923_1, # .x, defining sheets to iterate over
               c(5,6,5,5),   # y, adding second argument to define the number of rows to skip (differs between files)
-             ~ read_excel(glue::glue("data/raw_data/923/EIA923_Schedules_2_3_4_5_M_12_{params$eGRID_year}_Final_Revision.xlsx"),
+             ~ read_excel(paste0("data/raw_data/923/", file_name_schedule_2_3_4_5_m_12), 
                           sheet = .x,
                           skip = .y,
                           na = ".", # converting "." to NAs
@@ -73,8 +85,10 @@ gen_fuel_combined <-
 
 ## EIA923_Schedule_8_Annual_Environmental_Information ------
 
+file_name_schedule_8 <- grep("Schedule_8", eia_923_files, value = TRUE)
+
 air_emissions_control_info <- 
- read_excel(glue::glue("data/raw_data/923/EIA923_Schedule_8_Annual_Environmental_Information_{params$eGRID_year}_Final_Revision.xlsx"),
+ read_excel(paste0("data/raw_data/923/", file_name_schedule_8), 
                            sheet = "8C Air Emissions Control Info",
                            skip = 4,
                            na = ".",
@@ -100,7 +114,6 @@ dfs_923 <- c(sched_2_3_4_5_m_12_dfs,
                 filter(!if_all(everything(), is.na)))
 
 
-
 ## Saving 923 Files --------
 
 # create directory
@@ -124,9 +137,11 @@ generator_sheets <- c("Operable",
                       "Proposed",
                       "Retired and Canceled")
 
+file_name_generator <- grep("Generator_Y", eia_860_files, value = TRUE)
+
 generator_dfs <- 
   purrr::map(generator_sheets, 
-             ~ read_excel(glue::glue("data/raw_data/860/3_1_Generator_Y{params$eGRID_year}.xlsx"),
+             ~ read_excel(paste0("data/raw_data/860/", file_name_generator),
                           sheet = .x,
                           skip = 1,
                           na = c(".", "X"),
@@ -151,8 +166,6 @@ generator_dfs_mod <-
                   filter(retirement_year == {params$eGRID_year}))
 
 
-
-
 ## 860 6_1_EnviroAssoc files ----
 enviro_assoc_sheets <- c("Boiler Generator",
                          "Boiler NOx",
@@ -161,9 +174,11 @@ enviro_assoc_sheets <- c("Boiler Generator",
                          "Boiler Particulate Matter",
                          "Emissions Control Equipment")
 
+file_name_enviro_assoc <- grep("EnviroAssoc_Y", eia_860_files, value = TRUE)
+
 enviro_assoc_dfs <- 
     purrr::map(enviro_assoc_sheets, 
-      ~ read_excel(glue::glue("data/raw_data/860/6_1_EnviroAssoc_Y{params$eGRID_year}.xlsx"),
+      ~ read_excel(paste0("data/raw_data/860/", file_name_enviro_assoc),
         sheet = .x,
         skip = 1,
         na = ".",
@@ -179,9 +194,11 @@ enviro_equip_sheets <- c("Emission Standards & Strategies",
                         "Boiler Info & Design Parameters",
                         "FGD")
 
+file_name_enviro_equip <- grep("EnviroEquip_Y", eia_860_files, value = TRUE)
+
 enviro_equip_dfs <- 
   purrr::map(enviro_equip_sheets, 
-           ~ read_excel(glue::glue("data/raw_data/860/6_2_EnviroEquip_Y{params$eGRID_year}.xlsx"),
+           ~ read_excel(paste0("data/raw_data/860/", file_name_enviro_equip),
                         sheet = .x,
                         skip = 1,
                         na = ".",
@@ -194,8 +211,10 @@ enviro_equip_dfs <-
 
 ## 860 2__Plant_ -------
 
+file_name_plant <- grep("Plant_Y", eia_860_files, value = TRUE)
+
 plant_df <- 
-  read_excel(glue::glue("data/raw_data/860/2___Plant_Y{params$eGRID_year}.xlsx"),
+  read_excel(paste0("data/raw_data/860/", file_name_plant),
                         sheet = "Plant",
                         skip = 1,
                         na = ".",
@@ -204,7 +223,7 @@ plant_df <-
   janitor::clean_names()
 
 
-## 860m -------------
+## Puerto Rico 860m -------------
 
 pr_sheets <- c("Operating_PR",
                "Retired_PR")
@@ -263,7 +282,7 @@ names_860_PR_ret <-
 
 puerto_rico_dfs <- 
   purrr::map(pr_sheets, 
-             ~ read_excel(glue::glue("data/raw_data/860m.xlsx"),
+             ~ read_excel(glue::glue("data/raw_data/860/eia_pr_860m.xlsx"),
                           sheet = .x,
                           skip = 2,
                           na = c(".", "X"),
@@ -288,10 +307,8 @@ puerto_rico_dfs_mod <-
                janitor::clean_names()) # converting column names in both files to snake_case and lower
 
 
-## create 860 combined file -------------
+## Create 860 combined file -------------
 
-  
-  
 ## Combining 860 files ---------
 
 rename_cols_860 <- c("plant_id" = "plant_code",
@@ -336,7 +353,6 @@ write_rds(dfs_860_final, "data/clean_data/eia/eia_860_clean.RDS")
 print(glue::glue("File eia_860_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_860_final), sep = ', ', last = ', and ')}, written to folder data/clean_data/eia."))
 
 
-
 # EIA-861 -------------
 
 ## 861 Balancing authority  ----------
@@ -344,8 +360,10 @@ print(glue::glue("File eia_860_clean.RDS, containing dataframes {glue::glue_coll
 rename_cols_861 <- # creating list of variable name mappings
   c("year" = "data_year")
 
+file_name_ba <- grep("Balancing_Authority", eia_861_files, value = TRUE)
+
 balancing_authority <-  
-  read_excel(glue::glue("data/raw_data/861/Balancing_Authority_{params$eGRID_year}.xlsx"), 
+  read_excel(paste0("data/raw_data/861/", file_name_ba), 
              sheet = "Balancing Authority",
              guess_max = 4000,
              na = "."
@@ -355,8 +373,10 @@ balancing_authority <-
 
 ## 861 Sales Ult Cust --------
 
+file_name_sales_ult_cust <- grep("Sales_Ult_Cust", eia_861_files, value = TRUE)[1]
+
 sales_ult_cust <-
-  read_excel(glue::glue("data/raw_data/861/Sales_Ult_Cust_{params$eGRID_year}.xlsx"),
+  read_excel(paste0("data/raw_data/861/", file_name_sales_ult_cust),
              sheet = "States",
              skip = 2,
              guess_max = 4000,
@@ -370,6 +390,8 @@ sales_ult_cust <-
 
   
 ## 861 Utility Data ---------
+
+file_name_utility <- grep("Utility_Data", eia_861_files, value = TRUE)
 
 utility_data <-
   read_excel(glue::glue("data/raw_data/861/Utility_Data_{params$eGRID_year}.xlsx"),
@@ -391,7 +413,6 @@ utility_data <-
   select(data_year:nerc_region, isorto_count)  # keeping necessary columns
 
 
-
 ## Combining 861 data ----------
 
 dfs_861 <-
@@ -406,3 +427,4 @@ write_rds(dfs_861, "data/clean_data/eia/eia_861_clean.RDS")
 
 # printing confirmation message
 print(glue::glue("File eia_861_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_861), sep = ', ', last = ', and ')}, written to folder data/clean_data/eia."))
+
