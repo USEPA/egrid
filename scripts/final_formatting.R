@@ -15,9 +15,6 @@
 ##
 ## -------------------------------
 
-# set working directory - remove later
-# setwd("~/sdrive/projects/eGrid/production_model/users/zhangm/egrid-git")
-
 ### Load libraries ------
 
 library(dplyr)
@@ -28,15 +25,15 @@ library(stringr)
 library(openxlsx)
 
 ### Load in data ------ 
-unt_file <- readRDS('data/outputs/unit_file.RDS')
-gen_file <- readRDS('data/outputs/generator_file.RDS')
-plnt_file <- readRDS('data/outputs/plant_file.RDS')
-st_file <- readRDS('data/outputs/state_aggregation.RDS')
-ba_file <- readRDS('data/outputs/BA_aggregation.RDS')
-srl_file <- readRDS('data/outputs/subregion_aggregation.RDS')
-nrl_file <- readRDS('data/outputs/nerc_aggregation.RDS')
-us_file <- readRDS('data/outputs/us_aggregation.RDS')
-ggl_file <- readRDS('data/outputs/grid_gross_loss.RDS') 
+unt_file <- read_rds('data/outputs/unit_file.RDS')
+gen_file <- read_rds('data/outputs/generator_file.RDS')
+plnt_file <- read_rds('data/outputs/plant_file.RDS')
+st_file <- read_rds('data/outputs/state_aggregation.RDS')
+ba_file <- read_rds('data/outputs/ba_aggregation.RDS')
+srl_file <- read_rds('data/outputs/subregion_aggregation.RDS')
+nrl_file <- read_rds('data/outputs/nerc_aggregation.RDS')
+us_file <- read_rds('data/outputs/us_aggregation.RDS')
+ggl_file <- read_rds('data/outputs/grid_gross_loss.RDS') 
 
 
 # check if parameters for eGRID data year need to be defined
@@ -61,7 +58,7 @@ if (exists("params")) {
 year <- as.numeric(params$eGRID_year) %% 1000
 
 ### Set up output file
-contents <- "data/outputs/formatting/egrid_contents_page.xlsx"
+contents <- "data/static_tables/formatting/egrid_contents_page.xlsx"
 wb <- loadWorkbook(contents)
 
 
@@ -1109,7 +1106,7 @@ seqplt <- glue::glue("SEQPLT{year}")
 # select number of rows from data frame
 plnt_rows <- nrow(plnt_file)+2 
 
-## vector of names -----
+## vector of names
 
 # column names
 plnt_header <- c(seqplt, # 1 
@@ -1399,7 +1396,7 @@ plnt_desc <- c("Plant file sequence number",
 # change columns name                   
 colnames(plnt_file) <- plnt_header
 
-## add data and styles ----
+## add data and styles
 
 # write data for first row only
 writeData(wb, sheet = plnt, t(plnt_desc), startRow = 1, colNames = FALSE)
@@ -1550,7 +1547,7 @@ st_desc <- c("Data Year",
 writeData(wb, sheet = st, t(st_desc), startRow = 1, colNames = FALSE)
 
 
-## add styles to document ------
+## add styles to document 
 
 # add styles for first row only 
 addStyle(wb, sheet = st, style = desc_style, rows = 1, cols = 1:4, gridExpand = TRUE)
