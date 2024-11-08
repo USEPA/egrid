@@ -10,7 +10,7 @@
 ## The checks performed will output a CSV file with any differences 
 ## between Access and R unit files. 
 ## 
-## Author: Teagan Goforth, teagan.goforth@abtglobal.com 
+## Author: Teagan Goforth
 ## 
 ## Date created: 8/5/2024
 ##
@@ -22,8 +22,6 @@ library(dplyr)
 library(readr)
 library(readxl)
 library(stringr)
-library(vroom)
-
 
 # create save directory 
 
@@ -33,14 +31,14 @@ if(dir.exists("data/outputs/qa")) {
   dir.create("data/outputs/qa")
 }
 
-if(dir.exists("data/outputs/qa/unit_file_differences")) {
+if(dir.exists("data/outputs/qa/unit_file_differences/2023")) {
   print("Folder unit_file_differences already exists.")
 }else{
-  dir.create("data/outputs/qa/unit_file_differences")
+  dir.create("data/outputs/qa/unit_file_differences/2023")
 }
 
 # set directory for saving files 
-save_dir <- "data/outputs/qa/unit_file_differences/"
+save_dir <- "data/outputs/qa/unit_file_differences/2023/"
 
 # load unit file R
 unit_r <- read_rds("data/outputs/unit_file.RDS")
@@ -54,10 +52,10 @@ unit_r <- unit_r %>%
   mutate(num_generators_r = as.numeric(num_generators_r), 
          year_online_r = as.character(year_online_r))
 
-unit_access <- read_excel("data/static_tables/qa/access_unit_file_2021.xlsx", sheet = "Unit_File", 
-                               #skip = 1, 
-                               guess_max = 4000) %>% janitor::clean_names() %>% 
-  rename("sequnt_access" = "sequnt",
+unit_access <- read_excel("data/raw_data/eGRID_Data2023.xlsx", sheet = "UNT23", 
+                          skip = 1, 
+                          guess_max = 4000) %>% janitor::clean_names() %>% 
+  rename("sequnt_access" = "sequnt23",
          #"year_access" = "year", 
          "plant_id" = "orispl",
          "plant_name_access" = "pname", 
