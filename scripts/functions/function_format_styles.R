@@ -475,12 +475,15 @@ create_format_styles <- function() {
                               borderStyle = "thin",
                               fontColour = "white")
   
+  
   # return list of styles
   # naming each style for easier indexing in script
   list(header_style = header_style,
        desc_style = desc_style,
+       
        bold = bold,
        basic = basic,
+       
        integer = integer,
        integer2 = integer2,
        percent = percent,
@@ -488,48 +491,69 @@ create_format_styles <- function() {
        decimal2 = decimal2,
        decimal3 = decimal3,
        decimal4 = decimal4,
+       
        integer_bold = integer_bold,
        percent_bold = percent_bold,
+
        color1_header = color1_header,
-       color2_desc = color2_desc,
+       color1_desc = color2_desc,
+       
        color2_header = color2_header,
        color2_desc = color2_desc,
+       
        color3_header = color3_header,
        color3_desc = color3_desc,
+       
        color4_header = color4_header,
        color4_desc = color4_desc,
+       
        color5_header = color5_header,
        color5_desc = color5_desc,
+       
        color6_header = color6_header,
        color6_desc = color6_desc,
+       
        color7_header = color7_header,
        color7_desc = color7_desc,
+       
        color8_header = color8_header,
        color8_desc = color8_desc,
+       
        color9_header = color9_header,
        color9_desc = color9_desc,
+       
        color9v2_header = color9v2_header,
        color9v2_desc = color9v2_desc,
+       
        color10_header = color10_header,
        color10_desc = color10_desc,
+       
        color11_header = color11_header,
        color11_desc = color11_desc,
+       
        color12_header = color12_header,
        color12_desc = color12_desc,
+       
        color12v2_header = color12v2_header,
        color12v2_desc = color12v2_desc,
+       
        color13_header = color13_header,
        color13_desc = color13_desc,
+       
        color14_header = color14_header,
        color14_desc = color14_desc,
+       
        color15_header = color15_header,
        color15_desc = color15_desc,
+       
        color16_header = color16_header,
        color16_desc = color16_desc,
+       
        color17_header = color17_header,
        color17_desc = color17_desc
   )
   
   
 }
+
 
