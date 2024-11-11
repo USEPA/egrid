@@ -12,12 +12,29 @@
 ##
 ## -------------------------------
 
-# Load libraries
+# Load libraries -----
+library(dplyr)
+library(glue)
+library(readr)
 
 # Load in conversion table
+btu_gj_conversion <- 0.9478
+
+# Define eGRID param year
+
+# Load in unit file .RDS data
+output_file_type <- 'unit'
+output_file <- read_rds(glue::glue("data/outputs/{filetype}_file.RDS")) 
+glimpse(output_file)
+
 
 # Add new variables with metric conversions
-
+newfilename <- output_file %>%
+  mutate(across(.cols = c('heat_input','heat_input_oz') | contains('mass'), 
+                .fns = ~ if_else() . / btu_gj_conversion,
+                .names = '{.col}_metric'))
+  # if name is included, new column is made, else original column is replaced
+glimpse(newfilename)
 # unit file
 
 # generator file
@@ -35,4 +52,19 @@
 # US file
 
 # grid gross loss
+
+# Export file -------------
+
+# check if data output folder exists, if not make folder
+save_dir <- glue::glue("data/outputs/{params$eGRID_year")
+if(dir.exists(save_dir)) {
+  print(glue::glue("Folder {save_dir} already exists."))
+}else{
+  dir.create(save_dir)
+}
+
+# save folder to outputs file
+print(glue::glue("Saving {filetype} metric file to folder {save_dir}"))
+write_rds(units_formatted, glue::glue("{save_dir}/{output_file_type}_file_metric.RDS"))
+
 
