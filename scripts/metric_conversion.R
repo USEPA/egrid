@@ -23,16 +23,25 @@ btu_gj_conversion <- 0.9478
 # Define eGRID param year
 
 # Load in unit file .RDS data
-output_file_type <- 'unit'
-output_file <- read_rds(glue::glue("data/outputs/{filetype}_file.RDS")) 
+output_file_type <- 'plant'
+output_file <- read_rds(glue::glue("data/outputs/{output_file_type}_file.RDS")) 
 glimpse(output_file)
+
+#'heat' = 'MMBtu' = 'GJ'
+#'mass' = 'short_tons' = 'metric_tons'
+#'generation' = 'MWh' = 'GJ' # plant has MMBtu to GJ
+#'ch4','n2o','hg' = 'lbs' = 'kg'
+#'out_emission_rate' : 'lbs/MWh' -> 'kg/MWh' AND 'kg/GJ'
+#'in_emission_rate' : lbs/MMBtu -> kg/GJ
+#'combust_out_emission_rate' : lbs/MMbtu -> kg/MWh and kg/GJ
+#'
+
 
 
 # Add new variables with metric conversions
 newfilename <- output_file %>%
   mutate(across(.cols = c('heat_input','heat_input_oz') | contains('mass'), 
-                .fns = ~ if_else() . / btu_gj_conversion,
-                .names = '{.col}_metric'))
+                .fns = ~ if_else() . / btu_gj_conversion))
   # if name is included, new column is made, else original column is replaced
 glimpse(newfilename)
 # unit file
