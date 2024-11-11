@@ -29,8 +29,8 @@ params$eGRID_year <- "2021"
 
 # Load in necessary 923 and 860 files ----------
 
-eia_923_files <- read_rds("data/clean_data/eia/eia_923_clean.RDS") # read in all 923 files
-eia_860_files <- read_rds("data/clean_data/eia/eia_860_clean.RDS") # read in all 860 files
+eia_923_files <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS")) # read in all 923 files
+eia_860_files <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS")) # read in all 860 files
 
 eia_923_gen <- eia_923_files$generator_data
 eia_923_gen_fuel <- eia_923_files$generation_and_fuel_combined
@@ -328,13 +328,19 @@ if(dir.exists("data/outputs")) {
   dir.create("data/outputs")
 }
 
-print("Saving generator file to folder data/outputs/")
+if(dir.exists("data/outputs/{params$eGRID_year}")) {
+  print("Folder output already exists.")
+}else{
+  dir.create("data/outputs/{params$eGRID_year}")
+}
 
-write_rds(generators_formatted, "data/outputs/generator_file.RDS")
+print(glue::glue("Saving generator file to folder data/outputs/{params$eGRID_year}"))
+
+write_rds(generators_formatted, glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
   
 # check if file is successfully written to folder 
-if(file.exists("data/outputs/generator_file.RDS")){
-  print("File generator_file.RDS successfully written to folder data/raw_data/camd")
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))){
+  print(glue::glue("File generator_file.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
 } else {
    print("File generator_file.RDS failed to write to folder.")
 }  

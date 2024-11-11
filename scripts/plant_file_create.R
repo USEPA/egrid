@@ -46,17 +46,17 @@ if (exists("params")) {
 
 ### Load EIA data ------------
 
-eia_860 <- read_rds("data/clean_data/eia/eia_860_clean.RDS")
-eia_861 <- read_rds("data/clean_data/eia/eia_861_clean.RDS")
-eia_923 <- read_rds("data/clean_data/eia/eia_923_clean.RDS")
+eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+eia_861 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
+eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 
 ### Load lower-level eGRID files (unit and generator files) -  -----------
 
 # load generator file
-generator_file <- read_rds("data/outputs/generator_file.RDS")
+generator_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
 
 # load unit file
-unit_file <- read_rds("data/outputs/unit_file.RDS")
+unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
 
 # Create a function to string concatenate unique values that are not NA ----------
 
@@ -1409,12 +1409,27 @@ plant_formatted <-
 
 # Export plant file -------------
 
+# check if folders exist 
 if(dir.exists("data/outputs")) {
   print("Folder output already exists.")
 }else{
   dir.create("data/outputs")
 }
 
-print("Saving unit file to folder data/outputs/")
+if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
+  print("Folder output already exists.")
+}else{
+  dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
+}
 
-write_rds(plant_formatted, "data/outputs/plant_file.RDS")
+# write RDS file 
+print(glue::glue("Saving unit file to folder data/outputs/{params$eGRID_year}"))
+
+write_rds(plant_formatted, glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
+
+# check if file is successfully written to folder 
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))){
+  print(glue::glue("File plant_file.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
+} else {
+  print("File plant_file.RDS failed to write to folder.")
+} 

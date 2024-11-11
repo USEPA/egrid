@@ -86,7 +86,7 @@ region_aggregation <- function(region, region_cols) {
   # read in plant file 
   
   plant_file <- 
-    read_rds("data/outputs/plant_file.RDS") %>% 
+    read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS")) %>% 
     left_join(nerc_names, by = c("nerc")) %>% 
     select(any_of(columns_to_keep))
   
@@ -486,9 +486,15 @@ region_aggregation <- function(region, region_cols) {
       dir.create("data/outputs")
     }
     
-    print(glue::glue("Saving {region} aggregation file to folder data/outputs/"))
+    if(dir.exists("data/outputs/{params$eGRID_year}")) {
+      print("Folder output already exists.")
+    } else {
+      dir.create("data/outputs/{params$eGRID_year}")
+    }
     
-    write_rds(region_formatted, glue::glue("data/outputs/{region}_aggregation.RDS")) 
+    print(glue::glue("Saving {region} aggregation file to folder data/outputs/{params$eGRID_year}"))
+    
+    write_rds(region_formatted, glue::glue("data/outputs//{params$eGRID_year}/{region}_aggregation.RDS")) 
     
   } else {
 
@@ -869,9 +875,15 @@ region_aggregation <- function(region, region_cols) {
       dir.create("data/outputs")
     }
     
-    print(glue::glue("Saving {region} aggregation file to folder data/outputs/"))
+    if(dir.exists("data/outputs/{params$eGRID_year}")) {
+      print("Folder output already exists.")
+    } else {
+      dir.create("data/outputs/{params$eGRID_year}")
+    }
     
-    write_rds(region_formatted, glue::glue("data/outputs/{region}_aggregation.RDS"))
+    print(glue::glue("Saving {region} aggregation file to folder data/outputs/{params$eGRID_year}"))
+    
+    write_rds(region_formatted, glue::glue("data/outputs/{params$eGRID_year}/{region}_aggregation.RDS"))
     
   }
   
