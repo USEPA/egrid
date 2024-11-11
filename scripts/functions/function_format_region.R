@@ -26,12 +26,11 @@ format_region <- function(region, reg_rows) {
   #' @region Region for data to be aggregated to,
   #' @reg_rows Count of rows for the region dataframe
   #' @return Formatted dataframe with style
-  #' @examples
-  #' region_aggregation("state", c(fips_state_code, state)) # Aggregates the plant file to the state regional level
+  #' @examples format_region(st, st_rows) # Where st is the sheet name and st_rows = number of rows in the final sheet
   
   require(openxlsx)
   
-  # if region is not = 'region' then regione this style
+  # if region is not for US, then region uses this style
   
   if(as.character(region) != glue::glue("US{year}")) {
     
@@ -76,7 +75,6 @@ format_region <- function(region, reg_rows) {
   addStyle(wb, sheet = region, style = s[['color17_header']],   rows = 2, cols = 154:164,  gridExpand = TRUE)
   
   ## set column widths
-  
   setColWidths(wb, sheet = region, cols = 1,       widths = 12)
   setColWidths(wb, sheet = region, cols = 2,       widths = 14)
   setColWidths(wb, sheet = region, cols = 3,       widths = 18.43)
@@ -86,11 +84,9 @@ format_region <- function(region, reg_rows) {
   setColWidths(wb, sheet = region, cols = 164,     widths = 15.11)
   
   ## set row heights
-  
   setRowHeights(wb, sheet = region, row = 1, heights = 67.5)
   
   ## add number styles
-  
   addStyle(wb, sheet = region, style = s[['integer2']], rows = 3:reg_rows, cols = 4:18,    gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['decimal1']], rows = 3:reg_rows, cols = 19:58,   gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['decimal4']], rows = 3:reg_rows, cols = 59:66,   gridExpand = TRUE)
@@ -103,17 +99,15 @@ format_region <- function(region, reg_rows) {
   addStyle(wb, sheet = region, style = s[['percent']],  rows = 3:reg_rows, cols = 154:164, gridExpand = TRUE)
   
   ## add text styles
-  
   addStyle(wb, sheet = region, style = s[['basic']],    rows = 3:reg_rows, cols = 1:3,     gridExpand = TRUE)
   
   
-  # freeze pane
+  ## freeze pane
   freezePane(wb, sheet = region, firstActiveCol = 4)
   
   } else {
   
-  # else (for us) 
-  
+  # else (for US) 
   
   ## add style for first row (description)
   addStyle(wb, sheet = region, style = s[['desc_style']],       rows = 1, cols = 1:2,      gridExpand = TRUE)
@@ -156,17 +150,14 @@ format_region <- function(region, reg_rows) {
   addStyle(wb, sheet = region, style = s[['color17_header']],   rows = 2, cols = 152:162,  gridExpand = TRUE)
   
   ## set column widths
-  
   setColWidths(wb, sheet = region, cols = 1:4,   widths = 14.14)
   setColWidths(wb, sheet = region, cols = 5:6,   widths = 14.43)
   setColWidths(wb, sheet = region, cols = 7:162, widths = 14.14)
   
   ## set row heights
-  
   setRowHeights(wb, sheet = region, row = 1, heights = 67.5)
   
   ## add number styles
-  
   addStyle(wb, sheet = region, style = s[['integer2']], rows = 3:reg_rows, cols = 2:16,    gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['decimal1']], rows = 3:reg_rows, cols = 17:56,   gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['decimal4']], rows = 3:reg_rows, cols = 57:64,   gridExpand = TRUE)
@@ -179,7 +170,6 @@ format_region <- function(region, reg_rows) {
   addStyle(wb, sheet = region, style = s[['percent']],  rows = 3:reg_rows, cols = 152:162, gridExpand = TRUE)
   
   ## add text styles
-  
   addStyle(wb, sheet = region, style = s[['basic']],    rows = 3:reg_rows, cols = 1,       gridExpand = TRUE)
   
   }

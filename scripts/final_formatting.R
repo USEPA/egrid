@@ -25,15 +25,15 @@ library(stringr)
 library(openxlsx)
 
 ### Load in data ------ 
-unt_file  <- read_rds('data/outputs/unit_file.RDS')
-gen_file  <- read_rds('data/outputs/generator_file.RDS')
-plnt_file <- read_rds('data/outputs/plant_file.RDS')
-st_file   <- read_rds('data/outputs/state_aggregation.RDS')
-ba_file   <- read_rds('data/outputs/ba_aggregation.RDS')
-srl_file  <- read_rds('data/outputs/subregion_aggregation.RDS')
-nrl_file  <- read_rds('data/outputs/nerc_aggregation.RDS')
-us_file   <- read_rds('data/outputs/us_aggregation.RDS')
-ggl_file  <- read_rds('data/outputs/grid_gross_loss.RDS') 
+unt_file  <- read_rds("data/outputs/unit_file.RDS")
+gen_file  <- read_rds("data/outputs/generator_file.RDS")
+plnt_file <- read_rds("data/outputs/plant_file.RDS")
+st_file   <- read_rds("data/outputs/state_aggregation.RDS")
+ba_file   <- read_rds("data/outputs/ba_aggregation.RDS")
+srl_file  <- read_rds("data/outputs/subregion_aggregation.RDS")
+nrl_file  <- read_rds("data/outputs/nerc_aggregation.RDS")
+us_file   <- read_rds("data/outputs/us_aggregation.RDS")
+ggl_file  <- read_rds("data/outputs/grid_gross_loss.RDS") 
 
 
 # check if parameters for eGRID data year need to be defined
@@ -57,21 +57,24 @@ if (exists("params")) {
 # extract last two digits of year for universal labeling
 year <- as.numeric(params$eGRID_year) %% 1000
 
-### Set up output file
+## Set up output file
 contents <- "data/static_tables/formatting/egrid_contents_page.xlsx"
 wb <- loadWorkbook(contents)
 
 
 ### Create styles ------
+
+# call helper functions into script
 source("scripts/functions/function_format_styles.R")
 source("scripts/functions/function_format_region.R")
 
-# create style list using function
+# create eGRID output style list using function
 s <- create_format_styles()
 
 ### Standard Column Names -----
 # names for data sets: ST, BA, SRL, NRL, US
-
+# data for region aggregated files contain same columns and information
+# therefore, can assign a standardized list of columns, names, and styles
 
 standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",	
                      "HTIAN"    = "annual heat input from combustion (MMBtu)",	
@@ -235,15 +238,14 @@ standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
                      "NBOFPR"   = "nonbaseload other fossil generation percent (resource mix)",	
                      "NBOPPR"   = "nonbaseload other unknown/ purchased fuel generation percent (resource mix)")
 
-# column names
-standard_header <- names(standard_labels)
 
-# description of column names
-standard_desc <- unname(standard_labels)
+standard_header <- names(standard_labels)  # column names
+standard_desc   <- unname(standard_labels) # description of column names
 
 
 ### UNT Formatting -----
-# create sheet
+
+## create "UNT" sheet
 unt <- glue::glue("UNT{year}")
 addWorksheet(wb, unt)
 
@@ -253,13 +255,14 @@ unt_file <- unt_file %>%
                    plant_id = as.numeric(plant_id))
 
 # create name for sequnt based on data year
-sequnt <- glue::glue("SEQUNT{year}") 
+sequnt_label <- setNames("Unit file sequence number", glue::glue("SEQUNT{year}") )
 
 # collect number of rows based on data frame
+# add two to number of rows (nrows) to account for header + description rows
 unt_rows <- nrow(unt_file)+2
 
-
-unt_labels <-  c(sequnt     = "Unit file sequence number",
+## column names and descriptions
+unt_labels <-  c(sequnt_label,
                  "YEAR"     = "Data Year",
                  "PSTATABB" = "Plant state abbreviation",
                  "PNAME"    = "Plant name",
@@ -292,15 +295,13 @@ unt_labels <-  c(sequnt     = "Unit file sequence number",
                  "HGCTLDV"  = "Unit Hg Activated carbon injection system flag",
                  "UNTYRONL" = "Unit year on-line")
 
-# column names
-unt_header <- names(unt_labels)
+unt_header <- names(unt_labels)  # column names
+unt_desc   <- unname(unt_labels) # description of column names
 
-# description of column names
-unt_desc <- unname(unt_labels)
-
-# change column names
+# add new column names
 colnames(unt_file) <- unt_header
 
+## write data
 # write data for first row only
 writeData(wb, 
           sheet = unt, 
@@ -314,14 +315,18 @@ writeData(wb,
           unt_file,
           startRow = 2)
 
-# add first row styles
+## add styles to document
+# add description styles
 addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 1:14,  gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = s[['color2_desc']], rows = 1, cols = 15:28, gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 29:32, gridExpand = TRUE)
 
+# add header style
+addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 1:14,  gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = s[['color2_header']], rows = 2, cols = 15:28, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 29:32, gridExpand = TRUE)
 
-## set column widths
-
+# set column widths
 setColWidths(wb, sheet = unt, cols = 1,     widths = 12.43)
 setColWidths(wb, sheet = unt, cols = 3,     widths = 12.43)
 setColWidths(wb, sheet = unt, cols = 4,     widths = 34.71)
@@ -329,28 +334,19 @@ setColWidths(wb, sheet = unt, cols = 5:9,   widths = 12.43)
 setColWidths(wb, sheet = unt, cols = 10,    widths = 17)
 setColWidths(wb, sheet = unt, cols = 11:32, widths = 12.43)
 
-## set row heights
-
+# set row heights
 setRowHeights(wb, sheet = unt, row = 1, heights = 60.75)
 
-## add header style
-
-addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 1:14,  gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['color2_header']], rows = 2, cols = 15:28, gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 29:32, gridExpand = TRUE)
-
-## add number styles
-
+# add number styles
 addStyle(wb, sheet = unt, style = s[['integer']],  rows = 3:unt_rows, cols = 15:16, gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = s[['decimal2']], rows = 3:unt_rows, cols = 14,    gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = s[['decimal2']], rows = 3:unt_rows, cols = 17:21, gridExpand = TRUE)
 
-## add text styles
-
+# add text styles
 addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 1:13,  gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 22:32, gridExpand = TRUE)
 
-# freeze pane
+# freeze panes
 freezePane(wb, sheet = unt, firstActiveCol = 5)
 
 ### GEN Formatting -----
@@ -367,13 +363,14 @@ gen_file <- gen_file %>%
                    retirement_year = as.numeric(retirement_year))
 
 # create name for seqgen based on data year
-seqgen <- glue::glue("SEQGEN{year}") 
+seqgen_label <- setNames("Generator file sequence number", glue::glue("SEQGEN{year}"))
 
 # select number of rows based on length of dataframe
+# add two to number of rows (nrows) to account for header + description rows
 gen_rows <- nrow(gen_file)+2
 
-
-gen_labels <- c(seqgen      = "Generator file sequence number",
+## column names and descriptions
+gen_labels <- c(seqgen_label,
                 "YEAR"      = "Data Year",
                 "PSTATEABB" = "Plant state abbreviation", 
                 "PNAME"     = "Plant name",
@@ -391,17 +388,13 @@ gen_labels <- c(seqgen      = "Generator file sequence number",
                 "GENYRONL"  = "Generator year on-line",
                 "GENYRRET"  = "Generator planned or actual retirement year")
 
+gen_header <- names(gen_labels)  # column names
+gen_desc   <- unname(gen_labels) # description of column names
 
-# column names
-gen_header <- names(gen_labels)
-
-# description of column names
-gen_desc <- unname(gen_labels)
-
-
-# change dataframe column names
+# add new column names
 colnames(gen_file) <- gen_header
 
+## write data
 # write data for first row only
 writeData(wb, 
           sheet = gen, 
@@ -415,13 +408,18 @@ writeData(wb,
           gen_file,
           startRow = 2)
 
-# add first row styles
+## add styles
+# add description styles
 addStyle(wb, sheet = gen, style = s[['desc_style']],  rows = 1, cols = 1:12,  gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = s[['color1_desc']], rows = 1, cols = 13:14, gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = s[['desc_style']],  rows = 1, cols = 15:17, gridExpand = TRUE)
 
-## set column widths
+# add header style
+addStyle(wb, sheet = gen, style = s[['header_style']],  rows = 2, cols = 1:12,  gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = s[['color1_header']], rows = 2, cols = 13:14, gridExpand = TRUE)
+addStyle(wb, sheet = gen, style = s[['header_style']],  rows = 2, cols = 15:17, gridExpand = TRUE)
 
+# set column widths
 setColWidths(wb, sheet = gen, cols = 1,     widths = 12.57)
 setColWidths(wb, sheet = gen, cols = 3,     widths = 12.43)
 setColWidths(wb, sheet = gen, cols = 4,     widths = 34.71)
@@ -433,30 +431,21 @@ setColWidths(wb, sheet = gen, cols = 15,    widths = 29.43)
 setColWidths(wb, sheet = gen, cols = 16,    widths = 12.29)
 setColWidths(wb, sheet = gen, cols = 17,    widths = 15.14)
 
-## set row heights
-
+# set row heights
 setRowHeights(wb, sheet = gen, row = 1, heights = 60.75)
 
-## add header style
-
-addStyle(wb, sheet = gen, style = s[['header_style']],  rows = 2, cols = 1:12,  gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = s[['color1_header']], rows = 2, cols = 13:14, gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = s[['header_style']],  rows = 2, cols = 15:17, gridExpand = TRUE)
-
-## add number styles
-
+# add number styles
 addStyle(wb, sheet = gen, style = s[['integer']],  rows = 3:gen_rows, cols = 7,     gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = s[['decimal2']], rows = 3:gen_rows, cols = 11,    gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = s[['decimal3']], rows = 3:gen_rows, cols = 12,    gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = s[['integer2']], rows = 3:gen_rows, cols = 13:14, gridExpand = TRUE)
 
-## add text styles
-
+# add text style
 addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 1:6,     gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 6:10,    gridExpand = TRUE)
 addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 14:17,   gridExpand = TRUE)
 
-# freeze pane
+# freeze panes
 freezePane(wb, sheet = gen, firstActiveCol = 6)
 
 ### PLNT Formatting -----
@@ -473,15 +462,14 @@ plnt_file <- plnt_file %>%
                     utility_id = as.numeric(utility_id))
 
 # create sqtplt name using year
-seqplt <- glue::glue("SEQPLT{year}") 
+seqplt_label <- setNames("Plant file sequence number", glue::glue("SEQPLT{year}"))
 
 # select number of rows from data frame
+# add two to number of rows (nrows) to account for header + description rows
 plnt_rows <- nrow(plnt_file)+2 
 
-## vector of names
-
-# column names
-plnt_labels <- c(seqplt      = "Plant file sequence number", 
+## column names and descriptions
+plnt_labels <- c(seqplt_label, 
                  "YEAR"      = "Data Year",
                  "PSTATABB"  = "Plant state abbreviation",
                  "PNAME"     = "Plant name",
@@ -623,18 +611,13 @@ plnt_labels <- c(seqplt      = "Plant file sequence number",
                  "PLCYPR"    = "Plant total combustion generation percent (resource mix)",
                  "PLCNPR"    = "Plant total noncombustion generation percent (resource mix)")
 
+plnt_header <- names(plnt_labels)  # column names
+plnt_desc   <- unname(plnt_labels) # description of column names
 
-# column names
-plnt_header <- names(plnt_labels)
-
-# description of column names
-plnt_desc   <- unname(plnt_labels)
-
-# change columns name                   
+# add new column names                 
 colnames(plnt_file) <- plnt_header
 
-## add data and styles
-
+## write data
 # write data for first row only
 writeData(wb, 
           sheet = plnt, 
@@ -648,7 +631,8 @@ writeData(wb,
           plnt_file,
           startRow = 2)
 
-# add style for first row only
+## add styles to document
+# add description styles
 addStyle(wb, sheet = plnt, style = s[['desc_style']],     rows = 1, cols = 1:36,    gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['color1_desc']],    rows = 1, cols = 37:50,   gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['color4_desc']],    rows = 1, cols = 51:58,   gridExpand = TRUE)
@@ -666,7 +650,7 @@ addStyle(wb, sheet = plnt, style = s[['color11_desc']],   rows = 1, cols = 137:1
 addStyle(wb, sheet = plnt, style = s[['color12_desc']],   rows = 1, cols = 139,     gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['color12v2_desc']], rows = 1, cols = 140:141, gridExpand = TRUE)
 
-## add header styles
+# add header styles
 addStyle(wb, sheet = plnt, style = s[['header_style']],     rows = 2, cols = 1:36,    gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['color1_header']],    rows = 2, cols = 37:50,   gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['color4_header']],    rows = 2, cols = 51:58,   gridExpand = TRUE)
@@ -684,8 +668,7 @@ addStyle(wb, sheet = plnt, style = s[['color11_header']],   rows = 2, cols = 137
 addStyle(wb, sheet = plnt, style = s[['color12_header']],   rows = 2, cols = 139,     gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['color12v2_header']], rows = 2, cols = 140:141, gridExpand = TRUE)
 
-## set column widths
-
+# set column widths
 setColWidths(wb, sheet = plnt, cols = 1:2,     widths = 12.71)
 setColWidths(wb, sheet = plnt, cols = 3,       widths = 12.43)
 setColWidths(wb, sheet = plnt, cols = 4,       widths = 34.71)
@@ -727,12 +710,10 @@ setColWidths(wb, sheet = plnt, cols = 102,     widths = 14)
 setColWidths(wb, sheet = plnt, cols = 103:115, widths = 12.43)
 setColWidths(wb, sheet = plnt, cols = 116:141, widths = 12.71)
 
-## set row heights
-
+# set row heights
 setRowHeights(wb, sheet = plnt, row = 1, heights = 67.5)
 
-## add number styles
-
+# add number styles
 addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 23:24,   gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['decimal4']], rows = 3:plnt_rows, cols = 28,      gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['decimal2']], rows = 3:plnt_rows, cols = 29,      gridExpand = TRUE)
@@ -747,7 +728,7 @@ addStyle(wb, sheet = plnt, style = s[['decimal3']], rows = 3:plnt_rows, cols = 1
 addStyle(wb, sheet = plnt, style = s[['integer2']], rows = 3:plnt_rows, cols = 110:125, gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['percent']],  rows = 3:plnt_rows, cols = 126:141, gridExpand = TRUE)
 
-## add text styles
+# add text styles
 addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 1:22,  gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 25:27, gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 31:32, gridExpand = TRUE)
@@ -759,7 +740,7 @@ freezePane(wb, sheet = plnt, firstActiveCol = 6)
 
 ### ST Formatting -----
 
-# create "ST" sheet
+## create "ST" sheet
 st <- glue::glue("ST{year}")
 addWorksheet(wb, st)
 
@@ -768,21 +749,26 @@ st_file <- st_file %>%
            mutate(year = as.numeric(year))
 
 # select number of rows from data frame
+# add two to number of rows (nrows) to account for header + description rows
 st_rows <- nrow(st_file)+2 
 
-# set up header format
+## column names and descriptions
+# column names
 st_header <- c("YEAR",
                "PSTATABB",
                "FIPSST",
                paste0("ST", standard_header))
 
-colnames(st_file) <- st_header
-
+# description of column names
 st_desc <- c("Data Year",
              "State abbreviation",
              "FIPS State code",
              paste0("State ", standard_desc))
 
+# add new column names
+colnames(st_file) <- st_header
+
+## write data
 # write data for first row only
 writeData(wb, 
           sheet = st, 
@@ -801,17 +787,20 @@ format_region(st, st_rows)
 
 ### BA Formatting -----
 
-# create "BA" sheet
+## create "BA" sheet
 ba <- glue::glue("BA{year}")
 addWorksheet(wb, ba)
 
 # select number of rows from data frame
+# add two to number of rows (nrows) to account for header + description rows
 ba_rows <- nrow(ba_file)+2 
 
 # convert variables to numeric value
 ba_file <- ba_file %>%
            mutate(year = as.numeric(year))
 
+
+## column names and descriptions
 # column names
 ba_header <- c("YEAR",	
                "BANAME",	
@@ -824,9 +813,10 @@ ba_desc <- c("Data Year",
              "Balancing Authority Code",
              paste0("BA ", standard_desc))
 
-# set up header and descriptions format
+# add new column names
 colnames(ba_file) <- ba_header
 
+## write data
 # write data for first row only
 writeData(wb, 
           sheet = ba, 
@@ -844,6 +834,8 @@ writeData(wb,
 format_region(ba, ba_rows)
 
 ### SRL Formatting -----
+
+## create "SRL" sheet
 srl <- glue::glue("SRL{year}")
 addWorksheet(wb, srl)
 
@@ -852,14 +844,15 @@ srl_file <- srl_file %>%
             mutate(year = as.numeric(year))
 
 # select number of rows from data frame
+# add two to number of rows (nrows) to account for header + description rows
 srl_rows <- nrow(srl_file)+2
 
+## column names and descriptions
 # column names
 srl_header <- c("YEAR",	
                "SUBRGN",	
                "SRNAME",
                paste0("SR", standard_header))
-
 
 # description of column names
 srl_desc <- c("Data Year",
@@ -867,10 +860,10 @@ srl_desc <- c("Data Year",
              "eGRID subregion name",
              paste0("eGRID subregion ", standard_desc))
 
-
-# set up header and descriptions format
+# add new column names
 colnames(srl_file) <- srl_header
 
+## write data
 # write data for first row only
 writeData(wb, 
           sheet = srl, 
@@ -884,11 +877,12 @@ writeData(wb,
           srl_file,
           startRow = 2)
 
-
 ## add styles to document
 format_region(srl, srl_rows)
 
 ### NRL Formatting -----
+
+## create "NRL" sheet
 nrl <- glue::glue("NRL{year}")
 addWorksheet(wb, nrl)
 
@@ -897,14 +891,15 @@ nrl_file <- nrl_file %>%
             mutate(year = as.numeric(year))
 
 # select number of rows from data frame
+# add two to number of rows (nrows) to account for header + description rows
 nrl_rows <- nrow(nrl_file)+2
 
+## column names and descriptions
 # column names
 nrl_header <- c("YEAR",	
                 "NERC",	
                 "NERCNAME",
                 paste0("NR", standard_header))
-
 
 # description of column names
 nrl_desc <- c("Data Year",
@@ -912,10 +907,10 @@ nrl_desc <- c("Data Year",
               "NERC region name",
               paste0("NERC region ", standard_desc))
 
-
-# set up header and descriptions format
+# add new column names
 colnames(nrl_file) <- nrl_header
 
+## write data
 # write data for first row only
 writeData(wb, 
           sheet = nrl, 
@@ -934,7 +929,7 @@ format_region(nrl, nrl_rows)
 
 ### US Formatting -----
 
-# create US sheet
+## create "US" sheet
 us <- glue::glue("US{year}")
 addWorksheet(wb, us)
 
@@ -943,21 +938,22 @@ us_file <- us_file %>%
            mutate(year = as.numeric(year))
 
 # select number of rows from data frame
+# add two to number of rows (nrows) to account for header + description rows
 us_rows <- nrow(us_file)+2
 
+## column names and descriptions
 # column names
 us_header <- c("YEAR",	
                paste0("US", standard_header))
-
 
 # description of column names
 us_desc <- c("Data Year",
               paste0("U.S. ", standard_desc))
 
-
-# set up header and descriptions format
+# add new column names
 colnames(us_file) <- us_header
 
+## write data
 # write data for first row only
 writeData(wb, 
           sheet = us, 
@@ -974,19 +970,18 @@ writeData(wb,
 ## add styles to document
 format_region(us, us_rows)
 
-
 ### GGL Formatting -----
 
-# create "GGL" sheet
+## create "GGL" sheet
 ggl <- glue::glue("GGL{year}")
 addWorksheet(wb, ggl)
 
 # convert year to numeric value
 ggl_file <- ggl_file %>%
-  mutate(data_year = as.numeric(data_year))
+            mutate(data_year = as.numeric(data_year))
 
 
-# column names
+## column names and descriptions
 ggl_labels <- c("YEAR"     = "Data Year",
                 "REGION"   = "One of the three interconnect power grids in the U.S. (plus Alaska, Hawaii, and the entire U.S.)",
                 "ESTLOSS"  = "Estimated losses (MWh)",
@@ -994,14 +989,13 @@ ggl_labels <- c("YEAR"     = "Data Year",
                 "DIRCTUSE" = "Direct use (MWh)",
                 "GGRSLOSS" = "Grid gross loss [Estimated losses/(Total disposition without exports - Direct use)]")
 
+ggl_header <- names(ggl_labels)  # column names
+ggl_desc   <- unname(ggl_labels) # description of column names
 
-ggl_header <- names(ggl_labels)
-ggl_desc   <- unname(ggl_labels)
-
-
-# set up header and descriptions format
+# add new column names
 colnames(ggl_file) <- ggl_header
 
+## write data
 # write data for first row only
 writeData(wb, 
           sheet = ggl, 
@@ -1009,47 +1003,39 @@ writeData(wb,
           startRow = 1, 
           colNames = FALSE)
 
-
 # write data to sheet
 writeData(wb, 
           sheet = ggl, 
           ggl_file,
           startRow = 2)
 
-## add desc style
-
+## add styles to document
+# add description styles
 addStyle(wb, sheet = ggl, style = s[['desc_style']], rows = 1, cols = 1:6, gridExpand = TRUE)
 
-## set column widths
+# add header style
+addStyle(wb, sheet = ggl, style = s[['header_style']], rows = 2, cols = 1:6, gridExpand = TRUE)
 
+# set column widths
 setColWidths(wb, sheet = ggl, cols = 1,   widths = 10)
 setColWidths(wb, sheet = ggl, cols = 2,   widths = 21.29)
 setColWidths(wb, sheet = ggl, cols = 3:5, widths = 11.14)
 setColWidths(wb, sheet = ggl, cols = 6,   widths = 23)
 
-## set row heights
-
+# set row heights
 setRowHeights(wb, sheet = ggl, row = 1, heights = 60.75)
 
-## add header style
-
-addStyle(wb, sheet = ggl, style = s[['header_style']], rows = 2, cols = 1:6, gridExpand = TRUE)
-
-## add number styles
-
+# add number styles
 addStyle(wb, sheet = ggl, style = s[['integer']], rows = 3:7, cols = 3:5, gridExpand = TRUE)
 addStyle(wb, sheet = ggl, style = s[['percent']], rows = 3:7, cols = 6,   gridExpand = TRUE)
 
-# bold
+# add number styles (bold)
 addStyle(wb, sheet = ggl, style = s[['integer_bold']], rows = 8, cols = 3:5, gridExpand = TRUE)
 addStyle(wb, sheet = ggl, style = s[['percent_bold']], rows = 8, cols = 6,   gridExpand = TRUE)
 
-## add text styles
-
-# first two columns
+# add text styles
 addStyle(wb, sheet = ggl, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpand = TRUE)
 addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
-
 
 ### Save and export -----
 output <- glue::glue("data/outputs/egrid{params$eGRID_year}_data.xlsx")

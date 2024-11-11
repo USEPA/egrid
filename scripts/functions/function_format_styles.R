@@ -26,7 +26,7 @@ create_format_styles <- function(font = "Arial", size = 8.5) {
   #' @examples
   #' s <- create_format_styles() # Default font format styles into a list
   
-  ### Create styles ------
+  ### Create Styles ------
   
   ### header & description style ###
   
@@ -91,8 +91,6 @@ create_format_styles <- function(font = "Arial", size = 8.5) {
   decimal4 <- createStyle(numFmt = "#,##0.0000",
                           fontName = font,
                           fontSize = size)
-  
-  
   
   ### bold number styles ### 
   
@@ -475,8 +473,7 @@ create_format_styles <- function(font = "Arial", size = 8.5) {
                               borderStyle = "thin",
                               fontColour = "white")
   
-  
-  # return list of styles
+  ### Return List of Styles -----
   # naming each style for easier indexing in script
   list(header_style = header_style,
        desc_style = desc_style,
@@ -496,7 +493,7 @@ create_format_styles <- function(font = "Arial", size = 8.5) {
        percent_bold = percent_bold,
 
        color1_header = color1_header,
-       color1_desc = color2_desc,
+       color1_desc = color1_desc,
        
        color2_header = color2_header,
        color2_desc = color2_desc,
