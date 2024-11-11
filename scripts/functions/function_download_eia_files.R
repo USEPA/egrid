@@ -21,13 +21,11 @@ download_eia_files <- function(form, year = c("923", "860", "861")) {
     form == "861" ~ glue::glue("https://www.eia.gov/electricity/data/eia861/archive/zip/f861{year}.zip")
   )
   
-  new_folder <- glue::glue("data/raw_data/{form}")
+  new_folder <- glue::glue("data/raw_data/{form}/{params$eGRID_year}")
   
   if (!dir.exists(new_folder)) {
     dir.create(new_folder, recursive = TRUE)
   }
-  
-  
   
   
   dest_file <- glue::glue("{new_folder}/{form}.zip")

@@ -41,7 +41,7 @@ if (exists("params")) {
 
 # Read raw CAMD files -------
 
-camd_raw <- read_rds("data/raw_data/camd/camd_raw.RDS")
+camd_raw <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_raw.RDS"))
 
 
 # standardizing variables names to match eia data and removing retired and inactive plants
@@ -133,8 +133,7 @@ camd_final <- # removing unnecessary columns and final renames
   mutate(across(ends_with("id"), ~ as.character(.x)))
 
 
-
-# Save clean camd file ------------
+# Save clean CAMD file ------------
 
 # creating folder if not already present
 
@@ -144,11 +143,17 @@ if(!dir.exists("data/clean_data/camd")){
   print("Folder data/clean_data/camd already exists.")
 }
 
-write_rds(camd_final, "data/clean_data/camd/camd_clean.RDS")
+if(!dir.exists(glue::glue("data/clean_data/camd/{params$eGRID_year}"))){
+  dir.create(glue::glue("data/clean_data/camd/{params$eGRID_year}"))
+} else{
+  print(glue::glue("Folder data/clean_data/camd/{params$eGRID_year} already exists."))
+}
+
+write_rds(camd_final, glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS"))
 
 # check if file is successfully written to folder 
-if(file.exists("data/clean_data/camd/camd_clean.RDS")){
-  print("File camd_clean.RDS successfully written to folder data/clean_data/camd")
+if(file.exists(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS"))){
+  print(glue::glue("File camd_clean.RDS successfully written to folder data/clean_data/camd/{params$eGRID_year}"))
 } else {
   print("File camd_clean.RDS failed to write to folder.")
 }
