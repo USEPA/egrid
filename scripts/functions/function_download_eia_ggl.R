@@ -52,7 +52,8 @@ download_eia_ggl <- function(year) {
   
   ## if there are no files in the raw_data/eia_ggl folder, download data from EIA website
   # files contain data for all previous data years
-  # therefore, only needs one round of downloading 
+  # therefore, only needs one round of downloading
+  # when there is a new data update, please re-download all files (ex. new release of 2024 data after running 2023 data)
   
   if (length(existing_files) < 1) {
     
