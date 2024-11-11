@@ -39,12 +39,12 @@ invisible(purrr::map(c("860", "861", "923"), ~ download_eia_files(form = .x, yea
 
 url_860m  <- glue::glue("https://www.eia.gov/electricity/data/eia860m/archive/xls/december_generator{params$eGRID_year}.xlsx")
 
-path_860m <- glue::glue("data/raw_data/860m.xlsx")
+path_860m <- glue::glue("data/raw_data/860/{params$eGRID_year}/eia_pr_860m.xlsx")
 
 if(!file.exists(path_860m)){
     download.file(url = url_860m,
                   destfile = path_860m)
 } else {
-   print("Stopping. File 860m.xlsx already downloaded.")
+   print("Stopping. File eia_pr_860m.xlsx already downloaded.")
 }
 
