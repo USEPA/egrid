@@ -41,8 +41,16 @@ if (exists("params")) {
 
 # Load in necessary 923 and 860 files ----------
 
-eia_923_files <- read_rds("data/clean_data/eia/eia_923_clean.RDS") # read in all 923 files
-eia_860_files <- read_rds("data/clean_data/eia/eia_860_clean.RDS") # read in all 860 files
+if(file.exists("data/clean_data/eia/eia_923_clean.RDS")) { # if file does not exist, stop code and print error
+  eia_923_files <- read_rds("data/clean_data/eia/eia_923_clean.RDS") # read in all 923 files
+} else { 
+  stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+
+if(file.exists("data/clean_data/eia/eia_860_clean.RDS")) { # if file does not exist, stop code and print error
+  eia_860_files <- read_rds("data/clean_data/eia/eia_860_clean.RDS") # read in all 860 files
+} else { 
+  stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+
 
 eia_923_gen <- eia_923_files$generator_data
 eia_923_gen_fuel <- eia_923_files$generation_and_fuel_combined
@@ -64,46 +72,23 @@ eia_860_combined <- eia_860_files$combined %>%
 
 eia_923_gen_r <- 
   eia_923_gen %>% 
-    mutate(generator_id = case_when( # modifying some ids to match 860 files.
-      plant_id == 55168 & generator_id == 1 ~ "0001",
-      plant_id == 55210 & generator_id == 1 ~ "0001",
-      plant_id == 55239 & generator_id == 1 ~ "0001",
-      plant_id == 55479 & generator_id == 1 ~ "0001",
-      plant_id == 56298 & generator_id == 1 ~ "0001",
-      plant_id == 56319 & generator_id == 1 ~ "0001",
-      plant_id == 55596 & generator_id == 1 ~ "0001",
-      plant_id == 54464 & generator_id == 1 ~ "0001",
-      plant_id == 54464 & generator_id == 2 ~ "0002",
-      plant_id == 55168 & generator_id == 2 ~ "0002",
-      plant_id == 55210 & generator_id == 2 ~ "0002",
-      plant_id == 55239 & generator_id == 2 ~ "0002",
-      plant_id == 56298 & generator_id == 2 ~ "0002",
-      plant_id == 55596 & generator_id == 2 ~ "0002",
-      plant_id == 54464 & generator_id == 3 ~ "0003",
-      plant_id == 55168 & generator_id == 3 ~ "0003",
-      plant_id == 55239 & generator_id == 3 ~ "0003",
-      plant_id == 56298 & generator_id == 3 ~ "0003",
-      plant_id == 55596 & generator_id == 3 ~ "0003",
-      plant_id == 54464 & generator_id == 4 ~ "0004",
-      plant_id == 55239 & generator_id == 4 ~ "0004",
-      plant_id == 55596 & generator_id == 4 ~ "0004",
-      plant_id == 54464 & generator_id == 5 ~ "0005",
-      plant_id == 55596 & generator_id == 5 ~ "0005",
-      plant_id == 664 & generator_id == "8.1999999999999993" ~ "8.2",
+    mutate(
+      generator_id = case_when( # modifying some ids to match 860 files.
+        plant_id == 664 & generator_id == "8.1999999999999993" ~ "8.2",
+        plant_id == 7512 & generator_id == 1 ~ "01", # updating generator IDs for plant that gets combined under ORIS 3612
+        plant_id == 7512 & generator_id == 2 ~ "02", 
+        plant_id == 7512 & generator_id == 3 ~ "03", 
+        TRUE ~ generator_id  # Default value if no condition matches
+      ))
+
+eia_860_combined_r <- 
+  eia_860_combined %>% 
+  mutate(
+    generator_id = case_when( # updating generator IDs for plant that gets combined under ORIS 3612
       plant_id == 7512 & generator_id == 1 ~ "01", 
       plant_id == 7512 & generator_id == 2 ~ "02", 
       plant_id == 7512 & generator_id == 3 ~ "03", 
       TRUE ~ generator_id  # Default value if no condition matches
-      ) 
-    )
-
-eia_860_combined_r <- 
-  eia_860_combined %>% 
-  mutate(generator_id = case_when( # updating generator IDs for plant that gets combined under ORIS 3612
-    plant_id == 7512 & generator_id == 1 ~ "01", 
-    plant_id == 7512 & generator_id == 2 ~ "02", 
-    plant_id == 7512 & generator_id == 3 ~ "03", 
-    TRUE ~ generator_id  # Default value if no condition matches
   ))
     
 eia_860_boiler_count <- # creating count of boilers for each generator
@@ -123,7 +108,6 @@ ozone_months_gen <-
                   "net_generation_july", 
                   "net_generation_august",
                   "net_generation_september")
-
 
 eia_gen_generation <-
   eia_860_combined_r %>% 

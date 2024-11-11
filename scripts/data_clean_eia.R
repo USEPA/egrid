@@ -18,6 +18,7 @@ library(dplyr)
 library(readr)
 library(tidyr)
 library(purrr)
+library(stringr)
 
 # check if parameters for eGRID data year need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
@@ -94,11 +95,11 @@ dfs_923 <- c(sched_2_3_4_5_m_12_dfs,
              purrr:::map(., ~ .x %>%  # standardizing column types across all dfs
                 rename(any_of(rename_cols_923)) %>% # standardizing col names to match other files
                 mutate(across(ends_with("id"), ~ as.character(.x)),
+                       across(ends_with(c("id", "code")), ~ str_remove(.x, "^0+")), # remove leading zeroes
                        across(contains(c("capacity", "generation", "netgen")), ~ as.numeric(.x)),
                        across(starts_with(c("month", "year")), ~ as.character(.x)),
                        across(ends_with(c("month", "year")))) %>% 
                 filter(!if_all(everything(), is.na)))
-
 
 
 ## Saving 923 Files --------
@@ -149,8 +150,6 @@ generator_dfs_mod <-
   purrr::map_at("retired_and_canceled", # retaining only plants retired in eGRID year
                 ~ .x %>% 
                   filter(retirement_year == {params$eGRID_year}))
-
-
 
 
 ## 860 6_1_EnviroAssoc files ----
@@ -307,6 +306,7 @@ dfs_860 <-
     puerto_rico_dfs_mod) %>% 
   purrr:::map(., ~ .x %>%  # standardizing column types across all dfs
                 mutate(across(ends_with(c("id","code")), ~ as.character(.x)),
+                       across(ends_with(c("id", "code")), ~ str_remove(.x, "^0+")), # remove leading zeroes
                        across(contains("capacity"), ~ as.numeric(.x)),
                        across(contains(c("month", "year")), ~ as.character(.x))) %>% 
                 rename(any_of(rename_cols_860)) %>% # standardizing col names to match other files
