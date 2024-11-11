@@ -43,7 +43,8 @@ path_860m <- glue::glue("data/raw_data/860/{params$eGRID_year}/eia_pr_860m.xlsx"
 
 if(!file.exists(path_860m)){
     download.file(url = url_860m,
-                  destfile = path_860m)
+                  destfile = path_860m, 
+                  mode = "wb") 
 } else {
    print("Stopping. File eia_pr_860m.xlsx already downloaded.")
 }

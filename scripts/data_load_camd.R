@@ -181,10 +181,10 @@ cols <- # specifying columns to keep
     "hg_controls"
   )
 
-# updating relevant columns to numeric and aggregating to mon
+# updating relevant columns to numeric and aggregating to month
 mats_data_r <- 
   mats_data %>% 
-  rename_with(tolower) %>% # this protects NoX rates from getting split with clean_names()
+  rename_with(tolower) %>% # this protects NOx rates from getting split with clean_names()
   janitor::clean_names() %>%
   select(all_of(cols)) %>%
   mutate(hg_mass_lbs = as.numeric(hg_mass_lbs),
