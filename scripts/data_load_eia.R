@@ -29,6 +29,9 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
+# Load necessary functions
+source("scripts/functions/function_download_eia_files.R")
+
 # Download each EIA file from the EIA website ------------ 
 # Iterating over each file, downloading, and unzipping
 

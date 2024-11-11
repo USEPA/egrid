@@ -43,6 +43,9 @@ if (!dir.exists(glue::glue("data/raw_data/camd/{params$eGRID_year}"))) {
   dir.create(glue::glue("data/raw_data/camd/{params$eGRID_year}"), recursive = TRUE)
 }
 
+# Load necessary functions
+source("scripts/functions/function_coalesce_join_vars.R")
+
 # Set your API key here
 api_key <- read_lines("api_keys/camd_api_key.txt")
 
