@@ -16,7 +16,7 @@
 ## -------------------------------
 
 
-create_format_styles <- function() {
+create_format_styles <- function(font = "Arial", size = 8.5) {
   
   #' header_styles
   #' 
@@ -24,7 +24,7 @@ create_format_styles <- function() {
   #'
   #' @return Formatted lists with styles
   #' @examples
-  #' s <- create_format_styles() # Inputs format styles into a list
+  #' s <- create_format_styles() # Default font format styles into a list
   
   ### Create styles ------
   
@@ -34,8 +34,8 @@ create_format_styles <- function() {
   header_style <- createStyle(textDecoration = "bold",
                               fgFill = "#F2F2F2", 
                               wrapText = TRUE,
-                              fontName = "Arial",
-                              fontSize = 8.5,
+                              fontName = font,
+                              fontSize = size,
                               border = "TopBottomLeftRight",
                               borderStyle = "thin")
   # description style
@@ -44,53 +44,53 @@ create_format_styles <- function() {
                             valign = "center",
                             textDecoration = "bold",
                             fgFill = "#F2F2F2", 
-                            fontName = "Arial",
-                            fontSize = 8.5,
+                            fontName = font,
+                            fontSize = size,
                             border = "TopBottomLeftRight",
                             borderStyle = "thin")
   ### text styles ###
   
   # bold style (for text/characters)
-  bold <- createStyle(fontName = "Arial",
-                      fontSize = 8.5,
+  bold <- createStyle(fontName = font,
+                      fontSize = size,
                       textDecoration = "bold")
   
   # basic style (for text/characters)
-  basic <- createStyle(fontName = "Arial",
-                       fontSize = 8.5)
+  basic <- createStyle(fontName = font,
+                       fontSize = size)
   
   ### number styles ### 
   
   # basic style (for larger integers)
   integer <- createStyle(numFmt = "#,##0",
-                         fontName = "Arial",
-                         fontSize = 8.5)
+                         fontName = font,
+                         fontSize = size)
   
   integer2 <- createStyle(numFmt = "#,##0; (#,##0)",
-                          fontName = "Arial",
-                          fontSize = 8.5)
+                          fontName = font,
+                          fontSize = size)
   
   # basic style (for percentages with 1 decimal place)
   percent <- createStyle(numFmt = "0.0%",
-                         fontName = "Arial",
-                         fontSize = 8.5)
+                         fontName = font,
+                         fontSize = size)
   
   # different decimal styles for different purposes
   decimal1 <- createStyle(numFmt = "#,##0.000",
-                          fontName = "Arial",
-                          fontSize = 8.5)
+                          fontName = font,
+                          fontSize = size)
   
   decimal2 <- createStyle(numFmt = "#,##0.0",
-                          fontName = "Arial",
-                          fontSize = 8.5)
+                          fontName = font,
+                          fontSize = size)
   
   decimal3 <- createStyle(numFmt = "#,##0.000; (#,##0.000)",
-                          fontName = "Arial",
-                          fontSize = 8.5)
+                          fontName = font,
+                          fontSize = size)
   
   decimal4 <- createStyle(numFmt = "#,##0.0000",
-                          fontName = "Arial",
-                          fontSize = 8.5)
+                          fontName = font,
+                          fontSize = size)
   
   
   
@@ -98,14 +98,14 @@ create_format_styles <- function() {
   
   # bold style (for large integers)
   integer_bold <- createStyle(numFmt = "#,##0",
-                              fontName = "Arial",
-                              fontSize = 8.5,
+                              fontName = font,
+                              fontSize = size,
                               textDecoration = "bold")
   
   # bold style (for percentages with 1 decimal place)
   percent_bold <- createStyle(numFmt = "0.0%",
-                              fontName = "Arial",
-                              fontSize = 8.5,
+                              fontName = font,
+                              fontSize = size,
                               textDecoration = "bold")
   
   ### Header Styles (colors) -----
@@ -114,8 +114,8 @@ create_format_styles <- function() {
   color1_header <- createStyle(textDecoration = "bold",
                                fgFill = "#F2DCDB", 
                                wrapText = TRUE,
-                               fontName = "Arial",
-                               fontSize = 8.5,
+                               fontName = font,
+                               fontSize = size,
                                border = "TopBottomLeftRight",
                                borderStyle = "thin")
   
@@ -124,8 +124,8 @@ create_format_styles <- function() {
                              valign = "center",
                              textDecoration = "bold",
                              fgFill = "#F2DCDB", 
-                             fontName = "Arial",
-                             fontSize = 8.5,
+                             fontName = font,
+                             fontSize = size,
                              border = "TopBottomLeftRight",
                              borderStyle = "thin")
   
@@ -133,8 +133,8 @@ create_format_styles <- function() {
   color2_header <- createStyle(textDecoration = "bold",
                                fgFill = "#E6B8B7", 
                                wrapText = TRUE,
-                               fontName = "Arial",
-                               fontSize = 8.5,
+                               fontName = font,
+                               fontSize = size,
                                border = "TopBottomLeftRight",
                                borderStyle = "thin")
   
@@ -143,8 +143,8 @@ create_format_styles <- function() {
                              valign = "center",
                              textDecoration = "bold",
                              fgFill = "#E6B8B7", 
-                             fontName = "Arial",
-                             fontSize = 8.5,
+                             fontName = font,
+                             fontSize = size,
                              border = "TopBottomLeftRight",
                              borderStyle = "thin")
   
@@ -152,8 +152,8 @@ create_format_styles <- function() {
   color3_header <- createStyle(textDecoration = "bold",
                                fgFill = "#D58785", 
                                wrapText = TRUE,
-                               fontName = "Arial",
-                               fontSize = 8.5,
+                               fontName = font,
+                               fontSize = size,
                                border = "TopBottomLeftRight",
                                borderStyle = "thin")
   
@@ -162,8 +162,8 @@ create_format_styles <- function() {
                              valign = "center",
                              textDecoration = "bold",
                              fgFill = "#D58785", 
-                             fontName = "Arial",
-                             fontSize = 8.5,
+                             fontName = font,
+                             fontSize = size,
                              border = "TopBottomLeftRight",
                              borderStyle = "thin")
   
@@ -171,8 +171,8 @@ create_format_styles <- function() {
   color4_header <- createStyle(textDecoration = "bold",
                                fgFill = "#EBF1DE", 
                                wrapText = TRUE,
-                               fontName = "Arial",
-                               fontSize = 8.5,
+                               fontName = font,
+                               fontSize = size,
                                border = "TopBottomLeftRight",
                                borderStyle = "thin")
   
@@ -181,8 +181,8 @@ create_format_styles <- function() {
                              valign = "center",
                              textDecoration = "bold",
                              fgFill = "#EBF1DE", 
-                             fontName = "Arial",
-                             fontSize = 8.5,
+                             fontName = font,
+                             fontSize = size,
                              border = "TopBottomLeftRight",
                              borderStyle = "thin")
   
@@ -190,8 +190,8 @@ create_format_styles <- function() {
   color5_header <- createStyle(textDecoration = "bold",
                                fgFill = "#C4D79B", 
                                wrapText = TRUE,
-                               fontName = "Arial",
-                               fontSize = 8.5,
+                               fontName = font,
+                               fontSize = size,
                                border = "TopBottomLeftRight",
                                borderStyle = "thin")
   
@@ -200,8 +200,8 @@ create_format_styles <- function() {
                              valign = "center",
                              textDecoration = "bold",
                              fgFill = "#C4D79B", 
-                             fontName = "Arial",
-                             fontSize = 8.5,
+                             fontName = font,
+                             fontSize = size,
                              border = "TopBottomLeftRight",
                              borderStyle = "thin")
   
@@ -209,8 +209,8 @@ create_format_styles <- function() {
   color6_header <- createStyle(textDecoration = "bold",
                                fgFill = "#76933C", 
                                wrapText = TRUE,
-                               fontName = "Arial",
-                               fontSize = 8.5,
+                               fontName = font,
+                               fontSize = size,
                                border = "TopBottomLeftRight",
                                borderStyle = "thin",
                                fontColour = "white")
@@ -220,8 +220,8 @@ create_format_styles <- function() {
                              valign = "center",
                              textDecoration = "bold",
                              fgFill = "#76933C", 
-                             fontName = "Arial",
-                             fontSize = 8.5,
+                             fontName = font,
+                             fontSize = size,
                              border = "TopBottomLeftRight",
                              borderStyle = "thin",
                              fontColour = "white")
@@ -230,8 +230,8 @@ create_format_styles <- function() {
   color7_header <- createStyle(textDecoration = "bold",
                                fgFill = "#DAEEF3", 
                                wrapText = TRUE,
-                               fontName = "Arial",
-                               fontSize = 8.5,
+                               fontName = font,
+                               fontSize = size,
                                border = "TopBottomLeftRight",
                                borderStyle = "thin")
   
@@ -240,8 +240,8 @@ create_format_styles <- function() {
                              valign = "center",
                              textDecoration = "bold",
                              fgFill = "#DAEEF3", 
-                             fontName = "Arial",
-                             fontSize = 8.5,
+                             fontName = font,
+                             fontSize = size,
                              border = "TopBottomLeftRight",
                              borderStyle = "thin")
   
@@ -249,8 +249,8 @@ create_format_styles <- function() {
   color8_header <- createStyle(textDecoration = "bold",
                                fgFill = "#92CDDC", 
                                wrapText = TRUE,
-                               fontName = "Arial",
-                               fontSize = 8.5,
+                               fontName = font,
+                               fontSize = size,
                                border = "TopBottomLeftRight",
                                borderStyle = "thin")
   
@@ -259,8 +259,8 @@ create_format_styles <- function() {
                              valign = "center",
                              textDecoration = "bold",
                              fgFill = "#92CDDC", 
-                             fontName = "Arial",
-                             fontSize = 8.5,
+                             fontName = font,
+                             fontSize = size,
                              border = "TopBottomLeftRight",
                              borderStyle = "thin")
   
@@ -268,8 +268,8 @@ create_format_styles <- function() {
   color9_header <- createStyle(textDecoration = "bold",
                                fgFill = "#3DA2BD", 
                                wrapText = TRUE,
-                               fontName = "Arial",
-                               fontSize = 8.5,
+                               fontName = font,
+                               fontSize = size,
                                border = "TopBottomLeftRight",
                                borderStyle = "thin")
   
@@ -278,16 +278,16 @@ create_format_styles <- function() {
                              valign = "center",
                              textDecoration = "bold",
                              fgFill = "#3DA2BD", 
-                             fontName = "Arial",
-                             fontSize = 8.5,
+                             fontName = font,
+                             fontSize = size,
                              border = "TopBottomLeftRight",
                              borderStyle = "thin")
   
   color9v2_header <- createStyle(textDecoration = "bold",
                                  fgFill = "#31869B", 
                                  wrapText = TRUE,
-                                 fontName = "Arial",
-                                 fontSize = 8.5,
+                                 fontName = font,
+                                 fontSize = size,
                                  border = "TopBottomLeftRight",
                                  borderStyle = "thin",
                                  fontColour = "white")
@@ -297,8 +297,8 @@ create_format_styles <- function() {
                                valign = "center",
                                textDecoration = "bold",
                                fgFill = "#31869B", 
-                               fontName = "Arial",
-                               fontSize = 8.5,
+                               fontName = font,
+                               fontSize = size,
                                border = "TopBottomLeftRight",
                                borderStyle = "thin",
                                fontColour = "white")
@@ -307,8 +307,8 @@ create_format_styles <- function() {
   color10_header <- createStyle(textDecoration = "bold",
                                 fgFill = "#FDE9D9", 
                                 wrapText = TRUE,
-                                fontName = "Arial",
-                                fontSize = 8.5,
+                                fontName = font,
+                                fontSize = size,
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin")
   
@@ -317,8 +317,8 @@ create_format_styles <- function() {
                               valign = "center",
                               textDecoration = "bold",
                               fgFill = "#FDE9D9", 
-                              fontName = "Arial",
-                              fontSize = 8.5,
+                              fontName = font,
+                              fontSize = size,
                               border = "TopBottomLeftRight",
                               borderStyle = "thin")
   
@@ -326,8 +326,8 @@ create_format_styles <- function() {
   color11_header <- createStyle(textDecoration = "bold",
                                 fgFill = "#FABF8F", 
                                 wrapText = TRUE,
-                                fontName = "Arial",
-                                fontSize = 8.5,
+                                fontName = font,
+                                fontSize = size,
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin")
   
@@ -336,8 +336,8 @@ create_format_styles <- function() {
                               valign = "center",
                               textDecoration = "bold",
                               fgFill = "#FABF8F", 
-                              fontName = "Arial",
-                              fontSize = 8.5,
+                              fontName = font,
+                              fontSize = size,
                               border = "TopBottomLeftRight",
                               borderStyle = "thin")
   
@@ -345,8 +345,8 @@ create_format_styles <- function() {
   color12_header <- createStyle(textDecoration = "bold",
                                 fgFill = "#F6903C", 
                                 wrapText = TRUE,
-                                fontName = "Arial",
-                                fontSize = 8.5,
+                                fontName = font,
+                                fontSize = size,
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin")
   
@@ -355,16 +355,16 @@ create_format_styles <- function() {
                               valign = "center",
                               textDecoration = "bold",
                               fgFill = "#F6903C", 
-                              fontName = "Arial",
-                              fontSize = 8.5,
+                              fontName = font,
+                              fontSize = size,
                               border = "TopBottomLeftRight",
                               borderStyle = "thin")
   
   color12v2_header <- createStyle(textDecoration = "bold",
                                   fgFill = "#E26B0A", 
                                   wrapText = TRUE,
-                                  fontName = "Arial",
-                                  fontSize = 8.5,
+                                  fontName = font,
+                                  fontSize = size,
                                   border = "TopBottomLeftRight",
                                   borderStyle = "thin")
   
@@ -373,8 +373,8 @@ create_format_styles <- function() {
                                 valign = "center",
                                 textDecoration = "bold",
                                 fgFill = "#E26B0A", 
-                                fontName = "Arial",
-                                fontSize = 8.5,
+                                fontName = font,
+                                fontSize = size,
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin")
   
@@ -382,8 +382,8 @@ create_format_styles <- function() {
   color13_header <- createStyle(textDecoration = "bold",
                                 fgFill = "#FFFFCC", 
                                 wrapText = TRUE,
-                                fontName = "Arial",
-                                fontSize = 8.5,
+                                fontName = font,
+                                fontSize = size,
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin")
   
@@ -392,8 +392,8 @@ create_format_styles <- function() {
                               valign = "center",
                               textDecoration = "bold",
                               fgFill = "#FFFFCC", 
-                              fontName = "Arial",
-                              fontSize = 8.5,
+                              fontName = font,
+                              fontSize = size,
                               border = "TopBottomLeftRight",
                               borderStyle = "thin")
   
@@ -401,8 +401,8 @@ create_format_styles <- function() {
   color14_header <- createStyle(textDecoration = "bold",
                                 fgFill = "#FFFF99", 
                                 wrapText = TRUE,
-                                fontName = "Arial",
-                                fontSize = 8.5,
+                                fontName = font,
+                                fontSize = size,
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin")
   
@@ -411,8 +411,8 @@ create_format_styles <- function() {
                               valign = "center",
                               textDecoration = "bold",
                               fgFill = "#FFFF99", 
-                              fontName = "Arial",
-                              fontSize = 8.5,
+                              fontName = font,
+                              fontSize = size,
                               border = "TopBottomLeftRight",
                               borderStyle = "thin")
   
@@ -420,8 +420,8 @@ create_format_styles <- function() {
   color15_header <- createStyle(textDecoration = "bold",
                                 fgFill = "#E4DFEC", 
                                 wrapText = TRUE,
-                                fontName = "Arial",
-                                fontSize = 8.5,
+                                fontName = font,
+                                fontSize = size,
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin")
   
@@ -430,8 +430,8 @@ create_format_styles <- function() {
                               valign = "center",
                               textDecoration = "bold",
                               fgFill = "#E4DFEC", 
-                              fontName = "Arial",
-                              fontSize = 8.5,
+                              fontName = font,
+                              fontSize = size,
                               border = "TopBottomLeftRight",
                               borderStyle = "thin")
   
@@ -439,8 +439,8 @@ create_format_styles <- function() {
   color16_header <- createStyle(textDecoration = "bold",
                                 fgFill = "#B1A0C7", 
                                 wrapText = TRUE,
-                                fontName = "Arial",
-                                fontSize = 8.5,
+                                fontName = font,
+                                fontSize = size,
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin")
   
@@ -449,8 +449,8 @@ create_format_styles <- function() {
                               valign = "center",
                               textDecoration = "bold",
                               fgFill = "#B1A0C7", 
-                              fontName = "Arial",
-                              fontSize = 8.5,
+                              fontName = font,
+                              fontSize = size,
                               border = "TopBottomLeftRight",
                               borderStyle = "thin")
   
@@ -458,8 +458,8 @@ create_format_styles <- function() {
   color17_header <- createStyle(textDecoration = "bold",
                                 fgFill = "#60497A", 
                                 wrapText = TRUE,
-                                fontName = "Arial",
-                                fontSize = 8.5,
+                                fontName = font,
+                                fontSize = size,
                                 border = "TopBottomLeftRight",
                                 borderStyle = "thin",
                                 fontColour = "white")
@@ -469,8 +469,8 @@ create_format_styles <- function() {
                               valign = "center",
                               textDecoration = "bold",
                               fgFill = "#60497A", 
-                              fontName = "Arial",
-                              fontSize = 8.5,
+                              fontName = font,
+                              fontSize = size,
                               border = "TopBottomLeftRight",
                               borderStyle = "thin",
                               fontColour = "white")
