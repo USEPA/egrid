@@ -5,12 +5,13 @@ download_eia_ggl <- function(year) {
   
   #' download_eia_ggl
   #' 
-  #' Function to download data from EIA website (https://www.eia.gov/electricity/) for all states. Each states' data is stored in a Excel file on the EIA website. This function extracts all of the tables and combines it into one and creates a summary table.
+  #' Function to download data from EIA website (https://www.eia.gov/electricity/) for all states. 
+  #' Each states' data is stored in a Excel file on the EIA website. This function extracts all of the tables and combines it into one and creates a summary table.
   
   #' @year Year desired for formatted table
   #' @return Unzipped Excel file
   #' @examples
-  #' download_eia_files("2022") # Downloads all data and summarizes all states for year 2022
+  #' download_eia_files(2022) # Downloads all data and summarizes all states for year 2022
   
   state_lower <- gsub(" ", "", tolower(datasets::state.name))
   state_title <- datasets::state.name
@@ -49,8 +50,9 @@ download_eia_ggl <- function(year) {
   # file name for file checking
   ggl_file <- glue::glue("{new_folder2}/ggl_{year}.xlsx")
   
-  
   ## if there are no files in the raw_data/eia_ggl folder, download data from EIA website
+  # files contain data for all previous data years
+  # therefore, only needs one round of downloading 
   
   if (length(existing_files) < 1) {
     

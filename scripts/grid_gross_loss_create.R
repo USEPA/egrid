@@ -26,9 +26,6 @@ library(openxlsx)
 
 ### Read in EIA files ------
 
-eia_860 <- read_rds("data/clean_data/eia/eia_860_clean.RDS")
-eia_923 <- read_rds("data/clean_data/eia/eia_923_clean.RDS")
-
 # define params for eGRID data year 
 # this is only necessary when running the script outside of egrid_master.qmd
 
@@ -47,6 +44,10 @@ if (exists("params")) {
 
 data_year <- params$eGRID_year
 
+# read files based on eGRID year
+eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+
 ### Extracting EIA tables and data -----
 
 ## assign variables for necessary EIA tables
@@ -56,7 +57,10 @@ eia_923_generation_and_fuel <- eia_923$generation_and_fuel_data
 
 
 ### Download EIA files necessary for GGL calculation (unless already downloaded)
-source("scripts/functions/function_download_eia_ggl.R")
+# load necessary function
+source("scripts/functions/function_download_eia_ggl.R") 
+
+# downloads and/or aggregates data needed for GGL calculations
 download_eia_ggl(params$eGRID_year)
 
 
@@ -243,6 +247,6 @@ ggl_interconnect_3 <- rbind(ggl_interconnect_2, ggl_us)
 ggl_interconnect_4 <- cbind(data_year, ggl_interconnect_3)
 
 ### 13: Export table to Excel
-write_rds(ggl_interconnect_4, "data/outputs/egrid_ggl_final.RDS")
+write_rds(ggl_interconnect_4, glue::glue("data/outputs/{params$eGRID_year}/egrid_ggl_final.RDS"))
 
 
