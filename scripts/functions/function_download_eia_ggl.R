@@ -42,145 +42,167 @@ download_eia_ggl <- function(year) {
     
     return(end)
   }
+
+  # check if there are other files in each folder
+  existing_files <- list.files(new_folder)
   
-  # commenting this out for now - we need to check if the files already exist, not just the number of files in the folder (Issue #75)
-  # Check if there are other files in each folder
-  #existing_files <- list.files(new_folder)
+  # file name for file checking
+  ggl_file <- glue::glue("{new_folder2}/ggl_{year}.xlsx")
   
-  #if (length(existing_files) > 1) {
-  #  print(glue::glue("Files already exist in folder:{new_folder}. Stopping"))
-  #  return(TRUE)
-  #}
   
-  #existing_files2 <- list.files(new_folder2)
+  ## if there are no files in the raw_data/eia_ggl folder, download data from EIA website
   
-  #if (length(existing_files2) > 1) {
-  #  print(glue:glue("Files already exist in folder:{new_folder2}. Stopping"))
-  #  return(TRUE)
-  #}
-  
-  # initialize list of tables and workbook
-  ggl_data <- list()
-  ggl_wb <- createWorkbook()
-  ggl_summary_data <- list()
-  
-  summary_sheet_name <- glue::glue("FormattedTable_{year}")
-  addWorksheet(ggl_wb, summary_sheet_name)
-  
-  # loop for all of the states and files
-  for (i in 1:length(state_abbr)){
+  if (length(existing_files) < 1) {
     
-    # initialize variables for i
-    name <- state_lower[i]
-    label <- state_title[i]
-    abbr <- state_abbr[i]
+    for (i in 1:length(state_abbr)){
+      
+      # initialize variables for i
+      name <- state_lower[i]
+      label <- state_title[i]
+      abbr <- state_abbr[i]
+      
+      # download file for corresponding state i from EIA
+      url <- glue::glue("https://www.eia.gov/electricity/state/{name}/xls/{abbr}.xlsx")
+      dest_file <- glue::glue("{new_folder}/{abbr}.xlsx")
+      
+      download_file(url,dest_file,new_folder) 
+      
+    }
     
-    # download file for corresponding state i from EIA
-    url <- glue::glue("https://www.eia.gov/electricity/state/{name}/xls/{abbr}.xlsx")
-    dest_file <- glue::glue("{new_folder}/{abbr}.xlsx")
+  } else {
     
-    download_file(url,dest_file,new_folder) 
-    
-    # select table needed for GGL calculation (Table 10: Supply and disposition of energy)
-    select_table <- read_excel(dest_file, sheet = 11)
-    ggl_data[[i]] <- select_table
-    
-    # add table to workbook as a sheet
-    addWorksheet(ggl_wb, sheetName = toupper(abbr))
-    writeData(ggl_wb, sheet = toupper(abbr), ggl_data[[i]])
-    
-    # clean up select table for easier data extraction
-    new_header <- select_table[3,]
-    colnames(select_table) <- new_header # changes header to be by year
-    colnames(select_table) <- gsub("Year", "", colnames(select_table)) # removes extra spaces in header for easy extraction
-    colnames(select_table) <- gsub("\r\n", "", colnames(select_table))
-    
-    ## extracting desired rows for the indicated year
-    direct_use <- 
-      select_table %>%
-      filter(Category == "Direct use") %>%
-      pull(year) %>%
-      as.numeric() 
-    
-    estimated_losses <- 
-      select_table %>%
-      filter(Category == "Estimated losses") %>%
-      pull(year) %>%
-      as.numeric() 
-    
-    total_disp <- 
-      select_table %>%
-      filter(Category == "Total disposition") %>%
-      pull(year) %>%
-      as.numeric() 
-    
-    net_interstate_i <- 
-      select_table %>%
-      filter(Category == "Net interstate imports") %>%
-      pull(year) %>%
-      as.numeric() 
-    
-    net_interstate_e <- 
-      select_table %>%
-      filter(Category == "Net interstate exports") %>%
-      pull(year) %>%
-      as.numeric() 
-    
-    total_disp_sub_e <- (total_disp - net_interstate_e)
-    
-    # compile all variables into a single row
-    ggl_summary_data[[i]] <- c(toupper(abbr), 
-                               label, 
-                               direct_use, 
-                               estimated_losses, 
-                               total_disp, 
-                               net_interstate_i, 
-                               net_interstate_e, 
-                               total_disp_sub_e)
+    print(glue::glue("Files already exist in folder:{new_folder}. Skipping file download."))
     
   }
   
+  ## if the ggl file does not exist, aggregate the downloaded data to create a ggl file
   
-  # adding formatted table
+  if (!file.exists(ggl_file)) {
   
-  formatted_table <- do.call(rbind, ggl_summary_data)
-  formatted_table <- as.data.frame(formatted_table)
-  colnames(formatted_table) <- c("State Postal Code", 
-                                 "State", 
-                                 "Direct Use", 
-                                 "Estimated Losses", 
-                                 "Total Disposition", 
-                                 "Net Interstate Imports",
-                                 "Net Interstate Exports",
-                                 "Total Disposition-Exports")
   
-  formatted_table <- 
-    formatted_table %>%
-    mutate(across(c("Direct Use", 
-                    "Estimated Losses", 
-                    "Total Disposition", 
-                    "Net Interstate Imports",
-                    "Net Interstate Exports",
-                    "Total Disposition-Exports"), ~as.numeric(.)))
+    # initialize list of tables and workbook
+    ggl_data <- list()
+    ggl_wb <- createWorkbook()
+    ggl_summary_data <- list()
+    
+    summary_sheet_name <- glue::glue("FormattedTable_{year}")
+    addWorksheet(ggl_wb, summary_sheet_name)
+    
+    # loop for all of the states and files
+    for (i in 1:length(state_abbr)){
+      
+      # initialize variables for i
+      name <- state_lower[i]
+      label <- state_title[i]
+      abbr <- state_abbr[i]
+      
+      # extract file for corresponding state i from folder
+      dest_file <- glue::glue("{new_folder}/{abbr}.xlsx")
+      
+      # select table needed for GGL calculation (Table 10: Supply and disposition of energy)
+      select_table <- read_excel(dest_file, sheet = 11)
+      ggl_data[[i]] <- select_table
+      
+      # add table to workbook as a sheet
+      addWorksheet(ggl_wb, sheetName = toupper(abbr))
+      writeData(ggl_wb, sheet = toupper(abbr), ggl_data[[i]])
+      
+      # clean up select table for easier data extraction
+      new_header <- select_table[3,]
+      colnames(select_table) <- new_header # changes header to be by year
+      colnames(select_table) <- gsub("Year", "", colnames(select_table)) # removes extra spaces in header for easy extraction
+      colnames(select_table) <- gsub("\r\n", "", colnames(select_table))
+      
+      ## extracting desired rows for the indicated year
+      direct_use <- 
+        select_table %>%
+        filter(Category == "Direct use") %>%
+        pull(year) %>%
+        as.numeric() 
+      
+      estimated_losses <- 
+        select_table %>%
+        filter(Category == "Estimated losses") %>%
+        pull(year) %>%
+        as.numeric() 
+      
+      total_disp <- 
+        select_table %>%
+        filter(Category == "Total disposition") %>%
+        pull(year) %>%
+        as.numeric() 
+      
+      net_interstate_i <- 
+        select_table %>%
+        filter(Category == "Net interstate imports") %>%
+        pull(year) %>%
+        as.numeric() 
+      
+      net_interstate_e <- 
+        select_table %>%
+        filter(Category == "Net interstate exports") %>%
+        pull(year) %>%
+        as.numeric() 
+      
+      total_disp_sub_e <- (total_disp - net_interstate_e)
+      
+      # compile all variables into a single row
+      ggl_summary_data[[i]] <- c(toupper(abbr), 
+                                 label, 
+                                 direct_use, 
+                                 estimated_losses, 
+                                 total_disp, 
+                                 net_interstate_i, 
+                                 net_interstate_e, 
+                                 total_disp_sub_e)
+      
+    }
+    
+    
+    # adding formatted table
+    
+    formatted_table <- do.call(rbind, ggl_summary_data)
+    formatted_table <- as.data.frame(formatted_table)
+    colnames(formatted_table) <- c("State Postal Code", 
+                                   "State", 
+                                   "Direct Use", 
+                                   "Estimated Losses", 
+                                   "Total Disposition", 
+                                   "Net Interstate Imports",
+                                   "Net Interstate Exports",
+                                   "Total Disposition-Exports")
+    
+    formatted_table <- 
+      formatted_table %>%
+      mutate(across(c("Direct Use", 
+                      "Estimated Losses", 
+                      "Total Disposition", 
+                      "Net Interstate Imports",
+                      "Net Interstate Exports",
+                      "Total Disposition-Exports"), ~as.numeric(.)))
+    
+    # create total_row for US using sums of all states
+    total_row <- c("US", "United States",
+                   sum(formatted_table$`Direct Use`),
+                   sum(formatted_table$`Estimated Losses`),
+                   sum(formatted_table$`Total Disposition`),
+                   sum(formatted_table$`Net Interstate Imports`),
+                   sum(formatted_table$`Net Interstate Exports`),
+                   sum(formatted_table$`Total Disposition-Exports`))
+    
+    # add row to FormattedTable
+    formatted_table <- rbind(formatted_table, total_row)
+    
+    # write FormattedTable to Excel file
+    writeData(ggl_wb, sheet = summary_sheet_name, formatted_table)
+    
+    # save file as ggl_r_(year).xlsx
+    saveWorkbook(ggl_wb, ggl_file, overwrite = TRUE)
   
-  # create total_row for US using sums of all states
-  total_row <- c("US", "United States",
-                 sum(formatted_table$`Direct Use`),
-                 sum(formatted_table$`Estimated Losses`),
-                 sum(formatted_table$`Total Disposition`),
-                 sum(formatted_table$`Net Interstate Imports`),
-                 sum(formatted_table$`Net Interstate Exports`),
-                 sum(formatted_table$`Total Disposition-Exports`))
-  
-  # add row to FormattedTable
-  formatted_table <- rbind(formatted_table, total_row)
-  
-  # write FormattedTable to Excel file
-  writeData(ggl_wb, sheet = summary_sheet_name, formatted_table)
-  
-  # save file as ggl_r_(year).xlsx
-  ggl_file <- glue::glue("{new_folder2}/ggl_r_{year}.xlsx")
-  saveWorkbook(ggl_wb, ggl_file, overwrite = TRUE)
-  
+  } else {
+    
+    print(glue::glue("File already exists in folder:{new_folder2}. Skipping file aggregation."))
+
+  }
   
 }

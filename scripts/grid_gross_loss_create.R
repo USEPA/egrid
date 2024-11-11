@@ -63,7 +63,7 @@ download_eia_ggl(params$eGRID_year)
 ### Load in datasets ----
 
 # ggl_r = Table 10: State supply and disposition data (from EIA website) compiled into a summary sheet
-ggl_r <- read_xlsx(glue::glue("data/clean_data/eia_ggl/ggl_r_{params$eGRID_year}.xlsx")) 
+ggl_r <- read_xlsx(glue::glue("data/clean_data/eia_ggl/ggl_{params$eGRID_year}.xlsx")) 
 
 # state_and_interconnection = states and their interconnections
 state_interconnect <- read_csv("data/static_tables/state_and_interconnection.csv")
