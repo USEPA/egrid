@@ -25,16 +25,6 @@ library(stringr)
 library(openxlsx)
 
 ### Load in data ------ 
-unt_file  <- read_rds("data/outputs/unit_file.RDS")
-gen_file  <- read_rds("data/outputs/generator_file.RDS")
-plnt_file <- read_rds("data/outputs/plant_file.RDS")
-st_file   <- read_rds("data/outputs/state_aggregation.RDS")
-ba_file   <- read_rds("data/outputs/ba_aggregation.RDS")
-srl_file  <- read_rds("data/outputs/subregion_aggregation.RDS")
-nrl_file  <- read_rds("data/outputs/nerc_aggregation.RDS")
-us_file   <- read_rds("data/outputs/us_aggregation.RDS")
-ggl_file  <- read_rds("data/outputs/grid_gross_loss.RDS") 
-
 
 # check if parameters for eGRID data year need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
@@ -54,10 +44,22 @@ if (exists("params")) {
 }
 
 
+# load files
+unt_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
+gen_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
+plnt_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
+st_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/state_aggregation.RDS"))
+ba_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/ba_aggregation.RDS"))
+srl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/subregion_aggregation.RDS"))
+nrl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/nerc_aggregation.RDS"))
+us_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/us_aggregation.RDS"))
+ggl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+
+
 # extract last two digits of year for universal labeling
 year <- as.numeric(params$eGRID_year) %% 1000
 
-## Set up output file
+# set up output file
 contents <- "data/static_tables/formatting/egrid_contents_page.xlsx"
 wb <- loadWorkbook(contents)
 
@@ -1038,8 +1040,10 @@ addStyle(wb, sheet = ggl, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpa
 addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
 
 ### Save and export -----
-output <- glue::glue("data/outputs/egrid{params$eGRID_year}_data.xlsx")
+output <- glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx")
 saveWorkbook(wb, output, overwrite=TRUE)
+
+print(glue::glue("Saving unit file to folder data/outputs/{params$eGRID_year}/"))
 
 # remove to save space
 rm(unt_file, gen_file, plnt_file)
