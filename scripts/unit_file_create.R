@@ -86,13 +86,13 @@ camd_vars_to_keep <-
 
 
 camd <- 
-  read_rds("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS") %>% 
+  read_rds(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")) %>% 
   select(all_of(camd_vars_to_keep)) # keeping only necessary variables
 
 ## EIA ------------
 
-eia_860 <- read_rds("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS")
-eia_923 <- read_rds("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS")
+eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 
 
 # Modifying CAMD data ---------
@@ -1804,7 +1804,7 @@ if(dir.exists("data/outputs/{params$eGRID_year}")) {
 
 print(glue::glue("Saving unit file to folder data/outputs/{params$eGRID_year}"))
 
-write_rds(units_formatted, "data/outputs/{params$eGRID_year}/unit_file.RDS")
+write_rds(units_formatted, glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
 
 # check if file is successfully written to folder 
 if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))){

@@ -328,10 +328,10 @@ if(dir.exists("data/outputs")) {
   dir.create("data/outputs")
 }
 
-if(dir.exists("data/outputs/{params$eGRID_year}")) {
+if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
   print("Folder output already exists.")
 }else{
-  dir.create("data/outputs/{params$eGRID_year}")
+  dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
 }
 
 print(glue::glue("Saving generator file to folder data/outputs/{params$eGRID_year}"))
