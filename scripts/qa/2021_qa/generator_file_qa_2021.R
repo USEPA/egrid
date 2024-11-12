@@ -10,7 +10,7 @@
 ## The checks performed will output a CSV file with any differences 
 ## between Access and R generator files. 
 ## 
-## Author: Teagan Goforth, teagan.goforth@abtglobal.com 
+## Author: Teagan Goforth
 ## 
 ## Date created: 7/29/2024 
 ##
@@ -32,13 +32,13 @@ if(dir.exists("data/outputs/qa")) {
   dir.create("data/outputs/qa")
 }
 
-if(dir.exists("data/outputs/qa/generator_file_differences")) {
+if(dir.exists("data/outputs/qa/generator_file_differences/2023")) {
   print("Folder generator_file_differences already exists.")
 }else{
-  dir.create("data/outputs/qa/generator_file_differences")
+  dir.create("data/outputs/qa/generator_file_differences/2023")
 }
 
-save_dir <- "data/outputs/qa/generator_file_differences/"
+save_dir <- "data/outputs/qa/generator_file_differences/2023/"
 
 # load R dataset
 generator_r <- read_rds("data/outputs/generator_file.RDS") 
@@ -52,10 +52,10 @@ generator_r <-
          "generator_id" = "generator_id_r") %>% select(-seqgen_r)
 
 # load access dataset (from published 2021 eGRID excel sheet)  
-generator_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "GEN21", 
+generator_access <- read_excel("data/raw_data/eGRID_Data2023.xlsx", sheet = "GEN23", 
                                skip = 1, 
                                guess_max = 4000) %>% janitor::clean_names() %>% 
-  select(-seqgen) %>% 
+  select(-seqgen23) %>% 
   rename("year_access" = "year", 
          "plant_id" = "orispl",
          "plant_name_access" = "pname", 

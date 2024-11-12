@@ -4,27 +4,44 @@
 ## 
 ## Purpose: 
 ## 
-## This file cleans CAMD datasets for the production of eGRID
+## This file cleans CAMD datasets for the production of eGRID. 
 ## 
 ## Authors:  
 ##      Sean Bock, Abt Global
-##      Teagan Goforth, Abt Global, teagan.goforth@abtglobal.com
+##      Teagan Goforth, Abt Global
 ##
 ## -------------------------------
 
+# Load libraries ---------
 
 library(dplyr)
 library(readxl)
 library(stringr)
 library(janitor)
 library(purrr)
+library(readr)
 
-egrid_year <- params$eGRID_year
+# check if parameters for eGRID data year need to be defined
+# this is only necessary when running the script outside of egrid_master.qmd
+# user will be prompted to input eGRID year in the console if params does not exist
+
+if (exists("params")) {
+  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+    print("eGRID year parameter is already defined.") 
+  } else { # if params() is defined, but eGRID_year is not, define it here 
+    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+    params$eGRID_year <- as.character(params$eGRID_year) 
+  }
+} else { # if params() and eGRID_year are not defined, define them here
+  params <- list()
+  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+  params$eGRID_year <- as.character(params$eGRID_year)
+}
 
 
-# Reading raw camd files
+# Read raw CAMD files -------
 
-camd_raw <- readr::read_rds("data/raw_data/camd/camd_raw.RDS")
+camd_raw <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_raw.RDS"))
 
 
 # standardizing variables names to match eia data and removing retired and inactive plants
@@ -62,6 +79,7 @@ unit_abbs <- # abbreviation crosswalk for unit types
     "Wet bottom vertically-fired boiler" = "WVF"
   )
 
+# Clean raw data -------
 
 camd_r <- 
   camd_raw %>% 
@@ -76,7 +94,7 @@ camd_r <-
     so2_source = if_else(is.na(so2_mass_short_tons), NA_character_, "EPA/CAMD"),
     co2_source = if_else(is.na(co2_mass_short_tons), NA_character_, "EPA/CAMD"),
     hg_source = if_else(is.na(hg_mass_lbs), NA_character_, "EPA/CAMD"), # Mercury mass field needs to come from separate bulk api (SB 3/28/2024)
-    year = egrid_year,
+    year = params$eGRID_year,
     camd = if_else(nox_source == "EPA/CAMD" , "Yes", NA_character_),
     operating_status = case_when(
       operating_status == "Operating" ~ "OP",
@@ -90,6 +108,7 @@ camd_r <-
  
 print(glue::glue("{nrow(camd_raw) - nrow(camd_r)} rows removed because units have status of future, retired, long-term cold storage, or the plant ID is > 80,000."))
 
+# Remove unnecessary columns and rename as needed ------------
 
 camd_final <- # removing unnecessary columns and final renames
   camd_r %>% 
@@ -113,11 +132,10 @@ camd_final <- # removing unnecessary columns and final renames
          year_online) %>% 
   mutate(across(ends_with("id"), ~ as.character(.x)))
 
-# saving clean camd file
+
+# Save clean CAMD file ------------
 
 # creating folder if not already present
-
-
 
 if(!dir.exists("data/clean_data/camd")){
   dir.create("data/clean_data/camd")
@@ -125,12 +143,17 @@ if(!dir.exists("data/clean_data/camd")){
   print("Folder data/clean_data/camd already exists.")
 }
 
+if(!dir.exists(glue::glue("data/clean_data/camd/{params$eGRID_year}"))){
+  dir.create(glue::glue("data/clean_data/camd/{params$eGRID_year}"))
+} else{
+  print(glue::glue("Folder data/clean_data/camd/{params$eGRID_year} already exists."))
+}
 
+write_rds(camd_final, glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS"))
 
-readr::write_rds(camd_final, "data/clean_data/camd/camd_clean.RDS")
-
-if(file.exists("data/clean_data/camd/camd_clean.RDS")){
-  print("File camd_clean.RDS successfully written to folder data/clean_data/camd")
+# check if file is successfully written to folder 
+if(file.exists(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS"))){
+  print(glue::glue("File camd_clean.RDS successfully written to folder data/clean_data/camd/{params$eGRID_year}"))
 } else {
   print("File camd_clean.RDS failed to write to folder.")
 }

@@ -12,8 +12,8 @@
 ##
 ## Authors:  
 ##      Sean Bock, Abt Global
-##      Caroline Watson, Abt Global, caroline.watson@abtglobal.com
-##      Teagan Goforth, Abt Global, teagan.goforth@abtglobal.com
+##      Caroline Watson, Abt Global
+##      Teagan Goforth, Abt Global
 ##
 ## -------------------------------
 
@@ -28,8 +28,23 @@ library(stringr)
 # define params for eGRID data year 
 # this is only necessary when running the script outside of egrid_master.qmd
 
-params <- list()
-params$eGRID_year <- "2021"
+# check if parameters for eGRID data year need to be defined
+# this is only necessary when running the script outside of egrid_master.qmd
+# user will be prompted to input eGRID year in the console if params does not exist
+
+if (exists("params")) {
+  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+    print("eGRID year parameter is already defined.") 
+  } else { # if params() is defined, but eGRID_year is not, define it here 
+    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+    params$eGRID_year <- as.character(params$eGRID_year) 
+  }
+} else { # if params() and eGRID_year are not defined, define them here
+  params <- list()
+  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+  params$eGRID_year <- as.character(params$eGRID_year)
+}
+
 
 # Load necessary data ------
 
@@ -71,13 +86,13 @@ camd_vars_to_keep <-
 
 
 camd <- 
-  read_rds("data/clean_data/camd/camd_clean.RDS") %>% 
+  read_rds(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")) %>% 
   select(all_of(camd_vars_to_keep)) # keeping only necessary variables
 
 ## EIA ------------
 
-eia_860 <- read_rds("data/clean_data/eia/eia_860_clean.RDS")
-eia_923 <- read_rds("data/clean_data/eia/eia_923_clean.RDS")
+eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 
 
 # Modifying CAMD data ---------
@@ -1781,7 +1796,19 @@ if(dir.exists("data/outputs")) {
   dir.create("data/outputs")
 }
 
-print("Saving unit file to folder data/outputs/")
+if(dir.exists("data/outputs/{params$eGRID_year}")) {
+  print("Folder output already exists.")
+}else{
+  dir.create("data/outputs/{params$eGRID_year}")
+}
 
-write_rds(units_formatted, "data/outputs/unit_file.RDS")
+print(glue::glue("Saving unit file to folder data/outputs/{params$eGRID_year}"))
 
+write_rds(units_formatted, glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
+
+# check if file is successfully written to folder 
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))){
+  print(glue::glue("File unit_file.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
+} else {
+  print("File unit_file.RDS failed to write to folder.")
+} 
