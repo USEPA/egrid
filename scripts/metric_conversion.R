@@ -12,55 +12,49 @@
 ##
 ## -------------------------------
 
-# Load libraries -----
+# Load libraries and define parameters ----------------------------------------------------------
+
 library(dplyr)
 library(glue)
 library(readr)
-
-# Load in conversion table
-btu_gj_conversion <- 0.9478
+library(readxl)
 
 # Define eGRID param year
+#params$eGRIDyear
 
-# Load in unit file .RDS data
-output_file_type <- 'plant'
-output_file <- read_rds(glue::glue("data/outputs/{output_file_type}_file.RDS")) 
-glimpse(output_file)
+# Load data for desired output file conversion ----------------------------
 
-#'heat' = 'MMBtu' = 'GJ'
-#'mass' = 'short_tons' = 'metric_tons'
-#'generation' = 'MWh' = 'GJ' # plant has MMBtu to GJ
-#'ch4','n2o','hg' = 'lbs' = 'kg'
-#'out_emission_rate' : 'lbs/MWh' -> 'kg/MWh' AND 'kg/GJ'
-#'in_emission_rate' : lbs/MMBtu -> kg/GJ
-#'combust_out_emission_rate' : lbs/MMbtu -> kg/MWh and kg/GJ
-#'
+# all output files needing conversions
+output_file_list <- c('unit_file','generator_file','plant_file','state_aggregation',
+                  'ba_aggregation','subregion_aggregation','nerc_aggregation',
+                  'us_aggregation','grid_gross_loss')
+
+# which output file for script conversion
+output_file <- 'unit_file'
+
+## Load unit dictionary and conversion table from Excel sheets ------------------------------
+
+# dictionary of units and conversions
+name_and_units <- read_excel('/media/sdrive/projects/eGrid/production_model/users/russelle/data_dict.xlsx',
+                             sheet=which(output_file_list == output_file)) 
+                # sheet number is index of output_file in output_file_list
+
+# table of conversion factors
+#conversion_factors <-
+
+# .RDS output file
+output_file <- read_rds(glue::glue("data/outputs/{output_file}.RDS"))
 
 
+# Combine output column names with units ----------------------------------
 
-# Add new variables with metric conversions
-newfilename <- output_file %>%
-  mutate(across(.cols = c('heat_input','heat_input_oz') | contains('mass'), 
-                .fns = ~ if_else() . / btu_gj_conversion))
-  # if name is included, new column is made, else original column is replaced
-glimpse(newfilename)
-# unit file
+units_colnames <- cbind(name_and_units['Unit'],colnames(output_file))
+units_colnames
 
-# generator file
+# call unit for specified column name
+test <- units_colnames[0,"colnames(output_file)" == 'heat_input']
+test
 
-# plant file
-
-# state file
-
-# balancing authority file
-
-# subregion file
-
-# nerc region file
-
-# US file
-
-# grid gross loss
 
 # Export file -------------
 
