@@ -1792,14 +1792,14 @@ units_formatted <-
 
 if(dir.exists("data/outputs")) {
   print("Folder output already exists.")
-}else{
-  dir.create("data/outputs")
+} else {
+   dir.create("data/outputs")
 }
 
-if(dir.exists("data/outputs/{params$eGRID_year}")) {
+if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
   print("Folder output already exists.")
-}else{
-  dir.create("data/outputs/{params$eGRID_year}")
+} else {
+   dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
 }
 
 print(glue::glue("Saving unit file to folder data/outputs/{params$eGRID_year}"))

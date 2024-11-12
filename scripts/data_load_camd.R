@@ -20,6 +20,7 @@ library(stringr)
 library(readr)
 library(dplyr)
 library(lubridate)
+library(tidyr)
 
 # check if parameters for eGRID data year need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
@@ -147,8 +148,8 @@ emissions_data_r <-
          reporting_frequency = if_else(grepl("january|february|march|october|november|december", # filtering out non-ozone season reporting months, excluding april
                                              reporting_months), "Q", "OS")) %>% # assigning reporting frequency 
   group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% 
-  mutate(across(cols_to_sum, ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions
-         across(cols_to_sum, ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
+  mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions
+         across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
   select(-month) %>% # removing month so distinct() will aggregate to unit level
   select(-all_of(cols_to_sum), reporting_months, reporting_frequency) %>% 
   rename_with(.cols = contains("_annual"), # removing annual suffix
