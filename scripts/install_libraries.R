@@ -25,4 +25,5 @@ for (package in required_packages) {
     install.packages(package, repos = "http://cran.us.r-project.org")
     require(package, character.only = TRUE)
   }
+  print("All required packages are installed.")
 }
