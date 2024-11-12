@@ -22,7 +22,8 @@ required_packages <- unique(renv::dependencies()$Package) # determining required
 for (package in required_packages) {
   if (!require(package, character.only = TRUE)) {
     print(paste("Package", package, "not found. Installing package!"))
-    install.packages(package)
+    install.packages(package, repos = "http://cran.us.r-project.org")
     require(package, character.only = TRUE)
   }
+  print("All required packages are installed.")
 }
