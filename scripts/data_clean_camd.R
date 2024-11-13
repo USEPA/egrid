@@ -85,7 +85,7 @@ camd_r <-
   camd_raw %>% 
   rename(any_of(rename_cols)) %>%
   filter(!operating_status %in% c("Future", "Retired", "Long-term Cold Storage"), # removing plants that are listed as future, retired, or long-term cold storage
-         plant_id < 80000) %>% # removing plant with plant ids above 80,000
+         (plant_id < 80000 | (plant_id > 80000 & plant_state == "PR"))) %>% # removing plant with plant ids above 80,000 unless they are in Puerto Rico
   mutate(
     heat_input_source = if_else(is.na(heat_input_mmbtu), NA_character_, "EPA/CAMD"), # creating source variables based on emissions data
     heat_input_oz_source = if_else(is.na(heat_input_mmbtu_ozone), NA_character_, "EPA/CAMD"),
