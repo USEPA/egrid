@@ -31,37 +31,51 @@ orig_data_list <- c('unit_file','generator_file','plant_file','state_aggregation
                   'ba_aggregation','subregion_aggregation','nerc_aggregation',
                   'us_aggregation','grid_gross_loss')
 # which output file for script conversion
-orig_data_name <- 'unit_file'
+orig_data_name <- 'generator_file'
 
 ## Load unit dictionary and conversion table from Excel sheets ------------------------------
 
-# dictionary for data tables
-table_dir <- '/media/sdrive/projects/eGrid/production_model/users/russelle'
-# table of conversion factors
-conversion_factors <- read_csv(file.path(table_dir,'conversion_factors.csv'),
-                               col_names=TRUE, col_types='ccn')
 # .RDS output data
 orig_data <-read_rds(glue::glue("data/outputs/{orig_data_name}.RDS")) 
+glimpse(orig_data)
+
 # final structure and units of metric files
-metric_structure <- read_excel(file.path(unit_dir,'metric_structure.xlsx'),
-                               sheet=which(orig_data_list == orig_data_name)) 
+metric_str <- read_excel('data/static_tables/metric_structure.xlsx',
+                               sheet=which(orig_data_list == orig_data_name),
+                               skip = 1,
+                               col_names = c('descrip','name','metric',
+                               'imperial','add_field'))
+
+# table of conversion factors
+conversion_rates <- read_csv(file.path('data/static_tables/conversion_factors.csv'),
+                               col_names=TRUE, col_types='ccn')
 
 # Combine output column names with units ----------------------------------
 
-# combine data column names with list of metric and imperial units
-unit_comparison <- cbind(colnames(orig_data),metric_structure[,3:4])
-colnames(unit_comparison) <- c('var','metric','imperial')
-# create vector of names with differing variables
-units_for_conversion <- unit_comparison %>%
-  filter(!is.na(metric) & metric != imperial)
+# aligning file column names with metric structure names
+# alignment requires removal of duplicate columns
+metric_orig <- metric_str %>%
+  filter(is.na(add_field)) %>%
+  mutate(var = colnames(orig_data),.after = name) 
+# new variables can then be readded
+metric_new <- metric_str %>%
+  filter(!is.na(add_field)) %>%
+  mutate(var = metric_orig$var[which(metric_orig$name == substr(name,1,nchar(name)-1))], 
+         .after = name)
+# and combined 
+metric_comb <- rbind(metric_orig,metric_new)
 
+# create vector of names with differing variables
+units_for_conversion <- metric_comb %>%
+  filter(!is.na(metric) & metric != imperial)
+units_for_conversion
 # Testing Mutate ----------------------------------------------------------
-metric_data <- output_file %>%
+metric_data <- orig_data %>%
   mutate(across(.cols = any_of(as.vector(unlist(units_for_conversion['var']))),
                 .fns = ~ . / 10,
                 .names = '{.col}_metric'))
 glimpse(metric_data)
-
+glimpse(orig_data)
 # Reordering columns ------------------------------------------------------
 
 # metric_data <- output_file %>%
