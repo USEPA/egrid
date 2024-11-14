@@ -81,7 +81,6 @@ camd_vars_to_keep <-
     "nox_controls",
     "hg_controls",
     "year_online"
-    
   )
 
 
@@ -95,6 +94,70 @@ eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_
 eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 
 
+## Crosswalks and static tables ---------
+# for each crosswalk or static table, we specify the column types (ex: character or numeric) to avoid misread values
+
+# Power Sector Data Crosswalk matches units between CAMD and EIA data sets
+# this will be used to help update Coal units in CAMD and assign correct primary fuel type
+xwalk_eia_epa <- read_csv("data/static_tables/xwalk_epa_eia_power_sector.csv", 
+                          col_types = "c") %>% # define col_types to all be characters
+  janitor::clean_names() %>% 
+  mutate(camd_plant_id = as.character(camd_plant_id), eia_plant_id = as.character(eia_plant_id)) %>% 
+  filter(camd_fuel_type == "Coal") %>% # extract only Coal units 
+  select(camd_plant_id, camd_unit_id, camd_fuel_type, eia_plant_id, eia_generator_id, eia_fuel_type, eia_unit_type)
+
+# Boiler Firing Type Crosswalk
+xwalk_botfirty <- read_csv("data/static_tables/xwalk_boiler_firing_type.csv", 
+                           col_types = "c")
+
+# Crosswalk to add additional boiler IDs 
+### Note: check for updates or changes each data year ###
+xwalk_control_ids <- read_csv("data/static_tables/xwalk_860_boiler_control_id.csv", 
+                              col_types = "c") 
+
+# Crosswalk for Puerto Rico units to match EIA plant/unit IDs to CAMD plant/unit IDs
+xwalk_pr_oris <- read_csv("data/static_tables/xwalk_pr_oris.csv", 
+                          col_types = "c") 
+
+# Biomass units to add, these units are identified from the plant file each data year
+### Note: check for updates or changes each data year ###
+biomass_units <- read_csv("data/static_tables/biomass_units_to_add_to_unit_file.csv", 
+                          col_types = "c")  
+
+# Some plants in CAMD are not connected to the grid or are retired, so they are excluded from eGRID
+### Note: check for updates or changes each data year ###
+camd_plants_to_delete <- read_csv("data/static_tables/camd_plants_to_delete.csv", 
+                                  col_types = "c") %>% 
+  select("plant_id" = "ORIS Code") 
+
+# Emission factors 
+emission_factors <- read_csv("data/static_tables/emission_factors.csv", 
+                             col_types = "cccdccccccdccccc")
+
+# CO2 emission factors table
+co2_ef <- read_csv("data/static_tables/co2_ch4_n2o_ef.csv", 
+                   col_types = "cccdcdcdcc")
+
+# NREL geothermal plants
+### Note: check for updates or changes each data year ###
+# this table is sourced from NREL, they will not update it until 2025
+# check in 2025 for updated table 
+nrel_geo_type <- read_csv("data/static_tables/nrel_geothermal_table.csv", 
+                          col_types = "c") %>% 
+  rename("plant_id" = "ORISPL") %>% janitor::clean_names() %>% distinct()
+
+# Geothermal emission factors
+geo_emission_factors <- read_csv("data/static_tables/geothermal_emission_factors.csv", 
+                                 col_types = "ccdddddd") %>% 
+  janitor::clean_names()
+
+# Units to remove 
+### Note: check for updates or changes each data year ###
+units_to_remove <- 
+  read_csv("data/static_tables/units_to_remove.csv", 
+           col_types = "c") 
+
+
 # Modifying CAMD data ---------
 
 ## Harmonizing fields with EIA ----------
@@ -104,7 +167,6 @@ pm_st <- c("BFB", "C", "CB", "CFB", "DB", "DTF", "DVF", "IGC", "KLN", "OB", "PRH
 pm_gt <- c("AF", "CT")
 pm_ct <- c("CC")
 pm_ot <- c("OT")
-
 
 camd_2 <- 
   camd %>% 
@@ -136,19 +198,14 @@ camd_2 <-
     # 2) Coal fuel type with highest fuel consumption in EIA-923 
     # 3) Plants with Coal and Biomass units require a manual update to Coal fuel types, ignoring max fuel consumption from Biomass fuel types
 
-# Power Sector Data Crosswalk matches units between CAMD and EIA data sets
-# this will be used to help update Coal units in CAMD and assign correct primary fuel type
-xwalk_eia_epa <- read_csv("data/static_tables/xwalk_epa_eia_power_sector.csv") %>% janitor::clean_names() %>% 
-  mutate(camd_plant_id = as.character(camd_plant_id), eia_plant_id = as.character(eia_plant_id)) %>% 
-  filter(camd_fuel_type == "Coal") %>% # extract only Coal units 
-  select(camd_plant_id, camd_unit_id, camd_fuel_type, eia_plant_id, eia_generator_id, eia_fuel_type, eia_unit_type)
+coal_fuels <- c("ANT", "BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG")
 
 # identify coal fuels in CAMD use crosswalk to identify primary fuel type  
 coal_xwalk_update <- 
   xwalk_eia_epa %>% 
   left_join(camd_2, by = c("camd_plant_id" = "plant_id", "camd_unit_id" = "unit_id", "eia_unit_type" = "prime_mover")) %>% 
   left_join(eia_860$combined, by = c("eia_plant_id" = "plant_id", "eia_generator_id" = "generator_id", "eia_unit_type" = "prime_mover")) %>% 
-  mutate(energy_source_1 = if_else(eia_fuel_type %in% c("ANT", "BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG"), eia_fuel_type, NA_character_)) %>%  # only use EIA fuel type if it is a coal fuel type
+  mutate(energy_source_1 = if_else(eia_fuel_type %in% coal_fuels, eia_fuel_type, NA_character_)) %>%  # only use EIA fuel type if it is a coal fuel type
   select(plant_id = camd_plant_id, 
          unit_id = camd_unit_id, 
          prime_mover = eia_unit_type, 
@@ -161,7 +218,7 @@ coal_fuel_type_923 <-
   camd_2 %>% filter(str_detect(primary_fuel_type, "^Coal")) %>% # identify any fuel types that start with Coal in CAMD data
   left_join(eia_923$generation_and_fuel_combined %>% # identify Coal units in CAMD and match to EIA-923, and default to highest consumption Coal fuel in EIA-923
               select(plant_id, prime_mover, fuel_type, total_fuel_consumption_mmbtu) %>%
-              filter(fuel_type %in% c("ANT", "BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG")) %>% 
+              filter(fuel_type %in% coal_fuels) %>% 
               group_by(plant_id, prime_mover) %>%
               slice_max(total_fuel_consumption_mmbtu, n = 1, with_ties = FALSE) %>% # identify fuel type associate with max fuel consumption by plant
               select(plant_id, prime_mover, fuel_type),
@@ -171,14 +228,11 @@ coal_fuel_type_923 <-
 
 # some plants have both biomass and coal units, and biomass fuel types may have highest fuel consumption
 # for CAMD identified coal units, we want to default to Coal fuel types for the primary fuel type assignment
-biomass_units <- 
-  read_csv("data/static_tables/biomass_units_to_add_to_unit_file.csv")  
-
 coal_biomass_plants <- 
   camd_2 %>% filter(str_detect(primary_fuel_type, "^Coal") & plant_id %in% biomass_units$plant_code) %>% 
   left_join(eia_923$generation_and_fuel_combined %>%  # joining generation and fuel file, based on max fuel consumption by plant
               select(plant_id, prime_mover, fuel_type, total_fuel_consumption_mmbtu) %>%
-              filter(fuel_type %in% c("ANT", "BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG")) %>% 
+              filter(fuel_type %in% coal_fuels) %>% 
               group_by(plant_id, prime_mover) %>%
               slice_max(total_fuel_consumption_mmbtu, n = 1, with_ties = FALSE) %>% # identify fuel type associate with max fuel consumption by plant
               select(plant_id, prime_mover, fuel_type),
@@ -203,7 +257,7 @@ camd_3 <-
   left_join(coal_xwalk_update, by = c("plant_id", "unit_id", "prime_mover")) %>% # update Coal energy sources if energy_source_1 is NA or energy_source_1 is not a Coal fuel type for Coal CAMD units
   mutate(energy_source_1 = if_else(str_detect(primary_fuel_type, "^Coal") & # update energy source if primary fuel type is Coal
                                    (is.na(energy_source_1) | 
-                                   !energy_source_1 %in% c("ANT", "BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG")), 
+                                   !energy_source_1 %in% coal_fuels), 
                                    energy_source_1_coal, energy_source_1)) %>% 
   mutate(primary_fuel_type = case_when(
     primary_fuel_type %in% c("Other Oil", "Other Solid Fuel", "Coal") ~ energy_source_1,
@@ -244,8 +298,6 @@ print(glue::glue("{nrow(missing_fuel_types)} units having missing primary fuel t
 # and these are used where available
 ### Note: check for updates or changes each data year ###
 
-xwalk_botfirty <- read_csv("data/static_tables/xwalk_boiler_firing_type.csv")
-
 camd_4 <- 
   camd_3 %>% 
   left_join(xwalk_botfirty,
@@ -275,13 +327,6 @@ camd_5 <- # updating units where available
 
 
 ### Delete specified plants -----------
-# Some plants in CAMD are not connected to the grid or are retired, so they are excluded from eGRID
-### Note: check for updates or changes each data year ###
-
-camd_plants_to_delete <- 
-  read_csv("data/static_tables/camd_plants_to_delete.csv") %>% 
-  select("plant_id" = "ORIS Code") %>% 
-  mutate(plant_id = as.character(plant_id)) 
 
 # delete plants with null heat inputs for all units
 # some plants will be added back in from EIA data
@@ -389,13 +434,6 @@ camd_oz_reporters_dist_2 <-
 
 # To identify unit level NOx rates, we need to fill EIA-923 Air Emissions & Control Info with Boiler IDs 
 
-# Load crosswalk to add additional boiler IDs
-### Note: check for updates or changes each data year ###
-
-xwalk_control_ids <- # xwalk to add additional boiler ids
-  read_csv("data/static_tables/xwalk_860_boiler_control_id.csv") %>% 
-  mutate(across(everything(), as.character))
-
 # EIA-923 does not have Boiler IDs in the Air & Emissions Control Info 
 # We use EIA-860 Boiler data to fill the Boiler IDs
 # Because EIA-823 Air & Emissions Control Info lists rows by unique control technologies, 
@@ -471,9 +509,6 @@ nox_rates_ids <- # creating unique ids to filter out later
 
 
 #### NOx EF -----------------
-
-emission_factors <- read_csv("data/static_tables/emission_factors.csv") # load in emission_factors data
-
 
 # Joining EFs data frame with CAMD ozone reporters to calculate non-ozone NOx mass
 
@@ -1203,10 +1238,6 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
          heat_input_oz = heat_input_oz_923 * prop) %>% 
   select(-c(ends_with("_923")))   
 
-# identifying coal fuels 
-
-coal_fuels <- c("ANT", "BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG")
-
 # calculating sulfur content for coal fuel types by state
 
 default_sulfur_content_coal <- 
@@ -1360,10 +1391,6 @@ all_units_6 <-
 ## CO2 emissions --------
 
 ### Estimating CO2 emissions --------  
-
-# read in co2 emissions table
-co2_ef <- 
-  read_csv("data/static_tables/co2_ch4_n2o_ef.csv")
 
 co2_emissions <- 
   all_units_6 %>%
@@ -1545,17 +1572,6 @@ all_units_9 <-
 
 ## Geothermal Emissions --------
 
-### Note: check for updates or changes each data year ###
-# this table is sourced from NREL, they will not update it until 2025
-# check in 2025 for updated table 
-
-nrel_geo_type <- read_csv("data/static_tables/nrel_geothermal_table.csv") %>% 
-  rename("plant_id" = "ORISPL") %>% janitor::clean_names() %>% 
-  mutate(plant_id = as.character(plant_id)) %>% distinct()
-
-geo_emission_factors <- read_csv("data/static_tables/geothermal_emission_factors.csv") %>% 
-  janitor::clean_names()
-
 geo_emissions <- 
   all_units_9 %>%
   filter(primary_fuel_type == "GEO") %>% 
@@ -1620,12 +1636,8 @@ update_fc_data <-
 
 ## Delete specified units -------- 
 ### Delete units in "Units to remove" table, which is manually updated each year ----------
-### Note: check for updates or changes each data year ###
 
-units_to_remove <- 
-  read_csv("data/static_tables/units_to_remove.csv") %>% 
-  mutate(plant_id = as.character(plant_id))
-
+# See static table units_to_remove that is loaded in "Crosswalk and static tables" section
 
 ### Delete retired units  ------- 
 # delete units with operating status "RE" based on operating status ("RE") from EIA-860 Boiler Info & Design Parameters 
@@ -1687,21 +1699,19 @@ update_status_boilers <- # operating status for boilers updated via EIA-860 Boil
 
 
 ## Create and edit CAMD flag ----- 
-# ID CAMD units 
 
+# ID CAMD units 
 camd_units <- camd_7 %>% mutate(id = paste0(plant_id, "_", unit_id)) %>% pull(id)
 
 # update PR CAMD flag from crosswalk
-
-update_pr_camd_flag <- read_csv("data/static_tables/xwalk_pr_oris.csv") %>% 
+update_pr_camd_flag <- 
+  xwalk_pr_oris %>% 
   select("plant_id" = "eia_plant_id", 
          "unit_id" = "eia_unit_id", 
          "plant_name" = "eia_plant_name") %>% 
-  mutate(across(where(is.numeric), ~as.character(.)), 
-         camd_flag = "Yes")
+  mutate(camd_flag = "Yes")
 
 # create CAMD flag 
-
 all_units_11 <- 
   all_units_10 %>%  
   mutate(camd_flag = if_else(paste0(plant_id, "_", unit_id) %in% camd_units, "Yes", NA_character_)) %>% 
