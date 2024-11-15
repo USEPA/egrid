@@ -24,58 +24,79 @@ library(readxl)
 params <- list()
 params$eGRID_year <- "2023"
 
-# Load data for desired output file conversion ----------------------------
+# Create function to convert desired column data to metric --------------
 
-# all output files needing conversions
+convert_to_metric <- function(data_col,var_name) {
+  # identify metric and imperial units for variable
+  var_units <- vars_for_conversion %>%
+    filter(var == var_name)
+  # define conversion factor based on units and stored conversion rates
+  convert_factor <- as.numeric(convert_rates %>%
+                                    filter(from==var_units$imperial & to==var_units$metric) %>%
+                                    select(conversion))
+  # multiply column data by conversion factor
+  return (data_col * convert_factor)
+}
+
+# List original output files and select file for conversion ----------------------------
+
+# output files needing conversions
 orig_data_list <- c('unit_file','generator_file','plant_file','state_aggregation',
                   'ba_aggregation','subregion_aggregation','nerc_aggregation',
                   'us_aggregation','grid_gross_loss')
-# which output file for script conversion
+
+# select file to create metric version
 orig_data_name <- 'generator_file'
 
-## Load unit dictionary and conversion table from Excel sheets ------------------------------
+## Read in original output data, metric structure information, and conversion rates ------------------------------
 
-# .RDS output data
+# original output data in .RDS form
 orig_data <-read_rds(glue::glue("data/outputs/{orig_data_name}.RDS")) 
-glimpse(orig_data)
 
-# final structure and units of metric files
-metric_str <- read_excel('data/static_tables/metric_structure.xlsx',
+# desired metric file structure with which variables to convert to metric
+metric_struct <- read_excel('data/static_tables/metric_structure.xlsx',
                                sheet=which(orig_data_list == orig_data_name),
-                               skip = 1,
+                               # sheet index is the same index in list of data files
+                               skip = 1, # skip first row with names
                                col_names = c('descrip','name','metric',
-                               'imperial','add_field'))
+                               'imperial','new_field'))
 
-# table of conversion factors
-conversion_rates <- read_csv(file.path('data/static_tables/conversion_factors.csv'),
+# table of conversion factors from imperial to metric
+convert_rates <- read_csv(file.path('data/static_tables/conversion_factors.csv'),
                                col_names=TRUE, col_types='ccn')
+                               #column types are character, character, numeric
 
-# Combine output column names with units ----------------------------------
+# Align .RDS variable names with metric structure names ----------------------------------
 
-# aligning file column names with metric structure names
-# alignment requires removal of duplicate columns
-metric_orig <- metric_str %>%
-  filter(is.na(add_field)) %>%
-  mutate(var = colnames(orig_data),.after = name) 
-# new variables can then be readded
-metric_new <- metric_str %>%
-  filter(!is.na(add_field)) %>%
-  mutate(var = metric_orig$var[which(metric_orig$name == substr(name,1,nchar(name)-1))], 
-         .after = name)
-# and combined 
-metric_comb <- rbind(metric_orig,metric_new)
+# remove duplicate columns, those being added to metric file
+orig_vars <- metric_struct %>%
+  filter(is.na(new_field)) %>% # is not listed as a new field
+  mutate(var = colnames(orig_data),.after = name)
 
-# create vector of names with differing variables
-units_for_conversion <- metric_comb %>%
+# define correct variable name for new variables
+new_vars <- metric_struct %>%
+  filter(!is.na(new_field)) %>% # is listed as a new field
+  mutate(var = orig_vars$var[which(orig_vars$name == substr(name,1,nchar(name)-1))], 
+         .after = name) # assign same name as the original variable
+# recombine data with appropriate variable name assignments
+metric_struct_named <- rbind(orig_vars,new_vars)
+
+
+# Identify variables that need to be converted  -------------------------------------------------------------
+
+# create vector of variable names with differing metric and imperial units
+vars_for_conversion <- metric_struct_named %>%
   filter(!is.na(metric) & metric != imperial)
-units_for_conversion
+
 # Testing Mutate ----------------------------------------------------------
+
 metric_data <- orig_data %>%
+  # create new metric columns
   mutate(across(.cols = any_of(as.vector(unlist(units_for_conversion['var']))),
-                .fns = ~ . / 10,
+                .fns = ~ convert_metric(.,cur_column()) ,
                 .names = '{.col}_metric'))
 glimpse(metric_data)
-glimpse(orig_data)
+
 # Reordering columns ------------------------------------------------------
 
 # metric_data <- output_file %>%
