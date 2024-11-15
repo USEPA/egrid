@@ -71,14 +71,14 @@ eia_860_combined <- eia_860_files$combined %>%
 
 xwalk_fuel_codes <- # xwalk for specific changes made to certain generator fuel types
   read_csv("data/static_tables/xwalk_fuel_type.csv", 
-           col_types = "c") %>% 
+           col_types = "cccccccc") %>% 
   rename("generator_id" = unit_id) %>% 
   mutate(id = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>% # creating id to facilitate join
   select(id, fuel_code)
 
-xwalk_eia_camd <- # xwalk for updating certain plants to camd plant names and ids
+  xwalk_eia_camd <- # xwalk for updating certain plants to camd plant names and ids
   read_csv("data/static_tables/xwalk_oris_camd.csv", 
-           col_types = "c") 
+           col_types = "cccc") # all fields are characters
 
 # Create lookup table for generator IDs with leading zeroes ------------
 # some IDs in EIA-923 do not have leading zeroes, but should match to generators in EIA-860 that have leading zeroes
@@ -93,6 +93,8 @@ eia_923_leading_zeroes <-
          id = paste0(plant_id, "_", gen_id_clean)) 
 
 lookup_923_leading_zeroes <- with(eia_923_leading_zeroes, setNames(generator_id, id))
+print(glue::glue("{length(lookup_923_leading_zeroes)} generator IDs have leading zeroes in EIA-923. 
+                 The leading zeroes are removed for matching purposes and replaced at the end of the script."))
 
 eia_860_leading_zeroes <- 
   eia_860_combined %>% 
@@ -102,6 +104,9 @@ eia_860_leading_zeroes <-
          id = paste0(plant_id, "_", gen_id_clean))
 
 lookup_860_leading_zeroes <- with(eia_860_leading_zeroes, setNames(generator_id, id))
+print(glue::glue("{length(lookup_860_leading_zeroes)} generator IDs have leading zeroes in EIA-860. 
+                 The leading zeroes are removed for matching purposes and replaced at the end of the script."))
+
 
 # Create modified dfs that will be used to calculate generation values ---------
 
@@ -155,6 +160,14 @@ eia_gen_generation <-
          gen_data_source = if_else(is.na(net_generation_year_to_date), NA_character_, "EIA-923 Generator File"),
          generation_ann = net_generation_year_to_date)
 
+# check how many generators are missing generation values
+missing_gen_data <- 
+  eia_gen_generation %>% 
+  filter(is.na(gen_data_source))
+
+print(glue::glue("{nrow(eia_gen_generation) - nrow(missing_gen_data)} generators updated with generation values from direct matches to EIA-923 Generator File data.
+                 {nrow(missing_gen_data)} generators without generation values remain."))
+
 
 ## Distribute generation to plants not in EIA-923 Generator file -------
 
@@ -174,7 +187,6 @@ ozone_months_gen_fuel <-
 eia_gen_fuel_generation_sum <- 
   eia_923_gen_fuel %>% 
   mutate(generation_oz = rowSums(pick(all_of(ozone_months_gen_fuel)), na.rm = TRUE)) %>% # summing generation across ozone months
-  ungroup() %>% 
   group_by(plant_id, prime_mover) %>% 
   summarize(tot_generation_oz_fuel = sum(generation_oz, na.rm = TRUE), # ozone months total
             tot_generation_ann_fuel = sum(net_generation_megawatthours, na.rm = TRUE)) %>% # annual total
@@ -202,6 +214,14 @@ gen_distributed <-
          generation_oz = generation_oz_diff * prop,
          gen_data_source = "Distributed from EIA-923 Generation and Fuel") %>% 
   bind_rows(eia_gen_generation %>% filter(!is.na(gen_data_source))) # adding back 923 Generation source rows
+
+# check how many generators are missing generation values
+missing_gen_data_2 <- 
+  gen_distributed %>% 
+  filter(is.na(gen_data_source))
+
+print(glue::glue("{nrow(gen_distributed) - (nrow(eia_gen_generation) - nrow(missing_gen_data))} generators updated with generation values by distributing generation by plant and prime mover from EIA-923 Generation and Fuel data.
+                 {nrow(missing_gen_data_2)} generators without generation values remain."))
 
 
 ### Determine differences between EIA-923 Generator File and EIA-923 Generation and Fuel file, and identify and distribute large cases --------- 
@@ -254,6 +274,7 @@ gen_overwrite <-
          gen_data_source = "Data from EIA-923 Generator File overwritten with distributed data from EIA-923 Generation and Fuel") %>% 
   select(any_of(key_columns), overwrite) # reducing columns for clarity and to facilitate QA
 
+print(glue::glue("{nrow(gen_overwrite)} generators generation data overwritten from EIA-923 Generator file with distributed data from EIA-923 Generation and Fuel due to percent difference >0.1% between data sources."))
 
 ## December generation ------
 # find plants in the EIA-923 Generator file that are using the same net generation amount in December and redistribute using GenFuel file 
@@ -277,6 +298,8 @@ december_netgen <-
   filter(generation_ann_dec_equal == "yes") %>%
   select(any_of(key_columns), generation_ann_dec_equal) # keeping only necessary columns
 
+print(glue::glue("{nrow(december_netgen)} generators generation data where generation data equals December generation."))
+
 
 # Form generator file structure ------------
 
@@ -290,7 +313,7 @@ december_and_overwritten <-
             by = c("plant_id", "generator_id", "prime_mover")) %>% 
   mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) # creating unique id to identify duplicates
 
-print(glue::glue("{nrow(december_and_overwritten)} generator data are either overwritten from EIA-923 Generator and Fuel or from December generation."))
+print(glue::glue("{nrow(december_and_overwritten)} generator generation data are either overwritten from EIA-923 Generator and Fuel or from December generation."))
 
 # now combining all generators 
 
@@ -300,6 +323,29 @@ generators_combined <-
          id = paste0(plant_id, "_", generator_id)) %>%
   filter(!(id_pm %in% december_and_overwritten$id_pm)) %>%  #filtering out observations that are in modified df
   bind_rows(december_and_overwritten)
+
+# check if the number of rows when combining gen_distributed and december_and_overwritten is correct
+gen_dist_no_dec_overwritten <- 
+  gen_distributed %>% 
+  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>%
+  filter(!(id_pm %in% december_and_overwritten$id_pm))
+
+if(nrow(generators_combined) > (nrow(gen_dist_no_dec_overwritten) + nrow(december_and_overwritten))) { # check if there are any units with duplicate entries 
+  print(glue::glue("There are {nrow(gen_dist_no_dec_overwritten)} generators that are not overwritten or use December generation data. 
+                   There are {nrow(december_and_overwritten)} generators. The dataframe with all generators {nrow(generators_combined)} generators."))
+  
+  dupe_ids <- 
+    generators_combined %>%
+    count(plant_id, generator_id, sort =  TRUE) %>% 
+    filter(n > 1) %>% 
+    mutate(plant_gen = glue::glue("Plant :{plant_id}, Generator: {generator_id}")) %>% 
+    pull(plant_unit) %>% 
+    str_c(., collapse = "\n")
+  
+  stop(glue::glue("There are more rows than there should be in the generators_combined dataframe. There are multiple rows for the following units: {\n dupe_ids}.\n Check for possible sources of duplicate generator_ids."))
+} else{
+  print("The number of rows in generators_combined matches the sum of generators that are overwritten, generators that use december generation, and generators that do meet either of these conditions.")
+}
 
 # Final modifications to generator file -----------
 
