@@ -70,14 +70,15 @@ eia_860_combined <- eia_860_files$combined %>%
 # Load crosswalks ------------
 
 xwalk_fuel_codes <- # xwalk for specific changes made to certain generator fuel types
-  read_csv("data/static_tables/xwalk_fuel_type.csv") %>% 
+  read_csv("data/static_tables/xwalk_fuel_type.csv", 
+           col_types = "c") %>% 
   rename("generator_id" = unit_id) %>% 
   mutate(id = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>% # creating id to facilitate join
   select(id, fuel_code)
 
 xwalk_eia_camd <- # xwalk for updating certain plants to camd plant names and ids
-  read_csv("data/static_tables/xwalk_oris_camd.csv") %>%
-  mutate(across(everything(), ~ as.character(.x))) # changing all columns to character values
+  read_csv("data/static_tables/xwalk_oris_camd.csv", 
+           col_types = "c") 
 
 # Create lookup table for generator IDs with leading zeroes ------------
 # some IDs in EIA-923 do not have leading zeroes, but should match to generators in EIA-860 that have leading zeroes
@@ -354,14 +355,15 @@ generators_formatted <-
 
 if(dir.exists("data/outputs")) {
   print("Folder output already exists.")
-}else{
-  dir.create("data/outputs")
+} else {
+   dir.create("data/outputs")
 }
 
 print("Saving generator file to folder data/outputs/")
 
 write_rds(generators_formatted, "data/outputs/generator_file.RDS")
   
+
 # check if file is successfully written to folder 
 if(file.exists("data/outputs/generator_file.RDS")){
   print("File generator_file.RDS successfully written to folder data/outputs/")
