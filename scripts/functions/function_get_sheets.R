@@ -12,7 +12,7 @@ get_sheets <- function(form){
   #' get_sheets("923")
   
   
-  path <- glue::glue("data/raw_data/{form}")
+  path <- glue::glue("data/raw_data/{form}/{params$eGRID_year}")
   
   if(form != "860m") {
     
@@ -31,7 +31,7 @@ get_sheets <- function(form){
     
   } else{
     
-    sheet_data <- readxl::excel_sheets(glue::glue("{path}.xlsx"))
+    sheet_data <- readxl::excel_sheets(glue::glue("data/raw_data/860/{params$eGRID_year}/eia_pr_860m.xlsx"))
     
     return(sheet_data)
     

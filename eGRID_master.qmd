@@ -6,6 +6,9 @@ author:
   - "Justin Stein, Abt Global"
   - "Teagan Goforth, Abt Global"
   - "Emma Russell, Abt Global"
+  - "Sara Sokolinski, Abt Global"
+  - "Caroline Watson, Abt Global"
+  - "Madeline Zhang, Abt Global"
 freeze: true
 format: 
   html:
@@ -133,15 +136,15 @@ library(gt)
 library(gtExtras)
 
 
-sheets_923 <- get_sheets("923")
-sheets_860 <- get_sheets("860")
-sheets_861 <- get_sheets("861")
+sheets_923  <- get_sheets("923")
+sheets_860  <- get_sheets("860")
+sheets_861  <- get_sheets("861")
 sheets_860m <- get_sheets("860m")
 
 
-tab_923 <- make_sheets_table(sheets_923, "923") 
-tab_860 <- make_sheets_table(sheets_860, "860")
-tab_861 <- make_sheets_table(sheets_861, "861")
+tab_923  <- make_sheets_table(sheets_923, "923") 
+tab_860  <- make_sheets_table(sheets_860, "860")
+tab_861  <- make_sheets_table(sheets_861, "861")
 tab_860m <- make_sheets_table(sheets_860m, "860m")
  
 ```
@@ -173,7 +176,6 @@ tab_860
 #| tbl-cap: "EIA-861 sheets"
 #| echo: false
 #| label: print_eia_861_sheets
-
 tab_861
 ```
 
@@ -211,9 +213,9 @@ Three data tables are downloaded from the the CAMD api and stored as .RDS files:
 
 source("scripts/functions/function_summary_table.R") # function to create summary table
 
-camd_facilities <- read_rds("data/raw_data/camd/camd_facilities.RDS")
-camd_emissions <- read_rds("data/raw_data/camd/camd_emissions.RDS")
-camd_emissions_ozone <- read_rds("data/raw_data/camd/camd_emissions_ozone.RDS")
+camd_facilities <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_facilities.RDS"))
+camd_emissions <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_emissions.RDS"))
+camd_emissions_ozone <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_emissions_ozone.RDS"))
 
 table_facilities <- create_summary_table(camd_facilities)
 table_emissions <- create_summary_table(camd_emissions)
@@ -269,7 +271,7 @@ table_emissions_ozone
 #| label: create_camd_summary_table
 
 
-create_summary_table(readr::read_rds("data/clean_data/camd/camd_clean.RDS"))
+create_summary_table(readr::read_rds(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")))
 ```
 
 ## EIA
@@ -297,7 +299,7 @@ There are several procedures that are applied to each of the raw EIA files:
 
     -   Each Excel file contains header rows of varying lengths. These rows are skipped when read in.
 
-    -   Files contain various missing value characters, including: " ", "X", and ".". These characters are converted to explicit missing values (i.e., "NA")
+    -   Files contain various missing value characters, including: " ","X", and ".". These characters are converted to explicit missing values (i.e., "NA")
 
 -   Variable name standardization
 
@@ -325,9 +327,12 @@ There are several procedures that are applied to each of the raw EIA files:
 #| label: load_eia_clean_files
 #| echo: false
 
-eia_923_files <- read_rds("data/clean_data/eia_923_clean.RDS")
-eia_860_files <- read_rds("data/clean_data/eia_860_clean.RDS")
-eia_861_files <- read_rds("data/clean_data/eia_861_clean.RDS")
+eia_923_files <- read_rds(
+        glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+eia_860_files <- read_rds(
+        glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+eia_861_files <- read_rds(
+        glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
 ```
 
 ### EIA-923
@@ -414,7 +419,8 @@ purrr::iwalk(tabs_861, ~ {
 library(gt)
 library(gtExtras)
 
-generator_file <- readr::read_rds("data/outputs/generator_file.RDS")
+generator_file <- readr::read_rds(
+           glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
 
 # generator_file %>% 
 #   gt::gt() %>%
@@ -506,4 +512,46 @@ generator_file %>%
 
 # Unit File
 
+```{r}
+#| label: unit_file_create
+#| file: "scripts/unit_file_create.R"
+#| message: false
+```
+
 # Plant File
+
+```{r}
+#| label: plant_file_create
+#| file: "scripts/plant_file_create.R"
+#| message: false
+```
+
+# Region Aggregation
+
+```{r}
+#| label: region_aggregation_create
+#| file: "scripts/region_aggregation_create.R"
+#| message: false
+```
+
+# Grid Gross Loss File
+
+```{r}
+#| label: grid_gross_loss_create
+#| file: "scripts/grid_gross_loss_create.R"
+#| message: false
+```
+
+# Metric Conversion File
+
+Add code chunk later
+
+# Final Formatting
+
+```{r}
+#| label: final_formatting
+#| file: "scripts/final_formatting.R"
+#| message: false
+```
+
+#  

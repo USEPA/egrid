@@ -13,7 +13,7 @@
 ## -------------------------------
 
 if(!require("renv", character.only = TRUE)){ # installing renv package if not already
-  install.packages("renv")
+  install.packages("renv", repos = "http://cran.us.r-project.org")
 }
 
 required_packages <- unique(renv::dependencies()$Package) # determining required packages used in project
