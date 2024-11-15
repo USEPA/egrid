@@ -87,7 +87,6 @@ camd_r <-
   filter(!operating_status %in% c("Future", "Retired", "Long-term Cold Storage"), # removing plants that are listed as future, retired, or long-term cold storage
          plant_id < 80000) %>% # removing plant with plant ids above 80,000
   mutate(
-    unit_id = str_remove(unit_id, "^0+"), # remove leading zeroes
     heat_input_source = if_else(is.na(heat_input_mmbtu), NA_character_, "EPA/CAMD"), # creating source variables based on emissions data
     heat_input_oz_source = if_else(is.na(heat_input_mmbtu_ozone), NA_character_, "EPA/CAMD"),
     nox_source = if_else(is.na(nox_mass_short_tons), NA_character_, "EPA/CAMD"),

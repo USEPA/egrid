@@ -124,10 +124,7 @@ camd_2 <-
 # Power Sector Data Crosswalk matches units between CAMD and EIA data sets
 # this will be used to help update Coal units in CAMD and assign correct primary fuel type
 xwalk_eia_epa <- read_csv("data/static_tables/xwalk_epa_eia_power_sector.csv") %>% janitor::clean_names() %>% 
-  mutate(camd_plant_id = as.character(camd_plant_id), 
-         camd_unit_id = str_remove(camd_unit_id, "^0+"),
-         eia_plant_id = as.character(eia_plant_id),
-         eia_generator_id = str_remove(eia_generator_id, "^0+")) %>% 
+  mutate(camd_plant_id = as.character(camd_plant_id), eia_plant_id = as.character(eia_plant_id)) %>% 
   filter(camd_fuel_type == "Coal") %>% # extract only Coal units 
   select(camd_plant_id, camd_unit_id, camd_fuel_type, eia_plant_id, eia_generator_id, eia_fuel_type, eia_unit_type)
 
