@@ -46,7 +46,7 @@ orig_data_list <- c('unit_file','generator_file','plant_file','state_aggregation
                   'us_aggregation','grid_gross_loss')
 
 # select file to create metric version
-orig_data_name <- 'generator_file'
+orig_data_name <- orig_data_list[2]
 
 ## Read in original output data, metric structure information, and conversion rates ------------------------------
 
@@ -57,9 +57,9 @@ orig_data <-read_rds(glue::glue("data/outputs/{orig_data_name}.RDS"))
 metric_struct <- read_excel('data/static_tables/metric_structure.xlsx',
                                sheet=which(orig_data_list == orig_data_name),
                                # sheet index is the same index in list of data files
-                               skip = 1, # skip first row with names
-                               col_names = c('descrip','name','metric',
-                               'imperial','new_field'))
+                               col_names = TRUE) # keep column names to include NA fields
+# rename column names
+colnames(metric_struct) <- c('descrip','name','metric','imperial','new_field')
 
 # table of conversion factors from imperial to metric
 convert_rates <- read_csv(file.path('data/static_tables/conversion_factors.csv'),
@@ -78,9 +78,9 @@ new_vars <- metric_struct %>%
   filter(!is.na(new_field)) %>% # is listed as a new field
   mutate(var = orig_vars$var[which(orig_vars$name == substr(name,1,nchar(name)-1))], 
          .after = name) # assign same name as the original variable
+
 # recombine data with appropriate variable name assignments
 metric_struct_named <- rbind(orig_vars,new_vars)
-
 
 # Identify variables that need to be converted  -------------------------------------------------------------
 
@@ -92,10 +92,25 @@ vars_for_conversion <- metric_struct_named %>%
 
 metric_data <- orig_data %>%
   # create new metric columns
-  mutate(across(.cols = any_of(as.vector(unlist(units_for_conversion['var']))),
-                .fns = ~ convert_metric(.,cur_column()) ,
+  mutate(across(.cols = any_of(as.vector(unlist(vars_for_conversion['var']))),
+                .fns = ~ convert_to_metric(.,cur_column()) ,
                 .names = '{.col}_metric'))
 glimpse(metric_data)
+
+# Check for accurate conversions ------------------------------
+for (val in vars_for_conversion$var) {
+  var_units <- vars_for_conversion %>%
+    filter(var == val)
+  # define conversion factor based on units and stored conversion rates
+  convert_factor <- as.numeric(convert_rates %>%
+                                 filter(from==var_units$imperial & to==var_units$metric) %>%
+                                 select(conversion))
+  true_diff <- (mean(unlist(metric_data[,glue::glue('{val}_metric')]) / unlist(metric_data[,val]),na.rm=TRUE))
+  print(convert_factor == true_diff)
+  }
+
+# keep or remove
+# reorder
 
 # Reordering columns ------------------------------------------------------
 
@@ -120,17 +135,17 @@ glimpse(metric_data)
 
 # Export file -------------
 
-# check if data output folder exists, if not make folder
-save_dir <- glue::glue("data/outputs/{params$eGRID_year")
-if(dir.exists(save_dir)) {
-  print(glue::glue("Folder {save_dir} already exists."))
-} else {
-  dir.create(save_dir)
-  print(glue::glue("Folder {save_dir} created."))
-}
-
-# save folder to outputs file
-print(glue::glue("Saving {filetype} metric file to folder {save_dir}"))
-write_rds(units_formatted, glue::glue("{save_dir}/{output_file_type}_file_metric.RDS"))
+# # check if data output folder exists, if not make folder
+# save_dir <- glue::glue("data/outputs/{params$eGRID_year")
+# if(dir.exists(save_dir)) {
+#   print(glue::glue("Folder {save_dir} already exists."))
+# } else {
+#   dir.create(save_dir)
+#   print(glue::glue("Folder {save_dir} created."))
+# }
+# 
+# # save folder to outputs file
+# print(glue::glue("Saving {filetype} metric file to folder {save_dir}"))
+# write_rds(units_formatted, glue::glue("{save_dir}/{output_file_type}_file_metric.RDS"))
 
 
