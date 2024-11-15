@@ -5,3 +5,5 @@ short_ton,metric_ton,0.9072
 lb,kg,0.4536
 MMBtu,GJ,1.0551
 MWh,GJ,3.600
+lbs/MWh,kg/MWh,0.4536
+lbs/MWh,kg/GJ,0.1260
