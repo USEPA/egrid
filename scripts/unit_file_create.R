@@ -84,14 +84,24 @@ camd_vars_to_keep <-
   )
 
 
-camd <- 
-  read_rds(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")) %>% 
-  select(all_of(camd_vars_to_keep)) # keeping only necessary variables
+if(file.exists("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")) { 
+  camd <- 
+    read_rds(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")) %>% 
+    select(all_of(camd_vars_to_keep)) # keeping only necessary variables
+} else { 
+   stop("camd_clean.RDS does not exist. Run data_load_camd.R and data_clean_camd.R to obtain.")}
 
 ## EIA ------------
 
-eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
-eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+if(file.exists("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS")) {
+  eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+} else { 
+  stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+
+if(file.exists("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS")) { 
+  eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+} else { 
+   stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
 
 ## Crosswalks and static tables ---------
@@ -102,7 +112,8 @@ eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_
 xwalk_eia_epa <- read_csv("data/static_tables/xwalk_epa_eia_power_sector.csv", 
                           col_types = "c") %>% # define col_types to all be characters
   janitor::clean_names() %>% 
-  select(camd_plant_id, camd_unit_id, camd_fuel_type, eia_plant_id, eia_generator_id, eia_fuel_type, eia_unit_type)
+  select(camd_plant_id, camd_unit_id, camd_fuel_type, 
+         eia_plant_id, eia_generator_id, eia_fuel_type, eia_unit_type)
 
 # Boiler Firing Type Crosswalk
 xwalk_botfirty <- read_csv("data/static_tables/xwalk_boiler_firing_type.csv", 
