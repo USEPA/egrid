@@ -84,7 +84,7 @@ camd_vars_to_keep <-
   )
 
 
-if(file.exists("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")) { 
+if(file.exists(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS"))) { 
   camd <- 
     read_rds(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")) %>% 
     select(all_of(camd_vars_to_keep)) # keeping only necessary variables
@@ -93,12 +93,12 @@ if(file.exists("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")) {
 
 ## EIA ------------
 
-if(file.exists("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS")) {
+if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))) {
   eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
 } else { 
   stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
-if(file.exists("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS")) { 
+if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { 
   eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 } else { 
    stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
@@ -109,24 +109,28 @@ if(file.exists("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS")) {
 
 # Power Sector Data Crosswalk matches units between CAMD and EIA data sets
 # this will be used to help update Coal units in CAMD and assign correct primary fuel type
-xwalk_eia_epa <- read_csv("data/static_tables/xwalk_epa_eia_power_sector.csv", 
-                          col_types = "c") %>% # define col_types to all be characters
-  janitor::clean_names() %>% 
-  select(camd_plant_id, camd_unit_id, camd_fuel_type, 
-         eia_plant_id, eia_generator_id, eia_fuel_type, eia_unit_type)
+xwalk_eia_epa <- read_csv("data/static_tables/xwalk_epa_eia_power_sector.csv",
+                          col_types = cols_only(CAMD_PLANT_ID = "c", 
+                                                CAMD_UNIT_ID = "c", 
+                                                CAMD_FUEL_TYPE = "c", 
+                                                EIA_PLANT_ID = "c", 
+                                                EIA_GENERATOR_ID = "c", 
+                                                EIA_FUEL_TYPE = "c", 
+                                                EIA_UNIT_TYPE = "c")) %>% # define col_types to all be characters
+                  janitor::clean_names() 
 
 # Boiler Firing Type Crosswalk
 xwalk_botfirty <- read_csv("data/static_tables/xwalk_boiler_firing_type.csv", 
-                           col_types = "c")
+                           col_types = "ccccc")
 
 # Crosswalk to add additional boiler IDs 
 ### Note: check for updates or changes each data year ###
 xwalk_control_ids <- read_csv("data/static_tables/xwalk_860_boiler_control_id.csv", 
-                              col_types = "c") 
+                              col_types = "cccccccccc") 
 
 # Crosswalk for Puerto Rico units to match EIA plant/unit IDs to CAMD plant/unit IDs
 xwalk_pr_oris <- read_csv("data/static_tables/xwalk_pr_oris.csv", 
-                          col_types = "c") 
+                          col_types = "cccccc") 
 
 # Biomass units to add, these units are identified from the plant file each data year
 ### Note: check for updates or changes each data year ###
@@ -147,6 +151,14 @@ emission_factors <- read_csv("data/static_tables/emission_factors.csv",
 co2_ef <- read_csv("data/static_tables/co2_ch4_n2o_ef.csv", 
                    col_types = "cccdcdcdcc")
 
+# OG fuel types  
+### Note: check for updates or changes each data year ###
+og_fuel_types_update <- 
+  read_csv("data/static_tables/og_oth_units_to_change_fuel_type.csv", 
+           col_types = cols_only(plant_id = "c", 
+                                 unit_id = "c", 
+                                 fuel_code = "c")) 
+
 # NREL geothermal plants
 ### Note: check for updates or changes each data year ###
 # this table is sourced from NREL, they will not update it until 2025
@@ -165,6 +177,11 @@ geo_emission_factors <- read_csv("data/static_tables/geothermal_emission_factors
 units_to_remove <- 
   read_csv("data/static_tables/units_to_remove.csv", 
            col_types = "c") 
+
+# EIA plants to delete 
+eia_plants_to_delete <- read_csv("data/static_tables/xwalk_oris_camd.csv", 
+                                 col_types = cols_only(eia_plant_id = "c")) %>% 
+  mutate(plant_id = eia_plant_id) %>% select(plant_id)
 
 
 # Modifying CAMD data ---------
@@ -765,7 +782,7 @@ eia_860_generators_to_add_3 <-
 ### Note: check for updates or changes each data year ###
 
 biomass_units_to_add <- 
-  biomass_units %>% # this CSV is read in while updating coal fuel types, use now to add in biomass plants
+  biomass_units %>% # this CSV is also used while updating coal fuel types, use now to add in biomass plants
   rename("primary_fuel_type" = fuel_type, 
          "plant_id" = plant_code) %>% 
   mutate(plant_id = as.character(plant_id), 
@@ -792,10 +809,6 @@ all_units <- # binding all units together, and adding a source column to track r
 
 # Remove plants from EIA that are in CAMD 
 # These plants are duplicated since they have different plant IDs, so we are removing the EIA units 
-
-eia_plants_to_delete <- read_csv("data/static_tables/xwalk_oris_camd.csv") %>% 
-  mutate(plant_id = as.character(eia_plant_id)) %>% select(plant_id)
-
 all_units_2 <- 
   all_units %>% 
   rows_delete(eia_plants_to_delete, by = "plant_id")
@@ -860,7 +873,7 @@ dist_props <- # determining distributional proportions to distribute heat inputs
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_namecap = sum(nameplate_capacity)) %>%
   ungroup() %>% 
-  mutate(prop = if_else(sum_namecap != 0, nameplate_capacity / sum_namecap, NA_real_) %>% 
+  mutate(prop = if_else(sum_namecap != 0, nameplate_capacity / sum_namecap, NA_real_)) %>% 
   select(plant_id, prime_mover, generator_id, prop) 
 
 distributed_heat_input <- # determining distributional heat input via proportion of nameplate capacity
@@ -1028,17 +1041,6 @@ hg_flags_to_update <- # boilers that have strategy == "ACI" get mercury controls
   distinct() %>%
   mutate(hg_controls_flag = "Yes")
 
-
-## Update OG fuel types  --------
-### Note: check for updates or changes each data year ###
-
-og_fuel_types_update <- 
-  read_csv("data/static_tables/og_oth_units_to_change_fuel_type.csv") %>% 
-  mutate(across(everything(), ~ as.character(.x))) %>%
-  select(plant_id, unit_id, fuel_code)
-
-
-  
 
 ## Updating units with available values ------
 
@@ -1636,7 +1638,7 @@ clean_source_flags <-
 
 check_plant_names <- 
   all_units_10 %>% select(plant_id, plant_name, source) %>% 
-  group_by(plant_id, plant_name) 
+  group_by(plant_id, plant_name) %>% 
   distinct() %>% ungroup() %>% 
   group_by(plant_id) %>% 
   filter(n() > 1 & !is.na(plant_name), 
@@ -1723,7 +1725,7 @@ update_status_boilers <- # operating status for boilers updated via EIA-860 Boil
 ## Create and edit CAMD flag ----- 
 
 # ID CAMD units 
-camd_units <- camd_7 %>% mutate(id = paste0(plant_id, "_", unit_id)) %>% pull(id)
+camd_units <- camd_7 %>% pull(id)
 
 # update PR CAMD flag from crosswalk
 update_pr_camd_flag <- 
@@ -1731,7 +1733,9 @@ update_pr_camd_flag <-
   select("plant_id" = "eia_plant_id", 
          "unit_id" = "eia_unit_id", 
          "plant_name" = "eia_plant_name") %>% 
-  mutate(camd_flag = "Yes")
+  mutate(id = paste0(plant_id, "_", unit_id), 
+         camd_flag = if_else(id %in% camd_units, "Yes", NA_character_)) %>% 
+  filter(camd_flag == "Yes")
 
 # create CAMD flag 
 all_units_11 <- 
@@ -1844,3 +1848,4 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))){
 } else {
   print("File unit_file.RDS failed to write to folder.")
 } 
+
