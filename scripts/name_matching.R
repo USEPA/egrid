@@ -66,7 +66,7 @@ unit_metric <-
     "HGCTLDV" = "hg_controls_flag", 
     "UNTYRONL" = "year_online")
 
-gen_nonmetric <-
+generator_nonmetric <-
   c("SEQGEN" = "seqgen",
     "YEAR" = "year",
     "PSTATABB" = "plant_state",
@@ -85,7 +85,7 @@ gen_nonmetric <-
     "GENYRONL" = "operating_year",
     "GENYRRET" = "retirement_year")
 
-gen_metric <-
+generator_metric <-
   c("SEQGEN" = "seqgen",
     "YEAR" = "year",
     "PSTATABB" = "plant_state",
@@ -2497,7 +2497,7 @@ us_metric <-
     "USNBOFPR" = "us_nonbaseload_resource_mix_ofsl",
     "USNBOPPR" = "us_nonbaseload_resource_mix_othf")
 
-ggl_nonmetric <-
+grid_gross_loss_nonmetric <-
   c("YEAR" = "data_year",
     "REGION" = "interconnect",
     "ESTLOSS" = "est_losses_sum",
@@ -2505,7 +2505,7 @@ ggl_nonmetric <-
     "DIRCTUSE" = "direct_use_sum",
     "GGRSLOSS" = "ggl")
 
-ggl_metric <-
+grid_gross_loss_metric <-
   c("YEAR" = "data_year",
     "REGION" = "interconnect",
     "ESTLOSS" = "est_losses_sum",
@@ -2515,3 +2515,23 @@ ggl_metric <-
     "DIRCTUSE" = "direct_use_sum",
     "DIRCTUSE2" = "direct_use_sum_metric",
     "GGRSLOSS" = "ggl")
+
+save(unit_nonmetric, 
+     unit_metric,
+     generator_nonmetric, 
+     generator_metric,
+     plant_nonmetric, 
+     plant_metric,
+     state_nonmetric, 
+     state_metric,
+     ba_nonmetric, 
+     ba_metric,
+     subregion_nonmetric, 
+     subregion_metric,
+     nerc_nonmetric, 
+     nerc_metric,
+     us_nonmetric, 
+     us_metric,
+     grid_gross_loss_nonmetric,
+     grid_gross_loss_metric,
+     file = 'data/static_tables/name_matches.RData')
