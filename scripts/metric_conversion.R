@@ -27,68 +27,67 @@ params$eGRID_year <- "2023"
 # Create function to convert desired column data to metric --------------
 
 convert_to_metric <- function(data_col,var_name) {
-  # identify metric and imperial units for variable
+  # metric and imperial units
   var_units <- vars_for_conversion %>%
     filter(var == var_name)
-  # define conversion factor based on units and stored conversion rates
+  # conversion factor
   convert_factor <- as.numeric(convert_rates %>%
                                     filter(from==var_units$imperial & to==var_units$metric) %>%
                                     select(conversion))
-  # multiply column data by conversion factor
+  # multiply data by conversion factor
   return (data_col * convert_factor)
 }
 
-# List original output files and select file for conversion ----------------------------
+# Select file for conversion ----------------------------
 
 # output files needing conversions
 orig_data_list <- c('unit_file','generator_file','plant_file','state_aggregation',
                   'ba_aggregation','subregion_aggregation','nerc_aggregation',
                   'us_aggregation','grid_gross_loss')
 
-# select file to create metric version
+# file for metric con version
 orig_data_name <- orig_data_list[2]
 
-## Read in original output data, metric structure information, and conversion rates ------------------------------
+# Load original, metric structure, and conversion rates data ------------------------------
 
-# original output data in .RDS form
+# original output data
 orig_data <-read_rds(glue::glue("data/outputs/{orig_data_name}.RDS")) 
 
-# desired metric file structure with which variables to convert to metric
+# metric file structure
 metric_struct <- read_excel('data/static_tables/metric_structure.xlsx',
                                sheet=which(orig_data_list == orig_data_name),
-                               # sheet index is the same index in list of data files
+                               # sheet index is same index in list of data files
                                col_names = TRUE) # keep column names to include NA fields
 # rename column names
 colnames(metric_struct) <- c('descrip','name','metric','imperial','new_field')
 
-# table of conversion factors from imperial to metric
+# conversion factors
 convert_rates <- read_csv(file.path('data/static_tables/conversion_factors.csv'),
                                col_names=TRUE, col_types='ccn')
-                               #column types are character, character, numeric
+                               
+# Assign names to metric structure data ----------------------------------
 
-# Align .RDS variable names with metric structure names ----------------------------------
-
-# remove duplicate columns, those being added to metric file
+# names for original variables (same as original data)
 orig_vars <- metric_struct %>%
   filter(is.na(new_field)) %>% # is not listed as a new field
   mutate(var = colnames(orig_data),.after = name)
 
-# define correct variable name for new variables
+# names for new variables
 new_vars <- metric_struct %>%
   filter(!is.na(new_field)) %>% # is listed as a new field
   mutate(var = orig_vars$var[which(orig_vars$name == substr(name,1,nchar(name)-1))], 
          .after = name) # assign same name as the original variable
 
-# recombine data with appropriate variable name assignments
+# recombine metric structure data
 metric_struct_named <- rbind(orig_vars,new_vars)
 
-# Identify variables that need to be converted  -------------------------------------------------------------
+# Define variables for conversion  -------------------------------------------------------------
 
-# create vector of variable names with differing metric and imperial units
+# variables with differing metric and imperial units
 vars_for_conversion <- metric_struct_named %>%
   filter(!is.na(metric) & metric != imperial)
 
-# Testing Mutate ----------------------------------------------------------
+# Create new metric data columns ----------------------------------------------------------
 
 metric_data <- orig_data %>%
   # create new metric columns
