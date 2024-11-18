@@ -70,6 +70,7 @@ The script `install_libraries.R` detects all necessary libraries within the proj
 #| file: "scripts/install_libraries.R"
 #| echo: false
 #| message: false
+
 ```
 
 ## Defining eGRID year
@@ -98,7 +99,9 @@ purrr::walk(paste0("scripts/functions/",list.files('scripts/functions')), ~ sour
 
 ### EIA
 
-As of 2024, the EIA API does not contain the most detailed data available, which is necessary for the construction of eGRID. More detailed data for the EIA forms [923](https://www.eia.gov/electricity/data/eia923/), [860](https://www.eia.gov/electricity/data/eia860/), and [861](https://www.eia.gov/electricity/data/eia861/) are available as zipped excel file downloads on the EIA website. `##_data_eia_load.R` creates a new folder in the project folder called "raw_data". The zip files for each of the forms are downloaded and unzipped within this newly created folder. Each excel file contains several sheets that serve as the raw EIA data sources used to create eGRID.
+The U.S. Energy Information Administration (EIA), a part of the Department of Energy, collects and maintains energy-related data for policy making and for the public. eGRID integrates several EIA data forms into its database for relevant values. 
+
+As of 2024, the EIA API does not contain the most detailed data available, which is necessary for the construction of eGRID. More detailed data for the EIA forms [923](https://www.eia.gov/electricity/data/eia923/), [860](https://www.eia.gov/electricity/data/eia860/), and [861](https://www.eia.gov/electricity/data/eia861/) are available as zipped excel file downloads on the EIA website. `data_eia_load.R` creates a new folder in the project folder called "raw_data". The zip files for each of the forms are downloaded and unzipped within this newly created folder. Each excel file contains several sheets that serve as the raw EIA data sources used to create eGRID.
 
 ```{r}
 #| label: data_load_eia
@@ -152,6 +155,19 @@ tab_860m <- make_sheets_table(sheets_860m, "860m")
 #### EIA Files and Sheets {#eia-files-sheets}
 
 ::: panel-tabset
+
+#### Overview
+
+Click through the tabs above to view files represented from each EIA source.
+
+**EIA-923**  = data reported on fuel consumption and generation
+
+**EIA-860**  = data reported on electric generators
+
+**EIA-861**  = data collected from distribution utilities and power marketers 
+
+**EIA-860m** = data reported monthly on generating units (used to obtain data for Puerto Rico)
+
 #### EIA-923
 
 ```{r}
@@ -199,32 +215,46 @@ An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-port
 
 ```{r}
 #| label: load_data_camd
+#| warnings: false
+#| message: false
+#| error: false 
+#| echo: fenced
 #| file: "scripts/data_load_camd.R"
 
 ```
 
-Three data tables are downloaded from the the CAMD api and stored as .RDS files: `camd_facilities.RDS`, `camd_emissions.RDS`, and `camd_emissions_ozone.RDS`. `camd_facilities.RDS` includes facility attributes. `camd_emissions.RDS` contains annual emissions data. And, `camd_emissions_ozone.RDS` contains annual emissions data for the ozone months. See a summary of each of the raw CAMD tables in the tabs below.
+Three data tables are downloaded from the the CAMD api and stored into one .RDS file, `camd_raw.RDS`. This file consists of facility attributes, annual emissions data, and containing annual emissions data for the ozone months. See a summary of each of the raw CAMD tables in the tabs below.
 
 #### CAMD Raw Tables
 
 ```{r}
 #| echo: false
 #| label: create_camd_tables
+#| warnings: false
 
 source("scripts/functions/function_summary_table.R") # function to create summary table
+
+camd_raw <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_raw.RDS"))
+
+table_camd_raw <- create_summary_table(camd_raw)
 
 camd_facilities <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_facilities.RDS"))
 camd_emissions <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_emissions.RDS"))
 camd_emissions_ozone <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_emissions_ozone.RDS"))
 
-table_facilities <- create_summary_table(camd_facilities)
-table_emissions <- create_summary_table(camd_emissions)
+table_facilities      <- create_summary_table(camd_facilities)
+table_emissions       <- create_summary_table(camd_emissions)
 table_emissions_ozone <- create_summary_table(camd_emissions_ozone)
 
 
 ```
 
 ::: panel-tabset
+
+#### Overview
+
+Click through the tabs above to view files represented from each CAMD source.
+
 #### CAMD facility attributes
 
 ```{r}
@@ -258,13 +288,29 @@ table_emissions_ozone
 
 ## CAMD
 
-<!-- Need to document steps here -->
+
+- load in camd_raw RDS
+- standardize column names
+- remove plants listed as future, retired, or long-term cold storage
+- remove plants with IDs above 80000 or if they are above 80000 they are in PR
+- create source variables (EPA/CAMD) - heat_input_source, heat_input_oz_source, nox_source, nox_oz_source, so2_source, co2_source, hg_source
+- recoding values on lookup table
+- removing notes about start date
+- removing unnecessary columns
 
 ```{r}
 #| message: false
 #| label: data_clean_camd
 #| file: "scripts/data_clean_camd.R"
 ```
+
+::: panel-tabset
+
+#### Overview
+
+Click tab above to view variables contained in `camd_clean.RDS`.
+
+#### CAMD clean
 
 ```{r}
 #| echo: false
@@ -274,14 +320,9 @@ table_emissions_ozone
 create_summary_table(readr::read_rds(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")))
 ```
 
-## EIA
+:::
 
-```{r}
-#| label: data_clean_eia
-#| message: FALSE
-#| warning: FALSE
-#| file: "scripts/data_clean_eia.R"
-```
+## EIA
 
 From the raw Excel downloads, we load, clean, and save select files that are used in eGRID production. Three "clean" EIA files are ultimately created:
 
@@ -323,6 +364,15 @@ There are several procedures that are applied to each of the raw EIA files:
 
         -   `nameplate_capacity`
 
+
+```{r}
+#| label: data_clean_eia
+#| message: FALSE
+#| warning: FALSE
+#| file: "scripts/data_clean_eia.R"
+```
+
+
 ```{r}
 #| label: load_eia_clean_files
 #| echo: false
@@ -338,6 +388,11 @@ eia_861_files <- read_rds(
 ### EIA-923
 
 ::: panel-tabset
+
+#### Overview
+
+Click through the tabs above to preview values represented from required EIA-923 files.
+
 ```{r}
 #| results: asis
 #| label: eia_923_summary_tabs
@@ -360,14 +415,27 @@ purrr::iwalk(tabs_923, ~ {
 ### EIA-860
 
 ::: panel-tabset
+
+#### Overview
+
+Click through the tabs above to preview values represented from required EIA-860 files.
+
+
 ```{r}
-#| results: asis
+#| results: false
 #| label: eia_860_summary_tabs
 #| echo: false
 
 tabs_860 <- 
   eia_860_files %>% 
   map(., ~ create_summary_table(.x))
+
+```
+
+```{r}
+#| results: asis
+#| label: eia_860_summary_tabs2
+#| echo: false
 
 purrr::iwalk(tabs_860, ~ {
   cat('#### ', .y, '\n\n')
@@ -376,16 +444,26 @@ purrr::iwalk(tabs_860, ~ {
   
   cat('\n\n')
 } )
+
 ```
+
 :::
 
 ### EIA-861
 
 ::: panel-tabset
+
+#### Overview
+
+Click through the tabs above to preview values represented from required EIA-861 files.
+
 ```{r}
 #| results: asis
 #| label: eia_861_summary_tabs
 #| echo: false
+#| message: false
+
+
 tabs_861 <- 
   eia_861_files %>% 
   map(., ~ create_summary_table(.x))
@@ -411,6 +489,15 @@ purrr::iwalk(tabs_861, ~ {
 
 ## Combining EIA sources
 
+The generator file extracts data from eia_860_clean.RDS, including all operable and retired generators. The code pulls variables from EIA-860 data and counts the number of boilers. Then, we assign generation to each generator value.
+
+Direct generation is assigned to each generator values through the EIA-923 Generator file. For values not included int the EIA-923 Generator file, generation is determined by ratio using nameplate capacity ratio EIA-923 Generator and Fuel files.
+
+5.  Calculate the generator level capacity factor.
+6.  Update “Other Gas” and “Other” fuels to more specific fuel types based on notes from EIA.
+7.  Update plant codes/plant names based on EIA-EPA crosswalk.
+8.  Round data fields.
+
 ```{r}
 #| label: generator_file_table
 #| include: false
@@ -430,7 +517,12 @@ generator_file <- readr::read_rds(
 ## QA/QC
 
 ::: panel-tabset
-### Data Summary
+
+#### Overview
+
+Click through the tabs above to preview data contained within the generator file.
+
+#### Data Summary
 
 ```{r}
 #| label: gen_file_summary
@@ -443,7 +535,7 @@ create_summary_table(generator_file)
 
 ```
 
-### Generation distributions (overall)
+#### Generation distributions (overall)
 
 ```{r}
 #| label: gen_file_distributions 
@@ -483,7 +575,7 @@ plot_gen_ann_source <-
   (plot_gen_ann + plot_gen_oz) / plot_gen_ann_source
 ```
 
-### Distribution of generator data sources
+#### Distribution of generator data sources
 
 ```{r}
 #| label: generator_file_data_source_dists
@@ -515,8 +607,148 @@ generator_file %>%
 ```{r}
 #| label: unit_file_create
 #| file: "scripts/unit_file_create.R"
+#| warning: false
 #| message: false
 ```
+
+1.  Determine the universe of units 
+2.  Include grid connected units from EPA CAPD data.  
+3.  Add in unique EIA-923 Boilers 
+4.  Add in unique EIA-860 Generators 
+5.  Add in all renewable units from EIA not included in previous 2 steps. 
+6.  Pull in plant/unit level descriptor variables from EPA CAPD and EIA units such as EPA CAPD program, operating status, prime mover, retirement year, and boiler firing type. 
+7.  Count the number of generators associated with each boiler (from EIA-860).
+8.  Estimate annual heat input and emissions for EPA CAPD ozone season reporters
+9.  Some CAMD plants are “ozone season reporters” – which means that they only report data during the ozone season, which is May to September each year.  
+10. We gap fill the missing months (January, February, March, April and then October, November, and December) with EIA data.  
+11. Determine primary fuel 
+12. For EPA CAPD units, we update the fuel types to more specific EIA fuel codes (e.g., updating “coal” to “bituminous”). 
+13. For EIA units, we determine the primary fuel from the max fuel consumption values in the EIA-923 Generation and Fuel. 
+14. Distribute heat input 
+15. We use the directly reported heat input for EPA CAPD units. 
+16. Distribute heat input from the EIA-923 Generation and Fuel to the EIA units by using a proportioning ratio based on the prime mover, fuel type, and boiler firing type of the unit.  
+17. Estimate emissions 
+18. We use the directly reported NOx, SO2, and CO2 emissions for EPA CAPD units. 
+19. NOx 
+20. NOx Rates 
+21. For some units, EIA reports unit-level NOx emission rates (lb/MMBtu) for both annual and ozone season emissions, from EIA-923 Schedule 8C. These unit-level emissions rates are multiplied by the unit-level heat input used to estimate annual and ozone season NOx emissions. 
+22. NOx emissions factor 
+23. For units without NOx rates, unit-level heat input is multiplied by a prime mover- and fuel-specific emission factor. For boilers, boiler firing type is also factored into the emissions calculation.  
+24. SO2 
+25. SO2 emissions factor 
+26. Unit-level heat input is multiplied by a prime mover- and fuel-specific emission factor. For boilers, boiler firing type is also factored into the emissions calculation.  
+27. SO2 sulfur content 
+28. For some fuels, such as coal and oil, the emission factor depends on the sulfur content of the fuel. EIA reports monthly unit-level data on the sulfur content of the fuel consumed, and these data are used with the emission factors to estimate SO2 emissions.  
+29. For units without unit-level data on the sulfur content of fuels, the sulfur content is based on an average of the reported sulfur contents for units that have the same prime mover and fuel type. 
+30. SO2 control efficiency 
+31. For some units EIA reports SO2 control efficiencies. For these units the estimated SO2 emissions are multiplied by (1 – control efficiency) to estimate the controlled emissions.  
+32. Units that do not have unit-level control efficiency data are assumed to be uncontrolled. 
+33. CO2 
+34. Unit-level heat input is multiplied by an emissions factor matched by fuel type code. 
+35. Note that CO2 emissions from fuel cells are removed. 
+36. Geothermal 
+37. Geothermal emissions are estimated for CO2, SO2, and NOx. 
+38. Determine the geotype from NREL data for all plants with geothermal units 
+39. Estimate emissions by multiplying unit-level heat input by a geothermal emission factors by geotype.  
+40. Update “Other Gas” and “Other” fuels to more specific fuel types based on notes from EIA. 
+41. Update plant codes/plant names based on EIA-EPA crosswalk. 
+42. Round data fields.  
+
+```{r}
+#| label: unit_file_table
+#| include: false
+
+
+library(gt)
+library(gtExtras)
+
+unit_file <- readr::read_rds(
+           glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
+
+```
+
+## QA/QC
+
+::: panel-tabset
+
+#### Overview
+
+Click through the tabs above to preview data contained within the unit file.
+
+#### Data Summary
+
+```{r}
+#| label: unt_file_summary
+#| message: false
+#| warning: false
+
+library(gtExtras)
+
+create_summary_table(unit_file)
+```
+
+#### Generation distributions (overall)
+
+```{r}
+# #| label: unt_file_distributions  
+# #| warning: false 
+# #| message: false 
+# #| fig-height: 10   
+# 
+# library(ggplot2) 
+# library(patchwork) 
+# library(ggiraph)  
+# 
+# plot_gen_ann <-    
+#   generator_file %>%    
+#   ggplot(aes(x = generation_ann)) +    
+#   geom_boxplot() +   
+#   theme_minimal() +   
+#   labs(title = "Annual Generation")  
+# 
+# plot_gen_oz <-   generator_file %>%    
+#   ggplot(aes(x = generation_oz)) +   
+#   geom_boxplot() +   
+#   theme_minimal() +   
+#   labs(title = "Ozone Months Generation")  
+# 
+# plot_gen_ann_source <-   
+#   generator_file %>%    
+#   ggplot(aes(x = gen_data_source, y = generation_ann)) +   
+#   ggiraph::geom_boxplot_interactive() +    
+#   theme_minimal() +   
+#   coord_flip() +   
+#   scale_x_discrete(labels = scales::wrap_format(30)) +   
+#   labs(title = "Annual Generation by Data Source")      
+# 
+# (plot_gen_ann + plot_gen_oz) / plot_gen_ann_source
+```
+
+#### Distribution of unit data sources
+
+```{r}
+# #| label: generator_file_data_source_dists   
+# 
+# generator_file %>%    
+#   count(gen_data_source) %>%    
+#   mutate(proportion = n/sum(n)) %>%   
+#   ggplot(aes(x = gen_data_source, y = proportion)) +   
+#   geom_col() +   
+#   coord_flip() +   
+#   scale_x_discrete(labels = scales::wrap_format(30)) +   
+#   scale_y_continuous(labels = scales::label_percent()) +   
+#   geom_text(aes(label = scales::percent(proportion)),             
+#             nudge_y = .05) +   
+#   theme_minimal() +   
+#   labs(     
+#     title = "Distribution of generation data sources",     
+#     y = "Share of generators",     
+#     x = NULL   
+#     )    
+
+
+```
+:::
 
 # Plant File
 
@@ -526,13 +758,137 @@ generator_file %>%
 #| message: false
 ```
 
+```{r}
+#| label: plant_file_table
+#| include: false
+
+
+library(gt)
+library(gtExtras)
+
+plant_file <- readr::read_rds(
+           glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
+
+```
+
+::: panel-tabset
+
+
+#### Overview
+
+Click through the tabs above to preview data contained within the plant file.
+
+#### Data Summary
+
+```{r}
+#| label: plnt_file_summary
+#| message: false
+#| warning: false
+
+library(gtExtras)
+
+create_summary_table(plant_file)
+```
+
+:::
+
 # Region Aggregation
+
+1.  Sum the adjusted heat input, adjusted emissions, adjusted fuel-based emissions, generation, fuel-based net generation, and nameplate capacity from the plant-level data to the various aggregated levels (state, balancing authority, eGRID subregion, NERC region, and US level).
+
+2.  Calculate the output, input, combustion output, fuel-specific output, fuel-specific input, and nonbaseload output emissions rates. 
+
+3.  Estimate the aggregated level resource mix based on the summed generation by fuel values from the plant file.  
+
+4.  Estimate the nonbaseload generation by fuel type and resource mix. 
+
+5.  Round data fields. 
 
 ```{r}
 #| label: region_aggregation_create
 #| file: "scripts/region_aggregation_create.R"
 #| message: false
 ```
+
+
+```{r}
+#| label: load_reg_agg_files
+#| echo: false
+
+ba_agg  <- read_rds(
+        glue::glue("data/outputs/{params$eGRID_year}/ba_aggregation.RDS"))
+srl_agg <- read_rds(
+        glue::glue("data/outputs/{params$eGRID_year}/subregion_aggregation.RDS"))
+nrl_agg <- read_rds(
+        glue::glue("data/outputs/{params$eGRID_year}/nerc_aggregation.RDS"))
+us_agg  <- read_rds(
+        glue::glue("data/outputs/{params$eGRID_year}/us_aggregation.RDS"))
+```
+
+
+::: panel-tabset
+
+#### Overview
+
+Click through the tabs above to preview data for each region aggregation.
+
+**BA** = Balancing Authority Aggregation
+
+**SRL** = Sub-region Aggregation
+
+**NRL** = NERC Region Aggregation
+
+**US** = U.S. Aggregation
+
+#### BA
+
+```{r}
+#| label: ba_agg_summary
+#| message: false
+#| warning: false
+
+library(gtExtras)
+
+create_summary_table(ba_agg)
+```
+
+#### SRL
+
+```{r}
+#| label: srl_agg_summary
+#| message: false
+#| warning: false
+
+library(gtExtras)
+
+create_summary_table(srl_agg)
+```
+
+#### NRL
+
+```{r}
+#| label: nrl_agg_summary
+#| message: false
+#| warning: false
+
+library(gtExtras)
+
+create_summary_table(nrl_agg)
+```
+
+#### US
+
+```{r}
+#| label: us_agg_summary
+#| message: false
+#| warning: false
+
+library(gtExtras)
+
+create_summary_table(us_agg)
+```
+
+:::
 
 # Grid Gross Loss File
 
@@ -542,16 +898,50 @@ generator_file %>%
 #| message: false
 ```
 
+
+```{r}
+#| label: ggl_file_table
+#| include: false
+
+
+library(gt)
+library(gtExtras)
+
+ggl_file <- readr::read_rds(
+           glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+
+```
+
+::: panel-tabset
+
+#### Overview
+
+Click through the tabs above to preview data contained within the grid gross loss (GGL) file.
+
+#### Data Summary
+
+```{r}
+#| label: ggl_file_summary
+#| message: false
+#| warning: false
+
+library(gtExtras)
+
+create_summary_table(ggl_file)
+```
+
+:::
+
 # Metric Conversion File
 
 Add code chunk later
 
 # Final Formatting
 
+add code chunk later
+
 ```{r}
-#| label: final_formatting
-#| file: "scripts/final_formatting.R"
-#| message: false
+
 ```
 
-#  
+# 

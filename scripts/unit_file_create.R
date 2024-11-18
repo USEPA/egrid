@@ -799,7 +799,7 @@ print(glue::glue("{nrow(units_heat_updated_boiler_matches)} units updated with E
 # calculating ratio from generator file based on nameplate capacity to distribute heat
 
 gen_file <- # load generator file
-  read_rds("data/outputs/generator_file.RDS") 
+  read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
 
 dist_props <- # determining distributional proportions to distribute heat inputs
   gen_file %>% 

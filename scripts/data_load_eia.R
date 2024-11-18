@@ -49,6 +49,6 @@ if(!file.exists(path_860m)){
                   destfile = path_860m, 
                   mode = "wb") 
 } else {
-   print("Stopping. File eia_pr_860m.xlsx already downloaded.")
+   print("File eia_pr_860m.xlsx already exists in folder. Stopping.")
 }
 
