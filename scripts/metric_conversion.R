@@ -30,7 +30,7 @@ convert_to_metric <- function(data_col,var_name) {
   # variable row
   var_data <- vars_for_conversion %>%
     filter(var == var_name)
-  # find conversion rate for units in variable row
+  # conversion rate for units
   convert_factor <- as.numeric(convert_rates %>%
                                     filter(from==var_data$imperial & to==var_data$metric) %>%
                                     select(conversion))
@@ -44,7 +44,7 @@ naming_metric <- function(var_name) {
   # variable row
   var_data <- vars_for_conversion %>%
     filter(var == var_name)
-  # add '_metric' to name if it's a new field added to metric file
+  # add '_metric' to name if new field
   new_name <- ifelse(is.na(var_data$new_field),
                         var_name,
                         glue::glue('{var_name}_metric'))
@@ -52,7 +52,7 @@ naming_metric <- function(var_name) {
 }
 
 # Select file for conversion ----------------------------
-num <- 1
+num <- 2
 #filetype
 filetype = c('unit','generator','plant','state','ba','subregion',
              'nerc', 'us','grid_gross_loss')
@@ -62,7 +62,7 @@ orig_data_list <- c('unit_file','generator_file','plant_file','state_aggregation
                   'ba_aggregation','subregion_aggregation','nerc_aggregation',
                   'us_aggregation','grid_gross_loss')
 
-# file for metric con version
+# file for metric conversion
 orig_data_name <- orig_data_list[num]
 file <- filetype[num]
 
@@ -86,12 +86,11 @@ convert_rates <- read_csv(file.path('data/static_tables/conversion_factors.csv')
 # Assign names to metric structure data ----------------------------------
 
 # load in ordered names with abbreviations
-ordered_names <- load('data/static_tables/name_matches.Rdata')
+load('data/static_tables/name_matches.Rdata')
 
 # Add new column with ordered names
 metric_struct_named <- metric_struct %>%
-  mutate(var = unit_metric,.after=name) #need to make universal
-#metric_struct_named
+  mutate(var = gen_metric,.after=name) #need to make universal
 
 # Define variables for conversion  -------------------------------------------------------------
 
@@ -100,7 +99,7 @@ vars_for_conversion <- metric_struct_named %>%
   filter(!is.na(metric) & metric != imperial) %>%
   # remove _metric naming to select original data for conversion
   mutate(var = ifelse(!is.na(new_field),stringr::str_remove(var,'_metric'),var))
-#vars_for_conversion
+
 # Create new metric data columns ----------------------------------------------------------
 
 # works for keeping data 
@@ -110,23 +109,26 @@ metric_data <- orig_data %>%
                 .fns = ~ convert_to_metric(.,cur_column()) ,
                 .names = '{naming_metric(.col)}')) %>% # name with naming_metric()
   # select and order based on ordered names 
-  select(all_of(unit_metric))
+  select(all_of(gen_metric))
+glimpse(metric_data)
 # rename to longer variable names after sorting
-names(metric_data) <- unit_metric
-#glimpse(metric_data)
+names(metric_data) <- gen_metric
+glimpse(metric_data)
 
 
 # Check for accurate conversions ------------------------------
-# for (val in vars_for_conversion$var) {
-#   var_units <- vars_for_conversion %>%
-#     filter(var == val)
-#   # define conversion factor based on units and stored conversion rates
-#   convert_factor <- as.numeric(convert_rates %>%
-#                                  filter(from==var_units$imperial & to==var_units$metric) %>%
-#                                  select(conversion))
-#   true_diff <- (mean(unlist(metric_data[,glue::glue('{val}_metric')]) / unlist(metric_data[,val]),na.rm=TRUE))
-#   print(convert_factor == true_diff)
-#   }
+
+for (val in vars_for_conversion$var) {
+  var_units <- vars_for_conversion %>%
+    filter(var == val)
+  convert_factor <- as.numeric(convert_rates %>%
+                                 filter(from==var_units$imperial & to==var_units$metric) %>%
+                                 select(conversion))
+  true_diff <- (mean(unlist(metric_data[,glue::glue('{val}_metric')]) /
+                       unlist(metric_data[,val]),
+                     na.rm = TRUE))
+  print(convert_factor == true_diff)
+}
 
 # ----------------------------
 
