@@ -24,7 +24,8 @@ library(readxl)
 params <- list()
 params$eGRID_year <- "2023"
 
-# Function to convert data to metric --------------------------------------------
+# Define Functions -------------------------------------------------------------
+### Function to convert data to metric -----------------------------------------
 
 convert_to_metric <- function(data_col,var_name) {
   # variable row
@@ -32,13 +33,14 @@ convert_to_metric <- function(data_col,var_name) {
     filter(var == var_name)
   # conversion rate for units
   convert_factor <- as.numeric(convert_rates %>%
-                                    filter(from==var_data$imperial & to==var_data$metric) %>%
+                                    filter(from==var_data$imperial & 
+                                             to==var_data$metric) %>%
                                     select(conversion))
   # multiply data by conversion factor
   return (data_col * convert_factor)
 }
 
-# Function to name new metric columns ----------------------------------------
+### Function to name new metric columns ----------------------------------------
 
 naming_metric <- function(var_name) {
   # variable row
@@ -51,31 +53,41 @@ naming_metric <- function(var_name) {
   return (new_name)
 }
 
-# Select file for conversion ----------------------------
-num <- 2
-#filetype
-filetype = c('unit','generator','plant','state','ba','subregion',
-             'nerc', 'us','grid_gross_loss')
+# Load and assign original (nonconverted) data ---------------------------------
+### Select file for conversion -------------------------------------------------
 
 # output files needing conversions
-orig_data_list <- c('unit_file','generator_file','plant_file','state_aggregation',
-                  'ba_aggregation','subregion_aggregation','nerc_aggregation',
-                  'us_aggregation','grid_gross_loss')
+filenames_orig <- c('unit' = 'unit_file',
+                    'gen' = 'generator_file',
+                    'plant' = 'plant_file',
+                    'state' = 'state_aggregation',
+                    'ba' = 'ba_aggregation',
+                    'subregion' = 'subregion_aggregation',
+                    'nerc' = 'nerc_aggregation',
+                    'us' = 'us_aggregation',
+                    'ggl' = 'grid_gross_loss')
 
 # file for metric conversion
-orig_data_name <- orig_data_list[num]
-file <- filetype[num]
+which_file <- "plant"
+filename_orig <- filenames_orig[which_file]
 
-# Load original, metric structure, and conversion rates data ------------------------------
+# load in ordered names with abbreviations
+load('data/static_tables/name_matches.Rdata')
+
+# assign ordered name vector for file type
+assign('ordered_names',get(glue::glue('{which_file}_metric')))
+
+### Load original, metric structure, and conversion rates data ------------------
 
 # original output data
-orig_data <-read_rds(glue::glue("data/outputs/{orig_data_name}.RDS")) 
+orig_data <-read_rds(glue::glue("data/outputs/{filename_orig}.RDS")) 
 
 # metric file structure
 metric_struct <- read_excel('data/static_tables/metric_structure.xlsx',
-                               sheet=which(orig_data_list == orig_data_name),
+                               sheet=which(filenames_orig == filename_orig),
                                # sheet index is same index in list of data files
-                               col_names = TRUE) # keep column names to include NA fields
+                               col_names = TRUE) 
+                               # keep column names to include NA fields
 # rename column names
 colnames(metric_struct) <- c('descrip','name','metric','imperial','new_field')
 
@@ -83,16 +95,14 @@ colnames(metric_struct) <- c('descrip','name','metric','imperial','new_field')
 convert_rates <- read_csv(file.path('data/static_tables/conversion_factors.csv'),
                                col_names=TRUE, col_types='ccn')
 
-# Assign names to metric structure data ----------------------------------
-
-# load in ordered names with abbreviations
-load('data/static_tables/name_matches.Rdata')
+# Format data and identify variables needing converting ------------------------
+### Assign names to metric structure data --------------------------------------
 
 # Add new column with ordered names
 metric_struct_named <- metric_struct %>%
-  mutate(var = gen_metric,.after=name) #need to make universal
+  mutate(var = ordered_names,.after=name)
 
-# Define variables for conversion  -------------------------------------------------------------
+### Define variables for conversion  -------------------------------------------
 
 vars_for_conversion <- metric_struct_named %>%
   # variables with differing metric and imperial units
@@ -100,29 +110,28 @@ vars_for_conversion <- metric_struct_named %>%
   # remove _metric naming to select original data for conversion
   mutate(var = ifelse(!is.na(new_field),stringr::str_remove(var,'_metric'),var))
 
-# Create new metric data columns ----------------------------------------------------------
+# Convert data to new metric units ---------------------------------------------
+### Create new metric data columns ---------------------------------------------
 
-# works for keeping data 
 metric_data <- orig_data %>%
   # create new metric columns using convert_to_metric()
   mutate(across(.cols = any_of(as.vector(unlist(vars_for_conversion['var']))),
                 .fns = ~ convert_to_metric(.,cur_column()) ,
                 .names = '{naming_metric(.col)}')) %>% # name with naming_metric()
   # select and order based on ordered names 
-  select(all_of(gen_metric))
+  select(all_of(ordered_names))
 glimpse(metric_data)
 # rename to longer variable names after sorting
-names(metric_data) <- gen_metric
-glimpse(metric_data)
+names(metric_data) <- ordered_names
 
-
-# Check for accurate conversions ------------------------------
+### Check for accurate conversions ---------------------------------------------
 
 for (val in vars_for_conversion$var) {
   var_units <- vars_for_conversion %>%
     filter(var == val)
   convert_factor <- as.numeric(convert_rates %>%
-                                 filter(from==var_units$imperial & to==var_units$metric) %>%
+                                 filter(from==var_units$imperial & 
+                                          to==var_units$metric) %>%
                                  select(conversion))
   true_diff <- (mean(unlist(metric_data[,glue::glue('{val}_metric')]) /
                        unlist(metric_data[,val]),
