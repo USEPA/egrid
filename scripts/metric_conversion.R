@@ -39,6 +39,7 @@ convert_to_metric <- function(data_col,var_name) {
 }
 
 # Function to name new metric columns ----------------------------------------
+
 naming_metric <- function(var_name) {
   # variable row
   var_data <- vars_for_conversion %>%
@@ -90,59 +91,42 @@ ordered_names <- load('data/static_tables/name_matches.Rdata')
 # Add new column with ordered names
 metric_struct_named <- metric_struct %>%
   mutate(var = unit_metric,.after=name) #need to make universal
-metric_struct_named
+#metric_struct_named
 
 # Define variables for conversion  -------------------------------------------------------------
 
-# variables with differing metric and imperial units
 vars_for_conversion <- metric_struct_named %>%
+  # variables with differing metric and imperial units
   filter(!is.na(metric) & metric != imperial) %>%
+  # remove _metric naming to select original data for conversion
   mutate(var = ifelse(!is.na(new_field),stringr::str_remove(var,'_metric'),var))
-vars_for_conversion
+#vars_for_conversion
 # Create new metric data columns ----------------------------------------------------------
 
 # works for keeping data 
 metric_data <- orig_data %>%
-  # create new metric columns
+  # create new metric columns using convert_to_metric()
   mutate(across(.cols = any_of(as.vector(unlist(vars_for_conversion['var']))),
                 .fns = ~ convert_to_metric(.,cur_column()) ,
-                .names = '{naming_metric(.col)}')) %>%
+                .names = '{naming_metric(.col)}')) %>% # name with naming_metric()
+  # select and order based on ordered names 
   select(all_of(unit_metric))
-glimpse(metric_data)
+# rename to longer variable names after sorting
 names(metric_data) <- unit_metric
-glimpse(metric_data)
+#glimpse(metric_data)
 
 
 # Check for accurate conversions ------------------------------
-for (val in vars_for_conversion$var) {
-  var_units <- vars_for_conversion %>%
-    filter(var == val)
-  # define conversion factor based on units and stored conversion rates
-  convert_factor <- as.numeric(convert_rates %>%
-                                 filter(from==var_units$imperial & to==var_units$metric) %>%
-                                 select(conversion))
-  true_diff <- (mean(unlist(metric_data[,glue::glue('{val}_metric')]) / unlist(metric_data[,val]),na.rm=TRUE))
-  print(convert_factor == true_diff)
-  }
-
-# Reordering columns ------------------------------------------------------
-
-# metric_data <- output_file %>%
-#   mutate(across(.cols = contains('heat') & !contains('source'),
-#                 .fns = ~ . / 10,
-#                 .names = '{.col}_metric'))
-# %>% need to relocate the columns
-# relocate(sort(grep('heat_input_oz_[i-m]*',names(.),value=TRUE)), .after='heat_input') # & !names %in% c('source')),
-  # relocate(
-  #   output_file %>%
-  #     sort(select(contains('heat') & !contains('source')))) # %>% names() %>% sort())
-# %>% bind_cols(
-#   df %>% 
-#     select(
-#       df %>% select(starts_with("data")) %>% names() %>% sort()
-#relocate(contains('metric'), .after = heat_input)
-#select(contains())
-#relocate(sort(grep("^data", names(.), value = TRUE)), .before = data_col_1)
+# for (val in vars_for_conversion$var) {
+#   var_units <- vars_for_conversion %>%
+#     filter(var == val)
+#   # define conversion factor based on units and stored conversion rates
+#   convert_factor <- as.numeric(convert_rates %>%
+#                                  filter(from==var_units$imperial & to==var_units$metric) %>%
+#                                  select(conversion))
+#   true_diff <- (mean(unlist(metric_data[,glue::glue('{val}_metric')]) / unlist(metric_data[,val]),na.rm=TRUE))
+#   print(convert_factor == true_diff)
+#   }
 
 # ----------------------------
 
