@@ -179,10 +179,19 @@ units_to_remove <-
            col_types = "c") 
 
 # EIA plants to delete 
+# we delete plants that are already in CAMD and matched to EIA from this crosswalk
 eia_plants_to_delete <- read_csv("data/static_tables/xwalk_oris_camd.csv", 
                                  col_types = cols_only(eia_plant_id = "c")) %>% 
   mutate(plant_id = eia_plant_id) %>% select(plant_id)
 
+# Manual edits
+# there are some units and plants that need manual changes 
+# we document them in this Excel sheet 
+### Note: check for updates or changes each data year ### 
+manual_edits <- 
+  read_excel("data/static_tables/manual_edits.xlsx", 
+             sheet = "unit_file", 
+             col_types = c("text", "text", "text", "text", "text"))
 
 # Modifying CAMD data ---------
 
@@ -196,6 +205,8 @@ pm_ot <- c("OT")
 
 camd_2 <- 
   camd %>% 
+  left_join(manual_edits %>% filter(column_to_update == "unit_id"), 
+            by = c("plant_id", "unit_id")) %>% 
   mutate(
     # creating prime_mover based on mapping above
     prime_mover = case_when( 
@@ -207,10 +218,7 @@ camd_2 <-
     # modifying unit IDs to match 860 files
     ### Note: check for updates or changes each data year ###
     unit_id = case_when( 
-      plant_id == 2707 & unit_id == 1 ~ "GT1",
-      plant_id == 2707 & unit_id == 2 ~ "GT2",
-      plant_id == 2707 & unit_id == 3 ~ "GT3",
-      plant_id == 2707 & unit_id == 4 ~ "GT4",
+      !is.na(update) ~ update, # update unit ID from manual_edits
       TRUE ~ unit_id) 
   )
 
@@ -1682,8 +1690,8 @@ delete_retired_units <-
 ### Note: check for updates or changes each data year ###
 
 eia_units_to_delete <- 
-  all_units_10 %>% 
-  filter(plant_id == "2132" | plant_id == "7832") %>% 
+  manual_edits %>% # check if manual_edits has any units to delete 
+  filter(column_to_update == "delete") %>% 
   select(plant_id) %>% distinct()
 
 
@@ -1692,13 +1700,13 @@ eia_units_to_delete <-
 ### Note: check for updates or changes each data year ###
 
 update_prime_mover <- 
-  all_units_10 %>% select(plant_id, unit_id, prime_mover) %>% 
-  filter(plant_id == "7063" & unit_id == "**1" | 
-           plant_id == "50973" & prime_mover == "CT") %>% 
-  mutate(prime_mover = case_when ( 
-            plant_id == "7063" & unit_id == "**1" ~ "CE", # Update prime mover for plant 7063 unit **1 from OT to CE 
-            plant_id == "50973" ~ "CA", # Update PM for plant 50973 since boilers have multiple PMs
-            TRUE ~ prime_mover)) 
+  all_units_10 %>% 
+  select(plant_id, unit_id, prime_mover) %>% 
+  left_join(manual_edits %>% filter(column_to_update == "prime_mover"), # use manual_edits to identify which PMs shoudl be updated 
+                                    by = c("plant_id", "unit_id", "prime_mover")) %>%
+  filter(!is.na(update)) %>% 
+  mutate(prime_mover = update) %>% 
+  select(plant_id, unit_id, prime_mover)
   
 
 ## Update status ------
@@ -1746,8 +1754,21 @@ all_units_11 <-
 
 ## Implement changes in main unit file ------
 
+# plant ID and plant name manual updates 
+plant_id_updates <- 
+  manual_edits %>% filter(column_to_update == "plant_id") %>% 
+  select(plant_id, plant_id_update = update)
+
+plant_name_updates <- 
+  manual_edits %>% filter(column_to_update == "plant_name") %>% 
+  select(plant_id, plant_name_update = update)
+
 all_units_12 <- 
   all_units_11 %>% # update to most recent unit file data frame
+  left_join(plant_id_updates, by = c("plant_id")) %>% 
+  mutate(plant_id = if_else(!is.na(plant_id_update), plant_id_update, plant_id)) %>% 
+  left_join(plant_name_updates, by = c("plant_id")) %>% 
+  mutate(plant_name = if_else(!is.na(plant_name_update), plant_name_update, plant_name)) %>% 
   rows_delete(units_to_remove, 
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_delete(delete_retired_units, 
@@ -1770,14 +1791,7 @@ all_units_12 <-
          nox_oz_mass = round(nox_oz_mass, 3), 
          so2_mass = round(so2_mass, 4), 
          co2_mass = round(co2_mass, 3), 
-         hg_mass = round(hg_mass, 3), 
-         plant_id = case_when( # update plant_id and plant_name to EIA ID and name
-           ### Note: check for updates or changes each data year ###
-           plant_id %in% c("2847", "55248") ~ "2847", 
-           TRUE ~ plant_id), 
-         plant_name = case_when(
-           plant_id == "2847" ~ "Tait Electric Generating Station", 
-           TRUE ~ plant_name)) 
+         hg_mass = round(hg_mass, 3)) 
 
 # Format unit file --------------
 
@@ -1827,13 +1841,13 @@ units_formatted <-
 # Export unit file -------------
 
 if(dir.exists("data/outputs")) {
-  print("Folder output already exists.")
+  print("Folder outputs already exists.")
 } else {
    dir.create("data/outputs")
 }
 
 if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
-  print("Folder output already exists.")
+  print(glue::glue("Folder outputs/{params$eGRID_year} already exists."))
 } else {
    dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
 }
