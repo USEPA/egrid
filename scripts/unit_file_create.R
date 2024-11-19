@@ -1168,10 +1168,15 @@ estimated_so2_emissions_content <-
          unit_flag != "PhysicalUnits" & n == 1) %>%
   select(-n, -flags) 
   
-# determine SO2 mass for PR coal plant 
+# determine SO2 mass for PR coal plants 
 ### Note: check for updates or changes each data year ###
 
-so2_pr <- # calculate average sulfur content and removal rate given BIT fuel type 
+pr_coal_plants <- 
+  all_units_4 %>% 
+  filter(plant_state == "PR", primary_fuel_type %in% coal_fuels) %>% 
+  select(plant_id, primary_fuel_type, prime_mover, botfirty) %>% distinct()
+
+so2_pr <- # calculate average sulfur content and removal rate for coal types by fuel, PM, and botfirty
   avg_sulfur_content %>% 
   left_join(schedule_8c %>% 
               select(plant_id, boiler_id, so2_removal_efficiency_rate_at_annual_operating_factor) %>% 
@@ -1182,15 +1187,17 @@ so2_pr <- # calculate average sulfur content and removal rate given BIT fuel typ
   mutate(botfirty = NA_character_) %>% # create a botfirty column, and fill in with data from all_units_4
   rows_update(all_units_4 %>% select(plant_id, boiler_id = unit_id, botfirty), by = c("plant_id", "boiler_id"), 
               unmatched = "ignore") %>% 
-  filter(fuel_type == "BIT", prime_mover == "ST", botfirty == "FLUIDIZED") %>% 
+  filter(fuel_type %in% pr_coal_plants$primary_fuel_type, 
+         prime_mover %in% pr_coal_plants$prime_mover, 
+         botfirty == "FLUIDIZED") %>% # check each year if botfirty needs to change
   group_by(fuel_type, prime_mover, botfirty) %>% 
   summarize(avg_sulfur_content = mean(avg_sulfur_content, na.rm = TRUE), 
             so2_removal_efficiency_rate_at_annual_operating_factor = mean(so2_removal_efficiency_rate_at_annual_operating_factor, na.rm = TRUE)) %>% 
   ungroup()
 
-estimated_so2_emissions_content_pr <- # estimate SO2 mass for PR coal plant 61082
+estimated_so2_emissions_content_pr <- # estimate SO2 mass for PR coal plants
   eia_923$generation_and_fuel_combined %>% 
-  filter(plant_id == "61082", fuel_type == "BIT") %>% 
+  filter(plant_id %in% pr_coal_plants$plant_id & fuel_type %in% pr_coal_plants$primary_fuel_type) %>% 
   select(plant_id, prime_mover, 
          "primary_fuel_type" = fuel_type, 
          physical_unit_label, 
