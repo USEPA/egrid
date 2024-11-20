@@ -7,3 +7,4 @@ MMBtu,GJ,1.0551
 MWh,GJ,3.600
 lbs/MWh,kg/MWh,0.4536
 lbs/MWh,kg/GJ,0.1260
+lbs/MMBtu,kg/GJ,0.4299
