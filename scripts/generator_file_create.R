@@ -116,28 +116,25 @@ print(glue::glue("{length(lookup_860_leading_zeroes)} generator IDs have leading
 
 # Create modified dfs that will be used to calculate generation values ---------
 
+gen_id_manual_edits <- 
+  manual_edits %>% 
+  filter(column_to_update == "generator_id")
+
 eia_923_gen_r <- 
   eia_923_gen %>% 
-    mutate(
-      generator_id = str_remove(generator_id, "^0+"), 
-      generator_id = case_when( # modifying some ids to match 860 files.
-        plant_id == 664 & generator_id == "8.1999999999999993" ~ "8.2",
-        plant_id == 7512 & generator_id == 1 ~ "01", # updating generator IDs for plant (7512) that gets combined under ORIS 3612
-        plant_id == 7512 & generator_id == 2 ~ "02", 
-        plant_id == 7512 & generator_id == 3 ~ "03", 
-        TRUE ~ generator_id  # Default value if no condition matches
-      ))
+  left_join(gen_id_manual_edits, by = c("plant_id", "generator_id")) %>% 
+  mutate(
+    generator_id = str_remove(generator_id, "^0+"), # remove leading zeroes from generator IDs
+    generator_id = if_else(!is.na(update), update, generator_id)) %>% # update generator IDs from manual_edits
+  select(-update, -column_to_update)
 
 eia_860_combined_r <- 
   eia_860_combined %>% 
+  left_join(gen_id_manual_edits, by = c("plant_id", "generator_id")) %>% 
   mutate(
-    generator_id = str_remove(generator_id, "^0+"), 
-    generator_id = case_when( # updating generator IDs for plant that gets combined under ORIS 3612
-      plant_id == 7512 & generator_id == 1 ~ "01", 
-      plant_id == 7512 & generator_id == 2 ~ "02", 
-      plant_id == 7512 & generator_id == 3 ~ "03", 
-      TRUE ~ generator_id  # Default value if no condition matches
-  ))
+    generator_id = str_remove(generator_id, "^0+"), # remove leading zeroes from generator IDs
+    generator_id = if_else(!is.na(update), update, generator_id)) %>% # update generator IDs from manual_edits
+  select(-update, -column_to_update)
     
 eia_860_boiler_count <- # creating count of boilers for each generator
   eia_860_boiler %>% 
