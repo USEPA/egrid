@@ -36,6 +36,7 @@ convert_to_metric <- function(data_col,var_name) {
                                     filter(from==var_data$imperial & 
                                              to==var_data$metric) %>%
                                     select(conversion))
+  print(glue::glue('{var_name} converted from {var_data$imperial} to {var_data$metric} (conversion rate:{convert_factor})'))
   # multiply data by conversion factor
   return (data_col * convert_factor)
 }
@@ -55,7 +56,7 @@ filenames_orig <- c('unit' = 'unit_file',
                     'ggl' = 'grid_gross_loss')
 
 # file for metric conversion
-which_file <- "unit"
+which_file <- "plant"
 filename_orig <- filenames_orig[which_file]
 
 # load in ordered names with abbreviations
@@ -104,35 +105,38 @@ vars_conversion_new <- vars_for_conversion %>%
 ### Create new metric data columns ---------------------------------------------
 
 metric_data <- orig_data %>%
-  # convert current columns using convert_to_metric()
+  # add duplicate rows for new metric variables
+  mutate(across(.cols = any_of(as.vector(unlist(vars_conversion_new['var']))),
+                .fns = ~ .,
+                .names = '{.col}_metric')) %>%
+  # convert units to metric
   mutate(across(.cols = any_of(as.vector(unlist(vars_for_conversion['var']))),
                 .fns = ~ convert_to_metric(.,cur_column()))) %>%
-  # add new metric variables
-  mutate(across(.cols = any_of(as.vector(unlist(vars_conversion_new['var']))),
-                .fns = ~ convert_to_metric(.,paste(cur_column(),'_metric',sep='')),
-                .names = '{.col}_metric')) %>%
   # select and order based on ordered names 
   select(all_of(ordered_names))
-glimpse(metric_data)
+print(glue::glue('{nrow(vars_for_conversion)-nrow(vars_conversion_new)} columns altered'))
+print(glue::glue('{ncol(metric_data) - ncol(orig_data)} columns added'))
+#glimpse(metric_data)
 # rename to longer variable names after sorting
 names(metric_data) <- ordered_names
-#glimpse(metric_data)
+glimpse(metric_data)
 glimpse(orig_data)
 
 ### Check for accurate conversions ---------------------------------------------
 
-# for (val in vars_for_conversion$var) {
-#   var_units <- vars_for_conversion %>%
-#     filter(var == val)
-#   convert_factor <- as.numeric(convert_rates %>%
-#                                  filter(from==var_units$imperial & 
-#                                           to==var_units$metric) %>%
-#                                  select(conversion))
-#   true_diff <- (mean(unlist(metric_data[,glue::glue('{val}_metric')]) /
-#                        unlist(metric_data[,val]),
-#                      na.rm = TRUE))
-#   print(convert_factor == true_diff)
-#}
+for (val in vars_for_conversion$var) {
+  var_units <- vars_for_conversion %>%
+    filter(var == val)
+  convert_factor <- as.numeric(convert_rates %>%
+                                 filter(from==var_units$imperial &
+                                          to==var_units$metric) %>%
+                                 select(conversion))
+  true_diff <- (mean(unlist(metric_data[,val]) /
+                       unlist(orig_data[,stringr::str_remove(val,'_metric')]),
+                     na.rm = TRUE))
+  print(glue::glue('{val},{convert_factor == true_diff}'))
+  
+}
 
 # Export file -------------
 
