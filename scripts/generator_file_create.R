@@ -21,6 +21,7 @@ library(dplyr)
 library(readr)
 library(stringr)
 library(glue)
+library(readxl)
 
 # check if parameters for eGRID data year need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
@@ -44,12 +45,12 @@ if (exists("params")) {
 if(file.exists("data/clean_data/eia/eia_923_clean.RDS")) { # if file does not exist, stop code and print error
   eia_923_files <- read_rds("data/clean_data/eia/eia_923_clean.RDS") # read in all 923 files
 } else { 
-  stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+   stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
 if(file.exists("data/clean_data/eia/eia_860_clean.RDS")) { # if file does not exist, stop code and print error
   eia_860_files <- read_rds("data/clean_data/eia/eia_860_clean.RDS") # read in all 860 files
 } else { 
-  stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+   stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
 
 eia_923_gen <- eia_923_files$generator_data
@@ -73,12 +74,17 @@ xwalk_fuel_codes <- # xwalk for specific changes made to certain generator fuel 
   read_csv("data/static_tables/xwalk_fuel_type.csv", 
            col_types = "cccccccc") %>% 
   rename("generator_id" = unit_id) %>% 
-  mutate(id = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>% # creating id to facilitate join
-  select(id, fuel_code)
+  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>% # creating id to facilitate join
+  select(id_pm, fuel_code)
 
-  xwalk_eia_camd <- # xwalk for updating certain plants to camd plant names and ids
+xwalk_eia_camd <- # xwalk for updating certain plants to camd plant names and ids
   read_csv("data/static_tables/xwalk_oris_camd.csv", 
            col_types = "cccc") # all fields are characters
+
+manual_edits <- 
+  read_xlsx("data/static_tables/manual_edits.xlsx", 
+            sheet = "generator_file", 
+            col_types = c("text", "text", "text", "text"))
 
 # Create lookup table for generator IDs with leading zeroes ------------
 # some IDs in EIA-923 do not have leading zeroes, but should match to generators in EIA-860 that have leading zeroes
@@ -272,8 +278,9 @@ gen_overwrite <-
   mutate(generation_ann = tot_generation_ann_fuel * prop,
          generation_oz = tot_generation_oz_fuel * prop,
          gen_data_source = "Data from EIA-923 Generator File overwritten with distributed data from EIA-923 Generation and Fuel") %>% 
-  select(any_of(key_columns), overwrite) # reducing columns for clarity and to facilitate QA
-
+  select(any_of(key_columns), overwrite) %>%  # reducing columns for clarity and to facilitate QA
+  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id))  # creating unique idea to identify duplicates
+  
 print(glue::glue("{nrow(gen_overwrite)} generators generation data overwritten from EIA-923 Generator file with distributed data from EIA-923 Generation and Fuel due to percent difference >0.1% between data sources."))
 
 ## December generation ------
@@ -296,31 +303,36 @@ december_netgen <-
                             tot_generation_oz_fuel * prop, generation_oz),
     gen_data_source = "EIA-923 Generator File") %>% 
   filter(generation_ann_dec_equal == "yes") %>%
-  select(any_of(key_columns), generation_ann_dec_equal) # keeping only necessary columns
-
+  select(any_of(key_columns), generation_ann_dec_equal) %>%  # keeping only necessary columns
+  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) # creating unique idea to identify duplicates
+  
 print(glue::glue("{nrow(december_netgen)} generators generation data where generation data equals December generation."))
 
 
 # Form generator file structure ------------
 
+check_dup_ids <- 
+  december_netgen %>% 
+  filter(id_pm %in% gen_overwrite$id_pm) %>% 
+  pull(id_pm)
+
 # combine set of special cases
 december_and_overwritten <- 
   bind_rows(
-    december_netgen,
+    december_netgen %>% filter(!(id_pm %in% check_dup_ids)), # if generator is in both december_netgen and gen_overwrite, default to gen_overwrite
     gen_overwrite) %>% 
   left_join(eia_gen_generation %>% # merging all columns back in
               select(-c(starts_with("generation"), gen_data_source)),
-            by = c("plant_id", "generator_id", "prime_mover")) %>% 
-  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) # creating unique id to identify duplicates
+            by = c("plant_id", "generator_id", "prime_mover"))  
 
+print(glue::glue("{length(check_dup_ids)} generators are in both december_netgen and gen_overwrite. We default to gen_overwrite."))
 print(glue::glue("{nrow(december_and_overwritten)} generator generation data are either overwritten from EIA-923 Generator and Fuel or from December generation."))
 
 # now combining all generators 
 
 generators_combined <- 
   gen_distributed %>% 
-  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id),
-         id = paste0(plant_id, "_", generator_id)) %>%
+  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>%
   filter(!(id_pm %in% december_and_overwritten$id_pm)) %>%  #filtering out observations that are in modified df
   bind_rows(december_and_overwritten)
 
@@ -350,13 +362,14 @@ if(nrow(generators_combined) > (nrow(gen_dist_no_dec_overwritten) + nrow(decembe
 # Final modifications to generator file -----------
 
 # creating lookup tables based on xwalk to use with recode() 
-lookup_fuel_codes <- with(xwalk_fuel_codes, setNames(fuel_code, id))
+lookup_fuel_codes <- with(xwalk_fuel_codes, setNames(fuel_code, id_pm))
 lookup_eia_id_camd_id <- with(xwalk_eia_camd, setNames(camd_plant_id, eia_plant_id))
 lookup_camd_id_name <- with(xwalk_eia_camd, setNames(camd_plant_name, camd_plant_id))
 
 generators_edits <- 
   generators_combined %>% 
-  mutate(fuel_code = recode(id_pm, !!!lookup_fuel_codes, .default = energy_source_1), # creating fuel_code based on lookup table and energy_source_1 if not in lookup table. recode() essentially matches on id, then replaces with key value  
+  mutate(id = paste0(plant_id, "_", generator_id), 
+         fuel_code = recode(id_pm, !!!lookup_fuel_codes, .default = energy_source_1), # creating fuel_code based on lookup table and energy_source_1 if not in lookup table. recode() essentially matches on id, then replaces with key value  
          plant_id = recode(plant_id, !!!lookup_eia_id_camd_id), # updating plant_id to corresponding camd ids with lookup table
          plant_name = recode(plant_id, !!!lookup_camd_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
          gen_data_source = if_else(is.na(generation_ann), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
