@@ -157,6 +157,8 @@ og_fuel_types_update <-
   read_csv("data/static_tables/og_oth_units_to_change_fuel_type.csv", 
            col_types = cols_only(plant_id = "c", 
                                  unit_id = "c", 
+                                 prime_mover = "c",
+                                 primary_fuel_type = "c",
                                  fuel_code = "c")) 
 
 # NREL geothermal plants
@@ -1075,7 +1077,7 @@ all_units_4 <-
             by = c("plant_id", "unit_id" = "boiler_id")) %>%
   left_join(hg_flags_to_update, # Adding HG flag variable
             by = c("unit_id" = "boiler_id", "plant_id")) %>%
-  rows_update(og_fuel_types_update %>% rename("primary_fuel_type" = "fuel_code"), # updating fuel codes for "OG" primary fuel types
+  rows_update(og_fuel_types_update %>% select(plant_id, unit_id, "primary_fuel_type" = "fuel_code"), # updating fuel codes for "OG" primary fuel types
               by = c("plant_id", "unit_id"),
               unmatched = "ignore")
 
@@ -1268,6 +1270,8 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
          botfirty,
          primary_fuel_type,
          prop) %>%
+  rows_update(og_fuel_types_update %>% select(plant_id, unit_id, primary_fuel_type), ### CHECK WITH MARISSA HERE
+              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   inner_join(eia_fuel_consum_fuel_type_2,
              by = c("plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>%
   mutate(fuel_consumption = fuel_consum_ann_923 * prop,
