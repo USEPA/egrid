@@ -195,6 +195,14 @@ manual_edits <-
              sheet = "unit_file", 
              col_types = c("text", "text", "text", "text", "text"))
 
+# Fuel types by category 
+fuel_type_category <- 
+  read_csv("data/static_tables/fuel_type_categories.csv", 
+           col_types = cols_only(coal_fuels = "c")) %>% 
+  drop_na()
+
+coal_fuels <- fuel_type_category[["coal_fuels"]]
+
 # Modifying CAMD data ---------
 
 ## Harmonizing fields with EIA ----------
@@ -234,7 +242,7 @@ camd_2 <-
     # 2) Coal fuel type with highest fuel consumption in EIA-923 
     # 3) Plants with Coal and Biomass units require a manual update to Coal fuel types, ignoring max fuel consumption from Biomass fuel types
 
-coal_fuels <- c("ANT", "BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG")
+#coal_fuels <- c("ANT", "BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG")
 
 # identify coal fuels in CAMD use crosswalk to identify primary fuel type  
 coal_xwalk_update <- 
