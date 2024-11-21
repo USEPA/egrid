@@ -71,10 +71,13 @@ if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean
 if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))) { 
   generator_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
 } else { 
-  stop("generator_file.RDS does not exist. Run generator_file_create.R to obtain.")}
+   stop("generator_file.RDS does not exist. Run generator_file_create.R to obtain.")}
 
 # load unit file
-unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))) { 
+  unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
+} else { 
+   stop("unit_file.RDS does not exist. Run unit_file_create.R to obtain.")}
 
 
 ### Load crosswalks and static tables ----------------------
@@ -122,7 +125,6 @@ manual_corrections <-
   read_xlsx("data/static_tables/manual_corrections.xlsx", 
             sheet = "plant_file", 
             col_types = c("text", "text", "text"))
-
 
 #### Region crosswalk and tables ------------
 # state and county FIPS codes matched to each state and county name
