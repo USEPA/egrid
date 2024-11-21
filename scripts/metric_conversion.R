@@ -31,7 +31,6 @@ convert_to_metric <- function(data_col,var_name) {
   # variable row
   var_data <- vars_for_conversion %>%
     filter(var == var_name)
-  #print(var_data)
   # conversion rate for units
   convert_factor <- as.numeric(convert_rates %>%
                                     filter(from==var_data$imperial & 
@@ -62,7 +61,7 @@ filenames_orig <- c('unit' = 'unit_file',
                     'ggl' = 'grid_gross_loss')
 
 # file for metric conversion
-which_file <- "us"
+which_file <- "unit"
 filename_orig <- filenames_orig[which_file]
 
 # load in ordered names with abbreviations
@@ -127,21 +126,21 @@ names(metric_data) <- ordered_names
 
 ### Check for accurate conversions ---------------------------------------------
 
-for (val in vars_for_conversion$var) {
-  var_units <- vars_for_conversion %>%
-    filter(var == val)
-  convert_factor <- as.numeric(convert_rates %>%
-                                 filter(from==var_units$imperial &
-                                          to==var_units$metric) %>%
-                                 select(conversion))
-  if (is.numeric(unlist(metric_data[,val]))) {
-    true_diff <- (mean(unlist(metric_data[,val]) /
-                       unlist(orig_data[,stringr::str_remove(val,'_metric')]),
-                     na.rm = TRUE))
+# for (val in vars_for_conversion$var) {
+#   var_units <- vars_for_conversion %>%
+#     filter(var == val)
+#   convert_factor <- as.numeric(convert_rates %>%
+#                                  filter(from==var_units$imperial &
+#                                           to==var_units$metric) %>%
+#                                  select(conversion))
+#   if (is.numeric(unlist(metric_data[,val]))) {
+#     true_diff <- (mean(unlist(metric_data[,val]) /
+#                        unlist(orig_data[,stringr::str_remove(val,'_metric')]),
+#                      na.rm = TRUE))
     #print(glue::glue('{val},{convert_factor == true_diff}'))
     #print(glue::glue('{convert_factor == true_diff},{convert_factor},{true_diff}'))
-  }
-}
+#  }
+#}
 
 # Export file -------------
 
