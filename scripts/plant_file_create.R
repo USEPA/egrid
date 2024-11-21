@@ -46,17 +46,161 @@ if (exists("params")) {
 
 ### Load EIA data ------------
 
-eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
-eia_861 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
-eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+# check if each file exists. If they do not, stop the script. 
+# check for and load EIA-860
+if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))) { 
+  eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+} else { 
+   stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
-### Load lower-level eGRID files (unit and generator files) -  -----------
+# check for and load EIA-861
+if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))) { 
+  eia_861 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
+} else { 
+   stop("eia_861_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+
+# check for and load EIA-923
+if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { 
+  eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+} else { 
+   stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+
+### Load lower-level eGRID files (unit and generator files) ------------
 
 # load generator file
-generator_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))) { 
+  generator_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
+} else { 
+  stop("generator_file.RDS does not exist. Run generator_file_create.R to obtain.")}
 
 # load unit file
 unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
+
+
+### Load crosswalks and static tables ----------------------
+
+# crosswalk for plant IDs between CAMD and EIA data
+xwalk_oris_camd <- 
+  read_csv("data/static_tables/xwalk_oris_camd.csv") %>% 
+  select(eia_plant_id, camd_plant_id) %>% 
+  mutate(eia_plant_id = as.character(eia_plant_id), 
+         camd_plant_id = as.character(camd_plant_id))
+
+# emission factors for CO2, CH4, and N2O
+ef_co2_ch4_n2o <- 
+  read_csv("data/static_tables/co2_ch4_n2o_ef.csv") %>% 
+  filter(!is.na(eia_fuel_code)) 
+
+# crosswalk that updates county names to match EIA data
+xwalk_county_names <- read_csv("data/static_tables/xwalk_fips_names_update.csv") %>% 
+  janitor::clean_names() 
+
+# CHP plants 
+chp_plants <- 
+  read_csv("data/static_tables/chp_plants.csv") %>% janitor::clean_names() %>% 
+  filter(total > 0) %>% 
+  mutate(plant_id = as.character(plant_code)) 
+
+# OG/OTH fuel types to update
+oth_og_recode <- 
+  read_csv("data/static_tables/og_oth_units_to_change_fuel_type.csv") %>% 
+  select(plant_id, "fuel_type" = primary_fuel_type, fuel_code) %>% 
+  mutate(plant_id = as.character(plant_id))
+
+# global warming potential values are used to calculate CO2e
+gwp <- 
+  read_csv("data/static_tables/global_warming_potential.csv") %>% 
+  janitor::clean_names()
+
+# fuel type categories
+fuel_type_categories <- 
+  read_csv("data/static_tables/fuel_type_categories.csv", 
+           col_types = "cccccccc") 
+
+# manual corrections
+manual_corrections <- 
+  read_xlsx("data/static_tables/manual_corrections.xlsx", 
+            sheet = "plant_file", 
+            col_types = c("text", "text", "text"))
+
+
+#### Region crosswalk and tables ------------
+# state and county FIPS codes matched to each state and county name
+state_county_fips <- 
+  read_csv("data/static_tables/state_county_fips.csv") %>% janitor::clean_names() %>%  # load in table and clean names to snake_case
+  left_join(xwalk_county_names, by = c("postal_state_code" = "state",
+                                       "county_name" = "appendix_6_county_name")) %>%
+  mutate(county_name = if_else(is.na(eia_county_name), county_name, eia_county_name)) %>% # update county names to match EIA data if applicable
+  select("plant_state" = postal_state_code, # rename to match plant file 
+         "county" = county_name, 
+         fips_state_code, 
+         fips_county_code) 
+
+# crosswalk to adjust Alaska county names 
+xwalk_alaska_fips <- 
+  read_csv("data/static_tables/xwalk_alaska_fips.csv") %>%
+  janitor::clean_names() %>% 
+  select("plant_state" = state, "plant_id" = plant_code, county, "new_county" = appendix_6_county_name) %>% 
+  mutate(plant_id = as.character(plant_id))
+
+# BA codes to update
+ba_codes <- 
+  read_csv("data/static_tables/ba_codes.csv") %>% janitor::clean_names() %>% 
+  rename("ba_code" = bacode, 
+         "ba_name"= baname)
+
+# crosswalk that matches ba_code and ba_name to egrid_subregions
+xwalk_ba <- 
+  read_csv("data/static_tables/xwalk_balancing_authority.csv") %>%
+  janitor::clean_names() %>% 
+  select(ba_code = "balancing_authority_code",
+         ba_name = "balancing_authority_name",
+         egrid_subregion = "subrgn") 
+
+# crosswalk that matches BA code and system_owner_id to update egrid_subregions
+xwalk_ba_transmission <- 
+  read_csv("data/static_tables/xwalk_ba_transmission.csv") %>% janitor::clean_names() %>% 
+  rename(nerc = "nerc_region",
+         ba_code = "balancing_authority_code",
+         system_owner_id = "transmission_or_distribution_system_owner_id",
+         egrid_subregion = "subrgn") %>% 
+  mutate(system_owner_id = as.character(system_owner_id)) %>% distinct()
+
+# crosswalk that matches ba_code, system_owner_id, and utility_id to update NA egrid_subregions
+xwalk_ba_pjm <- 
+  read_csv("data/static_tables/xwalk_ba_pjm.csv") %>% janitor::clean_names() %>% 
+  rename(nerc = "nerc_region",
+         ba_code = "balancing_authority_code",
+         system_owner_id = "transmission_or_distribution_system_owner_id",
+         egrid_subregion = "subrgn") %>% 
+  mutate(system_owner_id = as.character(system_owner_id),
+         utility_id = as.character(utility_id)) %>% distinct() %>% 
+  group_by(nerc, ba_code, system_owner_id, utility_id) %>% filter(n() == 1)
+
+# crosswalk that matches plant_id and plant_state to plant file to update NA egrid_subregions
+xwalk_oris_wecc <- 
+  read_csv("data/static_tables/xwalk_oris_wecc.csv") %>% janitor::clean_names() %>% 
+  select(plant_state = "pstatabb",
+         plant_id = "orispl", 
+         egrid_subregion = "subrgn") %>% distinct() %>% 
+  mutate(plant_id = as.character(plant_id))
+
+# crosswalk that matches plant_id to plant file update NA egrid_subregions
+xwalk_nerc_assessment <- 
+  read_csv("data/static_tables/nerc_assessment_areas_grouped_by_plant.csv") %>% janitor::clean_names() %>% 
+  full_join(read_csv("data/static_tables/xwalk_nerc_assessment.csv") %>% janitor::clean_names()) %>% 
+  rename(plant_id = "plant_code",
+         egrid_subregion = "subrgn") %>% 
+  mutate(plant_id = as.character(plant_id)) %>% 
+  filter(!is.na(egrid_subregion) & !is.na(plant_id)) %>%
+  select(-assessment_area) %>% distinct() %>% 
+  group_by(plant_id) %>% filter(n() == 1) # remove plant_ids with multiple NERC regions listed
+
+# crosswalk that matches egrid_subregions to egrid_subregion_name
+egrid_subregions <-  
+  read_csv("data/static_tables/egrid_nerc_subregions.csv") %>% janitor::clean_names() %>% 
+  rename("egrid_subregion" = "subrgn",
+         "egrid_subregion_name" = "srname")
 
 # Create a function to string concatenate unique values that are not NA ----------
 
@@ -122,12 +266,6 @@ plant_gen <-
   ungroup()
 
 # Pull in plant identifying information from the EIA-860 Plant file  -------------------------------
-
-xwalk_oris_camd <- 
-  read_csv("data/static_tables/xwalk_oris_camd.csv") %>% 
-  select(eia_plant_id, camd_plant_id) %>% 
-  mutate(eia_plant_id = as.character(eia_plant_id), 
-         camd_plant_id = as.character(camd_plant_id))
 
 # join EIA-860 data to the aggregated generator file
 plant_gen_2 <- 
@@ -213,13 +351,9 @@ unit_heat_input <-
             unadj_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% 
   ungroup()
 
-combustion_fuels <- c("AB", "ANT", "BFG", "BIT", "BLQ", "COG", "DFO", "JF", "KER", "LFG", "LIG",
-                      "MSB", "MSN", "MSW", "NG", "OBG", "OBL", "OBS", "OG", "PC", "PG", "RC", "RFO",
-                      "SGC", "SGP", "SLW", "SUB", "TDF", "WC", "WDL", "WDS", "WO") 
-
 combust_heat_input <- 
   unit_heat_input %>% 
-  filter(primary_fuel_type %in% combustion_fuels ) %>%
+  filter(primary_fuel_type %in% fuel_type_categories[["combustion_fuels"]]) %>%
   group_by(plant_id) %>% 
   summarize(unadj_combust_heat_input = sum(unadj_heat_input, na.rm = TRUE), # sum heat input for combustion fuels
             unadj_combust_heat_input_oz = sum(unadj_heat_input_oz, na.rm = TRUE)) %>% 
@@ -236,18 +370,12 @@ plant_unit_2 <-
 
 plant_gen_4 <- 
   plant_gen_3 %>% 
-  mutate(capfac = if_else(generation_ann / (nameplate_capacity * 8760) < 0, 0, 
+  mutate(capfac = if_else(generation_ann / (nameplate_capacity * 8760) < 0, 0, # some generation values may be negative, set to 0 if so
                           generation_ann / (nameplate_capacity * 8760)))
 
 # Calculate CH4 emissions N2O emissions  ----------------------------------------
 
-# load static table with emissions factors
-
-ef_co2_ch4_n2o <- 
-  read_csv("data/static_tables/co2_ch4_n2o_ef.csv") %>% 
-  filter(!is.na(eia_fuel_code)) 
-
-# join with eia to calculate at plant level
+# join with EIA-923 to calculate at plant level
     
 emissions_ch4_n2o <- 
   eia_923$generation_and_fuel_combined %>% 
@@ -280,34 +408,12 @@ plant_file <-
 
 ### Add in FIPS codes for state and county ----------------
 
-# read in crosswalk that updates county names to match EIA data
-xwalk_county_names <- read_csv("data/static_tables/xwalk_fips_names_update.csv") %>% 
-  janitor::clean_names() 
-
-# read in table that lists state and county FIPS codes 
-state_county_fips <- 
-  read_csv("data/static_tables/state_county_fips.csv") %>% janitor::clean_names() %>%  # load in table and clean names to snake_case
-  left_join(xwalk_county_names, by = c("postal_state_code" = "state",
-                                       "county_name" = "appendix_6_county_name")) %>%
-  mutate(county_name = if_else(is.na(eia_county_name), county_name, eia_county_name)) %>% # update county names to match EIA data if applicable
-  select("plant_state" = postal_state_code, # rename to match plant file 
-         "county" = county_name, 
-         fips_state_code, 
-         fips_county_code) 
-
 # match county data to EIA-860 
 eia_860_plant_county <- 
   eia_860$plant %>% 
   select(plant_state, county) %>% 
   left_join(state_county_fips, by = c("plant_state", "county")) %>% 
   distinct()
-
-# adjust Alaska county names via static crosswalk table
-xwalk_alaska_fips <- 
-  read_csv("data/static_tables/xwalk_alaska_fips.csv") %>%
-  janitor::clean_names() %>% 
-  select("plant_state" = state, "plant_id" = plant_code, county, "new_county" = appendix_6_county_name) %>% 
-  mutate(plant_id = as.character(plant_id))
 
 # update plant file with FIPS information 
 plant_file_2 <- 
@@ -321,9 +427,6 @@ plant_file_2 <-
 
 ### Balancing authority assignments --------------
 
-# look up plant_ids with both missing that exist in EIA_861
-lookup_ba <- plant_file_2[which(is.na(plant_file_2$ba_code) | is.na(plant_file_2$ba_name)),]
-
 # identify utility IDs that have NA BA codes in the plant file 
 eia_861_utility <- 
   eia_861$sales_ult_cust %>% 
@@ -333,7 +436,8 @@ eia_861_utility <-
   mutate(utility_id = as.character(utility_id)) %>%
   group_by(utility_id) %>% 
   mutate(count = n()) %>% 
-  filter(count == 1) # only include utility IDs with 1 matching BA code
+  filter(count == 1) %>% # only include utility IDs with 1 matching BA code
+  ungroup()
 
 # update BA codes via EIA-860 BA table by matching BA names
 eia_861_ba <- 
@@ -341,94 +445,39 @@ eia_861_ba <-
   select(plant_state = state, 
          ba_code, 
          ba_name = balancing_authority_name) 
- 
-# update BA names via ba_codes.csv 
-ba_codes <- 
-  read_csv("data/static_tables/ba_codes.csv") %>% janitor::clean_names() %>% 
-  rename("ba_code" = bacode, 
-         "ba_name"= baname)
 
 # update plant_file with the lookup
 plant_file_3 <- 
   plant_file_2 %>% 
-  rows_patch(eia_861_utility %>% select(-count), by = c("utility_id"), unmatched = "ignore") %>% 
+  rows_patch(eia_861_utility %>% select(-count), by = c("plant_state", "utility_id"), unmatched = "ignore") %>%  # update plants with NA BA codes
   rows_patch(eia_861_utility %>% select(-count) %>% rename("system_owner_id" = utility_id), # match some utility IDs by system owner IDs
-             by = c("system_owner_id"), unmatched = "ignore") %>% 
-  rows_patch(eia_861_ba, by = c("plant_state", "ba_name"), unmatched = "ignore") %>% 
-  rows_patch(eia_861_ba, by = c("plant_state", "ba_code"), unmatched = "ignore") %>% 
+             by = c("plant_state", "system_owner_id"), unmatched = "ignore") %>% 
+  rows_patch(eia_861_ba, by = c("plant_state", "ba_name"), unmatched = "ignore") %>% # update BA codes that are NA from EIA-861 BA
+  rows_patch(eia_861_ba, by = c("plant_state", "ba_code"), unmatched = "ignore") %>% # update BA names that are NA from EIA-861 BA
   mutate(ba_code = case_when(ba_code == "NA" ~ NA_character_, # if BA code is "NA", set as an NA character
                              ba_name == "No BA" ~ NA_character_, 
                              ba_code == "PS" ~ "PSCO", 
                              ba_name == "Hawaiian Electric Co Inc" ~ "HECO",
                              TRUE ~ ba_code), 
-         ba_name = case_when(plant_state == "HI" & 
+         ba_code = case_when(is.na(ba_code) & plant_state == "AK" ~ "NA - AK", # update NA BAs to state specific NAs
+                             is.na(ba_code) & plant_state == "HI" ~ "NA - HI", 
+                             is.na(ba_code) & plant_state == "PR" ~ "NA - PR", 
+                             TRUE ~ ba_code),
+         ba_name = case_when(plant_state == "AK" & # assign Alaska BAs with no BA to NA - AK
                                (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
-                             "Hawaii Miscellaneous", # assign Hawaii BAs with no BA to Misc. 
-                             plant_state == "AK" & 
+                             "No balancing authority - AK",
+                             plant_state == "HI" & # assign Hawaii BAs with no BA to NA - HI 
                                (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
-                             "Alaska Miscellaneous",# assign Alaska BAs with no BA to Misc. 
-                             plant_state == "PR" & 
+                             "No balancing authority - HI", 
+                             plant_state == "PR" & # assign Puerto Rico BAs with no BA to NA - PR 
                                (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
-                             "Puerto Rico Miscellaneous", # assign Puerto Rico BAs with no BA to Misc. 
+                             "No balancing authority - PR", 
                              ba_name == "No BA" ~ NA_character_, 
                              TRUE ~ ba_name)) %>% 
   rows_update(ba_codes, by = c("ba_code"), unmatched = "ignore") # update ba_name by ba_code
 
 
 ### NERC and eGRID subregion assignments ----------------------------------------
-
-# load crosswalk that matches ba_code and ba_name to egrid_subregions
-xwalk_ba <- 
-  read_csv("data/static_tables/xwalk_balancing_authority.csv") %>%
-  janitor::clean_names() %>% 
-  select(ba_code = "balancing_authority_code",
-         ba_name = "balancing_authority_name",
-         egrid_subregion = "subrgn") 
-
-# load crosswalk that matches BA code and system_owner_id to update egrid_subregions
-xwalk_ba_transmission <- 
-  read_csv("data/static_tables/xwalk_ba_transmission.csv") %>% janitor::clean_names() %>% 
-  rename(nerc = "nerc_region",
-         ba_code = "balancing_authority_code",
-         system_owner_id = "transmission_or_distribution_system_owner_id",
-         egrid_subregion = "subrgn") %>% 
-  mutate(system_owner_id = as.character(system_owner_id)) %>% distinct()
-
-# load crosswalk that matches ba_code, system_owner_id, and utility_id to update NA egrid_subregions
-xwalk_ba_pjm <- 
-  read_csv("data/static_tables/xwalk_ba_pjm.csv") %>% janitor::clean_names() %>% 
-  rename(nerc = "nerc_region",
-         ba_code = "balancing_authority_code",
-         system_owner_id = "transmission_or_distribution_system_owner_id",
-         egrid_subregion = "subrgn") %>% 
-  mutate(system_owner_id = as.character(system_owner_id),
-         utility_id = as.character(utility_id)) %>% distinct() %>% 
-  group_by(nerc, ba_code, system_owner_id, utility_id) %>% filter(n() == 1)
-
-# load crosswalk that matches plant_id and plant_state to plant file to update NA egrid_subregions
-xwalk_oris_wecc <- 
-  read_csv("data/static_tables/xwalk_oris_wecc.csv") %>% janitor::clean_names() %>% 
-  select(plant_state = "pstatabb",
-         plant_id = "orispl", 
-         egrid_subregion = "subrgn") %>% distinct() %>% 
-  mutate(plant_id = as.character(plant_id))
-
-# load files that match plant_id to plant file update NA egrid_subregions
-xwalk_nerc_assessment <- 
-  read_csv("data/static_tables/nerc_assessment_areas_grouped_by_plant.csv") %>% janitor::clean_names() %>% 
-  full_join(read_csv("data/static_tables/xwalk_nerc_assessment.csv") %>% janitor::clean_names()) %>% 
-  rename(plant_id = "plant_code",
-         egrid_subregion = "subrgn") %>% 
-  mutate(plant_id = as.character(plant_id)) %>% 
-  filter(!is.na(egrid_subregion) & !is.na(plant_id)) %>%
-  select(-assessment_area) %>% distinct() %>% 
-  group_by(plant_id) %>% filter(n() == 1) # remove plant_ids with multiple NERC regions listed
-
-# load file that matches egrid_subregions to egrid_subregion_name
-egrid_subregions <-  
-  read_csv("data/static_tables/egrid_nerc_subregions.csv") %>% janitor::clean_names() %>% 
-  rename("egrid_subregion" = "subrgn",
-         "egrid_subregion_name" = "srname")
 
 # update plant file with NERC and eGRID subregion updates
 plant_file_4 <- 
@@ -449,12 +498,7 @@ plant_file_4 <-
   rows_patch(xwalk_ba_pjm, by =  c("nerc", "ba_code", "system_owner_id", "utility_id"), unmatched = "ignore") %>% 
   rows_patch(xwalk_oris_wecc, by = c("plant_state", "plant_id"), unmatched = "ignore") %>% 
   rows_patch(xwalk_nerc_assessment, by = c("plant_id"), unmatched = "ignore") %>% 
-  left_join(egrid_subregions, by = c("egrid_subregion")) %>% 
-  # update BA code for AK, HI, PR
-  mutate(ba_code = case_when(plant_state == "HI" & is.na(ba_code) ~ "NA", # assign NA Hawaii BAs
-                             plant_state == "AK" & is.na(ba_code) ~ "NA", # assign NA Alaska BAs
-                             plant_state == "PR" & is.na(ba_code) ~ "NA", # assign NA Puerto Rico BAs
-                             TRUE ~ ba_code)) 
+  left_join(egrid_subregions, by = c("egrid_subregion")) 
 
 ### ISO/RTO assignments -----------------
 
@@ -473,25 +517,28 @@ plant_file_5 <-
 
 # Update plant lat/lon ----------------------------------------
 
+lat_manual_corrections <- 
+  manual_corrections %>% 
+  filter(column_to_update == "lat") %>% 
+  select(plant_id, "lat" = update) %>% 
+  mutate(lat = as.numeric(lat))
+
+lon_manual_corrections <- 
+  manual_corrections %>% 
+  filter(column_to_update == "lon") %>% 
+  select(plant_id, "lon" = update) %>% 
+  mutate(lon = as.numeric(lon))
+
 plant_file_6 <- 
   plant_file_5 %>% 
   mutate(lat = as.numeric(lat),
          lon = as.numeric(lon),
          # if any lat/lon coordinates are 0, make them NA 
          lat = if_else(lat == 0, NA_real_, lat),
-         lon = if_else(lon == 0, NA_real_, lon), 
-         # manual lat/lon updates for some plant IDs
-         ### Note: check for updates or changes each data year ###
-         lat = case_when(plant_id == 54975 ~ 32.380032,
-                         plant_id == 62262 ~ 42.899029,
-                         plant_id == 63003 ~ 41,
-                         plant_id == 64850 ~ 36.169,
-                         TRUE ~ lat),
-         lon = case_when(plant_id == 54975 ~ -106.753716,
-                         plant_id == 62262 ~ -75.458456,
-                         plant_id == 63003 ~ -89.996844,
-                         plant_id == 64850 ~ -81.042,
-                         TRUE ~ lon))
+         lon = if_else(lon == 0, NA_real_, lon)) %>% 
+  # manual corrections to lat/lon 
+  rows_update(lat_manual_corrections, by = c("plant_id"), unmatched = "ignore") %>% 
+  rows_update(lon_manual_corrections, by = c("plant_id"), unmatched = "ignore")
 
 
 # Assign plant primary fuel -----------------------
@@ -525,14 +572,14 @@ fuel_by_plant <-
   mutate(primary_fuel_type = if_else(heat_input == 0, fuel_code, primary_fuel_type)) %>% 
   select(-fuel_code) %>% distinct()
 
-# from eia_923 replace na values in total_fuel_consumption_mmbtu with 0 
+# from EIA-923 replace NA values in total_fuel_consumption_mmbtu with 0 
 eia_923_gen_fuel <- 
   eia_923$generation_and_fuel_combined %>% 
   select(plant_id, fuel_type, total_fuel_consumption_mmbtu) %>% 
   mutate(total_fuel_consumption_mmbtu = if_else(is.na(total_fuel_consumption_mmbtu), 0, total_fuel_consumption_mmbtu))
 
 # get plant_ids that are duplicated in fuel_by_plant
-# filter to duplicated ids and join with eia_923_gen_fuel
+# filter to duplicated ids and join with EIA-923 Generation and Fuel
 # filter to rows with the max total_fuel_consumption_mmbtu
 dup_ids_fuel <- 
   fuel_by_plant$plant_id[which(duplicated(fuel_by_plant$plant_id))] %>% unique() 
@@ -570,50 +617,52 @@ stopifnot(all(!duplicated(fuel_by_plant_3$plant_id))) # check there are no more 
 
 # Assign plant primary fuel category  ---------------
 
-# identify coal, oil, gas, other fossil, and other fuel types
-coal_fuels <- c("ANT", "BIT", "COG", "LIG", "RC", "SGC", "SUB", "WC")
-oil_fuels <- c("DFO", "JF", "KER", "PC", "RFO", "WO", "SGP") 
-gas_fuels <- c("NG", "PG", "BU") 
-oth_ff <- c("BFG", "OG", "TDF", "MSN") 
-oth_fuels <- c("H", "MWH", "OTH", "PRG", "PUR", "WH")
-biomass_fuels <- c("AB", "BLQ", "LFG", "MSW", "MSB", "OBG", "OBL", "OBS", "SLW", "WDL", "WDS")
+# identify coal, oil, gas, other fossil, biomass, and other fuel types
+coal_fuels <- fuel_type_categories[["coal_fuels"]]
+oil_fuels <- fuel_type_categories[["oil_fuels"]] 
+gas_fuels <- fuel_type_categories[["gas_fuels"]] 
+other_ff <- fuel_type_categories[["other_ff"]] 
+other_fuels <- fuel_type_categories[["other_fuels"]]
+biomass_fuels <- fuel_type_categories[["biomass_fuels"]]
 
 fuel_by_plant_4 <- 
   fuel_by_plant_3 %>%
-  mutate(primary_fuel_category = case_when(primary_fuel_type %in% coal_fuels ~ "COAL", 
-                                           primary_fuel_type %in% oil_fuels ~ "OIL",
-                                           primary_fuel_type %in% gas_fuels ~ "GAS",
-                                           primary_fuel_type %in% oth_ff ~ "OFSL", # other fossil fuel
+  mutate(primary_fuel_category = case_when(primary_fuel_type %in% coal_fuels[!is.na(coal_fuels)] ~ "COAL", 
+                                           primary_fuel_type %in% oil_fuels[!is.na(oil_fuels)] ~ "OIL",
+                                           primary_fuel_type %in% gas_fuels[!is.na(gas_fuels)] ~ "GAS",
+                                           primary_fuel_type %in% other_ff[!is.na(other_ff)] ~ "OFSL", # other fossil fuel
                                            primary_fuel_type == "NUC" ~ "NUCLEAR",
                                            primary_fuel_type == "WAT" ~ "HYDRO",
                                            primary_fuel_type == "SUN" ~ "SOLAR",
                                            primary_fuel_type == "WND" ~ "WIND",
                                            primary_fuel_type == "GEO" ~ "GEOTHERMAL",
-                                           primary_fuel_type %in% oth_fuels ~ "OTHF", # derived from waste heat/hydrogen/purchased/unknown
-                                           primary_fuel_type %in% biomass_fuels ~ "BIOMASS")) 
+                                           primary_fuel_type %in% other_fuels[!is.na(other_fuels)] ~ "OTHF", # derived from waste heat/hydrogen/purchased/unknown
+                                           primary_fuel_type %in% biomass_fuels[!is.na(biomass_fuels)] ~ "BIOMASS")) 
+
+primary_fuel_type_corrections <- 
+  manual_corrections %>% 
+  filter(column_to_update == "primary_fuel_type") %>% 
+  select(plant_id, "primary_fuel_type" = update)
+
+primary_fuel_category_corrections <- 
+  manual_corrections %>% 
+  filter(column_to_update == "primary_fuel_category") %>% 
+  select(plant_id, "primary_fuel_category" = update)
 
 plant_file_7 <- 
   plant_file_6 %>% 
   full_join(fuel_by_plant_4, by = c("plant_id")) %>% 
   # manual updates to primary fuel type and category for plants 55970 and 10154 
   ### Note: check for updates or changes each data year ###
-  mutate(primary_fuel_type = case_when(plant_id == 55970 ~ "NG",
-                                       plant_id == 10154 ~ "NG",
-                                       TRUE ~ primary_fuel_type),
-         primary_fuel_category = case_when(plant_id == 55970 ~ "GAS",
-                                           plant_id == 10154 ~ "GAS",
-                                           TRUE ~ primary_fuel_category))
+  rows_update(primary_fuel_type_corrections, by = c("plant_id"), unmatched = "ignore") %>% 
+  rows_update(primary_fuel_category_corrections, by = c("plant_id"), unmatched = "ignore")
 
 
 # Create plant flags ------------
+
 ### Create coal flag -----------------
-
-oth_og_recode <- 
-  read_csv("data/static_tables/og_oth_units_to_change_fuel_type.csv") %>% 
-  select(plant_id, "fuel_type" = primary_fuel_type, fuel_code) %>% 
-  mutate(plant_id = as.character(plant_id))
-
 # create a flag that identifies which plants are coal
+
 coal_plants <- 
   eia_923$generation_and_fuel_data %>% 
   group_by(plant_id, fuel_type) %>% 
@@ -679,14 +728,14 @@ plant_file_11 <-
 ## Biomass Fuels adjustment (CO2) ----------------
 
 # identify biomass fuels to add adjustments for
-biomass_fuels_adj <- c("AB", "BG", "BLQ", "DG", "LFG", "MSB", "OBG", "OBL", "OBS", "SLW", "WDL", "WDS")
+biomass_fuel_adj <- fuel_type_categories[["biomass_fuel_adj"]]
 
 # subtract CO2 from biofuels from the unadj_co2_mass to  create co2_mass
 eia_923_biomass <- 
   eia_923$generation_and_fuel_combined %>% 
   select(plant_id, total_fuel_consumption_mmbtu, fuel_type) %>%
   left_join(ef_co2_ch4_n2o, by = c("fuel_type" = "eia_fuel_code")) %>% 
-  filter(fuel_type %in% biomass_fuels_adj & total_fuel_consumption_mmbtu > 0) %>%
+  filter(fuel_type %in% biomass_fuel_adj[!is.na(biomass_fuel_adj)] & total_fuel_consumption_mmbtu > 0) %>%
   mutate(co2_biomass = co2_ef * total_fuel_consumption_mmbtu) %>%
   group_by(plant_id) %>%
   summarize(co2_biomass = sum(co2_biomass, na.rm = TRUE),
@@ -713,8 +762,8 @@ eia_923_lfg <-
             n2o_ef = paste_concat(n2o_ef, number = TRUE)) %>%
   ungroup() %>% 
   mutate(
-    nox_biomass = 0.8 * pmax(total_fuel_consumption_mmbtu, 0),
-    nox_bio_oz = 0.8 * pmax(heat_input_oz_season, 0),
+    nox_biomass = 0.08 * pmax(total_fuel_consumption_mmbtu, 0),
+    nox_bio_oz = 0.08 * pmax(heat_input_oz_season, 0),
     ch4_biomass = ch4_ef * total_fuel_consumption_mmbtu,
     n2o_biomass = n2o_ef * total_fuel_consumption_mmbtu,
     so2_biomass = 0.0115 / 2000 * pmax(total_fuel_consumption_mmbtu, 0), 
@@ -864,25 +913,25 @@ eia_923_thermal_output <-
             elec_fuel_consumption_mmbtu = sum(elec_fuel_consumption_mmbtu, na.rm = TRUE)) %>% 
   ungroup()
 
-chp_plants <- 
-  read_csv("data/static_tables/chp_plants.csv") %>% janitor::clean_names() %>% 
-  filter(total > 0) %>% 
-  mutate(plant_id = as.character(plant_code)) 
 
 chp <- 
   chp_plants %>% 
   left_join(xwalk_oris_camd %>% filter(!camd_plant_id %in% chp_plants$plant_id), by = c("plant_id" = "eia_plant_id")) %>% 
   left_join(eia_923_thermal_output) %>%
-  mutate(useful_thermal_output = 0.8 * (total_fuel_consumption_mmbtu - elec_fuel_consumption_mmbtu), # calculate useful thermal output
-         chp_flag = "Yes", 
-         plant_id = if_else(!is.na(camd_plant_id), camd_plant_id, plant_id)) %>% # assign CHP flags to all plants in this object
+  mutate(
+    useful_thermal_output = 0.8 * (total_fuel_consumption_mmbtu - elec_fuel_consumption_mmbtu), # calculate useful thermal output
+    # 0.8 is the assumed efficiency factor from the combustion of the consumed fuel
+    chp_flag = "Yes", 
+    plant_id = if_else(!is.na(camd_plant_id), camd_plant_id, plant_id)) %>% # assign CHP flags to all plants in this object
   select(plant_id, useful_thermal_output, chp_flag) %>% 
   left_join(plant_file_14 %>% select(plant_id, generation_ann), by = c("plant_id")) %>% 
   mutate(power_heat_ratio = if_else(useful_thermal_output == 0 | is.na(useful_thermal_output), 
                                  NA_real_,
                                  3.413 * generation_ann / useful_thermal_output), # calculate power to heat ratio
+                                 # 3.413 converts MWh to MMBtu
          elec_allocation = if_else(useful_thermal_output != 0, # calculate electric allocation
                                    3.413 * generation_ann / (0.75 * useful_thermal_output + 3.413 * generation_ann), 
+                                   # 0.75 is an efficiency factor that accounts for once the fuel is combusted, about 75% of useful thermal output can be used for other purposes
                                    1), 
          elec_allocation = if_else(elec_allocation < 0, 0, elec_allocation), 
          elec_allocation = if_else(elec_allocation > 1, 1, elec_allocation)) %>% 
@@ -952,13 +1001,14 @@ plant_file_16 <-
 # Calculate CO2 equivalent and update negative emissions values ----------------------------------------
 
 # CO2 equivalent adds in other greenhouse gas emission masses 
-# CH4 and N2O are multiplied by their associated global warming potential value (25 and 298 respectively)
+# CH4 and N2O are multiplied by their associated global warming potential value 
+# global warming potential for CH4 and N2O are stored in a static table (gwp)
 plant_file_17 <- 
   plant_file_16 %>% 
   mutate(co2e_mass = 
              if_else(is.na(co2_mass), 0, co2_mass) + 
-             if_else(is.na(ch4_mass), 0, 25 * ch4_mass / 2000) + 
-             if_else(is.na(n2o_mass), 0, 298 * n2o_mass / 2000), 
+             if_else(is.na(ch4_mass), 0, gwp$gwp[gwp$emission_type == "CH4"] * ch4_mass / 2000) + 
+             if_else(is.na(n2o_mass), 0, gwp$gwp[gwp$emission_type == "N2O"] * n2o_mass / 2000), 
          # if all emission masses are NA, fill CO2e mass with NA
          co2e_mass = if_else(is.na(co2_mass) & is.na(ch4_mass) & is.na(n2o_mass), 
                              NA_real_, co2e_mass), 
@@ -1032,6 +1082,8 @@ plant_file_20 <-
 
 # Calculate nonbaseload factor ---------------------------------
 
+# we calculate a plant's nonbaseload factor based on their capacity factors
+# renewable fuel types are excluded from this 
 plant_file_21 <- 
   plant_file_20 %>% 
   mutate(nonbaseload = if_else(!primary_fuel_type %in% c("GEO", "MWH", "NUC", "PUR", "SUN", "WAT", "WND"), 
@@ -1044,7 +1096,7 @@ plant_file_21 <-
 # Update source columns ------------------------------
 
 # this function simplifies the source and removes any duplicate sources
-update_source <- function(x, unit_f){
+update_source <- function(x, unit_f) {
   str_col <- x
   x <- as.name(x)
   
@@ -1412,14 +1464,14 @@ plant_formatted <-
 # check if folders exist 
 if(dir.exists("data/outputs")) {
   print("Folder output already exists.")
-}else{
-  dir.create("data/outputs")
+} else {
+   dir.create("data/outputs")
 }
 
 if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
   print("Folder output already exists.")
-}else{
-  dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
+} else {
+   dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
 }
 
 # write RDS file 
@@ -1431,5 +1483,5 @@ write_rds(plant_formatted, glue::glue("data/outputs/{params$eGRID_year}/plant_fi
 if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))){
   print(glue::glue("File plant_file.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
 } else {
-  print("File plant_file.RDS failed to write to folder.")
+   print("File plant_file.RDS failed to write to folder.")
 } 
