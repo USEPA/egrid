@@ -31,14 +31,20 @@ convert_to_metric <- function(data_col,var_name) {
   # variable row
   var_data <- vars_for_conversion %>%
     filter(var == var_name)
+  #print(var_data)
   # conversion rate for units
   convert_factor <- as.numeric(convert_rates %>%
                                     filter(from==var_data$imperial & 
                                              to==var_data$metric) %>%
                                     select(conversion))
-  print(glue::glue('{var_name} converted from {var_data$imperial} to {var_data$metric} (conversion rate:{convert_factor})'))
   # multiply data by conversion factor
-  return (data_col * convert_factor)
+  if (is.character(data_col)) {
+    print('Variable is a character. Returning variable.')
+    return (data_col)
+  } else {
+    print(glue::glue('{var_name} converted from {var_data$imperial} to {var_data$metric} (conversion rate:{convert_factor})'))
+    return (data_col * convert_factor)
+  }
 }
 
 # Load and assign original (nonconverted) data ---------------------------------
@@ -56,7 +62,7 @@ filenames_orig <- c('unit' = 'unit_file',
                     'ggl' = 'grid_gross_loss')
 
 # file for metric conversion
-which_file <- "plant"
+which_file <- "us"
 filename_orig <- filenames_orig[which_file]
 
 # load in ordered names with abbreviations
@@ -116,11 +122,10 @@ metric_data <- orig_data %>%
   select(all_of(ordered_names))
 print(glue::glue('{nrow(vars_for_conversion)-nrow(vars_conversion_new)} columns altered'))
 print(glue::glue('{ncol(metric_data) - ncol(orig_data)} columns added'))
-#glimpse(metric_data)
 # rename to longer variable names after sorting
 names(metric_data) <- ordered_names
-glimpse(metric_data)
-glimpse(orig_data)
+#glimpse(metric_data)
+#glimpse(orig_data)
 
 ### Check for accurate conversions ---------------------------------------------
 
@@ -131,11 +136,12 @@ for (val in vars_for_conversion$var) {
                                  filter(from==var_units$imperial &
                                           to==var_units$metric) %>%
                                  select(conversion))
-  true_diff <- (mean(unlist(metric_data[,val]) /
+  if (is.numeric(unlist(metric_data[,val]))) {
+    true_diff <- (mean(unlist(metric_data[,val]) /
                        unlist(orig_data[,stringr::str_remove(val,'_metric')]),
                      na.rm = TRUE))
-  print(glue::glue('{val},{convert_factor == true_diff}'))
-  
+    print(glue::glue('{val},{convert_factor == true_diff}'))
+    }
 }
 
 # Export file -------------
