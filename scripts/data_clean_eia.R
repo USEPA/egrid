@@ -178,6 +178,7 @@ enviro_assoc_sheets <- c("Boiler Generator",
                          "Boiler SO2",
                          "Boiler Mercury",
                          "Boiler Particulate Matter",
+                         "Boiler Stack Flue",
                          "Emissions Control Equipment")
 
 file_name_enviro_assoc <- grep("EnviroAssoc_Y", eia_860_files, value = TRUE)
@@ -198,7 +199,8 @@ enviro_assoc_dfs <-
 
 enviro_equip_sheets <- c("Emission Standards & Strategies",
                         "Boiler Info & Design Parameters",
-                        "FGD")
+                        "FGD", 
+                        "Stack Flue")
 
 file_name_enviro_equip <- grep("EnviroEquip_Y", eia_860_files, value = TRUE)
 

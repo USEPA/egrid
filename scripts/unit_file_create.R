@@ -93,11 +93,13 @@ if(file.exists(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.R
 
 ## EIA ------------
 
+# Load EIA-860
 if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))) {
   eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
 } else { 
   stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
+# Load EIA-923
 if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { 
   eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 } else { 
@@ -616,7 +618,7 @@ camd_7 <- # Updated with gap-filled OS reporters
 prime_mover_corrections <- 
   manual_corrections %>% 
   filter(column_to_update == "prime_mover" & plant_id == "50489") %>% 
-  rename("prime_mover" = update)
+  select(plant_id, "boiler_id" = unit_id, "prime_mover" = update)
 
 eia_923_boilers <- 
   eia_923$boiler_fuel_data %>% 
@@ -627,7 +629,7 @@ eia_923_boilers <-
          heat_input = rowSums(pick(all_of(starts_with("heat_input")))), # getting annual heat_input, summing across all monthly heat columns
          heat_input_oz = rowSums(pick(all_of(paste0("heat_input_",tolower(month.name[5:9])))))) %>%  # summing across ozone months
   select(plant_id, plant_name, plant_state, prime_mover, boiler_id, fuel_type, heat_input, heat_input_oz, total_fuel_consumption_quantity) %>% 
-  rows_update(prime_mover_corrections, by = c("plant_id", "unit_id"), unmatched = "ignore")
+  rows_update(prime_mover_corrections, by = c("plant_id", "boiler_id"), unmatched = "ignore")
 
 eia_923_boilers_grouped <- 
   eia_923_boilers %>% 
@@ -1656,10 +1658,24 @@ all_units_10 <-
 
 # Final modifications -----  
 
+## Add stack flue ID, status, and height ----------
+
+all_units_11 <- 
+  all_units_10 %>% 
+  left_join(eia_860$boiler_stack_flue %>% select(plant_id, # match boiler ID to stack flue ID
+                                                 boiler_id, 
+                                                 stack_flue_id), 
+            by = c("plant_id", "unit_id" = "boiler_id")) %>% 
+  left_join(eia_860$stack_flue %>% select(plant_id, # merge in stack flue status and stack height using stack flue ID
+                                          "stack_flue_id" = stack_or_flue_id, 
+                                          stack_flue_status, 
+                                          stack_height_feet), 
+            by = c("plant_id", "stack_flue_id"))
+
 ## Clean up source flags --------
 
 clean_source_flags <- 
-  all_units_10 %>% 
+  all_units_11 %>% 
   mutate(nox_source = replace(nox_source, is.na(nox_mass), NA_character_), # replacing NA emission masses with NA sources
          so2_source = replace(so2_source, is.na(so2_mass), NA_character_), 
          co2_source = replace(co2_source, is.na(co2_mass), NA_character_), 
@@ -1670,7 +1686,7 @@ clean_source_flags <-
 # Check for duplicate plant names and default to CAMD names
 
 check_plant_names <- 
-  all_units_10 %>% select(plant_id, plant_name, source) %>% 
+  all_units_11 %>% select(plant_id, plant_name, source) %>% 
   group_by(plant_id, plant_name) %>% 
   distinct() %>% ungroup() %>% 
   group_by(plant_id) %>% 
@@ -1683,7 +1699,7 @@ check_plant_names <-
 # Update FC prime mover to null CO2 emissions 
 
 update_fc_data <- 
-  all_units_10 %>% select(plant_id, unit_id, prime_mover, co2_mass, co2_source) %>% 
+  all_units_11 %>% select(plant_id, unit_id, prime_mover, co2_mass, co2_source) %>% 
   filter((prime_mover == "FC") & ((!is.na(co2_mass)) | (!is.na(co2_source)))) %>%  # only update necessary rows 
   mutate(co2_mass = NA_character_, 
          co2_source = NA_character_, 
@@ -1702,7 +1718,7 @@ update_fc_data <-
 
 delete_retired_units <- 
   eia_860$boiler_info_design_parameters %>% 
-  left_join(all_units_10 %>% select(plant_id, unit_id, operating_status), 
+  left_join(all_units_11 %>% select(plant_id, unit_id, operating_status), 
             by = c("plant_id", "boiler_id" = "unit_id")) %>% 
   filter(boiler_status == "RE" & as.numeric(retirement_year) < params$eGRID_year &
            (operating_status == "RE" | is.na(operating_status))) %>% 
@@ -1725,7 +1741,7 @@ eia_units_to_delete <-
 ### Note: check for updates or changes each data year ###
 
 update_prime_mover <- 
-  all_units_10 %>% 
+  all_units_11 %>% 
   select(plant_id, unit_id, prime_mover) %>% 
   left_join(manual_corrections %>% filter(column_to_update == "prime_mover" & plant_id != "50489"), # use manual_corrections to identify which PMs shoudl be updated 
                                     by = c("plant_id", "unit_id", "prime_mover")) %>% # plant 50489 is updated in EIA data above
@@ -1738,7 +1754,7 @@ update_prime_mover <-
 # Update operating status via EIA-860 Boiler Info and Design Parameters for boilers and EIA-860 Generator file for EIA generators
 
 update_status_generators <- # operating status for generators updated via EIA-860 
-  all_units_10 %>% select(plant_id, unit_id, operating_status, source) %>% 
+  all_units_11 %>% select(plant_id, unit_id, operating_status, source) %>% 
   filter(source == "860_generators", is.na(operating_status)) %>% # only update status for those that are NA
   rows_patch(eia_860$combined %>% select(plant_id, "operating_status" = status, "unit_id" = generator_id), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
@@ -1747,7 +1763,7 @@ update_status_generators <- # operating status for generators updated via EIA-86
   
   
 update_status_boilers <- # operating status for boilers updated via EIA-860 Boiler Info and Design Parameters
-  all_units_10 %>% select(plant_id, unit_id, operating_status, source) %>% 
+  all_units_11 %>% select(plant_id, unit_id, operating_status, source) %>% 
   filter(source == "923_boilers", is.na(operating_status)) %>% # only update status for those that are NA
   rows_patch(eia_860$boiler_info_design_parameters %>% select(plant_id, "unit_id" = boiler_id, "operating_status" = boiler_status), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
@@ -1771,8 +1787,8 @@ update_pr_camd_flag <-
   filter(camd_flag == "Yes")
 
 # create CAMD flag 
-all_units_11 <- 
-  all_units_10 %>%  
+all_units_12 <- 
+  all_units_11 %>%  
   mutate(camd_flag = if_else(paste0(plant_id, "_", unit_id) %in% camd_units, "Yes", NA_character_)) %>% 
   rows_update(update_pr_camd_flag, by = c("plant_id", "unit_id"))
 
@@ -1788,8 +1804,8 @@ plant_name_updates <-
   manual_corrections %>% filter(column_to_update == "plant_name") %>% 
   select(plant_id, plant_name_update = update)
 
-all_units_12 <- 
-  all_units_11 %>% # update to most recent unit file data frame
+all_units_13 <- 
+  all_units_12 %>% # update to most recent unit file data frame
   left_join(plant_id_updates, by = c("plant_id")) %>% 
   mutate(plant_id = if_else(!is.na(plant_id_update), plant_id_update, plant_id)) %>% 
   left_join(plant_name_updates, by = c("plant_id")) %>% 
@@ -1853,10 +1869,13 @@ final_vars <-
     "SO2CTLDV" = "so2_controls", 
     "NOXCTLDV" = "nox_controls", 
     "HGCTLDV" = "hg_controls_flag", 
-    "UNTYRONL" = "year_online")
+    "UNTYRONL" = "year_online", 
+    "STFLID" = "stack_flue_id", 
+    "STFLST" = "stack_flue_status", 
+    "STFLHT" = "stack_height_feet")
 
 units_formatted <-
-  all_units_12 %>%
+  all_units_13 %>%
   arrange(plant_state, plant_name) %>% 
   mutate(sequnt = row_number(), 
          year = params$eGRID_year) %>% 

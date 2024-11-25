@@ -81,6 +81,11 @@ unit_abbs <- # abbreviation crosswalk for unit types
 
 # Clean raw data -------
 
+# load SO2 control abbreviation crosswalk
+xwalk_so2_control_abrvs <- 
+  read_csv("data/static_tables/xwalk_so2_control_abbreviations.csv") %>% 
+  janitor::clean_names()
+
 camd_r <- 
   camd_raw %>% 
   rename(any_of(rename_cols)) %>%
@@ -104,7 +109,10 @@ camd_r <-
     unit_type = str_replace(unit_type, "\\(.*?\\)", "") %>% str_trim(), # removing notes about start dates and getting rid of extra white space
     unit_type_abb = recode(unit_type, !!!unit_abbs), ## Recoding values based on lookup table. need to looking into cases with multipe types (SB 3/28/2024)
     year_online = lubridate::year(commercial_operation_date)
-    )
+    ) %>% 
+  left_join(xwalk_so2_control_abrvs, by = c("so2_controls")) %>% 
+  mutate(so2_controls = if_else(!is.na(so2_control_abbreviation), so2_control_abbreviation, so2_controls)) %>% 
+  select(-so2_control_abbreviation)
  
 print(glue::glue("{nrow(camd_raw) - nrow(camd_r)} rows removed because units have status of future, retired, long-term cold storage, or the plant ID is > 80,000."))
 
