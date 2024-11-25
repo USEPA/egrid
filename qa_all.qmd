@@ -465,13 +465,12 @@ Load current year plant file and previous year plant file.
 #| echo: false
 #| warning: false
 
-plant_file <- read_excel("archive/egrid2021_data.xlsx", sheet = "PLNT21", skip = 1) %>% 
+plant_file <- read_excel(glue::glue("data/outputs/{params$year}/egrid{params$year}_data.xlsx"), sheet = glue::glue("PLNT{params$year_abbrev}"), skip = 1) %>% 
               janitor::clean_names() %>% 
               rename("plant_id" = "orispl", 
                      "plant_name" = "pname")
 
-plant_file_prev <- read_excel("archive/egrid2020_data.xlsx", 
-                              sheet = "PLNT20", skip = 1) %>% 
+plant_file_prev <- read_excel(glue::glue("data/outputs/{params$year-2}/egrid{params$year - 2}_data.xlsx"), sheet = glue::glue("PLNT{params$year_abbrev - 2}"), skip = 1) %>% 
               janitor::clean_names() %>% 
               rename("plant_id" = "orispl", 
                      "plant_name" = "pname", 
@@ -487,24 +486,20 @@ plant_file_prev <- read_excel("archive/egrid2020_data.xlsx",
 Check if plants have a difference in longitude and latitude in comparison to previous year data. This is checked to three decimal points.
 
 ```{r}
-#| label: plant_lat_long
-#| echo: false
-#| warning: false
+#| label: plant-lat-long
 
-plant_file_lat_lon <- 
-  plant_file %>% select(plant_id, lat, lon) %>% 
-  left_join(plant_file_prev %>% select(plant_id, lat_prev, lon_prev), 
-            by = "plant_id") %>% 
+plant_file_lat_lon <- plant_file %>% 
+  select(plant_id, lat, lon) %>% 
+  left_join(plant_file_prev %>% 
+  select(plant_id, lat_prev, lon_prev), by = "plant_id") %>% 
   mutate(across(where(is.numeric), round, 3))
 
-check_plant_lat_lon <- 
-  plant_file_lat_lon %>% mutate(lat_diff = abs(lat) - abs(lat_prev), 
-                                lon_diff = abs(lon) - abs(lon_prev)) %>% 
+check_plant_lat_lon <- plant_file_lat_lon %>%
+  mutate(lat_diff = abs(lat) - abs(lat_prev), lon_diff = abs(lon) - abs(lon_prev)) %>% 
   filter(!(lat_diff == 0) | !(lon_diff == 0) | is.na(lat) | is.na(lon))
 
-ifelse(nrow(check_plant_lat_lon) == 0, "All plants have the same lat/lon as 
-       previous year.", 
-        glue::glue("{nrow(check_plant_lat_lon)} plants have different lat/lon than last year."))
+ifelse(nrow(check_plant_lat_lon) == 0, "Status: PASS - All plants have the same lat/lon as previous year.", 
+        glue::glue("Status: FAIL - {nrow(check_plant_lat_lon)} plants have different lat/lon than last year."))
   
 knitr::kable(check_plant_lat_lon %>% select(plant_id, lat, lat_prev, lat_diff,
                                             lon, lon_prev, lon_diff))
@@ -516,24 +511,22 @@ knitr::kable(check_plant_lat_lon %>% select(plant_id, lat, lat_prev, lat_diff,
 Check if CHP status has changed from previous year.
 
 ```{r}
-#| label: plant_chp_flag
-#| echo: false
-#| warning: false
+#| label: plant-chp-flag
 
-plant_chp_flag <- 
-  plant_file %>% 
+plant_chp_flag <- plant_file %>% 
   left_join(plant_file_prev, by = c("plant_id")) %>% 
   mutate(chp_comparison = ifelse(chpflag == chpflag_prev, "Same", 
                                  "Changed"))
   
-check_plant_chp_flag <- 
-  plant_chp_flag %>% filter(chp_comparison == "Changed")
+check_plant_chp_flag <- plant_chp_flag %>% 
+  filter(chp_comparison == "Changed")
   
 
-ifelse(nrow(check_plant_chp_flag) == 0, "No CHP flags are different", 
-        glue::glue("{nrow(check_plant_chp_flag)} plants have different CHP flags than last year."))
+ifelse(nrow(check_plant_chp_flag) == 0, "Status: PASS - No CHP flags are different", 
+        glue::glue("Status: FAIL - {nrow(check_plant_chp_flag)} plants have different CHP flags than last year."))
 
-knitr::kable(check_plant_chp_flag %>% select(plant_id, chpflag, chpflag_prev))
+knitr::kable(check_plant_chp_flag %>% 
+               select(plant_id, chpflag, chpflag_prev))
 
 ```
 
@@ -542,22 +535,19 @@ knitr::kable(check_plant_chp_flag %>% select(plant_id, chpflag, chpflag_prev))
 Check if any plants have changed subregion from previous year.
 
 ```{r}
-#| label: plant_subregion
-#| echo: false
-#| warning: false
+#| label: plant-subregion
 
-plant_subregion <- 
-  plant_file %>% 
+plant_subregion <-  plant_file %>% 
   left_join(plant_file_prev, by = c("plant_id")) %>% 
   mutate(subrgn_comparison = ifelse(subrgn == subrgn_prev, "Same", 
                                  "Changed"))
   
-check_plant_subrgn <- 
-  plant_subregion %>% filter(subrgn_comparison == "Changed")
+check_plant_subrgn <- plant_subregion %>% 
+  filter(subrgn_comparison == "Changed")
   
 
-ifelse(nrow(check_plant_subrgn) == 0, "No subregions are different", 
-        glue::glue("{nrow(check_plant_subrgn)} plants have different subregions than last year."))
+ifelse(nrow(check_plant_subrgn) == 0, "Status: PASS - No subregions are different", 
+        glue::glue("Status: FAIL - {nrow(check_plant_subrgn)} plants have different subregions than last year."))
 
 knitr::kable(check_plant_subrgn %>% select(plant_id, subrgn, subrgn_prev))
 
@@ -569,8 +559,6 @@ Map plants for each region and fix accordingly if needed.
 
 ```{r}
 #| label: load_subregion_shapefile 
-#| echo: false 
-#| warning: false
 #| results: false
 
 # could read this from online link to reduce input files needed 
