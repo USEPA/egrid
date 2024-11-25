@@ -391,18 +391,29 @@ emissions_ch4_n2o <-
             unadj_n2o_mass = if_else(all(is.na(unadj_n2o_mass)), NA_real_, sum(unadj_n2o_mass, na.rm = TRUE)),
             ch4_source = if_else(is.na(unadj_ch4_mass), NA_character_, "EIA"),
             n2o_source = if_else(is.na(unadj_n2o_mass), NA_character_, "EIA")) %>% 
-  ungroup()
+  ungroup() 
+  
 
 # Create plant file ------------
 
 # combine generator and unit aggregation files into one plant file 
+# calculate unadjusted CO2e 
+# CO2 equivalent (CO2e) adds in other greenhouse gas emission masses 
+# CH4 and N2O are multiplied by their associated global warming potential value 
+# global warming potential for CH4 and N2O are stored in a static table (gwp)
 
 plant_file <- 
   plant_gen_4 %>% 
   select(-plant_name) %>% # names differ between sources, so default to names in unit file
   full_join(plant_unit_2, by = c("plant_id", "plant_state", "year")) %>% 
-  left_join(emissions_ch4_n2o) # add in CH4 and N2O emission masses
-
+  left_join(emissions_ch4_n2o) %>% # add in CH4 and N2O emission masses
+  mutate(unadj_co2e_mass = # calculate unadjusted CO2 equivalent 
+           if_else(is.na(unadj_co2_mass), 0, unadj_co2_mass) + 
+           if_else(is.na(unadj_ch4_mass), 0, gwp$gwp[gwp$emission_type == "CH4"] * unadj_ch4_mass / 2000) + 
+           if_else(is.na(unadj_n2o_mass), 0, gwp$gwp[gwp$emission_type == "N2O"] * unadj_n2o_mass / 2000), 
+         # if all emission masses are NA, fill CO2e mass with NA
+         unadj_co2e_mass = if_else(is.na(unadj_co2_mass) & is.na(unadj_ch4_mass) & is.na(unadj_n2o_mass), 
+                                   NA_real_, unadj_co2e_mass)) 
 
 # Plant region assignments -----------
 
@@ -699,7 +710,7 @@ plant_file_9 <-
 
 eia_923_combust <- 
   eia_923$generation_and_fuel_combined %>%
-  mutate(combustion = if_else(fuel_type %in% combustion_fuels, 1, 0)) %>% 
+  mutate(combustion = if_else(fuel_type %in% fuel_type_categories[["combustion_fuels"]], 1, 0)) %>% 
   group_by(plant_id) %>%
   summarize(sum_combustion = sum(combustion, na.rm = TRUE),
             count_combustion = n()) %>%
@@ -778,13 +789,21 @@ eia_923_lfg <-
 plant_file_13 <- 
   plant_file_12 %>% 
   left_join(eia_923_lfg) %>%
-  mutate(nox_mass = if_else(!is.na(nox_biomass), pmax(unadj_nox_mass - nox_biomass, 0), unadj_nox_mass), # take the max to avoid negative values
+  mutate(co2e_biomass = # calculate CO2e biomass
+           if_else(is.na(co2_biomass), 0, co2_biomass) + 
+           if_else(is.na(ch4_biomass), 0, ch4_biomass) + 
+           if_else(is.na(n2o_biomass), 0, n2o_biomass), 
+         # if all emission masses are NA, fill CO2e mass with NA
+         co2e_biomass = if_else(is.na(co2_biomass) & is.na(ch4_biomass) & is.na(n2o_biomass), 
+                                NA_real_, co2e_biomass), 
+         nox_mass = if_else(!is.na(nox_biomass), pmax(unadj_nox_mass - nox_biomass, 0), unadj_nox_mass), # take the max to avoid negative values
          nox_oz_mass = if_else(!is.na(nox_bio_oz), pmax(unadj_nox_oz_mass - nox_bio_oz, 0), unadj_nox_oz_mass),
          so2_mass = if_else(!is.na(so2_biomass), pmax(unadj_so2_mass - so2_biomass, 0), unadj_so2_mass),
          co2_mass = if_else(!is.na(co2_biomass), pmax(unadj_co2_mass - co2_biomass, 0), unadj_co2_mass),
          ch4_mass = if_else(!is.na(ch4_biomass), pmax(unadj_ch4_mass - ch4_biomass, 0), unadj_ch4_mass),
          n2o_mass = if_else(!is.na(n2o_biomass), pmax(unadj_n2o_mass - n2o_biomass, 0), unadj_n2o_mass),
-         hg_mass = unadj_hg_mass, # no biomass variable for hg 
+         co2e_mass = if_else(!is.na(co2e_biomass), pmax(unadj_co2e_mass - co2e_biomass, 0), unadj_co2e_mass), 
+         hg_mass = unadj_hg_mass, # no biomass variable for Hg 
          nox_oz_mass = pmin(nox_oz_mass, nox_mass, na.rm = TRUE), # if annual NOx mass is lower than ozone NOx mass, use the annual NOx mass 
          biomass_adj_flag = if_else(biomass_adj_flag == "Yes" | biomass_adj_flag1 == "Yes", "Yes", NA_character_)) %>%
   select(-biomass_adj_flag1) %>% 
@@ -793,7 +812,8 @@ plant_file_13 <-
          ch4_biomass = pmin(ch4_biomass, unadj_ch4_mass),
          n2o_biomass = pmin(n2o_biomass, unadj_n2o_mass),
          so2_biomass = pmin(so2_biomass, unadj_so2_mass),
-         co2_biomass = pmin(co2_biomass, unadj_co2_mass))
+         co2_biomass = pmin(co2_biomass, unadj_co2_mass), 
+         co2e_biomass = pmin(co2e_biomass, unadj_co2e_mass))
 
 
 # Sum generation by fuel type and plant ID ------------------
@@ -830,9 +850,9 @@ ann_gen_by_fuel <-
          ann_gen_geothermal = if_else(is.na(ann_gen), NA_real_, 
                                       sum(ann_gen[which(fuel_type == "GEO")], na.rm = TRUE)),
          ann_gen_other_ff = if_else(is.na(ann_gen), NA_real_, 
-                                    sum(ann_gen[which(fuel_type %in% oth_ff)], na.rm = TRUE)),
+                                    sum(ann_gen[which(fuel_type %in% other_ff)], na.rm = TRUE)),
          ann_gen_other = if_else(is.na(ann_gen), NA_real_, 
-                                  sum(ann_gen[which(fuel_type %in% oth_fuels)], na.rm = TRUE))) %>%
+                                  sum(ann_gen[which(fuel_type %in% other_fuels)], na.rm = TRUE))) %>%
   ungroup() %>% 
   select(-fuel_type, -ann_gen) %>% 
   distinct() 
@@ -955,7 +975,8 @@ plant_chp <-
          "so2_mass_bio_adj" = so2_mass, 
          "co2_mass_bio_adj" = co2_mass, 
          "ch4_mass_bio_adj" = ch4_mass, 
-         "n2o_mass_bio_adj" = n2o_mass) %>% 
+         "n2o_mass_bio_adj" = n2o_mass, 
+         "co2e_mass_bio_adj" = co2e_mass) %>% 
   mutate(# calculate adjusted values 
          heat_input = (elec_allocation * unadj_combust_heat_input) + (unadj_heat_input - unadj_combust_heat_input),
          heat_input_oz = (elec_allocation * unadj_combust_heat_input_oz) + (unadj_heat_input_oz - unadj_combust_heat_input_oz),
@@ -967,6 +988,7 @@ plant_chp <-
          co2_mass =  elec_allocation * co2_mass_bio_adj, 
          ch4_mass = elec_allocation * ch4_mass_bio_adj, 
          n2o_mass =  elec_allocation * n2o_mass_bio_adj, 
+         co2e_mass = elec_allocation * co2e_mass_bio_adj, 
          # calculate CHP adjustment values
          chp_combust_heat_input = unadj_combust_heat_input - combust_heat_input,
          chp_combust_heat_input_oz = unadj_combust_heat_input_oz - combust_heat_input_oz,
@@ -976,13 +998,15 @@ plant_chp <-
          chp_co2 = co2_mass_bio_adj - co2_mass,
          chp_ch4 = ch4_mass_bio_adj - ch4_mass,
          chp_n2o = n2o_mass_bio_adj - n2o_mass, 
+         chp_co2e = co2e_mass_bio_adj - co2e_mass, 
          # check if CHP emission masses are greater than unadjusted values, and assign unadjusted values if TRUE
          chp_nox = if_else(chp_nox > unadj_nox_mass | chp_nox < 0, unadj_nox_mass, chp_nox),
          chp_nox_oz = if_else(chp_nox_oz > unadj_nox_oz_mass | chp_nox_oz < 0, unadj_nox_oz_mass, chp_nox_oz),
          chp_so2 = if_else(chp_so2 > unadj_so2_mass| chp_so2 < 0, unadj_so2_mass, chp_so2),
          chp_co2 = if_else(chp_co2 > unadj_co2_mass| chp_co2 < 0, unadj_co2_mass, chp_co2),
          chp_ch4 = if_else(chp_ch4 > unadj_ch4_mass| chp_ch4 < 0, unadj_ch4_mass, chp_ch4),
-         chp_n2o = if_else(chp_n2o > unadj_n2o_mass| chp_n2o < 0, unadj_n2o_mass, chp_n2o)) %>% 
+         chp_n2o = if_else(chp_n2o > unadj_n2o_mass| chp_n2o < 0, unadj_n2o_mass, chp_n2o), 
+         chp_co2e = if_else(chp_co2e > unadj_co2e_mass | chp_co2e < 0, unadj_co2e_mass, chp_co2e)) %>% 
   select(-contains("bio_adj"))
 
 plant_file_16 <- 
@@ -1000,21 +1024,11 @@ plant_file_16 <-
                                     NA_real_))
 
 
-# Calculate CO2 equivalent and update negative emissions values ----------------------------------------
+# Update negative emissions values ----------------------------------------
 
-# CO2 equivalent adds in other greenhouse gas emission masses 
-# CH4 and N2O are multiplied by their associated global warming potential value 
-# global warming potential for CH4 and N2O are stored in a static table (gwp)
 plant_file_17 <- 
   plant_file_16 %>% 
-  mutate(co2e_mass = 
-             if_else(is.na(co2_mass), 0, co2_mass) + 
-             if_else(is.na(ch4_mass), 0, gwp$gwp[gwp$emission_type == "CH4"] * ch4_mass / 2000) + 
-             if_else(is.na(n2o_mass), 0, gwp$gwp[gwp$emission_type == "N2O"] * n2o_mass / 2000), 
-         # if all emission masses are NA, fill CO2e mass with NA
-         co2e_mass = if_else(is.na(co2_mass) & is.na(ch4_mass) & is.na(n2o_mass), 
-                             NA_real_, co2e_mass), 
-         # if emission mass is less than 0, re-assign as 0 
+  mutate(# if emission mass is less than 0, re-assign as 0 
          co2_mass = if_else(co2_mass < 0, 0, co2_mass),
          ch4_mass = if_else(ch4_mass < 0, 0, ch4_mass),
          n2o_mass = if_else(n2o_mass < 0, 0, n2o_mass),
@@ -1391,6 +1405,7 @@ final_vars <-
     "UNCO2" = "unadj_co2_mass", 
     "UNCH4" = "unadj_ch4_mass", 
     "UNN2O" = "unadj_n2o_mass", 
+    "UNCO2E" = "unadj_co2e_mass", 
     "UNHG" = "unadj_hg_mass", 
     "UNHTI" = "unadj_combust_heat_input", 
     "UNHTIOZ" = "unadj_combust_heat_input_oz", 
@@ -1411,6 +1426,7 @@ final_vars <-
     "BIOCO2" = "co2_biomass", 
     "BIOCH4" = "ch4_biomass", 
     "BION2O" = "n2o_biomass", 
+    "BIOCO2E" = "co2e_biomass", 
     "CHPCHTI" = "chp_combust_heat_input", 
     "CHPCHTIOZ" = "chp_combust_heat_input_oz", 
     "CHPNOX" = "chp_nox", 
@@ -1419,6 +1435,7 @@ final_vars <-
     "CHPCO2" = "chp_co2",
     "CHPCH4" = "chp_ch4", 
     "CHPN2O" = "chp_n2o", 
+    "CHPCO2E" = "chp_co2e",
     "PLHTRT" = "nominal_heat_rate", 
     "PLGENACL" = "ann_gen_coal", 
     "PLGENAOL" = "ann_gen_oil", 
