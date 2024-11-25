@@ -31,8 +31,9 @@ unit_nonmetric <-
     "NOXCTLDV" = "nox_controls", 
     "HGCTLDV" = "hg_controls_flag", 
     "UNTYRONL" = "year_online")
+    #"STACKORFLUEIDPLACEHOLDER" = "placeholder"
+    #"STACKFLUESTATUSPLACEHOLDER" = "placeholder"
     #"STACKHEIGHTPLACEHOLDER" = "placeholder"
-    #"STACKFLUEIDPLACEHOLDER" = "placeholder"
 
 
 unit_metric <-
@@ -68,8 +69,9 @@ unit_metric <-
     "NOXCTLDV" = "nox_controls", 
     "HGCTLDV" = "hg_controls_flag", 
     "UNTYRONL" = "year_online")
+    #"STACKORFLUEIDPLACEHOLDER" = "placeholder"
+    #"STACKFLUESTATUSPLACEHOLDER" = "placeholder"
     #"STACKHEIGHTPLACEHOLDER" = "placeholder"
-    #"STACKFLUEIDPLACEHOLDER" = "placeholder"
 
 gen_nonmetric <-
   c("SEQGEN" = "seqgen",
@@ -192,7 +194,7 @@ plant_nonmetric <-
     "UNCO2" = "unadj_co2_mass", 
     "UNCH4" = "unadj_ch4_mass", 
     "UNN2O" = "unadj_n2o_mass", 
-    #"UNC2E" = "unadj_co2e_mass",
+    #"UNCO2E" = "unadj_co2e_mass",
     "UNHG" = "unadj_hg_mass", 
     "UNHTI" = "unadj_combust_heat_input", 
     "UNHTIOZ" = "unadj_combust_heat_input_oz", 
@@ -213,7 +215,7 @@ plant_nonmetric <-
     "BIOCO2" = "co2_biomass", 
     "BIOCH4" = "ch4_biomass", 
     "BION2O" = "n2o_biomass",
-    #"BIOC2E" = "co2e_biomass",
+    #"BIOCO2E" = "co2e_biomass",
     "CHPCHTI" = "chp_combust_heat_input", 
     "CHPCHTIOZ" = "chp_combust_heat_input_oz", 
     "CHPNOX" = "chp_nox", 
@@ -222,7 +224,7 @@ plant_nonmetric <-
     "CHPCO2" = "chp_co2",
     "CHPCH4" = "chp_ch4", 
     "CHPN2O" = "chp_n2o", 
-    #"CHPC2E" = "chp_co2e",
+    #"CHPCO2E" = "chp_co2e",
     "PLHTRT" = "nominal_heat_rate", 
     "PLGENACL" = "ann_gen_coal", 
     "PLGENAOL" = "ann_gen_oil", 
