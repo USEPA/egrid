@@ -39,20 +39,19 @@ The final eGRID database includes eight levels of data aggregation:
 
 -   **Unit** = A unit available to provide electric power to the grid.
 
--   **Generator** =  A facility that produces electricity, commonly expressed in kilowatthours (kWh) or megawatthours (MWh). Electric generators include electric utilities and independent power producers.
+-   **Generator** = A facility that produces electricity, commonly expressed in kilowatthours (kWh) or megawatthours (MWh). Electric generators include electric utilities and independent power producers.
 
--   **Plant** =  A term commonly used either as a synonym for an industrial establishment or a generating facility or to refer to a particular process within an establishment.
+-   **Plant** = A term commonly used either as a synonym for an industrial establishment or a generating facility or to refer to a particular process within an establishment.
 
--   **State** = A political entity within the United States (U.S.) that has defined geographic borders. eGRID includes the official 50 U.S. states with territories District of Columbia (D.C.) and Puerto Rico (PR). 
+-   **State** = A political entity within the United States (U.S.) that has defined geographic borders. eGRID includes the official 50 U.S. states with territories District of Columbia (D.C.) and Puerto Rico (PR).
 
 -   **Balancing authority** = The responsible entity that integrates resource plans ahead of time, maintains load-interchange-generation balance within a balancing authority Area, and supports Interconnection frequency in real time.
 
--   **eGRID subregion** = eGRID subregions are identified and defined by EPA and were developed as a compromise between
-NERC regions (which EPA felt were too big) and balancing authorities (which EPA felt were generally too small). Using NERC regions and balancing authorities as a guide, the subregions were defined to limit the import and export of electricity in order to establish an aggregated area where the determined emission rates most accurately matched the generation and emissions from the plants within that subregion.  
+-   **eGRID subregion** = eGRID subregions are identified and defined by EPA and were developed as a compromise between NERC regions (which EPA felt were too big) and balancing authorities (which EPA felt were generally too small). Using NERC regions and balancing authorities as a guide, the subregions were defined to limit the import and export of electricity in order to establish an aggregated area where the determined emission rates most accurately matched the generation and emissions from the plants within that subregion.
 
--   **NERC region** = The North American Electric Reliability Corporation (NERC) consists of regional reliability entities covering the interconnected power regions of the contiguous United States, Canada, and Mexico. 
+-   **NERC region** = The North American Electric Reliability Corporation (NERC) consists of regional reliability entities covering the interconnected power regions of the contiguous United States, Canada, and Mexico.
 
--   **US** = The total of all state data included in the database. 
+-   **US** = The total of all state data included in the database.
 
 ## Using the .qmd file
 
@@ -151,6 +150,42 @@ tab_860  <- make_sheets_table(sheets_860, "860")
 tab_861  <- make_sheets_table(sheets_861, "861")
 tab_860m <- make_sheets_table(sheets_860m, "860m")
  
+
+sheets_used923 <-   c("Page 1 Generation and Fuel Data", # eia-923
+                      "Page 1 Puerto Rico",
+                      "Page 3 Boiler Fuel Data",
+                      "Page 4 Generator Data",
+                      "8C Air Emissions Control Info")
+
+sheets_used860 <-  c("Operable",                       # eia-860
+                      "Proposed",
+                      "Retired and Canceled",
+                      "Boiler Generator",
+                      "Boiler NOx",
+                      "Boiler SO2",
+                      "Boiler Mercury",
+                      "Boiler Particulate Matter",
+                      "Emissions Control Equipment",
+                      "Emissions Standards & Strategies",
+                      "Boiler Info & Design Parameters",
+                      "FGD",
+                      "Plant")
+
+sheets_used860m <- c("Operating_PR",
+                     "Retired_PR")
+
+sheets_used861 <- c("Balancing Authority",
+                    "States")
+
+# file_name_schedule_2_3_4_5_m_12 <- grep("2_3_4_5_M_12", eia_923_files, value = TRUE)
+
+
+# tab_923 <- style_sheets_table(sheets_used923, tab_923)
+# tab_860 <- style_sheets_table(sheets_used860, tab_860)
+# tab_860m <- style_sheets_table(sheets_used860m, tab_860m)
+# tab_861 <- style_sheets_table(sheets_used861, tab_861)
+
+
 ```
 
 #### EIA Files and Sheets {#eia-files-sheets}
@@ -174,7 +209,9 @@ tab_860m <- make_sheets_table(sheets_860m, "860m")
 #| tbl-cap: "EIA-923 sheets"
 #| echo: false
 #| label: print_eia_923_sheets
+
 tab_923
+
 ```
 
 #### EIA-860
@@ -184,6 +221,7 @@ tab_923
 #| echo: false
 #| label: print_eia_860_sheets
 tab_860
+
 ```
 
 #### EIA-861
@@ -223,7 +261,7 @@ An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-port
 
 ```
 
-Three data tables are downloaded from the the CAMD api and stored into one .RDS file, `camd_raw.RDS`. This file consists of facility attributes, annual emissions data, and containing annual emissions data for the ozone months. See a summary of each of the raw CAMD tables in the tabs below.
+Three data tables are downloaded from the the CAMD api and stored into one .RDS file, `camd_raw.RDS`. This file consists of facility attributes, annual emissions data, and containing annual emissions data for the ozone months. See a summary of the raw CAMD file below, separated into categories.
 
 #### CAMD Raw Tables
 
@@ -238,9 +276,9 @@ camd_raw <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_raw
 
 table_camd_raw <- create_summary_table(camd_raw)
 
-camd_facilities <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_facilities.RDS"))
-camd_emissions <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_emissions.RDS"))
-camd_emissions_ozone <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_emissions_ozone.RDS"))
+camd_facilities      <- camd_raw[1:26]
+camd_emissions       <- camd_raw[27:46]
+camd_emissions_ozone <- camd_raw[47:58]
 
 table_facilities      <- create_summary_table(camd_facilities)
 table_emissions       <- create_summary_table(camd_emissions)
@@ -253,6 +291,12 @@ table_emissions_ozone <- create_summary_table(camd_emissions_ozone)
 #### Overview
 
 *Click through the tabs above to view files represented from each CAMD source.*
+
+**CAMD facility attributes** = Columns 1 - 26 of `camd_raw.RDS`.
+
+**CAMD annual emissions** = Columns 27 - 47 of `camd_raw.RDS`.
+
+**CAMD ozone season emissions** = Columns 47 - 58 of `camd_raw.RDS`. The ozone season is defined as May through September.
 
 #### CAMD facility attributes
 
@@ -352,66 +396,7 @@ tab_xwalk
 ```
 :::
 
-# Cleaning Raw Data Files
-
-## CAMD
-
-We begin by loading in `camd_raw.RDS` and standardizing column names.
-
-There are several procedures applied to the raw CAMD file:
-
--   Variable name standardization
-
--   Removing unnecessary plants and columns
-
-    -   Remove plants listed as future, retired, or long-term cold storage
-
-    -   Remove plants with IDs above 80000, unless they are in Puerto Rico
-
--   Create source variables and apply source: `EPA/CAMD`
-
-    -   `heat_input_source`
-
-    -   `heat_input_oz_source`
-
-    -   `nox_source`
-
-    -   `nox_oz_source`
-
-    -   `so2_source`
-
-    -   `co2_source`
-
-    -   `hg_source`
-
--   Recoding values to standardized abbreviations
-
-    -   Ex. Operating Status to OP, unit type description to unit type abbreviation
-
--   Removing unnecessary notes about start data
-
-    -   Keep all data rows into a usable, consistent format
-
-```{r}
-#| message: false
-#| label: data_clean_camd
-#| file: "scripts/data_clean_camd.R"
-```
-
-::: panel-tabset
-#### Overview
-
-*Click tab above to view variables contained in* `camd_clean.RDS`.
-
-#### CAMD clean
-
-```{r}
-#| echo: false
-#| label: create_camd_summary_table
-
-create_summary_table(readr::read_rds(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")))
-```
-:::
+# Cleaning Raw Data File
 
 ## EIA
 
@@ -562,6 +547,65 @@ purrr::iwalk(tabs_861, ~ {
 ```
 :::
 
+## CAMD
+
+We begin by loading in `camd_raw.RDS` and standardizing column names.
+
+There are several procedures applied to the raw CAMD file:
+
+-   Variable name standardization
+
+    -   Same methodology as for EIA above
+
+-   Removing unnecessary plants and columns
+
+    -   Plants listed as future, retired, or long-term cold storage are removed. Additionally, plants with IDs above 80000 are removed, unless the plants are located in Puerto Rico.
+
+-   Create source variables and apply source: `EPA/CAMD`
+
+    -   `heat_input_source`
+
+    -   `heat_input_oz_source`
+
+    -   `nox_source`
+
+    -   `nox_oz_source`
+
+    -   `so2_source`
+
+    -   `co2_source`
+
+    -   `hg_source`
+
+-   Re-coding values to standardized abbreviations
+
+    -   Ex. Operating Status to OP, unit type description to unit type abbreviation
+
+-   Removing unnecessary notes about start date
+
+    -   This keeps all data rows into a usable, consistent format. In the raw version, some plants have added notes about dates or the plant.
+
+```{r}
+#| message: false
+#| label: data_clean_camd
+#| file: "scripts/data_clean_camd.R"
+```
+
+::: panel-tabset
+#### Overview
+
+*Click tab above to view variables contained in* `camd_clean.RDS`.
+
+#### CAMD clean
+
+```{r}
+#| echo: false
+#| label: create_camd_summary_table
+
+create_summary_table(readr::read_rds(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")))
+```
+:::
+
 # Generator File
 
 ```{r}
@@ -575,9 +619,9 @@ purrr::iwalk(tabs_861, ~ {
 
 The generator file extracts data from `eia_860_clean.RDS`, including all operable and retired generators . The code pulls variables from EIA-860 data (`eia_860$boiler_generator` and `eia_860$combined`) and counts the number of boilers. Then, we assign generation to each generator value.
 
-Direct generation is assigned to each generator values through the `EIA-923 Generator` file. For values not included in the `EIA-923 Generator` file, generation is determined by ratio using nameplate capacity ratio `EIA-923 Generator and Fuel` files. A generator level capacity factor is calculated, and a final round of updates for fuel types, plant codes, and plant names is applied.
+Direct generation is assigned to each generator values through the `EIA-923 Generator` file. For values not included in the `EIA-923 Generator` file, generation is determined by using a nameplate capacity ratio with `EIA-923 Generator and Fuel` data. A generator level capacity factor is calculated, and a final round of updates for fuel types, plant codes, and plant names is applied.
 
-For full documentation, reference the eGRID Technical Guide.
+For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
 Crosswalks used in this file:
 
@@ -699,11 +743,11 @@ generator_file %>%
 
 ## Combining Data Sources
 
-The unit file data includes grid connected units from EPA/CAMD data, unique EIA-923 boilers, unique EIA-860 boilers, and renewable units from EIA not included previously. After flagging which CAMD plants are ozone season reporters (only reports data during the ozone season of May - September), we fill in the missing months with EIA data.
+The unit file data includes grid connected units from EPA/CAMD data, unique EIA-923 boilers, unique EIA-860 boilers, and renewable units from EIA not included previously. Some units are ozone season reporters where they only reports data during the ozone season of May - September. After flagging which CAMD plants are ozone season reporters, we fill in the missing months with EIA data.
 
-eGRID methodology - unit level emissions = CAMD Power Sector Emissions Data - for units not included in CAMD, but in EIA - reported unit level heat input from EIA - distribute prime mover-level heat input to each unit based on unit proportion of nameplate capacity
+Unit level emissions come from CAMD Power Sector Emissions Data. For units not included in CAMD, but in EIA, the emissions are calculated through reported unit level heat input from EIA.
 
-For full documentation, reference the eGRID Technical Guide.
+For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
 Crosswalks used in this file:
 
@@ -854,36 +898,17 @@ unit_file %>%
 
 ## Combining Data Sources
 
--   "plant level emissions reflect combination of monitored and estimated data"
+The plant file combines EIA form data, `EIA-860`, `EIA-861`, and `EIA-923`, with the outputs of the previous two files: `generator_file.RDS` and `unit_file.RDS`.
 
--   emissions and emission rates - reflect point of generation
+Plant level emissions reflect combination of monitored and estimated data. In the emissions and emissions rates, losses within generating plants are accounted for. However, additional losses, such as transmission losses between points of generation and points of consumption, are not accounted for.
 
-    -   accounted: losses within generating plants
-    -   not accounted: power purchases, imports, exports of electricity, transmission and distribution losses between points of generation and points of consumption, not account for pre-combustion emissions associated with extraction, processing, and transportation of fuels
+The plant file contains both adjusted and unadjusted emissions. Emissions in the plant file are based on adjusted emissions, net generation, and adjusted heat input. Adjustments are performed for combined heat and power (CHP) facilities, generating facilities that produce electricity and another form of useful thermal energy. They are also referred to as co-generation facilities and convert energy more efficiently than facilities that separately produce heat and electricity. Plants are designated as CHP facilities through forms EIA-860, EIA-923, and the DOE CHP database. To calculate the adjustment, we use an electric allocation factor.
 
--   contains adjusted and unadjusted emissions
+Adjustments are also performed for plants with 1 or more units that burn biomass. We assume that there are zero emissions from biomass combustion.
 
--   emissions in plant file are based on adjusted emissions, net generation, adjusted heat input
+In the plant file, CHP facilities and facilities with biomass units are marked with a CHP flag and/or biomass flag.
 
--   plant level adjusted emission estimates
-
-    -   adjustments for CHP facility, if 1 or more units at plant burn biomass
-    -   adjustments for biomass
-        -   assumption of zero emissions from biomass combustion
-        -   biogas, biomass emissions, solid wste emissions
-            -   solid waste = consists of mixture of biogenic materials (wood, paper, food waste) and fossil-based materials (plastics, and tires )
-        -   plants have CHP flag and and biomass flag
-    -   adjustment for CHP
-        -   CHP facility = generating facility that produces electricity and another form of useful thermal energy (like heat or steam)
-            -   used for industrial, commericial, heating or cooling purposes
-            -   also known as cogeneration
-            -   converts energy more efficiently that facilities separately produce heat and electricity
-            -   plants designated as CHP facilities on EIA-860, EIA-923, and DOE CHP database
-        -   allocate emission for CHP plants
-
--   electric allocation factor
-
-For full documentation, reference the eGRID Technical Guide.
+For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
 Crosswalks used in this file:
 
@@ -964,7 +989,7 @@ After loading in plant file data (`plant_file.RDS`), we sum the adjusted heat in
 
 Then, we calculate the output, input, combustion output, fuel-specific output, fuel-specific input, and nonbaseload output emissions rates. The aggregated level resource mix is estimated based on the summed generation by fuel values from the plant file. The nonbaseload generation is estimated by fuel type and resource mix.
 
-For full documentation, reference the eGRID Technical Guide.
+For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
 Crosswalks used in this file:
 
@@ -1074,9 +1099,11 @@ create_summary_table(us_agg)
 
 ## Combining Data Sources
 
-The grid gross loss (GGL) requires a separate EIA data source known as State Electricity Profiles, specifically `Table 10: Supply and disposition of energy`. This contains values necessary for the GGL formula, *estimated losses* divided by the difference between the *total disposition minus exports* and *direct use*. For states with multiple interconnections, like Montana and Nebraska, a ratio is created by the amount of generation produced by plants within the one interconnections compared to total state generation. Net state generation and interconnect generation is calculated using data sources `EIA-860 Combined`, `EIA-860 Plant`, and `EIA-923 Generation and Fuel Data`. 
+The grid gross loss (GGL) requires a separate EIA data source known as State Electricity Profiles, specifically `Table 10: Supply and disposition of energy`. This contains values necessary for the GGL formula, *estimated losses* divided by the difference between the *total disposition minus exports* and *direct use*.
 
-For full documentation, reference the eGRID Technical Guide.
+For states with multiple interconnections, like Montana and Nebraska, a ratio is created. The ratio consists of the total generation produced by plants within the one interconnection compared to total state generation. Net state generation and interconnect generation is calculated using data sources `EIA-860 Combined`, `EIA-860 Plant`, and `EIA-923 Generation and Fuel Data`.
+
+For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
 Crosswalk used in this file:
 
@@ -1127,7 +1154,7 @@ create_summary_table(ggl_file)
 ggl_plot <- ggl_file %>%
               ggplot(aes(x = interconnect, y = ggl*100)) +
               geom_bar(stat="identity") +
-              geom_text(aes(label = sprintf("%.1f%%", ggl*100)), vjust = -0.5) + 
+              geom_text(aes(label = sprintf("%.1f%%", ggl*100)), vjust = +1.5, colour = "white") + 
               theme_minimal() +
               labs(
                 title = "Grid Gross Loss",
@@ -1145,7 +1172,7 @@ est_losses_plot <- ggl_file %>%
                     ) +
                     labs(
                       title = "Estimated Losses",
-                      y = "idk",
+                      y = "MWh",
                       x = "Interconnect"
                       )
 
@@ -1159,7 +1186,7 @@ tot_disp_sub_ex_plot <- ggl_file %>%
                            ) +
                           labs(
                             title = "Total Disposition - Exports",
-                            y = "idk",
+                            y = "MWh",
                             x = "Interconnect"
                             )
 
@@ -1174,7 +1201,7 @@ direct_use_plot <- ggl_file %>%
                     ) +
                     labs(
                       title = "Direct Use",
-                      y = "idk",
+                      y = "MWh",
                       x = "Interconnect"
                       )
 
@@ -1187,6 +1214,8 @@ direct_use_plot <- ggl_file %>%
 # Demographic File
 
 The demographic file uses geographic coordinates from all plants and EPA's EJScreen tool to calculate the demographic characteristics of surrounding neighborhoods. For more information on the analysis process, [view EJScreen's peer-reviewed and tested methodology](https://www.epa.gov/ejscreen/technical-information-and-data-downloads).
+
+For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
 # Metric Conversion File
 
