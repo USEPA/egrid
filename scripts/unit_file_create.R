@@ -137,7 +137,8 @@ xwalk_pr_oris <- read_csv("data/static_tables/xwalk_pr_oris.csv",
 # Biomass units to add, these units are identified from the plant file each data year
 ### Note: check for updates or changes each data year ###
 biomass_units <- read_csv("data/static_tables/biomass_units_to_add_to_unit_file.csv", 
-                          col_types = "c")  
+                          col_types = "ccccccc") %>% 
+  filter(year == params$eGRID_year) # only keep units from eGRID_year
 
 # Some plants in CAMD are not connected to the grid or are retired, so they are excluded from eGRID
 ### Note: check for updates or changes each data year ###
@@ -420,7 +421,7 @@ eia_fuel_consum_pm <- # summing fuel and consum to pm level
          unit_heat_oz = rowSums(pick(all_of(heat_923_oz_months)), na.rm = TRUE),
          unit_consum_nonoz = rowSums(pick(all_of(consum_923_nonoz_months)), na.rm = TRUE),
          unit_consum_oz = rowSums(pick(all_of(consum_923_oz_months)), na.rm = TRUE)) %>%
-  group_by(plant_id, prime_mover) %>% 
+  group_by(plant_id, prime_mover, fuel_type) %>% 
   summarize(heat_input_nonoz_923 = sum(unit_heat_nonoz, na.rm = TRUE),
             heat_input_oz_923 = sum(unit_heat_oz, na.rm = TRUE),
             heat_input_ann_923 = sum(total_fuel_consumption_mmbtu, na.rm = TRUE), # consumption in mmbtus is referred to as "heat input"
@@ -432,10 +433,10 @@ eia_fuel_consum_pm <- # summing fuel and consum to pm level
 # distributing heat input from only ozone reporting plants to non-ozone months
 camd_oz_reporters_dist <- 
   camd_oz_reporters %>%
-  group_by(plant_id, prime_mover) %>% 
+  group_by(plant_id, prime_mover, primary_fuel_type) %>% 
   left_join(eia_fuel_consum_pm, 
-            by = c("plant_id", "prime_mover")) %>% 
-  mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% # sum to plant/pm/ for distributional proportion 
+            by = c("plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>% 
+  mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% # sum to plant/pm for distributional proportion 
   ungroup() %>% 
   group_by(plant_id) %>% 
   filter(!any(reporting_frequency == "Q")) %>% # Remove any plants with annual reporters
@@ -554,8 +555,6 @@ camd_oz_reporters_dist_nox_rates <- # filling annual NOx mass with nox_rates whe
   camd_oz_reporters_dist_2 %>%
   inner_join(nox_rates_ann,
              by = c("plant_id", "unit_id")) %>%
-  inner_join(nox_rates_oz, 
-             by = c("plant_id", "unit_id")) %>% 
   mutate(nox_nonoz_mass = (heat_input_nonoz * nox_rate_ann) / 2000, 
          nox_mass = if_else(reporting_frequency == "OS", nox_nonoz_mass + nox_oz_mass, nox_mass), 
          nox_source = if_else(is.na(nox_mass), nox_source ,"Estimated based on unit-level NOx emission rates and EPA/CAMD ozone season emissions"))
@@ -575,6 +574,7 @@ camd_oz_reporters_dist_nox_ef <-
   filter(!paste0(plant_id, prime_mover, unit_id) %in% nox_rates_ids) %>% # removing units that were filled with nox_rates
   left_join(emission_factors %>%
               filter(nox_unit_flag == "PhysicalUnits") %>% 
+              mutate(botfirty = if_else(botfirty %in% c("null", "N/A"), NA_character_, botfirty)) %>% 
               select(prime_mover, botfirty, primary_fuel_type, nox_ef) %>% 
               distinct()) %>% # there are duplicates based on other columns in the emission_factors data. Getting distinct rows.
   mutate(fuel_consum_nonoz = fuel_consum_nonoz_923 * prop, # calculating distributed non-ozone fuel consumption 
@@ -817,7 +817,8 @@ biomass_units_to_add <-
   rename("primary_fuel_type" = fuel_type, 
          "plant_id" = plant_code) %>% 
   mutate(plant_id = as.character(plant_id), 
-         source = "plant_file_biomass")
+         source = "plant_file_biomass") %>% 
+  select(-year)
 
 
 # Fill missing heat inputs for all units --------
@@ -1292,7 +1293,7 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
          botfirty,
          primary_fuel_type,
          prop) %>%
-  rows_update(og_fuel_types_update %>% select(plant_id, unit_id, primary_fuel_type), ### CHECK WITH MARISSA HERE
+  rows_update(og_fuel_types_update %>% select(plant_id, unit_id, primary_fuel_type), 
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   inner_join(eia_fuel_consum_fuel_type_2,
              by = c("plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>%
