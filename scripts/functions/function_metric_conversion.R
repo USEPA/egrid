@@ -43,6 +43,23 @@ metric_conversion <- function(which_file) {
   # Function to convert data to metric -----------------------------------------
   
   convert_to_metric <- function(data_col, var_name) {
+    
+    #' convert_to_metric
+    #'
+    #' Function to convert data columns from imperial to metric units
+    #' Formatted to be used within an across() function
+    #' 
+    #' @param data_col Column data to convert 
+    #' @param var_name Name of variable to convert
+    #' 
+    #' @return New data column converted to new units
+    #' 
+    #' @examples 
+    #' # Converting hg_mass column in plant file to metric
+    #' convert_to_metric(orig_data$hg_mass, "hg_mass")
+    #' # Creating generation_ann_metric column in plant file
+    #' convert_to_metric(orig_data$generation_ann_metric,"generation_ann_metric")
+    
     # variable row
     var_data <- 
       vars_to_convert %>%
