@@ -532,20 +532,30 @@ schedule_8c <-
 
 # where available, NOx rates are used to estimates NOx emissions
 
-nox_rates <- # calculating NOx emission rates used to estimate NOx emissions
+nox_rates_ann <- # calculating annual NOx emission rates used to estimate NOx emissions
   schedule_8c %>% 
   rename(unit_id = boiler_id) %>%
-  select(plant_id, unit_id, contains("nox_emission"), status) %>%
-  drop_na() %>% filter(status == "OP") %>% 
+  select(plant_id, unit_id, nox_emission_rate_entire_year_lbs_mmbtu, status) %>%
+  filter(status == "OP" & !is.na(nox_emission_rate_entire_year_lbs_mmbtu)) %>% 
   group_by(plant_id, unit_id) %>%
-  summarize(nox_rate_ann = min(nox_emission_rate_entire_year_lbs_mmbtu, na.rm = TRUE),
-            nox_rate_oz = min(nox_emission_rate_may_through_september_lbs_mmbtu, na.rm = TRUE)) %>% 
+  summarize(nox_rate_ann = min(nox_emission_rate_entire_year_lbs_mmbtu, na.rm = TRUE)) %>% 
+  ungroup()
+
+nox_rates_oz <- # calculating ozone NOx emission rates used to estimate NOx emissions
+  schedule_8c %>% 
+  rename(unit_id = boiler_id) %>%
+  select(plant_id, unit_id, nox_emission_rate_may_through_september_lbs_mmbtu, status) %>%
+  filter(status == "OP" & !is.na(nox_emission_rate_may_through_september_lbs_mmbtu)) %>% 
+  group_by(plant_id, unit_id) %>%
+  summarize(nox_rate_oz = min(nox_emission_rate_may_through_september_lbs_mmbtu, na.rm = TRUE)) %>% 
   ungroup()
 
 camd_oz_reporters_dist_nox_rates <- # filling annual NOx mass with nox_rates where available
   camd_oz_reporters_dist_2 %>%
-  inner_join(nox_rates,
+  inner_join(nox_rates_ann,
              by = c("plant_id", "unit_id")) %>%
+  inner_join(nox_rates_oz, 
+             by = c("plant_id", "unit_id")) %>% 
   mutate(nox_nonoz_mass = (heat_input_nonoz * nox_rate_ann) / 2000, 
          nox_mass = if_else(reporting_frequency == "OS", nox_nonoz_mass + nox_oz_mass, nox_mass), 
          nox_source = if_else(is.na(nox_mass), nox_source ,"Estimated based on unit-level NOx emission rates and EPA/CAMD ozone season emissions"))
@@ -1473,28 +1483,28 @@ all_units_7 <-
 
 ### NOx emissions - rate -------
 
-nox_rates_ann <- 
+nox_emissions_ann <- 
   all_units_7 %>% select(plant_id, unit_id, prime_mover, heat_input) %>% 
-  inner_join(nox_rates) %>% 
+  inner_join(nox_rates_ann) %>% 
   mutate(nox_mass = (nox_rate_ann * heat_input) / 2000,
          nox_source = "Estimated based on unit-level NOx emission rates") %>%
-  select(-c(nox_rate_ann, nox_rate_oz)) %>% 
+  select(-nox_rate_ann) %>% 
   filter(!is.na(nox_mass))
 
-nox_rates_oz <- 
+nox_emissions_oz <- 
   all_units_7 %>% select(plant_id, unit_id, prime_mover, heat_input_oz) %>% 
-  inner_join(nox_rates) %>% 
+  inner_join(nox_rates_oz) %>% 
   mutate(nox_oz_mass = (nox_rate_oz * heat_input_oz) / 2000,
          nox_oz_source = "Estimated based on unit-level NOx ozone season emission rates") %>%
-  select(-c(nox_rate_ann, nox_rate_oz)) %>% 
+  select(-nox_rate_oz) %>% 
   filter(!is.na(nox_oz_mass))
 
 nox_emissions_rates <- 
   all_units_7 %>%
-  rows_patch(nox_rates_ann,
+  rows_patch(nox_emissions_ann,
             by = c("plant_id", "unit_id", "prime_mover"), ## Joining by prime_mover because there are duplicate plant_id/unit_id combinations
             unmatched = "ignore") %>%
-  rows_patch(nox_rates_oz, 
+  rows_patch(nox_emissions_oz, 
              by = c("plant_id", "unit_id", "prime_mover"),
              unmatched = "ignore")
 
