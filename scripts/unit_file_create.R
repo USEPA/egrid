@@ -607,8 +607,8 @@ if(nrow(camd_oz_reporters_dist) < nrow(camd_oz_reporters_dist_final)) { # check 
     str_c(., collapse = "\n")
   
   stop(glue::glue("There are more rows than there should be in the distributed dataframe. There are multiple rows for the following units: {\n dupe_ids}.\n Check for possible sources of duplicate unit_ids."))
-} else{
-  "The number of rows in the distributed dataframe matches the total OS-reporting units."
+} else {
+   "The number of rows in the distributed dataframe matches the total OS-reporting units."
 }
   
 
@@ -896,7 +896,7 @@ print(glue::glue("{nrow(units_heat_updated_boiler_matches)} units updated with E
 # calculating ratio from generator file based on nameplate capacity to distribute heat
 
 gen_file <- # load generator file
-  read_rds("data/outputs/generator_file.RDS") 
+  read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS")) 
 
 dist_props <- # determining distributional proportions to distribute heat inputs
   gen_file %>% 
@@ -910,7 +910,11 @@ dist_props <- # determining distributional proportions to distribute heat inputs
 
 distributed_heat_input <- # determining distributional heat input via proportion of nameplate capacity
   dist_props %>% 
-  left_join(eia_fuel_consum_pm %>% select(plant_id, prime_mover, heat_input_ann_923, heat_input_oz_923)) %>% 
+  left_join(eia_fuel_consum_pm %>% 
+              select(plant_id, prime_mover, heat_input_ann_923, heat_input_oz_923) %>% 
+              group_by(plant_id, prime_mover) %>% 
+              summarize(heat_input_ann_923 = sum(heat_input_ann_923, na.rm = TRUE), 
+                        heat_input_oz_923 = sum(heat_input_oz_923, na.rm = TRUE))) %>% 
   mutate(heat_input = prop * heat_input_ann_923,
          heat_input_oz = prop * heat_input_oz_923) %>% 
   select(plant_id, 
@@ -963,7 +967,11 @@ heat_differences <- # calculating prime mover-level heat differences between uni
   rows_update(units_heat_updated_boiler_matches, by = c("plant_id", "unit_id")) %>% 
   group_by(plant_id, prime_mover) %>% 
   summarize(across(c("heat_input", "heat_input_oz"), ~ sum(.x, na.rm = TRUE))) %>% 
-  left_join(eia_fuel_consum_pm %>% select(plant_id, prime_mover, starts_with("heat"))) %>% 
+  left_join(eia_fuel_consum_pm %>% 
+              select(plant_id, prime_mover, starts_with("heat")) %>% 
+              group_by(plant_id, prime_mover) %>% 
+              summarize(heat_input_ann_923 = sum(heat_input_ann_923, na.rm = TRUE), 
+                        heat_input_oz_923 = sum(heat_input_oz_923, na.rm = TRUE))) %>% 
   mutate(heat_diff = heat_input_ann_923 - heat_input,
          heat_oz_diff = heat_input_oz_923 - heat_input_oz) %>% 
   filter(heat_diff > 0) %>% # keeping only differences where 923 values are greater than boiler values
@@ -1280,6 +1288,12 @@ eia_fuel_consum_fuel_type_2 <-
   rbind(eia_fuel_consum_fuel_type %>% filter(!fuel_type %in% c("MSN", "MSB")), 
         biomass_consum_edits)
 
+prop_manual_corrections <- 
+  manual_corrections %>% 
+  filter(column_to_update == "prop") %>% 
+  select(plant_id, unit_id, "prop" = update) %>% 
+  mutate(prop = as.numeric(prop))
+
 units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emissions with distributed heat input and fuel consumption
   all_units_5 %>% 
   group_by(plant_id, plant_state, prime_mover, primary_fuel_type, botfirty) %>% 
@@ -1293,10 +1307,13 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
          botfirty,
          primary_fuel_type,
          prop) %>%
-  rows_update(og_fuel_types_update %>% select(plant_id, unit_id, primary_fuel_type), 
+  rows_update(prop_manual_corrections, by = c("plant_id", "unit_id"), unmatched = "ignore") %>% # manually update some proportions due to wrong assignment of 1 instead of 0
+  rows_update(og_fuel_types_update %>% select(plant_id, unit_id, primary_fuel_type), # convert to OG fuel type to match EIA-923 data
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   inner_join(eia_fuel_consum_fuel_type_2,
              by = c("plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>%
+  rows_update(og_fuel_types_update %>% select(plant_id, unit_id, "primary_fuel_type" = fuel_code), # convert fuel type back to more specific gas to calculate emissions
+              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   mutate(fuel_consumption = fuel_consum_ann_923 * prop,
          fuel_consumption_oz = fuel_consum_oz_923 * prop,
          heat_input = heat_input_ann_923 * prop,
