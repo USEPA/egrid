@@ -255,17 +255,14 @@ plant_gen <-
   filter(!is.na(plant_id)) %>% # remove rows with NA plant ID 
   group_by(year, plant_id, plant_state, plant_name) %>%
   summarize(num_generators = n(), # count
+            # assign NA if all values are NA
             nameplate_capacity = if_else(all(is.na(nameplate_capacity)), 
-                                         # assign NA if all values are NA
                                          NA_real_, sum(nameplate_capacity, na.rm = TRUE)), # units: MW
             generation_ann = if_else(all(is.na(generation_ann)), 
-                                     # assign NA if all values are NA
                                      NA_real_, sum(generation_ann, na.rm = TRUE)), # units: MWh
             generation_oz = if_else(all(is.na(generation_oz)), 
-                                    # assign NA if all values are NA
                                     NA_real_, sum(generation_oz, na.rm = TRUE)), # units: MWh
-            fuel_code = paste_concat(fuel_code)) %>% 
-  ungroup()
+            fuel_code = paste_concat(fuel_code)) %>% ungroup()
 
 # Pull in plant identifying information from the EIA-860 Plant file  -------------------------------
 
@@ -358,8 +355,7 @@ combust_heat_input <-
   filter(primary_fuel_type %in% fuel_type_categories[["combustion_fuels"]]) %>%
   group_by(plant_id) %>% 
   summarize(unadj_combust_heat_input = sum(unadj_heat_input, na.rm = TRUE), # sum heat input for combustion fuels
-            unadj_combust_heat_input_oz = sum(unadj_heat_input_oz, na.rm = TRUE)) %>% 
-  ungroup()
+            unadj_combust_heat_input_oz = sum(unadj_heat_input_oz, na.rm = TRUE)) %>% ungroup()
 
 # join with aggregated unit file
 
@@ -390,8 +386,7 @@ emissions_ch4_n2o <-
   summarize(unadj_ch4_mass = if_else(all(is.na(unadj_ch4_mass)), NA_real_, sum(unadj_ch4_mass, na.rm = TRUE)),
             unadj_n2o_mass = if_else(all(is.na(unadj_n2o_mass)), NA_real_, sum(unadj_n2o_mass, na.rm = TRUE)),
             ch4_source = if_else(is.na(unadj_ch4_mass), NA_character_, "EIA"),
-            n2o_source = if_else(is.na(unadj_n2o_mass), NA_character_, "EIA")) %>% 
-  ungroup() 
+            n2o_source = if_else(is.na(unadj_n2o_mass), NA_character_, "EIA")) %>% ungroup() 
   
 
 # Create plant file ------------
@@ -789,10 +784,7 @@ eia_923_lfg <-
 plant_file_13 <- 
   plant_file_12 %>% 
   left_join(eia_923_lfg) %>%
-  mutate(co2e_biomass = # calculate CO2e biomass
-           if_else(is.na(co2_biomass), 0, co2_biomass) + 
-           if_else(is.na(ch4_biomass), 0, ch4_biomass) + 
-           if_else(is.na(n2o_biomass), 0, n2o_biomass), 
+  mutate(co2e_biomass = sum(co2_biomass, ch4_biomass, n2o_biomass, na.rm = TRUE), # calculate CO2e biomass
          # if all emission masses are NA, fill CO2e mass with NA
          co2e_biomass = if_else(is.na(co2_biomass) & is.na(ch4_biomass) & is.na(n2o_biomass), 
                                 NA_real_, co2e_biomass), 
@@ -919,8 +911,7 @@ plant_file_14 <-
                                         sum(ann_gen_coal, ann_gen_oil, ann_gen_gas, ann_gen_nuclear, 
                                             ann_gen_hydro, ann_gen_biomass, ann_gen_wind, ann_gen_solar,
                                             ann_gen_geothermal, ann_gen_other_ff, ann_gen_other, na.rm = TRUE),
-                                        generation_ann)) %>% 
-  ungroup()
+                                        generation_ann)) %>% ungroup()
       
 
 # CHP plants ---------------
@@ -932,8 +923,7 @@ eia_923_thermal_output <-
   eia_923$generation_and_fuel_combined %>% 
   group_by(plant_id) %>%
   summarize(total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE),
-            elec_fuel_consumption_mmbtu = sum(elec_fuel_consumption_mmbtu, na.rm = TRUE)) %>% 
-  ungroup()
+            elec_fuel_consumption_mmbtu = sum(elec_fuel_consumption_mmbtu, na.rm = TRUE)) %>% ungroup()
 
 
 chp <- 
