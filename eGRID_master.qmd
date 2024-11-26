@@ -37,21 +37,22 @@ The data includes emissions, emission rates, generation, heat input, resource mi
 
 The final eGRID database includes eight levels of data aggregation:
 
--   Unit
+-   **Unit** = A unit available to provide electric power to the grid.
 
--   Generator
+-   **Generator** =  A facility that produces electricity, commonly expressed in kilowatthours (kWh) or megawatthours (MWh). Electric generators include electric utilities and independent power producers.
 
--   Plant
+-   **Plant** =  A term commonly used either as a synonym for an industrial establishment or a generating facility or to refer to a particular process within an establishment.
 
--   State
+-   **State** = A political entity within the United States (U.S.) that has defined geographic borders. eGRID includes the official 50 U.S. states with territories District of Columbia (D.C.) and Puerto Rico (PR). 
 
--   Balancing authority
+-   **Balancing authority** = The responsible entity that integrates resource plans ahead of time, maintains load-interchange-generation balance within a balancing authority Area, and supports Interconnection frequency in real time.
 
--   eGRID subregion
+-   **eGRID subregion** = eGRID subregions are identified and defined by EPA and were developed as a compromise between
+NERC regions (which EPA felt were too big) and balancing authorities (which EPA felt were generally too small). Using NERC regions and balancing authorities as a guide, the subregions were defined to limit the import and export of electricity in order to establish an aggregated area where the determined emission rates most accurately matched the generation and emissions from the plants within that subregion.  
 
--   NERC region
+-   **NERC region** = The North American Electric Reliability Corporation (NERC) consists of regional reliability entities covering the interconnected power regions of the contiguous United States, Canada, and Mexico. 
 
--   US
+-   **US** = The total of all state data included in the database. 
 
 ## Using the .qmd file
 
@@ -280,13 +281,27 @@ table_emissions_ozone
 
 ## Loading Crosswalks
 
-<!--# [Insert info about crosswalks and static tables used here]-->
+Crosswalks and static tables are used to supplement CAMD and EIA files and provide information on one-off changes, descriptions, or overall conversions.
 
-Crosswalks and static tables are used to supplement CAMD and EIA files.
+-   Units to add, delete, or account for differences between CAMD and EIA
 
--   some to delete, some to add
+    -   ex. `units_to_remove.csv`, `xwalk_oris_camd.csv`
 
--   information about groupings (like full names) - egrid subregion, ba names, fuel types/boiler type full names
+-   Data on information not found in EIA/CAMD
+
+    -   ex. `chp_plants.csv`
+
+-   Conversion tables for values
+
+    -   ex. `emissions_factors.csv`
+
+-   Descriptions for groupings or naming
+
+    -   ex. `xwalk_balancing_authority.csv`, `egrid_nerc_subregions.csv`
+
+-   Updates for consistent naming
+
+    -   ex. `xwalk_fips_names_update.csv`
 
 ```{r}
 
@@ -371,9 +386,11 @@ There are several procedures applied to the raw CAMD file:
 
 -   Recoding values to standardized abbreviations
 
-    -   Ex. operating to OP, unit type abbr
+    -   Ex. Operating Status to OP, unit type description to unit type abbreviation
 
--   Removing notes about start date
+-   Removing unnecessary notes about start data
+
+    -   Keep all data rows into a usable, consistent format
 
 ```{r}
 #| message: false
@@ -554,18 +571,19 @@ purrr::iwalk(tabs_861, ~ {
 
 ```
 
-## Combining EIA sources
+## Combining Data Sources
 
-The generator file extracts data from eia_860_clean.RDS, including all operable and retired generators. The code pulls variables from EIA-860 data and counts the number of boilers. Then, we assign generation to each generator value.
-
-- EIA-860 boiler and generator 
-- EIA-860 combined
+The generator file extracts data from `eia_860_clean.RDS`, including all operable and retired generators . The code pulls variables from EIA-860 data (`eia_860$boiler_generator` and `eia_860$combined`) and counts the number of boilers. Then, we assign generation to each generator value.
 
 Direct generation is assigned to each generator values through the `EIA-923 Generator` file. For values not included in the `EIA-923 Generator` file, generation is determined by ratio using nameplate capacity ratio `EIA-923 Generator and Fuel` files. A generator level capacity factor is calculated, and a final round of updates for fuel types, plant codes, and plant names is applied.
 
-crosswalks used: 
-- xwalk_fuel_type.csv
-- xwalk_oris_camd.csv
+For full documentation, reference the eGRID Technical Guide.
+
+Crosswalks used in this file:
+
+-   `xwalk_fuel_type.csv`
+
+-   `xwalk_oris_camd.csv`
 
 ```{r}
 #| label: generator_file_table
@@ -643,7 +661,7 @@ plot_gen_ann_source <-
   (plot_gen_ann + plot_gen_oz) / plot_gen_ann_source
 ```
 
-#### Distribution of generator data sources
+#### Distribution of Data Sources
 
 ```{r}
 #| label: generator_file_data_source_dists
@@ -679,45 +697,39 @@ generator_file %>%
 #| message: false
 ```
 
-The unit file data 
-- includes grid connected units from EPA/ CAMD data 
-- unique EIA-923 boilers - unique EIA-860 boilers
-- renewable units from EIA not included previously
-- Add plant/unit level descriptor variables from EIA CAPD and EIA units
+## Combining Data Sources
 
--   extract number of generators associated with each boiler (from EIA-860)
--   estimate annual heat input and emission - ozone season reporters
--   flag which CAMD plants are ozone season reports - only report during ozone season (May - September)
-    -   fill in missing months with EIA data
+The unit file data includes grid connected units from EPA/CAMD data, unique EIA-923 boilers, unique EIA-860 boilers, and renewable units from EIA not included previously. After flagging which CAMD plants are ozone season reporters (only reports data during the ozone season of May - September), we fill in the missing months with EIA data.
 
-eGRID methodology 
-- unit level emissions = CAMD Power Sector Emissions Data 
-- for units not included in CAMD, but in EIA 
-- reported unit level heat input from EIA
-- distribute prime mover-level heat input to each unit based on unit proportion of nameplate capacity
+eGRID methodology - unit level emissions = CAMD Power Sector Emissions Data - for units not included in CAMD, but in EIA - reported unit level heat input from EIA - distribute prime mover-level heat input to each unit based on unit proportion of nameplate capacity
 
-Emissions and emission rates data included in this file:
- - NOx rates
- - NOx emissions factor
- - SO2 emissions factor
- - SO2 sulfur content
- - SO2 control efficiency
- - CO2
- 
- Uses plant codes and plant names in EIA-EPA cross walk
- -  xwalk_epa_eia_power_sector.csv
- - biomass_units_to_add_to_unit_file.csv
- - xwalk_boiler_firing_type.csv
- - camd_plants_to_delete.csv
- - xwalk_860_boiler_control_id.csv
- - emission_factors.csv
- - og_oth_units_to_change_fuel_type.csv
- - co2_ch4_n2o_ef.csv
- - nrel_geothermal_table.csv
- - geothermal_emission_factors.csv
- - units_to_remove.csv
- - xwalk_pr_oris.csv
- 
+For full documentation, reference the eGRID Technical Guide.
+
+Crosswalks used in this file:
+
+-   `xwalk_epa_eia_power_sector.csv`
+
+-   `biomass_units_to_add_to_unit_file.csv`
+
+-   `xwalk_boiler_firing_type.csv`
+
+-   `camd_plants_to_delete.csv`
+
+-   `xwalk_860_boiler_control_id.csv`
+
+-   `emission_factors.csv`
+
+-   `og_oth_units_to_change_fuel_type.csv`
+
+-   `co2_ch4_n2o_ef.csv`
+
+-   `nrel_geothermal_table.csv`
+
+-   `geothermal_emission_factors.csv`
+
+-   `units_to_remove.csv`
+
+-   `xwalk_pr_oris.csv`
 
 ```{r}
 #| label: unit_file_table
@@ -750,74 +762,101 @@ library(gtExtras)
 create_summary_table(unit_file)
 ```
 
-#### Generation distributions (overall)
+#### Emission Distributions
 
 ```{r}
-# #| label: unt_file_distributions  
-# #| warning: false 
-# #| message: false 
-# #| fig-height: 10   
-# 
-# library(ggplot2) 
-# library(patchwork) 
-# library(ggiraph)  
-# 
-# plot_gen_ann <-    
-#   generator_file %>%    
-#   ggplot(aes(x = generation_ann)) +    
-#   geom_boxplot() +   
-#   theme_minimal() +   
-#   labs(title = "Annual Generation")  
-# 
-# plot_gen_oz <-   generator_file %>%    
-#   ggplot(aes(x = generation_oz)) +   
-#   geom_boxplot() +   
-#   theme_minimal() +   
-#   labs(title = "Ozone Months Generation")  
-# 
-# plot_gen_ann_source <-   
-#   generator_file %>%    
-#   ggplot(aes(x = gen_data_source, y = generation_ann)) +   
-#   ggiraph::geom_boxplot_interactive() +    
-#   theme_minimal() +   
-#   coord_flip() +   
-#   scale_x_discrete(labels = scales::wrap_format(30)) +   
-#   labs(title = "Annual Generation by Data Source")      
+#| label: unt_file_distributions
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_unt_heat_in <-
+  unit_file %>%
+  ggplot(aes(x = heat_input)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Heat Input")
+
+plot_unt_heat_in_oz <-   
+  unit_file %>%
+  ggplot(aes(x = heat_input_oz)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Heat Input Ozone")
+
+# plot_gen_ann_source <-
+#   unit_file %>%
+#   ggplot(aes(x = gen_data_source, y = generation_ann)) +
+#   ggiraph::geom_boxplot_interactive() +
+#   theme_minimal() +
+#   coord_flip() +
+#   scale_x_discrete(labels = scales::wrap_format(30)) +
+#   labs(title = "Annual Generation by Data Source")
 # 
 # (plot_gen_ann + plot_gen_oz) / plot_gen_ann_source
+
+plot_unt_heat_in + plot_unt_heat_in_oz
 ```
 
-#### Distribution of unit data sources
+#### Distribution of Data Sources
 
 ```{r}
-# #| label: generator_file_data_source_dists   
-# 
-# generator_file %>%    
-#   count(gen_data_source) %>%    
-#   mutate(proportion = n/sum(n)) %>%   
-#   ggplot(aes(x = gen_data_source, y = proportion)) +   
-#   geom_col() +   
-#   coord_flip() +   
-#   scale_x_discrete(labels = scales::wrap_format(30)) +   
-#   scale_y_continuous(labels = scales::label_percent()) +   
-#   geom_text(aes(label = scales::percent(proportion)),             
-#             nudge_y = .05) +   
-#   theme_minimal() +   
-#   labs(     
-#     title = "Distribution of generation data sources",     
-#     y = "Share of generators",     
-#     x = NULL   
-#     )    
+#| label: unit_file_data_source_dists
 
+unit_file %>%
+  count(heat_input_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = heat_input_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of heat input data sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+unit_file %>%
+  count(heat_input_oz_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = heat_input_oz_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of heat input ozone data sources",
+    y = "Share of units",
+    x = NULL
+    )
 
 ```
 :::
 
 # Plant File
 
+```{r}
+#| label: plant_file_create
+#| file: "scripts/plant_file_create.R"
+#| message: false
+```
+
+## Combining Data Sources
+
 -   "plant level emissions reflect combination of monitored and estimated data"
 
--   emissions and emission rates - reflect \@ point of generation
+-   emissions and emission rates - reflect point of generation
 
     -   accounted: losses within generating plants
     -   not accounted: power purchases, imports, exports of electricity, transmission and distribution losses between points of generation and points of consumption, not account for pre-combustion emissions associated with extraction, processing, and transportation of fuels
@@ -844,11 +883,39 @@ create_summary_table(unit_file)
 
 -   electric allocation factor
 
-```{r}
-#| label: plant_file_create
-#| file: "scripts/plant_file_create.R"
-#| message: false
-```
+For full documentation, reference the eGRID Technical Guide.
+
+Crosswalks used in this file:
+
+-   `xwalk_oris_camd.csv`
+
+-   `co2_ch4_n2o_ef.csv`
+
+-   `xwalk_fips_names_update.csv`
+
+-   `state_county_fips.csv`
+
+-   `xwalk_alaska_fips.csv`
+
+-   `ba_codes.csv`
+
+-   `xwalk_balancing_authority.csv`
+
+-   `xwalk_ba_transmission.csv`
+
+-   `xwalk_ba_pjm.csv`
+
+-   `xwalk_oris_wecc.csv`
+
+-   `nerc_assessment_areas_grouped_by_plant.csv`
+
+-   `xwalk_nerc_assessment.csv`
+
+-   `egrid_nerc_subregions.csv`
+
+-   `og_oth_units_to_change_fuel_type.csv`
+
+-   `chp_plants.csv`
 
 ```{r}
 #| label: plant_file_table
@@ -885,24 +952,23 @@ create_summary_table(plant_file)
 
 # Region Aggregation
 
-- read in plant file
-- static table nerc region names
-
-1.  Sum the adjusted heat input, adjusted emissions, adjusted fuel-based emissions, generation, fuel-based net generation, and nameplate capacity from the plant-level data to the various aggregated levels (state, balancing authority, eGRID subregion, NERC region, and US level).
-
-2.  Calculate the output, input, combustion output, fuel-specific output, fuel-specific input, and nonbaseload output emissions rates.
-
-3.  Estimate the aggregated level resource mix based on the summed generation by fuel values from the plant file.
-
-4.  Estimate the nonbaseload generation by fuel type and resource mix.
-
-5.  Round data fields.
-
 ```{r}
 #| label: region_aggregation_create
 #| file: "scripts/region_aggregation_create.R"
 #| message: false
 ```
+
+## Aggregating Files
+
+After loading in plant file data (`plant_file.RDS`), we sum the adjusted heat input, adjusted emissions, adjusted fuel-based emissions, generation, fuel-based net generation, and nameplate capacity from the plant-level data to the various aggregated levels (state, balancing authority, eGRID subregion, NERC region, and US level).
+
+Then, we calculate the output, input, combustion output, fuel-specific output, fuel-specific input, and nonbaseload output emissions rates. The aggregated level resource mix is estimated based on the summed generation by fuel values from the plant file. The nonbaseload generation is estimated by fuel type and resource mix.
+
+For full documentation, reference the eGRID Technical Guide.
+
+Crosswalks used in this file:
+
+-   `nerc_region_names.csv`
 
 ```{r}
 #| label: load_reg_agg_files
@@ -948,7 +1014,6 @@ library(gtExtras)
 
 create_summary_table(ba_agg)
 ```
-
 
 #### ST
 
@@ -1007,6 +1072,18 @@ create_summary_table(us_agg)
 #| message: false
 ```
 
+## Combining Data Sources
+
+The grid gross loss (GGL) requires a separate EIA data source known as State Electricity Profiles, specifically `Table 10: Supply and disposition of energy`. This contains values necessary for the GGL formula, *estimated losses* divided by the difference between the *total disposition minus exports* and *direct use*. For states with multiple interconnections, like Montana and Nebraska, a ratio is created by the amount of generation produced by plants within the one interconnections compared to total state generation. Net state generation and interconnect generation is calculated using data sources `EIA-860 Combined`, `EIA-860 Plant`, and `EIA-923 Generation and Fuel Data`. 
+
+For full documentation, reference the eGRID Technical Guide.
+
+Crosswalk used in this file:
+
+-   `state_and_interconnection.csv`
+
+-   `nerc_region_and_interconnect.xlsx`
+
 ```{r}
 #| label: ggl_file_table
 #| include: false
@@ -1038,7 +1115,78 @@ library(gtExtras)
 
 create_summary_table(ggl_file)
 ```
+
+#### View Plots
+
+```{r}
+#| label: ggl_file_plots
+#| message: false
+#| warning: false
+
+
+ggl_plot <- ggl_file %>%
+              ggplot(aes(x = interconnect, y = ggl*100)) +
+              geom_bar(stat="identity") +
+              geom_text(aes(label = sprintf("%.1f%%", ggl*100)), vjust = -0.5) + 
+              theme_minimal() +
+              labs(
+                title = "Grid Gross Loss",
+                y = "Percentage",
+                x = "Interconnect"
+                )
+
+est_losses_plot <- ggl_file %>%
+                    ggplot(aes(x = interconnect, y = est_losses_sum)) +
+                    geom_bar(stat="identity") +
+                    #geom_text(aes(label = sprintf("%.2f", est_losses_sum)), vjust = -0.5) + 
+                    theme_minimal() +
+                    theme(
+                      axis.text.x = element_text(angle = 45, hjust = 1)
+                    ) +
+                    labs(
+                      title = "Estimated Losses",
+                      y = "idk",
+                      x = "Interconnect"
+                      )
+
+tot_disp_sub_ex_plot <- ggl_file %>%
+                          ggplot(aes(x = interconnect, y=tot_disp_sub_ex_sum)) +
+                          geom_bar(stat="identity") +
+                          #geom_text(aes(label = sprintf("%.2f", tot_disp_sub_ex_sum)), vjust = -0.5) + 
+                          theme_minimal() +
+                          theme(
+                            axis.text.x = element_text(angle = 45, hjust = 1)
+                           ) +
+                          labs(
+                            title = "Total Disposition - Exports",
+                            y = "idk",
+                            x = "Interconnect"
+                            )
+
+
+direct_use_plot <- ggl_file %>%
+                    ggplot(aes(x=interconnect, y= direct_use_sum)) +
+                    # geom_text(aes(label = sprintf("%.2f", direct_use_sum)), vjust = -0.5) + 
+                    geom_bar(stat="identity") +
+                    theme_minimal() +
+                    theme(
+                      axis.text.x = element_text(angle = 45, hjust = 1)
+                    ) +
+                    labs(
+                      title = "Direct Use",
+                      y = "idk",
+                      x = "Interconnect"
+                      )
+
+
+(ggl_plot) / (est_losses_plot + tot_disp_sub_ex_plot + direct_use_plot) + plot_layout(heights = c(2,1))
+
+```
 :::
+
+# Demographic File
+
+The demographic file uses geographic coordinates from all plants and EPA's EJScreen tool to calculate the demographic characteristics of surrounding neighborhoods. For more information on the analysis process, [view EJScreen's peer-reviewed and tested methodology](https://www.epa.gov/ejscreen/technical-information-and-data-downloads).
 
 # Metric Conversion File
 
@@ -1066,6 +1214,8 @@ In order to output the data into a clean, readable form, a final style script is
 -   add metric final formatting
 
 # eGRID Summary
+
+The following lines outputs the number of records for contained within each level of aggregation.
 
 ```{r}
 #| label: egrid_summary
