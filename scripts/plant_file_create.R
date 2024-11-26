@@ -11,8 +11,8 @@
 ## ### Note: check for updates or changes each data year ###
 ##
 ## Authors:  
-##      Sara Sokolinski, Abt Global, sara.sokolinksi@abtglobal.com
-##      Teagan Goforth, Abt Global, teagan.goforth@abtglobal.com
+##      Sara Sokolinski, Abt Global
+##      Teagan Goforth, Abt Global
 ##
 ## -------------------------------
 
@@ -205,6 +205,7 @@ egrid_subregions <-
          "egrid_subregion_name" = "srname")
 
 # Create a function to string concatenate unique values that are not NA ----------
+# since we aggregate the unit and generator file to the plant ID level, this function keeps all text entries
 
 paste_concat <- function(l, number = FALSE, concat = TRUE){
   l <- l[!is.na(l)]
@@ -469,7 +470,8 @@ plant_file_3 <-
                              TRUE ~ ba_code), 
          ba_code = case_when(is.na(ba_code) & plant_state == "AK" ~ "NA - AK", # update NA BAs to state specific NAs
                              is.na(ba_code) & plant_state == "HI" ~ "NA - HI", 
-                             is.na(ba_code) & plant_state == "PR" ~ "NA - PR", 
+                             is.na(ba_code) & plant_state == "PR" ~ "NA - PR",
+                             is.na(ba_code) & !(plant_state %in% c("AK", "HI", "PR")) ~ "NA",
                              TRUE ~ ba_code),
          ba_name = case_when(plant_state == "AK" & # assign Alaska BAs with no BA to NA - AK
                                (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
@@ -480,6 +482,9 @@ plant_file_3 <-
                              plant_state == "PR" & # assign Puerto Rico BAs with no BA to NA - PR 
                                (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
                              "No balancing authority - PR", 
+                             !(plant_state %in% c("AK", "HI", "PR")) &
+                               (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~
+                               "No balancing authority",
                              ba_name == "No BA" ~ NA_character_, 
                              TRUE ~ ba_name)) %>% 
   rows_update(ba_codes, by = c("ba_code"), unmatched = "ignore") # update ba_name by ba_code
@@ -610,11 +615,11 @@ fuel_by_plant_2 <-
 # get plant_ids that are STILL duplicated
 dup_ids_fuel_2 <- fuel_dups$plant_id[which(duplicated(fuel_dups$plant_id))] %>% unique()
 
-# update those to NA and take unique values to remove remaining duplicates
-# This didn't occur in SQL and I need to confirm this is what we want to do
+# take first primary fuel for any remaining duplicates
 fuel_dups_2 <- 
   fuel_dups %>% 
-  mutate(primary_fuel_type = if_else(plant_id %in% dup_ids_fuel_2, NA_character_, primary_fuel_type)) %>%
+  group_by(plant_id) %>% 
+  slice(1) %>% # take the first primary fuel listed for any with duplicates (usually duplicates of 0 heat input / fuel consumption)
   select(-heat_input, -nameplate_capacity, -total_fuel_consumption_mmbtu) %>% distinct()
 
 # join the duplicates back into fuel_by_plant
@@ -660,7 +665,7 @@ primary_fuel_category_corrections <-
 plant_file_7 <- 
   plant_file_6 %>% 
   full_join(fuel_by_plant_4, by = c("plant_id")) %>% 
-  # manual updates to primary fuel type and category for plants 55970 and 10154 
+  # manual corrections to primary fuel type and category for plants 55970 and 10154 
   ### Note: check for updates or changes each data year ###
   rows_update(primary_fuel_type_corrections, by = c("plant_id"), unmatched = "ignore") %>% 
   rows_update(primary_fuel_category_corrections, by = c("plant_id"), unmatched = "ignore")
