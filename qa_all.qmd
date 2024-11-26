@@ -522,9 +522,7 @@ plant_file_prev <-
 
 Check if plants have a difference in longitude and latitude in comparison to previous year data. This is checked to three decimal points.
 
-<!-- Ones that are different are those that are nans -->
-* fix - this is not actually a difference here *
-
+<!-- Revised methodology to remove NA lats and longs from showing up  -->
 ```{r}
 #| label: plant-lat-long
 
@@ -537,8 +535,8 @@ plant_file_lat_lon <-
 
 check_plant_lat_lon <- 
   plant_file_lat_lon %>%
-  mutate(lat_diff = abs(lat) - abs(lat_prev), lon_diff = abs(lon) - abs(lon_prev)) %>% 
-  filter(!(lat_diff == 0) | !(lon_diff == 0) | is.na(lat_diff) | is.na(lon_diff))
+  mutate(lat_diff = abs(lat - lat_prev), lon_diff = abs(lon - lon_prev)) %>% 
+  filter(!is.na(lat_diff) & !is.na(lon_diff) & !(lat_diff == 0) | !(lon_diff == 0))
 
 ifelse(nrow(check_plant_lat_lon) == 0, "Status: PASS - All plants have the same lat/lon as previous year.", 
         glue::glue("Status: FAIL - {nrow(check_plant_lat_lon)} plants have different lat/lon than last year."))
