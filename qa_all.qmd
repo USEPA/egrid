@@ -61,6 +61,7 @@ library(stringr)
 Check if any plants are only in the CAMD data and not EIA data. These plants will be checked with EPA to see if there are any ORIS (plant ID) matches we should be making or if the plants should be deleted.
 
 <!--# Check if this is both EIA datasets or one. -->
+
 <!--# Do we need to include 861 EIA dataset too? -->
 
 ```{r}
@@ -405,6 +406,7 @@ knitr::kable(check_unit_program_code %>%
 Check if any units that have emission values are missing heat input values.
 
 <!-- # These missing values are in ozone column, will be resolved once previous issue with missing ozone values is resolved -->
+
 ```{r}
 #| label: unit-heat-input-missing
 
@@ -524,6 +526,7 @@ plant_file_prev <-
 Check if plants have a difference in longitude and latitude in comparison to previous year data. This is checked to three decimal points.
 
 <!-- Revised methodology to remove NA lats and longs from showing up  -->
+
 ```{r}
 #| label: plant-lat-long
 
@@ -645,19 +648,11 @@ Check if plant locations are in regions. If there are any plants that are not in
 ```{r}
 #| label: AKGD-map 
 
-AKGD_plants <- plant_file %>% filter(subrgn == "AKGD") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") 
-
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) + 
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = AKGD_plants) +
-  coord_sf(xlim = c(sf::st_bbox(AKGD_plants)[1] - 5, 
-                             sf::st_bbox(AKGD_plants)[3] + 5), 
-                    ylim = c(sf::st_bbox(AKGD_plants)[2] - 3, 
-                             sf::st_bbox(AKGD_plants)[4] + 3), 
-                    expand = TRUE) 
+AKGD_plants <- 
+  plant_file %>% 
+  filter(subrgn == "AKGD") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") 
 
 # create table of plants not in region or multi-region area
 # rounding lat long may help capture edge case plants (that are just outside of boundary)
@@ -666,7 +661,7 @@ AKGD_shp <-
   filter(subregion == "AKGD") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
-AKGD_plants <- 
+AKGD_plants <-
   AKGD_plants %>% 
   mutate(in_region_check = ifelse(plant_id %in% 
                         c(sf::st_filter(AKGD_plants, AKGD_shp)$plant_id),
@@ -675,8 +670,25 @@ AKGD_plants <-
                         c(sf::st_filter(AKGD_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(AKGD_plants %>% 
-               filter(in_region_check == FALSE & multi_region_check == FALSE)) 
+AKGD_outside <-
+  AKGD_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) + 
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = AKGD_plants) +
+  geom_sf(data = AKGD_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(AKGD_plants)[1] - 5, 
+                             sf::st_bbox(AKGD_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(AKGD_plants)[2] - 3, 
+                             sf::st_bbox(AKGD_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(AKGD_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(AKGD_outside)} plants fall outside region and subregion.."))
+
+knitr::kable(AKGD_outside) 
 
 ```
 
@@ -690,16 +702,6 @@ AKMS_plants <-
   filter(subrgn == "AKMS") %>% 
   select(subrgn, plant_id, plfuelct, lat, lon) %>% 
   sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") 
-
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = AKMS_plants) +
-  coord_sf(xlim = c(sf::st_bbox(AKMS_plants)[1] - 5, 
-                             sf::st_bbox(AKMS_plants)[3] + 5), 
-                    ylim = c(sf::st_bbox(AKMS_plants)[2] - 3, 
-                             sf::st_bbox(AKMS_plants)[4] + 3), 
-                    expand = TRUE) 
 
 # create table of plants not in region or multi-region area
 AKMS_shp <- 
@@ -716,8 +718,24 @@ AKMS_plants <-
                         c(sf::st_filter(AKMS_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(AKMS_plants %>% 
-               filter(in_region_check == FALSE & multi_region_check == FALSE)) 
+AKMS_outside <-
+  AKMS_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+# plot all plants with ones outside bounds in red
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = AKMS_plants) +
+  geom_sf(data = AKMS_outside, col = "red") + 
+  coord_sf(xlim = c(sf::st_bbox(AKMS_plants)[1] - 5, 
+                             sf::st_bbox(AKMS_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(AKMS_plants)[2] - 3, 
+                             sf::st_bbox(AKMS_plants)[4] + 3), 
+                    expand = TRUE) 
+
+knitr::kable(AKMS_outside)
+  
 ```
 
 ### AZNM
