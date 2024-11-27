@@ -50,6 +50,7 @@ library(tidyr)
 library(readr) 
 library(readxl) 
 library(ggplot2)
+library(stringr)
 
 ```
 
@@ -604,25 +605,31 @@ Map plants for each region and fix accordingly if needed.
 #| label: load-subregion-shapefile 
 #| results: false
 
-# could read this from online link to reduce input files needed 
-# link needs to be updated each year
+# download subregion shapefiles from EPA website
+shp_download <- function(shp_type) {
+  temp_file <- tempfile()
+  download.file(glue::glue("https://www.epa.gov/system/files/other-files/2024-05/egrid2022_{tolower(shp_type)}_shapefile.zip"),temp_file)
+  shp_file <- unzip(temp_file,exdir="data/shapefiles")
+  unlink(temp_file)
+  shp <- 
+    sf::st_read(glue::glue("data/shapefiles/eGRID2022_{shp_type}.shp")) %>%
+    drop_na() %>% 
+    rename("subregion" = "ZipSubregi") %>% 
+    sf::st_transform(crs = "EPSG:4326")
+  return (shp)
+}
 
-sbrgn_shp <- sf::st_read("archive/egrid2021_subregions_shapefile/eGRID2021 Subregions Shapefile final.shp") %>% drop_na() %>% rename("subregion" = "SUBRGN") %>% 
-  sf::st_transform(crs = "EPSG:4326")
+sbrgn_shp <- shp_download("Subregions")
+multi_sbrgn_shp <- shp_download("Multiple_Subregions")
 
-multi_sbrgn_shp <- sf::st_read("archive/egrid2021_multiple_subregions_shapefile/eGRID2021 Multiple Subregions Shapefile final.shp") %>% 
-  drop_na() %>% 
-  rename("subregion" = "SUBRGN") %>% 
-  sf::st_transform(crs = "EPSG:4326")
+# # plot subregions
+# ggplot(sbrgn_shp[1]) +
+#   geom_sf() +
+#   coord_sf(xlim = c(-166, -67), ylim = c(19, 71))
 
-# plot subregions
-#ggplot(sbrgn_shp[1]) + 
-#  geom_sf() + 
-#  coord_sf(xlim = c(-166, -67), ylim = c(19, 71))
-
-#ggplot(multi_sbrgn_shp[1]) + 
-#  geom_sf() + 
-#  coord_sf(xlim = c(-166, -67), ylim = c(19, 71))
+# ggplot(multi_sbrgn_shp[1]) +
+#   geom_sf() +
+#   coord_sf(xlim = c(-166, -67), ylim = c(19, 71))
 
 sf::sf_use_s2(FALSE)
 
