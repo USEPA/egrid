@@ -685,8 +685,8 @@ ggplot() +
                              sf::st_bbox(AKGD_plants)[4] + 3), 
                     expand = TRUE) 
 
-ifelse(nrow(AKGD_outside) == 0, "No plants fall outside subregion and mulit-region.", 
-        glue::glue("{nrow(AKGD_outside)} plants fall outside region and subregion.."))
+ifelse(nrow(AKGD_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(AKGD_outside)} plants fall outside region and subregion."))
 
 knitr::kable(AKGD_outside) 
 
@@ -727,12 +727,15 @@ ggplot() +
   geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
   geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
   geom_sf(data = AKMS_plants) +
-  geom_sf(data = AKMS_outside, col = "red") + 
+  geom_sf(data = AKMS_outside, color = "red") + 
   coord_sf(xlim = c(sf::st_bbox(AKMS_plants)[1] - 5, 
                              sf::st_bbox(AKMS_plants)[3] + 5), 
                     ylim = c(sf::st_bbox(AKMS_plants)[2] - 3, 
                              sf::st_bbox(AKMS_plants)[4] + 3), 
                     expand = TRUE) 
+
+ifelse(nrow(AKMS_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(AKMS_outside)} plants fall outside region and subregion."))
 
 knitr::kable(AKMS_outside)
   
@@ -746,19 +749,9 @@ knitr::kable(AKMS_outside)
 AZNM_plants <- 
   plant_file %>% 
   filter(subrgn == "AZNM") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
-
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = AZNM_plants) +
-  coord_sf(xlim = c(sf::st_bbox(AZNM_plants)[1] - 5, 
-                             sf::st_bbox(AZNM_plants)[3] + 5), 
-                    ylim = c(sf::st_bbox(AZNM_plants)[2] - 3, 
-                             sf::st_bbox(AZNM_plants)[4] + 3), 
-                    expand = TRUE) 
 
 # create table of plants not in region or multi-region area
 AZNM_shp <- sbrgn_shp %>% filter(subregion == "AZNM") %>% 
@@ -773,31 +766,40 @@ AZNM_plants <-
                         c(sf::st_filter(AZNM_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(AZNM_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+AZNM_outside <-
+  AZNM_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = AZNM_plants) +
+  geom_sf(data = AZNM_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(AZNM_plants)[1] - 5, 
+                             sf::st_bbox(AZNM_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(AZNM_plants)[2] - 3, 
+                             sf::st_bbox(AZNM_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(AZNM_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(AZNM_outside)} plants fall outside region and subregion."))
+
+knitr::kable(AZNM_outside) 
 ```
 
 ### CAMX
 
 ```{r}
-#| label: CAMX_summary 
-#| echo: false 
-#| warning: false  
+#| label: CAMX-summary 
 
-CAMX_plants <- plant_file %>% filter(subrgn == "CAMX") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+# one plant with no lat lon data
+CAMX_plants <- 
+  plant_file %>% 
+  filter(subrgn == "CAMX") %>% 
+  filter(!is.na(lat) | !is.na(lon)) %>%
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = CAMX_plants) +
-  coord_sf(xlim = c(sf::st_bbox(CAMX_plants)[1] - 5, 
-                             sf::st_bbox(CAMX_plants)[3] + 5), 
-                    ylim = c(sf::st_bbox(CAMX_plants)[2] - 3, 
-                             sf::st_bbox(CAMX_plants)[4] + 3), 
-                    expand = TRUE) 
 
 # create table of plants not in region or multi-region area
 CAMX_shp <- sbrgn_shp %>% filter(subregion == "CAMX") %>% 
@@ -812,33 +814,43 @@ CAMX_plants <-
                         c(sf::st_filter(CAMX_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(CAMX_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+CAMX_outside <-
+  CAMX_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = CAMX_plants) +
+  geom_sf(data = CAMX_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(CAMX_plants)[1] - 5, 
+                             sf::st_bbox(CAMX_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(CAMX_plants)[2] - 3, 
+                             sf::st_bbox(CAMX_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(CAMX_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(CAMX_outside)} plants fall outside region and subregion."))
+
+knitr::kable(CAMX_outside) 
+
 ```
 
 ### ERCT
 
 ```{r}
-#| label: ERCT_summary 
-#| echo: false 
-#| warning: false  
+#| label: ERCT-summary 
 
-ERCT_plants <- plant_file %>% filter(subrgn == "ERCT") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+ERCT_plants <- 
+  plant_file %>% 
+  filter(subrgn == "ERCT") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = ERCT_plants) +
-  coord_sf(xlim = c(sf::st_bbox(ERCT_plants)[1] - 5, 
-                             sf::st_bbox(ERCT_plants)[3] + 5), 
-                    ylim = c(sf::st_bbox(ERCT_plants)[2] - 3, 
-                             sf::st_bbox(ERCT_plants)[4] + 3), 
-                    expand = TRUE) 
-
-ERCT_shp <- sbrgn_shp %>% filter(subregion == "ERCT") %>% 
+ERCT_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "ERCT") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 ERCT_plants <- 
@@ -849,34 +861,45 @@ ERCT_plants <-
          multi_region_check = ifelse(plant_id %in% 
                         c(sf::st_filter(ERCT_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
+ERCT_outside <-
+  ERCT_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
 
-knitr::kable(ERCT_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = ERCT_plants) +
+  geom_sf(data = ERCT_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(ERCT_plants)[1] - 5, 
+                             sf::st_bbox(ERCT_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(ERCT_plants)[2] - 3, 
+                             sf::st_bbox(ERCT_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(ERCT_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(ERCT_outside)} plants fall outside region and subregion."))
+
+knitr::kable(ERCT_outside) 
+
 ```
 
 ### FRCC
 
 ```{r}
-#| label: FRCC_summary 
-#| echo: false 
-#| warning: false  
+#| label: FRCC-summary 
 
-FRCC_plants <- plant_file %>% filter(subrgn == "FRCC") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+FRCC_plants <- 
+  plant_file %>% 
+  filter(subrgn == "FRCC") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = FRCC_plants) +
-  coord_sf(xlim = c(sf::st_bbox(FRCC_plants)[1] - 2, 
-                             sf::st_bbox(FRCC_plants)[3] + 2), 
-                    ylim = c(sf::st_bbox(FRCC_plants)[2] - 2, 
-                             sf::st_bbox(FRCC_plants)[4] + 2), 
-                    expand = TRUE) 
 
-FRCC_shp <- sbrgn_shp %>% filter(subregion == "FRCC") %>% 
+
+FRCC_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "FRCC") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 FRCC_plants <- 
@@ -888,33 +911,42 @@ FRCC_plants <-
                         c(sf::st_filter(FRCC_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(FRCC_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+FRCC_outside <-
+  FRCC_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = FRCC_plants) +
+  geom_sf(data = FRCC_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(FRCC_plants)[1] - 2, 
+                             sf::st_bbox(FRCC_plants)[3] + 2), 
+                    ylim = c(sf::st_bbox(FRCC_plants)[2] - 2, 
+                             sf::st_bbox(FRCC_plants)[4] + 2), 
+                    expand = TRUE) 
+
+ifelse(nrow(FRCC_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(FRCC_outside)} plants fall outside region and subregion."))
+
+knitr::kable(FRCC_outside) 
 ```
 
 ### HIMS
 
 ```{r}
-#| label: HIMS_summary 
-#| echo: false 
-#| warning: false  
+#| label: HIMS-summary 
 
-HIMS_plants <- plant_file %>% filter(subrgn == "HIMS") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+HIMS_plants <- 
+  plant_file %>% 
+  filter(subrgn == "HIMS") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = HIMS_plants) +
-  coord_sf(xlim = c(sf::st_bbox(HIMS_plants)[1] - 1, 
-                             sf::st_bbox(HIMS_plants)[3] + 1), 
-                    ylim = c(sf::st_bbox(HIMS_plants)[2] - 1, 
-                             sf::st_bbox(HIMS_plants)[4] + 1), 
-                    expand = TRUE) 
-
-HIMS_shp <- sbrgn_shp %>% filter(subregion == "HIMS") %>% 
+HIMS_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "HIMS") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 HIMS_plants <- 
@@ -926,33 +958,42 @@ HIMS_plants <-
                         c(sf::st_filter(HIMS_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(HIMS_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+HIMS_outside <-
+  HIMS_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = HIMS_plants) +
+  geom_sf(data = HIMS_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(HIMS_plants)[1] - 5, 
+                             sf::st_bbox(HIMS_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(HIMS_plants)[2] - 3, 
+                             sf::st_bbox(HIMS_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(HIMS_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(CAMX_outside)} plants fall outside region and subregion."))
+
+knitr::kable(HIMS_outside) 
 ```
 
 ### HIOA
 
 ```{r}
-#| label: HIOA_summary 
-#| echo: false 
-#| warning: false  
+#| label: HIOA-summary 
 
-HIOA_plants <- plant_file %>% filter(subrgn == "HIOA") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+HIOA_plants <- 
+  plant_file %>% 
+  filter(subrgn == "HIOA") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = HIOA_plants) +
-  coord_sf(xlim = c(sf::st_bbox(HIOA_plants)[1] - 1, 
-                             sf::st_bbox(HIOA_plants)[3] + 1), 
-                    ylim = c(sf::st_bbox(HIOA_plants)[2] - 1, 
-                             sf::st_bbox(HIOA_plants)[4] + 1), 
-                    expand = TRUE) 
-
-HIOA_shp <- sbrgn_shp %>% filter(subregion == "HIOA") %>% 
+HIOA_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "HIOA") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 HIOA_plants <- 
@@ -964,33 +1005,43 @@ HIOA_plants <-
                         c(sf::st_filter(HIOA_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(HIOA_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+HIOA_outside <-
+  HIOA_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = HIOA_plants) +
+  geom_sf(data = HIOA_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(HIOA_plants)[1] - 5, 
+                             sf::st_bbox(HIOA_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(HIOA_plants)[2] - 3, 
+                             sf::st_bbox(HIOA_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(HIOA_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(HIOA_outside)} plants fall outside region and subregion."))
+
+knitr::kable(HIOA_outside) 
+
 ```
 
 ### MROE
 
 ```{r}
-#| label: MROE_summary 
-#| echo: false 
-#| warning: false  
+#| label: MROE-summary 
 
-MROE_plants <- plant_file %>% filter(subrgn == "MROE") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+MROE_plants <- 
+  plant_file %>% 
+  filter(subrgn == "MROE") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = MROE_plants) +
-  coord_sf(xlim = c(sf::st_bbox(MROE_plants)[1] - 5, 
-                             sf::st_bbox(MROE_plants)[3] + 5), 
-                    ylim = c(sf::st_bbox(MROE_plants)[2] - 3, 
-                             sf::st_bbox(MROE_plants)[4] + 3), 
-                    expand = TRUE) 
-
-MROE_shp <- sbrgn_shp %>% filter(subregion == "MROE") %>% 
+MROE_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "MROE") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 MROE_plants <- 
@@ -1002,33 +1053,42 @@ MROE_plants <-
                         c(sf::st_filter(MROE_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(MROE_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+MROE_outside <-
+  MROE_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = MROE_plants) +
+  geom_sf(data = MROE_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(MROE_plants)[1] - 5, 
+                             sf::st_bbox(MROE_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(MROE_plants)[2] - 3, 
+                             sf::st_bbox(MROE_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(MROE_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(MROE_outside)} plants fall outside region and subregion."))
+
+knitr::kable(MROE_outside) 
 ```
 
 ### MROW
 
 ```{r}
-#| label: MROW_summary 
-#| echo: false 
-#| warning: false  
+#| label: MROW-summary 
 
-MROW_plants <- plant_file %>% filter(subrgn == "MROW") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+MROW_plants <- 
+  plant_file %>% 
+  filter(subrgn == "MROW") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = MROW_plants) +
-  coord_sf(xlim = c(sf::st_bbox(MROW_plants)[1] - 5, 
-                             sf::st_bbox(MROW_plants)[3] + 5), 
-                    ylim = c(sf::st_bbox(MROW_plants)[2] - 3, 
-                             sf::st_bbox(MROW_plants)[4] + 1), 
-                    expand = TRUE) 
-
-MROW_shp <- sbrgn_shp %>% filter(subregion == "MROW") %>% 
+MROW_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "MROW") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 MROW_plants <- 
@@ -1040,33 +1100,42 @@ MROW_plants <-
                         c(sf::st_filter(MROW_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(MROW_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+MROW_outside <-
+  MROW_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = MROW_plants) +
+  geom_sf(data = MROW_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(MROW_plants)[1] - 5, 
+                             sf::st_bbox(MROW_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(MROW_plants)[2] - 3, 
+                             sf::st_bbox(MROW_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(MROW_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(MROW_outside)} plants fall outside region and subregion."))
+
+knitr::kable(MROW_outside) 
 ```
 
 ### NEWE
 
 ```{r}
-#| label: NEWE_summary 
-#| echo: false 
-#| warning: false  
+#| label: NEWE-summary 
 
-NEWE_plants <- plant_file %>% filter(subrgn == "NEWE") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+NEWE_plants <- 
+  plant_file %>% 
+  filter(subrgn == "NEWE") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = NEWE_plants) +
-  coord_sf(xlim = c(sf::st_bbox(NEWE_plants)[1] - 3, 
-                             sf::st_bbox(NEWE_plants)[3] + 3), 
-                    ylim = c(sf::st_bbox(NEWE_plants)[2] - 1, 
-                             sf::st_bbox(NEWE_plants)[4] + 1), 
-                    expand = TRUE) 
-
-NEWE_shp <- sbrgn_shp %>% filter(subregion == "NEWE") %>% 
+NEWE_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "NEWE") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 NEWE_plants <- 
@@ -1078,33 +1147,43 @@ NEWE_plants <-
                         c(sf::st_filter(NEWE_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(NEWE_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+NEWE_outside <-
+  NEWE_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = NEWE_plants) +
+  geom_sf(data = NEWE_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(NEWE_plants)[1] - 5, 
+                             sf::st_bbox(NEWE_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(NEWE_plants)[2] - 3, 
+                             sf::st_bbox(NEWE_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(NEWE_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(NEWE_outside)} plants fall outside region and subregion."))
+
+knitr::kable(NEWE_outside) 
+
 ```
 
 ### NWPP
 
 ```{r}
-#| label: NWPP_summary 
-#| echo: false 
-#| warning: false  
+#| label: NWPP-summary 
 
-NWPP_plants <- plant_file %>% filter(subrgn == "NWPP") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+NWPP_plants <- 
+  plant_file %>% 
+  filter(subrgn == "NWPP") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = NWPP_plants) +
-  coord_sf(xlim = c(sf::st_bbox(NWPP_plants)[1] - 2, 
-                             sf::st_bbox(NWPP_plants)[3] + 5), 
-                    ylim = c(sf::st_bbox(NWPP_plants)[2] - 3, 
-                             sf::st_bbox(NWPP_plants)[4] + 1), 
-                    expand = TRUE) 
-
-NWPP_shp <- sbrgn_shp %>% filter(subregion == "NWPP") %>% 
+NWPP_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "NWPP") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 NWPP_plants <- 
@@ -1116,33 +1195,42 @@ NWPP_plants <-
                         c(sf::st_filter(NWPP_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(NWPP_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+NWPP_outside <-
+  NWPP_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = NWPP_plants) +
+  geom_sf(data = NWPP_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(NWPP_plants)[1] - 5, 
+                             sf::st_bbox(NWPP_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(NWPP_plants)[2] - 3, 
+                             sf::st_bbox(NWPP_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(NWPP_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(NWPP_outside)} plants fall outside region and subregion."))
+
+knitr::kable(NWPP_outside) 
 ```
 
 ### NYCW
 
 ```{r}
-#| label: NYCW_summary 
-#| echo: false 
-#| warning: false  
+#| label: NYCW-summary 
 
-NYCW_plants <- plant_file %>% filter(subrgn == "NYCW") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+NYCW_plants <- 
+  plant_file %>% 
+  filter(subrgn == "NYCW") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = NYCW_plants) +
-  coord_sf(xlim = c(sf::st_bbox(NYCW_plants)[1] - 1, 
-                             sf::st_bbox(NYCW_plants)[3] + 1), 
-                    ylim = c(sf::st_bbox(NYCW_plants)[2] - 1, 
-                             sf::st_bbox(NYCW_plants)[4] + 1), 
-                    expand = TRUE) 
-
-NYCW_shp <- sbrgn_shp %>% filter(subregion == "NYCW") %>% 
+NYCW_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "NYCW") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 NYCW_plants <- 
@@ -1154,33 +1242,42 @@ NYCW_plants <-
                         c(sf::st_filter(NYCW_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(NYCW_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+NYCW_outside <-
+  NYCW_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = NYCW_plants) +
+  geom_sf(data = NYCW_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(NYCW_plants)[1] - 5, 
+                             sf::st_bbox(NYCW_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(NYCW_plants)[2] - 3, 
+                             sf::st_bbox(NYCW_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(NYCW_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(NYCW_outside)} plants fall outside region and subregion."))
+
+knitr::kable(NYCW_outside) 
 ```
 
 ### NYLI
 
 ```{r}
-#| label: NYLI_summary 
-#| echo: false 
-#| warning: false  
+#| label: NYLI-summary 
 
-NYLI_plants <- plant_file %>% filter(subrgn == "NYLI") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+NYLI_plants <- 
+  plant_file %>% 
+  filter(subrgn == "NYLI") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = NYLI_plants) +
-  coord_sf(xlim = c(sf::st_bbox(NYLI_plants)[1] - 1, 
-                             sf::st_bbox(NYLI_plants)[3] + 1), 
-                    ylim = c(sf::st_bbox(NYLI_plants)[2] - 1, 
-                             sf::st_bbox(NYLI_plants)[4] + 1), 
-                    expand = TRUE) 
-
-NYLI_shp <- sbrgn_shp %>% filter(subregion == "NYLI") %>% 
+NYLI_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "NYLI") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 NYLI_plants <- 
@@ -1192,33 +1289,42 @@ NYLI_plants <-
                         c(sf::st_filter(NYLI_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(NYLI_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+NYLI_outside <-
+  NYLI_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = NYLI_plants) +
+  geom_sf(data = NYLI_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(NYLI_plants)[1] - 5, 
+                             sf::st_bbox(NYLI_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(NYLI_plants)[2] - 3, 
+                             sf::st_bbox(NYLI_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(NYLI_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(NYLI_outside)} plants fall outside region and subregion."))
+
+knitr::kable(NYLI_outside) 
 ```
 
 ### NYUP
 
 ```{r}
-#| label: NYUP_summary 
-#| echo: false 
-#| warning: false  
+#| label: NYUP-summary 
 
-NYUP_plants <- plant_file %>% filter(subrgn == "NYUP") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+NYUP_plants <- 
+  plant_file %>% 
+  filter(subrgn == "NYUP") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = NYUP_plants) +
-  coord_sf(xlim = c(sf::st_bbox(NYUP_plants)[1] - 2, 
-                             sf::st_bbox(NYUP_plants)[3] + 2), 
-                    ylim = c(sf::st_bbox(NYUP_plants)[2] - 2, 
-                             sf::st_bbox(NYUP_plants)[4] + 2), 
-                    expand = TRUE) 
-
-NYUP_shp <- sbrgn_shp %>% filter(subregion == "NYUP") %>% 
+NYUP_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "NYUP") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 NYUP_plants <- 
@@ -1230,31 +1336,39 @@ NYUP_plants <-
                         c(sf::st_filter(NYUP_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(NYUP_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+NYUP_outside <-
+  NYUP_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = NYUP_plants) +
+  geom_sf(data = NYUP_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(NYUP_plants)[1] - 5, 
+                             sf::st_bbox(NYUP_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(NYUP_plants)[2] - 3, 
+                             sf::st_bbox(NYUP_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(NYUP_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(NYUP_outside)} plants fall outside region and subregion."))
+
+knitr::kable(NYUP_outside) 
+
 ```
 
 ### PRMS
 
 ```{r}
-#| label: PRMS_summary 
-#| echo: false 
-#| warning: false  
+#| label: PRMS-summary 
 
-PRMS_plants <- plant_file %>% filter(subrgn == "PRMS") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+PRMS_plants <- 
+  plant_file %>% 
+  filter(subrgn == "PRMS") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
-
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = PRMS_plants) +
-  coord_sf(xlim = c(sf::st_bbox(PRMS_plants)[1] - 1, 
-                             sf::st_bbox(PRMS_plants)[3] + 1), 
-                    ylim = c(sf::st_bbox(PRMS_plants)[2] - 1, 
-                             sf::st_bbox(PRMS_plants)[4] + 1), 
-                    expand = TRUE) 
 
 PRMS_shp <- sbrgn_shp %>% filter(subregion == "PRMS") %>% 
   sf::st_transform(crs = "EPSG:4326")
@@ -1268,33 +1382,42 @@ PRMS_plants <-
                         c(sf::st_filter(PRMS_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(PRMS_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+PRMS_outside <-
+  PRMS_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = PRMS_plants) +
+  geom_sf(data = PRMS_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(PRMS_plants)[1] - 5, 
+                             sf::st_bbox(PRMS_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(PRMS_plants)[2] - 3, 
+                             sf::st_bbox(PRMS_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(PRMS_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(PRMS_outside)} plants fall outside region and subregion."))
+
+knitr::kable(PRMS_outside) 
 ```
 
 ### RFCE
 
 ```{r}
-#| label: RFCE_summary 
-#| echo: false 
-#| warning: false  
+#| label: RFCE-summary 
 
-RFCE_plants <- plant_file %>% filter(subrgn == "RFCE") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+RFCE_plants <- 
+  plant_file %>% 
+  filter(subrgn == "RFCE") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = RFCE_plants) +
-  coord_sf(xlim = c(sf::st_bbox(RFCE_plants)[1] - 3, 
-                             sf::st_bbox(RFCE_plants)[3] + 3), 
-                    ylim = c(sf::st_bbox(RFCE_plants)[2] - 2, 
-                             sf::st_bbox(RFCE_plants)[4] + 2), 
-                    expand = TRUE) 
-
-RFCE_shp <- sbrgn_shp %>% filter(subregion == "RFCE") %>% 
+RFCE_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "RFCE") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 RFCE_plants <- 
@@ -1306,33 +1429,42 @@ RFCE_plants <-
                         c(sf::st_filter(RFCE_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(RFCE_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+RFCE_outside <-
+  RFCE_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = RFCE_plants) +
+  geom_sf(data = RFCE_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(RFCE_plants)[1] - 5, 
+                             sf::st_bbox(RFCE_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(RFCE_plants)[2] - 3, 
+                             sf::st_bbox(RFCE_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(RFCE_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(RFCE_outside)} plants fall outside region and subregion."))
+
+knitr::kable(RFCE_outside) 
 ```
 
 ### RFCM
 
 ```{r}
-#| label: RFCM_summary 
-#| echo: false 
-#| warning: false  
+#| label: RFCM-summary 
 
-RFCM_plants <- plant_file %>% filter(subrgn == "RFCM") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+RFCM_plants <- 
+  plant_file %>% 
+  filter(subrgn == "RFCM") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = RFCM_plants) +
-  coord_sf(xlim = c(sf::st_bbox(RFCM_plants)[1] - 3, 
-                             sf::st_bbox(RFCM_plants)[3] + 3), 
-                    ylim = c(sf::st_bbox(RFCM_plants)[2] - 2, 
-                             sf::st_bbox(RFCM_plants)[4] + 2), 
-                    expand = TRUE) 
-
-RFCM_shp <- sbrgn_shp %>% filter(subregion == "RFCM") %>% 
+RFCM_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "RFCM") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 RFCM_plants <- 
@@ -1344,33 +1476,42 @@ RFCM_plants <-
                         c(sf::st_filter(RFCM_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(RFCM_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+RFCM_outside <-
+  RFCM_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = RFCM_plants) +
+  geom_sf(data = RFCM_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(RFCM_plants)[1] - 5, 
+                             sf::st_bbox(RFCM_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(RFCM_plants)[2] - 3, 
+                             sf::st_bbox(RFCM_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(RFCM_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(RFCM_outside)} plants fall outside region and subregion."))
+
+knitr::kable(RFCM_outside) 
 ```
 
 ### RFCW
 
 ```{r}
-#| label: RFCW_summary 
-#| echo: false 
-#| warning: false  
+#| label: RFCW-summary 
 
-RFCW_plants <- plant_file %>% filter(subrgn == "RFCW") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+RFCW_plants <- 
+  plant_file %>% 
+  filter(subrgn == "RFCW") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = RFCW_plants) +
-  coord_sf(xlim = c(sf::st_bbox(RFCW_plants)[1] - 3, 
-                             sf::st_bbox(RFCW_plants)[3] + 3), 
-                    ylim = c(sf::st_bbox(RFCW_plants)[2] - 2, 
-                             sf::st_bbox(RFCW_plants)[4] + 2), 
-                    expand = TRUE)
-
-RFCW_shp <- sbrgn_shp %>% filter(subregion == "RFCW") %>% 
+RFCW_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "RFCW") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 RFCW_plants <- 
@@ -1382,33 +1523,42 @@ RFCW_plants <-
                         c(sf::st_filter(RFCW_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(AKGD_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+RFCW_outside <-
+  RFCW_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = RFCW_plants) +
+  geom_sf(data = RFCW_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(RFCW_plants)[1] - 5, 
+                             sf::st_bbox(RFCW_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(RFCW_plants)[2] - 3, 
+                             sf::st_bbox(RFCW_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(RFCW_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(RFCW_outside)} plants fall outside region and subregion."))
+
+knitr::kable(RFCW_outside) 
 ```
 
 ### RMPA
 
 ```{r}
-#| label: RMPA_summary 
-#| echo: false 
-#| warning: false  
+#| label: RMPA-summary 
 
-RMPA_plants <- plant_file %>% filter(subrgn == "RMPA") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+RMPA_plants <- 
+  plant_file %>% 
+  filter(subrgn == "RMPA") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = RMPA_plants) +
-  coord_sf(xlim = c(sf::st_bbox(RMPA_plants)[1] - 3, 
-                             sf::st_bbox(RMPA_plants)[3] + 3), 
-                    ylim = c(sf::st_bbox(RMPA_plants)[2] - 2, 
-                             sf::st_bbox(RMPA_plants)[4] + 2), 
-                    expand = TRUE)
-
-RMPA_shp <- sbrgn_shp %>% filter(subregion == "RMPA") %>% 
+RMPA_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "RMPA") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 RMPA_plants <- 
@@ -1420,33 +1570,42 @@ RMPA_plants <-
                         c(sf::st_filter(RMPA_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(RMPA_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+RMPA_outside <-
+  RMPA_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = RMPA_plants) +
+  geom_sf(data = RMPA_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(RMPA_plants)[1] - 5, 
+                             sf::st_bbox(RMPA_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(RMPA_plants)[2] - 3, 
+                             sf::st_bbox(RMPA_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(RMPA_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(RMPA_outside)} plants fall outside region and subregion."))
+
+knitr::kable(RMPA_outside) 
 ```
 
 ### SPNO
 
 ```{r}
-#| label: SPNO_summary 
-#| echo: false 
-#| warning: false  
+#| label: SPNO-summary 
 
-SPNO_plants <- plant_file %>% filter(subrgn == "SPNO") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+SPNO_plants <- 
+  plant_file %>% 
+  filter(subrgn == "SPNO") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = SPNO_plants) +
-  coord_sf(xlim = c(sf::st_bbox(SPNO_plants)[1] - 3, 
-                             sf::st_bbox(SPNO_plants)[3] + 3), 
-                    ylim = c(sf::st_bbox(SPNO_plants)[2] - 2, 
-                             sf::st_bbox(SPNO_plants)[4] + 2), 
-                    expand = TRUE)
-
-SPNO_shp <- sbrgn_shp %>% filter(subregion == "SPNO") %>% 
+SPNO_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "SPNO") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 SPNO_plants <- 
@@ -1458,33 +1617,42 @@ SPNO_plants <-
                         c(sf::st_filter(SPNO_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(SPNO_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+SPNO_outside <-
+  SPNO_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = SPNO_plants) +
+  geom_sf(data = SPNO_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(SPNO_plants)[1] - 5, 
+                             sf::st_bbox(SPNO_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(SPNO_plants)[2] - 3, 
+                             sf::st_bbox(SPNO_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(SPNO_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(SPNO_outside)} plants fall outside region and subregion."))
+
+knitr::kable(SPNO_outside) 
 ```
 
 ### SPSO
 
 ```{r}
-#| label: SPSO_summary 
-#| echo: false 
-#| warning: false  
+#| label: SPSO-summary 
 
-SPSO_plants <- plant_file %>% filter(subrgn == "SPSO") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+SPSO_plants <- 
+  plant_file %>% 
+  filter(subrgn == "SPSO") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = SPSO_plants) +
-  coord_sf(xlim = c(sf::st_bbox(SPSO_plants)[1] - 3, 
-                             sf::st_bbox(SPSO_plants)[3] + 3), 
-                    ylim = c(sf::st_bbox(SPSO_plants)[2] - 2, 
-                             sf::st_bbox(SPSO_plants)[4] + 2), 
-                    expand = TRUE)
-
-SPSO_shp <- sbrgn_shp %>% filter(subregion == "SPSO") %>% 
+SPSO_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "SPSO") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 SPSO_plants <- 
@@ -1496,33 +1664,42 @@ SPSO_plants <-
                         c(sf::st_filter(SPSO_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(SPSO_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+SPSO_outside <-
+  SPSO_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = SPSO_plants) +
+  geom_sf(data = SPSO_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(SPSO_plants)[1] - 5, 
+                             sf::st_bbox(SPSO_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(SPSO_plants)[2] - 3, 
+                             sf::st_bbox(SPSO_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(SPSO_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(SPSO_outside)} plants fall outside region and subregion."))
+
+knitr::kable(SPSO_outside) 
 ```
 
 ### SRMV
 
 ```{r}
-#| label: SRMV_summary 
-#| echo: false 
-#| warning: false  
+#| label: SRMV-summary 
 
-SRMV_plants <- plant_file %>% filter(subrgn == "SRMV") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+SRMV_plants <- 
+  plant_file %>% 
+  filter(subrgn == "SRMV") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = SRMV_plants) +
-  coord_sf(xlim = c(sf::st_bbox(SRMV_plants)[1] - 3, 
-                             sf::st_bbox(SRMV_plants)[3] + 3), 
-                    ylim = c(sf::st_bbox(SRMV_plants)[2] - 2, 
-                             sf::st_bbox(SRMV_plants)[4] + 2), 
-                    expand = TRUE)
-
-SRMV_shp <- sbrgn_shp %>% filter(subregion == "SRMV") %>% 
+SRMV_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "SRMV") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 SRMV_plants <- 
@@ -1534,33 +1711,42 @@ SRMV_plants <-
                         c(sf::st_filter(SRMV_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(SRMV_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+SRMV_outside <-
+  SRMV_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = SRMV_plants) +
+  geom_sf(data = SRMV_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(SRMV_plants)[1] - 5, 
+                             sf::st_bbox(SRMV_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(SRMV_plants)[2] - 3, 
+                             sf::st_bbox(SRMV_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(SRMV_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(SRMV_outside)} plants fall outside region and subregion."))
+
+knitr::kable(SRMV_outside) 
 ```
 
 ### SRSO
 
 ```{r}
-#| label: SRSO_summary 
-#| echo: false 
-#| warning: false  
+#| label: SRSO-summary 
 
-SRSO_plants <- plant_file %>% filter(subrgn == "SRSO") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+SRSO_plants <- 
+  plant_file %>% 
+  filter(subrgn == "SRSO") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = SRSO_plants) +
-  coord_sf(xlim = c(sf::st_bbox(SRSO_plants)[1] - 3, 
-                             sf::st_bbox(SRSO_plants)[3] + 3), 
-                    ylim = c(sf::st_bbox(SRSO_plants)[2] - 2, 
-                             sf::st_bbox(SRSO_plants)[4] + 2), 
-                    expand = TRUE)
-
-SRSO_shp <- sbrgn_shp %>% filter(subregion == "SRSO") %>% 
+SRSO_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "SRSO") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 SRSO_plants <- 
@@ -1572,33 +1758,42 @@ SRSO_plants <-
                         c(sf::st_filter(SRSO_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(SRSO_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+SRSO_outside <-
+  SRSO_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = SRSO_plants) +
+  geom_sf(data = SRSO_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(SRSO_plants)[1] - 5, 
+                             sf::st_bbox(SRSO_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(SRSO_plants)[2] - 3, 
+                             sf::st_bbox(SRSO_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(SRSO_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(SRSO_outside)} plants fall outside region and subregion."))
+
+knitr::kable(SRSO_outside) 
 ```
 
 ### SRTV
 
 ```{r}
-#| label: SRTV_summary 
-#| echo: false 
-#| warning: false  
+#| label: SRTV-summary 
 
-SRTV_plants <- plant_file %>% filter(subrgn == "SRTV") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+SRTV_plants <- 
+  plant_file %>% 
+  filter(subrgn == "SRTV") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = SRTV_plants) +
-  coord_sf(xlim = c(sf::st_bbox(SRTV_plants)[1] - 3, 
-                             sf::st_bbox(SRTV_plants)[3] + 3), 
-                    ylim = c(sf::st_bbox(SRTV_plants)[2] - 2, 
-                             sf::st_bbox(SRTV_plants)[4] + 2), 
-                    expand = TRUE)
-
-SRTV_shp <- sbrgn_shp %>% filter(subregion == "AKGD") %>% 
+SRTV_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "SRTV") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 SRTV_plants <- 
@@ -1610,33 +1805,42 @@ SRTV_plants <-
                         c(sf::st_filter(SRTV_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(SRTV_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+SRTV_outside <-
+  SRTV_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = SRTV_plants) +
+  geom_sf(data = SRTV_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(SRTV_plants)[1] - 5, 
+                             sf::st_bbox(SRTV_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(SRTV_plants)[2] - 3, 
+                             sf::st_bbox(SRTV_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(SRTV_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(SRTV_outside)} plants fall outside region and subregion."))
+
+knitr::kable(SRTV_outside) 
 ```
 
 ### SRVC
 
 ```{r}
-#| label: SRVC_summary 
-#| echo: false 
-#| warning: false  
+#| label: SRVC-summary 
 
-SRVC_plants <- plant_file %>% filter(subrgn == "SRVC") %>% 
-  select(subrgn, plant_id, plfuelct, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), 
-                                                      crs = "EPSG:4326") %>% 
+SRVC_plants <- 
+  plant_file %>% 
+  filter(subrgn == "SRVC") %>% 
+  select(subrgn, plant_id, plfuelct, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
   sf::st_transform(sf::st_crs(sbrgn_shp))
 
-ggplot() + 
-  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
-  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
-  geom_sf(data = SRVC_plants) +
-  coord_sf(xlim = c(sf::st_bbox(SRVC_plants)[1] - 3, 
-                             sf::st_bbox(SRVC_plants)[3] + 3), 
-                    ylim = c(sf::st_bbox(SRVC_plants)[2] - 2, 
-                             sf::st_bbox(SRVC_plants)[4] + 2), 
-                    expand = TRUE)
-
-SRVC_shp <- sbrgn_shp %>% filter(subregion == "SRVC") %>% 
+SRVC_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "SRVC") %>% 
   sf::st_transform(crs = "EPSG:4326")
 
 SRVC_plants <- 
@@ -1648,8 +1852,25 @@ SRVC_plants <-
                         c(sf::st_filter(SRVC_plants, multi_sbrgn_shp)$plant_id),
                         TRUE, FALSE))
 
-knitr::kable(SRVC_plants %>% filter(in_region_check == FALSE & 
-                                      multi_region_check == FALSE)) 
+SRVC_outside <-
+  SRVC_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = SRVC_plants) +
+  geom_sf(data = SRVC_outside, color = "red") +
+  coord_sf(xlim = c(sf::st_bbox(SRVC_plants)[1] - 5, 
+                             sf::st_bbox(SRVC_plants)[3] + 5), 
+                    ylim = c(sf::st_bbox(SRVC_plants)[2] - 3, 
+                             sf::st_bbox(SRVC_plants)[4] + 3), 
+                    expand = TRUE) 
+
+ifelse(nrow(SRVC_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(SRVC_outside)} plants fall outside region and subregion."))
+
+knitr::kable(SRVC_outside) 
 ```
 :::
 
