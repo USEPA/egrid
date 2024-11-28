@@ -10,7 +10,7 @@ format:
 execute: 
   echo: false
   warning: false
-  eval: false
+  #eval: false
 editor: visual
 project: 
   execute_dir: project
@@ -92,7 +92,7 @@ check_compare_plants <-
 
 # print plants not in EIA
 ifelse(nrow(check_compare_plants) == 0, "Status: PASS - No plants in CAMD not in EIA.", 
-        glue::glue("Status: FAIL - {nrow(check_compare_plants)} plants in CAMD not in EIA."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_compare_plants)} plants in CAMD not in EIA."))
 
 knitr::kable(check_compare_plants %>% 
                select(plant_id, plant_name))
@@ -143,7 +143,7 @@ check_gen_duplicates <-
   filter(n() > 1)
 
 ifelse(nrow(check_gen_duplicates) == 0, "Status: PASS - No generator duplicates.", 
-        glue::glue("Status: FAIL - {nrow(check_gen_duplicates)} generators are duplicated."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_gen_duplicates)} generators are duplicated."))
 
 knitr::kable(check_gen_duplicates %>% 
                select(plant_id, generator_id, plant_name))
@@ -182,7 +182,7 @@ check_unit_fc_pm <-
   filter(prmvr == "FC" & !is.na(co2an)) 
 
 ifelse(nrow(check_unit_fc_pm) == 0, "Status: PASS - All CO2 values for FC prime mover are NA.", 
-        glue::glue("Status: FAIL - {nrow(check_unit_fc_pm)} FC units have non-zero CO2 values."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_fc_pm)} FC units have non-zero CO2 values."))
   
 knitr::kable(check_unit_fc_pm %>% 
                select(plant_name, plant_id, unit_id))
@@ -206,7 +206,7 @@ check_unit_retired_values <-
 
 ifelse(nrow(check_unit_retired_values) == 0, 
        "Status: PASS - No units that are retired and have positive heat input or emissions.", 
-        glue::glue("Status: FAIL - {nrow(check_unit_retirement)} units that are retired and 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_retirement)} units that are retired and 
                    have positive heat input or emissions."))
 
 knitr::kable(check_unit_retired_values %>% 
@@ -251,7 +251,7 @@ check_unit_ozone <-
 
 ifelse(nrow(check_unit_ozone) == 0, 
        "Status: PASS - All ozone emissions and heat input values are less than annual values.", 
-        glue::glue("Status: FAIL - {nrow(check_unit_ozone)} units have heat input values greater than annual values.")) 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_ozone)} units have heat input values greater than annual values.")) 
 
 knitr::kable(check_unit_ozone %>% 
                select(plant_name, plant_id, unit_id, noxoz, noxan, htioz, htian))
@@ -272,7 +272,7 @@ check_unit_ozone_input <-
 
 ifelse(nrow(check_unit_ozone_input) == 0, 
        "Status: PASS - All annual heat inputs have ozone heat inputs.", 
-        glue::glue("Status: FAIL - {nrow(check_unit_ozone_input)} units have positive annual heat input with missing ozone season heat input."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_ozone_input)} units have positive annual heat input with missing ozone season heat input."))
 
 knitr::kable(check_unit_ozone_input %>% 
                select(plant_name, plant_id, unit_id, htian, htioz))
@@ -292,7 +292,7 @@ check_unit_duplicates <-
   filter(n() > 1)
 
 ifelse(nrow(check_unit_duplicates) == 0, "Status: PASS - No duplicate units.", 
-        glue::glue("Status: FAIL - {nrow(check_unit_duplicates)} units are duplicated."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_duplicates)} units are duplicated."))
 
 knitr::kable(check_unit_duplicates %>% 
                select(plant_name, plant_id, unit_id))
@@ -324,7 +324,7 @@ check_unit_negative_emissions <-
           hgan < 0)
 
 ifelse(nrow(check_unit_negative_emissions) == 0, "Status: PASS - No negative emissions.", 
-        glue::glue("Status: FAIL - {nrow(check_unit_negative_emissions)} units have negative emissions."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_negative_emissions)} units have negative emissions."))
 
 knitr::kable(check_unit_negative_emissions %>% 
                select(plant_name, plant_id, unit_id, noxan, noxoz, so2an, co2an))
@@ -357,7 +357,7 @@ check_unit_zero_emissions <-
                         !is.na(hgan) | hgan > 0)) 
 
 ifelse(nrow(check_unit_zero_emissions) == 0, "Status: PASS - No positive emissions for zero emissions technologies.", 
-        glue::glue("Status: FAIL {nrow(check_zero_emissions)} zero emission units have positive emissions."))
+        glue::glue("Status: NEEDS CHECKED {nrow(check_zero_emissions)} zero emission units have positive emissions."))
 
 knitr::kable(check_unit_zero_emissions %>% 
                select(plant_name, plant_id, unit_id, fuelu1, noxan, noxoz, so2an, co2an, hgan))
@@ -375,7 +375,7 @@ check_unit_primary_fuel <-
   filter(is.na(fuelu1))
 
 ifelse(nrow(check_unit_primary_fuel) == 0, "Status: PASS - No units have blank primary fuels.", 
-        glue::glue("Status: FAIL - {nrow(check_unit_primary_fuel)} units have blank primary fuels."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_primary_fuel)} units have blank primary fuels."))
 
 knitr::kable(check_unit_primary_fuel %>% 
                select(plant_name, plant_id, unit_id, fuelu1, htian, htioz))
@@ -394,7 +394,7 @@ check_unit_program_code <-
   filter(camdflag == "Yes" & is.na(prgcode))
 
 ifelse(nrow(check_unit_program_code) == 0, "Status: PASS - All CAMD flags have a program code.", 
-        glue::glue("Status: FAIL - {nrow(check_unit_program_code)} units have CAMD flag but no program code."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_program_code)} units have CAMD flag but no program code."))
 
 knitr::kable(check_unit_program_code %>% 
                select(plant_name, plant_id, unit_id, camdflag, prgcode))
@@ -417,7 +417,7 @@ check_unit_heat_input <-
 
 ifelse(nrow(check_unit_heat_input) == 0, "Status: PASS - All units with emissions have 
        heat input values.", 
-        glue::glue("Status: FAIL - {nrow(check_unit_heat_input)} units with emissions are missing heat input values."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_heat_input)} units with emissions are missing heat input values."))
 
 knitr::kable(check_unit_heat_input %>% 
                select(plant_name, plant_id, unit_id, htian, htioz, noxan, noxoz, so2an, co2an, hgan))
@@ -442,7 +442,7 @@ check_unit_emissions <-
 
 ifelse(nrow(check_unit_emissions) == 0, "Status: PASS - All units with heat inputs 
        have emission values.", 
-        glue::glue("Status: FAIL - {nrow(check_unit_emissions)} units with heat inputs are missing emission values."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_emissions)} units with heat inputs are missing emission values."))
 
 knitr::kable(check_unit_emissions %>% 
                select(plant_name, plant_id, unit_id, fuelu1, prmvr, htian, htioz, noxan, noxoz, so2an, co2an, hgan))
@@ -466,7 +466,7 @@ check_unit_blanks <-
          | is.na(so2an) | is.na(co2an)))
 
 ifelse(nrow(check_unit_blanks) == 0, "Status: PASS - No units are missing both heat inputs and emission values.", 
-        glue::glue("Status: FAIL - {nrow(check_unit_blanks)} units are missing both heat and emission values."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_blanks)} units are missing both heat and emission values."))
 
 knitr::kable(check_unit_blanks %>% 
                select(plant_name, plant_id, unit_id, fuelu1, prmvr, htian, htioz, noxan, noxoz, so2an, co2an))
@@ -486,7 +486,7 @@ check_unit_nox_so2 <-
 
 ifelse(nrow(check_unit_nox_so2) == 0, "Status: PASS - All units with positive NOx values 
        have positive SO2 values.", 
-       glue::glue("Status: FAIL - {nrow(check_unit_emissions)} units with positive NOx values have NA or 0 SO2 values."))
+       glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_emissions)} units with positive NOx values have NA or 0 SO2 values."))
 
 knitr::kable(check_unit_nox_so2 %>% 
                select(plant_name, plant_id, unit_id, fuelu1, prmvr, noxan, so2an))
@@ -543,7 +543,7 @@ check_plant_lat_lon <-
   filter(!is.na(lat_diff) & !is.na(lon_diff) & !(lat_diff == 0) | !(lon_diff == 0))
 
 ifelse(nrow(check_plant_lat_lon) == 0, "Status: PASS - All plants have the same lat/lon as previous year.", 
-        glue::glue("Status: FAIL - {nrow(check_plant_lat_lon)} plants have different lat/lon than last year."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_lat_lon)} plants have different lat/lon than last year."))
   
 knitr::kable(check_plant_lat_lon %>% 
                select(plant_id, lat, lat_prev, lat_diff, lon, lon_prev, lon_diff))
@@ -569,7 +569,7 @@ check_plant_chp_flag <-
   
 
 ifelse(nrow(check_plant_chp_flag) == 0, "Status: PASS - No CHP flags are different", 
-        glue::glue("Status: FAIL - {nrow(check_plant_chp_flag)} plants have different CHP flags than last year."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_chp_flag)} plants have different CHP flags than last year."))
 
 knitr::kable(check_plant_chp_flag %>% 
                select(plant_id, chpflag, chpflag_prev))
@@ -593,7 +593,7 @@ check_plant_subrgn <- plant_subregion %>%
   
 
 ifelse(nrow(check_plant_subrgn) == 0, "Status: PASS - No subregions are different", 
-        glue::glue("Status: FAIL - {nrow(check_plant_subrgn)} plants have different subregions than last year."))
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_subrgn)} plants have different subregions than last year."))
 
 knitr::kable(check_plant_subrgn %>% 
                select(plant_id, subrgn, subrgn_prev))
@@ -1886,56 +1886,67 @@ FC prime mover should have no (NA) values for:
 
 -   combustion heat input
 
-    ```{r}
-    #| label: plant_fc_pm
-    #| echo: false
-    #| warning: false
+```{r}
+#| label: plant-fc-pm
 
-    # need to identify plants that ONLY have FC prime mover - and extract plant IDs
-    unit_fc_prmvr <- unit_file %>% filter(prmvr == "FC") %>% distinct(plant_id) %>% 
-      pull(plant_id) 
+# need to identify plants that ONLY have FC prime mover - and extract plant IDs
 
-    unit_other_prmvr <- unit_file %>% filter(plant_id %in% unit_fc_prmvr) %>% 
-      filter(!(prmvr == "FC")) %>% distinct(plant_id) %>% pull(plant_id) 
+# plants assigned to FC
+unit_fc_prmvr <- 
+  unit_file %>% 
+  filter(prmvr == "FC") %>% 
+  distinct(plant_id) %>% 
+  pull(plant_id) 
 
-    check_plant_fc_values <- 
-      plant_file %>% filter((plant_id %in% unit_fc_prmvr & 
-                              !(plant_id %in% unit_other_prmvr)) &
-                             (!is.na(plco2an) | !is.na(plch4an) | !is.na(pln2oan) | 
-                              !is.na(plhtian))) 
+# plants assigned to FC AND another
+unit_other_prmvr <- 
+  unit_file %>% 
+  filter(plant_id %in% unit_fc_prmvr) %>% 
+  filter(!(prmvr == "FC")) %>% 
+  distinct(plant_id) %>% 
+  pull(plant_id) 
 
-    ifelse(nrow(check_plant_fc_values) == 0, "No plants with FC prime mover ONLY have values for CO2, N2O, CH4, or annual combustion heat input.", 
-            glue::glue("{nrow(check_plant_fc_values)} plants with FC prime mover ONLY have values for CO2, N2O, CH4, or annual combustion heat input."))
+# filter plants assigned ONLY to FC and have blank emissions and heat input
+check_plant_fc_values <- 
+  plant_file %>% 
+  filter((plant_id %in% unit_fc_prmvr & 
+                          !(plant_id %in% unit_other_prmvr)) &
+                         (!is.na(plco2an) | !is.na(plch4an) | !is.na(pln2oan) | 
+                          !is.na(plhtian))) 
 
-    knitr::kable(check_plant_fc_values %>% select(plant_id, plant_name, plco2an, 
-                                                  plch4an, pln2oan, plhtian))
+ifelse(nrow(check_plant_fc_values) == 0, "Status: PASS - All plants with ONLY FC prime mover have blank CO2, N2O, CH4, or annual combustion heat input data.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_fc_values)} plants with ONLY FC prime mover have values for CO2, N2O, CH4, or annual combustion heat input."))
 
-    ```
+knitr::kable(check_plant_fc_values %>% 
+               select(plant_id, plant_name, plco2an, 
+                                              plch4an, pln2oan, plhtian))
+
+```
 
 ## Biomass adjustment emissions
 
 We have columns labeled BIOCO2, BIOCH4, etc. We want to make sure the value in that column is [not greater]{.underline} than the total unadjusted emissions (columns UNCO2, UNCH4, etc.). We have a line of code that should set BIO columns to equal UN columns if it is larger, so want to check that is working.
 
 ```{r}
-#| label: plant_biomass
-#| echo: false
-#| warning: false
+#| label: plant-biomass
 
 check_plant_biomass_emissions <- 
-  plant_file %>% filter((bionox > unnox) |
-                          (bionoxoz > unnoxoz) |
-                          (bioso2 > unso2) | 
-                          (bioco2 > unco2) | 
-                          (bioch4 > unch4) |
-                          (bion2o > unn2o))
+  plant_file %>% 
+  filter((bionox > unnox) |
+           (bionoxoz > unnoxoz) |
+           (bioso2 > unso2) | 
+           (bioco2 > unco2) | 
+           (bioch4 > unch4) |
+           (bion2o > unn2o))
 
-ifelse(nrow(check_plant_fc_values) == 0, "No plants have biomass emissions greater than unadjusted emissions.", 
-        glue::glue("{nrow(check_plant_biomass_emissions)} plants have biomass emissions greater than unadjusted emissions."))
+ifelse(nrow(check_plant_biomass_emissions) == 0, "Status: PASS - No plants have biomass emissions greater than unadjusted emissions.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_biomass_emissions)} plants have biomass emissions greater than unadjusted emissions."))
 
-knitr::kable(check_plant_biomass_emissions %>% select(plant_id, plant_name, unnox, 
-                                                      bionox, unnoxoz, bionoxoz, 
-                                                      unso2, bioso2, unco2, bioco2, 
-                                                      unch4, bioch4, unn2o, bion2o))
+knitr::kable(check_plant_biomass_emissions %>% 
+               select(plant_id, plant_name, unnox, 
+                                         bionox, unnoxoz, bionoxoz, 
+                                         unso2, bioso2, unco2, bioco2, 
+                                         unch4, bioch4, unn2o, bion2o))
 
 ```
 
@@ -1944,19 +1955,18 @@ knitr::kable(check_plant_biomass_emissions %>% select(plant_id, plant_name, unno
 For this, we want to check that the NOx ozone season emissions are not greater than the annual NOx emissions (so columns PLNOXAN and PLNOXOZ). Same with annual heat input and ozone season heat input (PLHTIAN and PLHTIOZ/PLHTIANT and PLHTIOZT).
 
 ```{r}
-#| label: plant_ozone
-#| echo: false
-#| warning: false
+#| label: plant-ozone
 
 check_plant_ozone <- 
-  plant_file %>% filter((plnoxan < plnoxoz) |
-                          (plhtian < plhtioz) |
-                          (plhtiant < plhtiozt))
+  plant_file %>% 
+  filter((plnoxan < plnoxoz) |
+                 (plhtian < plhtioz) |
+                 (plhtiant < plhtiozt))
 
 ifelse(nrow(check_plant_ozone) == 0, "No plants have ozone values greater than annual values", 
-        glue::glue("{nrow(check_plant_ozone)} plants have biomass emissions greater than unadjusted emissions."))
+        glue::glue("{nrow(check_plant_ozone)} plants have ozone values greater than annual values."))
 
-knitr::kable(check_plant_biomass_emissions %>% select(plant_id, plant_name, plnoxan, 
+knitr::kable(check_plant_ozone %>% select(plant_id, plant_name, plnoxan, 
                                                       plnoxoz, plhtian, plhtioz, 
                                                       plhtiant, plhtiozt))
 
@@ -1967,35 +1977,36 @@ knitr::kable(check_plant_biomass_emissions %>% select(plant_id, plant_name, plno
 Check for duplicate plants. There should be none.
 
 ```{r}
-#| label: plant_duplicates
-#| echo: false
-#| warning: false
+#| label: plant-duplicates
 
 check_plant_duplicate <- 
-  plant_file %>% group_by(plant_id) %>% filter(n()>1)
+  plant_file %>% 
+  group_by(plant_id) %>% 
+  filter(n()>1)
 
-ifelse(nrow(check_plant_duplicate) == 0, "No plants have ozone values greater than annual values", 
-        glue::glue("{nrow(check_plant_duplicate)} plants have biomass emissions greater than unadjusted emissions."))
+ifelse(nrow(check_plant_duplicate) == 0, "No duplicate plants.", 
+        glue::glue("{nrow(check_plant_duplicate)} duplicate plants."))
 
-knitr::kable(check_plant_biomass_emissions %>% select(plant_id, plant_name))
+knitr::kable(check_plant_duplicate %>% 
+               select(plant_id, plant_name))
 
 ```
 
 ## Negative emission values
 
 ```{r}
-#| label: plant_negative_emissions
-#| echo: false
-#| warning: false
+#| label: plant-negative-emissions
 
 check_plant_neg_emissions <- 
-  plant_file %>% filter((plnoxan < 0) | (plnoxoz < 0) | (plso2an < 0), 
+  plant_file %>% 
+  filter((plnoxan < 0) | (plnoxoz < 0) | (plso2an < 0), 
                         (plco2an < 0) | (plch4an < 0) | (pln2oan < 0))
 
-ifelse(nrow(check_plant_neg_emissions) == 0, "No plants have ozone values greater than annual values", 
-        glue::glue("{nrow(check_plant_neg_emissions)} plants have biomass emissions greater than unadjusted emissions."))
+ifelse(nrow(check_plant_neg_emissions) == 0, "No plants have negative emission values.", 
+        glue::glue("{nrow(check_plant_neg_emissions)} plants have negative emission values."))
 
-knitr::kable(check_plant_neg_emissions %>% select(plant_id, plant_name, plnoxan, 
+knitr::kable(check_plant_neg_emissions %>% 
+               select(plant_id, plant_name, plnoxan, 
                                                   plnoxoz, plso2an, plco2an, 
                                                   plch4an, pln2oan))
 
@@ -2004,9 +2015,7 @@ knitr::kable(check_plant_neg_emissions %>% select(plant_id, plant_name, plnoxan,
 ## Emission rate outliers
 
 ```{r}
-#| label: calculate_stats
-#| echo: false
-#| warning: false
+#| label: calculate-stats
 
 # output rates that are negative are typically zeroed out 
 # here, we recalculate them and keep the negatives to identify outliers 
@@ -2050,11 +2059,10 @@ plant_zscore <-
 #### NOx input rate
 
 ```{r}
-#| label: plant_nox_input_outliers
-#| echo: false
-#| warning: false
+#| label: plant-nox-input-outliers
 
-knitr::kable(plant_zscore %>% filter(plnoxra_zscore > 3 | plnoxra_zscore < -3) %>% 
+knitr::kable(plant_zscore %>%
+               filter(plnoxra_zscore > 3 | plnoxra_zscore < -3) %>% 
                arrange(desc(plnoxra_zscore)) %>% select(plant_id, plant_name, plnoxra_zscore, plnoxra))
 
 ```
@@ -2062,70 +2070,70 @@ knitr::kable(plant_zscore %>% filter(plnoxra_zscore > 3 | plnoxra_zscore < -3) %
 #### NOx ozone input rate
 
 ```{r}
-#| label: plant_noxoz_input_outliers
-#| echo: false
-#| warning: false
+#| label: plant-noxoz-input-outliers
 
-knitr::kable(plant_zscore %>% filter(plnoxro_zscore > 3 | plnoxro_zscore < -3) %>% 
-               arrange(desc(plnoxro_zscore)) %>% select(plant_id, plant_name, plnoxro_zscore, plnoxro))
+knitr::kable(plant_zscore %>% 
+               filter(plnoxro_zscore > 3 | plnoxro_zscore < -3) %>% 
+               arrange(desc(plnoxro_zscore)) %>% 
+               select(plant_id, plant_name, plnoxro_zscore, plnoxro))
 ```
 
 #### SO2 input rate
 
 ```{r}
-#| label: plant_so2_input_outliers
-#| echo: false
-#| warning: false
+#| label: plant-so2-input-outliers
 
-knitr::kable(plant_zscore %>% filter(plso2ra_zscore > 3 | plso2ra_zscore < -3) %>% 
-               arrange(desc(plso2ra_zscore)) %>% select(plant_id, plant_name, plso2ra_zscore, plso2ra))
+knitr::kable(plant_zscore %>% 
+               filter(plso2ra_zscore > 3 | plso2ra_zscore < -3) %>% 
+               arrange(desc(plso2ra_zscore)) %>% 
+               select(plant_id, plant_name, plso2ra_zscore, plso2ra))
 ```
 
 #### CO2 input rate
 
 ```{r}
-#| label: plant_co2_input_outliers
-#| echo: false
-#| warning: false
+#| label: plant-co2-input-outliers
 
-knitr::kable(plant_zscore %>% filter(plco2ra_zscore > 3 | plco2ra_zscore < -3) %>% 
-               arrange(desc(plco2ra_zscore)) %>% select(plant_id, plant_name, plco2ra_zscore, plco2ra))
+knitr::kable(plant_zscore %>% 
+               filter(plco2ra_zscore > 3 | plco2ra_zscore < -3) %>% 
+               arrange(desc(plco2ra_zscore)) %>% 
+               select(plant_id, plant_name, plco2ra_zscore, plco2ra))
 
 ```
 
 #### CH4 input rate
 
 ```{r}
-#| label: plant_ch4_input_outliers
-#| echo: false
-#| warning: false
+#| label: plant-ch4-input-outliers
 
-knitr::kable(plant_zscore %>% filter(plch4ra_zscore > 3 | plch4ra_zscore < -3) %>% 
-               arrange(desc(plch4ra_zscore)) %>% select(plant_id, plant_name, plch4ra_zscore, plch4ra))
+knitr::kable(plant_zscore %>% 
+               filter(plch4ra_zscore > 3 | plch4ra_zscore < -3) %>% 
+               arrange(desc(plch4ra_zscore)) %>% 
+               select(plant_id, plant_name, plch4ra_zscore, plch4ra))
 
 ```
 
 #### N2O input rate
 
 ```{r}
-#| label: plant_n2o_input_outliers
-#| echo: false
-#| warning: false
+#| label: plant-n2o-input-outliers
 
-knitr::kable(plant_zscore %>% filter(pln2ora_zscore > 3 | pln2ora_zscore < -3) %>% 
-               arrange(desc(pln2ora_zscore)) %>% select(plant_id, plant_name, pln2ora_zscore, pln2ora))
+knitr::kable(plant_zscore %>% 
+               filter(pln2ora_zscore > 3 | pln2ora_zscore < -3) %>% 
+               arrange(desc(pln2ora_zscore)) %>% 
+               select(plant_id, plant_name, pln2ora_zscore, pln2ora))
 
 ```
 
 #### CO2e input rate
 
 ```{r}
-#| label: plant_co2e_input_outliers
-#| echo: false
-#| warning: false
+#| label: plant-co2e-input-outliers
 
-knitr::kable(plant_zscore %>% filter(plc2era_zscore > 3 | plc2era_zscore < -3) %>% 
-               arrange(desc(plc2era_zscore)) %>% select(plant_id, plant_name, plc2era_zscore, plc2era))
+knitr::kable(plant_zscore %>% 
+               filter(plc2era_zscore > 3 | plc2era_zscore < -3) %>% 
+               arrange(desc(plc2era_zscore)) %>% 
+               select(plant_id, plant_name, plc2era_zscore, plc2era))
 
 ```
 :::
@@ -2136,65 +2144,59 @@ knitr::kable(plant_zscore %>% filter(plc2era_zscore > 3 | plc2era_zscore < -3) %
 #### NOx output rate
 
 ```{r}
-#| label: plant_nox_output_outliers
-#| echo: false
-#| warning: false
+#| label: plant-nox-output-outliers
 
-knitr::kable(plant_zscore %>% filter(nox_output_rate_zscore > 3 | nox_output_rate_zscore < -3) %>% 
-               arrange(desc(nox_output_rate_zscore)) %>% select(plant_id, plant_name, 
-                                                                nox_output_rate_zscore, nox_output_rate))
+knitr::kable(plant_zscore %>% 
+               filter(nox_output_rate_zscore > 3 | nox_output_rate_zscore < -3) %>% 
+               arrange(desc(nox_output_rate_zscore)) %>% 
+               select(plant_id, plant_name, nox_output_rate_zscore, nox_output_rate))
 
 ```
 
 #### NOx ozone output rate
 
 ```{r}
-#| label: plant_noxoz_output_outliers
-#| echo: false
-#| warning: false
+#| label: plant-noxoz-output-outliers
 
-knitr::kable(plant_zscore %>% filter(nox_oz_output_rate_zscore > 3 | nox_oz_output_rate_zscore < -3) %>% 
-               arrange(desc(nox_oz_output_rate_zscore)) %>% select(plant_id, plant_name, 
-                                                                   nox_oz_output_rate_zscore, nox_oz_output_rate))
+knitr::kable(plant_zscore %>% 
+               filter(nox_oz_output_rate_zscore > 3 | nox_oz_output_rate_zscore < -3) %>% 
+               arrange(desc(nox_oz_output_rate_zscore)) %>% select(plant_id, plant_name, nox_oz_output_rate_zscore, nox_oz_output_rate))
 
 ```
 
 #### SO2 output rate
 
 ```{r}
-#| label: plant_so2_output_outliers
-#| echo: false
-#| warning: false
+#| label: plant-so2-output-outliers
 
-knitr::kable(plant_zscore %>% filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
-               arrange(desc(so2_output_rate_zscore)) %>% select(plant_id, plant_name, 
-                                                                so2_output_rate_zscore, so2_output_rate))
+knitr::kable(plant_zscore %>% 
+               filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
+               arrange(desc(so2_output_rate_zscore)) %>% 
+               select(plant_id, plant_name, so2_output_rate_zscore, so2_output_rate))
 
 ```
 
 #### CO2 output rate
 
 ```{r}
-#| label: plant_co2_output_outliers
-#| echo: false
-#| warning: false
+#| label: plant-co2-output-outliers
 
-knitr::kable(plant_zscore %>% filter(co2_output_rate_zscore > 3 | co2_output_rate_zscore < -3) %>% 
-               arrange(desc(co2_output_rate_zscore)) %>% select(plant_id, plant_name, 
-                                                                co2_output_rate_zscore, co2_output_rate))
+knitr::kable(plant_zscore %>% 
+               filter(co2_output_rate_zscore > 3 | co2_output_rate_zscore < -3) %>% 
+               arrange(desc(co2_output_rate_zscore)) %>% 
+               select(plant_id, plant_name, co2_output_rate_zscore, co2_output_rate))
 
 ```
 
 #### CH4 output rate
 
 ```{r}
-#| label: plant_ch4_output_outliers
-#| echo: false
-#| warning: false
+#| label: plant-ch4-output-outliers
 
-knitr::kable(plant_zscore %>% filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
-               arrange(desc(so2_output_rate_zscore)) %>% select(plant_id, plant_name, 
-                                                                so2_output_rate_zscore, so2_output_rate))
+knitr::kable(plant_zscore %>% 
+               filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
+               arrange(desc(so2_output_rate_zscore)) %>% 
+               select(plant_id, plant_name, so2_output_rate_zscore, so2_output_rate))
 
 ```
 
@@ -2202,25 +2204,23 @@ knitr::kable(plant_zscore %>% filter(so2_output_rate_zscore > 3 | so2_output_rat
 
 ```{r}
 #| label: plant_n2o_output_outliers
-#| echo: false
-#| warning: false
 
-knitr::kable(plant_zscore %>% filter(n2o_output_rate_zscore > 3 | n2o_output_rate_zscore < -3) %>% 
-               arrange(desc(n2o_output_rate_zscore)) %>% select(plant_id, plant_name, 
-                                                                n2o_output_rate_zscore, n2o_output_rate))
+knitr::kable(plant_zscore %>% 
+               filter(n2o_output_rate_zscore > 3 | n2o_output_rate_zscore < -3) %>% 
+               arrange(desc(n2o_output_rate_zscore)) %>% 
+               select(plant_id, plant_name, n2o_output_rate_zscore, n2o_output_rate))
 
 ```
 
 #### CO2e output rate
 
 ```{r}
-#| label: plant_co2e_output_outliers
-#| echo: false
-#| warning: false
+#| label: plant-co2e-output-outliers
 
-knitr::kable(plant_zscore %>% filter(co2e_output_rate_zscore > 3 | co2e_output_rate_zscore < -3) %>% 
-               arrange(desc(co2e_output_rate_zscore)) %>% select(plant_id, plant_name, 
-                                                                 co2e_output_rate_zscore, co2e_output_rate))
+knitr::kable(plant_zscore %>% 
+               filter(co2e_output_rate_zscore > 3 | co2e_output_rate_zscore < -3) %>% 
+               arrange(desc(co2e_output_rate_zscore)) %>% 
+               select(plant_id, plant_name, co2e_output_rate_zscore, co2e_output_rate))
 
 ```
 :::
@@ -2230,18 +2230,17 @@ knitr::kable(plant_zscore %>% filter(co2e_output_rate_zscore > 3 | co2e_output_r
 The capacity factor must be less than 1. Check if there are any instances of a capacity factor greater than 1.
 
 ```{r}
-#| label: plant_cap_fac
-#| echo: false
-#| warning: false
+#| label: plant-cap-fac
 
 check_plant_capfac <- 
-  plant_file %>% filter(capfac > 1)
+  plant_file %>% 
+  filter(capfac > 1)
 
-ifelse(nrow(check_plant_capfac) == 0, "No plants have capacity factor greater than 1.", 
-        glue::glue("{nrow(check_plant_capfac)} plants have capacity factor greater than 1."))
+ifelse(nrow(check_plant_capfac) == 0, "Status: PASS - No plants have capacity factor greater than 1.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_capfac)} plants have capacity factor greater than 1."))
 
-knitr::kable(check_plant_capfac %>% select(plant_id, plant_name, plfuelct, 
-                                           plprmfl, capfac))
+knitr::kable(check_plant_capfac %>% 
+               select(plant_id, plant_name, plfuelct, plprmfl, capfac))
 
 
 ```
@@ -2249,17 +2248,17 @@ knitr::kable(check_plant_capfac %>% select(plant_id, plant_name, plfuelct,
 ## Electric allocation factor
 
 ```{r}
-#| label: plant_elec_allocation
-#| echo: false
-#| warning: false
+#| label: plant-elec-allocation
 
 check_plant_elec_alloc <- 
-  plant_file %>% filter(elcalloc < 0 | elcalloc > 1)
+  plant_file %>% 
+  filter(elcalloc < 0 | elcalloc > 1)
 
-ifelse(nrow(check_plant_elec_alloc) == 0, "No plants have an electric allocation factor greater than 1 or less than 0.", 
-        glue::glue("{nrow(check_plant_elec_alloc)} plants have electric allocation factor greater than 1 or less than 0."))
+ifelse(nrow(check_plant_elec_alloc) == 0, "Status: PASS - No plants have an electric allocation factor greater than 1 or less than 0.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_elec_alloc)} plants have electric allocation factor greater than 1 or less than 0."))
 
-knitr::kable(check_plant_elec_alloc %>% select(plant_id, plant_name, elcalloc))
+knitr::kable(check_plant_elec_alloc %>% 
+               select(plant_id, plant_name, elcalloc))
 
 ```
 
@@ -2268,46 +2267,45 @@ knitr::kable(check_plant_elec_alloc %>% select(plant_id, plant_name, elcalloc))
 Check if any subregions are blank.
 
 ```{r}
-#| label: plant_subrgn_blanks
-#| echo: false
-#| warning: false
+#| label: plant-subrgn-blanks
 
 check_plant_sbrgn_blanks <- 
-  plant_file %>% filter(is.na(subrgn) | subrgn == "")
+  plant_file %>% 
+  filter(is.na(subrgn) | subrgn == "")
 
 ifelse(nrow(check_plant_sbrgn_blanks) == 0, "No plants have blank subregions.", 
         glue::glue("{nrow(check_plant_sbrgn_blanks)} plants have blank subregions."))
 
-knitr::kable(check_plant_sbrgn_blanks %>% select(plant_id, plant_name, subrgn))
+knitr::kable(check_plant_sbrgn_blanks %>% 
+               select(plant_id, plant_name, subrgn))
 
 ```
 
 ## Nonbaseload factor
 
 ```{r}
-#| label: plant_nb_factor
-#| echo: false
-#| warning: false
-
+#| label: plant-nb-factor
+#| 
 check_plant_nb_factor <- 
-  plant_file %>% filter(nbfactor < 0 | nbfactor > 1)
+  plant_file %>% 
+  filter(nbfactor < 0 | nbfactor > 1)
 
 ifelse(nrow(check_plant_nb_factor) == 0, "No plants have a nonbaseload factor greater than 1 or less than 0.", 
         glue::glue("{nrow(check_plant_nb_factor)} plants have a nonbaseload factor greater than 1 or less than 0."))
 
-knitr::kable(check_plant_nb_factor %>% select(plant_id, plant_name, nbfactor))
+knitr::kable(check_plant_nb_factor %>% 
+               select(plant_id, plant_name, nbfactor))
 
 ```
 
 ## Primary fuel blanks
 
 ```{r}
-#| label: plant_fuel_blanks
-#| echo: false
-#| warning: false
+#| label: plant-fuel-blanks
 
 check_plant_fuel_blanks <- 
-  plant_file %>% filter(is.na(plprmfl) | plprmfl == "")
+  plant_file %>% 
+  filter(is.na(plprmfl) | plprmfl == "")
 
 ifelse(nrow(check_plant_fuel_blanks) == 0, "All plants have a primary fuel.", 
         glue::glue("{nrow(check_plant_fuel_blanks)} plants are missing a primary fuel."))
@@ -2319,9 +2317,7 @@ knitr::kable(check_plant_fuel_blanks %>% select(plant_id, plant_name, plprmfl))
 ## Primary fuel category matches primary fuel
 
 ```{r}
-#| label: plant_fuel_cat
-#| echo: false
-#| warning: false
+#| label: plant-fuel-cat
 
 check_plant_fuelcat <- 
   plant_file %>% filter(is.na(plfuelct) |
@@ -2354,12 +2350,11 @@ knitr::kable(check_plant_fuelcat %>% select(plant_id, plant_name, plprmfl, plfue
 Check if any values that have positive emission values are missing heat input.
 
 ```{r}
-#| label: plant_emissions_no_heatinput
-#| echo: false
-#| warning: false
+#| label: plant-emissions-no-heatinput
 
 check_plant_emissions_heatinput <- 
-  plant_file %>% filter((is.na(plhtiant) | is.na(plhtiozt)) & 
+  plant_file %>% 
+  filter((is.na(plhtiant) | is.na(plhtiozt)) & 
                         (plnoxan > 0 | plnoxoz > 0 | 
                          plso2an > 0 | plco2an > 0 |
                          plch4an > 0 | pln2oan > 0 | 
@@ -2379,9 +2374,7 @@ knitr::kable(check_plant_emissions_heatinput %>%
 Confirm that the resource mix adds to 100%.
 
 ```{r}
-#| label: plant_resource_mix
-#| echo: false
-#| warning: false
+#| label: plant-resource-mix
 
 plant_resource_mix <- 
   plant_file %>% 
@@ -2391,7 +2384,8 @@ plant_resource_mix <-
   select(plant_id, plant_name, resource_mix_total)
 
 check_plant_resource_mix <- 
-  plant_resource_mix %>% filter(!(resource_mix_total == 1)) %>% 
+  plant_resource_mix %>% 
+  filter(!(resource_mix_total == 1)) %>% 
   mutate()
 
 ifelse(nrow(check_plant_resource_mix) == 0, "All plant resource mixes add to 100%.", 
@@ -2408,13 +2402,11 @@ Load aggregation files.
 
 ```{r}
 #| label: load_agg_files
-#| echo: false
-#| warning: false
 
-state_agg <- read_rds("data/outputs/state_aggregation.RDS")
-ba_agg <- read_rds("data/outputs/ba_aggregation.RDS")
-subrgn_agg <- read_rds("data/outputs/egrid_subregion_aggregation.RDS")
-nerc_agg <- read_rds("data/outputs/nerc_aggregation.RDS")
+state_agg <- read_rds(glue::glue("data/outputs/{params$year}/state_aggregation.RDS"))
+ba_agg <- read_rds(glue::glue("data/outputs/{params$year}/ba_aggregation.RDS"))
+subrgn_agg <- read_rds(glue::glue("data/outputs/{params$year}/subregion_aggregation.RDS"))
+nerc_agg <- read_rds(glue::glue("data/outputs/{params$year}/nerc_aggregation.RDS"))
 
 ```
 
@@ -2424,68 +2416,73 @@ nerc_agg <- read_rds("data/outputs/nerc_aggregation.RDS")
 ### State
 
 ```{r}
-#| label: state_duplicates
-#| echo: false
-#| warning: false
+#| label: state-duplicates
 
 check_state_duplicates <- 
-  state_agg %>% group_by(state) %>% filter(n() > 1)
+  state_agg %>% 
+  group_by(state) %>% 
+  filter(n() > 1)
 
-ifelse(nrow(check_state_duplicates) == 0, "No duplicate states.", 
-        glue::glue("{nrow(check_state_duplicates)} duplicate states."))
+ifelse(nrow(check_state_duplicates) == 0, "Status: PASS - No duplicate states.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_state_duplicates)} duplicate states."))
 
-knitr::kable(check_state_duplicates %>% select(state))
+knitr::kable(check_state_duplicates %>% 
+               select(state))
 ```
 
 ### BA
 
 ```{r}
-#| label: ba_duplicates
-#| echo: false
-#| warning: false
+#| label: ba-duplicates
 
 check_ba_duplicates <- 
-  ba_agg %>% group_by(balance_authority_code) %>% filter(n() > 1)
+  ba_agg %>%
+  group_by(ba_code) %>% 
+  filter(n() > 1)
 
-ifelse(nrow(check_ba_duplicates) == 0, "No duplicate BA regions.", 
-        glue::glue("{nrow(check_ba_duplicates)} duplicate BA regions."))
+ifelse(nrow(check_ba_duplicates) == 0, "Status: PASS - No duplicate BA regions.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_ba_duplicates)} duplicate BA regions."))
 
-knitr::kable(check_ba_duplicates %>% select(balance_authority_code))
+knitr::kable(check_ba_duplicates %>% 
+               select(ba_code))
 ```
 
 ### eGRID subregion
 
 ```{r}
-#| label: subregion_duplicates
-#| echo: false
-#| warning: false
+#| label: subregion-duplicates
 
 check_subregion_duplicates <- 
-  subrgn_agg %>% group_by(sub_region) %>% filter(n() > 1)
+  subrgn_agg %>% 
+  group_by(subregion) %>% 
+  filter(n() > 1)
 
-ifelse(nrow(check_subregion_duplicates) == 0, "No duplicate eGRID subregions.", 
-        glue::glue("{nrow(check_subregion_duplicates)} duplicate states."))
+ifelse(nrow(check_subregion_duplicates) == 0, "Status: PASS - No duplicate eGRID subregions.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_subregion_duplicates)} duplicate states."))
 
-knitr::kable(check_subregion_duplicates %>% select(sub_region))
+knitr::kable(check_subregion_duplicates %>% 
+               select(subregion))
 ```
 
 ### NERC
 
 ```{r}
-#| label: nerc_duplicates
-#| echo: false
-#| warning: false
+#| label: nerc-duplicates
 
 check_nerc_duplicates <- 
-  nerc_agg %>% group_by(nerc) %>% filter(n() > 1)
+  nerc_agg %>% 
+  group_by(nerc) %>% 
+  filter(n() > 1)
 
-ifelse(nrow(check_nerc_duplicates) == 0, "No duplicate NERC regions.", 
-        glue::glue("{nrow(check_state_duplicates)} duplicate NERC regions."))
+ifelse(nrow(check_nerc_duplicates) == 0, "Status: PASS - No duplicate NERC regions.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_state_duplicates)} duplicate NERC regions."))
 
-knitr::kable(check_nerc_duplicates %>% select(nerc))
+knitr::kable(check_nerc_duplicates %>% 
+               select(nerc))
 ```
 :::
 
+* UPDATED TO THIS POINT *
 ## Resource mix
 
 ::: panel-tabset
