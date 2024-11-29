@@ -37,21 +37,21 @@ The data includes emissions, emission rates, generation, heat input, resource mi
 
 The final eGRID database includes eight levels of data aggregation:
 
--   **Unit** = A unit available to provide electric power to the grid.
+-   **Unit**: A unit available to provide electric power to the grid.
 
--   **Generator** = A facility that produces electricity, commonly expressed in kilowatthours (kWh) or megawatthours (MWh). Electric generators include electric utilities and independent power producers.
+-   **Generator**: A facility that produces electricity, commonly expressed in kilowatthours (kWh) or megawatthours (MWh). Electric generators include electric utilities and independent power producers.
 
--   **Plant** = A term commonly used either as a synonym for an industrial establishment or a generating facility or to refer to a particular process within an establishment.
+-   **Plant**: A term commonly used either as a synonym for an industrial establishment or a generating facility or to refer to a particular process within an establishment.
 
--   **State** = A political entity within the United States (U.S.) that has defined geographic borders. eGRID includes the official 50 U.S. states with territories District of Columbia (D.C.) and Puerto Rico (PR).
+-   **State**: A political entity within the United States (U.S.) that has defined geographic borders. eGRID includes the official 50 U.S. states with territories District of Columbia (D.C.) and Puerto Rico (PR).
 
--   **Balancing authority** = The responsible entity that integrates resource plans ahead of time, maintains load-interchange-generation balance within a balancing authority Area, and supports Interconnection frequency in real time.
+-   **Balancing authority**: The responsible entity that integrates resource plans ahead of time, maintains load-interchange-generation balance within a balancing authority Area, and supports Interconnection frequency in real time.
 
--   **eGRID subregion** = eGRID subregions are identified and defined by EPA and were developed as a compromise between NERC regions (which EPA felt were too big) and balancing authorities (which EPA felt were generally too small). Using NERC regions and balancing authorities as a guide, the subregions were defined to limit the import and export of electricity in order to establish an aggregated area where the determined emission rates most accurately matched the generation and emissions from the plants within that subregion.
+-   **eGRID subregion**: eGRID subregions are identified and defined by EPA and were developed as a compromise between NERC regions (which EPA felt were too big) and balancing authorities (which EPA felt were generally too small). Using NERC regions and balancing authorities as a guide, the subregions were defined to limit the import and export of electricity in order to establish an aggregated area where the determined emission rates most accurately matched the generation and emissions from the plants within that subregion.
 
--   **NERC region** = The North American Electric Reliability Corporation (NERC) consists of regional reliability entities covering the interconnected power regions of the contiguous United States, Canada, and Mexico.
+-   **NERC region**: The North American Electric Reliability Corporation (NERC) consists of regional reliability entities covering the interconnected power regions of the contiguous United States, Canada, and Mexico.
 
--   **US** = The total of all state data included in the database.
+-   **US**: The total of all state data included in the database.
 
 ## Using the .qmd file
 
@@ -195,13 +195,13 @@ sheets_used861 <- c("Balancing Authority",
 
 *Click through the tabs above to view files represented from each EIA source.*
 
-**EIA-923** = data reported on fuel consumption and generation
+**EIA-923**: Data reported on fuel consumption and generation
 
-**EIA-860** = data reported on electric generators
+**EIA-860**: Data reported on electric generators
 
-**EIA-861** = data collected from distribution utilities and power marketers
+**EIA-861**: Data collected from distribution utilities and power marketers
 
-**EIA-860m** = data reported monthly on generating units (used to obtain data for Puerto Rico)
+**EIA-860m**: Data reported monthly on generating units (used to obtain data for Puerto Rico)
 
 #### EIA-923
 
@@ -292,11 +292,11 @@ table_emissions_ozone <- create_summary_table(camd_emissions_ozone)
 
 *Click through the tabs above to view files represented from each CAMD source.*
 
-**CAMD facility attributes** = Columns 1 - 26 of `camd_raw.RDS`.
+**CAMD facility attributes**: Columns 1 - 26 of `camd_raw.RDS`.
 
-**CAMD annual emissions** = Columns 27 - 47 of `camd_raw.RDS`.
+**CAMD annual emissions**: Columns 27 - 47 of `camd_raw.RDS`.
 
-**CAMD ozone season emissions** = Columns 47 - 58 of `camd_raw.RDS`. The ozone season is defined as May through September.
+**CAMD ozone season emissions**: Columns 47 - 58 of `camd_raw.RDS`. The ozone season is defined as May through September.
 
 #### CAMD facility attributes
 
@@ -382,7 +382,7 @@ tab_xwalk <-
 ::: panel-tabset
 #### Overview
 
-*Click on tab to view static table files*
+*Click on the tab to view static table files*
 
 #### Files
 
@@ -806,10 +806,10 @@ library(gtExtras)
 create_summary_table(unit_file)
 ```
 
-#### Emission Distributions
+#### Heat Input Distributions
 
 ```{r}
-#| label: unt_file_distributions
+#| label: unt_file_heat_in_dist
 #| warning: false
 #| message: false
 #| fig-height: 10
@@ -832,26 +832,8 @@ plot_unt_heat_in_oz <-
   theme_minimal() +
   labs(title = "Heat Input Ozone")
 
-# plot_gen_ann_source <-
-#   unit_file %>%
-#   ggplot(aes(x = gen_data_source, y = generation_ann)) +
-#   ggiraph::geom_boxplot_interactive() +
-#   theme_minimal() +
-#   coord_flip() +
-#   scale_x_discrete(labels = scales::wrap_format(30)) +
-#   labs(title = "Annual Generation by Data Source")
-# 
-# (plot_gen_ann + plot_gen_oz) / plot_gen_ann_source
-
-plot_unt_heat_in + plot_unt_heat_in_oz
-```
-
-#### Distribution of Data Sources
-
-```{r}
-#| label: unit_file_data_source_dists
-
-unit_file %>%
+plot_unt_heat_in_source_dist <-
+  unit_file %>%
   count(heat_input_source) %>%
   mutate(proportion = n/sum(n)) %>%
   ggplot(aes(x = heat_input_source, y = proportion)) +
@@ -868,7 +850,8 @@ unit_file %>%
     x = NULL
     )
 
-unit_file %>%
+plot_unt_heat_in_oz_source_dist <-
+  unit_file %>%
   count(heat_input_oz_source) %>%
   mutate(proportion = n/sum(n)) %>%
   ggplot(aes(x = heat_input_oz_source, y = proportion)) +
@@ -885,7 +868,79 @@ unit_file %>%
     x = NULL
     )
 
+
+(plot_unt_heat_in + plot_unt_heat_in_oz) / (plot_unt_heat_in_source_dist + plot_unt_heat_in_oz_source_dist)
+
 ```
+
+
+#### NOx Distributions
+
+```{r}
+#| label: unt_file_nox_dist
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_unt_nox <-
+  unit_file %>%
+  ggplot(aes(x = nox_mass)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "NOx Mass")
+
+plot_unt_nox_oz <-   
+  unit_file %>%
+  ggplot(aes(x = nox_oz_mass)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "NOx Mass Ozone")
+
+plot_unt_nox_sources_dist <-
+  unit_file %>%
+  count(nox_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = nox_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of NOx mass data sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+plot_unt_nox_oz_source_dist <-
+  unit_file %>%
+  count(nox_oz_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = nox_oz_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of NOx mass ozone data sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+
+(plot_unt_nox + plot_unt_nox_oz) / (plot_unt_nox_sources_dist) / (plot_unt_nox_oz_source_dist)
+
+```
+
 :::
 
 # Plant File
@@ -1018,15 +1073,15 @@ us_agg  <- read_rds(
 
 *Click through the tabs above to preview data for each region aggregation.*
 
-**BA** = Balancing Authority Aggregation
+**BA**: Balancing Authority Aggregation
 
-**ST** = State Aggregation
+**ST**: State Aggregation
 
-**SRL** = Sub-region Aggregation
+**SRL**: Sub-region Aggregation
 
-**NRL** = NERC Region Aggregation
+**NRL**: NERC Region Aggregation
 
-**US** = U.S. Aggregation
+**US**: U.S. Aggregation
 
 #### BA
 
@@ -1228,7 +1283,7 @@ Add code chunk later
 
 # Final Formatting
 
-In order to output the data into a clean, readable form, a final style script is applied for all output files. For headers, we add descriptions and label conventions to maintain consistency with previous eGRID releases. Using R package `openxlsx`, we apply formatting and colors to categorize outputs and values. Formatting is applied for both imperial unit version and the metric unit version.
+To output the data into a clean, readable form, a final style script is applied for all output files. For headers, we add descriptions and label conventions to maintain consistency with previous eGRID releases. Using R package `openxlsx`, we apply formatting and colors to categorize outputs and values. Formatting is applied for both imperial unit version and the metric unit version.
 
 <!-- ```{r} -->
 
