@@ -26,6 +26,11 @@ library(rjson)
 library(httr)
 library(jsonlite)
 
+
+library(devtools)
+install_github(repo = "USEPA/EJSCREENbatch")
+library(EJSCREENbatch)
+
 ### Set Params ------
 
 if (exists("params")) {
@@ -89,7 +94,7 @@ for (i in 1:nrow(id_input)) {
   id  <- id_input[i,]
   
   lat <- lat_input[i,]
-  
+ 
   lon <- lon_input[i,]
   
   # print which plant_id
@@ -113,24 +118,23 @@ for (i in 1:nrow(id_input)) {
     
     # extract data 
     data <- content(res, as = "text", encoding ="UTF-8")
-    
+  
     # from extracted data, transform from JSON format
-    parsed_data <- fromJSON(data, flatten = TRUE)
-    
-    # unlist data into useable format
-    # parsed_data <- data.frame(matrix(unlist(parsed_data), 
-    #                           ncol = length(parsed_data[[1]]), byrow = TRUE), 
-    #                           stringsAsFactors = FALSE)
+    output_data <- fromJSON(data, flatten = TRUE)
     
     # converts to useable format
-    output_data <- cbind(parsed_data)
-    
+    output_data <- cbind(output_data)
+
     # inverses row/column direction
     output_data <- t(output_data)
     
+    # add id input column for identification
+    #output_data <- c(id, output_data)
+  
     # add output data to list
     demo_data[[i]] <- output_data
     
+
   } else {
     
     print("Error:", status_code(response))
@@ -138,15 +142,18 @@ for (i in 1:nrow(id_input)) {
   
 }
 
-demo_data <- t(demo_data)
-demo_data <- rbind(demo_data)
+demo_data <- do.call(rbind, demo_data)
 demo_data <- as.data.frame(demo_data)
+
+demo_data <- cbind(plant_file, demo_data)
+
+# takes around 2- 3 hours to full load and process
+
 
 write.xlsx(demo_data, file = glue::glue("data/outputs/{params$eGRID_year}/demo_file.xlsx"))
 
-demo_file <- read_xlsx(glue::glue("data/outputs/{params$eGRID_year}/demo_file.xlsx"))
 
-# keep list within the loop 
+# demo_file <- read_xlsx(glue::glue("data/outputs/{params$eGRID_year}/demo_file.xlsx"))
 
 # colnames(output_data) <- c("headers", "values")
 
@@ -163,3 +170,10 @@ demo_file <- read_xlsx(glue::glue("data/outputs/{params$eGRID_year}/demo_file.xl
 # attach desired plant_file columns
 # view_data <- as.data.frame(view_data)
 
+
+## Using EJScreen Batch
+# plant_input <- plant_file %>%
+#                filter(!is.na(lat) & !is.na(lon)) %>%
+#                sf::st_as_sf(coords = c("lon", "lat"), crs = 4326)
+# 
+# ej_data <- EJfunction(plant_input, buffer = 3, raster = T)
