@@ -81,8 +81,8 @@ xwalk_eia_camd <- # xwalk for updating certain plants to camd plant names and id
   read_csv("data/static_tables/xwalk_oris_camd.csv", 
            col_types = "cccc") # all fields are characters
 
-manual_edits <- 
-  read_xlsx("data/static_tables/manual_edits.xlsx", 
+manual_corrections <- 
+  read_xlsx("data/static_tables/manual_corrections.xlsx", 
             sheet = "generator_file", 
             col_types = c("text", "text", "text", "text"))
 
@@ -116,24 +116,24 @@ print(glue::glue("{length(lookup_860_leading_zeroes)} generator IDs have leading
 
 # Create modified dfs that will be used to calculate generation values ---------
 
-gen_id_manual_edits <- 
-  manual_edits %>% 
-  filter(column_to_update == "generator_id")
+gen_id_manual_corrections <- 
+  manual_corrections %>% 
+  filter(column_to_update == "generator_id") 
 
 eia_923_gen_r <- 
   eia_923_gen %>% 
-  left_join(gen_id_manual_edits, by = c("plant_id", "generator_id")) %>% 
+  left_join(gen_id_manual_corrections, by = c("plant_id", "generator_id")) %>% 
   mutate(
     generator_id = str_remove(generator_id, "^0+"), # remove leading zeroes from generator IDs
-    generator_id = if_else(!is.na(update), update, generator_id)) %>% # update generator IDs from manual_edits
+    generator_id = if_else(!is.na(update), update, generator_id)) %>% # update generator IDs from manual_corrections
   select(-update, -column_to_update)
 
 eia_860_combined_r <- 
   eia_860_combined %>% 
-  left_join(gen_id_manual_edits, by = c("plant_id", "generator_id")) %>% 
+  left_join(gen_id_manual_corrections, by = c("plant_id", "generator_id")) %>% 
   mutate(
     generator_id = str_remove(generator_id, "^0+"), # remove leading zeroes from generator IDs
-    generator_id = if_else(!is.na(update), update, generator_id)) %>% # update generator IDs from manual_edits
+    generator_id = if_else(!is.na(update), update, generator_id)) %>% # update generator IDs from manual_corrections
   select(-update, -column_to_update)
     
 eia_860_boiler_count <- # creating count of boilers for each generator
@@ -367,11 +367,11 @@ generators_edits <-
   generators_combined %>% 
   mutate(id = paste0(plant_id, "_", generator_id), 
          fuel_code = recode(id_pm, !!!lookup_fuel_codes, .default = energy_source_1), # creating fuel_code based on lookup table and energy_source_1 if not in lookup table. recode() essentially matches on id, then replaces with key value  
+         generator_id = recode(id, !!!lookup_860_leading_zeroes, .default = generator_id), # updating generator ID to add back in leading zeroes
+         generator_id = recode(id, !!!lookup_923_leading_zeroes, .default = generator_id), # updating generator ID to add back in leading zeroes
          plant_id = recode(plant_id, !!!lookup_eia_id_camd_id), # updating plant_id to corresponding camd ids with lookup table
          plant_name = recode(plant_id, !!!lookup_camd_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
          gen_data_source = if_else(is.na(generation_ann), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
-         generator_id = recode(id, !!!lookup_860_leading_zeroes, .default = generator_id), # updating generator ID to add back in leading zeroes
-         generator_id = recode(id, !!!lookup_923_leading_zeroes, .default = generator_id), # updating generator ID to add back in leading zeroes
          year = params$eGRID_year,
          capfact = generation_ann / (nameplate_capacity * 8760)) %>%  # calculating capacity factor
   left_join(eia_860_boiler_count)

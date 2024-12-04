@@ -52,10 +52,10 @@ generator_r <-
          "generator_id" = "generator_id_r") %>% select(-seqgen_r)
 
 # load access dataset (from published 2021 eGRID excel sheet)  
-generator_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "GEN21", 
+generator_access <- read_excel("data/raw_data/eGRID_Data2023.xlsx", sheet = "GEN23", 
                                skip = 1, 
                                guess_max = 4000) %>% janitor::clean_names() %>% 
-  select(-seqgen) %>% 
+  select(-seqgen23) %>% 
   rename("year_access" = "year", 
          "plant_id" = "orispl",
          "plant_name_access" = "pname", 
@@ -129,7 +129,7 @@ check_n_boilers <-
   select(plant_id, generator_id, n_boilers_r, n_boilers_access)
 
 if(nrow(check_n_boilers) > 0) {
-  write_csv(check_plant_state, paste0(save_dir, "check_n_boilers.csv")) }
+  write_csv(check_n_boilers, paste0(save_dir, "check_n_boilers.csv")) }
 
 # check if operating status matches ---------------
 check_status <- 
