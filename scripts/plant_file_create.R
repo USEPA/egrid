@@ -738,6 +738,8 @@ plant_file_11 <-
 
 # Biomass adjustment -------------
 
+# Emissions from biomass plants are adjusted to account for the CO2 sequestered during biomass growth equals the amount released during combustion
+
 ## Biomass Fuels adjustment (CO2) ----------------
 
 # identify biomass fuels to add adjustments for
@@ -921,7 +923,16 @@ plant_file_14 <-
 
 # CHP plants ---------------
 
+# Some plants are designated as Combined Heat and Power (CHP) plants
+# These plants produce electricity as well as useful thermal energy (such as heat or steam) for industrial, commercial, heating or cooling
+# Emissions from eGRID only represent those from electricity generation, 
+# so we adjust for emissions created from CHP plants that are used for other purposes than electricity
+
 ## Calculate useful thermal output, power heat ratio , and electric allocation factor ---------------------
+
+# Useful thermal output is the fuel consumption in a plant that contributes to non-electricity activities
+# Electricity allocation is a ratio of emissions that are attributed to electricity
+# Power to heat ratio is is the ratio of heat value of electricity genreation to the facility's useful thermal output
 
 # sum total fuel consumption and electric fuel consumption to the plant level
 eia_923_thermal_output <- 
@@ -929,7 +940,6 @@ eia_923_thermal_output <-
   group_by(plant_id) %>%
   summarize(total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE),
             elec_fuel_consumption_mmbtu = sum(elec_fuel_consumption_mmbtu, na.rm = TRUE)) %>% ungroup()
-
 
 chp <- 
   chp_plants %>% 
