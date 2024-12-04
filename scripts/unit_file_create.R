@@ -665,7 +665,7 @@ eia_923_boilers_grouped <-
   group_by(plant_id,
            boiler_id, 
            prime_mover,
-           fuel_type) %>% 
+           fuel_type) %>%
   mutate(heat_input = sum(heat_input),
          heat_input_oz = sum(heat_input_oz)) %>% 
   ungroup()
@@ -1270,7 +1270,7 @@ estimated_so2_emissions_content_pr <- # estimate SO2 mass for PR coal plants
 # if it is, we reassign the calculated SO2 mass estimated from sulfur content
 
 so2_update <- 
-  all_units_5 %>% 
+  all_units_4 %>% 
   filter(heat_input > 0, so2_mass == 0, prime_mover != "FC", primary_fuel_type %in% combustion_fuels) %>% 
   mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
   pull(id)
@@ -1286,7 +1286,7 @@ all_units_5 <- # update all units
               by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
   rows_patch(estimated_so2_emissions_content_pr, 
               by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
-  rows_update(so2_sulfur_patch %>% select(-unit_flag, -id), 
+  rows_update(so2_sulfur_update %>% select(-unit_flag, -id), 
               by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore")
 
 
