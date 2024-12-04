@@ -1837,7 +1837,7 @@ stack_info <-
                                           stack_flue_status, 
                                           stack_height_feet),
             by = c("plant_id", "stack_flue_id")) %>% 
-  group_by(plant_id, unit_id) %>% 
+  group_by(plant_id, unit_id, prime_mover) %>% 
   summarize(stack_flue_id = paste(stack_flue_id, collapse = ", "), 
             stack_flue_status = paste(stack_flue_status, collapse = ", "), 
             stack_height_feet = paste(stack_height_feet, collapse = ", ")) %>% 
@@ -1878,7 +1878,7 @@ update_fc_data <-
          co2_source = NA_character_, 
          co2_mass = as.numeric(co2_mass), 
          co2_source = as.character(co2_source)) %>% 
-  select(plant_id, unit_id, co2_mass, co2_source) 
+  select(plant_id, unit_id, prime_mover, co2_mass, co2_source) 
 
 ## Delete specified units -------- 
 ### Delete units in "Units to remove" table, which is manually updated each year ----------
@@ -1893,7 +1893,7 @@ delete_retired_units <-
   eia_860$boiler_info_design_parameters %>% 
   left_join(all_units_10 %>% select(plant_id, unit_id, operating_status), 
             by = c("plant_id", "boiler_id" = "unit_id")) %>% 
-  filter(boiler_status == "RE" & as.numeric(retirement_year) < params$eGRID_year &
+  filter(boiler_status == "RE" & as.numeric(retirement_year) < as.numeric(params$eGRID_year) &
            (operating_status == "RE" | is.na(operating_status))) %>% 
   select(plant_id, 
          unit_id = "boiler_id", 
@@ -1948,6 +1948,7 @@ update_status_boilers <- # operating status for boilers updated via EIA-860 Boil
 
 # ID CAMD units 
 camd_units <- camd_7 %>% pull(id)
+camd_units_no_pm <- camd_7 %>% mutate(id = paste0(plant_id, "_", unit_id)) %>% pull(id) # PR crosswalk does not have PM data, just match on plant and unit ID
 
 # update PR CAMD flag from crosswalk
 update_pr_camd_flag <- 
@@ -1956,13 +1957,13 @@ update_pr_camd_flag <-
          "unit_id" = "eia_unit_id", 
          "plant_name" = "eia_plant_name") %>% 
   mutate(id = paste0(plant_id, "_", unit_id), 
-         camd_flag = if_else(id %in% camd_units, "Yes", NA_character_)) %>% 
+         camd_flag = if_else(id %in% camd_units_no_pm, "Yes", NA_character_)) %>% 
   filter(camd_flag == "Yes")
 
 # create CAMD flag 
 all_units_11 <- 
   all_units_10 %>%  
-  mutate(camd_flag = if_else(paste0(plant_id, "_", unit_id) %in% camd_units, "Yes", NA_character_)) %>% 
+  mutate(camd_flag = if_else(paste0(plant_id, "_", unit_id, "_", prime_mover) %in% camd_units, "Yes", NA_character_)) %>% 
   rows_update(update_pr_camd_flag, by = c("plant_id", "unit_id"))
 
 
@@ -1979,7 +1980,7 @@ plant_name_updates <-
 
 all_units_12 <- 
   all_units_11 %>% # update to most recent unit file data frame
-  left_join(stack_info, by = c("plant_id", "unit_id")) %>% 
+  left_join(stack_info, by = c("plant_id", "unit_id", "prime_mover")) %>% 
   left_join(plant_id_updates, by = c("plant_id")) %>% 
   mutate(plant_id = if_else(!is.na(plant_id_update), plant_id_update, plant_id)) %>% 
   left_join(plant_name_updates, by = c("plant_id")) %>% 
