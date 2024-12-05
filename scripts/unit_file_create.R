@@ -1832,18 +1832,16 @@ stack_info <-
                                                  boiler_id, 
                                                  stack_flue_id), 
             by = c("plant_id", "unit_id" = "boiler_id")) %>% 
-  left_join(eia_860$stack_flue %>% select(plant_id, # merge in stack flue status and stack height using stack flue ID
+  inner_join(eia_860$stack_flue %>% select(plant_id, # merge in stack flue status and stack height using stack flue ID
                                           "stack_flue_id" = stack_or_flue_id, 
                                           stack_flue_status, 
                                           stack_height_feet),
             by = c("plant_id", "stack_flue_id")) %>% 
   group_by(plant_id, unit_id, prime_mover) %>% 
-  summarize(stack_flue_id = paste(stack_flue_id, collapse = ", "), 
-            stack_flue_status = paste(stack_flue_status, collapse = ", "), 
-            stack_height_feet = paste(stack_height_feet, collapse = ", ")) %>% 
-  mutate(stack_flue_id = if_else(stack_flue_id == "NA", NA_character_, stack_flue_id),
-         stack_flue_status = if_else(stack_flue_status == "NA", NA_character_, stack_flue_status),
-         stack_height_feet = if_else(stack_height_feet == "NA", NA_character_, stack_height_feet))
+  filter(stack_flue_status == "OP") %>% # only include operating stacks
+  slice_max(stack_height_feet) %>% # only include highest stack 
+  ungroup() %>% 
+  select(plant_id, unit_id, prime_mover, stack_flue_id, stack_flue_status, stack_height_feet)
 
 ## Clean up source flags --------
 
@@ -2045,9 +2043,9 @@ final_vars <-
     "NOXCTLDV" = "nox_controls", 
     "HGCTLDV" = "hg_controls_flag", 
     "UNTYRONL" = "year_online", 
-    "STFLID" = "stack_flue_id", 
-    "STFLST" = "stack_flue_status", 
-    "STFLHT" = "stack_height_feet")
+    "STACKID" = "stack_flue_id", 
+    "STACKST" = "stack_flue_status", 
+    "STACKHT" = "stack_height_feet")
 
 units_formatted <-
   all_units_12 %>%
