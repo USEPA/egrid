@@ -79,6 +79,10 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))) {
 } else { 
    stop("unit_file.RDS does not exist. Run unit_file_create.R to obtain.")}
 
+### Load necessary functions --------------------
+
+source("scripts/functions/function_paste_concat.R")
+source("scripts/functions/function_update_source.R")
 
 ### Load crosswalks and static tables ----------------------
 
@@ -203,26 +207,6 @@ egrid_subregions <-
   read_csv("data/static_tables/egrid_nerc_subregions.csv") %>% janitor::clean_names() %>% 
   rename("egrid_subregion" = "subrgn",
          "egrid_subregion_name" = "srname")
-
-# Create a function to string concatenate unique values that are not NA ----------
-# since we aggregate the unit and generator file to the plant ID level, this function keeps all text entries
-
-paste_concat <- function(l, number = FALSE, concat = TRUE){
-  l <- l[!is.na(l)]
-  l <- l[l!="NA" & l!=""]
-  l[order(l)]
-  
-  if(length(unique(l)) == 0){txt <- NA_character_
-  } else if(concat){
-      txt <- paste0(unique(l), collapse = ", ")
-      if(txt == ""){txt <- NA_character_}
-  } else{
-    txt = unique(l)
-  }
-   if(number){return(as.numeric(txt)) # convert to numeric if it can
-    } else{return(txt)}
-}
-
 
 # Aggregate unit file to plant level ------------------------
 
@@ -1116,41 +1100,8 @@ plant_file_21 <-
 
 # Update source columns ------------------------------
 
-# this function simplifies the source and removes any duplicate sources
-update_source <- function(x, unit_f) {
-  str_col <- x
-  x <- as.name(x)
-  
-  # update sources in unit file
-  unit_source <- unit_f %>% select(plant_id, !!x) %>% group_by(plant_id, !!x) %>% filter(!is.na(!!x)) %>%
-    mutate(source_update = case_when(!!x == "EIA Unit-level Data" ~ "EIA",
-                                     !!x == "EIA Unit-Level Data" ~ "EIA",
-                                     !!x == "EIA Prime Mover-level Data" ~ "EIA",
-                                     !!x == "EPA/CAMD" ~ "EPA/CAMD", 
-                                     !!x == "EIA non-ozone season distributed and EPA/CAMD ozone season" ~ "EPA/CAMD; EIA", 
-                                     !!x == "Estimated using emissions factor" ~ "EIA"))
-  
-  # identify unique plant ID source updates
-  unit_source <- unit_source %>% ungroup() %>%
-    select(plant_id, source_update) %>%
-    unique
-  
-  # identify which plant_ids have multiple sources and pull their plant ID
-  ids <- unit_source$plant_id[which(duplicated(unit_source$plant_id))] %>% unique()
-  
-  # if plant_ids have multiple sources, assign "EPA/CAMD; EIA"
-  unit_source <- 
-    unit_source %>% 
-    mutate(source_update = if_else(plant_id %in% ids, "EPA/CAMD; EIA", source_update)) 
-    unique # take unique again to remove duplicates
-    
-  colnames(unit_source) <- c("plant_id", str_col)
-  
-  return(unique(unit_source))
-}
-
+# list of allowed sources to aid in checking that all sources are updated correctly
 check_source_list <- c("EIA" ,"EPA/CAMD", NA_character_, "EPA/CAMD; EIA")
-
 
 ### Update heat_input_source ----------
 

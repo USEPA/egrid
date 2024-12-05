@@ -1,0 +1,45 @@
+## -------------------------------
+##
+## Update sources 
+## 
+## Purpose: 
+## 
+## This file creates a function that updates sources to be more general in the plant file
+##
+## Authors:  
+##      Sara Sokolinski, Abt Global
+##
+## -------------------------------
+
+# this function simplifies the source and removes any duplicate sources
+update_source <- function(x, unit_f) {
+  str_col <- x
+  x <- as.name(x)
+  
+  # update sources in unit file
+  unit_source <- unit_f %>% select(plant_id, !!x) %>% group_by(plant_id, !!x) %>% filter(!is.na(!!x)) %>%
+    mutate(source_update = case_when(!!x == "EIA Unit-level Data" ~ "EIA",
+                                     !!x == "EIA Unit-Level Data" ~ "EIA",
+                                     !!x == "EIA Prime Mover-level Data" ~ "EIA",
+                                     !!x == "EPA/CAMD" ~ "EPA/CAMD", 
+                                     !!x == "EIA non-ozone season distributed and EPA/CAMD ozone season" ~ "EPA/CAMD; EIA", 
+                                     !!x == "Estimated using emissions factor" ~ "EIA"))
+  
+  # identify unique plant ID source updates
+  unit_source <- unit_source %>% ungroup() %>%
+    select(plant_id, source_update) %>%
+    unique
+  
+  # identify which plant_ids have multiple sources and pull their plant ID
+  ids <- unit_source$plant_id[which(duplicated(unit_source$plant_id))] %>% unique()
+  
+  # if plant_ids have multiple sources, assign "EPA/CAMD; EIA"
+  unit_source <- 
+    unit_source %>% 
+    mutate(source_update = if_else(plant_id %in% ids, "EPA/CAMD; EIA", source_update)) 
+  unique # take unique again to remove duplicates
+  
+  colnames(unit_source) <- c("plant_id", str_col)
+  
+  return(unique(unit_source))
+}
