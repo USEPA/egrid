@@ -20,6 +20,7 @@ library(stringr)
 library(readr)
 library(dplyr)
 library(lubridate)
+library(tidyr)
 
 # check if parameters for eGRID data year need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
@@ -38,6 +39,13 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
+# Check if folder to store raw data exists, if not - create it
+if (!dir.exists(glue::glue("data/raw_data/camd/{params$eGRID_year}"))) {
+  dir.create(glue::glue("data/raw_data/camd/{params$eGRID_year}"), recursive = TRUE)
+}
+
+# Load necessary functions
+source("scripts/functions/function_coalesce_join_vars.R")
 
 # Set your API key here
 api_key <- read_lines("api_keys/camd_api_key.txt")
@@ -140,8 +148,8 @@ emissions_data_r <-
          reporting_frequency = if_else(grepl("january|february|march|october|november|december", # filtering out non-ozone season reporting months, excluding april
                                              reporting_months), "Q", "OS")) %>% # assigning reporting frequency 
   group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% 
-  mutate(across(cols_to_sum, ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions
-         across(cols_to_sum, ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
+  mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions
+         across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
   select(-month) %>% # removing month so distinct() will aggregate to unit level
   select(-all_of(cols_to_sum), reporting_months, reporting_frequency) %>% 
   rename_with(.cols = contains("_annual"), # removing annual suffix
@@ -177,10 +185,10 @@ cols <- # specifying columns to keep
     "hg_controls"
   )
 
-# updating relevant columns to numeric and aggregating to mon
+# updating relevant columns to numeric and aggregating to month
 mats_data_r <- 
   mats_data %>% 
-  rename_with(tolower) %>% # this protects NoX rates from getting split with clean_names()
+  rename_with(tolower) %>% # this protects NOx rates from getting split with clean_names()
   janitor::clean_names() %>%
   select(all_of(cols)) %>%
   mutate(hg_mass_lbs = as.numeric(hg_mass_lbs),
@@ -202,14 +210,14 @@ camd_data_combined <-
   
 ## Saving CAMD data 
 
-print("Writing file camd.RDS to folder data/raw_data/camd.")
+print(glue::glue("Writing file camd.RDS to folder data/raw_data/camd/{params$eGRID_year}."))
 
 readr::write_rds(camd_data_combined, 
-                 file = "data/raw_data/camd/camd_raw.RDS")
+                 file = glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_raw.RDS"))
 
 # check if file is successfully written to folder 
-if(file.exists("data/raw_data/camd/camd_raw.RDS")){
-  print("File camd_raw.RDS successfully written to folder data/raw_data/camd")
+if(file.exists(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_raw.RDS"))){
+  print(glue::glue("File camd_raw.RDS successfully written to folder data/raw_data/camd/{params$eGRID_year}"))
 } else {
    print("File camd_raw.RDS failed to write to folder.")
 }

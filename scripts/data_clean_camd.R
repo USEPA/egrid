@@ -41,7 +41,7 @@ if (exists("params")) {
 
 # Read raw CAMD files -------
 
-camd_raw <- read_rds("data/raw_data/camd/camd_raw.RDS")
+camd_raw <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_raw.RDS"))
 
 
 # standardizing variables names to match eia data and removing retired and inactive plants
@@ -85,7 +85,7 @@ camd_r <-
   camd_raw %>% 
   rename(any_of(rename_cols)) %>%
   filter(!operating_status %in% c("Future", "Retired", "Long-term Cold Storage"), # removing plants that are listed as future, retired, or long-term cold storage
-         plant_id < 80000) %>% # removing plant with plant ids above 80,000
+         (plant_id < 80000 | (plant_id > 80000 & plant_state == "PR"))) %>% # removing plant with plant ids above 80,000 unless they are in Puerto Rico
   mutate(
     heat_input_source = if_else(is.na(heat_input_mmbtu), NA_character_, "EPA/CAMD"), # creating source variables based on emissions data
     heat_input_oz_source = if_else(is.na(heat_input_mmbtu_ozone), NA_character_, "EPA/CAMD"),
@@ -133,8 +133,7 @@ camd_final <- # removing unnecessary columns and final renames
   mutate(across(ends_with("id"), ~ as.character(.x)))
 
 
-
-# Save clean camd file ------------
+# Save clean CAMD file ------------
 
 # creating folder if not already present
 
@@ -144,11 +143,17 @@ if(!dir.exists("data/clean_data/camd")){
   print("Folder data/clean_data/camd already exists.")
 }
 
-write_rds(camd_final, "data/clean_data/camd/camd_clean.RDS")
+if(!dir.exists(glue::glue("data/clean_data/camd/{params$eGRID_year}"))){
+  dir.create(glue::glue("data/clean_data/camd/{params$eGRID_year}"))
+} else{
+  print(glue::glue("Folder data/clean_data/camd/{params$eGRID_year} already exists."))
+}
+
+write_rds(camd_final, glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS"))
 
 # check if file is successfully written to folder 
-if(file.exists("data/clean_data/camd/camd_clean.RDS")){
-  print("File camd_clean.RDS successfully written to folder data/clean_data/camd")
+if(file.exists(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS"))){
+  print(glue::glue("File camd_clean.RDS successfully written to folder data/clean_data/camd/{params$eGRID_year}"))
 } else {
   print("File camd_clean.RDS failed to write to folder.")
 }
