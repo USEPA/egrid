@@ -665,7 +665,7 @@ create_summary_table(generator_file)
 
 ```
 
-#### Generation distributions (overall)
+#### Generation Distributions
 
 ```{r}
 #| label: gen_file_distributions 
@@ -681,14 +681,14 @@ library(ggiraph)
 plot_gen_ann <- 
   generator_file %>% 
   ggplot(aes(x = generation_ann)) + 
-  geom_boxplot() +
+  geom_histogram() +
   theme_minimal() +
   labs(title = "Annual Generation")
 
 plot_gen_oz <-
   generator_file %>% 
   ggplot(aes(x = generation_oz)) +
-  geom_boxplot() +
+  geom_histogram() +
   theme_minimal() +
   labs(title = "Ozone Months Generation")
 
@@ -723,7 +723,7 @@ generator_file %>%
             nudge_y = .05) +
   theme_minimal() +
   labs(
-    title = "Distribution of generation data sources",
+    title = "Distribution of Generation Data Sources",
     y = "Share of generators",
     x = NULL
   )
@@ -821,14 +821,14 @@ library(ggiraph)
 plot_unt_heat_in <-
   unit_file %>%
   ggplot(aes(x = heat_input)) +
-  geom_boxplot() +
+  geom_histogram() +
   theme_minimal() +
   labs(title = "Heat Input")
 
 plot_unt_heat_in_oz <-   
   unit_file %>%
   ggplot(aes(x = heat_input_oz)) +
-  geom_boxplot() +
+  geom_histogram() +
   theme_minimal() +
   labs(title = "Heat Input Ozone")
 
@@ -845,7 +845,7 @@ plot_unt_heat_in_source_dist <-
             nudge_y = .05) +
   theme_minimal() +
   labs(
-    title = "Distribution of heat input data sources",
+    title = "Distribution of Heat Input Data Sources",
     y = "Share of units",
     x = NULL
     )
@@ -863,16 +863,15 @@ plot_unt_heat_in_oz_source_dist <-
             nudge_y = .05) +
   theme_minimal() +
   labs(
-    title = "Distribution of heat input ozone data sources",
+    title = "Distribution of Heat Input Ozone Data Sources",
     y = "Share of units",
     x = NULL
     )
 
 
-(plot_unt_heat_in + plot_unt_heat_in_oz) / (plot_unt_heat_in_source_dist + plot_unt_heat_in_oz_source_dist)
+(plot_unt_heat_in + plot_unt_heat_in_oz) / plot_unt_heat_in_source_dist / plot_unt_heat_in_oz_source_dist
 
 ```
-
 
 #### NOx Distributions
 
@@ -889,14 +888,14 @@ library(ggiraph)
 plot_unt_nox <-
   unit_file %>%
   ggplot(aes(x = nox_mass)) +
-  geom_boxplot() +
+  geom_histogram() +
   theme_minimal() +
   labs(title = "NOx Mass")
 
 plot_unt_nox_oz <-   
   unit_file %>%
   ggplot(aes(x = nox_oz_mass)) +
-  geom_boxplot() +
+  geom_histogram() +
   theme_minimal() +
   labs(title = "NOx Mass Ozone")
 
@@ -913,7 +912,7 @@ plot_unt_nox_sources_dist <-
             nudge_y = .05) +
   theme_minimal() +
   labs(
-    title = "Distribution of NOx mass data sources",
+    title = "Distribution of NOx Mass Data Sources",
     y = "Share of units",
     x = NULL
     )
@@ -931,13 +930,140 @@ plot_unt_nox_oz_source_dist <-
             nudge_y = .05) +
   theme_minimal() +
   labs(
-    title = "Distribution of NOx mass ozone data sources",
+    title = "Distribution of NOx Mass Ozone Data Sources",
     y = "Share of units",
     x = NULL
     )
 
 
 (plot_unt_nox + plot_unt_nox_oz) / (plot_unt_nox_sources_dist) / (plot_unt_nox_oz_source_dist)
+
+```
+
+#### SO2 Distributions
+
+```{r}
+#| label: unt_file_so2_dist
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_unt_so2 <-
+  unit_file %>%
+  ggplot(aes(x = so2_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "SO2 Mass")
+
+plot_unt_so2_sources_dist <-
+  unit_file %>%
+  count(so2_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = so2_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of SO2 Mass Data Sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+
+plot_unt_so2 / plot_unt_so2_sources_dist
+
+```
+
+#### CO2 Distributions
+
+```{r}
+#| label: unt_file_co2_dist
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_unt_co2 <-
+  unit_file %>%
+  ggplot(aes(x = co2_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "SO2 Mass")
+
+plot_unt_co2_sources_dist <-
+  unit_file %>%
+  count(co2_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = co2_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of CO2 Mass Data Sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+
+plot_unt_co2 / plot_unt_co2_sources_dist
+
+```
+
+
+#### Hg Distributions
+
+```{r}
+#| label: unt_file_hg_dist
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_unt_hg <-
+  unit_file %>%
+  ggplot(aes(x = hg_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Hg Mass")
+
+plot_unt_hg_sources_dist <-
+  unit_file %>%
+  count(hg_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = hg_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Hg Mass Data Sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+
+plot_unt_hg / plot_unt_hg_sources_dist
 
 ```
 
@@ -1028,6 +1154,508 @@ library(gtExtras)
 
 create_summary_table(plant_file)
 ```
+
+#### Heat Input Distributions
+
+```{r}
+#| label: plnt_file_heat_in_dist
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_plnt_heat_in <-
+  plant_file %>%
+  ggplot(aes(x = heat_input)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Heat Input")
+
+plot_plnt_unadj_heat_in <-
+  plant_file %>%
+  ggplot(aes(x = unadj_heat_input)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Unadjusted Heat Input")
+
+plot_plnt_heat_in_dist <-
+  plant_file %>%
+  count(unadj_heat_input_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = unadj_heat_input_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Unadj. Heat Input Data Sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+
+(plot_plnt_heat_in + plot_plnt_unadj_heat_in) / plot_plnt_heat_in_dist
+
+```
+
+
+#### Heat Input Ozone Distributions
+
+```{r}
+#| label: plnt_file_heat_in_oz_dist
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_plnt_heat_in_oz <-
+  plant_file %>%
+  ggplot(aes(x = heat_input_oz)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Heat Input Ozone")
+
+plot_plnt_unadj_heat_in_oz <-
+  plant_file %>%
+  ggplot(aes(x = unadj_heat_input_oz)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Unadjusted Heat Input Ozone")
+
+plot_plnt_heat_in_oz_dist <-
+  plant_file %>%
+  count(unadj_heat_input_oz_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = unadj_heat_input_oz_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Unadj. Heat Input Ozone Data Sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+
+(plot_plnt_heat_in_oz + plot_plnt_unadj_heat_in_oz) / plot_plnt_heat_in_oz_dist
+
+```
+
+
+#### NOx Distributions
+
+```{r}
+#| label: plnt_file_nox_dist
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_plnt_nox <-
+  plant_file %>%
+  ggplot(aes(x = nox_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "NOx Mass")
+
+plot_plnt_unadj_nox <-
+  plant_file %>%
+  ggplot(aes(x = unadj_nox_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Unadjusted NOx Mass")
+
+plot_plnt_nox_rate <-
+  plant_file %>%
+  ggplot(aes(x = nox_out_emission_rate)) +
+  geom_histogram() +
+  theme_minimal() +
+  xlim(c(0, 150)) + # adding in limit to deal with outliers
+  labs(title = "NOx Emission Output Rate")
+
+plot_plnt_nox_dist <-
+  plant_file %>%
+  count(unadj_nox_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = unadj_nox_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Unadj. NOx Mass Data Sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+
+(plot_plnt_nox + plot_plnt_unadj_nox) / plot_plnt_nox_rate / plot_plnt_nox_dist
+
+```
+
+#### NOx Ozone Distributions
+
+```{r}
+#| label: plnt_file_nox_oz_dist
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_plnt_nox_oz <-
+  plant_file %>%
+  ggplot(aes(x = nox_oz_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "NOx Mass Ozone")
+
+plot_plnt_unadj_nox_oz <-
+  plant_file %>%
+  ggplot(aes(x = unadj_nox_oz_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Unadjusted NOx Mass Ozone")
+
+plot_plnt_nox_oz_rate <-
+  plant_file %>%
+  ggplot(aes(x = nox_oz_out_emission_rate)) +
+  geom_histogram() +
+  theme_minimal() +
+  xlim(c(0, 150)) + # adding in limit to deal with outliers
+  labs(title = "NOx Ozone Emission Output Rate")
+
+plot_plnt_nox_oz_dist <-
+  plant_file %>%
+  count(unadj_nox_oz_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = unadj_nox_oz_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Unadj. NOx Ozone Mass Data Sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+
+(plot_plnt_nox_oz + plot_plnt_unadj_nox_oz) / plot_plnt_nox_oz_rate / plot_plnt_nox_oz_dist
+
+```
+
+#### SO2 Distributions
+
+```{r}
+#| label: plnt_file_so2_dist
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_plnt_so2 <-
+  plant_file %>%
+  ggplot(aes(x = so2_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "SO2 Mass")
+
+plot_plnt_unadj_so2 <-
+  plant_file %>%
+  ggplot(aes(x = unadj_so2_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Unadjusted SO2 Mass")
+
+plot_plnt_so2_rate <-
+  plant_file %>%
+  ggplot(aes(x = so2_out_emission_rate)) +
+  geom_histogram() +
+  theme_minimal() +
+  xlim(c(0, 50)) + # adding in limit to deal with outliers
+  labs(title = "SO2 Emission Output Rate")
+
+plot_plnt_so2_dist <-
+  plant_file %>%
+  count(unadj_so2_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = unadj_so2_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Unadj. SO2 Mass Data Sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+
+(plot_plnt_so2 + plot_plnt_unadj_so2) / plot_plnt_so2_rate / plot_plnt_so2_dist
+
+```
+
+#### CO2 Distributions
+
+```{r}
+#| label: plnt_file_co2_dist
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_plnt_co2 <-
+  plant_file %>%
+  ggplot(aes(x = co2_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "CO2 Mass")
+
+plot_plnt_unadj_co2 <-
+  plant_file %>%
+  ggplot(aes(x = unadj_co2_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Unadjusted CO2 Mass")
+
+plot_plnt_co2_rate <-
+  plant_file %>%
+  ggplot(aes(x = co2_out_emission_rate)) +
+  geom_histogram() +
+  theme_minimal() +
+  xlim(c(0, 30000)) + # adding in limit to deal with outliers
+  labs(title = "CO2 Emission Output Rate")
+
+plot_plnt_co2_dist <-
+  plant_file %>%
+  count(unadj_co2_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = unadj_co2_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Unadj. CO2 Mass Data Sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+
+(plot_plnt_co2 + plot_plnt_unadj_co2) / plot_plnt_co2_rate / plot_plnt_co2_dist
+
+```
+
+#### CH4 Distributions
+
+```{r}
+#| label: plnt_file_ch4_dist
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_plnt_ch4 <-
+  plant_file %>%
+  ggplot(aes(x = ch4_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "CH4 Mass")
+
+plot_plnt_unadj_ch4 <-
+  plant_file %>%
+  ggplot(aes(x = unadj_ch4_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Unadjusted CH4 Mass")
+
+plot_plnt_ch4_rate <-
+  plant_file %>%
+  ggplot(aes(x = ch4_out_emission_rate)) +
+  geom_histogram() +
+  theme_minimal() +
+  xlim(c(0, 10)) + # adding in limit to deal with outliers
+  labs(title = "CH4 Emission Output Rate")
+
+plot_plnt_ch4_dist <-
+  plant_file %>%
+  count(unadj_ch4_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = unadj_ch4_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Unadj. CH4 Mass Data Sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+
+(plot_plnt_ch4 + plot_plnt_unadj_ch4) / plot_plnt_ch4_rate / plot_plnt_ch4_dist
+
+```
+
+
+#### N2O Distributions
+
+```{r}
+#| label: plnt_file_n2o_dist
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_plnt_n2o <-
+  plant_file %>%
+  ggplot(aes(x = n2o_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "N2O Mass")
+
+plot_plnt_unadj_n2o <-
+  plant_file %>%
+  ggplot(aes(x = unadj_n2o_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Unadjusted N2O Mass")
+
+plot_plnt_n2o_rate <-
+  plant_file %>%
+  ggplot(aes(x = n2o_out_emission_rate)) +
+  geom_histogram() +
+  theme_minimal() +
+  xlim(c(0, 1)) + # adding in limit to deal with outliers
+  labs(title = "N2O Emission Output Rate")
+
+plot_plnt_n2o_dist <-
+  plant_file %>%
+  count(unadj_n2o_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = unadj_n2o_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Unadj. N2O Mass Data Sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+
+(plot_plnt_n2o + plot_plnt_unadj_n2o) / plot_plnt_n2o_rate / plot_plnt_n2o_dist
+
+```
+
+
+#### Hg Distributions
+
+```{r}
+#| label: plnt_file_hg_dist
+#| warning: false
+#| message: false
+#| fig-height: 10
+
+library(ggplot2)
+library(patchwork)
+library(ggiraph)
+
+plot_plnt_hg <-
+  plant_file %>%
+  ggplot(aes(x = hg_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Hg Mass")
+
+plot_plnt_unadj_hg <-
+  plant_file %>%
+  ggplot(aes(x = unadj_hg_mass)) +
+  geom_histogram() +
+  theme_minimal() +
+  labs(title = "Unadjusted Hg Mass")
+
+plot_plnt_hg_rate <-
+  plant_file %>%
+  ggplot(aes(x = hg_out_emission_rate)) +
+  geom_histogram() +
+  theme_minimal() +
+  #xlim(c(0, 100)) + # adding in limit to deal with outliers
+  labs(title = "Hg Emission Output Rate")
+
+plot_plnt_hg_dist <-
+  plant_file %>%
+  count(unadj_hg_source) %>%
+  mutate(proportion = n/sum(n)) %>%
+  ggplot(aes(x = unadj_hg_source, y = proportion)) +
+  geom_col() +
+  coord_flip() +
+  scale_x_discrete(labels = scales::wrap_format(30)) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  geom_text(aes(label = scales::percent(proportion)),
+            nudge_y = .05) +
+  theme_minimal() +
+  labs(
+    title = "Distribution of Unadj. Hg Mass Data Sources",
+    y = "Share of units",
+    x = NULL
+    )
+
+
+(plot_plnt_hg + plot_plnt_unadj_hg) / plot_plnt_hg_rate / plot_plnt_hg_dist
+
+```
+
 :::
 
 # Region Aggregation
@@ -1277,7 +1905,7 @@ For full documentation, reference the [eGRID Technical Guide](https://www.epa.go
 The metric conversion script calculates the imperial units outputs into metric units.
 
 -   add conversion factor table information
--   imperial value, imperial unit, metric value, metric unit
+-   add code chunk
 
 Add code chunk later
 
