@@ -462,7 +462,7 @@ epa_oz_reporters_dist <-
   mutate(prop = if_else(sum_heat_input_oz != 0, heat_input_oz / sum_heat_input_oz, NA_real_),
          heat_input_nonoz = heat_input_nonoz_923 * prop, # distributing nonoz 
          heat_input = heat_input_oz + heat_input_nonoz, # annual heat input = distributed non-oz heat + ozone heat
-         heat_input_source = if_else(is.na(heat_input), "EPA/CAMD", "EIA non-ozone season distributed and EPA/CAMD ozone season"))
+         heat_input_source = if_else(is.na(heat_input), "EPA/CAPD", "EIA non-ozone season distributed and EPA/CAPD ozone season"))
 
 # distributing heat input from plants with both annual and ozone reporting units
 epa_q_oz_reporters_dist <- 
@@ -486,7 +486,7 @@ epa_q_oz_reporters_dist <-
   mutate(prop = if_else(sum_heat_input_oz_pm != 0, sum_heat_input_oz / sum_heat_input_oz_pm, NA_real_), # calculate proportion of heat input for each unit
          heat_input_nonoz = annual_heat_diff_wout_oz * prop, # calculate non-ozone heat input 
          heat_input = heat_input_nonoz + heat_input_oz, # calculate total heat input
-         heat_input_source = if_else(is.na(heat_input), "EPA/CAMD", "EIA non-ozone season distributed and EPA/CAMD ozone season")) 
+         heat_input_source = if_else(is.na(heat_input), "EPA/CAPD", "EIA non-ozone season distributed and EPA/CAPD ozone season")) 
   
 # combine ozone reporters datasets 
 epa_oz_reporters_dist_2 <- 
@@ -575,7 +575,7 @@ epa_oz_reporters_dist_nox_rates <- # filling annual NOx mass with nox_rates wher
              by = c("plant_id", "unit_id")) %>%
   mutate(nox_nonoz_mass = (heat_input_nonoz * nox_rate_ann) / 2000, 
          nox_mass = if_else(reporting_frequency == "OS", nox_nonoz_mass + nox_oz_mass, nox_mass), 
-         nox_source = if_else(is.na(nox_mass), nox_source, "Estimated based on unit-level NOx emission rates and EPA/CAMD ozone season emissions"))
+         nox_source = if_else(is.na(nox_mass), nox_source, "Estimated based on unit-level NOx emission rates and EPA/CAPD ozone season emissions"))
 
 nox_rates_ids <- # creating unique ids to filter out later
   epa_oz_reporters_dist_nox_rates %>% 
@@ -598,7 +598,7 @@ epa_oz_reporters_dist_nox_ef <-
   mutate(fuel_consum_nonoz = fuel_consum_nonoz_923 * prop, # calculating distributed non-ozone fuel consumption 
          nox_nonoz_mass = fuel_consum_nonoz * nox_ef / 2000, 
          nox_mass = nox_oz_mass + nox_nonoz_mass,
-         nox_source = if_else(is.na(nox_mass), "EPA/CAMD", "Estimated using emissions factor and EIA data for non-ozone season and EPA/CAMD ozone season emissions")) 
+         nox_source = if_else(is.na(nox_mass), "EPA/CAPD", "Estimated using emissions factor and EIA data for non-ozone season and EPA/CAPD ozone season emissions")) 
 
 
 # Combining two dataframes with distributed annual NOx mass to join back with rest of EPA
@@ -1955,13 +1955,13 @@ update_pr_epa_flag <-
          "unit_id" = "eia_unit_id", 
          "plant_name" = "eia_plant_name") %>% 
   mutate(id = paste0(plant_id, "_", unit_id), 
-         epa_flag = if_else(id %in% epa_units_no_pm, "Yes", NA_character_)) %>% 
-  filter(epa_flag == "Yes")
+         capd_flag = if_else(id %in% epa_units_no_pm, "Yes", NA_character_)) %>% 
+  filter(capd_flag == "Yes")
 
 # create EPA flag 
 all_units_11 <- 
   all_units_10 %>%  
-  mutate(epa_flag = if_else(paste0(plant_id, "_", unit_id, "_", prime_mover) %in% epa_units, "Yes", NA_character_)) %>% 
+  mutate(capd_flag = if_else(paste0(plant_id, "_", unit_id, "_", prime_mover) %in% epa_units, "Yes", NA_character_)) %>% 
   rows_update(update_pr_epa_flag, by = c("plant_id", "unit_id"))
 
 
@@ -2019,7 +2019,7 @@ final_vars <-
     "UNITID" = "unit_id",
     "PRMVR" =  "prime_mover",
     "UNTOPST" = "operating_status",
-    "EPAFLAG" = "epa_flag", 
+    "CAPDFLAG" = "capd_flag", 
     "PRGCODE" = "program_code", 
     "BOTFIRTY" = "botfirty", 
     "NUMGEN" = "num_generators", 
