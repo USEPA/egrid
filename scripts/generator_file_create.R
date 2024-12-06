@@ -42,20 +42,20 @@ if (exists("params")) {
 
 # Load in necessary 923 and 860 files ----------
 
-if(file.exists("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS")) { # if file does not exist, stop code and print error
-  eia_923_files <- read_rds("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS") # read in all 923 files
+if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { # if file does not exist, stop code and print error
+  eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS")) # read in all 923 files
 } else { 
    stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
-if(file.exists("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS")) { # if file does not exist, stop code and print error
-  eia_860_files <- read_rds("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS") # read in all 860 files
+if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))) { # if file does not exist, stop code and print error
+  eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS")) # read in all 860 files
 } else { 
    stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
-eia_923_gen <- eia_923_files$generator_data
-eia_923_gen_fuel <- eia_923_files$generation_and_fuel_combined
-eia_860_boiler <- eia_860_files$boiler_generator
-eia_860_combined <- eia_860_files$combined %>% 
+eia_923_gen <- eia_923$generator_data
+eia_923_gen_fuel <- eia_923$generation_and_fuel_combined
+eia_860_boiler <- eia_860$boiler_generator
+eia_860_combined <- eia_860$combined %>% 
   select(plant_id, # keeping only necessary files for to streamline joins
          plant_name, 
          plant_state, 
@@ -90,26 +90,31 @@ manual_corrections <-
 # we do this to match more generators between EIA-923 and EIA-860
 # however, we want to maintain the generator IDs with leading zeroes once they are matched
 
+plant_keep_leading_zeroes <- 
+  manual_corrections %>% 
+  filter(column_to_update == "keep_leading_zeroes") %>% # some plant IDs need to keep leading zeroes to avoid duplicates
+  pull(plant_id)
+  
 eia_923_leading_zeroes <- 
   eia_923_gen %>% 
-  filter(str_detect(generator_id, "^0+")) %>% 
+  filter(str_detect(generator_id, "^0+") & !(plant_id %in% plant_keep_leading_zeroes)) %>% 
   select(plant_id, generator_id) %>% 
   mutate(gen_id_clean = str_remove(generator_id, "^0+"), 
          id = paste0(plant_id, "_", gen_id_clean)) 
 
 lookup_923_leading_zeroes <- with(eia_923_leading_zeroes, setNames(generator_id, id))
-print(glue::glue("{length(lookup_923_leading_zeroes)} generator IDs have leading zeroes in EIA-923. 
+print(glue::glue("{length(lookup_923_leading_zeroes)} generator IDs have leading zeroes in EIA-923 Generator file. 
                  The leading zeroes are removed for matching purposes and replaced at the end of the script."))
 
 eia_860_leading_zeroes <- 
   eia_860_combined %>% 
-  filter(str_detect(generator_id, "^0+")) %>% 
+  filter(str_detect(generator_id, "^0+") & !(plant_id %in% plant_keep_leading_zeroes)) %>%  
   select(plant_id, generator_id) %>% 
   mutate(gen_id_clean = str_remove(generator_id, "^0+"),
          id = paste0(plant_id, "_", gen_id_clean))
 
 lookup_860_leading_zeroes <- with(eia_860_leading_zeroes, setNames(generator_id, id))
-print(glue::glue("{length(lookup_860_leading_zeroes)} generator IDs have leading zeroes in EIA-860. 
+print(glue::glue("{length(lookup_860_leading_zeroes)} generator IDs have leading zeroes in EIA-860 Combined file. 
                  The leading zeroes are removed for matching purposes and replaced at the end of the script."))
 
 
@@ -123,15 +128,29 @@ eia_923_gen_r <-
   eia_923_gen %>% 
   left_join(gen_id_manual_corrections, by = c("plant_id", "generator_id")) %>% 
   mutate(
-    generator_id = str_remove(generator_id, "^0+"), # remove leading zeroes from generator IDs
+    generator_id = if_else(!(plant_id %in% plant_keep_leading_zeroes), str_remove(generator_id, "^0+"), generator_id), # remove leading zeroes from generator IDs
     generator_id = if_else(!is.na(update), update, generator_id)) %>% # update generator IDs from manual_corrections
-  select(-update, -column_to_update)
+  select(-update, -column_to_update) 
+
+eia_923_gen_dups <- # check for duplicates in EIA-923 Generator File
+  eia_923_gen_r %>% 
+  group_by(plant_id, generator_id) %>% 
+  mutate(n = n(),
+         id = paste0(plant_id, "_", generator_id)) %>% 
+  filter(n > 1, 
+         combined_heat_and_power_plant == "Y") %>%  # default to generators with "Y" CHP plant flag
+  ungroup()
+  
+eia_923_gen_r_2 <- 
+  eia_923_gen_r %>% 
+  filter(!(paste0(plant_id, "_", generator_id) %in% eia_923_gen_dups$id)) %>% # filter out duplicate plants 
+  rbind(eia_923_gen_dups %>% select(-id, -n)) # add back in generators that were duplicated with correct non-duplicated row
 
 eia_860_combined_r <- 
   eia_860_combined %>% 
   left_join(gen_id_manual_corrections, by = c("plant_id", "generator_id")) %>% 
   mutate(
-    generator_id = str_remove(generator_id, "^0+"), # remove leading zeroes from generator IDs
+    generator_id = if_else(!(plant_id %in% plant_keep_leading_zeroes), str_remove(generator_id, "^0+"), generator_id), # remove leading zeroes from generator IDs
     generator_id = if_else(!is.na(update), update, generator_id)) %>% # update generator IDs from manual_corrections
   select(-update, -column_to_update)
     
@@ -155,8 +174,8 @@ ozone_months_gen <-
 
 eia_gen_generation <-
   eia_860_combined_r %>% 
-  left_join(eia_923_gen_r %>% 
-              select(plant_id, generator_id, starts_with("net")), # keeping only necessary columns
+  left_join(eia_923_gen_r_2 %>% 
+              select(plant_id, generator_id, starts_with("net"), combined_heat_and_power_plant), # keeping only necessary columns
             by = c("plant_id", "generator_id")) %>% 
   mutate(generation_oz = rowSums(pick(all_of(ozone_months_gen)), na.rm = TRUE),
          gen_data_source = if_else(is.na(net_generation_year_to_date), NA_character_, "EIA-923 Generator File"),
@@ -277,7 +296,7 @@ gen_overwrite <-
   select(any_of(key_columns), overwrite) %>%  # reducing columns for clarity and to facilitate QA
   mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id))  # creating unique idea to identify duplicates
   
-print(glue::glue("{nrow(gen_overwrite)} generators generation data overwritten from EIA-923 Generator file with distributed data from EIA-923 Generation and Fuel due to percent difference >0.1% between data sources."))
+print(glue::glue("{nrow(gen_overwrite)} generators have generation data overwritten from EIA-923 Generator file with distributed data from EIA-923 Generation and Fuel due to percent difference >0.1% between data sources."))
 
 ## December generation ------
 # find plants in the EIA-923 Generator file that are using the same net generation amount in December and redistribute using GenFuel file 
@@ -302,7 +321,7 @@ december_netgen <-
   select(any_of(key_columns), generation_ann_dec_equal) %>%  # keeping only necessary columns
   mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) # creating unique idea to identify duplicates
   
-print(glue::glue("{nrow(december_netgen)} generators generation data where generation data equals December generation."))
+print(glue::glue("{nrow(december_netgen)} generators have generation data where generation data equals December generation."))
 
 
 # Form generator file structure ------------
@@ -352,7 +371,7 @@ if(nrow(generators_combined) > (nrow(gen_dist_no_dec_overwritten) + nrow(decembe
   
   stop(glue::glue("There are more rows than there should be in the generators_combined dataframe. There are multiple rows for the following units: {\n dupe_ids}.\n Check for possible sources of duplicate generator_ids."))
 } else{
-  print("The number of rows in generators_combined matches the sum of generators that are overwritten, generators that use december generation, and generators that do meet either of these conditions.")
+  print("The number of rows in generators_combined matches the sum of generators that are overwritten, generators that use December generation, and all other generators.")
 }
 
 # Final modifications to generator file -----------
@@ -397,9 +416,6 @@ final_vars <-
 
 generators_formatted <-
   generators_edits %>%
-  group_by(plant_id, generator_id, fuel_code) %>% 
-  slice(1) %>% # Some generators are duplicated due to combined_heat_and_power_plant field and associated differences in generatation value. This is short-term fix until confirmation on how to handle.
-  ungroup() %>%
   arrange(plant_state, plant_name) %>% 
   mutate(seqgen = row_number(),
          across(c("capfact", "generation_ann", "generation_oz"), ~ round(.x, 3))) %>% 
@@ -413,11 +429,11 @@ if(dir.exists("data/outputs")) {
 } else {
    dir.create("data/outputs")
 }
-
+ 
 if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
-  print("Folder output already exists.")
-}else{
-  dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
+  print(glue::glue("Folder output/{params$eGRID_year} already exists."))
+} else {
+   dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
 }
 
 print(glue::glue("Saving generator file to folder data/outputs/{params$eGRID_year}"))
