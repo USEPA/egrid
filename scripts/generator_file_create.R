@@ -76,8 +76,8 @@ xwalk_fuel_codes <- # xwalk for specific changes made to certain generator fuel 
   mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>% # creating id to facilitate join
   select(id_pm, fuel_code)
 
-xwalk_eia_camd <- # xwalk for updating certain plants to camd plant names and ids
-  read_csv("data/static_tables/xwalk_oris_camd.csv", 
+xwalk_eia_epa <- # xwalk for updating certain plants to camd plant names and ids
+  read_csv("data/static_tables/xwalk_oris_epa.csv", 
            col_types = "cccc") # all fields are characters
 
 manual_corrections <- 
@@ -361,7 +361,7 @@ if(nrow(generators_combined) > (nrow(gen_dist_no_dec_overwritten) + nrow(decembe
   print(glue::glue("There are {nrow(gen_dist_no_dec_overwritten)} generators that are not overwritten or use December generation data. 
                    There are {nrow(december_and_overwritten)} generators. The dataframe with all generators {nrow(generators_combined)} generators."))
   
-  dupe_ids <- 
+  check_dupe_ids <- 
     generators_combined %>%
     count(plant_id, generator_id, sort =  TRUE) %>% 
     filter(n > 1) %>% 
@@ -378,8 +378,8 @@ if(nrow(generators_combined) > (nrow(gen_dist_no_dec_overwritten) + nrow(decembe
 
 # creating lookup tables based on xwalk to use with recode() 
 lookup_fuel_codes <- with(xwalk_fuel_codes, setNames(fuel_code, id_pm))
-lookup_eia_id_camd_id <- with(xwalk_eia_camd, setNames(camd_plant_id, eia_plant_id))
-lookup_camd_id_name <- with(xwalk_eia_camd, setNames(camd_plant_name, camd_plant_id))
+lookup_eia_id_epa_id <- with(xwalk_eia_epa, setNames(camd_plant_id, eia_plant_id))
+lookup_epa_id_name <- with(xwalk_eia_epa, setNames(camd_plant_name, camd_plant_id))
 
 generators_edits <- 
   generators_combined %>% 
@@ -387,11 +387,11 @@ generators_edits <-
          fuel_code = recode(id_pm, !!!lookup_fuel_codes, .default = energy_source_1), # creating fuel_code based on lookup table and energy_source_1 if not in lookup table. recode() essentially matches on id, then replaces with key value  
          generator_id = recode(id, !!!lookup_860_leading_zeroes, .default = generator_id), # updating generator ID to add back in leading zeroes
          generator_id = recode(id, !!!lookup_923_leading_zeroes, .default = generator_id), # updating generator ID to add back in leading zeroes
-         plant_id = recode(plant_id, !!!lookup_eia_id_camd_id), # updating plant_id to corresponding camd ids with lookup table
-         plant_name = recode(plant_id, !!!lookup_camd_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
+         plant_id = recode(plant_id, !!!lookup_eia_id_epa_id), # updating plant_id to corresponding EPA IDs with lookup table
+         plant_name = recode(plant_id, !!!lookup_epa_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
          gen_data_source = if_else(is.na(generation_ann), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
          year = params$eGRID_year,
-         capfact = generation_ann / (nameplate_capacity * 8760)) %>%  # calculating capacity factor
+         capfact = if_else(nameplate_capacity != 0, generation_ann / (nameplate_capacity * 8760), 0)) %>%  # calculating capacity factor
   left_join(eia_860_boiler_count)
 
 # creating named vector of final variable order and variable name included in generator file
