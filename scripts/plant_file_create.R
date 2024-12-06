@@ -845,11 +845,13 @@ ann_gen_by_fuel <-
 # calculate generation by non-renewables, renewables (and non-hydro renewables), combustion fuels, and non-combustion fuels
 ann_gen_by_fuel_2 <- 
   ann_gen_by_fuel %>% 
-  mutate(ann_gen_non_renew = ann_gen_coal + ann_gen_oil + ann_gen_gas + ann_gen_other_ff + ann_gen_nuclear + ann_gen_other,
+  mutate(ann_gen_non_renew = ann_gen_coal + ann_gen_oil + ann_gen_gas + ann_gen_other_ff + ann_gen_nuclear,
          ann_gen_renew = ann_gen_biomass + ann_gen_wind + ann_gen_solar + ann_gen_geothermal + ann_gen_hydro,
          ann_gen_renew_nonhydro = ann_gen_biomass + ann_gen_wind + ann_gen_solar + ann_gen_geothermal ,
-         ann_gen_combust = ann_gen_coal + ann_gen_oil + ann_gen_gas + ann_gen_other_ff + ann_gen_biomass + ann_gen_other,
-         ann_gen_non_combust = ann_gen_nuclear + ann_gen_wind + ann_gen_solar + ann_gen_geothermal + ann_gen_hydro)
+         ann_gen_non_renew_other = ann_gen_other,
+         ann_gen_combust = ann_gen_coal + ann_gen_oil + ann_gen_gas + ann_gen_other_ff + ann_gen_biomass,
+         ann_gen_non_combust = ann_gen_nuclear + ann_gen_wind + ann_gen_solar + ann_gen_geothermal + ann_gen_hydro,
+         ann_gen_combust_other = ann_gen_other)
 
 ann_gen_by_fuel_3 <- 
   ann_gen_by_fuel_2 %>% 
@@ -1088,7 +1090,7 @@ plant_file_20 <-
 # Calculate nonbaseload factor ---------------------------------
 
 # we calculate a plant's nonbaseload factor based on their capacity factors
-# renewable fuel types are excluded from this 
+# some fuel types are excluded from this 
 plant_file_21 <- 
   plant_file_20 %>% 
   mutate(nonbaseload = if_else(!primary_fuel_type %in% c("GEO", "MWH", "NUC", "PUR", "SUN", "WAT", "WND"), 
