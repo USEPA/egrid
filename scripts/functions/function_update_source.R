@@ -21,14 +21,14 @@ update_source <- function(x, unit_f) {
     mutate(source_update = case_when(!!x == "EIA Unit-level Data" ~ "EIA",
                                      !!x == "EIA Unit-Level Data" ~ "EIA",
                                      !!x == "EIA Prime Mover-level Data" ~ "EIA",
-                                     !!x == "EPA/CAMD" ~ "EPA/CAMD", 
-                                     !!x == "EIA non-ozone season distributed and EPA/CAMD ozone season" ~ "EPA/CAMD; EIA", 
+                                     !!x == "EPA/CAPD" ~ "EPA/CAPD", 
+                                     !!x == "EIA non-ozone season distributed and EPA/CAPD ozone season" ~ "EPA/CAPD; EIA", 
                                      !!x == "Estimated using emissions factor" ~ "EIA"))
   
   # identify unique plant ID source updates
   unit_source <- unit_source %>% ungroup() %>%
     select(plant_id, source_update) %>%
-    unique
+    unique()
   
   # identify which plant_ids have multiple sources and pull their plant ID
   ids <- unit_source$plant_id[which(duplicated(unit_source$plant_id))] %>% unique()
@@ -36,8 +36,8 @@ update_source <- function(x, unit_f) {
   # if plant_ids have multiple sources, assign "EPA/CAMD; EIA"
   unit_source <- 
     unit_source %>% 
-    mutate(source_update = if_else(plant_id %in% ids, "EPA/CAMD; EIA", source_update)) 
-  unique # take unique again to remove duplicates
+    mutate(source_update = if_else(plant_id %in% ids, "EPA/CAPD; EIA", source_update)) 
+  unique() # take unique again to remove duplicates
   
   colnames(unit_source) <- c("plant_id", str_col)
   

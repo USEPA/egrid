@@ -88,7 +88,7 @@ source("scripts/functions/function_update_source.R")
 
 # crosswalk for plant IDs between CAMD and EIA data
 xwalk_oris_camd <- 
-  read_csv("data/static_tables/xwalk_oris_camd.csv") %>% 
+  read_csv("data/static_tables/xwalk_oris_epa.csv") %>% 
   select(eia_plant_id, camd_plant_id) %>% 
   mutate(eia_plant_id = as.character(eia_plant_id), 
          camd_plant_id = as.character(camd_plant_id))
@@ -213,7 +213,7 @@ egrid_subregions <-
 plant_unit <- 
   unit_file %>% 
   group_by(year, plant_id, plant_state, plant_name) %>%
-  summarize(camd_flag = paste_concat(camd_flag),
+  summarize(capd_flag = paste_concat(capd_flag),
             num_units = n(), # count units in a plant
             unadj_heat_input = if_else(all(is.na(heat_input)), NA_real_, sum(heat_input, na.rm = TRUE)), # units: MMBtu
             unadj_heat_input_source = paste_concat(heat_input_source),
@@ -284,11 +284,11 @@ plant_gen_2 <-
               by = "plant_id", unmatched = "ignore") %>% 
   mutate(county = if_else(grepl('not in file|Not in file|NOT IN FILE', county), NA_character_ , county)) 
 
-# update plant IDs that do not have CAMD plant ID matches to EIA-860 
+# update plant IDs that do not have EPA plant ID matches to EIA-860 
 plant_gen_eia_xwalk <- 
   plant_gen_2 %>% 
-  filter(plant_id %in% xwalk_oris_camd$camd_plant_id & is.na(county)) %>% # filter for plants that are not matched via EIA-860 due to different plant IDs
-  left_join(xwalk_oris_camd, by = c("plant_id" = "camd_plant_id")) %>% # use crosswalk for EIA / CAMD plant IDs to match some CAMD plants to EIA data
+  filter(plant_id %in% xwalk_oris_epa$camd_plant_id & is.na(county)) %>% # filter for plants that are not matched via EIA-860 due to different plant IDs
+  left_join(xwalk_oris_epa, by = c("plant_id" = "camd_plant_id")) %>% # use crosswalk for EIA / EPA plant IDs to match some EPA plants to EIA data
   rows_update(eia_860$plant %>% 
               select("eia_plant_id" = plant_id, 
                      county, 
@@ -804,7 +804,7 @@ plant_file_13 <-
 # use generator file to summarize generation by fuel type 
 ann_gen_by_fuel <- 
   eia_923$generation_and_fuel_combined %>% 
-  left_join(xwalk_oris_camd %>% filter(!camd_plant_id %in% eia_923$generation_and_fuel_combined$plant_id), 
+  left_join(xwalk_oris_epa %>% filter(!camd_plant_id %in% eia_923$generation_and_fuel_combined$plant_id), 
             by = c("plant_id" = "eia_plant_id")) %>% 
   mutate(plant_id = if_else(!is.na(camd_plant_id), camd_plant_id, plant_id)) %>% 
   group_by(plant_id, fuel_type) %>% 
@@ -929,7 +929,7 @@ eia_923_thermal_output <-
 
 chp <- 
   chp_plants %>% 
-  left_join(xwalk_oris_camd %>% filter(!camd_plant_id %in% chp_plants$plant_id), by = c("plant_id" = "eia_plant_id")) %>% 
+  left_join(xwalk_oris_epa %>% filter(!camd_plant_id %in% chp_plants$plant_id), by = c("plant_id" = "eia_plant_id")) %>% 
   left_join(eia_923_thermal_output) %>%
   mutate(
     useful_thermal_output = 0.8 * (total_fuel_consumption_mmbtu - elec_fuel_consumption_mmbtu), # calculate useful thermal output
@@ -1103,7 +1103,7 @@ plant_file_21 <-
 # Update source columns ------------------------------
 
 # list of allowed sources to aid in checking that all sources are updated correctly
-check_source_list <- c("EIA" ,"EPA/CAMD", NA_character_, "EPA/CAMD; EIA")
+check_source_list <- c("EIA" ,"EPA/CAPD", NA_character_, "EPA/CAPD; EIA")
 
 ### Update heat_input_source ----------
 
@@ -1304,7 +1304,7 @@ final_vars <-
     "CNTYNAME" = "county",
     "LAT" = "lat", 
     "LON" = "lon", 
-    "CAMDFLAG" = "camd_flag", 
+    "CAPDFLAG" = "capd_flag", 
     "NUMUNT" = "num_units", 
     "NUMGEN" = "num_generators", 
     "PLPRMFL" = "primary_fuel_type", 
