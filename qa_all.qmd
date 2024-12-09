@@ -10,7 +10,6 @@ format:
 execute: 
   echo: false
   warning: false
-  #eval: false
 editor: visual
 project: 
   execute_dir: project
@@ -61,8 +60,6 @@ library(stringr)
 Check if any plants are only in the CAMD data and not EIA data. These plants will be checked with EPA to see if there are any ORIS (plant ID) matches we should be making or if the plants should be deleted.
 
 <!--# Check if this is both EIA datasets or one. -->
-
-<!--# Do we need to include 861 EIA dataset too? -->
 
 ```{r}
 #| label: compare-eia-camd
@@ -218,10 +215,6 @@ knitr::kable(check_unit_retired_values %>%
 
 Some CAMD units only report their ozone season emissions, so we try to gap fill the remaining months with EIA data. In the source columns, we have an option that states this (i.e. "EIA non-ozone season distributed and EPA/CAMD ozone season" for heat input and "Estimated using emissions factor and EIA data for non-ozone season and EPA/CAMD ozone season emissions" or "Estimated based on unit-level NOx emission rates and EPA/CAMD ozone season emissions" for annual NOx). We want to make sure that the NOx emissions we've assigned for these aren't extremely large outliers - especially compared to the ozone season values for NOx at the plant. So you'd filter the NOx source for these sources and then filter the NOx annual emissions from largest to smallest and see how those large ones compare to the ozone season NOx value. If super high we want to note that we need to look into that plant/unit.
 
-<!--# Can we set a "super high" value? Do a stats test? -->
-
-<!--# Compare to the average ratio of ozone nox to annual nox in the non-estimated values?-->
-
 ```{r}
 #| label: unit-nox-outliers
 
@@ -260,8 +253,6 @@ knitr::kable(check_unit_ozone %>%
 ## Positive annual heat input, missing ozone season for CAMD plants
 
 Check if units with a positive annual heat input are missing ozone season data.
-
-<!--# Should we also exclude where annual values are zero? -->
 
 ```{r}
 #| label: unit-ozone-missing
@@ -413,7 +404,7 @@ Check if any units that have emission values are missing heat input values.
 check_unit_heat_input <- 
   unit_file %>% 
   filter((noxan > 0 | noxoz > 0 | so2an > 0 | co2an > 0 | hgan > 0) &
-          (is.na(htian) & is.na(htioz))) # replaced | with &
+          (is.na(htian) & is.na(htioz)))
 
 ifelse(nrow(check_unit_heat_input) == 0, "Status: PASS - All units with emissions have heat input values.", 
         glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_heat_input)} units with emissions are missing heat input values."))
@@ -506,7 +497,7 @@ plant_file <-
 
 # pulls 2021 data, should pull 2022 data
 plant_file_prev <- 
-  read_excel(glue::glue("data/outputs/{params$year-2}/egrid{params$year - 2}_data.xlsx"), 
+  read_excel(glue::glue("data/outputs/{params$year - 2}/egrid{params$year - 2}_data.xlsx"), 
              sheet = glue::glue("PLNT{params$year_abbrev - 2}"), skip = 1) %>% 
               janitor::clean_names() %>% 
               rename("plant_id" = "orispl", 
@@ -606,8 +597,8 @@ Map plants for each region and fix accordingly if needed.
 # download subregion shapefiles from EPA website
 shp_download <- function(shp_type) {
   temp_file <- tempfile()
-  download.file(glue::glue("https://www.epa.gov/system/files/other-files/2024-05/egrid2022_{tolower(shp_type)}_shapefile.zip"),temp_file)
-  shp_file <- unzip(temp_file,exdir="data/shapefiles")
+  download.file(glue::glue("https://www.epa.gov/system/files/other-files/2024-05/egrid2022_{tolower(shp_type)}_shapefile.zip"), temp_file)
+  shp_file <- unzip(temp_file, exdir="data/shapefiles")
   unlink(temp_file)
   shp <- 
     sf::st_read(glue::glue("data/shapefiles/eGRID2022_{shp_type}.shp")) %>%
@@ -1975,7 +1966,7 @@ Check for duplicate plants. There should be none.
 check_plant_duplicate <- 
   plant_file %>% 
   group_by(plant_id) %>% 
-  filter(n()>1)
+  filter(n() > 1)
 
 ifelse(nrow(check_plant_duplicate) == 0, "Status: PASS - No duplicate plants.", 
         glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_duplicate)} duplicate plants."))
@@ -2400,6 +2391,7 @@ state_agg <- read_rds(glue::glue("data/outputs/{params$year}/state_aggregation.R
 ba_agg <- read_rds(glue::glue("data/outputs/{params$year}/ba_aggregation.RDS"))
 subrgn_agg <- read_rds(glue::glue("data/outputs/{params$year}/subregion_aggregation.RDS"))
 nerc_agg <- read_rds(glue::glue("data/outputs/{params$year}/nerc_aggregation.RDS"))
+us_agg <- read_rds(glue::glue("data/outputs/{params$year}/us_aggregation.RDS"))
 
 ```
 
@@ -2871,7 +2863,7 @@ if (nrow(gen_plants) < nrow(plant_file %>% distinct(plant_id))) {
     plant_file %>%
     distinct(plant_id) %>% 
     filter(!plant_id %in% gen_plants$plant_id)
-  print(glue::glue("Missing {nrow(gen_missing_plants)} plants."))
+  print(glue::glue("Missing {nrow(gen_missing_plants)} plants in generator file."))
   print(knitr::kable(gen_missing_plants))
 }
 
@@ -2886,7 +2878,7 @@ if (nrow(unit_plants) < nrow(plant_file %>% distinct(plant_id))) {
     plant_file %>%
     distinct(plant_id) %>% 
     filter(!plant_id %in% unit_plants$plant_id)
-  print(glue::glue("Missing {nrow(unit_missing_plants)} plants."))
+  print(glue::glue("Missing {nrow(unit_missing_plants)} plants in unit file."))
   print(knitr::kable(unit_missing_plants))
 }
 
@@ -2913,7 +2905,7 @@ check_plant_gen_sum_ann <- gen_plant_sum %>%
 
 ifelse(nrow(check_plant_gen_sum_ann) == 0, "Status: PASS - All annual generation values between plant and generation files are equal",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum)} plants do not have the same annual plant generation values between plant and generation files"))
 
-knitr::kable(check_plant_gen_sum_ann %>% select(plant_id,sum_diff))
+knitr::kable(check_plant_gen_sum_ann %>% select(plant_id, sum_diff))
 ```
 
 ### Plant by plant comparison - ozone season generation
@@ -2928,7 +2920,7 @@ check_plant_gen_sum_oz <- gen_plant_sum %>%
 
 ifelse(nrow(check_plant_gen_sum_oz) == 0, "Status: PASS - All annual generation values between plant and generation files are equal",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum_oz)} plants do not have the same annual plant generation values between plant and generation files"))
 
-knitr::kable(check_plant_gen_sum_oz %>% select(plant_id,sum_diff))
+knitr::kable(check_plant_gen_sum_oz %>% select(plant_id, sum_diff))
 ```
 
 ### Total generation comparisons - ozone season and annual
@@ -2958,7 +2950,7 @@ glue::glue("Difference (plant - generator): {plant_gen_sum$gen_oz_total - genera
 
 ## Sum of emissions
 
-Check that emissions are equal to each other across plant, generator, and unit file.
+Check that emissions are equal to each other across plant and unit file.
 
 ```{r}
 #| label: sum-emissions
@@ -2993,8 +2985,45 @@ glue::glue("Hg emissions -- plant: {plant_emissions_sum$hg_total}, unit: {unit_e
 
 # Output file QA
 
-Check excel summary links.
+## Check excel summary links
 
-Data year correct in excel output.
+Check manually.
 
-Count of units/generators/plants in excel output match R datasets.
+## Data year correct in excel output
+
+May need to do some checks manually.
+
+```{r}
+#| label: excel-output-year
+
+years_check <-
+  rbind(unit_file %>% select(year), 
+        plant_file %>% select(year),
+        generator_file %>% select(year),
+        state_agg %>% select(year),
+        ba_agg %>% select(year),
+        subrgn_agg %>% select(year),
+        nerc_agg %>% select(year),
+        us_agg %>% select(year)) %>%
+  filter(year != params$year)
+
+
+ifelse(sum(nrow(unit_years_check),nrow(plant_years_check),nrow(generator_years_check)) == 0, "Status: PASS - Excel data year is correct in all instances.", glue::glue("Status: NEEDS CHECKED - Excel data year is not correct in {sum(c(nrow(unit_years_check),nrow(plant_years_check),nrow(generator_years_check)} instances."))
+
+```
+
+## Count of units/generators/plants in excel output match R datasets
+
+```{r}
+#| label: unit-count-comparison
+
+unit_r <- read_rds(glue::glue("data/outputs/{params$year}/unit_file.RDS")) 
+ifelse(nrow(unit_file) == nrow(unit_r),"Status: PASS - Excel and R Unit files match in number of units",glue::glue("Status: NEEDS CHECKED - Excel and R unit files differ by {nrow(unit_file) - nrow(unit_r)}"))
+
+plant_r <- read_rds(glue::glue("data/outputs/{params$year}/plant_file.RDS")) 
+ifelse(nrow(plant_file) == nrow(plant_r),"Status: PASS - Excel and R Plant files match in number of units",glue::glue("Status: NEEDS CHECKED - Excel and R Plant files differ by {nrow(plant_file) - nrow(plant_r)} units"))
+
+generator_r <- read_rds(glue::glue("data/outputs/{params$year}/generator_file.RDS")) 
+ifelse(nrow(generator_file) == nrow(generator_r),"Status: PASS - Excel and R Generator files match in number of units",glue::glue("Status: NEEDS CHECKED - Excel and R Generator files differ by {nrow(generator_file) - nrow(generator_r)} units"))
+  
+```
