@@ -2401,7 +2401,7 @@ knitr::kable(check_plant_resource_mix %>% select(plant_id, plant_name,
 Load aggregation files.
 
 ```{r}
-#| label: load_agg_files
+#| label: load-agg-files
 
 state_agg <- read_rds(glue::glue("data/outputs/{params$year}/state_aggregation.RDS"))
 ba_agg <- read_rds(glue::glue("data/outputs/{params$year}/ba_aggregation.RDS"))
@@ -2482,61 +2482,62 @@ knitr::kable(check_nerc_duplicates %>%
 ```
 :::
 
-* UPDATED TO THIS POINT *
 ## Resource mix
 
 ::: panel-tabset
 ### State
 
 ```{r}
-#| label: state_mix
-#| echo: false
-#| warning: false
+#| label: state-mix
+
+emission_types <- c(
+  "_coal",
+  "_oil",
+  "_gas",
+  "_nuclear",
+  "_hydro",
+  "_biomass",
+  "_wind",
+  "_solar",
+  "_geothermal",
+  "_other_ff",
+  "_other"
+)
 
 state_mix <- 
-  state_agg %>% 
-  mutate(resource_mix_total = state_coal_resource_mix + state_oil_resource_mix + 
-           state_gas_resource_mix + state_nuclear_resource_mix + 
-           state_hydro_resource_mix + state_biomass_resource_mix + 
-           state_wind_resource_mix + state_solar_resource_mix + 
-           state_geothermal_resource_mix + state_other_fossil_resource_mix + 
-           state_other_purchased_resource_mix, 
-         resource_mix_total = round(resource_mix_total, 3))
-
+  state_agg %>%
+  select("state", contains("state_ann_resource_mix") & ends_with(emission_types)) %>%
+  mutate(resource_mix_total = round(rowSums(across(where(is.numeric))), 3))
+         
 check_state_mix <- 
   state_mix %>% filter(!(resource_mix_total %in% c(0.999, 1.000, 1.001)))
 
-ifelse(nrow(check_state_mix) == 0, "All state resource mixes add to 100%.", 
-        glue::glue("{nrow(check_state_mix)} state resource mixes do not add to 100%."))
+ifelse(nrow(check_state_mix) == 0, "Status: PASS - All state resource mixes add to 100%.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_state_mix)} state resource mixes do not add to 100%."))
 
-knitr::kable(check_state_mix %>% select(state, resource_mix_total))
+knitr::kable(check_state_mix %>% 
+               select(state, resource_mix_total))
 
 ```
 
 ### BA
 
 ```{r}
-#| label: ba_mix
-#| echo: false
-#| warning: false
+#| label: ba-mix
 
 ba_mix <- 
-  ba_agg %>% 
-  mutate(resource_mix_total = ba_coal_resource_mix + ba_oil_resource_mix + 
-           ba_gas_resource_mix + ba_nuclear_resource_mix + 
-           ba_hydro_resource_mix + ba_biomass_resource_mix + 
-           ba_wind_resource_mix + ba_solar_resource_mix + 
-           ba_geothermal_resource_mix + ba_other_fossil_resource_mix + 
-           ba_other_purchased_resource_mix, 
-         resource_mix_total = round(resource_mix_total, 3))
+  ba_agg %>%
+  select("ba_code", contains("ba_ann_resource_mix") & ends_with(emission_types)) %>%
+  mutate(resource_mix_total = round(rowSums(across(where(is.numeric))), 3))
 
 check_ba_mix <- 
   ba_mix %>% filter(!(resource_mix_total %in% c(0.999, 1.000, 1.001)))
 
-ifelse(nrow(check_ba_mix) == 0, "All BA resource mixes add to 100%.", 
-        glue::glue("{nrow(check_ba_mix)} BA resource mixes do not add to 100%."))
+ifelse(nrow(check_ba_mix) == 0, "Status: PASS - All BA resource mixes add to 100%.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_ba_mix)} BA resource mixes do not add to 100%."))
 
-knitr::kable(check_ba_mix %>% select(balance_authority_code, resource_mix_total))
+knitr::kable(check_ba_mix %>% 
+               select(ba_code, resource_mix_total))
 ```
 
 ### eGRID subregion
@@ -2544,51 +2545,38 @@ knitr::kable(check_ba_mix %>% select(balance_authority_code, resource_mix_total)
 Need to update eGRID subregion resource mix to percentages.
 
 ```{r}
-#| label: subregion_mix
-#| echo: false
-#| warning: false
+#| label: subregion-mix
 
 subregion_mix <- 
   subrgn_agg %>% 
-  mutate(resource_mix_total = egrid_coal_resource_mix + egrid_oil_resource_mix + 
-           egrid_gas_resource_mix + egrid_nuclear_resource_mix + 
-           egrid_hydro_resource_mix + egrid_biomass_resource_mix + 
-           egrid_wind_resource_mix + egrid_solar_resource_mix + 
-           egrid_geothermal_resource_mix + egrid_other_fossil_resource_mix + 
-           egrid_other_purchased_resource_mix, 
-         resource_mix_total = round(resource_mix_total, 3))
+  select("subregion", contains("subregion_ann_resource_mix") & ends_with(emission_types)) %>%
+  mutate(resource_mix_total = round(rowSums(across(where(is.numeric))), 3))
 
 check_subregion_mix <- 
   subregion_mix %>% filter(!(resource_mix_total %in% c(0.999, 1.000, 1.001)))
 
-ifelse(nrow(check_subregion_mix) == 0, "All subregion resource mixes add to 100%.", 
-        glue::glue("{nrow(check_subregion_mix)} subregion resource mixes do not add to 100%."))
+ifelse(nrow(check_subregion_mix) == 0, "Status: PASS - All subregion resource mixes add to 100%.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_subregion_mix)} subregion resource mixes do not add to 100%."))
 
-knitr::kable(check_subregion_mix %>% select(sub_region, resource_mix_total))
+knitr::kable(check_subregion_mix %>% 
+               select(subregion, resource_mix_total))
 ```
 
 ### NERC
 
 ```{r}
-#| label: nerc_mix
-#| echo: false
-#| warning: false
+#| label: nerc-mix
 
 nerc_mix <- 
   nerc_agg %>% 
-  mutate(resource_mix_total = nerc_coal_resource_mix + nerc_oil_resource_mix + 
-           nerc_gas_resource_mix + nerc_nuclear_resource_mix + 
-           nerc_hydro_resource_mix + nerc_biomass_resource_mix + 
-           nerc_wind_resource_mix + nerc_solar_resource_mix + 
-           nerc_geothermal_resource_mix + nerc_other_fossil_resource_mix + 
-           nerc_other_purchased_resource_mix, 
-         resource_mix_total = round(resource_mix_total, 3))
+  select("nerc", contains("nerc_ann_resource_mix") & ends_with(emission_types)) %>%
+  mutate(resource_mix_total = round(rowSums(across(where(is.numeric))), 3))
 
 check_nerc_mix <- 
   nerc_mix %>% filter(!(resource_mix_total %in% c(0.999, 1.000, 1.001)))
 
-ifelse(nrow(check_nerc_mix) == 0, "All NERC resource mixes add to 100%.", 
-        glue::glue("{nrow(check_nerc_mix)} NERC resource mixes do not add to 100%."))
+ifelse(nrow(check_nerc_mix) == 0, "Status: PASS - All NERC resource mixes add to 100%.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_nerc_mix)} NERC resource mixes do not add to 100%."))
 
 knitr::kable(check_nerc_mix %>% select(nerc, resource_mix_total))
 ```
@@ -2602,9 +2590,7 @@ Check there are an approporate number of digits for fuel specific input rates. F
 ### State
 
 ```{r}
-#| label: state_rate_digits
-#| echo: false
-#| warning: false
+#| label: state-rate-digits
 
 knitr::kable(state_agg %>% select(state, contains("input_rate_")))
 ```
@@ -2612,29 +2598,23 @@ knitr::kable(state_agg %>% select(state, contains("input_rate_")))
 ### BA
 
 ```{r}
-#| label: ba_rate_digits
-#| echo: false
-#| warning: false
+#| label: ba-rate-digits
 
-knitr::kable(ba_agg %>% select(balance_authority_code, contains("input_rate_")))
+knitr::kable(ba_agg %>% select(ba_code, contains("input_rate_")))
 ```
 
 ### eGRID subregion
 
 ```{r}
-#| label: subregion_rate_digits
-#| echo: false
-#| warning: false
+#| label: subregion-rate-digits
 
-knitr::kable(subrgn_agg %>% select(sub_region, contains("input_rate_")))
+knitr::kable(subrgn_agg %>% select(subregion, contains("input_rate_")))
 ```
 
 ### NERC
 
 ```{r}
-#| label: nerc_rate_digits
-#| echo: false
-#| warning: false
+#| label: nerc-rate-digits
 
 knitr::kable(nerc_agg %>% select(nerc, contains("input_rate_")))
 ```
@@ -2645,9 +2625,7 @@ knitr::kable(nerc_agg %>% select(nerc, contains("input_rate_")))
 ## Outlier check for emission rate
 
 ```{r}
-#| label: calculate_subregion_outliers
-#| echo: false
-#| warning: false
+#| label: calculate-subregion-outliers
 
 plant_stats_summary <- 
   plant_stats %>% 
