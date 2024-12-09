@@ -416,7 +416,10 @@ final_vars <-
 
 generators_formatted <-
   generators_edits %>%
-  arrange(plant_state, plant_name) %>% 
+  arrange(plant_state, plant_name, fuel_code) %>% 
+  group_by(plant_id, generator_id) %>% 
+  slice(1) %>% 
+  ungroup() %>% 
   mutate(seqgen = row_number(),
          across(c("capfact", "generation_ann", "generation_oz"), ~ round(.x, 3))) %>% 
   select(as_tibble(final_vars)$value) # keeping columns with tidy names since the rename is done in the final formatting script
