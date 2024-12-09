@@ -2633,137 +2633,102 @@ plant_stats_summary <-
 
 subregion_stats <- 
   subrgn_agg %>% 
-  mutate(across(.cols = c(contains("rate")), 
+  mutate(across(.cols = contains("rate") & where(is.numeric), 
                 .fns = ~ mean(.x, na.rm = TRUE), 
                 .names =  "{.col}_average"), 
-         across(.cols = c(contains("rate"), -contains("average")), 
+         across(.cols = c(contains("rate") & where(is.numeric),
+                          -contains("average") & where(is.numeric)), 
                 .fns = ~ sd(.x, na.rm = TRUE), 
                 .names =  "{.col}_sd")) %>% 
-  select(contains("average"), contains("sd")) %>% distinct()
+  select(contains("average") & where(is.numeric), 
+         contains("sd") & where(is.numeric)) %>% distinct()
 
-stats_summary <- bind_cols(stats_summary, subregion_stats) 
+stats_summary <- bind_cols(plant_stats_summary, subregion_stats) 
 
-subregion_input_zscore <- 
+subregion_zscore <- 
   subrgn_agg %>% 
-  mutate(nox_output_zscore = (egrid_nox_output_rate - 
+  mutate(nox_output_zscore = (subregion_nox_output_rate - 
                                 stats_summary$nox_output_rate_average)/ 
            stats_summary$nox_output_rate_sd, 
          
-         nox_oz_output_zscore = (egrid_nox_oz_output_rate - 
+         nox_oz_output_zscore = (subregion_nox_oz_output_rate - 
                                    stats_summary$nox_oz_output_rate_average)/ 
            stats_summary$nox_oz_output_rate_sd, 
          
-         so2_output_zscore = (egrid_so2_output_rate - 
+         so2_output_zscore = (subregion_so2_output_rate - 
                                 stats_summary$so2_output_rate_average)/ 
            stats_summary$so2_output_rate_sd,
          
-         co2_output_zscore = (egrid_co2_output_rate - 
+         co2_output_zscore = (subregion_co2_output_rate - 
                                 stats_summary$co2_output_rate_average)/ 
            stats_summary$co2_output_rate_sd,
          
-         ch4_output_zscore = (egrid_ch4_output_rate - 
+         ch4_output_zscore = (subregion_ch4_output_rate - 
                                 stats_summary$ch4_output_rate_average)/ 
            stats_summary$ch4_output_rate_sd,
          
-         n2o_output_zscore = (egrid_n2o_output_rate - 
+         n2o_output_zscore = (subregion_n2o_output_rate - 
                                 stats_summary$n2o_output_rate_average)/ 
            stats_summary$n2o_output_rate_sd,
          
-         co2e_output_zscore = (egrid_co2e_output_rate - 
+         co2e_output_zscore = (subregion_co2e_output_rate - 
                                  stats_summary$co2e_output_rate_average)/ 
            stats_summary$co2e_output_rate_sd,
          
-         nox_input_zscore = (egrid_nox_input_rate - 
+         nox_input_zscore = (subregion_nox_input_rate - 
                                 stats_summary$plnoxra_average)/ 
            stats_summary$plnoxra_sd, 
          
-         nox_oz_input_zscore = (egrid_nox_oz_input_rate - 
+         nox_oz_input_zscore = (subregion_nox_oz_input_rate - 
                                    stats_summary$plnoxro_average)/ 
            stats_summary$plnoxro_sd, 
          
-         so2_input_zscore = (egrid_so2_input_rate - 
+         so2_input_zscore = (subregion_so2_input_rate - 
                                 stats_summary$plso2ra_average)/ 
            stats_summary$plso2ra_sd,
          
-         co2_input_zscore = (egrid_co2_input_rate - 
+         co2_input_zscore = (subregion_co2_input_rate - 
                                 stats_summary$plco2ra_average)/ 
            stats_summary$plco2ra_sd,
          
-         ch4_input_zscore = (egrid_ch4_input_rate - 
+         ch4_input_zscore = (subregion_ch4_input_rate - 
                                 stats_summary$plch4ra_average)/ 
            stats_summary$plch4ra_sd,
          
-         n2o_input_zscore = (egrid_n2o_input_rate - 
+         n2o_input_zscore = (subregion_n2o_input_rate - 
                                 stats_summary$pln2ora_average)/ 
            stats_summary$pln2ora_sd,
          
-         co2e_input_zscore = (egrid_co2e_input_rate - 
+         co2e_input_zscore = (subregion_co2e_input_rate - 
                                  stats_summary$plc2era_average)/ 
            stats_summary$plc2era_sd) %>% 
-  select(sub_region, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+  select(subregion, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 ```
 
 ### Overall input rates
 
 Outliers are identified by any zscores for emission rates \> +/- 3 and are printed in the table if any exist.
 
-```{r}
-subregion_input_zscore <- 
-  subrgn_agg %>% 
-  mutate(nox_input_zscore = (egrid_nox_input_rate - 
-                                stats_summary$plnoxra_average)/ 
-           stats_summary$plnoxra_sd, 
-         
-         nox_oz_input_zscore = (egrid_nox_oz_input_rate - 
-                                   stats_summary$plnoxro_average)/ 
-           stats_summary$plnoxro_sd, 
-         
-         so2_input_zscore = (egrid_so2_input_rate - 
-                                stats_summary$plso2ra_average)/ 
-           stats_summary$plso2ra_sd,
-         
-         co2_input_zscore = (egrid_co2_input_rate - 
-                                stats_summary$plco2ra_average)/ 
-           stats_summary$plco2ra_sd,
-         
-         ch4_input_zscore = (egrid_ch4_input_rate - 
-                                stats_summary$plch4ra_average)/ 
-           stats_summary$plch4ra_sd,
-         
-         n2o_input_zscore = (egrid_n2o_input_rate - 
-                                stats_summary$pln2ora_average)/ 
-           stats_summary$pln2ora_sd,
-         
-         co2e_input_zscore = (egrid_co2e_input_rate - 
-                                 stats_summary$plc2era_average)/ 
-           stats_summary$plc2era_sd) %>% 
-  select(sub_region, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
-```
-
 ::: panel-tabset
 #### NOx input rate
 
 ```{r}
-#| label: subregion_nox_input_outliers
-#| echo: false
-#| warning: false
+#| label: subregion-nox-input-outliers
 
-knitr::kable(subregion_input_zscore %>% filter(nox_input_zscore > 3 | 
-                                                 nox_input_zscore < -3) %>% 
-               select(sub_region, egrid_nox_input_rate, nox_input_zscore) %>% 
+knitr::kable(subregion_zscore %>% 
+               filter(nox_input_zscore > 3 | nox_input_zscore < -3) %>% 
+               select(subregion, subregion_nox_input_rate, nox_input_zscore) %>% 
                arrange(desc(nox_input_zscore)))
 ```
 
 #### NOx ozone input rate
 
 ```{r}
-#| label: subregion_nox_oz_input_outliers
-#| echo: false
-#| warning: false
+#| label: subregion-nox-oz-input-outliers
 
-knitr::kable(subregion_input_zscore %>% filter(nox_oz_input_zscore > 3 
-                                         | nox_oz_input_zscore < -3) %>% 
-               select(sub_region, egrid_nox_oz_input_rate, nox_oz_input_zscore) %>% 
+knitr::kable(subregion_zscore %>% 
+               filter(nox_oz_input_zscore > 3 | nox_oz_input_zscore < -3) %>% 
+               select(subregion, subregion_nox_oz_input_rate, nox_oz_input_zscore) %>% 
                arrange(desc(nox_oz_input_zscore)))
 
 ```
@@ -2771,13 +2736,11 @@ knitr::kable(subregion_input_zscore %>% filter(nox_oz_input_zscore > 3
 #### SO2 input rate
 
 ```{r}
-#| label: subregion_so2_input_outliers
-#| echo: false
-#| warning: false
+#| label: subregion-so2-input-outliers
 
-knitr::kable(subregion_input_zscore %>% filter(so2_input_zscore > 3 | 
-                                                 so2_input_zscore < -3) %>% 
-               select(sub_region, egrid_so2_input_rate, so2_input_zscore) %>% 
+knitr::kable(subregion_zscore %>% 
+               filter(so2_input_zscore > 3 | so2_input_zscore < -3) %>% 
+               select(subregion, subregion_so2_input_rate, so2_input_zscore) %>% 
                arrange(desc(so2_input_zscore)))
 
 ```
@@ -2785,13 +2748,12 @@ knitr::kable(subregion_input_zscore %>% filter(so2_input_zscore > 3 |
 #### CO2 input rate
 
 ```{r}
-#| label: subregion_co2_input_outliers
-#| echo: false
-#| warning: false
+#| label: subregion-co2-input-outliers
 
-knitr::kable(subregion_input_zscore %>% filter(co2_input_zscore > 3 | 
-                                           co2_input_zscore < -3) %>% 
-               select(sub_region, egrid_co2_input_rate, co2_input_zscore) %>% 
+
+knitr::kable(subregion_zscore %>% 
+               filter(co2_input_zscore > 3 | co2_input_zscore < -3) %>% 
+               select(subregion, subregion_co2_input_rate, co2_input_zscore) %>% 
                arrange(desc(co2_input_zscore)))
 
 ```
@@ -2799,13 +2761,11 @@ knitr::kable(subregion_input_zscore %>% filter(co2_input_zscore > 3 |
 #### CH4 input rate
 
 ```{r}
-#| label: subregion_ch4_input_outliers
-#| echo: false
-#| warning: false
+#| label: subregion-ch4-input-outliers
 
-knitr::kable(subregion_input_zscore %>% filter(ch4_input_zscore > 3 | 
-                                           ch4_input_zscore < -3) %>% 
-               select(sub_region, egrid_ch4_input_rate, ch4_input_zscore) %>% 
+knitr::kable(subregion_zscore %>% 
+               filter(ch4_input_zscore > 3 | ch4_input_zscore < -3) %>% 
+               select(subregion, subregion_ch4_input_rate, ch4_input_zscore) %>% 
                arrange(desc(ch4_input_zscore)))
 
 ```
@@ -2813,13 +2773,11 @@ knitr::kable(subregion_input_zscore %>% filter(ch4_input_zscore > 3 |
 #### N2O input rate
 
 ```{r}
-#| label: subregion_n2o_input_outliers
-#| echo: false
-#| warning: false
+#| label: subregion-n2o-input-outliers
 
-knitr::kable(subregion_input_zscore %>% filter(n2o_input_zscore > 3 | 
-                                                 n2o_input_zscore < -3) %>% 
-               select(sub_region, egrid_n2o_input_rate, n2o_input_zscore) %>% 
+knitr::kable(subregion_zscore %>% 
+               filter(n2o_input_zscore > 3 | n2o_input_zscore < -3) %>% 
+               select(subregion, subregion_n2o_input_rate, n2o_input_zscore) %>% 
                arrange(desc(n2o_input_zscore)))
 
 ```
@@ -2829,63 +2787,26 @@ knitr::kable(subregion_input_zscore %>% filter(n2o_input_zscore > 3 |
 
 Outliers are identified by any zscores for emission rates \> +/- 3 and are printed in the table if any exist.
 
-```{r}
-subregion_output_zscore <- 
-  subrgn_agg %>% 
-  mutate(nox_output_zscore = (egrid_nox_output_rate - 
-                                stats_summary$nox_output_rate_average)/ 
-           stats_summary$nox_output_rate_sd, 
-         
-         nox_oz_output_zscore = (egrid_nox_oz_output_rate - 
-                                   stats_summary$nox_oz_output_rate_average)/ 
-           stats_summary$nox_oz_output_rate_sd, 
-         
-         so2_output_zscore = (egrid_so2_output_rate - 
-                                stats_summary$so2_output_rate_average)/ 
-           stats_summary$so2_output_rate_sd,
-         
-         co2_output_zscore = (egrid_co2_output_rate - 
-                                stats_summary$co2_output_rate_average)/ 
-           stats_summary$co2_output_rate_sd,
-         
-         ch4_output_zscore = (egrid_ch4_output_rate - 
-                                stats_summary$ch4_output_rate_average)/ 
-           stats_summary$ch4_output_rate_sd,
-         
-         n2o_output_zscore = (egrid_n2o_output_rate - 
-                                stats_summary$n2o_output_rate_average)/ 
-           stats_summary$n2o_output_rate_sd,
-         
-         co2e_output_zscore = (egrid_co2e_output_rate - 
-                                 stats_summary$co2e_output_rate_average)/ 
-           stats_summary$co2e_output_rate_sd) %>% 
-  select(sub_region, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
-```
-
 ::: panel-tabset
 #### NOx output rate
 
 ```{r}
-#| label: subregion_nox_output_outliers
-#| echo: false
-#| warning: false
+#| label: subregion-nox-output-outliers
 
-knitr::kable(subregion_output_zscore %>% filter(nox_output_zscore > 3 | 
-                                                  nox_output_zscore < -3) %>% 
-               select(sub_region, egrid_nox_output_rate, nox_output_zscore) %>% 
+knitr::kable(subregion_zscore %>% 
+               filter(nox_output_zscore > 3 | nox_output_zscore < -3) %>% 
+               select(subregion, subregion_nox_output_rate, nox_output_zscore) %>% 
                arrange(desc(nox_output_zscore)))
 ```
 
 #### NOx ozone output rate
 
 ```{r}
-#| label: subregion_nox_oz_output_outliers
-#| echo: false
-#| warning: false
+#| label: subregion-nox-oz-output-outliers
 
-knitr::kable(subregion_output_zscore %>% filter(nox_oz_output_zscore > 3 
-                                         | nox_oz_output_zscore < -3) %>% 
-               select(sub_region, egrid_nox_oz_output_rate, nox_oz_output_zscore) %>% 
+knitr::kable(subregion_zscore %>% 
+               filter(nox_oz_output_zscore > 3 | nox_oz_output_zscore < -3) %>% 
+               select(subregion, subregion_nox_oz_output_rate, nox_oz_output_zscore) %>% 
                arrange(desc(nox_oz_output_zscore)))
 
 ```
@@ -2893,13 +2814,11 @@ knitr::kable(subregion_output_zscore %>% filter(nox_oz_output_zscore > 3
 #### SO2 output rate
 
 ```{r}
-#| label: subregion_so2_output_outliers
-#| echo: false
-#| warning: false
+#| label: subregion-so2-output-outliers
 
-knitr::kable(subregion_output_zscore %>% filter(so2_output_zscore > 3 | 
-                                                  so2_output_zscore < -3) %>% 
-               select(sub_region, egrid_so2_output_rate, so2_output_zscore) %>% 
+knitr::kable(subregion_zscore %>% 
+               filter(so2_output_zscore > 3 | so2_output_zscore < -3) %>% 
+               select(subregion, subregion_so2_output_rate, so2_output_zscore) %>% 
                arrange(desc(so2_output_zscore)))
 
 ```
@@ -2907,13 +2826,11 @@ knitr::kable(subregion_output_zscore %>% filter(so2_output_zscore > 3 |
 #### CO2 output rate
 
 ```{r}
-#| label: subregion_co2_output_outliers
-#| echo: false
-#| warning: false
-
-knitr::kable(subregion_output_zscore %>% filter(co2_output_zscore > 3 | 
-                                                  co2_output_zscore < -3) %>% 
-               select(sub_region, egrid_co2_output_rate, co2_output_zscore) %>% 
+#| label: subregion-co2-output-outliers
+#| 
+knitr::kable(subregion_zscore %>% 
+               filter(co2_output_zscore > 3 | co2_output_zscore < -3) %>% 
+               select(subregion, subregion_co2_output_rate, co2_output_zscore) %>% 
                arrange(desc(co2_output_zscore)))
 
 ```
@@ -2921,13 +2838,11 @@ knitr::kable(subregion_output_zscore %>% filter(co2_output_zscore > 3 |
 #### CH4 output rate
 
 ```{r}
-#| label: subregion_ch4_output_outliers
-#| echo: false
-#| warning: false
+#| label: subregion-ch4-output-outliers
 
-knitr::kable(subregion_output_zscore %>% filter(ch4_output_zscore > 3 | 
-                                                  ch4_output_zscore < -3) %>% 
-               select(sub_region, egrid_ch4_output_rate, ch4_output_zscore) %>% 
+knitr::kable(subregion_zscore %>% 
+               filter(ch4_output_zscore > 3 | ch4_output_zscore < -3) %>% 
+               select(subregion, subregion_ch4_output_rate, ch4_output_zscore) %>% 
                arrange(desc(ch4_output_zscore)))
 
 ```
@@ -2935,13 +2850,11 @@ knitr::kable(subregion_output_zscore %>% filter(ch4_output_zscore > 3 |
 #### N2O output rate
 
 ```{r}
-#| label: subregion_n2o_output_outliers
-#| echo: false
-#| warning: false
+#| label: subregion-n2o-output-outliers
 
-knitr::kable(subregion_output_zscore %>% filter(n2o_output_zscore > 3 | 
-                                                  n2o_output_zscore < -3) %>% 
-               select(sub_region, egrid_n2o_output_rate, n2o_output_zscore) %>% 
+knitr::kable(subregion_zscore %>% 
+               filter(n2o_output_zscore > 3 | n2o_output_zscore < -3) %>% 
+               select(subregion, subregion_n2o_output_rate, n2o_output_zscore) %>% 
                arrange(desc(n2o_output_zscore)))
 
 ```
