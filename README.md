@@ -10,21 +10,21 @@ The data includes emissions, emission rates, generation, heat input, resource mi
 
 The final eGRID dataset includes eight levels of data aggregation:
 
--   Unit
+-   **Generator**: Generators connected to the U.S. electricity grid. A generator is defined as a unit that produces electricity.
 
--   Generator
+-   **Unit**: Units connected to the U.S. electricity grid. A unit is defined in eGRID as either a generator (produces electricity) or a boiler (uses fuel to heat water and produce steam). 
 
--   Plant
+-   **Plant**: Plants connected to the U.S. electricity grid. 
 
--   State
+-   **State**: U.S. states, Puerto Rico (PR), and District of Columbia (DC).
 
--   Balancing authority
+-   **Balancing authority**: Regional operators that ensure a balance of supply and demand. 
 
--   eGRID subregion
+-   **eGRID subregion**: EPA defined subregions defined to limit import and export of electricity. 
 
--   NERC region
+-   **NERC (North American Electric Reliability Corporation) regions**: Regional reliability entities. eGRID also include Alaska, Hawaii, and Puerto Rico as their own NERC region.  
 
--   US
+-   **U.S.**
 
 Further information on eGRID methodology can be found in the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
@@ -63,6 +63,8 @@ To create the eGRID dataset:
 3. Render `eGRID_master.qmd`. 
     a. Set data year in `params` (eGRID_year) in the YAML as a string in the format "YYYY" (ex: `"2023"`).
     b. Render `eGRID_master.qmd`. This will run all scripts and build the eGRID dataset. 
+
+## Outputs
 
 The codebase outputs each data aggregation level in the eGRID dataset as an .RDS file and the final dataset as an Excel sheet in `data/outputs/{params$eGRID_year}`. Rendering `eGRID_master.qmd` also creates an HTML file that summarizes the data, methods, and output files 
 used and created throughout the code base. 
