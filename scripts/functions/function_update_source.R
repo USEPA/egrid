@@ -36,8 +36,8 @@ update_source <- function(x, unit_f) {
   # if plant_ids have multiple sources, assign "EPA/CAMD; EIA"
   unit_source <- 
     unit_source %>% 
-    mutate(source_update = if_else(plant_id %in% ids, "EPA/CAPD; EIA", source_update)) 
-  unique() # take unique again to remove duplicates
+    mutate(source_update = if_else(plant_id %in% ids, "EPA/CAPD; EIA", source_update)) %>% 
+    unique() # take unique again to remove duplicates
   
   colnames(unit_source) <- c("plant_id", str_col)
   

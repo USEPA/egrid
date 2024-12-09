@@ -1105,7 +1105,7 @@ plant_file_21 <-
 # Update source columns ------------------------------
 
 # list of allowed sources to aid in checking that all sources are updated correctly
-check_source_list <- c("EIA" ,"EPA/CAPD", NA_character_, "EPA/CAPD; EIA")
+check_source_list <- c("EIA", "EPA/CAPD", NA_character_, "EPA/CAPD; EIA")
 
 ### Update heat_input_source ----------
 
