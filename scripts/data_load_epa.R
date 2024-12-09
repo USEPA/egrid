@@ -1,10 +1,10 @@
 ## -------------------------------
 ##
-## Data load CAMD
+## Data load EPA
 ## 
 ## Purpose: 
 ## 
-## This file loads the CAMD data set from an API and aggregates hourly data to annual data
+## This file loads the EPA data set from an API and aggregates hourly data to annual data
 ## 
 ## Authors:  
 ##      Sean Bock, Abt Global
@@ -40,15 +40,15 @@ if (exists("params")) {
 }
 
 # Check if folder to store raw data exists, if not - create it
-if (!dir.exists(glue::glue("data/raw_data/camd/{params$eGRID_year}"))) {
-  dir.create(glue::glue("data/raw_data/camd/{params$eGRID_year}"), recursive = TRUE)
+if (!dir.exists(glue::glue("data/raw_data/epa/{params$eGRID_year}"))) {
+  dir.create(glue::glue("data/raw_data/epa/{params$eGRID_year}"), recursive = TRUE)
 }
 
 # Load necessary functions
 source("scripts/functions/function_coalesce_join_vars.R")
 
 # Set your API key here
-api_key <- read_lines("api_keys/camd_api_key.txt")
+api_key <- read_lines("api_keys/epa_api_key.txt")
 
 
 # API base url
@@ -200,7 +200,7 @@ mats_data_r <-
 
 ## Join facility, emissions, and MATS data --------
 
-camd_data_combined <- 
+epa_data_combined <- 
   facility_df %>% 
   left_join(emissions_data_r,
             by = c("facility_id", "unit_id", "primary_fuel_type")) %>% 
@@ -208,16 +208,16 @@ camd_data_combined <-
   left_join(mats_data_r) %>% 
   arrange(facility_id, unit_id)
   
-## Saving CAMD data 
+## Saving EPA data 
 
-print(glue::glue("Writing file camd.RDS to folder data/raw_data/camd/{params$eGRID_year}."))
+print(glue::glue("Writing file epa_raw.RDS to folder data/raw_data/epa/{params$eGRID_year}."))
 
-readr::write_rds(camd_data_combined, 
-                 file = glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_raw.RDS"))
+readr::write_rds(epa_data_combined, 
+                 file = glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))
 
 # check if file is successfully written to folder 
-if(file.exists(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_raw.RDS"))){
-  print(glue::glue("File camd_raw.RDS successfully written to folder data/raw_data/camd/{params$eGRID_year}"))
+if(file.exists(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))){
+  print(glue::glue("File epa_raw.RDS successfully written to folder data/raw_data/epa/{params$eGRID_year}"))
 } else {
-   print("File camd_raw.RDS failed to write to folder.")
+   print("File epa_raw.RDS failed to write to folder.")
 }

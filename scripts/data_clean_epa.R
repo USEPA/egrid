@@ -1,10 +1,10 @@
 ## -------------------------------
 ##
-## Data clean CAMD
+## Data clean EPA
 ## 
 ## Purpose: 
 ## 
-## This file cleans CAMD datasets for the production of eGRID. 
+## This file cleans EPA datasets for the production of eGRID. 
 ## 
 ## Authors:  
 ##      Sean Bock, Abt Global
@@ -41,7 +41,7 @@ if (exists("params")) {
 
 # Read raw CAMD files -------
 
-camd_raw <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_raw.RDS"))
+epa_raw <- read_rds(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))
 
 
 # standardizing variables names to match eia data and removing retired and inactive plants
@@ -86,21 +86,21 @@ xwalk_so2_control_abrvs <-
   read_csv("data/static_tables/xwalk_so2_control_abbreviations.csv") %>% 
   janitor::clean_names()
 
-camd_r <- 
-  camd_raw %>% 
+epa_r <- 
+  epa_raw %>% 
   rename(any_of(rename_cols)) %>%
   filter(!operating_status %in% c("Future", "Retired", "Long-term Cold Storage"), # removing plants that are listed as future, retired, or long-term cold storage
          (plant_id < 80000 | (plant_id > 80000 & plant_state == "PR"))) %>% # removing plant with plant ids above 80,000 unless they are in Puerto Rico
   mutate(
-    heat_input_source = if_else(is.na(heat_input_mmbtu), NA_character_, "EPA/CAMD"), # creating source variables based on emissions data
-    heat_input_oz_source = if_else(is.na(heat_input_mmbtu_ozone), NA_character_, "EPA/CAMD"),
-    nox_source = if_else(is.na(nox_mass_short_tons), NA_character_, "EPA/CAMD"),
-    nox_oz_source = if_else(is.na(nox_mass_short_tons_ozone), NA_character_, "EPA/CAMD"),
-    so2_source = if_else(is.na(so2_mass_short_tons), NA_character_, "EPA/CAMD"),
-    co2_source = if_else(is.na(co2_mass_short_tons), NA_character_, "EPA/CAMD"),
-    hg_source = if_else(is.na(hg_mass_lbs), NA_character_, "EPA/CAMD"), # Mercury mass field needs to come from separate bulk api (SB 3/28/2024)
+    heat_input_source = if_else(is.na(heat_input_mmbtu), NA_character_, "EPA/CAPD"), # creating source variables based on emissions data
+    heat_input_oz_source = if_else(is.na(heat_input_mmbtu_ozone), NA_character_, "EPA/CAPD"),
+    nox_source = if_else(is.na(nox_mass_short_tons), NA_character_, "EPA/CAPD"),
+    nox_oz_source = if_else(is.na(nox_mass_short_tons_ozone), NA_character_, "EPA/CAPD"),
+    so2_source = if_else(is.na(so2_mass_short_tons), NA_character_, "EPA/CAPD"),
+    co2_source = if_else(is.na(co2_mass_short_tons), NA_character_, "EPA/CAPD"),
+    hg_source = if_else(is.na(hg_mass_lbs), NA_character_, "EPA/CAPD"), # Mercury mass field needs to come from separate bulk api (SB 3/28/2024)
     year = params$eGRID_year,
-    camd = if_else(nox_source == "EPA/CAMD" , "Yes", NA_character_),
+    epa = if_else(nox_source == "EPA/CAPD" , "Yes", NA_character_),
     operating_status = case_when(
       operating_status == "Operating" ~ "OP",
       startsWith(operating_status, "Operating") ~ "OP", # Units that started operating in current year have "Operating" plus the date of operation.
@@ -114,12 +114,12 @@ camd_r <-
   mutate(so2_controls = if_else(!is.na(so2_control_abbreviation), so2_control_abbreviation, so2_controls)) %>% 
   select(-so2_control_abbreviation)
  
-print(glue::glue("{nrow(camd_raw) - nrow(camd_r)} rows removed because units have status of future, retired, long-term cold storage, or the plant ID is > 80,000."))
+print(glue::glue("{nrow(epa_raw) - nrow(epa_r)} rows removed because units have status of future, retired, long-term cold storage, or the plant ID is > 80,000."))
 
 # Remove unnecessary columns and rename as needed ------------
 
-camd_final <- # removing unnecessary columns and final renames
-  camd_r %>% 
+epa_final <- # removing unnecessary columns and final renames
+  epa_r %>% 
   select(starts_with("plant"),
          unit_id,
          year,
@@ -141,27 +141,27 @@ camd_final <- # removing unnecessary columns and final renames
   mutate(across(ends_with("id"), ~ as.character(.x)))
 
 
-# Save clean CAMD file ------------
+# Save clean EPA file ------------
 
 # creating folder if not already present
 
-if(!dir.exists("data/clean_data/camd")){
-  dir.create("data/clean_data/camd")
+if(!dir.exists("data/clean_data/epa")){
+  dir.create("data/clean_data/epa")
 } else{
-  print("Folder data/clean_data/camd already exists.")
+  print("Folder data/clean_data/epa already exists.")
 }
 
-if(!dir.exists(glue::glue("data/clean_data/camd/{params$eGRID_year}"))){
-  dir.create(glue::glue("data/clean_data/camd/{params$eGRID_year}"))
+if(!dir.exists(glue::glue("data/clean_data/epa/{params$eGRID_year}"))){
+  dir.create(glue::glue("data/clean_data/epa/{params$eGRID_year}"))
 } else{
-  print(glue::glue("Folder data/clean_data/camd/{params$eGRID_year} already exists."))
+  print(glue::glue("Folder data/clean_data/epa/{params$eGRID_year} already exists."))
 }
 
-write_rds(camd_final, glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS"))
+write_rds(epa_final, glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))
 
 # check if file is successfully written to folder 
-if(file.exists(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS"))){
-  print(glue::glue("File camd_clean.RDS successfully written to folder data/clean_data/camd/{params$eGRID_year}"))
+if(file.exists(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))){
+  print(glue::glue("File epa_clean.RDS successfully written to folder data/clean_data/epa/{params$eGRID_year}"))
 } else {
-  print("File camd_clean.RDS failed to write to folder.")
+  print("File epa_clean.RDS failed to write to folder.")
 }
