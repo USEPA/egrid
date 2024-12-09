@@ -2903,7 +2903,7 @@ check_plant_gen_sum_ann <- gen_plant_sum %>%
   mutate(sum_diff = round(plngenan - plant_ann_sum, 5)) %>%
   filter(sum_diff != 0)
 
-ifelse(nrow(check_plant_gen_sum_ann) == 0, "Status: PASS - All annual generation values between plant and generation files are equal",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum)} plants do not have the same annual plant generation values between plant and generation files"))
+ifelse(nrow(check_plant_gen_sum_ann) == 0, "Status: PASS - All annual generation values between plant and generation files are equal.",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum_ann)} plants do not have the same annual plant generation values between plant and generation files."))
 
 knitr::kable(check_plant_gen_sum_ann %>% select(plant_id, sum_diff))
 ```
@@ -2918,7 +2918,7 @@ check_plant_gen_sum_oz <- gen_plant_sum %>%
   mutate(sum_diff = round(plngenoz - plant_oz_sum, 5)) %>%
   filter(sum_diff != 0)
 
-ifelse(nrow(check_plant_gen_sum_oz) == 0, "Status: PASS - All annual generation values between plant and generation files are equal",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum_oz)} plants do not have the same annual plant generation values between plant and generation files"))
+ifelse(nrow(check_plant_gen_sum_oz) == 0, "Status: PASS - All annual generation values between plant and generation files are equal.",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum_oz)} plants do not have the same annual plant generation values between plant and generation files."))
 
 knitr::kable(check_plant_gen_sum_oz %>% select(plant_id, sum_diff))
 ```
@@ -3008,7 +3008,7 @@ years_check <-
   filter(year != params$year)
 
 
-ifelse(sum(nrow(unit_years_check),nrow(plant_years_check),nrow(generator_years_check)) == 0, "Status: PASS - Excel data year is correct in all instances.", glue::glue("Status: NEEDS CHECKED - Excel data year is not correct in {sum(c(nrow(unit_years_check),nrow(plant_years_check),nrow(generator_years_check)} instances."))
+ifelse(nrow(years_check) == 0, "Status: PASS - Excel data year is correct in all instances.", glue::glue("Status: NEEDS CHECKED - Excel data year is not correct in {sum(c(nrow(unit_years_check),nrow(plant_years_check),nrow(generator_years_check)} instances."))
 
 ```
 
@@ -3018,12 +3018,12 @@ ifelse(sum(nrow(unit_years_check),nrow(plant_years_check),nrow(generator_years_c
 #| label: unit-count-comparison
 
 unit_r <- read_rds(glue::glue("data/outputs/{params$year}/unit_file.RDS")) 
-ifelse(nrow(unit_file) == nrow(unit_r),"Status: PASS - Excel and R Unit files match in number of units",glue::glue("Status: NEEDS CHECKED - Excel and R unit files differ by {nrow(unit_file) - nrow(unit_r)}"))
+ifelse(nrow(unit_file) == nrow(unit_r),"Status: PASS - Excel and R Unit files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R unit files differ by {nrow(unit_file) - nrow(unit_r)}."))
 
 plant_r <- read_rds(glue::glue("data/outputs/{params$year}/plant_file.RDS")) 
-ifelse(nrow(plant_file) == nrow(plant_r),"Status: PASS - Excel and R Plant files match in number of units",glue::glue("Status: NEEDS CHECKED - Excel and R Plant files differ by {nrow(plant_file) - nrow(plant_r)} units"))
+ifelse(nrow(plant_file) == nrow(plant_r),"Status: PASS - Excel and R Plant files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R Plant files differ by {nrow(plant_file) - nrow(plant_r)} units."))
 
 generator_r <- read_rds(glue::glue("data/outputs/{params$year}/generator_file.RDS")) 
-ifelse(nrow(generator_file) == nrow(generator_r),"Status: PASS - Excel and R Generator files match in number of units",glue::glue("Status: NEEDS CHECKED - Excel and R Generator files differ by {nrow(generator_file) - nrow(generator_r)} units"))
+ifelse(nrow(generator_file) == nrow(generator_r),"Status: PASS - Excel and R Generator files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R Generator files differ by {nrow(generator_file) - nrow(generator_r)} units."))
   
 ```
