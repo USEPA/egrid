@@ -252,7 +252,7 @@ epa_2 <-
 # identify coal fuels in EPA use crosswalk to identify primary fuel type  
 coal_xwalk_update <- 
   xwalk_eia_epa %>% 
-  filter(epa_fuel_type == "Coal") %>% # extract only Coal units 
+  filter(camd_fuel_type == "Coal") %>% # extract only Coal units 
   left_join(epa_2, by = c("camd_plant_id" = "plant_id", "camd_unit_id" = "unit_id", "eia_unit_type" = "prime_mover")) %>% 
   left_join(eia_860$combined, by = c("eia_plant_id" = "plant_id", "eia_generator_id" = "generator_id", "eia_unit_type" = "prime_mover")) %>% 
   mutate(energy_source_1 = if_else(eia_fuel_type %in% coal_fuels, eia_fuel_type, NA_character_)) %>%  # only use EIA fuel type if it is a coal fuel type
@@ -2043,7 +2043,6 @@ final_vars <-
     "NOXCTLDV" = "nox_controls", 
     "HGCTLDV" = "hg_controls_flag", 
     "UNTYRONL" = "year_online", 
-    "STACKID" = "stack_flue_id", 
     "STACKST" = "stack_flue_status", 
     "STACKHT" = "stack_height_feet")
 
