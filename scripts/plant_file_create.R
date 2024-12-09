@@ -851,7 +851,7 @@ ann_gen_by_fuel_2 <-
          ann_gen_non_renew_other = ann_gen_other,
          ann_gen_combust = ann_gen_coal + ann_gen_oil + ann_gen_gas + ann_gen_other_ff + ann_gen_biomass,
          ann_gen_non_combust = ann_gen_nuclear + ann_gen_wind + ann_gen_solar + ann_gen_geothermal + ann_gen_hydro,
-         ann_gen_combust_other = ann_gen_other)
+         ann_gen_non_combust_other = ann_gen_other)
 
 ann_gen_by_fuel_3 <- 
   ann_gen_by_fuel_2 %>% 
@@ -870,8 +870,10 @@ ann_gen_by_fuel_3 <-
          perc_ann_gen_non_renew = if_else(plant_ann_gen != 0, ann_gen_non_renew / plant_ann_gen, NA_real_), 
          perc_ann_gen_renew = if_else(plant_ann_gen != 0, ann_gen_renew / plant_ann_gen, NA_real_), 
          perc_ann_gen_renew_nonhydro = if_else(plant_ann_gen != 0, ann_gen_renew_nonhydro / plant_ann_gen, NA_real_), 
+         perc_ann_gen_non_renew_other = if_else(plant_ann_gen != 0, ann_gen_non_renew_other / plant_ann_gen, NA_real_),
          perc_ann_gen_combust = if_else(plant_ann_gen != 0, ann_gen_combust / plant_ann_gen, NA_real_), 
-         perc_ann_gen_non_combust = if_else(plant_ann_gen != 0, ann_gen_non_combust / plant_ann_gen, NA_real_)) %>% 
+         perc_ann_gen_non_combust = if_else(plant_ann_gen != 0, ann_gen_non_combust / plant_ann_gen, NA_real_), 
+         perc_ann_gen_non_combust_other = if_else(plant_ann_gen != 0, ann_gen_non_combust_other / plant_ann_gen, NA_real_)) %>% 
   select(-plant_ann_gen) %>% 
   mutate(across(contains("perc"), 
                 ~ if_else(. < 0, 0, .)))
@@ -1407,10 +1409,12 @@ final_vars <-
     "PLGENAOF" = "ann_gen_other_ff", 
     "PLGENAOP" = "ann_gen_other", 
     "PLGENATN" = "ann_gen_non_renew", 
+    "PLGENATO" = "ann_gen_non_renew_other", 
     "PLGENATR" = "ann_gen_renew", 
     "PLGENATH" = "ann_gen_renew_nonhydro", 
     "PLGENACY" = "ann_gen_combust", 
     "PLGENACN" = "ann_gen_non_combust", 
+    "PLGENACO" = "ann_gen_non_combust_other", 
     "PLCLPR" = "perc_ann_gen_coal", 
     "PLOLPR" = "perc_ann_gen_oil", 
     "PLGSPR" = "perc_ann_gen_gas", 
@@ -1423,10 +1427,12 @@ final_vars <-
     "PLOFPR" = "perc_ann_gen_other_ff", 
     "PLOPPR" = "perc_ann_gen_other", 
     "PLTNPR" = "perc_ann_gen_non_renew", 
+    "PLTOPR" = "perc_ann_gen_non_renew_other",
     "PLTRPR" = "perc_ann_gen_renew", 
     "PLTHPR" = "perc_ann_gen_renew_nonhydro", 
     "PLCYPR" = "perc_ann_gen_combust", 
-    "PLCNPR" = "perc_ann_gen_non_combust")
+    "PLCNPR" = "perc_ann_gen_non_combust",
+    "PLCOPR" = "perc_ann_gen_non_combust_other")
 
 plant_formatted <-
   plant_file_23 %>%
