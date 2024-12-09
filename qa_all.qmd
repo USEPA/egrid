@@ -415,8 +415,7 @@ check_unit_heat_input <-
   filter((noxan > 0 | noxoz > 0 | so2an > 0 | co2an > 0 | hgan > 0) &
           (is.na(htian) & is.na(htioz))) # replaced | with &
 
-ifelse(nrow(check_unit_heat_input) == 0, "Status: PASS - All units with emissions have 
-       heat input values.", 
+ifelse(nrow(check_unit_heat_input) == 0, "Status: PASS - All units with emissions have heat input values.", 
         glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_heat_input)} units with emissions are missing heat input values."))
 
 knitr::kable(check_unit_heat_input %>% 
@@ -452,8 +451,6 @@ knitr::kable(check_unit_emissions %>%
 ## Blanks in heat input and emissions
 
 Check if units have blanks in heat input and emissions.
-
-*Is this blanks emissions AND heat input or blank emissions OR heat input?*
 
 <!--# which emissions are included here? -->
 
@@ -524,8 +521,6 @@ plant_file_prev <-
 ## Difference in latitude and longitude
 
 Check if plants have a difference in longitude and latitude in comparison to previous year data. This is checked to three decimal points.
-
-<!-- Revised methodology to remove NA lats and longs from showing up  -->
 
 ```{r}
 #| label: plant-lat-long
@@ -639,8 +634,6 @@ sf::sf_use_s2(FALSE)
 ```
 
 Check if plant locations are in regions. If there are any plants that are not in the region or in the overlapping regions, they will appear in the table. Some of the plants in the table may be due to being on the edge of region boundaries.
-
-<!--# need to update this to output table for each subregion -->
 
 ::: panel-tabset
 ### AKGD
@@ -1963,8 +1956,8 @@ check_plant_ozone <-
                  (plhtian < plhtioz) |
                  (plhtiant < plhtiozt))
 
-ifelse(nrow(check_plant_ozone) == 0, "No plants have ozone values greater than annual values", 
-        glue::glue("{nrow(check_plant_ozone)} plants have ozone values greater than annual values."))
+ifelse(nrow(check_plant_ozone) == 0, "Status: PASS - No plants have ozone values greater than annual values", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_ozone)} plants have ozone values greater than annual values."))
 
 knitr::kable(check_plant_ozone %>% select(plant_id, plant_name, plnoxan, 
                                                       plnoxoz, plhtian, plhtioz, 
@@ -1984,8 +1977,8 @@ check_plant_duplicate <-
   group_by(plant_id) %>% 
   filter(n()>1)
 
-ifelse(nrow(check_plant_duplicate) == 0, "No duplicate plants.", 
-        glue::glue("{nrow(check_plant_duplicate)} duplicate plants."))
+ifelse(nrow(check_plant_duplicate) == 0, "Status: PASS - No duplicate plants.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_duplicate)} duplicate plants."))
 
 knitr::kable(check_plant_duplicate %>% 
                select(plant_id, plant_name))
@@ -2002,8 +1995,8 @@ check_plant_neg_emissions <-
   filter((plnoxan < 0) | (plnoxoz < 0) | (plso2an < 0), 
                         (plco2an < 0) | (plch4an < 0) | (pln2oan < 0))
 
-ifelse(nrow(check_plant_neg_emissions) == 0, "No plants have negative emission values.", 
-        glue::glue("{nrow(check_plant_neg_emissions)} plants have negative emission values."))
+ifelse(nrow(check_plant_neg_emissions) == 0, "Status: PASS - No plants have negative emission values.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_neg_emissions)} plants have negative emission values."))
 
 knitr::kable(check_plant_neg_emissions %>% 
                select(plant_id, plant_name, plnoxan, 
@@ -2273,8 +2266,8 @@ check_plant_sbrgn_blanks <-
   plant_file %>% 
   filter(is.na(subrgn) | subrgn == "")
 
-ifelse(nrow(check_plant_sbrgn_blanks) == 0, "No plants have blank subregions.", 
-        glue::glue("{nrow(check_plant_sbrgn_blanks)} plants have blank subregions."))
+ifelse(nrow(check_plant_sbrgn_blanks) == 0, "Status: PASS - No plants have blank subregions.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_sbrgn_blanks)} plants have blank subregions."))
 
 knitr::kable(check_plant_sbrgn_blanks %>% 
                select(plant_id, plant_name, subrgn))
@@ -2290,8 +2283,8 @@ check_plant_nb_factor <-
   plant_file %>% 
   filter(nbfactor < 0 | nbfactor > 1)
 
-ifelse(nrow(check_plant_nb_factor) == 0, "No plants have a nonbaseload factor greater than 1 or less than 0.", 
-        glue::glue("{nrow(check_plant_nb_factor)} plants have a nonbaseload factor greater than 1 or less than 0."))
+ifelse(nrow(check_plant_nb_factor) == 0, "Status: PASS - No plants have a nonbaseload factor greater than 1 or less than 0.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_nb_factor)} plants have a nonbaseload factor greater than 1 or less than 0."))
 
 knitr::kable(check_plant_nb_factor %>% 
                select(plant_id, plant_name, nbfactor))
@@ -2307,8 +2300,8 @@ check_plant_fuel_blanks <-
   plant_file %>% 
   filter(is.na(plprmfl) | plprmfl == "")
 
-ifelse(nrow(check_plant_fuel_blanks) == 0, "All plants have a primary fuel.", 
-        glue::glue("{nrow(check_plant_fuel_blanks)} plants are missing a primary fuel."))
+ifelse(nrow(check_plant_fuel_blanks) == 0, "Status: PASS - All plants have a primary fuel.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_fuel_blanks)} plants are missing a primary fuel."))
 
 knitr::kable(check_plant_fuel_blanks %>% select(plant_id, plant_name, plprmfl))
 
@@ -2338,8 +2331,8 @@ check_plant_fuelcat <-
                            c("AB", "BG", "BLQ", "DG", "LFG", "MSB", "MSW", "OBG", "OBL",
                              "OBS", "SLW", "WDL", "WDS"))))
 
-ifelse(nrow(check_plant_fuelcat) == 0, "All plants have a primary category and it matches the primary fuel.", 
-        glue::glue("{nrow(check_plant_fuelcat)} plants are either missing a primary fuel category or primary fuel cateogry does not match primary fuel."))
+ifelse(nrow(check_plant_fuelcat) == 0, "Status: PASS - All plants have a primary category and it matches the primary fuel.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_fuelcat)} plants are either missing a primary fuel category or primary fuel cateogry does not match primary fuel."))
 
 knitr::kable(check_plant_fuelcat %>% select(plant_id, plant_name, plprmfl, plfuelct))
                           
@@ -2360,8 +2353,8 @@ check_plant_emissions_heatinput <-
                          plch4an > 0 | pln2oan > 0 | 
                          plco2eqa > 0))
 
-ifelse(nrow(check_plant_emissions_heatinput) == 0, "All plants with emission values have heat input values.", 
-        glue::glue("{nrow(check_plant_emissions_heatinput)} plants that have emissions values are missing heat input."))
+ifelse(nrow(check_plant_emissions_heatinput) == 0, "Status: PASS - All plants with emission values have heat input values.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_emissions_heatinput)} plants that have emissions values are missing heat input."))
 
 knitr::kable(check_plant_emissions_heatinput %>% 
                select(plant_id, plant_name, plhtiant, plhtiozt, plnoxan, plnoxoz, 
@@ -2388,8 +2381,8 @@ check_plant_resource_mix <-
   filter(!(resource_mix_total == 1)) %>% 
   mutate()
 
-ifelse(nrow(check_plant_resource_mix) == 0, "All plant resource mixes add to 100%.", 
-        glue::glue("{nrow(check_plant_resource_mix)} plant resource mixes do not add to 100%."))
+ifelse(nrow(check_plant_resource_mix) == 0, "Status: PASS = All plant resource mixes add to 100%.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_resource_mix)} plant resource mixes do not add to 100%."))
 
 knitr::kable(check_plant_resource_mix %>% select(plant_id, plant_name,
                                                  resource_mix_total))
@@ -2541,8 +2534,6 @@ knitr::kable(check_ba_mix %>%
 ```
 
 ### eGRID subregion
-
-Need to update eGRID subregion resource mix to percentages.
 
 ```{r}
 #| label: subregion-mix
@@ -2865,26 +2856,85 @@ knitr::kable(subregion_zscore %>%
 ## Count of plants in generator, unit, and plant file are equivalent
 
 ```{r}
-#| label: count_plants
-#| echo: false
-#| warning: false
+#| label: count-plants
 
-glue::glue("{nrow(plant_file)} plants in plant file.")
+glue::glue("{nrow(plant_file %>% distinct(plant_id))} plants in plant file.")
 
-glue::glue("{nrow(generator_file %>% distinct(plant_id))} plants in generator file.")
+gen_plants <-
+  generator_file %>%
+  distinct(plant_id)
 
-glue::glue("{nrow(unit_file %>% distinct(plant_id))} plants in unit file.")
+glue::glue("{nrow(gen_plants)} plants in generator file.")
+
+if (nrow(gen_plants) < nrow(plant_file %>% distinct(plant_id))) {
+  gen_missing_plants <-
+    plant_file %>%
+    distinct(plant_id) %>% 
+    filter(!plant_id %in% gen_plants$plant_id)
+  print(glue::glue("Missing {nrow(gen_missing_plants)} plants."))
+  print(knitr::kable(gen_missing_plants))
+}
+
+unit_plants <-
+  unit_file %>%
+  distinct(plant_id)
+
+glue::glue("{nrow(unit_plants)} plants in unit file.")
+
+if (nrow(unit_plants) < nrow(plant_file %>% distinct(plant_id))) {
+  unit_missing_plants <-
+    plant_file %>%
+    distinct(plant_id) %>% 
+    filter(!plant_id %in% unit_plants$plant_id)
+  print(glue::glue("Missing {nrow(unit_missing_plants)} plants."))
+  print(knitr::kable(unit_missing_plants))
+}
 
 ```
 
 ## Sum of generation
 
-Check that generation is equal across plant, generator and unit file.
+Check that generation is equal across plant and generator file.
+
+### Plant by plant comparisons - annual generation
 
 ```{r}
-#| label: sum_generation
-#| echo: false
-#| warning: false
+#| label: plant-annual-generation
+
+gen_plant_sum <-
+  generator_file %>%
+  group_by(plant_id) %>%
+  summarize(plant_ann_sum = sum(genntan), plant_oz_sum = sum(genntoz))
+
+check_plant_gen_sum_ann <- gen_plant_sum %>%
+  full_join(plant_file %>% select("plant_id", "plngenan"), join_by("plant_id")) %>%
+  mutate(sum_diff = round(plngenan - plant_ann_sum, 5)) %>%
+  filter(sum_diff != 0)
+
+ifelse(nrow(check_plant_gen_sum_ann) == 0, "Status: PASS - All annual generation values between plant and generation files are equal",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum)} plants do not have the same annual plant generation values between plant and generation files"))
+
+knitr::kable(check_plant_gen_sum_ann %>% select(plant_id,sum_diff))
+```
+
+### Plant by plant comparison - ozone season generation
+
+```{r}
+#| label: plant-ozone-generation
+#| 
+check_plant_gen_sum_oz <- gen_plant_sum %>%
+  full_join(plant_file %>% select("plant_id", "plngenoz"), join_by("plant_id")) %>%
+  mutate(sum_diff = round(plngenoz - plant_oz_sum, 5)) %>%
+  filter(sum_diff != 0)
+
+ifelse(nrow(check_plant_gen_sum_oz) == 0, "Status: PASS - All annual generation values between plant and generation files are equal",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum_oz)} plants do not have the same annual plant generation values between plant and generation files"))
+
+knitr::kable(check_plant_gen_sum_oz %>% select(plant_id,sum_diff))
+```
+
+### Total generation comparisons - ozone season and annual
+
+```{r}
+#| label: plant-total-generation
 
 plant_gen_sum <- 
   plant_file %>% 
@@ -2898,8 +2948,12 @@ generator_gen_sum <-
 
 glue::glue("Plant file total generation: {plant_gen_sum$gen_total}")
 glue::glue("Generator file total generation: {generator_gen_sum$gen_total}")
-
 glue::glue("Difference (plant - generator): {plant_gen_sum$gen_total - generator_gen_sum$gen_total}")
+
+glue::glue("Plant file ozone season generation: {plant_gen_sum$gen_oz_total}")
+glue::glue("Generator file ozone season generation: {generator_gen_sum$gen_oz_total}")
+glue::glue("Difference (plant - generator): {plant_gen_sum$gen_oz_total - generator_gen_sum$gen_oz_total}")
+
 ```
 
 ## Sum of emissions
@@ -2907,9 +2961,7 @@ glue::glue("Difference (plant - generator): {plant_gen_sum$gen_total - generator
 Check that emissions are equal to each other across plant, generator, and unit file.
 
 ```{r}
-#| label: sum_emissions
-#| echo: false
-#| warning: false
+#| label: sum-emissions
 
 plant_emissions_sum <- 
   plant_file %>% 
