@@ -31,9 +31,7 @@ unit_nonmetric <-
     "NOXCTLDV" = "nox_controls", 
     "HGCTLDV" = "hg_controls_flag", 
     "UNTYRONL" = "year_online",
-    "STACKFLUESTATUSPLACEHOLDER" = "stack_flue_status", # NEW
     "STACKHT" = "stack_height") # NEW
-
 
 unit_metric <-
   c("SEQUNT" = "sequnt",
@@ -68,7 +66,6 @@ unit_metric <-
     "NOXCTLDV" = "nox_controls", 
     "HGCTLDV" = "hg_controls_flag", 
     "UNTYRONL" = "year_online",
-    "STACKFLUESTATUSPLACEHOLDER" = "stack_flue_status", # NEW
     "STACKHT" = "stack_height") # NEW
 
 gen_nonmetric <-
