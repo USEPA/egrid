@@ -31,8 +31,8 @@ unit_nonmetric <-
     "NOXCTLDV" = "nox_controls", 
     "HGCTLDV" = "hg_controls_flag", 
     "UNTYRONL" = "year_online",
-    #"STACKFLUESTATUSPLACEHOLDER" = "stack_flue_status",
-    "STACKHT" = "stack_height") # change from feet 
+    "STACKFLUESTATUSPLACEHOLDER" = "stack_flue_status", # NEW
+    "STACKHT" = "stack_height") # NEW
 
 
 unit_metric <-
@@ -68,8 +68,8 @@ unit_metric <-
     "NOXCTLDV" = "nox_controls", 
     "HGCTLDV" = "hg_controls_flag", 
     "UNTYRONL" = "year_online",
-    #"STACKFLUESTATUSPLACEHOLDER" = "stack_flue_status",
-    "STACKHT" = "stack_height") # change from feet
+    "STACKFLUESTATUSPLACEHOLDER" = "stack_flue_status", # NEW
+    "STACKHT" = "stack_height") # NEW
 
 gen_nonmetric <-
   c("SEQGEN" = "seqgen",
@@ -192,7 +192,7 @@ plant_nonmetric <-
     "UNCO2" = "unadj_co2_mass", 
     "UNCH4" = "unadj_ch4_mass", 
     "UNN2O" = "unadj_n2o_mass", 
-    #"UNCO2E" = "unadj_co2e_mass",
+    "UNCO2E" = "unadj_co2e_mass", # NEW
     "UNHG" = "unadj_hg_mass", 
     "UNHTI" = "unadj_combust_heat_input", 
     "UNHTIOZ" = "unadj_combust_heat_input_oz", 
@@ -213,7 +213,7 @@ plant_nonmetric <-
     "BIOCO2" = "co2_biomass", 
     "BIOCH4" = "ch4_biomass", 
     "BION2O" = "n2o_biomass",
-    #"BIOCO2E" = "co2e_biomass",
+    "BIOCO2E" = "co2e_biomass", # NEW
     "CHPCHTI" = "chp_combust_heat_input", 
     "CHPCHTIOZ" = "chp_combust_heat_input_oz", 
     "CHPNOX" = "chp_nox", 
@@ -222,7 +222,7 @@ plant_nonmetric <-
     "CHPCO2" = "chp_co2",
     "CHPCH4" = "chp_ch4", 
     "CHPN2O" = "chp_n2o", 
-    #"CHPCO2E" = "chp_co2e",
+    "CHPCO2E" = "chp_co2e", # NEW
     "PLHTRT" = "nominal_heat_rate", 
     "PLGENACL" = "ann_gen_coal", 
     "PLGENAOL" = "ann_gen_oil", 
@@ -236,12 +236,12 @@ plant_nonmetric <-
     "PLGENAOF" = "ann_gen_other_ff", 
     "PLGENAOP" = "ann_gen_other", 
     "PLGENATN" = "ann_gen_non_renew", 
-    #"PLGENATO" = "ann_gen_non_renew_other",
+    "PLGENATO" = "ann_gen_non_renew_other", # NEW
     "PLGENATR" = "ann_gen_renew", 
     "PLGENATH" = "ann_gen_renew_nonhydro", 
     "PLGENACY" = "ann_gen_combust", 
     "PLGENACN" = "ann_gen_non_combust", 
-    #"PLGENACO" = "ann_gen_non_combust_other",
+    "PLGENACO" = "ann_gen_non_combust_other", # NEW
     "PLCLPR" = "perc_ann_gen_coal", 
     "PLOLPR" = "perc_ann_gen_oil", 
     "PLGSPR" = "perc_ann_gen_gas", 
@@ -254,12 +254,12 @@ plant_nonmetric <-
     "PLOFPR" = "perc_ann_gen_other_ff", 
     "PLOPPR" = "perc_ann_gen_other", 
     "PLTNPR" = "perc_ann_gen_non_renew", 
-    #"PLTOPR" = "perc_ann_gen_non_renew_other",
+    "PLTOPR" = "perc_ann_gen_non_renew_other", # NEW
     "PLTRPR" = "perc_ann_gen_renew", 
     "PLTHPR" = "perc_ann_gen_renew_nonhydro", 
     "PLCYPR" = "perc_ann_gen_combust", 
     "PLCNPR" = "perc_ann_gen_non_combust",
-    #"PLCOPR" = "perc_ann_gen_non_combust_other"
+    "PLCOPR" = "perc_ann_gen_non_combust_other" # NEW
     )
 
 plant_metric <-
@@ -361,7 +361,7 @@ plant_metric <-
     "UNCO2" = "unadj_co2_mass", 
     "UNCH4" = "unadj_ch4_mass", 
     "UNN2O" = "unadj_n2o_mass", 
-    #"UNCO2E" = "unadj_co2e_mass",
+    "UNCO2E" = "unadj_co2e_mass", # NEW
     "UNHG" = "unadj_hg_mass", 
     "UNHTI" = "unadj_combust_heat_input", 
     "UNHTIOZ" = "unadj_combust_heat_input_oz", 
@@ -382,7 +382,7 @@ plant_metric <-
     "BIOCO2" = "co2_biomass", 
     "BIOCH4" = "ch4_biomass", 
     "BION2O" = "n2o_biomass", 
-    #"BIOCO2E" = "co2e_biomass",
+    "BIOCO2E" = "co2e_biomass", # NEW
     "CHPCHTI" = "chp_combust_heat_input", 
     "CHPCHTIOZ" = "chp_combust_heat_input_oz", 
     "CHPNOX" = "chp_nox", 
@@ -391,7 +391,7 @@ plant_metric <-
     "CHPCO2" = "chp_co2",
     "CHPCH4" = "chp_ch4", 
     "CHPN2O" = "chp_n2o", 
-    #"CHPCO2E" = "chp_co2e",
+    "CHPCO2E" = "chp_co2e", # NEW
     "PLHTRT" = "nominal_heat_rate", 
     "PLGENACL" = "ann_gen_coal", 
     "PLGENACL2" = "ann_gen_coal_metric", 
@@ -417,8 +417,8 @@ plant_metric <-
     "PLGENAOP2" = "ann_gen_other_metric", 
     "PLGENATN" = "ann_gen_non_renew",  
     "PLGENATN2" = "ann_gen_non_renew_metric", 
-    #"PLGENATO" = "ann_gen_non_renew_other",
-    #"PLGENATO2" = "ann_gen_non_renew_other_metric",
+    "PLGENATO" = "ann_gen_non_renew_other", # NEW
+    "PLGENATO2" = "ann_gen_non_renew_other_metric", # NEW
     "PLGENATR" = "ann_gen_renew",  
     "PLGENATR2" = "ann_gen_renew_metric", 
     "PLGENATH" = "ann_gen_renew_nonhydro", 
@@ -427,8 +427,8 @@ plant_metric <-
     "PLGENACY2" = "ann_gen_combust_metric", 
     "PLGENACN" = "ann_gen_non_combust",  
     "PLGENACN2" = "ann_gen_non_combust_metric",
-    #"PLGENACO" = "ann_gen_non_combust_other",
-    #"PLGENACO2" = "ann_gen_non_combust_other_metric",
+    "PLGENACO" = "ann_gen_non_combust_other", # NEW
+    "PLGENACO2" = "ann_gen_non_combust_other_metric", # NEW
     "PLCLPR" = "perc_ann_gen_coal", 
     "PLOLPR" = "perc_ann_gen_oil", 
     "PLGSPR" = "perc_ann_gen_gas", 
@@ -441,12 +441,12 @@ plant_metric <-
     "PLOFPR" = "perc_ann_gen_other_ff", 
     "PLOPPR" = "perc_ann_gen_other", 
     "PLTNPR" = "perc_ann_gen_non_renew",
-    #"PLTOPR" = "perc_ann_gen_non_renew_other",
+    "PLTOPR" = "perc_ann_gen_non_renew_other", # NEW
     "PLTRPR" = "perc_ann_gen_renew", 
     "PLTHPR" = "perc_ann_gen_renew_nonhydro", 
     "PLCYPR" = "perc_ann_gen_combust", 
     "PLCNPR" = "perc_ann_gen_non_combust",
-    #"PLCOPR" = "perc_ann_gen_non_combust_other"
+    "PLCOPR" = "perc_ann_gen_non_combust_other" # NEW
     )
 
 state_nonmetric <- 
@@ -572,12 +572,12 @@ state_nonmetric <-
    "STGENAOF" = "state_ann_gen_other_ff",
    "STGENAOP" = "state_ann_gen_other",
    "STGENATN" = "state_ann_gen_non_renew",
-   #"STGENATO" = "state_ann_gen_non_renew_other",
+   "STGENATO" = "state_ann_gen_non_renew_other", # NEW
    "STGENATR" = "state_ann_gen_renew",
    "STGENATH" = "state_ann_gen_renew_nonhydro",
    "STGENACY" = "state_ann_gen_combust",
    "STGENACN" = "state_ann_gen_non_combust",
-   #"STGENACO" = "state_ann_gen_non_combust_other",
+   "STGENACO" = "state_ann_gen_non_combust_other", # NEW
    "STCLPR" = "state_ann_resource_mix_coal",
    "STOLPR" = "state_ann_resource_mix_oil",
    "STGSPR" = "state_ann_resource_mix_gas",
@@ -590,10 +590,12 @@ state_nonmetric <-
    "STOFPR" = "state_ann_resource_mix_other_ff",
    "STOPPR" = "state_ann_resource_mix_other",
    "STTNPR" = "state_ann_resource_mix_non_renew",
+   "STTOPR" = "state_ann_resource_mix_non_renew_other", # NEW
    "STTRPR" = "state_ann_resource_mix_renew",
    "STTHPR" = "state_ann_resource_mix_renew_nonhydro",
    "STCYPR" = "state_ann_resource_mix_combust",
    "STCNPR" = "state_ann_resource_mix_non_combust",
+   "STCOPR" = "state_ann_resource_mix_non_combust_other", # NEW
    "STNBGNCL" = "state_nonbaseload_gen_coal",
    "STNBGNOL" = "state_nonbaseload_gen_oil",
    "STNBGNGS" = "state_nonbaseload_gen_gas",
@@ -808,8 +810,8 @@ state_metric <-
     "STGENAOP2" = "state_ann_gen_other_metric",
     "STGENATN" = "state_ann_gen_non_renew",
     "STGENATN2" = "state_ann_gen_non_renew_metric",
-    #"STGENATO" = "state_ann_gen_non_renew_other",
-    #"STGENATO2" = "state_ann_gen_non_renew_other_metric",
+    "STGENATO" = "state_ann_gen_non_renew_other", # NEW
+    "STGENATO2" = "state_ann_gen_non_renew_other_metric", # NEW
     "STGENATR" = "state_ann_gen_renew",
     "STGENATR2" = "state_ann_gen_renew_metric",
     "STGENATH" = "state_ann_gen_renew_nonhydro",
@@ -818,8 +820,8 @@ state_metric <-
     "STGENACY2" = "state_ann_gen_combust_metric",
     "STGENACN" = "state_ann_gen_non_combust",
     "STGENACN2" = "state_ann_gen_non_combust_metric",
-    #"STGENACO" = "state_ann_gen_non_combust_other",
-    #"STGENACO2" = "state_ann_gen_non_combust_other_metric",
+    "STGENACO" = "state_ann_gen_non_combust_other", # NEW
+    "STGENACO2" = "state_ann_gen_non_combust_other_metric", # NEW
     "STCLPR" = "state_ann_resource_mix_coal",
     "STOLPR" = "state_ann_resource_mix_oil",
     "STGSPR" = "state_ann_resource_mix_gas",
@@ -832,10 +834,12 @@ state_metric <-
     "STOFPR" = "state_ann_resource_mix_other_ff",
     "STOPPR" = "state_ann_resource_mix_other",
     "STTNPR" = "state_ann_resource_mix_non_renew",
+    "STTOPR" = "state_ann_resource_mix_non_renew_other", # NEW
     "STTRPR" = "state_ann_resource_mix_renew",
     "STTHPR" = "state_ann_resource_mix_renew_nonhydro",
     "STCYPR" = "state_ann_resource_mix_combust",
     "STCNPR" = "state_ann_resource_mix_non_combust",
+    "STCOPR" = "state_ann_resource_mix_non_combust_other", # NEW
     "STNBGNCL" = "state_nonbaseload_gen_coal",
     "STNBGNCL2" = "state_nonbaseload_gen_coal_metric",
     "STNBGNOL" = "state_nonbaseload_gen_oil",
@@ -993,12 +997,12 @@ ba_nonmetric <-
     "BAGENAOF" = "ba_ann_gen_other_ff",
     "BAGENAOP" = "ba_ann_gen_other",
     "BAGENATN" = "ba_ann_gen_non_renew",
-    #"BAGENATO" = "ba_ann_gen_non_renew_other",
+    "BAGENATO" = "ba_ann_gen_non_renew_other", # NEW
     "BAGENATR" = "ba_ann_gen_renew",
     "BAGENATH" = "ba_ann_gen_renew_nonhydro",
     "BAGENACY" = "ba_ann_gen_combust",
     "BAGENACN" = "ba_ann_gen_non_combust",
-    #"BAGENACO" = "ba_ann_gen_non_combust_other",
+    "BAGENACO" = "ba_ann_gen_non_combust_other", # NEW
     "BACLPR" = "ba_ann_resource_mix_coal",
     "BAOLPR" = "ba_ann_resource_mix_oil",
     "BAGSPR" = "ba_ann_resource_mix_gas",
@@ -1011,10 +1015,12 @@ ba_nonmetric <-
     "BAOFPR" = "ba_ann_resource_mix_other_ff",
     "BAOPPR" = "ba_ann_resource_mix_other",
     "BATNPR" = "ba_ann_resource_mix_non_renew",
+    "BATOPR" = "ba_ann_resource_mix_non_renew_other", # NEW
     "BATRPR" = "ba_ann_resource_mix_renew",
     "BATHPR" = "ba_ann_resource_mix_renew_nonhydro",
     "BACYPR" = "ba_ann_resource_mix_combust",
     "BACNPR" = "ba_ann_resource_mix_non_combust",
+    "BACOPR" = "ba_ann_resource_mix_non_combust_other", # NEW
     "BANBGNCL" = "ba_nonbaseload_gen_coal",
     "BANBGNOL" = "ba_nonbaseload_gen_oil",
     "BANBGNGS" = "ba_nonbaseload_gen_gas",
@@ -1229,8 +1235,8 @@ ba_metric <-
     "BAGENAOP2" = "ba_ann_gen_other_metric",
     "BAGENATN" = "ba_ann_gen_non_renew",
     "BAGENATN2" = "ba_ann_gen_non_renew_metric",
-    #"BAGENATO" = "ba_ann_gen_non_renew_other",
-    #"BAGENATO2" = "ba_ann_gen_non_renew_other_metric",
+    "BAGENATO" = "ba_ann_gen_non_renew_other", # NEW
+    "BAGENATO2" = "ba_ann_gen_non_renew_other_metric", # NEW
     "BAGENATR" = "ba_ann_gen_renew",
     "BAGENATR2" = "ba_ann_gen_renew_metric",
     "BAGENATH" = "ba_ann_gen_renew_nonhydro",
@@ -1239,8 +1245,8 @@ ba_metric <-
     "BAGENACY2" = "ba_ann_gen_combust_metric",
     "BAGENACN" = "ba_ann_gen_non_combust",
     "BAGENACN2" = "ba_ann_gen_non_combust_metric",
-    #"BAGENACO" = "ba_ann_gen_non_combust_other",
-    #"BAGENACO2" = "ba_ann_gen_non_combust_other_metric",
+    "BAGENACO" = "ba_ann_gen_non_combust_other", # NEW
+    "BAGENACO2" = "ba_ann_gen_non_combust_other_metric", # NEW
     "BACLPR" = "ba_ann_resource_mix_coal",
     "BAOLPR" = "ba_ann_resource_mix_oil",
     "BAGSPR" = "ba_ann_resource_mix_gas",
@@ -1253,10 +1259,12 @@ ba_metric <-
     "BAOFPR" = "ba_ann_resource_mix_other_ff",
     "BAOPPR" = "ba_ann_resource_mix_other",
     "BATNPR" = "ba_ann_resource_mix_non_renew",
+    "BATOPR" = "ba_ann_resource_mix_non_renew_other", # NEW
     "BATRPR" = "ba_ann_resource_mix_renew",
     "BATHPR" = "ba_ann_resource_mix_renew_nonhydro",
     "BACYPR" = "ba_ann_resource_mix_combust",
     "BACNPR" = "ba_ann_resource_mix_non_combust",
+    "BACOPR" = "ba_ann_resource_mix_non_combust_other", # NEW
     "BANBGNCL" = "ba_nonbaseload_gen_coal",
     "BANBGNCL2" = "ba_nonbaseload_gen_coal_metric",
     "BANBGNOL" = "ba_nonbaseload_gen_oil",
@@ -1414,12 +1422,12 @@ subregion_nonmetric <-
     "SRGENAOF" = "subregion_ann_gen_other_ff",
     "SRGENAOP" = "subregion_ann_gen_other",
     "SRGENATN" = "subregion_ann_gen_non_renew",
-    #"SRGENATO" = "subregion_ann_gen_non_renew_other",
+    "SRGENATO" = "subregion_ann_gen_non_renew_other", # NEW
     "SRGENATR" = "subregion_ann_gen_renew",
     "SRGENATH" = "subregion_ann_gen_renew_nonhydro",
     "SRGENACY" = "subregion_ann_gen_combust",
     "SRGENACN" = "subregion_ann_gen_non_combust",
-    #"SRGENACO" = "subregion_ann_gen_non_combust_other",
+    "SRGENACO" = "subregion_ann_gen_non_combust_other", # NEW
     "SRCLPR" = "subregion_ann_resource_mix_coal",
     "SROLPR" = "subregion_ann_resource_mix_oil",
     "SRGSPR" = "subregion_ann_resource_mix_gas",
@@ -1432,10 +1440,12 @@ subregion_nonmetric <-
     "SROFPR" = "subregion_ann_resource_mix_other_ff",
     "SROPPR" = "subregion_ann_resource_mix_other",
     "SRTNPR" = "subregion_ann_resource_mix_non_renew",
+    "SRTOPR" = "subregion_ann_resource_mix_non_renew_other", # NEW
     "SRTRPR" = "subregion_ann_resource_mix_renew",
     "SRTHPR" = "subregion_ann_resource_mix_renew_nonhydro",
     "SRCYPR" = "subregion_ann_resource_mix_combust",
     "SRCNPR" = "subregion_ann_resource_mix_non_combust",
+    "SRCOPR" = "subregion_ann_resource_mix_non_combust_other", # NEW
     "SRNBGNCL" = "subregion_nonbaseload_gen_coal",
     "SRNBGNOL" = "subregion_nonbaseload_gen_oil",
     "SRNBGNGS" = "subregion_nonbaseload_gen_gas",
@@ -1650,8 +1660,8 @@ subregion_metric <-
     "SRGENAOP2" = "subregion_ann_gen_other_metric",
     "SRGENATN" = "subregion_ann_gen_non_renew",
     "SRGENATN2" = "subregion_ann_gen_non_renew_metric",
-    #"SRGENATO" = "subregion_ann_gen_non_renew_other",
-    #"SRGENATO2" = "subregion_ann_gen_non_renew_other_metric",
+    "SRGENATO" = "subregion_ann_gen_non_renew_other", # NEW
+    "SRGENATO2" = "subregion_ann_gen_non_renew_other_metric", # NEW
     "SRGENATR" = "subregion_ann_gen_renew",
     "SRGENATR2" = "subregion_ann_gen_renew_metric",
     "SRGENATH" = "subregion_ann_gen_renew_nonhydro",
@@ -1660,8 +1670,8 @@ subregion_metric <-
     "SRGENACY2" = "subregion_ann_gen_combust_metric",
     "SRGENACN" = "subregion_ann_gen_non_combust",
     "SRGENACN2" = "subregion_ann_gen_non_combust_metric",
-    #"SRGENACO" = "subregion_ann_gen_non_combust_other",
-    #"SRGENACO2" = "subregion_ann_gen_non_combust_other_metric",
+    "SRGENACO" = "subregion_ann_gen_non_combust_other", # NEW
+    "SRGENACO2" = "subregion_ann_gen_non_combust_other_metric", # NEW
     "SRCLPR" = "subregion_ann_resource_mix_coal",
     "SROLPR" = "subregion_ann_resource_mix_oil",
     "SRGSPR" = "subregion_ann_resource_mix_gas",
@@ -1674,10 +1684,12 @@ subregion_metric <-
     "SROFPR" = "subregion_ann_resource_mix_other_ff",
     "SROPPR" = "subregion_ann_resource_mix_other",
     "SRTNPR" = "subregion_ann_resource_mix_non_renew",
+    "SRTOPR" = "subregion_ann_resource_mix_non_renew_other", # NEW
     "SRTRPR" = "subregion_ann_resource_mix_renew",
     "SRTHPR" = "subregion_ann_resource_mix_renew_nonhydro",
     "SRCYPR" = "subregion_ann_resource_mix_combust",
     "SRCNPR" = "subregion_ann_resource_mix_non_combust",
+    "SRCOPR" = "subregion_ann_resource_mix_non_combust_other", # NEW
     "SRNBGNCL" = "subregion_nonbaseload_gen_coal",
     "SRNBGNCL2" = "subregion_nonbaseload_gen_coal_metric",
     "SRNBGNOL" = "subregion_nonbaseload_gen_oil",
@@ -1835,12 +1847,12 @@ nerc_nonmetric <-
     "NRGENAOF" = "nerc_ann_gen_other_ff",
     "NRGENAOP" = "nerc_ann_gen_other",
     "NRGENATN" = "nerc_ann_gen_non_renew",
-    #"NRGENATO" = "nerc_ann_gen_non_renew_other",
+    "NRGENATO" = "nerc_ann_gen_non_renew_other", # NEW
     "NRGENATR" = "nerc_ann_gen_renew",
     "NRGENATH" = "nerc_ann_gen_renew_nonhydro",
     "NRGENACY" = "nerc_ann_gen_combust",
     "NRGENACN" = "nerc_ann_gen_non_combust",
-    #"NRGENACO" = "nerc_ann_gen_non_combust_other",
+    "NRGENACO" = "nerc_ann_gen_non_combust_other", # NEW
     "NRCLPR" = "nerc_ann_resource_mix_coal",
     "NROLPR" = "nerc_ann_resource_mix_oil",
     "NRGSPR" = "nerc_ann_resource_mix_gas",
@@ -1853,10 +1865,12 @@ nerc_nonmetric <-
     "NROFPR" = "nerc_ann_resource_mix_other_ff",
     "NROPPR" = "nerc_ann_resource_mix_other",
     "NRTNPR" = "nerc_ann_resource_mix_non_renew",
+    "NRTOPR" = "nerc_ann_resource_mix_non_renew_other", # NEW
     "NRTRPR" = "nerc_ann_resource_mix_renew",
     "NRTHPR" = "nerc_ann_resource_mix_renew_nonhydro",
     "NRCYPR" = "nerc_ann_resource_mix_combust",
     "NRCNPR" = "nerc_ann_resource_mix_non_combust",
+    "NRCOPR" = "nerc_ann_resource_mix_non_combust_other", # NEW
     "NRNBGNCL" = "nerc_nonbaseload_gen_coal",
     "NRNBGNOL" = "nerc_nonbaseload_gen_oil",
     "NRNBGNGS" = "nerc_nonbaseload_gen_gas",
@@ -2071,8 +2085,8 @@ nerc_metric <-
     "NRGENAOP2" = "nerc_ann_gen_other_metric",
     "NRGENATN" = "nerc_ann_gen_non_renew",
     "NRGENATN2" = "nerc_ann_gen_non_renew_metric",
-    #"NRGENATO" = "nerc_ann_gen_non_renew_other",
-    #"NRGENATO2" = "nerc_ann_gen_non_renew_other_metric",
+    "NRGENATO" = "nerc_ann_gen_non_renew_other", # NEW
+    "NRGENATO2" = "nerc_ann_gen_non_renew_other_metric", # NEW
     "NRGENATR" = "nerc_ann_gen_renew",
     "NRGENATR2" = "nerc_ann_gen_renew_metric",
     "NRGENATH" = "nerc_ann_gen_renew_nonhydro",
@@ -2081,8 +2095,8 @@ nerc_metric <-
     "NRGENACY2" = "nerc_ann_gen_combust_metric",
     "NRGENACN" = "nerc_ann_gen_non_combust",
     "NRGENACN2" = "nerc_ann_gen_non_combust_metric",
-    #"NRGENACO" = "nerc_ann_gen_non_combust_other",
-    #"NRGENACO2" = "nerc_ann_gen_non_combust_other_metric",
+    "NRGENACO" = "nerc_ann_gen_non_combust_other", # NEW
+    "NRGENACO2" = "nerc_ann_gen_non_combust_other_metric", # NEW
     "NRCLPR" = "nerc_ann_resource_mix_coal",
     "NROLPR" = "nerc_ann_resource_mix_oil",
     "NRGSPR" = "nerc_ann_resource_mix_gas",
@@ -2095,10 +2109,12 @@ nerc_metric <-
     "NROFPR" = "nerc_ann_resource_mix_other_ff",
     "NROPPR" = "nerc_ann_resource_mix_other",
     "NRTNPR" = "nerc_ann_resource_mix_non_renew",
+    "NRTOPR" = "nerc_ann_resource_mix_non_renew_other", # NEW
     "NRTRPR" = "nerc_ann_resource_mix_renew",
     "NRTHPR" = "nerc_ann_resource_mix_renew_nonhydro",
     "NRCYPR" = "nerc_ann_resource_mix_combust",
     "NRCNPR" = "nerc_ann_resource_mix_non_combust",
+    "NRCOPR" = "nerc_ann_resource_mix_non_combust_other", # NEW
     "NRNBGNCL" = "nerc_nonbaseload_gen_coal",
     "NRNBGNCL2" = "nerc_nonbaseload_gen_coal_metric",
     "NRNBGNOL" = "nerc_nonbaseload_gen_oil",
@@ -2254,10 +2270,12 @@ us_nonmetric <-
     "USGENAOF" = "us_ann_gen_other_ff",
     "USGENAOP" = "us_ann_gen_other",
     "USGENATN" = "us_ann_gen_non_renew",
+    "USGENATO" = "us_ann_gen_non_renew_other", # NEW
     "USGENATR" = "us_ann_gen_renew",
     "USGENATH" = "us_ann_gen_renew_nonhydro",
     "USGENACY" = "us_ann_gen_combust",
     "USGENACN" = "us_ann_gen_non_combust",
+    "USGENACO" = "us_ann_gen_non_combust_other", # NEW
     "USCLPR" = "us_ann_resource_mix_coal",
     "USOLPR" = "us_ann_resource_mix_oil",
     "USGSPR" = "us_ann_resource_mix_gas",
@@ -2270,10 +2288,12 @@ us_nonmetric <-
     "USOFPR" = "us_ann_resource_mix_other_ff",
     "USOPPR" = "us_ann_resource_mix_other",
     "USTNPR" = "us_ann_resource_mix_non_renew",
+    "USTOPR" = "us_ann_resource_mix_non_renew_other", # NEW
     "USTRPR" = "us_ann_resource_mix_renew",
     "USTHPR" = "us_ann_resource_mix_renew_nonhydro",
     "USCYPR" = "us_ann_resource_mix_combust",
     "USCNPR" = "us_ann_resource_mix_non_combust",
+    "USCOPR" = "us_ann_resource_mix_non_combust_other", # NEW
     "USNBGNCL" = "us_nonbaseload_gen_coal",
     "USNBGNOL" = "us_nonbaseload_gen_oil",
     "USNBGNGS" = "us_nonbaseload_gen_gas",
@@ -2486,6 +2506,8 @@ us_metric <-
     "USGENAOP2" = "us_ann_gen_other_metric",
     "USGENATN" = "us_ann_gen_non_renew",
     "USGENATN2" = "us_ann_gen_non_renew_metric",
+    "USGENATO" = "us_ann_gen_non_renew_other", # NEW
+    "USGENATO2" = "us_ann_gen_non_renew_other_metric", # NEW
     "USGENATR" = "us_ann_gen_renew",
     "USGENATR2" = "us_ann_gen_renew_metric",
     "USGENATH" = "us_ann_gen_renew_nonhydro",
@@ -2494,6 +2516,8 @@ us_metric <-
     "USGENACY2" = "us_ann_gen_combust_metric",
     "USGENACN" = "us_ann_gen_non_combust",
     "USGENACN2" = "us_ann_gen_non_combust_metric",
+    "USGENACO" = "us_ann_gen_non_combust_other", # NEW
+    "USGENACO2" = "us_ann_gen_non_combust_other_metric", # NEW
     "USCLPR" = "us_ann_resource_mix_coal",
     "USOLPR" = "us_ann_resource_mix_oil",
     "USGSPR" = "us_ann_resource_mix_gas",
@@ -2506,10 +2530,12 @@ us_metric <-
     "USOFPR" = "us_ann_resource_mix_other_ff",
     "USOPPR" = "us_ann_resource_mix_other",
     "USTNPR" = "us_ann_resource_mix_non_renew",
+    "USTOPR" = "us_ann_resource_mix_non_renew_other", # NEW
     "USTRPR" = "us_ann_resource_mix_renew",
     "USTHPR" = "us_ann_resource_mix_renew_nonhydro",
     "USCYPR" = "us_ann_resource_mix_combust",
     "USCNPR" = "us_ann_resource_mix_non_combust",
+    "USCOPR" = "us_ann_resource_mix_non_combust_other", # NEW
     "USNBGNCL" = "us_nonbaseload_gen_coal",
     "USNBGNCL2" = "us_nonbaseload_gen_coal_metric",
     "USNBGNOL" = "us_nonbaseload_gen_oil",
