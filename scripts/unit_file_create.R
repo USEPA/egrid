@@ -1824,7 +1824,7 @@ all_units_10 <-
 
 # Final modifications -----  
 
-## Add stack flue ID, status, and height ----------
+## Add stack height ----------
 
 stack_info <- 
   all_units_10 %>% 
@@ -1841,7 +1841,7 @@ stack_info <-
   filter(stack_flue_status == "OP") %>% # only include operating stacks
   slice_max(stack_height_feet) %>% # only include highest stack 
   ungroup() %>% 
-  select(plant_id, unit_id, prime_mover, stack_flue_status, stack_height_feet)
+  select(plant_id, unit_id, prime_mover, stack_height = stack_height_feet)
 
 ## Clean up source flags --------
 
@@ -2043,8 +2043,7 @@ final_vars <-
     "NOXCTLDV" = "nox_controls", 
     "HGCTLDV" = "hg_controls_flag", 
     "UNTYRONL" = "year_online", 
-    "STACKST" = "stack_flue_status", 
-    "STACKHT" = "stack_height_feet")
+    "STACKHT" = "stack_height")
 
 units_formatted <-
   all_units_12 %>%
