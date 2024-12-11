@@ -112,9 +112,9 @@ if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean
 # Power Sector Data Crosswalk matches units between EPA and EIA data sets
 # this will be used to help update Coal units in EPA and assign correct primary fuel type
 xwalk_eia_epa <- read_csv("data/static_tables/xwalk_epa_eia_power_sector.csv",
-                          col_types = cols_only(CAMD_PLANT_ID = "c", 
-                                                CAMD_UNIT_ID = "c", 
-                                                CAMD_FUEL_TYPE = "c", 
+                          col_types = cols_only(EPA_PLANT_ID = "c", 
+                                                EPA_UNIT_ID = "c", 
+                                                EPA_FUEL_TYPE = "c", 
                                                 EIA_PLANT_ID = "c", 
                                                 EIA_GENERATOR_ID = "c", 
                                                 EIA_FUEL_TYPE = "c", 
@@ -247,17 +247,15 @@ epa_2 <-
     # 2) Coal fuel type with highest fuel consumption in EIA-923 
     # 3) Plants with Coal and Biomass units require a manual update to Coal fuel types, ignoring max fuel consumption from Biomass fuel types
 
-#coal_fuels <- c("ANT", "BIT", "LIG", "SUB", "RC", "WC", "SGC", "COG")
-
 # identify coal fuels in EPA use crosswalk to identify primary fuel type  
 coal_xwalk_update <- 
   xwalk_eia_epa %>% 
-  filter(camd_fuel_type == "Coal") %>% # extract only Coal units 
-  left_join(epa_2, by = c("camd_plant_id" = "plant_id", "camd_unit_id" = "unit_id", "eia_unit_type" = "prime_mover")) %>% 
+  filter(epa_fuel_type == "Coal") %>% # extract only Coal units 
+  left_join(epa_2, by = c("epa_plant_id" = "plant_id", "epa_unit_id" = "unit_id", "eia_unit_type" = "prime_mover")) %>% 
   left_join(eia_860$combined, by = c("eia_plant_id" = "plant_id", "eia_generator_id" = "generator_id", "eia_unit_type" = "prime_mover")) %>% 
   mutate(energy_source_1 = if_else(eia_fuel_type %in% coal_fuels, eia_fuel_type, NA_character_)) %>%  # only use EIA fuel type if it is a coal fuel type
-  select(plant_id = camd_plant_id, 
-         unit_id = camd_unit_id, 
+  select(plant_id = epa_plant_id, 
+         unit_id = epa_unit_id, 
          prime_mover = eia_unit_type, 
          energy_source_1_coal = energy_source_1) %>%
   distinct() %>% group_by(plant_id, unit_id) %>% filter(!n() > 1) %>% # keep units with only 1 fuel type 
@@ -352,7 +350,7 @@ print(glue::glue("{nrow(missing_fuel_types)} units having missing primary fuel t
 epa_4 <- 
   epa_3 %>% 
   left_join(xwalk_botfirty,
-            by = c("unit_type" = "CAMD/EPA")) %>% 
+            by = c("unit_type" = "EPA")) %>% 
   mutate(botfirty = eGRID) %>% 
   select(-any_of(names(xwalk_botfirty)))
 
