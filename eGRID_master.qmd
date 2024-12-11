@@ -348,21 +348,16 @@ Crosswalks and static tables are used to supplement CAMD and EIA files and provi
     -   ex. `xwalk_fips_names_update.csv`
 
 ```{r}
-
-library(readxl)
-library(dplyr)
-library(gt)
-library(gtExtras)
-
+#| label: create_xwalk_summary
 
 path <- glue::glue("data/static_tables")
 
     files <- list.files(path)
     
-    # Filter only Excel files
+    # filter for only necessary files
     file_files <- stringr::str_subset(files, ".xls|.xlsx|.csv")
     
-
+# table for crosswalks
 tab_xwalk <- 
       tibble(file_files) %>%
       rename("Crosswalks and Static Tables" = file_files) %>%
@@ -532,7 +527,6 @@ purrr::iwalk(tabs_860, ~ {
 #| echo: false
 #| message: false
 
-
 tabs_861 <- 
   eia_861_files %>% 
   map(., ~ create_summary_table(.x))
@@ -544,6 +538,7 @@ purrr::iwalk(tabs_861, ~ {
   
   cat('\n\n')
 } )
+
 ```
 :::
 
@@ -603,6 +598,7 @@ There are several procedures applied to the raw CAMD file:
 #| label: create_camd_summary_table
 
 create_summary_table(readr::read_rds(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")))
+
 ```
 :::
 
@@ -619,7 +615,7 @@ create_summary_table(readr::read_rds(glue::glue("data/clean_data/camd/{params$eG
 
 The generator file extracts data from `eia_860_clean.RDS`, including all operable and retired generators . The code pulls variables from EIA-860 data (`eia_860$boiler_generator` and `eia_860$combined`) and counts the number of boilers. Then, we assign generation to each generator value.
 
-Direct generation is assigned to each generator values through the `EIA-923 Generator` file. For values not included in the `EIA-923 Generator` file, generation is determined by using a nameplate capacity ratio with `EIA-923 Generator and Fuel` data. A generator level capacity factor is calculated, and a final round of updates for fuel types, plant codes, and plant names is applied.
+Direct generation is assigned to each generator values through the `EIA-923 Generator` file. For values not included in the `EIA-923 Generator` file, generation is determined by using a nameplate capacity ratio with `EIA-923 Generator and Fuel` data. A capacity factor is assigned to each generator. Some updates to fuel types, plant codes, and plant names are made to match EIA and EPA data.
 
 For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
@@ -633,16 +629,8 @@ Crosswalks used in this file:
 #| label: generator_file_table
 #| include: false
 
-
-library(gt)
-library(gtExtras)
-
 generator_file <- readr::read_rds(
            glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
-
-# generator_file %>% 
-#   gt::gt() %>%
-#   gt::opt_interactive(use_search = TRUE) # enable interactivity
 ```
 
 ## View Data
@@ -659,8 +647,6 @@ generator_file <- readr::read_rds(
 #| message: false
 #| warning: false
 
-library(gtExtras)
-
 create_summary_table(generator_file)
 
 ```
@@ -672,7 +658,6 @@ create_summary_table(generator_file)
 #| warning: false
 #| message: false
 #| fig-height: 10
-
 
 library(ggplot2)
 library(patchwork)
@@ -693,13 +678,13 @@ plot_gen_oz <-
   labs(title = "Ozone Months Generation")
 
 plot_gen_ann_source <-
-  generator_file %>% 
+  generator_file %>%
   ggplot(aes(x = gen_data_source, y = generation_ann)) +
-  ggiraph::geom_boxplot_interactive() + 
+  geom_boxplot() +
   theme_minimal() +
   coord_flip() +
   scale_x_discrete(labels = scales::wrap_format(30)) +
-  labs(title = "Annual Generation by Data Source") 
+  labs(title = "Annual Generation by Data Source")
 
 
   (plot_gen_ann + plot_gen_oz) / plot_gen_ann_source
@@ -709,7 +694,6 @@ plot_gen_ann_source <-
 
 ```{r}
 #| label: generator_file_data_source_dists
-
 
 generator_file %>% 
   count(gen_data_source) %>% 
@@ -728,7 +712,6 @@ generator_file %>%
     x = NULL
   )
   
-
 ```
 :::
 
@@ -779,9 +762,6 @@ Crosswalks used in this file:
 #| label: unit_file_table
 #| include: false
 
-library(gt)
-library(gtExtras)
-
 unit_file <- readr::read_rds(
            glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
 
@@ -801,9 +781,8 @@ unit_file <- readr::read_rds(
 #| message: false
 #| warning: false
 
-library(gtExtras)
-
 create_summary_table(unit_file)
+
 ```
 
 #### Heat Input Distributions
@@ -813,10 +792,6 @@ create_summary_table(unit_file)
 #| warning: false
 #| message: false
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
 
 plot_unt_heat_in <-
   unit_file %>%
@@ -868,7 +843,6 @@ plot_unt_heat_in_oz_source_dist <-
     x = NULL
     )
 
-
 (plot_unt_heat_in + plot_unt_heat_in_oz) / plot_unt_heat_in_source_dist / plot_unt_heat_in_oz_source_dist
 
 ```
@@ -880,10 +854,6 @@ plot_unt_heat_in_oz_source_dist <-
 #| warning: false
 #| message: false
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
 
 plot_unt_nox <-
   unit_file %>%
@@ -935,7 +905,6 @@ plot_unt_nox_oz_source_dist <-
     x = NULL
     )
 
-
 (plot_unt_nox + plot_unt_nox_oz) / (plot_unt_nox_sources_dist) / (plot_unt_nox_oz_source_dist)
 
 ```
@@ -947,10 +916,6 @@ plot_unt_nox_oz_source_dist <-
 #| warning: false
 #| message: false
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
 
 plot_unt_so2 <-
   unit_file %>%
@@ -977,7 +942,6 @@ plot_unt_so2_sources_dist <-
     x = NULL
     )
 
-
 plot_unt_so2 / plot_unt_so2_sources_dist
 
 ```
@@ -989,10 +953,6 @@ plot_unt_so2 / plot_unt_so2_sources_dist
 #| warning: false
 #| message: false
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
 
 plot_unt_co2 <-
   unit_file %>%
@@ -1019,51 +979,7 @@ plot_unt_co2_sources_dist <-
     x = NULL
     )
 
-
 plot_unt_co2 / plot_unt_co2_sources_dist
-
-```
-
-
-#### Hg Distributions
-
-```{r}
-#| label: unt_file_hg_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
-
-plot_unt_hg <-
-  unit_file %>%
-  ggplot(aes(x = hg_mass)) +
-  geom_histogram() +
-  theme_minimal() +
-  labs(title = "Hg Mass")
-
-plot_unt_hg_sources_dist <-
-  unit_file %>%
-  count(hg_source) %>%
-  mutate(proportion = n/sum(n)) %>%
-  ggplot(aes(x = hg_source, y = proportion)) +
-  geom_col() +
-  coord_flip() +
-  scale_x_discrete(labels = scales::wrap_format(30)) +
-  scale_y_continuous(labels = scales::label_percent()) +
-  geom_text(aes(label = scales::percent(proportion)),
-            nudge_y = .05) +
-  theme_minimal() +
-  labs(
-    title = "Distribution of Hg Mass Data Sources",
-    y = "Share of units",
-    x = NULL
-    )
-
-
-plot_unt_hg / plot_unt_hg_sources_dist
 
 ```
 
@@ -1127,10 +1043,6 @@ Crosswalks used in this file:
 #| label: plant_file_table
 #| include: false
 
-
-library(gt)
-library(gtExtras)
-
 plant_file <- readr::read_rds(
            glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
 
@@ -1150,9 +1062,8 @@ plant_file <- readr::read_rds(
 #| message: false
 #| warning: false
 
-library(gtExtras)
-
 create_summary_table(plant_file)
+
 ```
 
 #### Heat Input Distributions
@@ -1162,10 +1073,6 @@ create_summary_table(plant_file)
 #| warning: false
 #| message: false
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
 
 plot_plnt_heat_in <-
   plant_file %>%
@@ -1199,11 +1106,9 @@ plot_plnt_heat_in_dist <-
     x = NULL
     )
 
-
 (plot_plnt_heat_in + plot_plnt_unadj_heat_in) / plot_plnt_heat_in_dist
 
 ```
-
 
 #### Heat Input Ozone Distributions
 
@@ -1212,10 +1117,6 @@ plot_plnt_heat_in_dist <-
 #| warning: false
 #| message: false
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
 
 plot_plnt_heat_in_oz <-
   plant_file %>%
@@ -1249,11 +1150,9 @@ plot_plnt_heat_in_oz_dist <-
     x = NULL
     )
 
-
 (plot_plnt_heat_in_oz + plot_plnt_unadj_heat_in_oz) / plot_plnt_heat_in_oz_dist
 
 ```
-
 
 #### NOx Distributions
 
@@ -1262,10 +1161,6 @@ plot_plnt_heat_in_oz_dist <-
 #| warning: false
 #| message: false
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
 
 plot_plnt_nox <-
   plant_file %>%
@@ -1307,7 +1202,6 @@ plot_plnt_nox_dist <-
     x = NULL
     )
 
-
 (plot_plnt_nox + plot_plnt_unadj_nox) / plot_plnt_nox_rate / plot_plnt_nox_dist
 
 ```
@@ -1319,10 +1213,6 @@ plot_plnt_nox_dist <-
 #| warning: false
 #| message: false
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
 
 plot_plnt_nox_oz <-
   plant_file %>%
@@ -1364,7 +1254,6 @@ plot_plnt_nox_oz_dist <-
     x = NULL
     )
 
-
 (plot_plnt_nox_oz + plot_plnt_unadj_nox_oz) / plot_plnt_nox_oz_rate / plot_plnt_nox_oz_dist
 
 ```
@@ -1376,10 +1265,7 @@ plot_plnt_nox_oz_dist <-
 #| warning: false
 #| message: false
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
+# 
 
 plot_plnt_so2 <-
   plant_file %>%
@@ -1421,7 +1307,6 @@ plot_plnt_so2_dist <-
     x = NULL
     )
 
-
 (plot_plnt_so2 + plot_plnt_unadj_so2) / plot_plnt_so2_rate / plot_plnt_so2_dist
 
 ```
@@ -1433,10 +1318,6 @@ plot_plnt_so2_dist <-
 #| warning: false
 #| message: false
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
 
 plot_plnt_co2 <-
   plant_file %>%
@@ -1478,7 +1359,6 @@ plot_plnt_co2_dist <-
     x = NULL
     )
 
-
 (plot_plnt_co2 + plot_plnt_unadj_co2) / plot_plnt_co2_rate / plot_plnt_co2_dist
 
 ```
@@ -1490,10 +1370,6 @@ plot_plnt_co2_dist <-
 #| warning: false
 #| message: false
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
 
 plot_plnt_ch4 <-
   plant_file %>%
@@ -1535,11 +1411,9 @@ plot_plnt_ch4_dist <-
     x = NULL
     )
 
-
 (plot_plnt_ch4 + plot_plnt_unadj_ch4) / plot_plnt_ch4_rate / plot_plnt_ch4_dist
 
 ```
-
 
 #### N2O Distributions
 
@@ -1548,10 +1422,6 @@ plot_plnt_ch4_dist <-
 #| warning: false
 #| message: false
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
 
 plot_plnt_n2o <-
   plant_file %>%
@@ -1593,11 +1463,9 @@ plot_plnt_n2o_dist <-
     x = NULL
     )
 
-
 (plot_plnt_n2o + plot_plnt_unadj_n2o) / plot_plnt_n2o_rate / plot_plnt_n2o_dist
 
 ```
-
 
 #### Hg Distributions
 
@@ -1606,10 +1474,6 @@ plot_plnt_n2o_dist <-
 #| warning: false
 #| message: false
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
 
 plot_plnt_hg <-
   plant_file %>%
@@ -1651,11 +1515,9 @@ plot_plnt_hg_dist <-
     x = NULL
     )
 
-
 (plot_plnt_hg + plot_plnt_unadj_hg) / plot_plnt_hg_rate / plot_plnt_hg_dist
 
 ```
-
 :::
 
 # Region Aggregation
@@ -1718,9 +1580,8 @@ us_agg  <- read_rds(
 #| message: false
 #| warning: false
 
-library(gtExtras)
-
 create_summary_table(ba_agg)
+
 ```
 
 #### ST
@@ -1730,9 +1591,8 @@ create_summary_table(ba_agg)
 #| message: false
 #| warning: false
 
-library(gtExtras)
-
 create_summary_table(st_agg)
+
 ```
 
 #### SRL
@@ -1742,9 +1602,8 @@ create_summary_table(st_agg)
 #| message: false
 #| warning: false
 
-library(gtExtras)
-
 create_summary_table(srl_agg)
+
 ```
 
 #### NRL
@@ -1754,9 +1613,8 @@ create_summary_table(srl_agg)
 #| message: false
 #| warning: false
 
-library(gtExtras)
-
 create_summary_table(nrl_agg)
+
 ```
 
 #### US
@@ -1766,9 +1624,8 @@ create_summary_table(nrl_agg)
 #| message: false
 #| warning: false
 
-library(gtExtras)
-
 create_summary_table(us_agg)
+
 ```
 :::
 
@@ -1798,10 +1655,6 @@ Crosswalk used in this file:
 #| label: ggl_file_table
 #| include: false
 
-
-library(gt)
-library(gtExtras)
-
 ggl_file <- readr::read_rds(
            glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 
@@ -1820,10 +1673,9 @@ ggl_file <- readr::read_rds(
 #| label: ggl_file_summary
 #| message: false
 #| warning: false
-
-library(gtExtras)
-
+#| 
 create_summary_table(ggl_file)
+
 ```
 
 #### View Plots
@@ -1832,7 +1684,6 @@ create_summary_table(ggl_file)
 #| label: ggl_file_plots
 #| message: false
 #| warning: false
-
 
 ggl_plot <- ggl_file %>%
               ggplot(aes(x = interconnect, y = ggl*100)) +
@@ -1896,7 +1747,7 @@ direct_use_plot <- ggl_file %>%
 
 # Demographic File
 
-The demographic file uses geographic coordinates from all plants and EPA's EJScreen tool to calculate the demographic characteristics of surrounding neighborhoods. For more information on the analysis process, [view EJScreen's peer-reviewed and tested methodology](https://www.epa.gov/ejscreen/technical-information-and-data-downloads).
+The demographic file uses geographic coordinates from all plants and EPA's EJScreen tool to calculate the demographic characteristics of surrounding neighborhoods. For more information on the analysis process, [view EJScreen's methodology](https://www.epa.gov/ejscreen/technical-information-and-data-downloads).
 
 For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
@@ -1905,9 +1756,16 @@ For full documentation, reference the [eGRID Technical Guide](https://www.epa.go
 The metric conversion script calculates the imperial units outputs into metric units.
 
 -   add conversion factor table information
--   add code chunk
 
-Add code chunk later
+<!-- ```{r} -->
+
+<!-- #| label: metric_conversion -->
+
+<!-- #| file: "scripts/metric_file.R" -->
+
+<!-- #| message: false -->
+
+<!-- ``` -->
 
 # Final Formatting
 
@@ -1923,7 +1781,15 @@ To output the data into a clean, readable form, a final style script is applied 
 
 <!-- ``` -->
 
--   add metric final formatting
+<!-- ```{r} -->
+
+<!-- #| label: metric_final_formatting -->
+
+<!-- #| file: "scripts/metric_final_formatting.R" -->
+
+<!-- #| message: false -->
+
+<!-- ``` -->
 
 # eGRID Summary
 
