@@ -164,8 +164,8 @@ xwalk_ba <-
          egrid_subregion = "subrgn") 
 
 # crosswalk that matches BA code and system_owner_id to update egrid_subregions
-xwalk_ba_transmission <- 
-  read_csv("data/static_tables/xwalk_ba_transmission.csv") %>% janitor::clean_names() %>% 
+xwalk_subregion_transmission <- 
+  read_csv("data/static_tables/xwalk_subregion_transmission.csv") %>% janitor::clean_names() %>% 
   rename(nerc = "nerc_region",
          ba_code = "balancing_authority_code",
          system_owner_id = "transmission_or_distribution_system_owner_id",
@@ -173,8 +173,8 @@ xwalk_ba_transmission <-
   mutate(system_owner_id = as.character(system_owner_id)) %>% distinct()
 
 # crosswalk that matches ba_code, system_owner_id, and utility_id to update NA egrid_subregions
-xwalk_ba_pjm <- 
-  read_csv("data/static_tables/xwalk_ba_pjm.csv") %>% janitor::clean_names() %>% 
+xwalk_subregion_utility <- 
+  read_csv("data/static_tables/xwalk_subregion_utility.csv") %>% janitor::clean_names() %>% 
   rename(nerc = "nerc_region",
          ba_code = "balancing_authority_code",
          system_owner_id = "transmission_or_distribution_system_owner_id",
@@ -184,8 +184,8 @@ xwalk_ba_pjm <-
   group_by(nerc, ba_code, system_owner_id, utility_id) %>% filter(n() == 1)
 
 # crosswalk that matches plant_id and plant_state to plant file to update NA egrid_subregions
-xwalk_oris_wecc <- 
-  read_csv("data/static_tables/xwalk_oris_wecc.csv") %>% janitor::clean_names() %>% 
+xwalk_oris_subregion <- 
+  read_csv("data/static_tables/xwalk_oris_subregion.csv") %>% janitor::clean_names() %>% 
   select(plant_state = "pstatabb",
          plant_id = "orispl", 
          egrid_subregion = "subrgn") %>% distinct() %>% 
@@ -492,9 +492,9 @@ plant_file_4 <-
                                     TRUE ~ NA_character_),
          system_owner_id = if_else(is.na(system_owner_id), "-9999", system_owner_id)) %>% 
   rows_patch(xwalk_ba, by = c("ba_code"), unmatched = "ignore") %>% 
-  rows_patch(xwalk_ba_transmission, by = c("nerc", "ba_code", "system_owner_id"), unmatched = "ignore") %>% 
-  rows_patch(xwalk_ba_pjm, by =  c("nerc", "ba_code", "system_owner_id", "utility_id"), unmatched = "ignore") %>% 
-  rows_patch(xwalk_oris_wecc, by = c("plant_state", "plant_id"), unmatched = "ignore") %>% 
+  rows_patch(xwalk_subregion_transmission, by = c("nerc", "ba_code", "system_owner_id"), unmatched = "ignore") %>% 
+  rows_patch(xwalk_subregion_utility, by =  c("nerc", "ba_code", "system_owner_id", "utility_id"), unmatched = "ignore") %>% 
+  rows_patch(xwalk_oris_subregion, by = c("plant_state", "plant_id"), unmatched = "ignore") %>% 
   rows_patch(xwalk_nerc_assessment, by = c("plant_id"), unmatched = "ignore") %>% 
   left_join(egrid_subregions, by = c("egrid_subregion")) 
 
