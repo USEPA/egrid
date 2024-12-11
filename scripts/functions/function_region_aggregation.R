@@ -75,9 +75,11 @@ region_aggregation <- function(region, region_cols) {
       "ann_gen_other",
       "ann_gen_non_renew",
       "ann_gen_renew",
+      "ann_gen_non_renew_other", 
       "ann_gen_renew_nonhydro",
       "ann_gen_combust",
-      "ann_gen_non_combust"
+      "ann_gen_non_combust",
+      "ann_gen_non_combust_other"
     )
   
   # read in NERC names to add to plant file
@@ -434,12 +436,22 @@ region_aggregation <- function(region, region_cols) {
     
     ### Round data ----
     
-    n2o_ch4_fuel_rates <- c("n2o_input_rate_coal", "n2o_input_rate_oil", "n2o_input_rate_gas", 
-                            "n2o_input_rate_fossil", "n2o_output_rate_coal", "n2o_output_rate_oil", 
-                            "n2o_output_rate_gas", "n2o_output_rate_fossil", 
-                            "ch4_input_rate_coal", "ch4_input_rate_oil", "ch4_input_rate_gas", 
-                            "ch4_input_rate_fossil", "ch4_output_rate_coal", "ch4_output_rate_oil", 
-                            "ch4_output_rate_gas", "ch4_output_rate_fossil")
+    n2o_ch4_fuel_rates <- c("n2o_input_rate_coal", 
+                            "n2o_input_rate_oil", 
+                            "n2o_input_rate_gas", 
+                            "n2o_input_rate_fossil", 
+                            "n2o_output_rate_coal", 
+                            "n2o_output_rate_oil", 
+                            "n2o_output_rate_gas", 
+                            "n2o_output_rate_fossil", 
+                            "ch4_input_rate_coal", 
+                            "ch4_input_rate_oil", 
+                            "ch4_input_rate_gas", 
+                            "ch4_input_rate_fossil", 
+                            "ch4_output_rate_coal", 
+                            "ch4_output_rate_oil", 
+                            "ch4_output_rate_gas", 
+                            "ch4_output_rate_fossil")
     
     region_rounded <- 
       region_merged %>% 
