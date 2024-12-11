@@ -103,10 +103,10 @@ xwalk_county_names <- read_csv("data/static_tables/xwalk_fips_names_update.csv")
   janitor::clean_names() 
 
 # CHP plants 
-chp_plants <- 
-  read_csv("data/static_tables/chp_plants.csv") %>% janitor::clean_names() %>% 
-  filter(total > 0) %>% 
-  mutate(plant_id = as.character(plant_code)) 
+#chp_plants <- 
+#  read_csv("data/static_tables/chp_plants.csv") %>% janitor::clean_names() %>% 
+#  filter(total > 0) %>% 
+#  mutate(plant_id = as.character(plant_code)) 
 
 # OG/OTH fuel types to update
 oth_og_recode <- 
@@ -129,6 +129,20 @@ manual_corrections <-
   read_xlsx("data/static_tables/manual_corrections.xlsx", 
             sheet = "plant_file", 
             col_types = c("text", "text", "text"))
+
+# previous eGRID year CHP plants
+plant_prev_year <- # plant file of previous year
+  read_csv("data/static_tables/egrid_2022_chp.csv", 
+           col_types = "cc") %>% 
+  janitor::clean_names() %>% 
+  rename(plant_id = orispl, 
+         prev_egrid_chp = chpflag)
+
+# EPA CHP database
+chp_database <- 
+  read_csv("data/static_tables/chp_database.csv", 
+           col_types = cols_only(`ORIS Code` = "c")) %>% 
+  rename(plant_id = `ORIS Code`)
 
 #### Region crosswalk and tables ------------
 # state and county FIPS codes matched to each state and county name
@@ -930,6 +944,25 @@ eia_923_thermal_output <-
   summarize(total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE),
             elec_fuel_consumption_mmbtu = sum(elec_fuel_consumption_mmbtu, na.rm = TRUE)) %>% ungroup()
 
+chp_plants <- # identify CHP plants from EIA-860, EIA-923, EPA CHP database, and the previous eGRID year data
+  eia_860$combined %>% 
+  select(plant_id, eia_860_chp = associated_with_combined_heat_and_power_system) %>% 
+  filter(eia_860_chp == "Y") %>% distinct() %>% 
+  full_join(eia_923$generation_and_fuel_combined %>% 
+              select(plant_id, eia_923_chp = combined_heat_and_power_plant) %>% 
+              filter(eia_923_chp == "Y") %>% 
+              distinct()) %>% 
+  left_join(chp_database %>% 
+              mutate(chp_database = "Y") %>% 
+              distinct()) %>% 
+  full_join(plant_prev_year) %>% 
+  mutate(eia_860_chp = if_else(eia_860_chp == "Y" & !is.na(eia_860_chp), 1, 0), 
+         eia_923_chp = if_else(eia_923_chp == "Y" & !is.na(eia_923_chp), 1, 0), 
+         prev_egrid_chp = if_else(prev_egrid_chp == "Yes" & !is.na(prev_egrid_chp), 1, 0), 
+         chp_database = if_else(chp_database == "Y" & !is.na(chp_database), 1, 0), 
+         total = eia_860_chp + eia_923_chp + chp_database + prev_egrid_chp) %>% 
+  filter(total > 0)
+  
 chp <- 
   chp_plants %>% 
   left_join(xwalk_oris_epa %>% filter(!epa_plant_id %in% chp_plants$plant_id), by = c("plant_id" = "eia_plant_id")) %>% 
