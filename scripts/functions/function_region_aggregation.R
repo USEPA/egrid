@@ -53,6 +53,7 @@ region_aggregation <- function(region, region_cols) {
       "heat_input_oz",
       "generation_ann",
       "generation_oz",
+      "generation_nonbaseload",
       "nox_mass",
       "nox_oz_mass",
       "so2_mass",
@@ -119,6 +120,7 @@ region_aggregation <- function(region, region_cols) {
                                  contains("heat_input"), 
                                  "generation_ann", 
                                  "generation_oz", 
+                                 "generation_nonbaseload",
                                  contains("_mass"), 
                                  contains("ann_gen")), 
                        .fns = ~ sum(.x, na.rm = TRUE),
@@ -366,13 +368,13 @@ region_aggregation <- function(region, region_cols) {
     
     region_gen_2 <- 
       region_gen %>% 
-      select(-region_generation_ann, -region_generation_oz) # remove duplicate columns for final formatting
+      select(-region_generation_ann, -region_generation_oz, -region_generation_nonbaseload) # remove duplicate columns for final formatting
     
     ### Resource mix by fuel category (%) -----
     
     region_resource_mix <- 
       region_gen %>% 
-      select(-region_generation_oz) %>%   
+      select(-region_generation_oz, -region_generation_nonbaseload) %>%   
       mutate(across(.cols = -c({{ region_cols }}, "region_generation_ann"), 
                     .fns = ~ if_else(region_generation_ann != 0, 
                                      . / region_generation_ann, NA_real_), # convert to percentage 
@@ -407,9 +409,9 @@ region_aggregation <- function(region, region_cols) {
       select({{ region_cols }}, contains("resource_mix"))
     
     
-    # Create final data frame -----
+    ## Create final data frame -----
     
-    ## Join necessary data -----
+    ### Join necessary data -----
     
     region_merged <- 
       region_agg %>% select(-contains("ann_gen")) %>% 
@@ -430,7 +432,7 @@ region_aggregation <- function(region, region_cols) {
       drop_na({{ region_cols }})
     
     
-    ## Round data ----
+    ### Round data ----
     
     n2o_ch4_fuel_rates <- c("n2o_input_rate_coal", "n2o_input_rate_oil", "n2o_input_rate_gas", 
                             "n2o_input_rate_fossil", "n2o_output_rate_coal", "n2o_output_rate_oil", 
@@ -447,7 +449,7 @@ region_aggregation <- function(region, region_cols) {
                     \(x) round(x, 4))) # round N2O and CH4 fuel specific rates to 4 decimal points
     
     
-    ## Format to regional output -------
+    ### Format to regional output -------
     
     region_formatted <- 
       region_rounded %>% 
@@ -478,7 +480,7 @@ region_aggregation <- function(region, region_cols) {
     
   
     
-    # Export region aggregation file -----------
+    ### Export region aggregation file -----------
     
     if(dir.exists("data/outputs")) {
       print("Folder output already exists.")
@@ -498,7 +500,7 @@ region_aggregation <- function(region, region_cols) {
     
   } else {
 
-    # aggregate plant file to US level ------
+    ### aggregate plant file to US level ------
     
     # sum capacity, generation, emissions mass to US level 
     
@@ -508,6 +510,7 @@ region_aggregation <- function(region, region_cols) {
                                  contains("heat_input"), 
                                  "generation_ann", 
                                  "generation_oz", 
+                                 "generation_nonbaseload",
                                  contains("_mass")), 
                        .fns = ~ sum(.x, na.rm = TRUE),
                        .names = "region_{.col}")) %>% 
@@ -518,7 +521,7 @@ region_aggregation <- function(region, region_cols) {
     
     ## Calculate emission rates ------
     
-    ### Output emission rates (lb/MWh) -----
+    #### Output emission rates (lb/MWh) -----
     
     region_output_rates <- 
       region_agg %>% 
@@ -542,7 +545,7 @@ region_aggregation <- function(region, region_cols) {
       distinct()
     
     
-    ### Input emission rates (lb/MMBtu) -----
+    #### Input emission rates (lb/MMBtu) -----
     
     region_input_rates <- 
       region_agg %>% 
@@ -566,7 +569,7 @@ region_aggregation <- function(region, region_cols) {
       distinct()
     
     
-    ### Combustion emission rates (lb/MWh) -----
+    #### Combustion emission rates (lb/MWh) -----
     
     region_combustion_rates <- 
       plant_file %>% 
@@ -595,7 +598,7 @@ region_aggregation <- function(region, region_cols) {
       distinct()
     
     
-    ### Fuel type output emission rates (lb/MWh) and input emission rates (lb/MMBtu)  -----
+    #### Fuel type output emission rates (lb/MWh) and input emission rates (lb/MMBtu)  -----
     
     # calculate emission rates by fossil fuel types 
     
@@ -715,7 +718,7 @@ region_aggregation <- function(region, region_cols) {
     
     
     
-    ### Non-baseload output emission rates (lb/MWh) -----
+    #### Non-baseload output emission rates (lb/MWh) -----
     
     region_nonbaseload_rates <- 
       plant_file %>% 
@@ -746,7 +749,7 @@ region_aggregation <- function(region, region_cols) {
     
     ## Calculate net generation and resource mix -----
     
-    ### Generation by fuel category (MWh) -----
+    #### Generation by fuel category (MWh) -----
     
     region_gen <- 
       plant_file %>% 
@@ -757,13 +760,13 @@ region_aggregation <- function(region, region_cols) {
     
     region_gen_2 <- 
       region_gen %>% 
-      select(-region_generation_ann, -region_generation_oz) # remove duplicate columns for final formatting
+      select(-region_generation_ann, -region_generation_oz, -region_generation_nonbaseload) # remove duplicate columns for final formatting
     
-    ### Resource mix by fuel category (%) -----
+    #### Resource mix by fuel category (%) -----
     
     region_resource_mix <- 
       region_gen %>% 
-      select(-region_generation_oz) %>%   
+      select(-region_generation_oz, -region_generation_nonbaseload) %>%   
       mutate(across(.cols = -c("region_generation_ann"), 
                     .fns = ~ if_else(region_generation_ann != 0, 
                                      . / region_generation_ann, NA_real_), # convert to percentage 
@@ -772,7 +775,7 @@ region_aggregation <- function(region, region_cols) {
       distinct()
     
     
-    ### Nonbaseload generation (MWh) -----
+    #### Nonbaseload generation (MWh) -----
     
     region_nonbaseload_gen <- 
       plant_file %>% 
@@ -786,7 +789,7 @@ region_aggregation <- function(region, region_cols) {
       mutate(across(where(is.numeric), ~ replace_na(., 0))) 
     
     
-    ### Nonbaseload resource mix (%) -----
+    #### Nonbaseload resource mix (%) -----
     
     region_nonbaseload_resource_mix <- 
       region_nonbaseload_gen %>% 
@@ -798,9 +801,9 @@ region_aggregation <- function(region, region_cols) {
       distinct()
     
     
-    # Create final data frame -----
+    ## Create final data frame -----
     
-    ## Join necessary data -----
+    #### Join necessary data -----
     
     region_merged <- 
       cbind(region_agg, 
@@ -820,14 +823,24 @@ region_aggregation <- function(region, region_cols) {
              -contains("mix_na")) # remove unnecessary columns
     
     
-    ## Round data ----
+    #### Round data ----
     
-    n2o_ch4_fuel_rates <- c("n2o_input_rate_coal", "n2o_input_rate_oil", "n2o_input_rate_gas", 
-                            "n2o_input_rate_fossil", "n2o_output_rate_coal", "n2o_output_rate_oil", 
-                            "n2o_output_rate_gas", "n2o_output_rate_fossil", 
-                            "ch4_input_rate_coal", "ch4_input_rate_oil", "ch4_input_rate_gas", 
-                            "ch4_input_rate_fossil", "ch4_output_rate_coal", "ch4_output_rate_oil", 
-                            "ch4_output_rate_gas", "ch4_output_rate_fossil")
+    n2o_ch4_fuel_rates <- c("n2o_input_rate_coal", 
+                            "n2o_input_rate_oil", 
+                            "n2o_input_rate_gas", 
+                            "n2o_input_rate_fossil", 
+                            "n2o_output_rate_coal", 
+                            "n2o_output_rate_oil", 
+                            "n2o_output_rate_gas", 
+                            "n2o_output_rate_fossil", 
+                            "ch4_input_rate_coal", 
+                            "ch4_input_rate_oil", 
+                            "ch4_input_rate_gas", 
+                            "ch4_input_rate_fossil", 
+                            "ch4_output_rate_coal", 
+                            "ch4_output_rate_oil", 
+                            "ch4_output_rate_gas", 
+                            "ch4_output_rate_fossil")
     
     region_rounded <- 
       region_merged %>% 
@@ -837,7 +850,7 @@ region_aggregation <- function(region, region_cols) {
                     \(x) round(x, 4))) # round N2O and CH4 fuel specific rates to 4 decimal points
     
     
-    ## Format to regional output -------
+    #### Format to regional output -------
     
     region_formatted <- 
       region_rounded %>% 
@@ -867,7 +880,7 @@ region_aggregation <- function(region, region_cols) {
       select(-starts_with("region"))
     
     
-    # Export region aggregation file -----------
+    ## Export region aggregation file -----------
     
     if(dir.exists("data/outputs")) {
       print("Folder output already exists.")

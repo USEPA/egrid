@@ -86,12 +86,12 @@ source("scripts/functions/function_update_source.R")
 
 ### Load crosswalks and static tables ----------------------
 
-# crosswalk for plant IDs between CAMD and EIA data
-xwalk_oris_camd <- 
+# crosswalk for plant IDs between EPA and EIA data
+xwalk_oris_epa <- 
   read_csv("data/static_tables/xwalk_oris_epa.csv") %>% 
-  select(eia_plant_id, camd_plant_id) %>% 
+  select(eia_plant_id, epa_plant_id) %>% 
   mutate(eia_plant_id = as.character(eia_plant_id), 
-         camd_plant_id = as.character(camd_plant_id))
+         epa_plant_id = as.character(epa_plant_id))
 
 # emission factors for CO2, CH4, and N2O
 ef_co2_ch4_n2o <- 
@@ -287,8 +287,8 @@ plant_gen_2 <-
 # update plant IDs that do not have EPA plant ID matches to EIA-860 
 plant_gen_eia_xwalk <- 
   plant_gen_2 %>% 
-  filter(plant_id %in% xwalk_oris_epa$camd_plant_id & is.na(county)) %>% # filter for plants that are not matched via EIA-860 due to different plant IDs
-  left_join(xwalk_oris_epa, by = c("plant_id" = "camd_plant_id")) %>% # use crosswalk for EIA / EPA plant IDs to match some EPA plants to EIA data
+  filter(plant_id %in% xwalk_oris_epa$epa_plant_id & is.na(county)) %>% # filter for plants that are not matched via EIA-860 due to different plant IDs
+  left_join(xwalk_oris_epa, by = c("plant_id" = "epa_plant_id")) %>% # use crosswalk for EIA / EPA plant IDs to match some EPA plants to EIA data
   rows_update(eia_860$plant %>% 
               select("eia_plant_id" = plant_id, 
                      county, 
@@ -393,7 +393,8 @@ plant_file <-
            if_else(is.na(unadj_n2o_mass), 0, gwp$gwp[gwp$emission_type == "N2O"] * unadj_n2o_mass / 2000), 
          # if all emission masses are NA, fill CO2e mass with NA
          unadj_co2e_mass = if_else(is.na(unadj_co2_mass) & is.na(unadj_ch4_mass) & is.na(unadj_n2o_mass), 
-                                   NA_real_, unadj_co2e_mass)) 
+                                   NA_real_, unadj_co2e_mass), 
+         unadj_co2e_source = if_else(is.na(unadj_co2e_mass), NA_character_, "Calculated")) 
 
 # Plant region assignments -----------
 
@@ -804,9 +805,9 @@ plant_file_13 <-
 # use generator file to summarize generation by fuel type 
 ann_gen_by_fuel <- 
   eia_923$generation_and_fuel_combined %>% 
-  left_join(xwalk_oris_epa %>% filter(!camd_plant_id %in% eia_923$generation_and_fuel_combined$plant_id), 
+  left_join(xwalk_oris_epa %>% filter(!epa_plant_id %in% eia_923$generation_and_fuel_combined$plant_id), 
             by = c("plant_id" = "eia_plant_id")) %>% 
-  mutate(plant_id = if_else(!is.na(camd_plant_id), camd_plant_id, plant_id)) %>% 
+  mutate(plant_id = if_else(!is.na(epa_plant_id), epa_plant_id, plant_id)) %>% 
   group_by(plant_id, fuel_type) %>% 
   summarize(ann_gen = if_else(all(is.na(net_generation_megawatthours)), NA_real_, 
                               sum(net_generation_megawatthours, na.rm = TRUE)), 
@@ -931,13 +932,13 @@ eia_923_thermal_output <-
 
 chp <- 
   chp_plants %>% 
-  left_join(xwalk_oris_epa %>% filter(!camd_plant_id %in% chp_plants$plant_id), by = c("plant_id" = "eia_plant_id")) %>% 
+  left_join(xwalk_oris_epa %>% filter(!epa_plant_id %in% chp_plants$plant_id), by = c("plant_id" = "eia_plant_id")) %>% 
   left_join(eia_923_thermal_output) %>%
   mutate(
     useful_thermal_output = 0.8 * (total_fuel_consumption_mmbtu - elec_fuel_consumption_mmbtu), # calculate useful thermal output
     # 0.8 is the assumed efficiency factor from the combustion of the consumed fuel
     chp_flag = "Yes", 
-    plant_id = if_else(!is.na(camd_plant_id), camd_plant_id, plant_id)) %>% # assign CHP flags to all plants in this object
+    plant_id = if_else(!is.na(epa_plant_id), epa_plant_id, plant_id)) %>% # assign CHP flags to all plants in this object
   select(plant_id, useful_thermal_output, chp_flag) %>% 
   left_join(plant_file_14 %>% select(plant_id, generation_ann), by = c("plant_id")) %>% 
   mutate(power_heat_ratio = if_else(useful_thermal_output == 0 | is.na(useful_thermal_output), 
@@ -1089,7 +1090,7 @@ plant_file_20 <-
                                           2000 * co2e_mass / generation_ann),
          hg_out_emission_rate = NA_real_) # Hg mass and rates are currently excluded from plant file calculations
 
-# Calculate nonbaseload factor ---------------------------------
+# Calculate nonbaseload factor and generation ---------------------------------
 
 # we calculate a plant's nonbaseload factor based on their capacity factors
 # some fuel types are excluded from this 
@@ -1100,7 +1101,9 @@ plant_file_21 <-
                                          capfac > 0.8 ~ 0,
                                          capfac == 0 ~ NA_real_,
                                          TRUE ~ (-5/3 * capfac) + 4/3),
-                                         NA_real_))
+                                         NA_real_), 
+         generation_nonbaseload = nonbaseload * generation_ann) # calculate nonbaseload generation for each plant
+
 
 # Update source columns ------------------------------
 
@@ -1194,6 +1197,7 @@ plant_file_23 <-
          # annual generation
          generation_ann = round(generation_ann, 3), 
          generation_oz = round(generation_oz, 3), 
+         generation_nonbaseload = round(generation_nonbaseload, 3),
          # emissions mass
          nox_mass = round(nox_mass, 3), 
          nox_oz_mass = round(nox_oz_mass, 3),
@@ -1237,7 +1241,7 @@ plant_file_23 <-
          unadj_combust_heat_input = round(unadj_combust_heat_input, 3),
          unadj_combust_heat_input_oz = round( unadj_combust_heat_input_oz, 3), 
          unadj_heat_input = round(unadj_heat_input, 3),
-         unadj_heat_input_oz = round( unadj_heat_input_oz, 3),
+         unadj_heat_input_oz = round(unadj_heat_input_oz, 3),
          # nominal heat rate
          nominal_heat_rate = round(nominal_heat_rate, 6),
          # annual generation (by fuel)
@@ -1285,7 +1289,7 @@ plant_file_23 <-
 
 # creating named vector of final variable order and variable name included in plant file
 final_vars <-
-  c("SEQUNT" = "seqplt",
+  c("SEQPLT" = "seqplt",
     "YEAR" = "year",
     "PSTATABB" = "plant_state",
     "PNAME" = "plant_name",
@@ -1327,6 +1331,7 @@ final_vars <-
     "PLHTIOZT" = "heat_input_oz", 
     "PLNGENAN" = "generation_ann", 
     "PLNGENOZ" = "generation_oz", 
+    "PLNGENNB" = "generation_nonbaseload", 
     "PLNOXAN" = "nox_mass", 
     "PLNOXOZ" = "nox_oz_mass", 
     "PLSO2AN" = "so2_mass", 
@@ -1377,6 +1382,7 @@ final_vars <-
     "UNCO2SRC" = "unadj_co2_source", 
     "UNCH4SRC" = "unadj_ch4_source", 
     "UNN2OSRC" = "unadj_n2o_source", 
+    "UNC2ESRC" = "unadj_co2e_source",
     "UNHGSRC" = "unadj_hg_source", 
     "UNHTISRC" = "unadj_heat_input_source", 
     "UNHOZSRC" = "unadj_heat_input_oz_source", 
@@ -1439,7 +1445,7 @@ plant_formatted <-
   arrange(plant_state, plant_name) %>% 
   mutate(seqplt = row_number(), 
          year = params$eGRID_year) %>% 
-  select(as_tibble(final_vars)$value) %>%  # keeping columns with tidy names for QA steps
+  select(as_tibble(final_vars)$value) %>%  # keeping columns with tidy names until final formatting
   filter(!is.na(plant_id))
 
 # Export plant file -------------
