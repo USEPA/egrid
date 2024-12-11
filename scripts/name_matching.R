@@ -374,7 +374,7 @@ plant_metric <-
     "UNCO2SRC" = "unadj_co2_source", 
     "UNCH4SRC" = "unadj_ch4_source", 
     "UNN2OSRC" = "unadj_n2o_source", 
-    "UNC2ESRC" = "unadj_c2e_source",
+    "UNC2ESRC" = "unadj_co2e_source",
     "UNHGSRC" = "unadj_hg_source", 
     "UNHTISRC" = "unadj_heat_input_source", 
     "UNHOZSRC" = "unadj_heat_input_oz_source", 
