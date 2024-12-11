@@ -50,7 +50,6 @@ source("scripts/functions/function_coalesce_join_vars.R")
 # Set your API key here
 api_key <- read_lines("api_keys/epa_api_key.txt")
 
-
 # API base url
 api_url_base <- "https://api.epa.gov/easey"
 

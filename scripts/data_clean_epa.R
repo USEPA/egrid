@@ -38,11 +38,9 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
-
-# Read raw CAMD files -------
+# Read raw EPA files -------
 
 epa_raw <- read_rds(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))
-
 
 # standardizing variables names to match eia data and removing retired and inactive plants
 
@@ -81,7 +79,6 @@ unit_abbs <- # abbreviation crosswalk for unit types
 
 # Clean raw data -------
 
-# load SO2 control abbreviation crosswalk
 xwalk_so2_control_abrvs <- 
   read_csv("data/static_tables/xwalk_so2_control_abbreviations.csv") %>% 
   janitor::clean_names()
@@ -139,7 +136,6 @@ epa_final <- # removing unnecessary columns and final renames
          -contains("rate"),
          year_online) %>% 
   mutate(across(ends_with("id"), ~ as.character(.x)))
-
 
 # Save clean EPA file ------------
 

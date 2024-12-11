@@ -3,14 +3,14 @@
 .Rhistory
 .RData
 .Ruserdata
+*.html
 archive
 eGRID_master_files
 api_keys
-eGRID_master.html
 style.css
 brand
 *.Rproj
 qa_all.html
 qa_all_files
-qa_annual_comparison.html
 qa_annual_comparison_files
+data/static_tables/qa/

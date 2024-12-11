@@ -1,4 +1,15 @@
-
+## -------------------------------
+##
+## Make sheets table
+## 
+## Purpose: 
+## 
+## This file creates a function to build GT HTML table
+##
+## Authors:  
+##      Sean Bock, Abt Global
+##
+## -------------------------------
 
 make_sheets_table <- function(sheets, form){
   
