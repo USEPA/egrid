@@ -5,7 +5,7 @@
 ## Purpose: 
 ## 
 ## This file evaluates the differences in the R and Access database 
-## for the generator file creation in 2021. 
+## for the generator file creation for a given year. 
 ##
 ## The checks performed will output a CSV file with any differences 
 ## between Access and R generator files. 
@@ -41,7 +41,7 @@ if(dir.exists("data/outputs/qa/generator_file_differences/2023")) {
 save_dir <- "data/outputs/qa/generator_file_differences/2023/"
 
 # load R dataset
-generator_r <- read_rds("data/outputs/generator_file.RDS") 
+generator_r <- read_rds("data/outputs/2023/generator_file.RDS") 
 
 # add "_r" after each variable to easily identify dataset 
 colnames(generator_r) <- paste0(colnames(generator_r), "_r")
@@ -248,10 +248,10 @@ if(nrow(check_gen_source) > 0) {
 
 # Identify all unique plant and unit IDs that have differences ------------
 
-files <- grep("check", dir("data/outputs/qa/generator_file_differences"), value = TRUE)
+files <- grep("check", dir("data/outputs/qa/generator_file_differences/2023/"), value = TRUE)
 
 plant_gen_diffs <- 
-  purrr::map_df(paste0("data/outputs/qa/generator_file_differences/", files), 
+  purrr::map_df(paste0("data/outputs/qa/generator_file_differences/2023/", files), 
                 read.csv) %>% 
   select(plant_id, generator_id) %>% 
   distinct() %>% 

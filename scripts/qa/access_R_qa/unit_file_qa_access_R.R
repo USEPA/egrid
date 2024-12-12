@@ -5,7 +5,7 @@
 ## Purpose: 
 ## 
 ## This file evaluates the differences in the R and Access database 
-## for the unit file creation in 2021. 
+## for the unit file creation in a given year. 
 ##
 ## The checks performed will output a CSV file with any differences 
 ## between Access and R unit files. 
@@ -31,17 +31,17 @@ if(dir.exists("data/outputs/qa")) {
   dir.create("data/outputs/qa")
 }
 
-if(dir.exists("data/outputs/qa/unit_file_differences/2023")) {
+if(dir.exists(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}"))) {
   print("Folder unit_file_differences already exists.")
 }else{
-  dir.create("data/outputs/qa/unit_file_differences/2023")
+  dir.create(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}"))
 }
 
 # set directory for saving files 
-save_dir <- "data/outputs/qa/unit_file_differences/2023/"
+save_dir <- glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}/")
 
 # load unit file R
-unit_r <- read_rds("data/outputs/unit_file.RDS")
+unit_r <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
 
 # add "_r" after each variable to easily identify dataset 
 colnames(unit_r) <- paste0(colnames(unit_r), "_r")
@@ -52,10 +52,11 @@ unit_r <- unit_r %>%
   mutate(num_generators_r = as.numeric(num_generators_r), 
          year_online_r = as.character(year_online_r))
 
-unit_access <- read_excel("data/raw_data/eGRID_Data2023.xlsx", sheet = "UNT23", 
+unit_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
+                          sheet = glue::glue("UNT{as.numeric(params$eGRID_year) %% 1000}"), 
                           skip = 1, 
                           guess_max = 4000) %>% janitor::clean_names() %>% 
-  rename("sequnt_access" = "sequnt23",
+  rename("sequnt_access" = glue::glue("sequnt{as.numeric(params$eGRID_year) %% 1000}"),
          #"year_access" = "year", 
          "plant_id" = "orispl",
          "plant_name_access" = "pname", 
@@ -63,7 +64,7 @@ unit_access <- read_excel("data/raw_data/eGRID_Data2023.xlsx", sheet = "UNT23",
          "unit_id" = "unitid", 
          "prime_mover_access" = "prmvr", 
          "operating_status_access" = "untopst", 
-         "camd_flag_access" = "camdflag", 
+         "capd_flag_access" = "camdflag", 
          "program_code_access" = "prgcode", 
          "botfirty_access" = "botfirty", 
          "num_generators_access" = "numgen", 
@@ -156,14 +157,14 @@ check_operating_status <-
 if(nrow(check_operating_status) > 0) {
   write_csv(check_operating_status, paste0(save_dir, "check_operating_status.csv")) }
 
-### Check CAMD flag --------
-check_camd_flag <- 
+### Check CAPD flag --------
+check_capd_flag <- 
   unit_comparison %>% 
-  filter(mapply(identical, camd_flag_r, camd_flag_access) == FALSE) %>% 
-  select(plant_id, unit_id, camd_flag_r, camd_flag_access)
+  filter(mapply(identical, capd_flag_r, capd_flag_access) == FALSE) %>% 
+  select(plant_id, unit_id, capd_flag_r, capd_flag_access)
 
-if(nrow(check_camd_flag) > 0) {
-  write_csv(check_camd_flag, paste0(save_dir, "check_camd_flag.csv")) }
+if(nrow(check_capd_flag) > 0) {
+  write_csv(check_camd_flag, paste0(save_dir, "check_capd_flag.csv")) }
 
 ### Check program code ------
 check_program_code <- 

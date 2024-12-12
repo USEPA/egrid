@@ -73,10 +73,12 @@ region_aggregation <- function(region, region_cols) {
       "ann_gen_other_ff",
       "ann_gen_other",
       "ann_gen_non_renew",
+      "ann_gen_non_renew_other",
       "ann_gen_renew",
       "ann_gen_renew_nonhydro",
       "ann_gen_combust",
-      "ann_gen_non_combust"
+      "ann_gen_non_combust",
+      "ann_gen_non_combust_other"
     )
   
   # read in NERC names to add to plant file
