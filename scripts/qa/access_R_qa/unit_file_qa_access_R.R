@@ -54,15 +54,16 @@ colnames(unit_r) <- paste0(colnames(unit_r), "_r")
 
 unit_r <- unit_r %>% 
   rename("plant_id" = "plant_id_r", 
-         "unit_id" = "unit_id_r", 
+         "unit_id" = "unit_id_r",
          "prime_mover" = "prime_mover_r") %>% 
   mutate(num_generators_r = as.numeric(num_generators_r), 
          year_online_r = as.character(year_online_r))
 
-unit_access <- read_excel("data/raw_data/eGRID_Data2023.xlsx", sheet = "UNT23", 
+unit_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
+                          sheet = glue::glue("UNT{as.numeric(params$eGRID_year) %% 1000}"), 
                           skip = 1, 
                           guess_max = 4000) %>% janitor::clean_names() %>% 
-  rename("sequnt_access" = "sequnt23",
+  rename("sequnt_access" = glue::glue("sequnt{as.numeric(params$eGRID_year) %% 1000}"),
          #"year_access" = "year", 
          "plant_id" = "orispl",
          "plant_name_access" = "pname", 
@@ -155,20 +156,21 @@ check_operating_status <-
 if(nrow(check_operating_status) > 0) {
   write_csv(check_operating_status, paste0(save_dir, "check_operating_status.csv")) }
 
-### Check CAMD flag --------
+### Check CAPD flag --------
 check_capd_flag <- 
   unit_comparison %>% 
   filter(mapply(identical, capd_flag_r, capd_flag_access) == FALSE) %>% 
   select(plant_id, unit_id, prime_mover, capd_flag_r, capd_flag_access)
 
 if(nrow(check_capd_flag) > 0) {
-  write_csv(check_capd_flag, paste0(save_dir, "check_capd_flag.csv")) }
+  write_csv(check_camd_flag, paste0(save_dir, "check_capd_flag.csv")) }
 
 ### Check program code ------
 check_program_code <- 
   unit_comparison %>% 
   filter(mapply(identical, program_code_r, program_code_access) == FALSE) %>% 
   select(plant_id, unit_id, prime_mover, program_code_r, program_code_access)
+
 
 if(nrow(check_program_code) > 0) {
   write_csv(check_program_code, paste0(save_dir, "check_program_code.csv")) }
