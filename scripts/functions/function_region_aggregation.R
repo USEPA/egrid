@@ -18,8 +18,8 @@ region_aggregation <- function(region, region_cols) {
   #' 
   #' Function to create region aggregation files. 
   #' 
-  #' @region Region for data to be aggregated to, as a string
-  #' @region_cols Relevant region columns from the plant file, as a vector
+  #' @param region Region for data to be aggregated to, as a string
+  #' @param region_cols Relevant region columns from the plant file, as a vector
   #' @return .RDS file of aggregated region
   #' @examples
   #' region_aggregation("state", c(fips_state_code, state)) # Aggregates the plant file to the state regional level

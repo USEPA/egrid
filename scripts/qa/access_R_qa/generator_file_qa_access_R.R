@@ -28,14 +28,20 @@ library(readxl)
 
 if(dir.exists("data/outputs/qa")) {
   print("Folder qa already exists.")
-}else{
-  dir.create("data/outputs/qa")
+} else {
+   dir.create("data/outputs/qa")
+}
+
+if(dir.exists("data/outputs/qa/generator_file_differences")) {
+  print(glue::glue("Folder generator_file_differences already exists."))
+} else {
+  dir.create("data/outputs/qa/generator_file_differences")
 }
 
 if(dir.exists("data/outputs/qa/generator_file_differences/{params$eGRID_year}")) {
   print(glue::glue("Folder generator_file_differences/{params$eGRID_year} already exists."))
-}else{
-  dir.create("data/outputs/qa/generator_file_differences/{params$eGRID_year}")
+} else {
+   dir.create("data/outputs/qa/generator_file_differences/{params$eGRID_year}")
 }
 
 save_dir <- glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}/")
@@ -249,14 +255,14 @@ if(nrow(check_gen_source) > 0) {
 
 # Identify all unique plant and unit IDs that have differences ------------
 
-files <- grep("check", dir(glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}/")), value = TRUE)
+files <- grep("check", dir(save_dir), value = TRUE)
 
 plant_gen_diffs <- 
-  purrr::map_df(paste0(glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}/"), files), 
+  purrr::map_df(paste0(save_dir, files), 
                 read.csv) %>% 
   select(plant_id, generator_id) %>% 
   distinct() %>% 
   mutate(source_diff = "gen_file")
 
-write_csv(plant_gen_diffs, glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}/plant_gen_difference_ids.csv"))
+write_csv(plant_gen_diffs, paste0(save_dir, "plant_gen_difference_ids.csv"))
 

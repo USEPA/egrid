@@ -25,8 +25,9 @@ library(stringr)
 
 # set directory for saving files 
 save_dir <- here("data/outputs/qa/plant_file_differences", Sys.Date(),"")
+
 # create it if it doesn't already exist
-if(!dir.exists(save_dir)){ dir.create(save_dir,recursive = T)}
+if(!dir.exists(save_dir)) {dir.create(save_dir,recursive = T)}
 do.call(file.remove, list(dir(save_dir, full.names = TRUE)))
 
 ## 1. R Version --------------
@@ -254,7 +255,7 @@ if(nrow(check_diff_plant_access) > 0) {
 
 # create function to make comparison ---------------
 
-plant_compare <- function(x, data = plant_comparison, outdir = save_dir){
+plant_compare <- function(x, data = plant_comparison, outdir = save_dir) {
   r_name <- as.name(paste0(x,"_r"))
   access_name <- as.name(paste0(x,"_access"))
   comp <- data %>% 
@@ -269,13 +270,13 @@ plant_compare <- function(x, data = plant_comparison, outdir = save_dir){
 #  - exclude plant_id and other_cols by looking at access_cols
 cols <- access_cols[access_cols != "plant_id"]
 
-for(i in cols){
+for(i in cols) {
   x <- plant_compare(i)
-  if(nrow(x)> 0){
+  if(nrow(x)> 0) {
     assign(paste0("check_", i), x)
     rm(x)
-  }else{
-    rm(x)
+  } else {
+     rm(x)
   }
 }
 
