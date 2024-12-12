@@ -1,4 +1,15 @@
-
+## -------------------------------
+##
+## Get sheets in EIA Excel files
+## 
+## Purpose: 
+## 
+## This file creates a function that returns the names of sheets in EIA Excel files.
+##
+## Authors:  
+##      Sean Bock, Abt Global
+##
+## -------------------------------
 
 
 get_sheets <- function(form){

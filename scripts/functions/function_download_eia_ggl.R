@@ -1,5 +1,17 @@
+## -------------------------------
+##
+## Download EIA grid gross loss files
+## 
+## Purpose: 
+## 
+## This file creates a function to download EIA grid gross loss files from website 
+## (adapted from function: "download_eia_files")
+##
+## Authors:  
+##      Madeline Zhang, Abt Global
+##
+## -------------------------------
 
-## Function to download EIA files from website (adapted from function: "download_eia_files" )
 
 download_eia_ggl <- function(year) {
   

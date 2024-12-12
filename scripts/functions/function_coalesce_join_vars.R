@@ -1,3 +1,16 @@
+## -------------------------------
+##
+## Coalesce joined variables
+## 
+## Purpose: 
+## 
+## This file coalesce two variables and identify non-missing (NA) values
+##
+## Authors:  
+##      Sean Bock, Abt Global
+##
+## -------------------------------
+
 
 coalesce_join_vars <- function(df) {
   

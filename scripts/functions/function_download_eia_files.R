@@ -1,8 +1,17 @@
+## -------------------------------
+##
+## Download EIA files
+## 
+## Purpose: 
+## 
+## This file creates a function to download EIA data from their website. 
+##
+## Authors:  
+##      Sean Bock, Abt Global
+##
+## -------------------------------
 
-
-## These urls are different depending whether or not they're the most recent data. If not most recent year, "archive" is in the url
-
-download_eia_files <- function(form, year = c("923", "860", "861")) {
+download_eia_files <- function(form, year) {
   
   #' download_eia_files
   #' 
@@ -12,8 +21,8 @@ download_eia_files <- function(form, year = c("923", "860", "861")) {
   #' @param year Year of EIA data to download
   #' @return Unzipped Excel file
   #' @examples
-  #' download_eia_files("923") # Download a single form's data
-  #' purrr::map(c("923","860","861"), ~ download_eia_files(.x)) # Download and unzip forms 923, 860, and 861
+  #' download_eia_files("923", params$eGRID_year) # Download a single form's data for params$eGRID_year
+  #' purrr::map(c("923","860","861"), ~ download_eia_files(.x, params$eGRID_year)) # Download and unzip forms 923, 860, and 861 for params$eGRID_year
   
   url <- dplyr::case_when(
     form == "923" ~ glue::glue("https://www.eia.gov/electricity/data/eia923/archive/xls/f923_{year}.zip"),
@@ -62,8 +71,8 @@ download_eia_files <- function(form, year = c("923", "860", "861")) {
     return(unzip_result)
   }
   
-  
-  
+  # These URLs are different depending whether or not they're the most recent data. If not most recent year, "archive" is in the url
+  # We check whether "/archive" exists in the URL and detect if URL needs to be updated. 
   
   if (!download_and_unzip(url, dest_file, new_folder) && stringr::str_detect(url, "/archive")) {
     url <- stringr::str_replace(url, "/archive", "")

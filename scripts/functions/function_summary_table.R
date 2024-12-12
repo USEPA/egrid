@@ -1,4 +1,15 @@
-
+## -------------------------------
+##
+## Create summary table
+## 
+## Purpose: 
+## 
+## This file creates a function to create summary GT summary table. 
+##
+## Authors:  
+##      Sean Bock, Abt Global
+##
+## -------------------------------
 
 
 create_summary_table <- function(data) {

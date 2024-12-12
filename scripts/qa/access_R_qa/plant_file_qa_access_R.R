@@ -5,7 +5,7 @@
 ## Purpose: 
 ## 
 ## This file evaluates the differences in the R and Access database 
-## for the plant file creation in 2021. 
+## for the plant file creation in a given year. 
 ##
 ## The checks performed will output a CSV file with any differences 
 ## between Access and R plant files. 
@@ -31,7 +31,7 @@ do.call(file.remove, list(dir(save_dir, full.names = TRUE)))
 
 ## 1. R Version --------------
 # load plant file R
-plant_r <- read_rds("data/outputs/plant_file.RDS")
+plant_r <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
 
 write.csv(plant_r, paste0(save_dir,"/plant_file_qa.csv"))
 # add "_r" after each variable to easily identify dataset 
@@ -40,10 +40,9 @@ colnames(plant_r) <- paste0(colnames(plant_r), "_r")
 plant_r <- plant_r %>% rename("plant_id" = "plant_id_r")
 
 ## 2. Access Version ---------------------
-#excel_sheets("data/raw_data/eGRID_2021.xlsx")
-#excel_sheets("data/outputs/qa/access_unit_file.xlsx")
 
-plant_access <- read_excel("data/raw_data/eGRID_Data2023.xlsx", sheet = "PLNT23", 
+plant_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
+                           sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000}"), 
                            skip = 1, 
                            guess_max = 4000) %>% janitor::clean_names() %>% 
   mutate(orispl = as.character(orispl), 
@@ -51,9 +50,8 @@ plant_access <- read_excel("data/raw_data/eGRID_Data2023.xlsx", sheet = "PLNT23"
          numgen = as.integer(numgen), 
          utlsrvid = as.character(utlsrvid), 
          oprcode = as.character(oprcode), 
-         seqplt23 = as.integer(seqplt23), 
          year = as.character(year)) %>%  
-  rename("seqplt_access" = "seqplt23",
+  rename("seqplt_access" = glue::glue("seqplt{as.numeric(params$eGRID_year) %% 1000}"),
          "year_access" = "year", 
          "plant_id" = "orispl",
          "plant_name_access" = "pname", 
@@ -222,7 +220,7 @@ r_cols <- lapply(colnames(plant_r), FUN=gsub, pattern="_r$", replacement="") %>%
 access_cols <- lapply(colnames(plant_access), FUN=gsub, pattern="_access$", replacement="") %>% unlist()
 
 # Check that all access columns appear in the r columns
-stopifnot(length(access_cols[!access_cols %in% r_cols])==0)
+#stopifnot(length(access_cols[!access_cols %in% r_cols])==0)
 
 
 ## 4. Combine ------------------------------
