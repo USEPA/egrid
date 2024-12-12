@@ -1833,13 +1833,14 @@ stack_info <-
   inner_join(eia_860$stack_flue %>% select(plant_id, # merge in stack flue status and stack height using stack flue ID
                                           "stack_flue_id" = stack_or_flue_id, 
                                           stack_flue_status, 
-                                          stack_height_feet),
+                                          "stack_height" = stack_height_feet),
             by = c("plant_id", "stack_flue_id")) %>% 
   group_by(plant_id, unit_id, prime_mover) %>% 
   filter(stack_flue_status == "OP") %>% # only include operating stacks
-  slice_max(stack_height_feet) %>% # only include highest stack 
+  mutate(stack_height = as.numeric(stack_height)) %>% # convert stack height to numeric
+  slice_max(stack_height) %>% # only include highest stack 
   ungroup() %>% 
-  select(plant_id, unit_id, prime_mover, stack_height = stack_height_feet)
+  select(plant_id, unit_id, prime_mover, stack_height)
 
 ## Clean up source flags --------
 
