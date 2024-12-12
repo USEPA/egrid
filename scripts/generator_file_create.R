@@ -83,7 +83,7 @@ xwalk_eia_epa <- # xwalk for updating certain plants to camd plant names and ids
 manual_corrections <- # manual corrections needed for generator file
   read_xlsx("data/static_tables/manual_corrections.xlsx", 
             sheet = "generator_file", 
-            col_types = c("text", "text", "text", "text"))
+            col_types = c("text", "text", "text", "text", "text"))
 
 # Create lookup table for generator IDs with leading zeroes ------------
 # some IDs in EIA-923 do not have leading zeroes, but should match to generators in EIA-860 that have leading zeroes
@@ -120,24 +120,24 @@ print(glue::glue("{length(lookup_860_leading_zeroes)} generator IDs have leading
 
 # Create modified dfs that will be used to calculate generation values ---------
 
-gen_id_manual_corrections <- 
+gen_id_manual_corrections <- # update generator IDs
   manual_corrections %>% 
-  filter(column_to_update == "generator_id") 
+  filter(column_to_update == "generator_id" & is.na(prime_mover)) %>% 
+  select(plant_id, generator_id, update)
 
-prime_mover_manual_corrections <- 
+gen_id_pm_corrections <- # update generator IDs for plant with duplicate prime movers
   manual_corrections %>% 
-  filter(column_to_update == "prime_mover") %>% 
-  select(plant_id, generator_id, prime_mover = update)
+  filter(column_to_update == "generator_id" & !is.na(prime_mover)) %>% 
+  select(plant_id, generator_id, prime_mover, update)
 
 eia_923_gen_r <- 
   eia_923_gen %>% 
   left_join(gen_id_manual_corrections, by = c("plant_id", "generator_id")) %>% 
-  rows_update(prime_mover_manual_corrections, # update prime movers from manual_corrections
-              by = c("plant_id", "generator_id"), 
-              unmatched = "ignore") %>% 
+  left_join(gen_id_pm_corrections, by = c("plant_id", "generator_id", "prime_mover")) %>% 
   mutate(
     generator_id = if_else(!(plant_id %in% plant_keep_leading_zeroes), str_remove(generator_id, "^0+"), generator_id), # remove leading zeroes from generator IDs
-    generator_id = if_else(!is.na(update), update, generator_id)) %>% # update generator IDs from manual_corrections
+    generator_id = if_else(!is.na(update.x), update.x, generator_id), 
+    generator_id = if_else(!is.na(update.y), update.y, generator_id)) %>% # update generator IDs from manual_corrections)
   group_by(plant_id, generator_id, combined_heat_and_power_plant) %>% 
   summarize(across(contains("generation"), 
                    ~ sum(., na.rm = TRUE))) # sum generation for plants with duplicate prime movers
@@ -162,7 +162,7 @@ eia_860_combined_r <-
   mutate(
     generator_id = if_else(!(plant_id %in% plant_keep_leading_zeroes), str_remove(generator_id, "^0+"), generator_id), # remove leading zeroes from generator IDs
     generator_id = if_else(!is.na(update), update, generator_id)) %>% # update generator IDs from manual_corrections
-  select(-update, -column_to_update)
+  select(-update)
     
 eia_860_boiler_count <- # creating count of boilers for each generator
   eia_860_boiler %>% 
