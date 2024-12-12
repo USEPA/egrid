@@ -80,7 +80,7 @@ xwalk_eia_epa <- # xwalk for updating certain plants to camd plant names and ids
   read_csv("data/static_tables/xwalk_oris_epa.csv", 
            col_types = "cccc") # all fields are characters
 
-manual_corrections <- 
+manual_corrections <- # manual corrections needed for generator file
   read_xlsx("data/static_tables/manual_corrections.xlsx", 
             sheet = "generator_file", 
             col_types = c("text", "text", "text", "text"))
@@ -124,13 +124,23 @@ gen_id_manual_corrections <-
   manual_corrections %>% 
   filter(column_to_update == "generator_id") 
 
+prime_mover_manual_corrections <- 
+  manual_corrections %>% 
+  filter(column_to_update == "prime_mover") %>% 
+  select(plant_id, generator_id, prime_mover = update)
+
 eia_923_gen_r <- 
   eia_923_gen %>% 
   left_join(gen_id_manual_corrections, by = c("plant_id", "generator_id")) %>% 
+  rows_update(prime_mover_manual_corrections, # update prime movers from manual_corrections
+              by = c("plant_id", "generator_id"), 
+              unmatched = "ignore") %>% 
   mutate(
     generator_id = if_else(!(plant_id %in% plant_keep_leading_zeroes), str_remove(generator_id, "^0+"), generator_id), # remove leading zeroes from generator IDs
     generator_id = if_else(!is.na(update), update, generator_id)) %>% # update generator IDs from manual_corrections
-  select(-update, -column_to_update) 
+  group_by(plant_id, generator_id, combined_heat_and_power_plant) %>% 
+  summarize(across(contains("generation"), 
+                   ~ sum(., na.rm = TRUE))) # sum generation for plants with duplicate prime movers
 
 eia_923_gen_dups <- # check for duplicates in EIA-923 Generator File
   eia_923_gen_r %>% 
@@ -417,9 +427,6 @@ final_vars <-
 generators_formatted <-
   generators_edits %>%
   arrange(plant_state, plant_name, fuel_code) %>% 
-  group_by(plant_id, generator_id) %>% 
-  slice(1) %>% 
-  ungroup() %>% 
   mutate(seqgen = row_number(),
          across(c("capfact", "generation_ann", "generation_oz"), ~ round(.x, 3))) %>% 
   select(as_tibble(final_vars)$value) # keeping columns with tidy names since the rename is done in the final formatting script
