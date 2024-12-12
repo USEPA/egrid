@@ -197,11 +197,11 @@ plant_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_yea
 # load plant differences from unit and gen files
 
 gen_diffs <- 
-  read_csv("data/outputs/qa/generator_file_differences/plant_gen_difference_ids.csv") %>% 
+  read_csv(glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}/plant_gen_difference_ids.csv")) %>% 
   select(plant_id, source_diff) %>% distinct()
 
 unit_diffs <- 
-  read_csv("data/outputs/qa/unit_file_differences/plant_unit_difference_ids.csv") %>% 
+  read_csv(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}/plant_unit_difference_ids.csv")) %>% 
   select(plant_id, source_diff) %>% distinct()
 
 gen_unit_diffs <- 
