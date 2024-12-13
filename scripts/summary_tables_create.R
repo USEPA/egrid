@@ -62,13 +62,20 @@ emission_types <- c(
   "nox_oz",
   "so2")
 
+us_output_emissions <-
+  us_aggregation %>%
+  select(any_of(paste0("us_", emission_types, "_output_rate")), 
+         any_of(paste0("us_", emission_types, "_output_rate_nonbaseload"))) %>%
+  rename_with(~str_c(str_remove(.,"us_")))
+glimpse(us_reduced)
+
+
 subregion_output_emissions <-
   subregion_aggregation %>%
   select(subregion, subregion_name, any_of(paste0("subregion_", emission_types, "_output_rate")), 
                 any_of(paste0("subregion_", emission_types, "_output_rate_nonbaseload"))) %>%
-  arrange(subregion) #%>%
-  #rbind(subregoin_ggl)
-
+  rename_with(~str_c(str_remove(.,"subregion_"))) %>%
+  bind_rows(us_output_emissions)
 glimpse(subregion_output_emissions)
 
   
