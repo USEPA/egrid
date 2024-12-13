@@ -247,7 +247,6 @@ if(nrow(check_gen_source) > 0) {
   write_csv(check_gen_source, paste0(save_dir, "check_generation_source.csv"))}
 
 # Identify all unique plant and unit IDs that have differences ------------
-
 files <- grep("check", dir("data/outputs/qa/generator_file_differences/2023/"), value = TRUE)
 
 plant_gen_diffs <- 
