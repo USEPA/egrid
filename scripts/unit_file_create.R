@@ -645,8 +645,13 @@ epa_7 <- # Updated with gap-filled OS reporters
 
 prime_mover_corrections <- 
   manual_corrections %>% 
-  filter(column_to_update == "prime_mover") %>% 
-  select(plant_id, "boiler_id" = unit_id, "prime_mover" = update)
+  filter(column_to_update == "prime_mover" & !is.na(prime_mover)) %>% 
+  select(plant_id, "boiler_id" = unit_id, prime_mover, update)
+
+prime_mover_corrections_2 <- 
+  manual_corrections %>% 
+  filter(column_to_update == "prime_mover" & is.na(prime_mover)) %>% 
+  select(plant_id, "boiler_id" = unit_id, prime_mover = update)
 
 eia_923_boilers <- 
   eia_923$boiler_fuel_data %>% 
@@ -657,7 +662,10 @@ eia_923_boilers <-
          heat_input = rowSums(pick(all_of(starts_with("heat_input")))), # getting annual heat_input, summing across all monthly heat columns
          heat_input_oz = rowSums(pick(all_of(paste0("heat_input_",tolower(month.name[5:9])))))) %>%  # summing across ozone months
   select(plant_id, plant_name, plant_state, prime_mover, boiler_id, fuel_type, heat_input, heat_input_oz, total_fuel_consumption_quantity) %>% 
-  rows_update(prime_mover_corrections, by = c("plant_id", "boiler_id"), unmatched = "ignore")
+  left_join(prime_mover_corrections, by = c("plant_id", "boiler_id", "prime_mover")) %>% 
+  mutate(prime_mover = if_else(!is.na(update), update, prime_mover)) %>% 
+  rows_update(prime_mover_corrections_2, by = c("plant_id", "boiler_id"), unmatched = "ignore") %>% 
+  select(-update)
 
 eia_923_boilers_grouped <- 
   eia_923_boilers %>% 
@@ -1906,6 +1914,13 @@ eia_units_to_delete <-
   filter(column_to_update == "delete") %>% 
   select(plant_id) %>% distinct()
 
+## Update prime mover -----------
+
+prime_mover_corrections_3 <- 
+  manual_corrections %>% 
+  filter(column_to_update == "prime_mover" & !is.na(prime_mover) & plant_id == "7063") %>% 
+  select(plant_id, unit_id, prime_mover = update)
+
 ## Update status ------
 # Update operating status via EIA-860 Boiler Info and Design Parameters for boilers and EIA-860 Generator file for EIA generators
 
@@ -1978,10 +1993,12 @@ all_units_12 <-
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_update(check_plant_names, 
                 by = c("plant_id"), unmatched = "ignore") %>% 
+  rows_update(prime_mover_corrections_3, 
+                by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(update_status_generators, 
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(update_status_boilers, 
-             by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+                by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   mutate(heat_input = round(heat_input, 3), 
          heat_input_oz = round(heat_input_oz, 3), 
          nox_mass = round(nox_mass, 3), 
