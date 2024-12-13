@@ -138,6 +138,7 @@ xwalk_pr_oris <- read_csv("data/static_tables/xwalk_pr_oris.csv",
 ### Note: check for updates or changes each data year ###
 biomass_units <- read_csv("data/static_tables/biomass_units_to_add_to_unit_file.csv", 
                           col_types = "ccccccc") %>% 
+  janitor::clean_names() %>% 
   filter(year == params$eGRID_year) # only keep units from eGRID_year
 
 # Some plants in EPA are not connected to the grid or are retired, so they are excluded from eGRID
