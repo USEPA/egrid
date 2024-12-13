@@ -3047,22 +3047,34 @@ Check manually.
 
 May need to do some checks manually.
 ```{r}
-#| label: 
+#| label: load-excel-data
 
+excel_load <- function(filename) {
+  sheets <- excel_sheets(filename)
+  all_sheets <- lapply(sheets, function(X) read_excel(filename, sheet = X, skip = 1))
+  names(all_sheets) <- sheets
+  return (all_sheets)
+}
+
+data_excel <- excel_load(glue::glue("data/outputs/{params$year}/egrid{params$year}_data.xlsx"))
+unit_excel <- data_excel[["UNT23"]]
+plant_excel <- data_excel[["PLNT23"]]
+gen_excel <- data_excel[["GEN23"]]
 ```
+
 ```{r}
 #| label: excel-output-year
 
 years_check <-
-  rbind(unit_file %>% select(year), 
-        plant_file %>% select(year),
-        generator_file %>% select(year),
-        state_agg %>% select(year),
-        ba_agg %>% select(year),
-        subrgn_agg %>% select(year),
-        nerc_agg %>% select(year),
-        us_agg %>% select(year)) %>%
-  filter(year != params$year)
+  rbind(unit_excel["YEAR"],
+        plant_excel["YEAR"],
+        gen_excel["YEAR"],
+        data_excel[["ST23"]]["YEAR"],
+        data_excel[["BA23"]]["YEAR"],
+        data_excel[["SRL23"]]["YEAR"],
+        data_excel[["NRL23"]]["YEAR"],
+        data_excel[["US23"]]["YEAR"]) %>%
+  filter(YEAR != params$year)
 
 
 ifelse(nrow(years_check) == 0, "Status: PASS - Excel data year is correct in all instances.", glue::glue("Status: NEEDS CHECKED - Excel data year is not correct in {sum(c(nrow(unit_years_check),nrow(plant_years_check),nrow(generator_years_check)} instances."))
@@ -3074,13 +3086,10 @@ ifelse(nrow(years_check) == 0, "Status: PASS - Excel data year is correct in all
 ```{r}
 #| label: unit-count-comparison
 
-unit_r <- read_rds(glue::glue("data/outputs/{params$year}/unit_file.RDS")) 
-ifelse(nrow(unit_file) == nrow(unit_r),"Status: PASS - Excel and R Unit files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R unit files differ by {nrow(unit_file) - nrow(unit_r)}."))
+ifelse(nrow(unit_file) == nrow(unit_excel),"Status: PASS - Excel and R Unit files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R unit files differ by {nrow(unit_file) - nrow(unit_excel)}."))
 
-plant_r <- read_rds(glue::glue("data/outputs/{params$year}/plant_file.RDS")) 
-ifelse(nrow(plant_file) == nrow(plant_r),"Status: PASS - Excel and R Plant files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R Plant files differ by {nrow(plant_file) - nrow(plant_r)} units."))
+ifelse(nrow(plant_file) == nrow(plant_excel),"Status: PASS - Excel and R Plant files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R Plant files differ by {nrow(plant_file) - nrow(plant_excel)} units."))
 
-generator_r <- read_rds(glue::glue("data/outputs/{params$year}/generator_file.RDS")) 
-ifelse(nrow(generator_file) == nrow(generator_r),"Status: PASS - Excel and R Generator files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R Generator files differ by {nrow(generator_file) - nrow(generator_r)} units."))
+ifelse(nrow(generator_file) == nrow(gen_excel),"Status: PASS - Excel and R Generator files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R Generator files differ by {nrow(generator_file) - nrow(gen_excel)} units."))
   
 ```
