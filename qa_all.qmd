@@ -279,7 +279,7 @@ Check if there are any duplicate units. There should be zero.
 
 check_unit_duplicates <- 
   unit_file %>% 
-  group_by(plant_id, unit_id) %>% 
+  group_by(plant_id, unit_id, prime_mover) %>% 
   filter(n() > 1)
 
 unit_duplicates_number <-
@@ -290,7 +290,7 @@ ifelse(nrow(check_unit_duplicates) == 0, "Status: PASS - No duplicate units.",
         glue::glue("Status: NEEDS CHECKED - {nrow(unit_duplicates_number)} units are duplicated."))
 
 knitr::kable(unit_duplicates_number %>% 
-               select(plant_name, plant_id, unit_id))
+               select(plant_name, plant_id, unit_id, prime_mover))
 ```
 
 ## Negative emissions values
@@ -584,6 +584,7 @@ knitr::kable(check_plant_subrgn %>%
                select(plant_id, egrid_subregion, subrgn_prev))
 
 ```
+
 ## Missing Lat/Lon Values
 
 ```{r}
@@ -2451,7 +2452,6 @@ knitr::kable(check_plant_resource_mix %>% select(plant_id, plant_name,
 
 # Aggregation file QA
 
-
 ```{r}
 #| label: load-agg-files
 
@@ -3045,6 +3045,7 @@ Check manually.
 ## Data year correct in excel output
 
 May need to do some checks manually.
+
 ```{r}
 #| label: load-excel-data
 
