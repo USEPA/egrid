@@ -403,8 +403,8 @@ plant_file <-
   left_join(emissions_ch4_n2o) %>% # add in CH4 and N2O emission masses
   mutate(unadj_co2e_mass = # calculate unadjusted CO2 equivalent 
            if_else(is.na(unadj_co2_mass), 0, unadj_co2_mass) + 
-           if_else(is.na(unadj_ch4_mass), 0, gwp$gwp[gwp$emission_type == "CH4"] * unadj_ch4_mass / 2000) + 
-           if_else(is.na(unadj_n2o_mass), 0, gwp$gwp[gwp$emission_type == "N2O"] * unadj_n2o_mass / 2000), 
+           if_else(is.na(unadj_ch4_mass), 0, gwp$gwp[gwp$gas == "CH4"] * unadj_ch4_mass / 2000) + 
+           if_else(is.na(unadj_n2o_mass), 0, gwp$gwp[gwp$gas == "N2O"] * unadj_n2o_mass / 2000), 
          # if all emission masses are NA, fill CO2e mass with NA
          unadj_co2e_mass = if_else(is.na(unadj_co2_mass) & is.na(unadj_ch4_mass) & is.na(unadj_n2o_mass), 
                                    NA_real_, unadj_co2e_mass), 
