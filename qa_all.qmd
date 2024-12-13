@@ -3056,9 +3056,9 @@ excel_load <- function(filename) {
 }
 
 data_excel <- excel_load(glue::glue("data/outputs/{params$year}/egrid{params$year}_data.xlsx"))
-unit_excel <- data_excel[["UNT23"]]
-plant_excel <- data_excel[["PLNT23"]]
-gen_excel <- data_excel[["GEN23"]]
+unit_excel <- data_excel[[glue::glue("UNT{params$year_abbrev}")]]
+plant_excel <- data_excel[[glue::glue("PLNT{params$year_abbrev}")]]
+gen_excel <- data_excel[[glue::glue("GEN{params$year_abbrev}")]]
 ```
 
 ```{r}
@@ -3068,11 +3068,11 @@ years_check <-
   rbind(unit_excel["YEAR"],
         plant_excel["YEAR"],
         gen_excel["YEAR"],
-        data_excel[["ST23"]]["YEAR"],
-        data_excel[["BA23"]]["YEAR"],
-        data_excel[["SRL23"]]["YEAR"],
-        data_excel[["NRL23"]]["YEAR"],
-        data_excel[["US23"]]["YEAR"]) %>%
+        data_excel[[glue::glue("ST{params$year_abbrev}")]]["YEAR"],
+        data_excel[[glue::glue("BA{params$year_abbrev}")]]["YEAR"],
+        data_excel[[glue::glue("SRL{params$year_abbrev}")]]["YEAR"],
+        data_excel[[glue::glue("NRL{params$year_abbrev}")]]["YEAR"],
+        data_excel[[glue::glue("US{params$year_abbrev}")]]["YEAR"]) %>%
   filter(YEAR != params$year)
 
 
