@@ -1,27 +1,25 @@
-plant_code,unit_id,prime_mover,fuel_type,plant_state,plant_name
-50188,RB,ST,BLQ,NC,Weyerhaeuser - New Bern
-50244,10REC,ST,BLQ,NC,Blue Ridge Paper Products Inc.
-50244,11REC,ST,BLQ,NC,Blue Ridge Paper Products Inc.
-50244,EPB,ST,NG,NC,Blue Ridge Paper Products Inc.
-50244,WPB,ST,NG,NC,Blue Ridge Paper Products Inc.
-50254,4PB,ST,NG,NC,"WestRock Kraft Paper, LLC"
-50254,7RB,ST,BLQ,NC,"WestRock Kraft Paper, LLC"
-50296,R1,ST,BLQ,TN,Packaging Corporation of America
-50296,R2,ST,BLQ,TN,Packaging Corporation of America
-50296,R3,ST,BLQ,TN,Packaging Corporation of America
-50397,5PB036,ST,WDS,PA,Pixelle Specialty Solutions
-50397,REC037,ST,BLQ,PA,Pixelle Specialty Solutions
-50472,BLR3,ST,MSW,NY,Covanta Niagara
-50472,BLR4,ST,MSW,NY,Covanta Niagara
-50806,PB4,ST,WDS,SC,"WestRock CP, LLC Florence Mill"
-50806,PB1,ST,WDS,SC,"WestRock CP, LLC Florence Mill"
-50806,RBF,ST,BLQ,SC,"WestRock CP, LLC Florence Mill"
-50806,PB3,ST,NG,SC,"WestRock CP, LLC Florence Mill"
-50900,2RB,ST,BLQ,VA,WestRock Virginia Corp Covington Ops
-50900,1PB,ST,WDS,VA,WestRock Virginia Corp Covington Ops
-50900,1RB,ST,NG,VA,WestRock Virginia Corp Covington Ops
-52151,RF1,ST,BLQ,SC,International Paper-Eastover Mill
-52151,RF2,ST,BLQ,SC,International Paper-Eastover Mill
-54238,N64514,ST,WDS,CA,DTE Stockton
-54238,N64516,ST,WDS,CA,DTE Stockton
-54638,RB01,ST,BLQ,PA,"Domtar Paper Company, LLC"
+State,Plant Name,Plant Code,EIA Unit ID,Prime Mover,Fuel Type
+MO    ,Columbia,2123,DAN1,IC,DFO
+MO    ,Columbia,2123,LF1,IC,LFG
+MO    ,Columbia,2123,LF2,IC,LFG
+MO    ,Columbia,2123,LF3,IC,LFG
+MO    ,Columbia,2123,SF1,IC,DFO
+MO    ,Columbia,2123,SF2,IC,DFO
+MO    ,Columbia,2123,SH1,IC,DFO
+MO    ,Columbia,2123,SH2,IC,DFO
+MO    ,Columbia,2123,WTP1,IC,DFO
+MO    ,Columbia,2123,WTP2,IC,DFO
+WI,French Island,4005,1,ST,WDS
+WI,French Island,4005,2,ST,WDS
+TN,"Domtar Paper Co., LLC - Kingsport Mill",10252,THB,ST,NG
+MA    ,Deer Island Treatment,10823,B101,ST,OBG
+MA    ,Deer Island Treatment,10823,B102,ST,OBG
+PA    ,Pixelle Specialty Solutions,50397,REC037,ST,BLQ
+NY    ,Covanta Niagara,50472,BLR3,ST,MSB
+NY    ,Covanta Niagara,50472,BLR4,ST,MSB
+VA    ,WestRock Virginia Corp Covington Ops,50900,2RB,ST,BLQ
+VA    ,WestRock Virginia Corp Covington Ops,50900,1PB,ST,NG
+VA    ,WestRock Virginia Corp Covington Ops,50900,1RB,ST,NG
+NY,Ticonderoga Mill,54099,RB1,ST,BLQ
+PA,"Domtar Paper Company, LLC",54638,RB01,ST,BLQ
+HI,"Biomass to Energy Facility, Kauai",59035,NA,ST,WDS
