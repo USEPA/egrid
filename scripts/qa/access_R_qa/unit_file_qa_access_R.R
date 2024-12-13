@@ -163,7 +163,7 @@ check_capd_flag <-
   select(plant_id, unit_id, prime_mover, capd_flag_r, capd_flag_access)
 
 if(nrow(check_capd_flag) > 0) {
-  write_csv(check_camd_flag, paste0(save_dir, "check_capd_flag.csv")) }
+  write_csv(check_capd_flag, paste0(save_dir, "check_capd_flag.csv")) }
 
 ### Check program code ------
 check_program_code <- 
@@ -457,8 +457,8 @@ files <- grep("check", dir(glue::glue("data/outputs/qa/unit_file_differences/{pa
 
 plant_unit_diffs <- 
   purrr::map_df(paste0(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}/"), files), 
-                read.csv) %>% 
-  select(plant_id, unit_id) %>% 
+                ~read_csv(.x, col_types = "ccccccccccccccccccccccccccccccccccccc")) %>% 
+  select(plant_id, unit_id, prime_mover) %>% 
   distinct() %>% 
   mutate(source_diff = "unit_file")
 
