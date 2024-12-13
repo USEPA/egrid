@@ -645,7 +645,7 @@ epa_7 <- # Updated with gap-filled OS reporters
 
 prime_mover_corrections <- 
   manual_corrections %>% 
-  filter(column_to_update == "prime_mover" & plant_id == "50489") %>% 
+  filter(column_to_update == "prime_mover") %>% 
   select(plant_id, "boiler_id" = unit_id, "prime_mover" = update)
 
 eia_923_boilers <- 
@@ -1906,21 +1906,6 @@ eia_units_to_delete <-
   filter(column_to_update == "delete") %>% 
   select(plant_id) %>% distinct()
 
-
-## Update prime mover -------
-# Manual updates to prime mover for specific plants 
-### Note: check for updates or changes each data year ###
-
-update_prime_mover <- 
-  all_units_10 %>% 
-  select(plant_id, unit_id, prime_mover) %>% 
-  left_join(manual_corrections %>% filter(column_to_update == "prime_mover" & plant_id != "50489"), # use manual_corrections to identify which PMs shoudl be updated 
-                                    by = c("plant_id", "unit_id", "prime_mover")) %>% # plant 50489 is updated in EIA data above
-  filter(!is.na(update)) %>% 
-  mutate(prime_mover = update) %>% 
-  select(plant_id, unit_id, prime_mover)
-  
-
 ## Update status ------
 # Update operating status via EIA-860 Boiler Info and Design Parameters for boilers and EIA-860 Generator file for EIA generators
 
@@ -1958,7 +1943,7 @@ update_pr_epa_flag <-
          capd_flag = if_else(id %in% epa_units_no_pm, "Yes", NA_character_)) %>% 
   filter(capd_flag == "Yes")
 
-# create EPA flag 
+# create CAPD flag 
 all_units_11 <- 
   all_units_10 %>%  
   mutate(capd_flag = if_else(paste0(plant_id, "_", unit_id, "_", prime_mover) %in% epa_units, "Yes", NA_character_)) %>% 
@@ -1990,8 +1975,6 @@ all_units_12 <-
   rows_delete(eia_units_to_delete, 
                 by = c("plant_id"), unmatched = "ignore") %>% 
   rows_update(update_fc_data, 
-                by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  rows_update(update_prime_mover, 
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_update(check_plant_names, 
                 by = c("plant_id"), unmatched = "ignore") %>% 
