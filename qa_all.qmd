@@ -73,10 +73,6 @@ eia_860 <-
 eia_923 <- 
   read_rds(glue::glue("data/clean_data/eia/{params$year}/eia_923_clean.RDS")) 
 
-# compare to EPA plants to delete in unit file
-epa_plants_to_delete <-
-  read_csv("data/static_tables/epa_plants_to_delete.csv")
-
 # group data by distinct plant IDs
 compare_plants <- 
   epa %>% 
@@ -96,16 +92,20 @@ check_compare_plants <-
 ifelse(nrow(check_compare_plants) == 0, "Status: PASS - No plants in EPA not in EIA.", 
         glue::glue("Status: NEEDS CHECKED - {nrow(check_compare_plants)} plants in EPA not in EIA."))
 
+knitr::kable(check_compare_plants %>% 
+               select(plant_id, plant_name), caption = "EPA plants not in EIA")
+
+# compare to EPA plants to delete in unit file
+epa_plants_to_delete <-
+  read_csv("data/static_tables/epa_plants_to_delete.csv")
+
 only_in_epa <-
   check_compare_plants %>%
   filter(!plant_id %in% epa_plants_to_delete$`ORIS Code`)
 
-only_in_delete <-
-  epa_plants_to_delete %>%
-  filter(!`ORIS Code` %in% check_compare_plants$plant_id)
+knitr::kable(only_in_epa %>% 
+               select(plant_id, plant_name), caption = "EPA plants not in 'epa_plants_to_delete' list")
 
-knitr::kable(check_compare_plants %>% 
-               select(plant_id, plant_name))
 
 ```
 
@@ -3011,11 +3011,11 @@ Check that emissions are equal to each other across plant and unit file.
 
 plant_emissions_sum <- 
   plant_file %>% 
-  summarize(nox_total = sum(nox_mass, na.rm = TRUE), 
-            nox_oz_total = sum(nox_oz_mass, na.rm = TRUE),
-            so2_total = sum(so2_mass, na.rm = TRUE), 
-            co2_total = sum(co2_mass, na.rm = TRUE), 
-            hg_total = sum(hg_mass, na.rm = TRUE))
+  summarize(nox_total = sum(unadj_nox_mass, na.rm = TRUE), 
+            nox_oz_total = sum(unadj_nox_oz_mass, na.rm = TRUE),
+            so2_total = sum(unadj_so2_mass, na.rm = TRUE), 
+            co2_total = sum(unadj_co2_mass, na.rm = TRUE), 
+            hg_total = sum(unadj_hg_mass, na.rm = TRUE))
 
 unit_emissions_sum <- 
   unit_file %>% 
