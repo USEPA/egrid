@@ -1849,7 +1849,8 @@ stack_info <-
   mutate(stack_height = as.numeric(stack_height)) %>% # convert stack height to numeric
   slice_max(stack_height) %>% # only include highest stack 
   ungroup() %>% 
-  select(plant_id, unit_id, prime_mover, stack_height)
+  select(plant_id, unit_id, prime_mover, stack_height) %>% 
+  distinct()
 
 ## Clean up source flags --------
 
