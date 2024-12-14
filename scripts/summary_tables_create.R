@@ -62,6 +62,7 @@ emission_types <- c(
   "nox_oz",
   "so2")
 
+# create dataset with US emissions data
 us_output_emissions <-
   us_aggregation %>%
   select(any_of(paste0("us_", emission_types, "_output_rate")), 
@@ -69,12 +70,13 @@ us_output_emissions <-
   rename_with(~str_c(str_remove(.,"us_")))
 glimpse(us_reduced)
 
-
+# create dataset with subregion emissions
 subregion_output_emissions <-
   subregion_aggregation %>%
   select(subregion, subregion_name, any_of(paste0("subregion_", emission_types, "_output_rate")), 
                 any_of(paste0("subregion_", emission_types, "_output_rate_nonbaseload"))) %>%
   rename_with(~str_c(str_remove(.,"subregion_"))) %>%
+  # add US data to bottom row
   bind_rows(us_output_emissions)
 glimpse(subregion_output_emissions)
 
@@ -92,12 +94,22 @@ resource_type <- c(
   "solar",
   "geothermal",
   "other")
+
+# create dataset with US emissions data
+us_resource_mix <-
+  us_aggregation %>%
+  select(us_nameplate_capacity, us_generation_ann, any_of(paste0("us_ann_resource_mix_", resource_type))) %>%
+  rename_with(~str_c(str_remove(.,"us_")))
+glimpse(us_resource_mix)
   
 # subregion resource mix
 subregion_resource_mix <-
   subregion_aggregation %>%
   select(subregion, subregion_name, subregion_nameplate_capacity, subregion_generation_ann, 
-         any_of(paste0("subregion_ann_resource_mix_", resource_type)))
+         any_of(paste0("subregion_ann_resource_mix_", resource_type))) %>%
+  rename_with(~str_c(str_remove(.,"subregion_"))) %>%
+  # add US data to bottom row
+  bind_rows(us_resource_mix)  
 glimpse(subregion_resource_mix)
   
 # table 3
