@@ -17,8 +17,9 @@
 library(dplyr)
 library(readr)
 library(tidyr)
-library(stringr)
+library(purrr)
 library(readxl)
+
 
 # check if parameters for eGRID data year need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd

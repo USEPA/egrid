@@ -129,7 +129,7 @@ check_n_boilers <-
   select(plant_id, generator_id, n_boilers_r, n_boilers_access)
 
 if(nrow(check_n_boilers) > 0) {
-  write_csv(check_plant_state, paste0(save_dir, "check_n_boilers.csv")) }
+  write_csv(check_n_boilers, paste0(save_dir, "check_n_boilers.csv")) }
 
 # check if operating status matches ---------------
 check_status <- 
