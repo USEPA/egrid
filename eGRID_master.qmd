@@ -31,7 +31,7 @@ This project includes all necessary scripts and documentation to create the Emis
 
 # Background
 
-eGRID is a comprehensive source of data from EPA's Clean Air Markets Division on the environmental characteristics of almost all electric power generated in the United States. The preeminent source of emissions data for the electric power sector, eGRID is based on available plant-specific data for all U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, but are not limited to, net electric generation; resource mix (for renewable and nonrenewable generation); mass emissions of carbon dioxide (CO2), nitrogen oxides (NOx), sulfur dioxide (SO2), methane (CH4), nitrous oxide (N2O), and mercury (Hg); emission rates for CO2, NOx, SO2, CH4, and N2O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for NOx) at different levels of aggregation.
+eGRID is a comprehensive source of data from EPA's Clean Air Markets Program Data on the environmental characteristics of almost all electric power generated in the United States. The preeminent source of emissions data for the electric power sector, eGRID is based on available plant-specific data for all U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, but are not limited to, net electric generation; resource mix (for renewable and nonrenewable generation); mass emissions of carbon dioxide (CO2), nitrogen oxides (NOx), sulfur dioxide (SO2), methane (CH4), nitrous oxide (N2O), and mercury (Hg); emission rates for CO2, NOx, SO2, CH4, and N2O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for NOx) at different levels of aggregation.
 
 The data includes emissions, emission rates, generation, heat input, resource mix, and many other attributes. eGRID is typically used for greenhouse gas registries and inventories, carbon footprints, consumer information disclosure, emission inventories and standards, power market changes, and avoided emission estimates.
 
@@ -243,46 +243,46 @@ tab_860m
 ```
 :::
 
-### CAMD
+### EPA/CAMPD
 
-The EPA's Clean Air Markets Division (CAMD) contains power plant emissions, compliance, and allowance data. We create and incorporate a composite file from several CAMD sources, containing data about facilities and annual emissions. Specifically, we include data about facility attributes, annual emissions, and annual emissions during ozone months.
+The EPA's Clean Air Markets Program Data (CAMPD) contains power plant emissions, compliance, and allowance data. We create and incorporate a composite file from several CAMPD sources, containing data about facilities and annual emissions. Specifically, we include data about facility attributes, annual emissions, and annual emissions during ozone months.
 
-These data are available through the [CAMPD API](https://www.epa.gov/power-sector/cam-api-portal#/documentation). `data_camd_api_load.R` connects to the CAMD api, downloads the facility attributes and emissions data for a selected year. These raw files will be combined and cleaned in subsequent steps. For this script to run, an API key is required.
+These data are available through the [CAMPD API](https://www.epa.gov/power-sector/cam-api-portal#/documentation). `data_load_epa.R` connects to the CAMPD API, downloads the facility attributes and emissions data for a selected year. These raw files will be combined and cleaned in subsequent steps. For this script to run, an API key is required.
 
-An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-portal#/api-key-signup). Once a key is obtained, paste your key into the file `api_keys/camd_api_key.txt` and save. Once saved, the script `data_camd_api_load.R` will be able to successfully connect to and load data from the CAMPD API.
+An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-portal#/api-key-signup). Once a key is obtained, paste your key into the file `api_keys/epa_api_key.txt` and save. Once saved, the script `data_load_epa.R` will be able to successfully connect to and load data from the CAMPD API.
 
 ```{r}
-#| label: load_data_camd
+#| label: load_data_epa
 #| warnings: false
 #| message: false
 #| error: false 
 #| echo: fenced
-#| file: "scripts/data_load_camd.R"
+#| file: "scripts/data_load_epa.R"
 
 ```
 
-Three data tables are downloaded from the the CAMD api and stored into one .RDS file, `camd_raw.RDS`. This file consists of facility attributes, annual emissions data, and containing annual emissions data for the ozone months. See a summary of the raw CAMD file below, separated into categories.
+Three data tables are downloaded from the the CAMPD and stored into one .RDS file, `epa_raw.RDS`. This file consists of facility attributes, annual emissions data, and containing annual emissions data for the ozone months. See a summary of the raw EPA file below, separated into categories.
 
-#### CAMD Raw Tables
+#### EPA Raw Tables
 
 ```{r}
 #| echo: false
-#| label: create_camd_tables
+#| label: create_epa_tables
 #| warnings: false
 
 source("scripts/functions/function_summary_table.R") # function to create summary table
 
-camd_raw <- read_rds(glue::glue("data/raw_data/camd/{params$eGRID_year}/camd_raw.RDS"))
+epa_raw <- read_rds(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))
 
-table_camd_raw <- create_summary_table(camd_raw)
+table_epa_raw <- create_summary_table(epa_raw)
 
-camd_facilities      <- camd_raw[1:26]
-camd_emissions       <- camd_raw[27:46]
-camd_emissions_ozone <- camd_raw[47:58]
+epa_facilities      <- epa_raw[1:26]
+epa_emissions       <- epa_raw[27:46]
+epa_emissions_ozone <- epa_raw[47:58]
 
-table_facilities      <- create_summary_table(camd_facilities)
-table_emissions       <- create_summary_table(camd_emissions)
-table_emissions_ozone <- create_summary_table(camd_emissions_ozone)
+table_facilities      <- create_summary_table(epa_facilities)
+table_emissions       <- create_summary_table(epa_emissions)
+table_emissions_ozone <- create_summary_table(epa_emissions_ozone)
 
 
 ```
@@ -290,48 +290,48 @@ table_emissions_ozone <- create_summary_table(camd_emissions_ozone)
 ::: panel-tabset
 #### Overview
 
-*Click through the tabs above to view files represented from each CAMD source.*
+*Click through the tabs above to view files represented from each EPA source.*
 
-**CAMD facility attributes**: Columns 1 - 26 of `camd_raw.RDS`.
+**EPA facility attributes**: Columns 1 - 26 of `epa_raw.RDS`.
 
-**CAMD annual emissions**: Columns 27 - 47 of `camd_raw.RDS`.
+**EPA annual emissions**: Columns 27 - 47 of `epa_raw.RDS`.
 
-**CAMD ozone season emissions**: Columns 47 - 58 of `camd_raw.RDS`. The ozone season is defined as May through September.
+**EPA ozone season emissions**: Columns 47 - 58 of `epa_raw.RDS`. The ozone season is defined as May through September.
 
-#### CAMD facility attributes
+#### EPA facility attributes
 
 ```{r}
 #| echo: false
-#| label: print_camd_tab_facilities
+#| label: print_epa_tab_facilities
 table_facilities
 ```
 
-#### CAMD annual emissions
+#### EPA annual emissions
 
 ```{r}
 #| echo: false
-#| label: print_camd_tab_emissions
+#| label: print_epa_tab_emissions
 table_emissions
 ```
 
-#### CAMD ozone season emissions
+#### EPA ozone season emissions
 
 ```{r}
 #| echo: false
-#| label: print_camd_tab_emissions_ozone
+#| label: print_epa_tab_emissions_ozone
 table_emissions_ozone
 ```
 :::
 
 ## Loading Crosswalks
 
-Crosswalks and static tables are used to supplement CAMD and EIA files and provide information on one-off changes, descriptions, or overall conversions.
+Crosswalks and static tables are used to supplement EPA and EIA files and provide information on one-off changes, descriptions, or overall conversions.
 
--   Units to add, delete, or account for differences between CAMD and EIA
+-   Units to add, delete, or account for differences between EPA and EIA
 
-    -   ex. `units_to_remove.csv`, `xwalk_oris_camd.csv`
+    -   ex. `units_to_remove.csv`, `xwalk_oris_epa.csv`
 
--   Data on information not found in EIA/CAMD
+-   Data on information not found in EIA/EPA
 
     -   ex. `chp_plants.csv`
 
@@ -417,7 +417,7 @@ There are several procedures that are applied to each of the raw EIA files:
 
     -   All variable names are converted to snake case (e.g., "snake_case").
 
-    -   Each form includes identifiers such as a given plant name, prime mover, fuel type, etc., but the assigned column names are inconsistent. To facilitate data operations (e.g., joins) and reduce confusion, we use a common naming scheme across all files (including EIA and CAMD).
+    -   Each form includes identifiers such as a given plant name, prime mover, fuel type, etc., but the assigned column names are inconsistent. To facilitate data operations (e.g., joins) and reduce confusion, we use a common naming scheme across all files (including EIA and EPA).
 
         -   `plant_id`
 
@@ -542,11 +542,11 @@ purrr::iwalk(tabs_861, ~ {
 ```
 :::
 
-## CAMD
+## EPA
 
-We begin by loading in `camd_raw.RDS` and standardizing column names.
+We begin by loading in `epa_raw.RDS` and standardizing column names.
 
-There are several procedures applied to the raw CAMD file:
+There are several procedures applied to the raw EPA file:
 
 -   Variable name standardization
 
@@ -556,7 +556,7 @@ There are several procedures applied to the raw CAMD file:
 
     -   Plants listed as future, retired, or long-term cold storage are removed. Additionally, plants with IDs above 80000 are removed, unless the plants are located in Puerto Rico.
 
--   Create source variables and apply source: `EPA/CAMD`
+-   Create source variables and apply source: `EPA/CAMPD`
 
     -   `heat_input_source`
 
@@ -582,22 +582,22 @@ There are several procedures applied to the raw CAMD file:
 
 ```{r}
 #| message: false
-#| label: data_clean_camd
-#| file: "scripts/data_clean_camd.R"
+#| label: data_clean_epa
+#| file: "scripts/data_clean_epa.R"
 ```
 
 ::: panel-tabset
 #### Overview
 
-*Click tab above to view variables contained in* `camd_clean.RDS`.
+*Click tab above to view variables contained in* `epa_clean.RDS`.
 
-#### CAMD clean
+#### EPA clean
 
 ```{r}
 #| echo: false
-#| label: create_camd_summary_table
+#| label: create_epa_summary_table
 
-create_summary_table(readr::read_rds(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")))
+create_summary_table(readr::read_rds(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")))
 
 ```
 :::
@@ -623,7 +623,7 @@ Crosswalks used in this file:
 
 -   `xwalk_fuel_type.csv`
 
--   `xwalk_oris_camd.csv`
+-   `xwalk_oris_epa.csv`
 
 ```{r}
 #| label: generator_file_table
@@ -726,9 +726,9 @@ generator_file %>%
 
 ## Combining Data Sources
 
-The unit file data includes grid connected units from EPA/CAMD data, unique EIA-923 boilers, unique EIA-860 boilers, and renewable units from EIA not included previously. Some units are ozone season reporters where they only reports data during the ozone season of May - September. After flagging which CAMD plants are ozone season reporters, we fill in the missing months with EIA data.
+The unit file data includes grid connected units from EPA/CAMPD data, unique EIA-923 boilers, unique EIA-860 boilers, and renewable units from EIA not included previously. Some units are ozone season reporters where they only reports data during the ozone season of May - September. After flagging which EPA plants are ozone season reporters, we fill in the missing months with EIA data.
 
-Unit level emissions come from CAMD Power Sector Emissions Data. For units not included in CAMD, but in EIA, the emissions are calculated through reported unit level heat input from EIA.
+Unit level emissions come from CAMPD Power Sector Emissions Data. For units not included in EPA, but in EIA, the emissions are calculated through reported unit level heat input from EIA.
 
 For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
@@ -740,7 +740,7 @@ Crosswalks used in this file:
 
 -   `xwalk_boiler_firing_type.csv`
 
--   `camd_plants_to_delete.csv`
+-   `epa_plants_to_delete.csv`
 
 -   `xwalk_860_boiler_control_id.csv`
 
@@ -982,7 +982,6 @@ plot_unt_co2_sources_dist <-
 plot_unt_co2 / plot_unt_co2_sources_dist
 
 ```
-
 :::
 
 # Plant File
@@ -1009,7 +1008,7 @@ For full documentation, reference the [eGRID Technical Guide](https://www.epa.go
 
 Crosswalks used in this file:
 
--   `xwalk_oris_camd.csv`
+-   `xwalk_oris_epa.csv`
 
 -   `co2_ch4_n2o_ef.csv`
 
