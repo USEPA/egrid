@@ -643,6 +643,8 @@ epa_7 <- # Updated with gap-filled OS reporters
 
 ## EIA boilers ----------
 
+# identify manual updates to prime movers
+### Note: check for updates or changes each data year ###
 prime_mover_corrections <- 
   manual_corrections %>% 
   filter(column_to_update == "prime_mover" & !is.na(prime_mover)) %>% 
@@ -707,13 +709,14 @@ primary_fuel_types_923_boilers <-  # this will be joined with final dataframe of
 
 # getting vectors of ids for 860 tables to filter on
 eia_860_boil_gen_ids <- eia_860$boiler_generator %>% mutate(id = paste0(plant_id, "_", boiler_id)) %>% pull(id)
-eia_860_combined_ids <- eia_860$combined %>% mutate(id = paste0(plant_id, "_", generator_id)) %>% pull(id)
+eia_860_combined_ids <- eia_860$combined %>% mutate(id_pm = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% pull(id_pm)
 
 eia_boilers_to_add <- 
   eia_923_boilers_heat %>% 
-  mutate(id = paste0(plant_id, "_", boiler_id)) %>%
+  mutate(id = paste0(plant_id, "_", boiler_id), 
+         id_pm = paste0(plant_id, "_", boiler_id, "_", prime_mover)) %>%
   filter(!plant_id %in% epa_7$plant_id) %>%  # removing boilers that are in plants in EPA
-  filter(id %in% eia_860_boil_gen_ids | id %in% eia_860_combined_ids) %>%  # keeping only boilers that are in 860, under boiler or unit id
+  filter(id %in% eia_860_boil_gen_ids | id_pm %in% eia_860_combined_ids) %>%  # keeping only boilers that are in 860, under boiler or unit id
   mutate(heat_input_source = "EIA Unit-level Data",
          heat_input_oz_source = "EIA Unit-level Data") %>% 
   left_join(primary_fuel_types_923_boilers) # adding primary fuel type as determined by fuel type of max heat input of boiler 
@@ -738,7 +741,8 @@ eia_860_boil_gen <-
 
 eia_860_gens_to_remove <-
   eia_860_boil_gen %>%
-  filter(id_boil %in% eia_boilers_to_add$id) %>%
+  ### Note: check for updates or changes each data year ###
+  filter(id_boil %in% eia_boilers_to_add$id & plant_id != 50489) %>% # ensure we include plant 50489 generator C3 due to prime mover changes
   pull(id_gen) %>%
   c(., eia_boilers_to_add$id) # adding additional units that are in eia_boilers but not in 860_boiler_generator file
 
@@ -748,13 +752,14 @@ renewable_ids <-
   eia_860$combined %>% 
   filter(plant_id %in% epa_7$plant_id, # only plants in EPA
          energy_source_1 %in% c("SUN", "WAT", "WND")) %>% # identifying renewable sources
-  mutate(id = paste0(plant_id, "_", generator_id)) %>%
+  mutate(id = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>%
   pull(id)
   
 eia_860_generators_to_add <- 
   eia_860$combined %>% 
-  mutate(id = paste0(plant_id, "_", generator_id)) %>% 
-  filter(!(plant_id %in% epa_7$plant_id & !id %in% renewable_ids), # removing generators from plants in EPA, unless it is a renewable generator
+  mutate(id = paste0(plant_id, "_", generator_id),
+         id_pm = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% 
+  filter(!(plant_id %in% epa_7$plant_id & !id_pm %in% renewable_ids), # removing generators from plants in EPA, unless it is a renewable generator
          !id %in% eia_860_gens_to_remove) %>%  
   select(plant_id, 
          plant_name,
@@ -764,7 +769,7 @@ eia_860_generators_to_add <-
          prime_mover,
          "operating_status" = status,
          "primary_fuel_type" = energy_source_1, 
-         id)
+         "id" = id_pm)
 
 
 ### Update fuel types where mismatch between EIA sources -----
@@ -855,15 +860,14 @@ biomass_units_to_add <-
 
 all_units <- # binding all units together, and adding a source column to track row origins
   bind_rows((epa_7 %>% mutate(source = "EPA", id = paste0(plant_id, "_", unit_id, "_", prime_mover))),
-            (eia_boilers_to_add %>% mutate(source = "923_boilers", id = paste0(plant_id, "_", boiler_id, "_", prime_mover)) %>% 
-               rename("unit_id" = boiler_id)),
+            (eia_boilers_to_add %>% select(-id) %>% mutate(source = "923_boilers") %>% 
+               rename("id" = id_pm) %>% rename("unit_id" = boiler_id)),
             (eia_860_generators_to_add_3 %>% mutate(source = "860_generators", id = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% 
                rename("unit_id" = generator_id)),
             (biomass_units_to_add %>% mutate(source = "plant_file", id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
                filter(!id %in% epa_7$id, 
                       !id %in% eia_boilers_to_add$id, 
                       !id %in% eia_860_generators_to_add_3$id))) 
-
 
 # Remove plants from EIA that are in EPA 
 # These plants are duplicated since they have different plant IDs, so we are removing the EIA units 
