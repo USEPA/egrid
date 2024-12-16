@@ -17,8 +17,9 @@
 library(dplyr)
 library(readr)
 library(tidyr)
-library(stringr)
+library(purrr)
 library(readxl)
+
 
 # check if parameters for eGRID data year need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
@@ -159,13 +160,13 @@ generator_dfs <-
 
 ### Modifying 860 generator files ---------
 
-camd_clean <- readr::read_rds(glue::glue("data/clean_data/camd/{params$eGRID_year}/camd_clean.RDS")) # need camd plants to filter 860 proposed file
+epa_clean <- readr::read_rds(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")) # need EPA plants to filter 860 proposed file
 
 generator_dfs_mod <-
   generator_dfs %>% 
   purrr::map_at("proposed", # only keeping proposed plants in camd and removing if already in operable
                 ~ .x %>% 
-                  filter(plant_code %in% camd_clean$plant_id,
+                  filter(plant_code %in% epa_clean$plant_id,
                          !plant_code %in% generator_dfs$operable$plant_code)) %>% 
   purrr::map_at("retired_and_canceled", # retaining only plants retired in eGRID year
                 ~ .x %>% 
@@ -178,6 +179,7 @@ enviro_assoc_sheets <- c("Boiler Generator",
                          "Boiler SO2",
                          "Boiler Mercury",
                          "Boiler Particulate Matter",
+                         "Boiler Stack Flue",
                          "Emissions Control Equipment")
 
 file_name_enviro_assoc <- grep("EnviroAssoc_Y", eia_860_files, value = TRUE)
@@ -198,7 +200,8 @@ enviro_assoc_dfs <-
 
 enviro_equip_sheets <- c("Emission Standards & Strategies",
                         "Boiler Info & Design Parameters",
-                        "FGD")
+                        "FGD", 
+                        "Stack Flue")
 
 file_name_enviro_equip <- grep("EnviroEquip_Y", eia_860_files, value = TRUE)
 

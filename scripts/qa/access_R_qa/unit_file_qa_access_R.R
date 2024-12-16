@@ -5,7 +5,7 @@
 ## Purpose: 
 ## 
 ## This file evaluates the differences in the R and Access database 
-## for the unit file creation in 2021. 
+## for the unit file creation in a given year. 
 ##
 ## The checks performed will output a CSV file with any differences 
 ## between Access and R unit files. 
@@ -31,39 +31,47 @@ if(dir.exists("data/outputs/qa")) {
   dir.create("data/outputs/qa")
 }
 
-if(dir.exists("data/outputs/qa/unit_file_differences/2023")) {
+if(dir.exists("data/outputs/qa/unit_file_differences")) {
   print("Folder unit_file_differences already exists.")
 }else{
-  dir.create("data/outputs/qa/unit_file_differences/2023")
+  dir.create("data/outputs/qa/unit_file_differences")
+}
+
+if(dir.exists(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}"))) {
+  print(glue::glue("Folder unit_file_differences/{params$eGRID_year} already exists."))
+}else{
+  dir.create(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}"))
 }
 
 # set directory for saving files 
-save_dir <- "data/outputs/qa/unit_file_differences/2023/"
+save_dir <- glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}/")
 
 # load unit file R
-unit_r <- read_rds("data/outputs/unit_file.RDS")
+unit_r <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
 
 # add "_r" after each variable to easily identify dataset 
 colnames(unit_r) <- paste0(colnames(unit_r), "_r")
 
 unit_r <- unit_r %>% 
   rename("plant_id" = "plant_id_r", 
-         "unit_id" = "unit_id_r") %>% 
+         "unit_id" = "unit_id_r",
+         "prime_mover" = "prime_mover_r") %>% 
   mutate(num_generators_r = as.numeric(num_generators_r), 
          year_online_r = as.character(year_online_r))
 
-unit_access <- read_excel("data/raw_data/eGRID_Data2023.xlsx", sheet = "UNT23", 
+unit_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
+                          sheet = glue::glue("UNT{as.numeric(params$eGRID_year) %% 1000}"), 
                           skip = 1, 
                           guess_max = 4000) %>% janitor::clean_names() %>% 
-  rename("sequnt_access" = "sequnt23",
+  rename("sequnt_access" = glue::glue("sequnt{as.numeric(params$eGRID_year) %% 1000}"),
          #"year_access" = "year", 
          "plant_id" = "orispl",
          "plant_name_access" = "pname", 
          "plant_state_access" = "pstatabb", 
          "unit_id" = "unitid", 
-         "prime_mover_access" = "prmvr", 
+         "prime_mover" = "prmvr", 
          "operating_status_access" = "untopst", 
-         "camd_flag_access" = "camdflag", 
+         "capd_flag_access" = "camdflag", 
          "program_code_access" = "prgcode", 
          "botfirty_access" = "botfirty", 
          "num_generators_access" = "numgen", 
@@ -97,14 +105,15 @@ unit_access[unit_access == "NA"] <- NA_character_ # replace any "NA" strings wit
 unit_comparison <- 
   unit_r %>% 
   full_join(unit_access, by = c("plant_id", 
-                                "unit_id")) 
+                                "unit_id",
+                                "prime_mover")) 
 
 # Column by column checks -------------
 ### Identify if there are any plants in R that are NOT in Access dataset --------
 # anti_join() pulls out differences
 check_diff_plant_r <- 
   unit_r %>% 
-  anti_join(unit_access, by = c("plant_id", "unit_id")) %>% 
+  anti_join(unit_access, by = c("plant_id", "unit_id", "prime_mover")) %>% 
   filter(!is.na(plant_id))
 
 if(nrow(check_diff_plant_r) > 0) {
@@ -113,7 +122,7 @@ if(nrow(check_diff_plant_r) > 0) {
 ### Identify if there are any plants in Access that are NOT in R dataset --------
 check_diff_plant_access <- 
   unit_access %>% 
-  anti_join(unit_r, by = c("plant_id", "unit_id")) %>% 
+  anti_join(unit_r, by = c("plant_id", "unit_id", "prime_mover")) %>% 
   filter(!is.na(plant_id))
 
 if(nrow(check_diff_plant_access) > 0) {
@@ -138,38 +147,30 @@ check_plant_state <-
 if(nrow(check_plant_state) > 0) {
   write_csv(check_plant_state, paste0(save_dir, "check_plant_state.csv")) }
 
-### Check prime movers ------- 
-check_prime_mover <- 
-  unit_comparison %>% 
-  filter(mapply(identical, prime_mover_r, prime_mover_access) == FALSE) %>% 
-  select(plant_id, unit_id, prime_mover_r, prime_mover_access)
-
-if(nrow(check_prime_mover) > 0) {
-  write_csv(check_prime_mover, paste0(save_dir, "check_prime_mover.csv")) }
-
 ### Check operating status ------
 check_operating_status <- 
   unit_comparison %>% 
   filter(mapply(identical, operating_status_r, operating_status_access) == FALSE) %>% 
-  select(plant_id, unit_id, operating_status_r, operating_status_access)
+  select(plant_id, unit_id, prime_mover, operating_status_r, operating_status_access)
 
 if(nrow(check_operating_status) > 0) {
   write_csv(check_operating_status, paste0(save_dir, "check_operating_status.csv")) }
 
-### Check CAMD flag --------
-check_camd_flag <- 
+### Check CAPD flag --------
+check_capd_flag <- 
   unit_comparison %>% 
-  filter(mapply(identical, camd_flag_r, camd_flag_access) == FALSE) %>% 
-  select(plant_id, unit_id, camd_flag_r, camd_flag_access)
+  filter(mapply(identical, capd_flag_r, capd_flag_access) == FALSE) %>% 
+  select(plant_id, unit_id, prime_mover, capd_flag_r, capd_flag_access)
 
-if(nrow(check_camd_flag) > 0) {
-  write_csv(check_camd_flag, paste0(save_dir, "check_camd_flag.csv")) }
+if(nrow(check_capd_flag) > 0) {
+  write_csv(check_capd_flag, paste0(save_dir, "check_capd_flag.csv")) }
 
 ### Check program code ------
 check_program_code <- 
   unit_comparison %>% 
   filter(mapply(identical, program_code_r, program_code_access) == FALSE) %>% 
-  select(plant_id, unit_id, program_code_r, program_code_access)
+  select(plant_id, unit_id, prime_mover, program_code_r, program_code_access)
+
 
 if(nrow(check_program_code) > 0) {
   write_csv(check_program_code, paste0(save_dir, "check_program_code.csv")) }
@@ -178,7 +179,7 @@ if(nrow(check_program_code) > 0) {
 check_botfirty <- 
   unit_comparison %>% 
   filter(mapply(identical, botfirty_r, botfirty_access) == FALSE) %>% 
-  select(plant_id, unit_id, botfirty_r, botfirty_access)
+  select(plant_id, unit_id, prime_mover, botfirty_r, botfirty_access)
 
 if(nrow(check_botfirty) > 0) {
   write_csv(check_botfirty, paste0(save_dir, "check_botfirty.csv")) }
@@ -187,7 +188,7 @@ if(nrow(check_botfirty) > 0) {
 check_num_gens <- 
   unit_comparison %>% 
   filter(mapply(identical, num_generators_r, num_generators_access) == FALSE) %>% 
-  select(plant_id, unit_id, num_generators_r, num_generators_access)
+  select(plant_id, unit_id, prime_mover, num_generators_r, num_generators_access)
 
 if(nrow(check_num_gens) > 0) {
   write_csv(check_num_gens, paste0(save_dir, "check_num_gens.csv")) }
@@ -196,7 +197,7 @@ if(nrow(check_num_gens) > 0) {
 check_fuel_type <- 
   unit_comparison %>% 
   filter(mapply(identical, primary_fuel_type_r, primary_fuel_type_access) == FALSE) %>% 
-  select(plant_id, unit_id, prime_mover_r, prime_mover_access, primary_fuel_type_r, primary_fuel_type_access)
+  select(plant_id, unit_id, prime_mover, prime_mover, primary_fuel_type_r, primary_fuel_type_access)
 
 if(nrow(check_fuel_type) > 0) {
   write_csv(check_fuel_type, paste0(save_dir, "check_fuel_type.csv")) }
@@ -205,7 +206,7 @@ if(nrow(check_fuel_type) > 0) {
 check_operating_hours <- 
   unit_comparison %>% 
   filter(mapply(identical, operating_hours_r, operating_hours_access) == FALSE) %>% 
-  select(plant_id, unit_id, operating_hours_r, operating_hours_access)
+  select(plant_id, unit_id, prime_mover, operating_hours_r, operating_hours_access)
 
 if(nrow(check_operating_hours) > 0) {
   write_csv(check_operating_hours, paste0(save_dir, "check_operating_hours.csv")) }
@@ -214,7 +215,7 @@ if(nrow(check_operating_hours) > 0) {
 check_so2_controls <- 
   unit_comparison %>% 
   filter(mapply(identical, so2_controls_r, so2_controls_access) == FALSE) %>% 
-  select(plant_id, unit_id, so2_controls_r, so2_controls_access)
+  select(plant_id, unit_id, prime_mover, so2_controls_r, so2_controls_access)
 
 if(nrow(check_so2_controls) > 0) {
   write_csv(check_so2_controls, paste0(save_dir, "check_so2_controls.csv")) }
@@ -223,7 +224,7 @@ if(nrow(check_so2_controls) > 0) {
 check_nox_controls <- 
   unit_comparison %>% 
   filter(mapply(identical, nox_controls_r, nox_controls_access) == FALSE) %>% 
-  select(plant_id, unit_id, nox_controls_r, nox_controls_access)
+  select(plant_id, unit_id, prime_mover, nox_controls_r, nox_controls_access)
 
 if(nrow(check_nox_controls) > 0) {
   write_csv(check_nox_controls, paste0(save_dir, "check_nox_controls.csv")) }
@@ -232,7 +233,7 @@ if(nrow(check_nox_controls) > 0) {
 check_hg_flag <- 
   unit_comparison %>% 
   filter(mapply(identical, hg_controls_flag_r, hg_controls_flag_access) == FALSE) %>% 
-  select(plant_id, unit_id, hg_controls_flag_r, hg_controls_flag_access)
+  select(plant_id, unit_id, prime_mover, hg_controls_flag_r, hg_controls_flag_access)
 
 if(nrow(check_hg_flag) > 0) {
   write_csv(check_hg_flag, paste0(save_dir, "check_hg_controls_flag.csv")) }
@@ -241,7 +242,7 @@ if(nrow(check_hg_flag) > 0) {
 check_year_online <- 
   unit_comparison %>% 
   filter(mapply(identical, year_online_r, year_online_access) == FALSE) %>% 
-  select(plant_id, unit_id, year_online_r, year_online_access)
+  select(plant_id, unit_id, prime_mover, year_online_r, year_online_access)
 
 if(nrow(check_year_online) > 0) {
   write_csv(check_year_online, paste0(save_dir, "check_year_online.csv")) }
@@ -270,7 +271,7 @@ check_heat_input_ann_unit <-
   filter(mapply(identical, heat_input_r, heat_input_access) == FALSE) %>% 
   mutate(diff_heat_input = heat_input_r - heat_input_access) %>% 
   filter(diff_heat_input > 1 | diff_heat_input < -1 | is.na(diff_heat_input)) %>% 
-  select(plant_id, unit_id, heat_input_r, heat_input_access, diff_heat_input, 
+  select(plant_id, unit_id, prime_mover, heat_input_r, heat_input_access, diff_heat_input, 
          heat_input_source_r, heat_input_source_access)
 
 if(nrow(check_heat_input_ann_unit) > 0) {
@@ -282,7 +283,7 @@ check_heat_input_oz_unit <-
   filter(mapply(identical, heat_input_oz_r, heat_input_oz_access) == FALSE) %>% 
   mutate(diff_heat_input_oz = heat_input_oz_r - heat_input_oz_access) %>% 
   filter(diff_heat_input_oz > 1 | diff_heat_input_oz < -1) %>% 
-  select(plant_id, unit_id, heat_input_oz_r, heat_input_oz_access, diff_heat_input_oz, 
+  select(plant_id, unit_id, prime_mover, heat_input_oz_r, heat_input_oz_access, diff_heat_input_oz, 
          heat_input_oz_source_r, heat_input_oz_source_access)
 
 if(nrow(check_heat_input_oz_unit) > 0) {
@@ -293,7 +294,7 @@ if(nrow(check_heat_input_oz_unit) > 0) {
 check_heat_input_ann_source <- 
   unit_comparison %>% 
   filter(mapply(identical, heat_input_source_r, heat_input_source_access) == FALSE) %>% 
-  select(plant_id, unit_id, heat_input_r, heat_input_access, heat_input_source_r, heat_input_source_access)
+  select(plant_id, unit_id, prime_mover, heat_input_r, heat_input_access, heat_input_source_r, heat_input_source_access)
 
 if(nrow(check_heat_input_ann_source) > 0) {
   write_csv(check_heat_input_ann_source, paste0(save_dir, "check_heat_input_ann_source.csv")) }
@@ -302,7 +303,7 @@ if(nrow(check_heat_input_ann_source) > 0) {
 check_heat_input_oz_source <- 
   unit_comparison %>% 
   filter(mapply(identical, heat_input_oz_source_r, heat_input_oz_source_access) == FALSE) %>% 
-  select(plant_id, unit_id, heat_input_oz_r, heat_input_oz_access, heat_input_oz_source_r, heat_input_oz_source_access)
+  select(plant_id, unit_id, prime_mover, heat_input_oz_r, heat_input_oz_access, heat_input_oz_source_r, heat_input_oz_source_access)
 
 if(nrow(check_heat_input_oz_source) > 0) {
   write_csv(check_heat_input_oz_source, paste0(save_dir, "check_heat_input_oz_source.csv")) }
@@ -332,7 +333,7 @@ check_nox_ann_unit <-
   mutate(diff_nox_mass = nox_mass_r - nox_mass_access) %>% 
   filter(diff_nox_mass > 1 | diff_nox_mass < -1 | is.na(diff_nox_mass)) %>% 
   select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
-         prime_mover_r, prime_mover_access, heat_input_r, heat_input_access,
+         prime_mover, heat_input_r, heat_input_access,
          nox_mass_r, nox_mass_access, diff_nox_mass, nox_source_r, nox_source_access)
 
 if(nrow(check_nox_ann_unit) > 0) {
@@ -344,8 +345,8 @@ check_nox_oz_unit <-
   filter(mapply(identical, nox_oz_mass_r, nox_oz_mass_access) == FALSE) %>% 
   mutate(diff_nox_oz_mass = nox_oz_mass_r - nox_oz_mass_access) %>% 
   filter(diff_nox_oz_mass > 1 | diff_nox_oz_mass < -1 | is.na(diff_nox_oz_mass)) %>% 
-  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
-         prime_mover_r, prime_mover_access, heat_input_oz_r, heat_input_oz_access,
+  select(plant_id, unit_id, prime_mover, primary_fuel_type_r, primary_fuel_type_access, 
+         heat_input_oz_r, heat_input_oz_access,
          nox_oz_mass_r, nox_oz_mass_access, diff_nox_oz_mass, nox_oz_source_r, nox_oz_source_access)
 
 if(nrow(check_nox_oz_unit) > 0) {
@@ -356,7 +357,7 @@ if(nrow(check_nox_oz_unit) > 0) {
 check_nox_ann_source <- 
   unit_comparison %>% 
   filter(mapply(identical, nox_source_r, nox_source_access) == FALSE) %>% 
-  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access,
+  select(plant_id, unit_id, prime_mover, primary_fuel_type_r, primary_fuel_type_access,
          nox_mass_r, nox_mass_access, nox_source_r, nox_source_access)
 
 if(nrow(check_nox_ann_source) > 0) {
@@ -366,8 +367,8 @@ if(nrow(check_nox_ann_source) > 0) {
 check_nox_oz_source <- 
   unit_comparison %>% 
   filter(mapply(identical, nox_oz_source_r, nox_oz_source_access) == FALSE) %>% 
-  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
-         prime_mover_r, prime_mover_access,
+  select(plant_id, unit_id, prime_mover, 
+         primary_fuel_type_r, primary_fuel_type_access, 
          nox_oz_mass_r, nox_oz_mass_access, nox_oz_source_r, nox_oz_source_access)
 
 if(nrow(check_nox_oz_source) > 0) {
@@ -392,8 +393,9 @@ check_so2_unit <-
   filter(mapply(identical, so2_mass_r, so2_mass_access) == FALSE) %>% 
   mutate(diff_so2_mass = so2_mass_r - so2_mass_access) %>% 
   filter(diff_so2_mass > 1 | diff_so2_mass < -1 | is.na(diff_so2_mass)) %>% 
-  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
-         prime_mover_r, prime_mover_access, heat_input_r, heat_input_access,
+  select(plant_id, unit_id, prime_mover,
+         primary_fuel_type_r, primary_fuel_type_access, 
+         heat_input_r, heat_input_access,
          so2_mass_r, so2_mass_access, diff_so2_mass, 
          so2_source_r, so2_source_access)
 
@@ -404,7 +406,8 @@ if(nrow(check_so2_unit) > 0) {
 check_so2_source <- 
   unit_comparison %>% 
   filter(mapply(identical, so2_source_r, so2_source_access) == FALSE) %>% 
-  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+  select(plant_id, unit_id, prime_mover, 
+         primary_fuel_type_r, primary_fuel_type_access, 
          so2_mass_r, so2_mass_access, so2_source_r, so2_source_access)
 
 if(nrow(check_so2_source) > 0) {
@@ -429,8 +432,8 @@ check_co2_unit <-
   filter(mapply(identical, co2_mass_r, co2_mass_access) == FALSE) %>% 
   mutate(diff_co2_mass = co2_mass_r - co2_mass_access) %>% 
   filter(diff_co2_mass > 1 | diff_co2_mass < -1 | is.na(diff_co2_mass)) %>% 
-  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
-         prime_mover_r, prime_mover_access, heat_input_r, heat_input_access,
+  select(plant_id, unit_id, prime_mover, primary_fuel_type_r, primary_fuel_type_access, 
+         heat_input_r, heat_input_access,
          co2_mass_r, co2_mass_access, diff_co2_mass, 
          co2_source_r, co2_source_access)
 
@@ -441,7 +444,8 @@ if(nrow(check_co2_unit) > 0) {
 check_co2_source <- 
   unit_comparison %>% 
   filter(mapply(identical, co2_source_r, co2_source_access) == FALSE) %>% 
-  select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
+  select(plant_id, unit_id, prime_mover, 
+         primary_fuel_type_r, primary_fuel_type_access, 
          co2_mass_r, co2_mass_access, co2_source_r, co2_source_access)
 
 if(nrow(check_co2_source) > 0) {
@@ -449,13 +453,14 @@ if(nrow(check_co2_source) > 0) {
 
 # Identify all unique plant and unit IDs that have differences ------------
 
-files <- grep("check", dir("data/outputs/qa/unit_file_differences"), value = TRUE)
+files <- grep("check", dir(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}")), value = TRUE)
 
 plant_unit_diffs <- 
-  purrr::map_df(paste0("data/outputs/qa/unit_file_differences/", files), 
-                read.csv) %>% 
-  select(plant_id, unit_id) %>% 
+  purrr::map_df(paste0(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}/"), files), 
+                ~read_csv(.x, col_types = "ccccccccccccccccccccccccccccccccccccc")) %>% 
+  select(plant_id, unit_id, prime_mover) %>% 
   distinct() %>% 
   mutate(source_diff = "unit_file")
 
-write_csv(plant_unit_diffs, "data/outputs/qa/unit_file_differences/plant_unit_difference_ids.csv")
+write_csv(plant_unit_diffs, glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}/plant_unit_difference_ids.csv"))
+

@@ -1,5 +1,17 @@
+## -------------------------------
+##
+## Download EIA grid gross loss files
+## 
+## Purpose: 
+## 
+## This file creates a function to download EIA grid gross loss files from website 
+## (adapted from function: "download_eia_files")
+##
+## Authors:  
+##      Madeline Zhang, Abt Global
+##
+## -------------------------------
 
-## Function to download EIA files from website (adapted from function: "download_eia_files" )
 
 download_eia_ggl <- function(year) {
   
@@ -65,10 +77,10 @@ download_eia_ggl <- function(year) {
       abbr <- state_abbr[i]
       
       # download file for corresponding state i from EIA
-      url <- glue::glue("https://www.eia.gov/electricity/state/{name}/xls/{abbr}.xlsx")
+      url <- glue::glue("https://www.eia.gov/electricity/state/{name}/xls/SEP%20Tables%20for%20{toupper(abbr)}.xlsx")
       dest_file <- glue::glue("{new_folder}/{abbr}.xlsx")
       
-      download_file(url,dest_file,new_folder) 
+      download_file(url, dest_file, new_folder) 
       
     }
     

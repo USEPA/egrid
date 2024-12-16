@@ -247,7 +247,7 @@ ggl_interconnect_3 <- rbind(ggl_interconnect_2, ggl_us)
 ggl_interconnect_4 <- cbind(data_year, ggl_interconnect_3)
 
 ### 13: Export table to Excel
-write_rds(ggl_interconnect_4, glue::glue("data/outputs/{params$eGRID_year}/egrid_ggl_final.RDS"))
+write_rds(ggl_interconnect_4, glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 
 
 

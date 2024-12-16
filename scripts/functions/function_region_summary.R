@@ -1,4 +1,15 @@
-
+## -------------------------------
+##
+## Region summary table and plots
+## 
+## Purpose: 
+## 
+## This file creates functions to create summary tables and plots for subregions and states. 
+##
+## Authors:  
+##      Teagan Goforth, Abt Global
+##
+## -------------------------------
 
 ## egrid subregion aggregation
 

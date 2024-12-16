@@ -1,0 +1,15 @@
+﻿SO2 control abbreviation,SO2 controls
+DL,Dry Lime FGD
+"DL, FBL",Dry Lime FGD|Fluidized Bed Limestone Injection
+DSI,Dry Sorbent Injection
+DA,Dual Alkali
+"DA, WL",Dual Alkali|Wet Lime FGD
+FBL,Fluidized Bed Limestone Injection
+O,Other
+"O, WLS",Other|Wet Limestone
+SB,Sodium Based
+"SB, WL",Sodium Based|Wet Lime FGD
+WL,Wet Lime FGD
+"WLS, WL",Wet Lime FGD|Wet Limestone
+WLS,Wet Limestone
+"WLS, SB",Wet Limestone|Sodium Based
