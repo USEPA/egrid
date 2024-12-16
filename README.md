@@ -12,27 +12,30 @@ The final eGRID dataset includes eight levels of data aggregation:
 
 -   **Unit**: Units connected to the U.S. electricity grid. A unit is defined in eGRID as either a generator (produces electricity) or a boiler (uses fuel to heat water and produce steam). 
 
--   **Plant**: Plants connected to the U.S. electricity grid. 
+-   **Plant**: Plants generating electricity. 
 
 -   **State**: U.S. states, Puerto Rico (PR), and District of Columbia (DC).
 
 -   **Balancing authority**: Regional operators that ensure a balance of supply and demand. 
 
--   **eGRID subregion**: EPA defined subregions defined to limit import and export of electricity. 
+-   **eGRID subregion**: EPA defined subregions defined to limit import and export of electricity (shown in Figure 1). 
 
--   **NERC (North American Electric Reliability Corporation) regions**: Regional reliability entities. eGRID also include Alaska, Hawaii, and Puerto Rico as their own NERC region.  
+-   **NERC (North American Electric Reliability Corporation) regions**: Each NERC region listed in eGRID represents one of nine regional portions of the North
+American electricity transmission grid: six in the contiguous United States, plus Alaska, Hawaii, and Puerto Rico (which are not part of the formal NERC regions but are considered so in eGRID)
 
--   **U.S.**
+-   **National U.S.**: Contains all 50 states, Puerto Rico (PR), and District of Columbia (DC). 
 
 Further information on eGRID methodology can be found in the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
 The dataset that this code produces is publicly available [here](https://www.epa.gov/egrid/download-data).
 
+![Figure 1: eGRID subregions.](egrid_subregion_map.png){width=75%}
+
 ## Architecture
 
-Figure 1 displays a summary of eGRID architecture, which specifies data sources, inputs, and outputs for creating eGRID. 
+Figure 2 displays a summary of eGRID architecture, which specifies data sources, inputs, and outputs for creating eGRID. 
 
-![Figure 1: eGRID architecture.](egrid_architecture.png)
+![Figure 2: eGRID architecture.](egrid_architecture.png)
 
 ## Code base organization
 
