@@ -55,7 +55,6 @@ nrl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/nerc_aggregat
 us_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/us_aggregation.RDS"))
 ggl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 
-
 # extract last two digits of year for universal labeling
 year <- as.numeric(params$eGRID_year) %% 1000
 
@@ -85,6 +84,7 @@ standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
                      "HTIOZT"   = "total ozone season heat input (MMBtu)",	
                      "NGENAN"   = "annual net generation (MWh)",	
                      "NGENOZ"   = "ozone season net generation (MWh)",
+                     "NGENNB"   = "annual nonbaseload generation (MWh)",
                      "NOXAN"    = "annual NOx emissions (tons)",	
                      "NOXOZ"    = "ozone season NOx emissions (tons)",	
                      "SO2AN"    = "annual SO2 emissions (tons)",	
@@ -198,9 +198,11 @@ standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
                      "GENAOP"   = "annual other unknown/ purchased fuel net generation (MWh)",	
                      "GENATN"   = "annual total nonrenewables net generation (MWh)",	
                      "GENATR"   = "annual total renewables net generation (MWh)",	
+                     "GENATO"   = "annual total nonrenewable other unknown/purchased net generation (MWh)", 
                      "GENATH"   = "annual total nonhydro renewables net generation (MWh)",	
                      "GENACY"   = "annual total combustion net generation (MWh)",
-                     "GENACN"   = "annual total noncombustion net generation (MWh)",	
+                     "GENACN"   = "annual total noncombustion net generation (MWh)",
+                     "GENACO"   = "annual total noncombustion other unknown/purchased net generation (MWh)", 
                      "CLPR"     = "coal generation percent (resource mix)",
                      "OLPR"     = "oil generation percent (resource mix)",	
                      "GSPR"     = "gas generation percent (resource mix)",	
@@ -214,9 +216,11 @@ standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
                      "OPPR"     = "other unknown/ purchased fuel generation percent (resource mix)",
                      "TNPR"     = "total nonrenewables generation percent (resource mix)",	
                      "TRPR"     = "total renewables generation percent (resource mix)",	
+                     "TOPR"     = "total nonrenewables other unknown/purchased generation percent (resource mix)", 
                      "THPR"     = "total nonhydro renewables generation percent (resource mix)",	
                      "CYPR"     = "total combustion generation percent (resource mix)",	
-                     "CNPR"     = "total noncombustion generation percent (resource mix)",	
+                     "CNPR"     = "total noncombustion generation percent (resource mix)",
+                     "COPR"     = "total noncombustion other unknown/purchased generation percent (resource mix)", 
                      "NBGNCL"   = "annual nonbaseload coal net generation (MWh)",	
                      "NBGNOL"   = "annual nonbaseload oil net generation (MWh)",	
                      "NBGNGS"   = "annual nonbaseload gas net generation (MWh)",	
@@ -261,7 +265,7 @@ sequnt_label <- setNames("Unit file sequence number", glue::glue("SEQUNT{year}")
 
 # collect number of rows based on data frame
 # add two to number of rows (nrows) to account for header + description rows
-unt_rows <- nrow(unt_file)+2
+unt_rows <- nrow(unt_file) + 2
 
 ## column names and descriptions
 unt_labels <-  c(sequnt_label,
@@ -295,7 +299,8 @@ unt_labels <-  c(sequnt_label,
                  "SO2CTLDV" = "Unit SO2 (scrubber) first control device",
                  "NOXCTLDV" = "Unit NOx first control device",
                  "HGCTLDV"  = "Unit Hg Activated carbon injection system flag",
-                 "UNTYRONL" = "Unit year on-line")
+                 "UNTYRONL" = "Unit year on-line",
+                 "STACKHT"  = "Stack height (feet)")
 
 unt_header <- names(unt_labels)  # column names
 unt_desc   <- unname(unt_labels) # description of column names
@@ -321,12 +326,12 @@ writeData(wb,
 # add description styles
 addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 1:14,  gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = s[['color2_desc']], rows = 1, cols = 15:28, gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 29:32, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 29:33, gridExpand = TRUE)
 
 # add header style
 addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 1:14,  gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = s[['color2_header']], rows = 2, cols = 15:28, gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 29:32, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 29:33, gridExpand = TRUE)
 
 # set column widths
 setColWidths(wb, sheet = unt, cols = 1,     widths = 12.43)
@@ -334,7 +339,7 @@ setColWidths(wb, sheet = unt, cols = 3,     widths = 12.43)
 setColWidths(wb, sheet = unt, cols = 4,     widths = 34.71)
 setColWidths(wb, sheet = unt, cols = 5:9,   widths = 12.43)
 setColWidths(wb, sheet = unt, cols = 10,    widths = 17)
-setColWidths(wb, sheet = unt, cols = 11:32, widths = 12.43)
+setColWidths(wb, sheet = unt, cols = 11:33, widths = 12.43)
 
 # set row heights
 setRowHeights(wb, sheet = unt, row = 1, heights = 60.75)
@@ -346,7 +351,7 @@ addStyle(wb, sheet = unt, style = s[['decimal2']], rows = 3:unt_rows, cols = 17:
 
 # add text styles
 addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 1:13,  gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 22:32, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 22:33, gridExpand = TRUE)
 
 # freeze panes
 freezePane(wb, sheet = unt, firstActiveCol = 5)
@@ -369,7 +374,7 @@ seqgen_label <- setNames("Generator file sequence number", glue::glue("SEQGEN{ye
 
 # select number of rows based on length of dataframe
 # add two to number of rows (nrows) to account for header + description rows
-gen_rows <- nrow(gen_file)+2
+gen_rows <- nrow(gen_file) + 2
 
 ## column names and descriptions
 gen_labels <- c(seqgen_label,
@@ -468,7 +473,7 @@ seqplt_label <- setNames("Plant file sequence number", glue::glue("SEQPLT{year}"
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-plnt_rows <- nrow(plnt_file)+2 
+plnt_rows <- nrow(plnt_file) + 2 
 
 ## column names and descriptions
 plnt_labels <- c(seqplt_label, 
@@ -513,6 +518,7 @@ plnt_labels <- c(seqplt_label,
                  "PLHTIOZT"  = "Plant total ozone season heat input (MMBtu)",
                  "PLNGENAN"  = "Plant annual net generation (MWh)",
                  "PLNGENOZ"  = "Plant ozone season net generation (MWh)",
+                 "PLNGENNB"  = "Plant annual nonbaseload generation (MWh)", 
                  "PLNOXAN"   = "Plant annual NOx emissions (tons)",
                  "PLNOXOZ"   = "Plant ozone season NOx emissions (tons)",
                  "PLSO2AN"   = "Plant annual SO2 emissions (tons)",
@@ -551,6 +557,7 @@ plnt_labels <- c(seqplt_label,
                  "UNCO2"     = "Plant unadjusted annual CO2 emissions (tons)",
                  "UNCH4"     = "Plant unadjusted annual CH4 emissions (lbs)",
                  "UNN2O"     = "Plant unadjusted annual N2O emissions (lbs)",
+                 "UNCO2E"    = "Plant unadjusted annual CO2 equivalent emissions (tons)", 
                  "UNHG"      = "Plant unadjusted annual Hg emissions (lbs)",
                  "UNHTI"     = "Plant unadjusted annual heat input from combustion (MMBtu)",
                  "UNHTIOZ"   = "Plant unadjusted ozone season heat input from combustion (MMBtu)",
@@ -562,6 +569,7 @@ plnt_labels <- c(seqplt_label,
                  "UNCO2SRC"  = "Plant unadjusted annual CO2 emissions source",
                  "UNCH4SRC"  = "Plant unadjusted annual CH4 emissions source",
                  "UNN2OSRC"  = "Plant unadjusted annual N2O emissions source",
+                 "UNC2ESRC"  = "Plant unadjusted annual CO2 equivalent emissions source", 
                  "UNHGSRC"   = "Plant unadjusted annual Hg emissions source",
                  "UNHTISRC"  = "Plant unadjusted annual heat input source",
                  "UNHOZSRC"  = "Plant unadjusted ozone season heat input source",
@@ -571,6 +579,7 @@ plnt_labels <- c(seqplt_label,
                  "BIOCO2"    = "Plant annual CO2 biomass emissions (tons)",
                  "BIOCH4"    = "Plant annual CH4 biomass emissions (lbs)",
                  "BION2O"    = "Plant annual N2O biomass emissions (lbs)",
+                 "BIOCO2E"   = "Plant annual CO2 equivalent biomass emissions (tons)", 
                  "CHPCHTI"   = "Plant combustion heat input CHP adjustment value (MMBtu)",
                  "CHPCHTIOZ" = "Plant combustion annual ozone season heat input CHP adjustment value (MMBtu)",
                  "CHPNOX"    = "Plant annual NOx emissions CHP adjustment value (tons)",
@@ -579,6 +588,7 @@ plnt_labels <- c(seqplt_label,
                  "CHPCO2"    = "Plant annual CO2 emissions CHP adjustment value (tons)",
                  "CHPCH4"    = "Plant annual CH4 emissions CHP adjustment value (lbs)", 
                  "CHPN2O"    = "Plant annual N2O emissions CHP adjustment value (lbs)",
+                 "CHPCO2E"   = "Plant annual CO2 equivalent emissions CHP adjustement value (tons)", 
                  "PLHTRT"    = "Plant nominal heat rate (Btu/kWh)",
                  "PLGENACL"  = "Plant annual coal net generation (MWh)",
                  "PLGENAOL"  = "Plant annual oil net generation (MWh)",
@@ -593,9 +603,11 @@ plnt_labels <- c(seqplt_label,
                  "PLGENAOP"  = "Plant annual other unknown/ purchased fuel net generation (MWh)",
                  "PLGENATN"  = "Plant annual total nonrenewables net generation (MWh)",
                  "PLGENATR"  = "Plant annual total renewables net generation (MWh)",
+                 "PLGENATO"  = "Plant annual total renewables other unknown/purchased net generation (MWh)", 
                  "PLGENATH"  = "Plant annual total nonhydro renewables net generation (MWh)",
                  "PLGENACY"  = "Plant annual total combustion net generation (MWh)",
                  "PLGENACN"  = "Plant annual total noncombustion net generation (MWh)",
+                 "PLGENACO"  = "Plant annual total noncombustion other unknown/purchased net generation (MWh)", 
                  "PLCLPR"    = "Plant coal generation percent (resource mix)",
                  "PLOLPR"    = "Plant oil generation percent (resource mix)",
                  "PLGSPR"    = "Plant gas generation percent (resource mix)",
@@ -609,9 +621,11 @@ plnt_labels <- c(seqplt_label,
                  "PLOPPR"    = "Plant other unknown / purchased fuel generation percent (resource mix)",
                  "PLTNPR"    = "Plant total nonrenewables generation percent (resource mix)",
                  "PLTRPR"    = "Plant total renewables generation percent (resource mix)",
+                 "PLTOPR"    = "Plant total nonrenewables other unknown/purchased generation percent (resource mix)", 
                  "PLTHPR"    = "Plant total nonhydro renewables generation percent (resource mix)",
                  "PLCYPR"    = "Plant total combustion generation percent (resource mix)",
-                 "PLCNPR"    = "Plant total noncombustion generation percent (resource mix)")
+                 "PLCNPR"    = "Plant total noncombustion generation percent (resource mix)", 
+                 "PLCOPR"    = "Plant total noncombustion other unknown/purchased generation percent (resource mix)")
 
 plnt_header <- names(plnt_labels)  # column names
 plnt_desc   <- unname(plnt_labels) # description of column names
@@ -636,39 +650,39 @@ writeData(wb,
 ## add styles to document
 # add description styles
 addStyle(wb, sheet = plnt, style = s[['desc_style']],     rows = 1, cols = 1:36,    gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color1_desc']],    rows = 1, cols = 37:50,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color4_desc']],    rows = 1, cols = 51:58,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color5_desc']],    rows = 1, cols = 59:66,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color6_desc']],    rows = 1, cols = 67:74,   gridExpand = TRUE) 
-addStyle(wb, sheet = plnt, style = s[['color2_desc']],    rows = 1, cols = 75:94,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color3_desc']],    rows = 1, cols = 95:108,  gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['desc_style']],     rows = 1, cols = 109,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color7_desc']],    rows = 1, cols = 110:120, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color8_desc']],    rows = 1, cols = 121:122, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9_desc']],    rows = 1, cols = 123,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9v2_desc']],  rows = 1, cols = 124:125, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color10_desc']],   rows = 1, cols = 126:136, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color11_desc']],   rows = 1, cols = 137:138, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12_desc']],   rows = 1, cols = 139,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12v2_desc']], rows = 1, cols = 140:141, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color1_desc']],    rows = 1, cols = 37:51,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color4_desc']],    rows = 1, cols = 52:59,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color5_desc']],    rows = 1, cols = 60:67,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color6_desc']],    rows = 1, cols = 68:75,   gridExpand = TRUE) 
+addStyle(wb, sheet = plnt, style = s[['color2_desc']],    rows = 1, cols = 76:97,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color3_desc']],    rows = 1, cols = 98:113,  gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['desc_style']],     rows = 1, cols = 114,     gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color7_desc']],    rows = 1, cols = 115:125, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color8_desc']],    rows = 1, cols = 126:128, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color9_desc']],    rows = 1, cols = 129,     gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color9v2_desc']],  rows = 1, cols = 130:132, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color10_desc']],   rows = 1, cols = 133:143, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color11_desc']],   rows = 1, cols = 144:146, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color12_desc']],   rows = 1, cols = 147,     gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color12v2_desc']], rows = 1, cols = 148:150, gridExpand = TRUE)
 
 # add header styles
 addStyle(wb, sheet = plnt, style = s[['header_style']],     rows = 2, cols = 1:36,    gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color1_header']],    rows = 2, cols = 37:50,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color4_header']],    rows = 2, cols = 51:58,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color5_header']],    rows = 2, cols = 59:66,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color6_header']],    rows = 2, cols = 67:74,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color2_header']],    rows = 2, cols = 75:94,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color3_header']],    rows = 2, cols = 95:108,  gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['header_style']],     rows = 2, cols = 109,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color7_header']],    rows = 2, cols = 110:120, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color8_header']],    rows = 2, cols = 121:122, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9_header']],    rows = 2, cols = 123,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9v2_header']],  rows = 2, cols = 124:125, gridExpand = TRUE) 
-addStyle(wb, sheet = plnt, style = s[['color10_header']],   rows = 2, cols = 126:136, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color11_header']],   rows = 2, cols = 137:138, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12_header']],   rows = 2, cols = 139,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12v2_header']], rows = 2, cols = 140:141, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color1_header']],    rows = 2, cols = 37:51,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color4_header']],    rows = 2, cols = 52:59,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color5_header']],    rows = 2, cols = 60:67,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color6_header']],    rows = 2, cols = 68:75,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color2_header']],    rows = 2, cols = 76:97,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color3_header']],    rows = 2, cols = 98:113,  gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['header_style']],     rows = 2, cols = 114,     gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color7_header']],    rows = 2, cols = 115:125, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color8_header']],    rows = 2, cols = 126:128, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color9_header']],    rows = 2, cols = 129,     gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color9v2_header']],  rows = 2, cols = 130:132, gridExpand = TRUE) 
+addStyle(wb, sheet = plnt, style = s[['color10_header']],   rows = 2, cols = 133:143, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color11_header']],   rows = 2, cols = 144:146, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color12_header']],   rows = 2, cols = 147,     gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color12v2_header']], rows = 2, cols = 148:150, gridExpand = TRUE)
 
 # set column widths
 setColWidths(wb, sheet = plnt, cols = 1:2,     widths = 12.71)
@@ -693,24 +707,25 @@ setColWidths(wb, sheet = plnt, cols = 29,      widths = 13.29)
 setColWidths(wb, sheet = plnt, cols = 30,      widths = 13)
 setColWidths(wb, sheet = plnt, cols = 31:33,   widths = 12.71)
 setColWidths(wb, sheet = plnt, cols = 34,      widths = 13.29)
-setColWidths(wb, sheet = plnt, cols = 35:53,   widths = 12.71)
-setColWidths(wb, sheet = plnt, cols = 54,      widths = 13.14)
-setColWidths(wb, sheet = plnt, cols = 55:56,   widths = 12.86)
-setColWidths(wb, sheet = plnt, cols = 57:76,   widths = 12.71)
-setColWidths(wb, sheet = plnt, cols = 77,      widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 78,      widths = 12.71)
-setColWidths(wb, sheet = plnt, cols = 79,      widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 80,      widths = 12.71)
-setColWidths(wb, sheet = plnt, cols = 81,      widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 82,      widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 35:54,   widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 55,      widths = 13.14)
+setColWidths(wb, sheet = plnt, cols = 56:57,   widths = 12.86)
+setColWidths(wb, sheet = plnt, cols = 58:77,   widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 78,      widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 79,      widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 80,      widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 81,      widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 82,      widths = 15.09)
 setColWidths(wb, sheet = plnt, cols = 83,      widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 84:87,   widths = 12.71)
-setColWidths(wb, sheet = plnt, cols = 88,      widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 89,      widths = 12.71)
-setColWidths(wb, sheet = plnt, cols = 90:101,  widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 102,     widths = 14)
-setColWidths(wb, sheet = plnt, cols = 103:115, widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 116:141, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 84,      widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 85,      widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 86:88,   widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 89,      widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 90,      widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 91:102,  widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 103,     widths = 14)
+setColWidths(wb, sheet = plnt, cols = 104:116, widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 117:150, widths = 12.71)
 
 # set row heights
 setRowHeights(wb, sheet = plnt, row = 1, heights = 67.5)
@@ -728,7 +743,7 @@ addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 7
 addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 95:108,  gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['decimal3']], rows = 3:plnt_rows, cols = 109,     gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['integer2']], rows = 3:plnt_rows, cols = 110:125, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['percent']],  rows = 3:plnt_rows, cols = 126:141, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['percent']],  rows = 3:plnt_rows, cols = 126:150, gridExpand = TRUE)
 
 # add text styles
 addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 1:22,  gridExpand = TRUE)
@@ -752,7 +767,7 @@ st_file <- st_file %>%
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-st_rows <- nrow(st_file)+2 
+st_rows <- nrow(st_file) + 2 
 
 ## column names and descriptions
 # column names
@@ -795,7 +810,7 @@ addWorksheet(wb, ba)
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-ba_rows <- nrow(ba_file)+2 
+ba_rows <- nrow(ba_file) + 2 
 
 # convert variables to numeric value
 ba_file <- ba_file %>%
@@ -847,7 +862,7 @@ srl_file <- srl_file %>%
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-srl_rows <- nrow(srl_file)+2
+srl_rows <- nrow(srl_file) + 2
 
 ## column names and descriptions
 # column names
@@ -894,7 +909,7 @@ nrl_file <- nrl_file %>%
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-nrl_rows <- nrow(nrl_file)+2
+nrl_rows <- nrow(nrl_file) + 2
 
 ## column names and descriptions
 # column names
@@ -941,7 +956,7 @@ us_file <- us_file %>%
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-us_rows <- nrow(us_file)+2
+us_rows <- nrow(us_file) + 2
 
 ## column names and descriptions
 # column names
