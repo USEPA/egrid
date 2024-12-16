@@ -1,5 +1,7 @@
 ## -------------------------------
 ##
+## Note: this file is for internal QA only. 
+##
 ## Generator file QA 
 ## 
 ## Purpose: 
