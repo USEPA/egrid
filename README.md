@@ -4,9 +4,7 @@ This repository includes all necessary scripts and documentation to create the [
 
 ## Background
 
-eGRID is a comprehensive source of data from EPA's Clean Air Markets Program Data (CAMPD) on the environmental characteristics of almost all electric power generated in the United States. The preeminent source of emissions data for the electric power sector, eGRID is based on available plant-specific data for all U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, but are not limited to, net electric generation; resource mix (for renewable and nonrenewable generation); mass emissions of carbon dioxide (CO2), nitrogen oxides (NOx), sulfur dioxide (SO2), methane (CH4), nitrous oxide (N2O), and mercury (Hg); emission rates for CO2, NOx, SO2, CH4, and N2O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for NOx) at different levels of aggregation.
-
-The data includes emissions, emission rates, generation, heat input, resource mix, and many other attributes. eGRID is typically used for greenhouse gas registries and inventories, carbon footprints, consumer information disclosure, emission inventories and standards, power market changes, and avoided emission estimates.
+eGRID is a comprehensive source of data from [EPA's Clean Air Markets Program Data (CAMPD)](https://campd.epa.gov/) on the environmental characteristics of almost all electric power generated in the United States. eGRID is based on available plant-specific data for all U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, but are not limited to, net electric generation; resource mix (for renewable and nonrenewable generation); mass emissions of carbon dioxide (CO2), nitrogen oxides (NOx), sulfur dioxide (SO2), methane (CH4), nitrous oxide (N2O), and mercury (Hg); emission rates for CO2, NOx, SO2, CH4, and N2O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for NOx) at different levels of aggregation.
 
 The final eGRID dataset includes eight levels of data aggregation:
 
@@ -30,9 +28,16 @@ Further information on eGRID methodology can be found in the [eGRID Technical Gu
 
 The dataset that this code produces is publicly available [here](https://www.epa.gov/egrid/download-data).
 
-## Code Base Organization
+## Architecture
+
+Figure 1 displays a summary of eGRID architecture, which specifies data sources, inputs, and outputs for creating eGRID. 
+
+![Figure 1: eGRID architecture.](egrid_architecture.png)
+
+## Code base organization
 
 This project is structured as an RStudio project. To ensure that all scripts run correctly, load the `eGRID_R.Rproj` within RStudio to enable the project environment. `eGRID_master.qmd` is a Quarto document that serves as a master script (i.e., it runs all necessary scripts in the correct order), while also providing documentation for the scripts and steps performed therein. 
+
 
 The code base is structured as follows: 
 
@@ -64,10 +69,23 @@ To create the eGRID dataset:
     a. Set data year in `params` (eGRID_year) in the YAML as a string in the format "YYYY" (ex: `"2023"`).
     b. Render `eGRID_master.qmd`. This will run all scripts and build the eGRID dataset. 
 
+
 ## Outputs
 
 The codebase outputs each data aggregation level in the eGRID dataset as an .RDS file and the final dataset as an Excel sheet in `data/outputs/{params$eGRID_year}`. Rendering `eGRID_master.qmd` also creates an HTML file that summarizes the data, methods, and output files 
 used and created throughout the code base. 
+
+
+## QA 
+
+The codebase contains two QA files as Quarto documents: 
+
+- `qa_all.qmd`: Annual checks to confirm results are as expected for each file created in the codebase.
+
+- `qa_annual_comparison.qmd`: Comparison of output data to previous eGRID years. 
+
+QA files located in `scripts/qa/access_R_qa/` are meant for internal QA only. 
+
 
 ## Contributing to eGRID 
 
