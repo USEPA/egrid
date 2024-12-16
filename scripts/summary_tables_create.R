@@ -68,7 +68,7 @@ emission_types <- c(
   "nox_oz",
   "so2")
 
-# US output aemissions data
+# US output emissions data
 us_output_emissions <-
   us_aggregation %>%
   select(any_of(paste0("us_", emission_types, "_output_rate")), 
@@ -145,9 +145,9 @@ state_resource_mix <-
 
 # Format as excel sheet ---------------------------
 
-table_data <- list("Table 1" = subregion_output_emissions, 
-             "Table 2" = subregion_resource_mix, 
-             "Table 3" = state_output_emissions, 
+table_data <- list("Table 1" = subregion_output_emissions,
+             "Table 2" = subregion_resource_mix,
+             "Table 3" = state_output_emissions,
              "Table 4" = state_resource_mix)
 
 table_title <- c(
@@ -256,6 +256,23 @@ purple_bf_noborder <- createStyle(fgFill = "#e4dfec", halign = "center", valign 
                              wrapText = TRUE, textDecoration = "bold",
                              border = "Left", borderColour = "black", 
                              borderStyle = "thin")
+smnum <- createStyle(numFmt = "#,##0.0",  border = "TopBottomLeftRight", 
+                        borderStyle = "thin", borderColour = "black")
+us_smnum <- createStyle(numFmt = "#,##0.0",  border = "TopBottom", 
+                        borderStyle = "thick", borderColour = "black")
+lgnum <- createStyle(numFmt = "#,##0.000",  border = "TopBottomLeftRight", 
+                     borderStyle = "thin", borderColour = "black")
+us_lgnum <- createStyle(numFmt = "#,##0.000",  border = "TopBottom", 
+                        borderStyle = "thick", borderColour = "black")
+percnum <- createStyle(numFmt = "#,##0.0%",  border = "TopBottomLeftRight", 
+                     borderStyle = "thin", borderColour = "black")
+us_percnum <- createStyle(numFmt = "#,##0.0%",  border = "TopBottom", 
+                        borderStyle = "thick", borderColour = "black")
+
+# formatting numbers
+addStyle(wb, sheet = sheet, createStyle(numFmt = "#,##0.0",  border = "TopBottomLeftRight", 
+                                        borderStyle = "thin", borderColour = "black"), rows = 5:31, cols = 4)
+
 #red_bf <- createStyle(fgFill = "#F2F2F2", halign = "center", valign = "center", wrapText = TRUE, textDecoration = "bold")
 #orange_bf <- createStyle(fgFill = "#F2F2F2", halign = "center", valign = "center", wrapText = TRUE, textDecoration = "bold")
 
@@ -268,14 +285,23 @@ addStyle(wb, sheet = sheet, purple_bf, rows = 4, cols = 11:17, gridExpand = TRUE
 addStyle(wb, sheet = sheet, purple_bf_topborder, rows = 2, cols = 11:17, gridExpand = TRUE)
 addStyle(wb, sheet = sheet, purple_bf_noborder, rows = 3, cols = 11:17, gridExpand = TRUE)
 addStyle(wb, sheet = sheet, createStyle(border = "Left", borderColour = "black", borderStyle = "thick"),
-         rows = 1:31, cols = 19)
+         rows = 1:31, cols = 19, gridExpand = TRUE)
 addStyle(wb, sheet = sheet, createStyle(border = "Right", borderColour = "black", borderStyle = "thick"),
-         rows = 1:31, cols = 1)
+         rows = 1:31, cols = 1, gridExpand = TRUE)
 addStyle(wb, sheet = sheet, createStyle(border = "Top", borderColour = "black", borderStyle = "thick"),
-         rows = 32, cols = 2:18)
-#addStyle(wb, sheet = sheet, createStyle(border = ))
+         rows = 32, cols = 2:18, gridExpand = TRUE)
 
-saveWorkbook(wb, "data/outputs/2023/test.xlsx", overwrite = TRUE)
+addStyle(wb, sheet = sheet, smnum, rows = 5:30, cols = c(4, 7:9, 11, 14:16), gridExpand = TRUE)
+addStyle(wb, sheet = sheet, lgnum, rows = 5:30, cols = c(5:6, 10, 12:13, 17), gridExpand = TRUE)
+addStyle(wb, sheet = sheet, percnum, rows = 5:30, cols = 18, gridExpand = TRUE)
+addStyle(wb, sheet = sheet, us_smnum, rows = 31, cols = c(4, 7:9, 11, 14:16), gridExpand = TRUE)
+addStyle(wb, sheet = sheet, us_lgnum, rows = 31, cols = c(5:6, 10, 12:13, 17), gridExpand = TRUE)
+addStyle(wb, sheet = sheet, us_percnum, rows = 31, cols = 18, gridExpand = TRUE)
+
+
+
+
+saveWorkbook(wb, "data/outputs/2023/summary_tables.xlsx", overwrite = TRUE)
 
 # Save -------------------------------
 
