@@ -4,7 +4,7 @@ This repository includes all necessary scripts and documentation to create the [
 
 ## Background
 
-eGRID is a comprehensive source of data from [EPA's Clean Air Markets Program Data (CAMPD)](https://campd.epa.gov/) on the environmental characteristics of almost all electric power generated in the United States. eGRID is based on available plant-specific data for all U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, but are not limited to, net electric generation; resource mix (for renewable and nonrenewable generation); mass emissions of carbon dioxide (CO2), nitrogen oxides (NOx), sulfur dioxide (SO2), methane (CH4), nitrous oxide (N2O), and mercury (Hg); emission rates for CO2, NOx, SO2, CH4, and N2O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for NOx) at different levels of aggregation.
+eGRID is a comprehensive source of data from [EPA's Clean Air Power Sector Programs (CAMPD)](https://campd.epa.gov/) on the environmental characteristics of almost all electric power generated in the United States. eGRID is based on available plant-specific data for all U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, but are not limited to, net electric generation; resource mix (for renewable and nonrenewable generation); mass emissions of carbon dioxide (CO2), nitrogen oxides (NOx), sulfur dioxide (SO2), methane (CH4), and nitrous oxide (N2O); emission rates for CO2, NOx, SO2, CH4, and N2O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for heat input and NOx) at different levels of aggregation.
 
 The final eGRID dataset includes eight levels of data aggregation:
 
@@ -12,7 +12,7 @@ The final eGRID dataset includes eight levels of data aggregation:
 
 -   **Unit**: Units connected to the U.S. electricity grid. A unit is defined in eGRID as either a generator (produces electricity) or a boiler (uses fuel to heat water and produce steam). 
 
--   **Plant**: Plants generating electricity. 
+-   **Plant**: All U.S. electricity generating plants that provide power to the electric grid. 
 
 -   **State**: U.S. states, Puerto Rico (PR), and District of Columbia (DC).
 
@@ -21,11 +21,11 @@ The final eGRID dataset includes eight levels of data aggregation:
 -   **eGRID subregion**: EPA defined subregions defined to limit import and export of electricity (shown in Figure 1). 
 
 -   **NERC (North American Electric Reliability Corporation) regions**: Each NERC region listed in eGRID represents one of nine regional portions of the North
-American electricity transmission grid: six in the contiguous United States, plus Alaska, Hawaii, and Puerto Rico (which are not part of the formal NERC regions but are considered so in eGRID)
+American electricity transmission grid: six in the contiguous United States, plus Alaska, Hawaii, and Puerto Rico (which are not part of the formal NERC regions but are considered so in eGRID).
 
 -   **National U.S.**: Contains all 50 states, Puerto Rico (PR), and District of Columbia (DC). 
 
-Further information on eGRID methodology can be found in the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
+Further information on the eGRID methodology can be found in the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
 The dataset that this code produces is publicly available [here](https://www.epa.gov/egrid/download-data).
 
@@ -56,7 +56,7 @@ The code base is structured as follows:
  
  -  `data/static_tables/`: static tables used within the code base. These include crosswalks that match data between EIA and EPA data or regions and manual corrections that are made. 
 
-The data used to create eGRID are EIA and EPA electricity data. EPA data are loaded via an API in `scripts/data_load_camd.R` and cleaned in `scripts/data_clean_camd.R`. EIA data are downloaded from EIA's website in `scripts/data_load_eia.R` and `scripts/functions/function_download_eia_files.R` and cleaned in `scripts/data_clean_eia.R`. 
+The data used to create eGRID are EPA and Energy Information Administration (EIA) electricity data. EPA data are loaded via an application programming interface (API) in `scripts/data_load_epa.R` and cleaned in `scripts/data_clean_epa.R`. EIA data are downloaded from EIA's website in `scripts/data_load_eia.R` and `scripts/functions/function_download_eia_files.R` and cleaned in `scripts/data_clean_eia.R`. 
 
 
 ## Creating eGRID
@@ -66,7 +66,7 @@ To create the eGRID dataset:
 1. Obtain an API key for EPA data. 
     a. Request an API key from https://www.epa.gov/power-sector/cam-api-portal.
     b. Create folder `api_keys/` within the root of the eGRID.
-    c. Create a text file named `camd_api_key.txt` within the folder `api_keys/` and save the API key here on a single line.
+    c. Create a text file named `epa_api_key.txt` within the folder `api_keys/` and save the API key here on a single line.
 2. Load `eGRID_R.Rproj` within RStudio to enable the project environment.
 3. Render `eGRID_master.qmd`. 
     a. Set data year in `params` (eGRID_year) in the YAML as a string in the format "YYYY" (ex: `"2023"`).
