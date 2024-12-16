@@ -12,7 +12,7 @@ The final eGRID dataset includes eight levels of data aggregation:
 
 -   **Unit**: Units connected to the U.S. electricity grid. A unit is defined in eGRID as either a generator (produces electricity) or a boiler (uses fuel to heat water and produce steam). 
 
--   **Plant**: All U.S. electricity generating plants that provide power to the electric grid. 
+-   **Plant**: Plants that provide power to the electric grid. 
 
 -   **State**: U.S. states, Puerto Rico (PR), and District of Columbia (DC).
 
