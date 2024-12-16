@@ -38,7 +38,7 @@ if(dir.exists("data/outputs/qa/generator_file_differences")) {
   dir.create("data/outputs/qa/generator_file_differences")
 }
 
-if(dir.exists("data/outputs/qa/generator_file_differences/{params$eGRID_year}")) {
+if(dir.exists(glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}"))) {
   print(glue::glue("Folder generator_file_differences/{params$eGRID_year} already exists."))
 } else {
    dir.create(glue:"glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}"))
