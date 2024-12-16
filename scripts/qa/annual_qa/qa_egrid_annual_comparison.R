@@ -1,7 +1,4 @@
 
-### Notes ###
-# do we want to 1) generalize this script for most recent 4 years or 
-#               2) add each year as it is created? 
 
 # Load libraries  ----
 
@@ -11,16 +8,91 @@ library(readr)
 library(readxl)
 library(stringr)
 
+# Check for params() --------
+
+# check if parameters for eGRID data year need to be defined
+# this is only necessary when running the script outside of egrid_master.qmd
+# user will be prompted to input eGRID year in the console if params does not exist
+
+if (exists("params")) {
+  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+    print("eGRID year parameter is already defined.") 
+  } else { # if params() is defined, but eGRID_year is not, define it here 
+    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+    params$eGRID_year <- (params$eGRID_year) 
+  }
+} else { # if params() and eGRID_year are not defined, define them here
+  params <- list()
+  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+  params$eGRID_year <- as.character(params$eGRID_year)
+}
+
+# Set years to evaluate ---------
+
+cur_year <- as.numeric(params$eGRID_year)
+prev_yr1 <- as.character(cur_year - 1)
+prev_yr2 <- as.character(cur_year - 2)
+prev_yr3 <- as.character(cur_year - 3)
+cur_year <- params$eGRID_year
+
 # Load and clean data -----
 
-## Load and combine GRID region data -----
+## Download historical eGRID data
+### Note: check each year if these URLs have changed 
+
+# 2019 data
+path_2019 <- "data/static_tables/qa/egrid2019_data.xlsx"
+
+if(!file.exists(path_2019)){
+  download.file(url = "https://www.epa.gov/sites/default/files/2021-02/egrid2019_data.xlsx", 
+                destfile = path_2019, 
+                mode = "wb")
+} else {
+  print("Stopping. File egrid2019_data.xlsx already downloaded.")
+}
+
+# 2020 data
+path_2020 <- "data/static_tables/qa/egrid2020_data.xlsx"
+
+if(!file.exists(path_2019)){
+  download.file(url = "https://www.epa.gov/system/files/documents/2022-09/eGRID2020_Data_v2.xlsx", 
+                destfile = path_2020, 
+                mode = "wb")
+} else {
+  print("Stopping. File egrid2020_data.xlsx already downloaded.")
+}
+
+# 2021 data
+path_2021 <- "data/static_tables/qa/egrid2021_data.xlsx"
+
+if(!file.exists(path_2019)){
+  download.file(url = "https://www.epa.gov/system/files/documents/2023-01/eGRID2021_data.xlsx", 
+                destfile = path_2021, 
+                mode = "wb")
+} else {
+  print("Stopping. File egrid2021_data.xlsx already downloaded.")
+}
+
+# 2022 data
+path_2022 <- "data/static_tables/qa/egrid2022_data.xlsx"
+
+if(!file.exists(path_2019)){
+  download.file(url = "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx", 
+                destfile = path_2021, 
+                mode = "wb")
+} else {
+  print("Stopping. File egrid2022_data.xlsx already downloaded.")
+}
+
+
+## Load and combine eGRID region data -----
 
 # Rename necessary columns to snake_case 
 
 egrid_column_names <- c(
   "year" = "YEAR", 
-  "sub_region" = "SUBRGN",
-  "sub_region_name" = "SRNAME", 
+  "subregion" = "SUBRGN",
+  "subregion_name" = "SRNAME", 
   "nameplate_capacity" = "SRNAMEPCAP", 
   "nox_output_rate" = "SRNOXRTA", 
   "nox_oz_output_rate" = "SRNOXRTO", 
@@ -56,36 +128,37 @@ egrid_column_names <- c(
   "other_purchased_gen" = "SRGENAOP", 
   "net_gen" = "SRNGENAN")
 
-egrid_2019 <- 
-  read_excel("archive/egrid2019_data.xlsx", 
-                        sheet = "SRL19", 
+# read in subregion data for each data year to compare here
+egrid_prev_yr3 <- 
+  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr3}_data.xlsx"), 
+                        sheet = glue::glue("SRL{as.numeric(prev_yr3) %% 1000}"), 
                         skip = 1) %>% 
   select(any_of(egrid_column_names))
   
-egrid_2020 <- 
-  read_excel("archive/egrid2020_data.xlsx", 
-                        sheet = "SRL20",
+egrid_prev_yr2 <- 
+  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr2}_data.xlsx"), 
+                        sheet = glue::glue("SRL{as.numeric(prev_yr2) %% 1000}"),
                         skip = 1) %>% 
   select(any_of(egrid_column_names))
 
-egrid_2021 <- 
-  read_excel("archive/egrid2021_data.xlsx", 
-                        sheet = "SRL21",
+egrid_prev_yr1 <- 
+  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr1}_data.xlsx"), 
+                        sheet = glue::glue("SRL{as.numeric(prev_yr1) %% 1000}"),
                         skip = 1) %>% 
   select(any_of(egrid_column_names))
 
-egrid_2022 <- 
-  read_excel("archive/egrid2022_data.xlsx", 
-                        sheet = "SRL22",
+egrid_cur_yr <- 
+  read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+                        sheet = glue::glue("SRL{as.numeric(cur_year) %% 1000}"),
                         skip = 1) %>% 
   select(any_of(egrid_column_names))
 
 # combine all egrid years
 egrid_comparison <- 
-  egrid_2019 %>% 
-  bind_rows(egrid_2020) %>% 
-  bind_rows(egrid_2021) %>% 
-  bind_rows(egrid_2022) %>% 
+  egrid_prev_yr3 %>% 
+  bind_rows(egrid_prev_yr2) %>% 
+  bind_rows(egrid_prev_yr1) %>% 
+  bind_rows(egrid_cur_yr) %>% 
   mutate(year = as.character(year))
 
 ## Load state region data -----
@@ -108,37 +181,117 @@ state_column_names <- c(
   "other_fossil_gen" = "STGENAOF",
   "net_gen" = "STNGENAN")
 
-state_2019 <- 
-  read_excel("archive/egrid2019_data.xlsx", 
-             sheet = "ST19", 
-             skip = 1) %>% 
-  select(any_of(state_column_names)) 
-
-state_2020 <- 
-  read_excel("archive/egrid2020_data.xlsx", 
-             sheet = "ST20",
+# read in state data for each data year to compare here
+state_prev_yr3 <- 
+  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr3}_data.xlsx"), 
+             sheet = glue::glue("ST{as.numeric(prev_yr3) %% 1000}"), 
              skip = 1) %>% 
   select(any_of(state_column_names))
 
-state_2021 <- 
-  read_excel("archive/egrid2021_data.xlsx", 
-             sheet = "ST21",
+state_prev_yr2 <- 
+  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr2}_data.xlsx"), 
+             sheet = glue::glue("ST{as.numeric(prev_yr2) %% 1000}"),
              skip = 1) %>% 
   select(any_of(state_column_names))
 
-state_2022 <- 
-  read_excel("archive/egrid2022_data.xlsx", 
-             sheet = "ST22",
+state_prev_yr1 <- 
+  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr1}_data.xlsx"), 
+             sheet = glue::glue("ST{as.numeric(prev_yr1) %% 1000}"),
+             skip = 1) %>% 
+  select(any_of(state_column_names))
+
+state_cur_yr <- 
+  read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+             sheet = glue::glue("ST{as.numeric(cur_year) %% 1000}"),
              skip = 1) %>% 
   select(any_of(state_column_names))
 
 # combine all years
 state_comparison <- 
-  state_2019 %>% 
-  bind_rows(state_2020) %>% 
-  bind_rows(state_2021) %>% 
-  bind_rows(state_2022) %>% 
+  state_prev_yr3 %>% 
+  bind_rows(state_prev_yr2) %>% 
+  bind_rows(state_prev_yr1) %>% 
+  bind_rows(state_cur_yr) %>% 
   mutate(year = as.character(year))
+
+## Load US level data -------------
+
+us_column_names <- c(
+  "year" = "YEAR", 
+  "state" = "PSTATABB",
+  "nameplate_capacity" = "USNAMEPCAP", 
+  "nox_output_rate" = "USNOXRTA", 
+  "nox_oz_output_rate" = "USNOXRTO", 
+  "so2_output_rate" = "USSO2RTA",
+  "co2_output_rate" = "USCO2RTA", 
+  "ch4_output_rate" = "USCH4RTA", 
+  "n2o_output_rate" = "USN2ORTA", 
+  "co2e_output_rate" = "USC2ERTA",
+  "nox_input_rate" = "USNOXRA", 
+  "nox_oz_input_rate" = "USNOXRO", 
+  "so2_input_rate" = "USSO2RA",
+  "co2_input_rate" = "USCO2RA", 
+  "ch4_input_rate" = "USCH4RA", 
+  "n2o_input_rate" = "USN2ORA", 
+  "co2e_input_rate" = "USC2ERA",
+  "nox_combustion_rate" = "USNOXCRT", 
+  "nox_oz_combustion_rate" = "USNOXCRO", 
+  "so2_combustion_rate" = "USSO2CRT",
+  "co2_combustion_rate" = "USCO2CRT", 
+  "ch4_combustion_rate" = "USCH4CRT", 
+  "n2o_combustion_rate" = "USN2OCRT", 
+  "co2e_combustion_rate" = "USC2ECRT",
+  "coal_gen" = "USGENACL", 
+  "oil_gen" = "USGENAOL", 
+  "gas_gen" = "USGENAGS", 
+  "nuclear_gen" = "USGENANC", 
+  "hydro_gen" = "USGENAHY", 
+  "biomass_gen" = "USGENABM",
+  "wind_gen" = "USGENAWI", 
+  "solar_gen" = "USGENASO",
+  "geothermal_gen" = "USGENAGT", 
+  "other_fossil_gen" = "USGENAOF",
+  "other_purchased_gen" = "USGENAOP", 
+  "net_gen" = "USNGENAN")
+
+us_prev_yr3 <- 
+  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr3}_data.xlsx"), 
+             sheet = glue::glue("US{as.numeric(prev_yr3) %% 1000}"), 
+             skip = 1) %>% 
+  select(any_of(us_column_names))
+
+us_prev_yr2 <- 
+  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr2}_data.xlsx"), 
+             sheet = glue::glue("US{as.numeric(prev_yr2) %% 1000}"),
+             skip = 1) %>% 
+  select(any_of(us_column_names))
+
+us_prev_yr1 <- 
+  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr1}_data.xlsx"), 
+             sheet = glue::glue("US{as.numeric(prev_yr1) %% 1000}"),
+             skip = 1) %>% 
+  select(any_of(us_column_names))
+
+us_cur_yr <- 
+  read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+             sheet = glue::glue("US{as.numeric(cur_year) %% 1000}"),
+             skip = 1) %>% 
+  select(any_of(us_column_names))
+
+
+# combine all years
+us_comparison <- 
+  us_prev_yr3 %>% 
+  bind_rows(us_prev_yr2) %>% 
+  bind_rows(us_prev_yr1) %>% 
+  bind_rows(us_cur_yr) %>% 
+  mutate(year = as.character(year), 
+         subregion = "US")
+
+## Combine US and subregion data 
+egrid_us_comparison <- 
+  us_comparison %>% 
+  bind_rows(egrid_comparison)
 
 # Emission rate comparisons -------------
 ## Emission rate comparison across eGRID subregions -------
@@ -146,21 +299,25 @@ state_comparison <-
 # calculate emission rate percent change 
 
 egrid_rate_comparison <- 
-  egrid_comparison %>% 
-  select(year, sub_region, sub_region_name, contains("rate"), contains("gen")) %>% 
+  egrid_us_comparison %>% 
+  select(year, subregion, subregion_name, contains("rate"), contains("gen")) %>% 
   pivot_wider(names_from = year, 
               values_from = contains("rate") | contains("gen")) %>% 
-  mutate(across(.cols = contains("rate_2022"), 
-                .fns = ~ (. - get(str_replace(cur_column(), "2022", "2021"))) / get(str_replace(cur_column(), "2022", "2021")) * 100,
-                .names = "{str_replace(.col, '_rate_2022', '_pct_change')}"), 
-         across(.cols = contains("gen_2022"), 
+  mutate(across(.cols = contains(glue::glue("rate_{cur_year}")), 
+                .fns = ~ (. - get(str_replace(cur_column(), cur_year, prev_yr1))) 
+                                      / get(str_replace(cur_column(), cur_year, prev_yr1)) * 100,
+                .names = "{sub('_rate.*', '', .col)}_pct}"), 
+         across(.cols = contains(glue::glue("gen_{cur_year}")), 
                 .fns = ~ case_when(
-                  (get(str_replace(cur_column(), "2022", "2021")) == 0 & . == 0) ~ 0, 
-                  (get(str_replace(cur_column(), "2022", "2021")) != 0) ~ round((. - get(str_replace(cur_column(), "2022", "2021"))) / get(str_replace(cur_column(), "2022", "2021")) * 100, 1), 
-                  (get(str_replace(cur_column(), "2022", "2021")) == 0 & . > 0) ~ 100), 
-                .names = "{str_replace(.col, '_gen_2022', '_pct')}")) %>% 
+                  (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . == 0) ~ 0, 
+                  (get(str_replace(cur_column(), cur_year, prev_yr1)) != 0) 
+                                ~ round((. - get(str_replace(cur_column(), cur_year, prev_yr1))) 
+                                                / get(str_replace(cur_column(), cur_year, prev_yr1)) * 100, 1), 
+                  (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . > 0) ~ 100), 
+                .names = "{sub('_gen.*', '', .col)}_pct")) %>% 
   select(-contains("gen")) %>% 
-  mutate(generation_notes = paste(sprintf("Coal: %+.1f%%,", coal_pct), sprintf("Oil: %+.1f%%,", oil_pct), # add summary of net generation changes
+  mutate(generation_notes = paste(sprintf("Coal: %+.1f%%,", coal_pct), # add summary of net generation changes
+                                  sprintf("Oil: %+.1f%%,", oil_pct), 
                                   sprintf("Gas: %+.1f%%,", gas_pct), sprintf("Other fossil: %+.1f%%,", other_fossil_pct), 
                                   sprintf("Nuclear: %+.1f%%,", nuclear_pct), sprintf("Hydro: %+.1f%%,", hydro_pct), 
                                   sprintf("Biomass: %+.1f%%,", biomass_pct), sprintf("Wind: %+.1f%%,", wind_pct),
@@ -173,26 +330,28 @@ egrid_rate_comparison <-
 # calculate generation percent change
 
 egrid_gen_comparison <- 
-  egrid_comparison %>% 
-  select(year, sub_region, sub_region_name, contains("gen")) %>% 
+  egrid_us_comparison %>% 
+  select(year, subregion, subregion_name, contains("gen")) %>% 
   pivot_wider(names_from = year, 
               values_from = contains("gen")) %>% 
   mutate(across(
-         .cols = contains("gen_2022"), 
+         .cols = contains(glue::glue("gen_{cur_year}")), 
          .fns = ~ case_when(
-                  (get(str_replace(cur_column(), "2022", "2021")) == 0 & . == 0) ~ 0, 
-                  (get(str_replace(cur_column(), "2022", "2021")) != 0) ~ round((. - get(str_replace(cur_column(), "2022", "2021"))) / get(str_replace(cur_column(), "2022", "2021")) * 100, 1), 
-                  (get(str_replace(cur_column(), "2022", "2021")) == 0 & . > 0) ~ 100), 
-         .names = "{str_replace(.col, '_gen_2022', '')}")) %>% 
+                  (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . == 0) ~ 0, 
+                  (get(str_replace(cur_column(), cur_year, prev_yr1)) != 0) 
+                          ~ round((. - get(str_replace(cur_column(), cur_year, prev_yr1))) 
+                                            / get(str_replace(cur_column(), cur_year, prev_yr1)) * 100, 1), 
+                  (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . > 0) ~ 100), 
+         .names = "{sub('_gen.*', '', .col)}_pct")) %>% 
   select(-contains("gen")) %>% 
-  pivot_longer(cols = -c("sub_region", "sub_region_name"), 
+  pivot_longer(cols = -c("subregion", "subregion_name"), 
                names_to = "energy_source", 
                values_to = "pct_change")
 
 # format generation mix and merge in percent change data
 egrid_resource_mix <- 
-  egrid_comparison %>% 
-  select(year, sub_region, sub_region_name, contains("gen"), -net_gen) %>% 
+  egrid_us_comparison %>% 
+  select(year, subregion, subregion_name, contains("gen"), -net_gen) %>% 
   pivot_longer(cols = contains("gen"), 
                names_to = "energy_source", 
                values_to = "generation") %>% 
@@ -217,13 +376,13 @@ egrid_resource_mix_wider <-
   egrid_resource_mix %>% 
   pivot_wider(names_from = year, 
               values_from = generation) %>% 
-  left_join(egrid_gen_comparison, by = c("sub_region", "sub_region_name", "energy_source")) %>% 
-  select(-sub_region_name)
+  left_join(egrid_gen_comparison, by = c("subregion", "subregion_name", "energy_source")) %>% 
+  select(-subregion_name)
 
 # summarize nameplate capacity and net gen 
 egrid_cap_gen <- 
-  egrid_comparison %>% 
-  select(year, sub_region, sub_region_name, nameplate_capacity, net_gen)
+  egrid_us_comparison %>% 
+  select(year, subregion, subregion_name, nameplate_capacity, net_gen)
 
 
 # calculate us resource mix
@@ -232,6 +391,9 @@ us_resource_mix <-
   group_by(year, energy_source) %>%
   summarize(energy_source_generation = sum(generation, na.rm = TRUE)) %>%
   ungroup() 
+
+cur_year_gen <- as.symbol(glue::glue("generation_{cur_year}"))
+prev_year_gen <- as.symbol(glue::glue("generation_{prev_yr1}"))
 
 us_resource_mix_formatted <-
   us_resource_mix %>%
@@ -245,7 +407,8 @@ us_resource_mix_formatted <-
   pivot_wider(names_from = year, 
               values_from = generation, 
               names_prefix = "generation_") %>% 
-  mutate(percent_change = (generation_2022 - generation_2021) / generation_2021 * 100)
+  mutate(percent_change = ({{cur_year_gen}} - {{prev_year_gen}}) 
+                                          / {{prev_year_gen}} * 100)
 
 
 # State resource mix ----- 
@@ -257,12 +420,14 @@ state_gen_comparison <-
   pivot_wider(names_from = year, 
               values_from = contains("gen")) %>% 
   mutate(across(
-    .cols = contains("gen_2022"), 
+    .cols = contains(glue::glue("gen_{(cur_year)}")), 
     .fns = ~ case_when(
-      (get(str_replace(cur_column(), "2022", "2021")) == 0 & . == 0) ~ 0, 
-      (get(str_replace(cur_column(), "2022", "2021")) != 0) ~ round((. - get(str_replace(cur_column(), "2022", "2021"))) / get(str_replace(cur_column(), "2022", "2021")) * 100, 1), 
-      (get(str_replace(cur_column(), "2022", "2021")) == 0 & . > 0) ~ 100), 
-    .names = "{str_replace(.col, '_gen_2022', '')}")) %>% 
+      (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . == 0) ~ 0, 
+      (get(str_replace(cur_column(), cur_year, prev_yr1)) != 0) 
+                ~ round((. - get(str_replace(cur_column(), cur_year, prev_yr1))) 
+                        / get(str_replace(cur_column(), cur_year, prev_yr1)) * 100, 1), 
+      (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . > 0) ~ 100), 
+    .names = "{sub('_gen.*', '', .col)}_pct")) %>% 
   select(-contains("gen")) %>% 
   pivot_longer(cols = -c("state"), 
                names_to = "energy_source", 
@@ -288,10 +453,4 @@ state_resource_mix_wider <-
 state_cap_gen <- 
   state_comparison %>% 
   select(year, state, state_nameplate_capacity, net_gen)
-
-
-
-
-
-
 

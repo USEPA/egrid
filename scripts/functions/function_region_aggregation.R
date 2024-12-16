@@ -73,10 +73,12 @@ region_aggregation <- function(region, region_cols) {
       "ann_gen_other_ff",
       "ann_gen_other",
       "ann_gen_non_renew",
+      "ann_gen_non_renew_other",
       "ann_gen_renew",
       "ann_gen_renew_nonhydro",
       "ann_gen_combust",
-      "ann_gen_non_combust"
+      "ann_gen_non_combust",
+      "ann_gen_non_combust_other"
     )
   
   # read in NERC names to add to plant file
@@ -196,7 +198,7 @@ region_aggregation <- function(region, region_cols) {
           (region_ann_gen_combust * (region_generation_oz / region_generation_ann)), NA_real_), 
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
+               .fns = ~ if_else(region_ann_gen_combust != 0, . / region_ann_gen_combust, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
         region_hg_combustion_rate = "--") %>% 
       relocate(region_nox_oz_combustion_rate, .after = region_nox_combustion_rate) %>%  
@@ -486,10 +488,10 @@ region_aggregation <- function(region, region_cols) {
       dir.create("data/outputs")
     }
     
-    if(dir.exists("data/outputs/{params$eGRID_year}")) {
+    if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
       print("Folder output already exists.")
     } else {
-      dir.create("data/outputs/{params$eGRID_year}")
+      dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
     }
     
     print(glue::glue("Saving {region} aggregation file to folder data/outputs/{params$eGRID_year}"))
@@ -875,10 +877,10 @@ region_aggregation <- function(region, region_cols) {
       dir.create("data/outputs")
     }
     
-    if(dir.exists("data/outputs/{params$eGRID_year}")) {
+    if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
       print("Folder output already exists.")
     } else {
-      dir.create("data/outputs/{params$eGRID_year}")
+      dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
     }
     
     print(glue::glue("Saving {region} aggregation file to folder data/outputs/{params$eGRID_year}"))
