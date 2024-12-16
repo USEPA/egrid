@@ -59,6 +59,7 @@ ggl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_lo
 year <- as.numeric(params$eGRID_year) %% 1000
 
 # set up output file
+### Note: check for updates or changes each data year ###
 contents <- "data/static_tables/formatting/egrid_contents_page.xlsx"
 wb <- loadWorkbook(contents)
 
@@ -1054,11 +1055,39 @@ addStyle(wb, sheet = ggl, style = s[['percent_bold']], rows = 8, cols = 6,   gri
 addStyle(wb, sheet = ggl, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpand = TRUE)
 addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
 
+### Update hyperlinks in "Contents" -------------
+
+# add link to sheets 
+add_hyperlink(glue::glue("UNT{year}"), row_link = 1, col_link = 1, loc = c(3, 8))
+add_hyperlink(glue::glue("GEN{year}"), row_link = 1, col_link = 1, loc = c(3, 9))
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 1, loc = c(3, 10))
+add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 1, loc = c(3, 11))
+add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 1, loc = c(3, 12))
+add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 1, loc = c(3, 13))
+add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 1, loc = c(3, 14))
+add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 1, loc = c(3, 15))
+add_hyperlink(glue::glue("GGL{year}"), row_link = 1, col_link = 1, loc = c(3, 16))
+
+# add hyperlinks to specific columns
+# annual values 
+add_hyperlink(glue::glue("GEN{year}"), row_link = 1, col_link = 13, loc = c(11, 26))
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 37, loc = c(12, 26))
+add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 5, loc = c(13, 26))
+add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 5, loc = c(14, 26))
+add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 5, loc = c(15, 26))
+add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 5, loc = c(16, 26))
+add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 3, loc = c(17, 26))
+
+# unadjusted values 
+add_hyperlink(glue::glue("GEN{year}"), row_link = 1, col_link = 13, loc = c(10, 27))
+add_hyperlink(glue::glue("GEN{year}"), row_link = 1, col_link = 13, loc = c(12, 27))
+
+
 ### Save and export -----
 output <- glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx")
-saveWorkbook(wb, output, overwrite=TRUE)
+saveWorkbook(wb, output, overwrite = TRUE)
 
-print(glue::glue("Saving unit file to folder data/outputs/{params$eGRID_year}/"))
+print(glue::glue("Saving final formatted file to folder data/outputs/{params$eGRID_year}/"))
 
 # remove to save space
 rm(unt_file, gen_file, plnt_file)
