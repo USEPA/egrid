@@ -7,8 +7,6 @@
 ## This file formats the regional aggregation files for final_formatting.R
 ## This includes all operating units for the specified eGRID data year
 ##
-## For data or manual changes that need to be checked every year, they are denoted with this note:
-## ### Note: check for updates or changes each data year ###
 ##
 ## Authors:  
 ##      Madeline Zhang, Abt Global
@@ -18,13 +16,13 @@
 
 format_region <- function(region, reg_rows) {
   
-  #' region_formatting
+  #' format_region
   #' 
   #' Helper function to format region aggregation files. 
   #' Needs function header style create 
   #' 
-  #' @region Region for data to be aggregated to,
-  #' @reg_rows Count of rows for the region dataframe
+  #' @param region Region for data to be aggregated to,
+  #' @param reg_rows Count of rows for the region dataframe
   #' @return Formatted dataframe with style
   #' @examples format_region(st, st_rows) # Where st is the sheet name and st_rows = number of rows in the final sheet
   
