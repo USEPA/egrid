@@ -25,11 +25,7 @@ library(openxlsx)
 library(rjson)
 library(httr)
 library(jsonlite)
-
-
-library(devtools)
-install_github(repo = "USEPA/EJSCREENbatch")
-library(EJSCREENbatch)
+library(data.table)
 
 ### Set Params ------
 
@@ -120,16 +116,17 @@ for (i in 1:nrow(id_input)) {
     data <- content(res, as = "text", encoding ="UTF-8")
   
     # from extracted data, transform from JSON format
-    output_data <- fromJSON(data, flatten = TRUE)
+    data <- fromJSON(data, flatten = TRUE)
     
     # converts to useable format
-    output_data <- cbind(output_data)
+    data <- cbind(data)
 
     # inverses row/column direction
-    output_data <- t(output_data)
+    data <- t(data)
     
     # add id input column for identification
-    #output_data <- c(id, output_data)
+    output_data <- c(id, data)
+    
   
     # add output data to list
     demo_data[[i]] <- output_data
@@ -138,42 +135,41 @@ for (i in 1:nrow(id_input)) {
   } else {
     
     print("Error:", status_code(response))
+    next
   }
   
 }
 
+#### Clean and Save Data -----
+
+# select column names
+column_names <- c("plant_id", colnames(data))
+
+# filter for only full length output data
+demo_data <- Filter(function(x) length(x) == 154, demo_data)
+
+# convert list to dataframe
 demo_data <- do.call(rbind, demo_data)
-demo_data <- as.data.frame(demo_data)
+demo_data <- as.data.frame(demo_data) %>%
+              unnest()
 
-demo_data <- cbind(plant_file, demo_data)
+# rename columns
+colnames(demo_data) <- column_names
 
-# takes around 2- 3 hours to full load and process
+# keep only demographic data (not environmental)
+demo_data <- demo_data %>%
+              select(grep("_D_", colnames(demo_data), value=TRUE), totalPop, distance, plant_id) %>%
+              unique() # unique since unnest() produced duplicate columns
 
-
-write.xlsx(demo_data, file = glue::glue("data/outputs/{params$eGRID_year}/demo_file.xlsx"))
-
-
-# demo_file <- read_xlsx(glue::glue("data/outputs/{params$eGRID_year}/demo_file.xlsx"))
-
-# colnames(output_data) <- c("headers", "values")
-
-
-# for length of id column
-# iterate over the loop
-# set lat and lon to be have i inside
-# add stuffing inside
-
-# clean up columns to only ones that are needed
-
-# do this at the end outside of loop 
-# rbind together demo_data 
-# attach desired plant_file columns
-# view_data <- as.data.frame(view_data)
+# join with plant file columns to keep by plant_id
+demo_file <- plant_file %>%
+             left_join(demo_data, by = "plant_id")
 
 
-## Using EJScreen Batch
-# plant_input <- plant_file %>%
-#                filter(!is.na(lat) & !is.na(lon)) %>%
-#                sf::st_as_sf(coords = c("lon", "lat"), crs = 4326)
-# 
-# ej_data <- EJfunction(plant_input, buffer = 3, raster = T)
+# takes around 4- 5 hours to full load and process
+# some plants have NA data due to limitations of EJScreen's technical abilities
+
+# save output as RDS
+saveRDS(demo_file, file = glue::glue("data/outputs/{params$eGRID_year}/demo_file.RDS"))
+
+
