@@ -118,7 +118,8 @@ subregion_resource_mix <-
          any_of(paste0("subregion_ann_resource_mix_", resource_type))) %>%
   rename_with(~str_c(str_remove(., "subregion_"))) %>%
   # add US data to bottom row
-  bind_rows(us_resource_mix)  
+  bind_rows(us_resource_mix) %>%
+  mutate(subregion = replace_na(subregion, "U.S."))
 
 
 # Compile and format state output emission rates for TABLE 3 -------------------
@@ -145,30 +146,168 @@ state_resource_mix <-
 
 # Format as excel sheet ---------------------------
 
-table_data <- list("Table 1" = subregion_output_emissions,
-             "Table 2" = subregion_resource_mix,
-             "Table 3" = state_output_emissions,
-             "Table 4" = state_resource_mix)
+# styles
+toptitle <- createStyle(fontSize = 12, 
+                        halign = "center", 
+                        valign = "center", 
+                        wrapText = TRUE, 
+                        textDecoration = "bold", 
+                        border = "TopLeftRight", 
+                        borderColour = "black", 
+                        borderStyle = "thick")
 
-table_title <- c(
+grey_subtitle <- createStyle(fgFill = "#F2F2F2", 
+                             halign = "center", 
+                             valign = "center",
+                             wrapText = TRUE, 
+                             textDecoration = "bold",
+                             border = "TopBottomLeftRight", 
+                             borderColour = "black",
+                             borderStyle = "thin")
+
+green_subtitle <- createStyle(fgFill = "#ebf1de", 
+                              halign = "center", 
+                              valign = "center", 
+                              wrapText = TRUE, 
+                              textDecoration = "bold", 
+                              border = "TopBottomLeftRight", 
+                              borderColour = "black", 
+                              borderStyle = "thin")
+
+green_subtitle_topborder <- createStyle(fgFill = "#ebf1de", 
+                                        halign = "center", 
+                                        valign = "center", 
+                                        wrapText = TRUE, 
+                                        textDecoration = "bold",
+                                        border = "Top", 
+                                        borderColour = "black", 
+                                        borderStyle = "thin")
+
+green_subtitle_noborder <- createStyle(fgFill = "#ebf1de", 
+                                       halign = "center", 
+                                       valign = "center", 
+                                       wrapText = TRUE, 
+                                       textDecoration = "bold")
+
+purple_subtitle <- createStyle(fgFill = "#e4dfec", 
+                               halign = "center", 
+                               valign = "center", 
+                               wrapText = TRUE, 
+                               textDecoration = "bold", 
+                               border = "TopBottomLeftRight", 
+                               borderColour = "black",
+                               borderStyle = "thin")
+
+purple_subtitle_topborder <- createStyle(fgFill = "#e4dfec", 
+                                         halign = "center", 
+                                         valign = "center", 
+                                         wrapText = TRUE, 
+                                         textDecoration = "bold",
+                                         border = "TopLeft", 
+                                         borderColour = "black", 
+                                         borderStyle = "thin")
+
+purple_subtitle_leftborder <- createStyle(fgFill = "#e4dfec", 
+                                          halign = "center", 
+                                          valign = "center", 
+                                          wrapText = TRUE, 
+                                          textDecoration = "bold",
+                                          border = "Left", 
+                                          borderColour = "black", 
+                                          borderStyle = "thin")
+
+red_subtitle <- createStyle(fgFill = "#f2dcdb", 
+                              halign = "center", 
+                              valign = "center", 
+                              wrapText = TRUE, 
+                              textDecoration = "bold", 
+                              border = "TopBottomLeftRight", 
+                              borderColour = "black", 
+                              borderStyle = "thin")
+
+orange_subtitle <- createStyle(fgFill = "#fde9d9", 
+                              halign = "center", 
+                              valign = "center", 
+                              wrapText = TRUE, 
+                              textDecoration = "bold", 
+                              border = "TopBottomLeftRight", 
+                              borderColour = "black", 
+                              borderStyle = "thin")
+
+us_smalltitle <- createStyle(textDecoration = "bold",
+                             border = "Top",
+                             borderStyle = "thick",
+                             borderColour = "black")
+
+largenum <- createStyle(numFmt = "#,##0.0",  
+                        border = "TopBottomLeftRight", 
+                        borderStyle = "thin", 
+                        borderColour = "black")
+
+smallnum <- createStyle(numFmt = "#,##0.000",  
+                        border = "TopBottomLeftRight", 
+                        borderStyle = "thin", 
+                        borderColour = "black")
+
+percentnum <- createStyle(numFmt = "#,##0.0%",  
+                          border = "TopBottomLeftRight", 
+                          borderStyle = "thin", 
+                          borderColour = "black")
+
+nodecimnum <- createStyle(numFmt = "#,##0",  
+                          border = "TopBottomLeftRight", 
+                          borderStyle = "thin", 
+                          borderColour = "black")
+
+us_largenum <- createStyle(numFmt = "#,##0.0",
+                           textDecoration = "bold",
+                           border = "TopBottom", 
+                           borderStyle = "thick", 
+                           borderColour = "black")
+
+us_smallnum <- createStyle(numFmt = "#,##0.000",
+                           textDecoration = "bold",
+                           border = "TopBottom", 
+                           borderStyle = "thick", 
+                           borderColour = "black")
+
+us_percentnum <- createStyle(numFmt = "#,##0.0%",  
+                             textDecoration = "bold",
+                             border = "TopBottom", 
+                             borderStyle = "thick", 
+                             borderColour = "black")
+
+us_nodecimnum <- createStyle(numFmt = "#,##0",  
+                             textDecoration = "bold",
+                             border = "TopBottom", 
+                             borderStyle = "thick", 
+                             borderColour = "black")
+
+#red_bf <- createStyle(fgFill = "#F2F2F2", halign = "center", valign = "center", wrapText = TRUE, textDecoration = "bold")
+#orange_bf <- createStyle(fgFill = "#F2F2F2", halign = "center", valign = "center", wrapText = TRUE, textDecoration = "bold")
+
+# create workbook
+wb <- createWorkbook()
+startcol <- 2
+modifyBaseFont(wb, fontSize = 8.5, fontName = "Arial")
+
+table_data <- list(subregion_output_emissions,
+                   subregion_resource_mix,
+                   state_output_emissions,
+                   state_resource_mix)
+
+names(table_data) <- c(
   glue::glue("1. Subregion Output Emission Rates (eGRID{params$eGRID_year})"),
   glue::glue("2. Subregion Resource Mix (eGRID{params$eGRID_year})"),
   glue::glue("3. State Output Emission Rates (eGRID{params$eGRID_year})"),
   glue::glue("4. State Resource Mix (eGRID{params$eGRID_year})")
 )
 
-
-colvars <- matrix(c("", "", "lb/MWh", "", "", "", "", "", "", "lb/MWh", "", "", 
-                    "", "", "", "", ""), ncol = 17)
-
-colnames(colvars) <- c(
-  "eGRID subregion acronym",
-  "eGRID subregion name",
-  "Total output emission rates",
-  "", "", "", "", "", "",
-  "Non-baseload output emission rates",
-  "", "", "", "", "", "",
-  "Grid Gross Loss (%)")
+# SHEET 1 
+sheet <- 1
+addWorksheet(wb, sheetName = paste0("Table ",sheet))
+sheetWidth <- as.numeric(ncol(table_data[[sheet]]))
+sheetLength <- nrow(table_data[[sheet]]) + 4
 
 colnames_lower <- matrix(c(
   "eGRID subregion acronym",
@@ -187,121 +326,162 @@ colnames_lower <- matrix(c(
   "Annual NOx",
   "Ozone Season NOx",
   "SO2",
-  "Grid Gross Loss (%)"), ncol = 17)
+  "Grid Gross Loss (%)"), ncol = sheetWidth)
 
+colnames_upper <- colnames_lower
+colnames_upper[3] <- "Total output emission rates"
+colnames_upper[10] <-  "Non-baseload output emission rates"
 
-# create workbook
-wb <- createWorkbook()
-startcol <- 2
+colnames_units <- rbind(colnames_upper, 
+                         matrix(c("", "", "lb/MWh", "", "", "", "", "", "",
+                                  "lb/MWh", "", "", "", "", "", "", ""), 
+                                ncol = sheetWidth))
+# add data
+writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 3)
+writeData(wb, sheet, colnames_units, startCol = startcol, startRow = 1)
+writeData(wb, sheet, names(table_data[sheet]), startCol = startcol, startRow = 1)
+writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = 5, 
+          borders = "all", colNames = FALSE)
+writeData(wb, sheet, table_data[[sheet]] %>% 
+            filter(subregion == "U.S."), startCol = startcol, startRow = sheetLength, 
+          borders = "surrounding", borderStyle = "thick", colNames = FALSE)
 
-# set overall formats
-modifyBaseFont(wb, fontSize = 8.5, fontName = "Arial")
-
-# SHEET 1 
-sheet <- 1
-addWorksheet(wb, sheetName = names(table_data[sheet]))
-writeData(wb, sheet = sheet, x = colnames_lower, startCol = startcol, startRow = 3)
-writeData(wb, sheet = sheet, x = colvars, startCol = startcol, startRow = 2)
-writeData(wb, sheet = sheet, x = table_title[sheet], startCol = startcol, startRow = 1)
-
-mergeCells(wb, sheet = sheet, cols = 2:18, rows = 1)
+# merge cells
+mergeCells(wb, sheet, cols = 2:18, rows = 1)
 for (colnum in c(2, 3, 18)) {
-  mergeCells(wb, sheet = sheet, cols = colnum, rows = 2:4)
+  mergeCells(wb, sheet, cols = colnum, rows = 2:4)
 }
+
 for (colnum in c(4, 11)) {
   for (rownum in c(2, 3)) {
-    mergeCells(wb, sheet = sheet, cols = c(colnum, colnum + 6), rows = rownum)
+    mergeCells(wb, sheet, cols = c(colnum, colnum + 6), rows = rownum)
 }
 }
 
-writeData(wb, sheet = sheet, x = subregion_output_emissions %>% filter(subregion != "U.S."), startCol = startcol, startRow = 5, borders = "all", colNames = FALSE)
-writeData(wb, sheet = sheet, x = subregion_output_emissions %>% filter(subregion == "U.S."), startCol = startcol, startRow = 31, borders = "surrounding", borderStyle = "thick", colNames = FALSE)
+# set cell sizes
+setRowHeights(wb, sheet, rows = 1:sheetLength, heights = 15)
+setRowHeights(wb, sheet, rows = 1, heights = 21.75)
+setColWidths(wb, sheet, cols = 1, width = 1)
+setColWidths(wb, sheet, cols = 2, widths = 8.14)
+setColWidths(wb, sheet, cols = 3, widths = 16.57)
+setColWidths(wb, sheet, cols = 4:17, widths = 6.86)
+setColWidths(wb, sheet, cols = 18, widths = 7.14)
 
-# format worksheet 1
-setRowHeights(wb, sheet = sheet, rows = seq_len(nrow(table_data[[sheet]])), heights = 15)
-setRowHeights(wb, sheet = sheet, rows = 1, heights = 21.75)
-setColWidths(wb, sheet = sheet, cols = 1, width = 1)
-setColWidths(wb, sheet = sheet, cols = 2, widths = 8.14)
-setColWidths(wb, sheet = sheet, cols = 3, widths = 16.57)
-setColWidths(wb, sheet = sheet, cols = 4:17, widths = 6.86)
-setColWidths(wb, sheet = sheet, cols = 18, widths = 7.14)
+# add formatting
+# titles
+addStyle(wb, sheet, toptitle, rows = 1, cols = 2:sheetWidth, gridExpand = TRUE)
+addStyle(wb, sheet, grey_subtitle, rows = 2:4, cols = c(2:3, 18), gridExpand = TRUE)
+addStyle(wb, sheet, green_subtitle, rows = 4, cols = 4:10, gridExpand = TRUE)
+addStyle(wb, sheet, green_subtitle_topborder, rows = 2, cols = 4:10, gridExpand = TRUE)
+addStyle(wb, sheet, green_subtitle_noborder, rows = 3, cols = 4:10, gridExpand = TRUE)
+addStyle(wb, sheet, purple_subtitle, rows = 4, cols = 11:17, gridExpand = TRUE)
+addStyle(wb, sheet, purple_subtitle_topborder, rows = 2, cols = 11:17, gridExpand = TRUE)
+addStyle(wb, sheet, purple_subtitle_leftborder, rows = 3, cols = 11:17, gridExpand = TRUE)
+addStyle(wb, sheet, us_smalltitle, rows = sheetLength, cols = 2, gridExpand = TRUE)
 
-title_style <- createStyle(fontSize = 12, halign = "center", valign = "center", 
-                           wrapText = TRUE, textDecoration = "bold", 
-                           border = "TopLeftRight", borderColour = "black", 
-                           borderStyle = "thick")
-grey_bf <- createStyle(fgFill = "#F2F2F2", halign = "center", valign = "center",
-                       wrapText = TRUE, textDecoration = "bold", 
-                       border = "TopBottomLeftRight", borderColour = "black",
-                       borderStyle = "thin")
-green_bf <- createStyle(fgFill = "#ebf1de", halign = "center", valign = "center", 
-                        wrapText = TRUE, textDecoration = "bold", 
-                        border = "TopBottomLeftRight", borderColour = "black", 
-                        borderStyle = "thin")
-green_bf_topborder <- createStyle(fgFill = "#ebf1de", halign = "center", valign = "center", 
-                        wrapText = TRUE, textDecoration = "bold",
-                        border = "Top", borderColour = "black", 
-                        borderStyle = "thin")
-green_bf_noborder <- createStyle(fgFill = "#ebf1de", halign = "center", valign = "center", 
-                                 wrapText = TRUE, textDecoration = "bold")
-purple_bf <- createStyle(fgFill = "#e4dfec", halign = "center", valign = "center", 
-                         wrapText = TRUE, textDecoration = "bold", 
-                         border = "TopBottomLeftRight", borderColour = "black",
-                         borderStyle = "thin")
-purple_bf_topborder <- createStyle(fgFill = "#e4dfec", halign = "center", valign = "center", 
-                         wrapText = TRUE, textDecoration = "bold",
-                         border = "TopLeft", borderColour = "black", 
-                         borderStyle = "thin")
-purple_bf_noborder <- createStyle(fgFill = "#e4dfec", halign = "center", valign = "center", 
-                             wrapText = TRUE, textDecoration = "bold",
-                             border = "Left", borderColour = "black", 
-                             borderStyle = "thin")
-smnum <- createStyle(numFmt = "#,##0.0",  border = "TopBottomLeftRight", 
-                        borderStyle = "thin", borderColour = "black")
-us_smnum <- createStyle(numFmt = "#,##0.0",  border = "TopBottom", 
-                        borderStyle = "thick", borderColour = "black")
-lgnum <- createStyle(numFmt = "#,##0.000",  border = "TopBottomLeftRight", 
-                     borderStyle = "thin", borderColour = "black")
-us_lgnum <- createStyle(numFmt = "#,##0.000",  border = "TopBottom", 
-                        borderStyle = "thick", borderColour = "black")
-percnum <- createStyle(numFmt = "#,##0.0%",  border = "TopBottomLeftRight", 
-                     borderStyle = "thin", borderColour = "black")
-us_percnum <- createStyle(numFmt = "#,##0.0%",  border = "TopBottom", 
-                        borderStyle = "thick", borderColour = "black")
+# data
+addStyle(wb, sheet, largenum, rows = 5:30, cols = c(4, 7:9, 11, 14:16), gridExpand = TRUE)
+addStyle(wb, sheet, smallnum, rows = 5:30, cols = c(5:6, 10, 12:13, 17), gridExpand = TRUE)
+addStyle(wb, sheet, percentnum, rows = 5:30, cols = 18, gridExpand = TRUE)
+addStyle(wb, sheet, us_largenum, rows = 31, cols = c(4, 7:9, 11, 14:16), gridExpand = TRUE)
+addStyle(wb, sheet, us_smallnum, rows = 31, cols = c(5:6, 10, 12:13, 17), gridExpand = TRUE)
+addStyle(wb, sheet, us_percentnum, rows = 31, cols = 18, gridExpand = TRUE)
 
-# formatting numbers
-addStyle(wb, sheet = sheet, createStyle(numFmt = "#,##0.0",  border = "TopBottomLeftRight", 
-                                        borderStyle = "thin", borderColour = "black"), rows = 5:31, cols = 4)
-
-#red_bf <- createStyle(fgFill = "#F2F2F2", halign = "center", valign = "center", wrapText = TRUE, textDecoration = "bold")
-#orange_bf <- createStyle(fgFill = "#F2F2F2", halign = "center", valign = "center", wrapText = TRUE, textDecoration = "bold")
-
-addStyle(wb, sheet = sheet, title_style, rows = 1, cols = 2:18, gridExpand = TRUE)
-addStyle(wb, sheet = sheet, grey_bf, rows = 2:4, cols = c(2:3, 18), gridExpand = TRUE)
-addStyle(wb, sheet = sheet, green_bf, rows = 4, cols = 4:10, gridExpand = TRUE)
-addStyle(wb, sheet = sheet, green_bf_topborder, rows = 2, cols = 4:10, gridExpand = TRUE)
-addStyle(wb, sheet = sheet, green_bf_noborder, rows = 3, cols = 4:10, gridExpand = TRUE)
-addStyle(wb, sheet = sheet, purple_bf, rows = 4, cols = 11:17, gridExpand = TRUE)
-addStyle(wb, sheet = sheet, purple_bf_topborder, rows = 2, cols = 11:17, gridExpand = TRUE)
-addStyle(wb, sheet = sheet, purple_bf_noborder, rows = 3, cols = 11:17, gridExpand = TRUE)
-addStyle(wb, sheet = sheet, createStyle(border = "Left", borderColour = "black", borderStyle = "thick"),
-         rows = 1:31, cols = 19, gridExpand = TRUE)
-addStyle(wb, sheet = sheet, createStyle(border = "Right", borderColour = "black", borderStyle = "thick"),
-         rows = 1:31, cols = 1, gridExpand = TRUE)
-addStyle(wb, sheet = sheet, createStyle(border = "Top", borderColour = "black", borderStyle = "thick"),
-         rows = 32, cols = 2:18, gridExpand = TRUE)
-
-addStyle(wb, sheet = sheet, smnum, rows = 5:30, cols = c(4, 7:9, 11, 14:16), gridExpand = TRUE)
-addStyle(wb, sheet = sheet, lgnum, rows = 5:30, cols = c(5:6, 10, 12:13, 17), gridExpand = TRUE)
-addStyle(wb, sheet = sheet, percnum, rows = 5:30, cols = 18, gridExpand = TRUE)
-addStyle(wb, sheet = sheet, us_smnum, rows = 31, cols = c(4, 7:9, 11, 14:16), gridExpand = TRUE)
-addStyle(wb, sheet = sheet, us_lgnum, rows = 31, cols = c(5:6, 10, 12:13, 17), gridExpand = TRUE)
-addStyle(wb, sheet = sheet, us_percnum, rows = 31, cols = 18, gridExpand = TRUE)
+# outer borders
+addStyle(wb, sheet, createStyle(border = "Left", borderColour = "black", borderStyle = "thick"),
+         rows = 1:sheetLength, cols = 19, gridExpand = TRUE)
+addStyle(wb, sheet, createStyle(border = "Right", borderColour = "black", borderStyle = "thick"),
+         rows = 1:sheetLength, cols = 1, gridExpand = TRUE)
+addStyle(wb, sheet, createStyle(border = "Top", borderColour = "black", borderStyle = "thick"),
+         rows = sheetLength + 1, cols = 2:18, gridExpand = TRUE)
 
 
+# SHEET 2
 
+sheet <- 2 # CHANGED
+addWorksheet(wb, sheetName = paste0("Table ",sheet))
+sheetWidth <- as.numeric(ncol(table_data[[sheet]]))
+sheetLength <- nrow(table_data[[sheet]]) + 3 # CHANGED
+
+colnames_lower <- matrix(c(
+  "eGRID subregion acronym",
+  "eGRID subregion name",
+  "Nameplate Capacity (MW)",
+  "Net Generation (MWh)",
+  "Coal",
+  "Oil",
+  "Gas",
+  "Other Fossil",
+  "Nuclear",
+  "Hydro",
+  "Biomass",
+  "Wind",
+  "Solar",
+  "Geo- thermal",
+  "Other unknown/ purchased fuel"),
+  ncol = sheetWidth)
+
+colnames_upper <- colnames_lower
+colnames_upper[5] <- "Generation Resource Mix (percent)*"
+
+# add data
+writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 2)
+writeData(wb, sheet, colnames_upper, startCol = startcol, startRow = 1)
+writeData(wb, sheet, names(table_data[sheet]), startCol = startcol, startRow = 1)
+writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = 4, 
+          borders = "all", colNames = FALSE)
+writeData(wb, sheet, table_data[[sheet]] %>% 
+            filter(subregion == "U.S."), startCol = startcol, startRow = sheetLength, 
+          borders = "surrounding", borderStyle = "thick", colNames = FALSE)
+
+# merge cells
+mergeCells(wb, sheet, cols = 2:16, rows = 1)
+mergeCells(wb, sheet, cols = 6:16, rows = 2)
+for (colnum in 2:5) {
+  mergeCells(wb, sheet, cols = colnum, rows = 2:3)
+}
+
+# set cell sizes
+setRowHeights(wb, sheet, rows = 1:sheetLength, heights = 15)
+setRowHeights(wb, sheet, rows = 1, heights = 21.75)
+setColWidths(wb, sheet, cols = 1, width = 1)
+setColWidths(wb, sheet, cols = c(2, 4), widths = 8.43)
+setColWidths(wb, sheet, cols = 3, widths = 20.29)
+setColWidths(wb, sheet, cols = 5, widths = 10.14)
+setColWidths(wb, sheet, cols = 6:11, widths = 6)
+setColWidths(wb, sheet, cols = 12, widths = 6.86)
+setColWidths(wb, sheet, cols = 13:14, widths = 6)
+setColWidths(wb, sheet, cols = 15, widths = 6.57)
+setColWidths(wb, sheet, cols = 16, widths = 9)
+
+# add formatting
+# titles
+addStyle(wb, sheet, toptitle, rows = 1, cols = 2:sheetWidth, gridExpand = TRUE)
+addStyle(wb, sheet, grey_subtitle, rows = 2:3, cols = 2:4, gridExpand = TRUE)
+addStyle(wb, sheet, red_subtitle, rows = 2:3, cols = 5, gridExpand = TRUE)
+addStyle(wb, sheet, orange_subtitle, rows = 2:3, cols = 6:17, gridExpand = TRUE)
+# addStyle(wb, sheet, green_subtitle_noborder, rows = 3, cols = 4:10, gridExpand = TRUE)
+# addStyle(wb, sheet, purple_subtitle, rows = 4, cols = 11:17, gridExpand = TRUE)
+# addStyle(wb, sheet, purple_subtitle_topborder, rows = 2, cols = 11:17, gridExpand = TRUE)
+# addStyle(wb, sheet, purple_subtitle_leftborder, rows = 3, cols = 11:17, gridExpand = TRUE)
+addStyle(wb, sheet, us_smalltitle, rows = sheetLength, cols = 2, gridExpand = TRUE)
+
+# data
+addStyle(wb, sheet, nodecimnum, rows = 5:sheetLength - 1, cols = 4:5, gridExpand = TRUE)
+addStyle(wb, sheet, percentnum, rows = 5:sheetLength, cols = 6:16, gridExpand = TRUE)
+addStyle(wb, sheet, us_nodecimnum, rows = sheetLength, cols = 4:5, gridExpand = TRUE)
+addStyle(wb, sheet, us_percentnum, rows = sheetLength, cols = 6:16, gridExpand = TRUE)
+
+# outer borders
+addStyle(wb, sheet, createStyle(border = "Left", borderColour = "black", borderStyle = "thick"),
+         rows = 1:sheetLength, cols = sheetWidth + 2, gridExpand = TRUE)
+addStyle(wb, sheet, createStyle(border = "Right", borderColour = "black", borderStyle = "thick"),
+         rows = 1:sheetLength, cols = 1, gridExpand = TRUE)
+addStyle(wb, sheet, createStyle(border = "Top", borderColour = "black", borderStyle = "thick"),
+         rows = sheetLength + 1, cols = 2:sheetWidth, gridExpand = TRUE)
 
 saveWorkbook(wb, "data/outputs/2023/summary_tables.xlsx", overwrite = TRUE)
+
 
 # Save -------------------------------
 
