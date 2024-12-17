@@ -77,10 +77,10 @@ download_eia_ggl <- function(year) {
       abbr <- state_abbr[i]
       
       # download file for corresponding state i from EIA
-      url <- glue::glue("https://www.eia.gov/electricity/state/{name}/xls/{abbr}.xlsx")
+      url <- glue::glue("https://www.eia.gov/electricity/state/{name}/xls/SEP%20Tables%20for%20{toupper(abbr)}.xlsx")
       dest_file <- glue::glue("{new_folder}/{abbr}.xlsx")
       
-      download_file(url,dest_file,new_folder) 
+      download_file(url, dest_file, new_folder) 
       
     }
     

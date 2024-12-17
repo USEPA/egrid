@@ -1,0 +1,3095 @@
+---
+title: "QA All Files"
+format: 
+  html:
+    toc: true
+    toc-expand: true
+    toc-location: left
+    html-table-processing: none
+    code-fold: true
+execute: 
+  echo: false
+  warning: false
+editor: visual
+project: 
+  execute_dir: project
+params:
+  year: 2023
+  year_abbrev: 23
+---
+
+This markdown file performs QA on the following files:
+
+-   Master database
+
+-   CHP database
+
+-   Generator file
+
+-   Unit file
+
+-   Plant file
+
+-   Region aggregation files
+
+-   Subregion file
+
+-   All file comparison
+
+-   Output file
+
+Each QA step will return a list of of issues raised. If there are no issues in the step, nothing will be returned.
+
+```{r}
+#| label: load-libraries
+#| message: false
+
+library(dplyr) 
+library(tidyr) 
+library(readr) 
+library(readxl) 
+library(ggplot2)
+library(stringr)
+
+```
+
+# Master Database QA
+
+## Compare plants between EIA and EPA
+
+Check if any plants are only in the EPA data and not EIA data. These plants will be checked with EPA to see if there are any ORIS (plant ID) matches we should be making or if the plants should be deleted.
+
+```{r}
+#| label: compare-eia-epa
+
+# load in cleaned epa and eia data
+epa <- 
+  read_rds(glue::glue("data/clean_data/epa/{params$year}/epa_clean.RDS"))
+eia_860 <- 
+  read_rds(glue::glue("data/clean_data/eia/{params$year}/eia_860_clean.RDS")) 
+eia_923 <- 
+  read_rds(glue::glue("data/clean_data/eia/{params$year}/eia_923_clean.RDS")) 
+
+# group data by distinct plant IDs
+compare_plants <- 
+  epa %>% 
+  select(plant_id, plant_name) %>% distinct() %>% 
+  full_join(eia_860$plant %>% select(plant_id) %>% distinct() %>% 
+              mutate(eia_860_plant_id = plant_id), by = "plant_id") %>% 
+  full_join(eia_923$generation_and_fuel_combined %>% 
+              select(plant_id) %>% distinct() %>% 
+              mutate(eia_923_plant_id = plant_id), by = "plant_id")
+
+# identify plants only present in EPA data
+check_compare_plants <- 
+  compare_plants %>% 
+  filter(!is.na(plant_id) & is.na(eia_860_plant_id) & is.na(eia_923_plant_id))
+
+# print plants not in EIA
+ifelse(nrow(check_compare_plants) == 0, "Status: PASS - No plants in EPA not in EIA.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_compare_plants)} plants in EPA not in EIA."))
+
+knitr::kable(check_compare_plants %>% 
+               select(plant_id, plant_name), caption = "EPA plants not in EIA")
+
+# compare to EPA plants to delete in unit file
+epa_plants_to_delete <-
+  read_csv("data/static_tables/epa_plants_to_delete.csv")
+
+only_in_epa <-
+  check_compare_plants %>%
+  filter(!plant_id %in% epa_plants_to_delete$`ORIS Code`)
+
+# print plants not in epa_plants_to_delete
+ifelse(nrow(only_in_epa) == 0, "Status: PASS - No plants in EPA not in list of EPA plants to delete.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(only_in_epa)} plants in EPA not in list of EPA plants to delete."))
+
+knitr::kable(only_in_epa %>% 
+               select(plant_id, plant_name), caption = "EPA plants not in list of EPA plants to delete")
+
+```
+
+## Biomass units added table
+
+Not automated. Need to check manually. Not done here.
+
+## OG/OTH fuel crosswalks
+
+Not automated. Need to check manually. Not done here.
+
+## EPA fuel crosswalks
+
+Can maybe be automated. Will wait for confirmation.
+
+# Generator File QA
+
+Load generator file. Currently using preliminary data for eGRID `r params$year`.
+
+```{r}
+#| label: load-gen-file
+
+generator_file <- 
+  read_rds(glue::glue("data/outputs/{params$year}/generator_file.RDS"))
+
+```
+
+## Duplicate generators
+
+Check if there are any duplicate generators. There should be zero.
+
+```{r}
+#| label: generator-duplicates 
+
+check_gen_duplicates <- 
+  generator_file %>% 
+  group_by(plant_id, generator_id) %>% 
+  filter(n() > 1)
+
+ifelse(nrow(check_gen_duplicates) == 0, "Status: PASS - No generator duplicates.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_gen_duplicates)} generators are duplicated."))
+
+knitr::kable(check_gen_duplicates %>% 
+               select(plant_id, generator_id, plant_name))
+
+```
+
+# Unit File QA
+
+Load unit file.
+
+Currently using preliminary data for eGRID `r params$year`.
+
+```{r}
+#| label: load-unit-file
+
+unit_file <-
+  read_rds(glue::glue("data/outputs/{params$year}/unit_file.RDS"))
+
+```
+
+## FC prime mover
+
+FC prime mover units must not have any CO2 emissions or sources.
+
+```{r}
+#| label: unit-fc-pm
+
+check_unit_fc_pm <- 
+  unit_file %>% 
+  filter(prime_mover == "FC" & !is.na(co2_mass)) 
+
+ifelse(nrow(check_unit_fc_pm) == 0, "Status: PASS - All CO2 values for FC prime mover are NA.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_fc_pm)} FC units have non-zero CO2 values."))
+  
+knitr::kable(check_unit_fc_pm %>% 
+               select(plant_name, plant_id, unit_id))
+```
+
+## Heat input / emissions values for retired units
+
+Check if any EPA units that retired in current data year have heat input / emission values.
+
+```{r}
+#| label: unit-values-retired
+
+check_unit_retired_values <-  
+  unit_file %>% 
+  filter(capd_flag == "Yes" & operating_status == "RE" & (heat_input > 0 | 
+                                                heat_input_oz > 0 |
+                                                nox_mass > 0 |
+                                                nox_oz_mass > 0 |
+                                                so2_mass > 0 |
+                                                co2_mass > 0))
+
+ifelse(nrow(check_unit_retired_values) == 0, 
+       "Status: PASS - No units that are retired and have positive heat input or emissions.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_retirement)} units that are retired and 
+                   have positive heat input or emissions."))
+
+knitr::kable(check_unit_retired_values %>% 
+               select(plant_name, plant_id, unit_id))
+
+```
+
+## EPA ozone season reporter outliers
+
+Some EPA units only report their ozone season emissions, so we try to gap fill the remaining months with EIA data. In the source columns, we have an option that states this (i.e. "EIA non-ozone season distributed and EPA ozone season" for heat input and "Estimated using emissions factor and EIA data for non-ozone season and EPA ozone season emissions" or "Estimated based on unit-level NOx emission rates and EPA ozone season emissions" for annual NOx). We want to make sure that the NOx emissions we've assigned for these aren't extremely large outliers - especially compared to the ozone season values for NOx at the plant. So you'd filter the NOx source for these sources and then filter the NOx annual emissions from largest to smallest and see how those large ones compare to the ozone season NOx value. If super high we want to note that we need to look into that plant/unit.
+
+```{r}
+#| label: unit-nox-outliers
+
+check_unit_nox_outliers <- 
+  unit_file %>% 
+  filter(nox_source %in% 
+           c("Estimated using emissions factor and EIA data for non-ozone season 
+             and EPA ozone season emissions", 
+             "Estimated based on unit-level NOx emission rates and EPA ozone season emissions")) %>% 
+  arrange(desc(nox_mass)) %>% 
+  select(plant_name, plant_id, unit_id, nox_mass, nox_oz_mass)
+
+knitr::kable(check_unit_nox_outliers)
+
+```
+
+## Ozone emissions and heat input
+
+Ozone emissions and heat input values must not be greater than annual values.
+
+```{r}
+#| label: unit-ozone
+
+check_unit_ozone <- 
+  unit_file %>%
+  filter((nox_oz_mass > nox_mass) | (heat_input_oz > heat_input))
+
+ifelse(nrow(check_unit_ozone) == 0, 
+       "Status: PASS - All ozone emissions and heat input values are less than annual values.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_ozone)} units have heat input values greater than annual values.")) 
+
+knitr::kable(check_unit_ozone %>% 
+               select(plant_name, plant_id, unit_id, nox_oz_mass, nox_mass, heat_input_oz, heat_input))
+```
+
+## Positive annual heat input, missing ozone season for EPA plants
+
+Check if units with a positive annual heat input are missing ozone season data.
+
+```{r}
+#| label: unit-ozone-missing
+
+check_unit_ozone_input <- 
+  unit_file %>% 
+  filter(!is.na(heat_input) & heat_input != 0 & is.na(heat_input_oz))
+
+ifelse(nrow(check_unit_ozone_input) == 0, 
+       "Status: PASS - All annual heat inputs have ozone heat inputs.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_ozone_input)} units have positive annual heat input with missing ozone season heat input."))
+
+knitr::kable(check_unit_ozone_input %>% 
+               select(plant_name, plant_id, unit_id, heat_input, heat_input_oz))
+
+```
+
+## Duplicate units
+
+Check if there are any duplicate units. There should be zero.
+
+```{r}
+#| label: unit-duplicates
+
+check_unit_duplicates <- 
+  unit_file %>% 
+  group_by(plant_id, unit_id, prime_mover) %>% 
+  filter(n() > 1)
+
+unit_duplicates_number <-
+  check_unit_duplicates %>%
+  distinct(unit_id, .keep_all = TRUE)
+
+ifelse(nrow(check_unit_duplicates) == 0, "Status: PASS - No duplicate units.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(unit_duplicates_number)} units are duplicated."))
+
+knitr::kable(unit_duplicates_number %>% 
+               select(plant_name, plant_id, unit_id, prime_mover))
+```
+
+## Negative emissions values
+
+Check if any emission values are negative. The emissions to check are:
+
+-   unadjusted annual NOx
+
+-   unadjusted ozone NOx
+
+-   unadjusted annual SO2
+
+-   unadjusted annual CO2
+
+-   unadjusted annual Hg
+
+```{r}
+#| label: unit-negative-emissions
+
+check_unit_negative_emissions <-  
+  unit_file %>% 
+  filter(nox_mass < 0 |
+          nox_oz_mass < 0 |
+          so2_mass < 0 |
+          co2_mass < 0 |
+          hg_mass < 0)
+
+ifelse(nrow(check_unit_negative_emissions) == 0, "Status: PASS - No negative emissions.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_negative_emissions)} units have negative emissions."))
+
+knitr::kable(check_unit_negative_emissions %>% 
+               select(plant_name, plant_id, unit_id, nox_mass, nox_oz_mass, so2_mass, co2_mass))
+```
+
+## Emissions from zero emission fuels
+
+Check if there are positive emission values from zero-emission fuels. There should be zero. The emission values to check are:
+
+-   unadjusted annual NOx
+
+-   unadjusted ozone NOx
+
+-   unadjusted annual SO2
+
+-   unadjusted annual CO2
+
+-   unadjusted annual Hg
+
+```{r}
+#| label: unit-zero-emissions
+
+check_unit_zero_emissions <-  
+  unit_file %>% 
+  filter(primary_fuel_type %in% c("WAT", "WND", "SUN", "NUC") & 
+                        (!is.na(nox_mass) | nox_mass > 0 |
+                        !is.na(nox_oz_mass) | nox_oz_mass > 0 |
+                        !is.na(so2_mass) | so2_mass > 0 |
+                        !is.na(co2_mass) | co2_mass > 0 |
+                        !is.na(hg_mass) | hg_mass > 0)) 
+
+ifelse(nrow(check_unit_zero_emissions) == 0, "Status: PASS - No positive emissions for zero emissions technologies.", 
+        glue::glue("Status: NEEDS CHECKED {nrow(check_zero_emissions)} zero emission units have positive emissions."))
+
+knitr::kable(check_unit_zero_emissions %>% 
+               select(plant_name, plant_id, unit_id, primary_fuel_type, nox_mass, nox_oz_mass, so2_mass, co2_mass, hg_mass))
+```
+
+## Primary fuel blanks
+
+Check if any primary fuel rows are blank.
+
+```{r}
+#| label: unit-primary-fuel
+
+check_unit_primary_fuel <- 
+  unit_file %>% 
+  filter(is.na(primary_fuel_type))
+
+ifelse(nrow(check_unit_primary_fuel) == 0, "Status: PASS - No units have blank primary fuels.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_primary_fuel)} units have blank primary fuels."))
+
+knitr::kable(check_unit_primary_fuel %>% 
+               select(plant_name, plant_id, unit_id, primary_fuel_type, heat_input, heat_input_oz))
+
+```
+
+## Check CAPD flag and program code
+
+Check if units with a CAPD flag have no program code. Columns: `program_code` and `capd_flag`.
+
+```{r}
+#| label: unit-capd-flag
+
+check_unit_program_code <- 
+  unit_file %>% 
+  filter(capd_flag == "Yes" & is.na(program_code))
+
+ifelse(nrow(check_unit_program_code) == 0, "Status: PASS - All CAPD flags have a program code.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_program_code)} units have CAPD flag but no program code."))
+
+knitr::kable(check_unit_program_code %>% 
+               select(plant_name, plant_id, unit_id, capd_flag, program_code))
+
+```
+
+## Emissions without heat input
+
+Check if any units that have emission values are missing heat input values.
+
+```{r}
+#| label: unit-heat-input-missing
+
+check_unit_heat_input <- 
+  unit_file %>% 
+  filter((nox_mass > 0 | nox_oz_mass > 0 | so2_mass > 0 | co2_mass > 0 | hg_mass > 0) &
+          (is.na(heat_input) & is.na(heat_input_oz)))
+
+ifelse(nrow(check_unit_heat_input) == 0, "Status: PASS - All units with emissions have heat input values.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_heat_input)} units with emissions are missing heat input values."))
+
+knitr::kable(check_unit_heat_input %>% 
+               select(plant_name, plant_id, unit_id, heat_input, heat_input_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, hg_mass))
+
+```
+
+## Heat input without emissions
+
+Check if any units have heat input values are missing emission values.
+
+<!--# Can some units have only some emission types? Should "WH" and "PUR" be included? -->
+
+```{r}
+#| label: unit-emissions-missing
+
+check_unit_emissions <- 
+  unit_file %>% 
+  filter((!(primary_fuel_type %in% c("WAT", "WND", "SUN", "NUC", "MWH"))) & 
+          (!(prime_mover == "FC")) & 
+          (is.na(nox_mass) & is.na(nox_oz_mass) & is.na(so2_mass) & is.na(co2_mass)) &
+          (heat_input > 0 | heat_input_oz > 0))
+
+ifelse(nrow(check_unit_emissions) == 0, "Status: PASS - All units with heat inputs 
+       have emission values.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_emissions)} units with heat inputs are missing emission values."))
+
+knitr::kable(check_unit_emissions %>% 
+               select(plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, heat_input, heat_input_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, hg_mass))
+
+```
+
+## Blanks in heat input and emissions
+
+Check if units have blanks in heat input and emissions.
+
+<!--# which emissions are included here? -->
+
+```{r}
+#| label: unit-blanks
+
+check_unit_blanks <- 
+  unit_file %>% 
+  filter((is.na(heat_input) | is.na(heat_input_oz)) & (is.na(nox_mass) | is.na(nox_oz_mass) 
+         | is.na(so2_mass) | is.na(co2_mass)))
+
+ifelse(nrow(check_unit_blanks) == 0, "Status: PASS - No units are missing both heat inputs and emission values.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_blanks)} units are missing both heat and emission values."))
+
+knitr::kable(check_unit_blanks %>% 
+               select(plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, heat_input, heat_input_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass))
+
+```
+
+## Positive NOx, missing SO2
+
+Check if units have positive NOx values and missing SO2 values.
+
+```{r}
+#| label: unit-nox-so2
+
+check_unit_nox_so2 <- 
+  unit_file %>% 
+  filter((nox_mass > 0) & (is.na(so2_mass) | so2_mass == 0))
+
+ifelse(nrow(check_unit_nox_so2) == 0, "Status: PASS - All units with positive NOx values 
+       have positive SO2 values.", 
+       glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_emissions)} units with positive NOx values have NA or 0 SO2 values."))
+
+knitr::kable(check_unit_nox_so2 %>% 
+               select(plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, nox_mass, so2_mass))
+
+```
+
+# Plant File QA
+
+Load current year plant file and previous year plant file.
+
+```{r}
+#| label: load-plant-data
+
+plant_file <- 
+  read_rds(glue::glue("data/outputs/{params$year}/plant_file.RDS"))
+
+# pulls 2021 data, should pull 2022 data
+plant_file_prev <- 
+  read_excel(glue::glue("data/outputs/{params$year - 2}/egrid{params$year - 2}_data.xlsx"), 
+             sheet = glue::glue("PLNT{params$year_abbrev - 2}"), skip = 1) %>% 
+              janitor::clean_names() %>% 
+              rename("plant_id" = "orispl", 
+                     "plant_name" = "pname", 
+                     "lat_prev" = "lat", 
+                     "lon_prev" = "lon", 
+                     "chp_flag_prev" = "chpflag", 
+                     "subrgn_prev" = "subrgn") %>%
+  mutate(plant_id = as.character(plant_id))
+
+```
+
+## Difference in latitude and longitude
+
+Check if plants have a difference in longitude and latitude in comparison to previous year data. This is checked to three decimal points.
+
+```{r}
+#| label: plant-lat-long
+
+plant_file_lat_lon <- 
+  plant_file %>% 
+  select(plant_id, lat, lon) %>% 
+  left_join(plant_file_prev %>% 
+  select(plant_id, lat_prev, lon_prev), by = "plant_id") %>% 
+  mutate(across(where(is.numeric), round, 3))
+
+check_plant_lat_lon <- 
+  plant_file_lat_lon %>%
+  mutate(lat_diff = abs(lat - lat_prev), lon_diff = abs(lon - lon_prev)) %>% 
+  filter(!is.na(lat_diff) & !is.na(lon_diff) & !(lat_diff == 0) | !(lon_diff == 0))
+
+ifelse(nrow(check_plant_lat_lon) == 0, "Status: PASS - All plants have the same lat/lon as previous year.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_lat_lon)} plants have different lat/lon than last year."))
+  
+knitr::kable(check_plant_lat_lon %>% 
+               select(plant_id, lat, lat_prev, lat_diff, lon, lon_prev, lon_diff))
+
+```
+
+## CHP status change
+
+Check if CHP status has changed from previous year.
+
+```{r}
+#| label: plant-chp-flag
+
+plant_chp_flag <- 
+  plant_file %>% 
+  left_join(plant_file_prev, by = c("plant_id")) %>% 
+  mutate(chp_comparison = ifelse(chp_flag == chp_flag_prev, "Same", 
+                                 "Changed"))
+  
+check_plant_chp_flag <- 
+  plant_chp_flag %>% 
+  filter(chp_comparison == "Changed")
+  
+
+ifelse(nrow(check_plant_chp_flag) == 0, "Status: PASS - No CHP flags are different", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_chp_flag)} plants have different CHP flags than last year."))
+
+knitr::kable(check_plant_chp_flag %>% 
+               select(plant_id, chp_flag, chp_flag_prev))
+
+```
+
+## Different subregions
+
+Check if any plants have changed subregion from previous year.
+
+```{r}
+#| label: plant-subregion
+
+plant_subregion <-  plant_file %>% 
+  left_join(plant_file_prev, by = c("plant_id")) %>% 
+  mutate(subrgn_comparison = ifelse(egrid_subregion == subrgn_prev, "Same", 
+                                 "Changed"))
+  
+check_plant_subrgn <- plant_subregion %>% 
+  filter(subrgn_comparison == "Changed")
+  
+
+ifelse(nrow(check_plant_subrgn) == 0, "Status: PASS - No subregions are different", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_subrgn)} plants have different subregions than last year."))
+
+knitr::kable(check_plant_subrgn %>% 
+               select(plant_id, egrid_subregion, subrgn_prev))
+
+```
+
+## Missing Lat/Lon Values
+
+```{r}
+#| label: missing-lat-lon
+missing_lat_lon <- 
+  plant_file %>%
+  filter(is.na(lat) | is.na(lon))
+
+plant_with_coordinates <-
+  plant_file %>%
+  filter(!is.na(lat) & !is.na(lon))
+
+ifelse(nrow(missing_lat_lon) == 0, "Status: PASS - No plants missing coordinates", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(missing_lat_lon)} plants are missing either lat or lon coordinates."))
+
+knitr::kable(missing_lat_lon %>% 
+               select(plant_id, egrid_subregion, lat, lon))
+
+```
+
+## Mislabeled subregions
+
+Map plants for each region and fix accordingly if needed.
+
+```{r}
+#| label: load-subregion-shapefile 
+#| results: false
+
+# download subregion shapefiles from EPA website
+shp_download <- function(shp_type) {
+  temp_file <- tempfile()
+  download.file(glue::glue("https://www.epa.gov/system/files/other-files/2024-05/egrid2022_{tolower(shp_type)}_shapefile.zip"), temp_file)
+  shp_file <- unzip(temp_file, exdir="data/shapefiles")
+  unlink(temp_file)
+  shp <- 
+    sf::st_read(glue::glue("data/shapefiles/eGRID2022_{shp_type}.shp")) %>%
+    drop_na() %>% 
+    rename("subregion" = "ZipSubregi") %>% 
+    sf::st_transform(crs = "EPSG:4326")
+  return (shp)
+}
+
+sbrgn_shp <- shp_download("Subregions")
+multi_sbrgn_shp <- shp_download("Multiple_Subregions")
+
+# # plot subregions
+# ggplot(sbrgn_shp[1]) +
+#   geom_sf() +
+#   coord_sf(xlim = c(-166, -67), ylim = c(19, 71))
+
+# ggplot(multi_sbrgn_shp[1]) +
+#   geom_sf() +
+#   coord_sf(xlim = c(-166, -67), ylim = c(19, 71))
+
+sf::sf_use_s2(FALSE)
+
+# define bounding coordinates for plotting
+bounding_box_plot <- function(plant_points) {
+  if (nrow(plant_points)) {
+    bounds <- list(c(sf::st_bbox(plant_points)[1] - 5, 
+                               sf::st_bbox(plant_points)[3] + 5),
+    c(sf::st_bbox(plant_points)[2] - 3, 
+                               sf::st_bbox(plant_points)[4] + 3))
+  } else {
+     bounds <- list(c(-167, -70), c(25, 70))
+  }
+  return (bounds)
+}
+```
+
+Check if plant locations are in regions. If there are any plants that are not in the region or in the overlapping regions, they will appear in the table. Some of the plants in the table may be due to being on the edge of region boundaries.
+
+::: panel-tabset
+### AKGD
+
+```{r}
+#| label: AKGD-map 
+
+AKGD_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "AKGD") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") 
+
+# create table of plants not in region or multi-region area
+# rounding lat long may help capture edge case plants (that are just outside of boundary)
+AKGD_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "AKGD") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+AKGD_plants <-
+  AKGD_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(AKGD_plants, AKGD_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(AKGD_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(AKGD_plants), glue::glue("{nrow(AKGD_plants)} plants in subregion"), 
+       "No plants fall within subregion")
+
+AKGD_outside <-
+  AKGD_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) + 
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = AKGD_plants) +
+  geom_sf(data = AKGD_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(AKGD_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(AKGD_plants)[[2]]),
+           expand = TRUE)
+
+ifelse(nrow(AKGD_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(AKGD_outside)} plants fall outside region and subregion."))
+
+knitr::kable(AKGD_outside) 
+
+```
+
+### AKMS
+
+```{r}
+#| label: AKMS-summary 
+
+AKMS_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "AKMS") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") 
+
+# create table of plants not in region or multi-region area
+AKMS_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "AKMS") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+AKMS_plants <- 
+  AKMS_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(AKMS_plants, AKMS_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(AKMS_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(AKMS_plants), glue::glue("{nrow(AKMS_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+AKMS_outside <-
+  AKMS_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+# plot all plants with ones outside bounds in red
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = AKMS_plants) +
+  geom_sf(data = AKMS_outside, color = "red") + 
+  coord_sf(xlim = as.vector(bounding_box_plot(AKMS_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(AKMS_plants)[[2]]),
+           expand = TRUE) 
+
+ifelse(nrow(AKMS_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(AKMS_outside)} plants fall outside region and subregion."))
+
+knitr::kable(AKMS_outside)
+  
+```
+
+### AZNM
+
+```{r}
+#| label: AZNM-summary 
+
+AZNM_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "AZNM") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+# create table of plants not in region or multi-region area
+AZNM_shp <- sbrgn_shp %>% filter(subregion == "AZNM") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+AZNM_plants <- 
+  AZNM_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(AZNM_plants, AZNM_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(AZNM_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(AZNM_plants), glue::glue("{nrow(AZNM_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+AZNM_outside <-
+  AZNM_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = AZNM_plants) +
+  geom_sf(data = AZNM_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(AZNM_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(AZNM_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(AZNM_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(AZNM_outside)} plants fall outside region and subregion."))
+
+knitr::kable(AZNM_outside) 
+```
+
+### CAMX
+
+```{r}
+#| label: CAMX-summary 
+
+# one plant with no lat lon data
+CAMX_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "CAMX") %>% 
+  filter(!is.na(lat) | !is.na(lon)) %>%
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+
+# create table of plants not in region or multi-region area
+CAMX_shp <- sbrgn_shp %>% filter(subregion == "CAMX") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+CAMX_plants <- 
+  CAMX_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(CAMX_plants, CAMX_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(CAMX_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(CAMX_plants), glue::glue("{nrow(CAMX_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+CAMX_outside <-
+  CAMX_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = CAMX_plants) +
+  geom_sf(data = CAMX_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(CAMX_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(CAMX_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(CAMX_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(CAMX_outside)} plants fall outside region and subregion."))
+
+knitr::kable(CAMX_outside) 
+
+```
+
+### ERCT
+
+```{r}
+#| label: ERCT-summary 
+
+ERCT_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "ERCT") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+ERCT_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "ERCT") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+ERCT_plants <- 
+  ERCT_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(ERCT_plants, ERCT_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(ERCT_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(ERCT_plants), glue::glue("{nrow(ERCT_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+ERCT_outside <-
+  ERCT_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = ERCT_plants) +
+  geom_sf(data = ERCT_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(ERCT_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(ERCT_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(ERCT_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(ERCT_outside)} plants fall outside region and subregion."))
+
+knitr::kable(ERCT_outside) 
+
+```
+
+### FRCC
+
+```{r}
+#| label: FRCC-summary 
+
+FRCC_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "FRCC") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+
+
+FRCC_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "FRCC") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+FRCC_plants <- 
+  FRCC_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(FRCC_plants, FRCC_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(FRCC_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(FRCC_plants), glue::glue("{nrow(FRCC_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+FRCC_outside <-
+  FRCC_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = FRCC_plants) +
+  geom_sf(data = FRCC_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(FRCC_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(FRCC_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(FRCC_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(FRCC_outside)} plants fall outside region and subregion."))
+
+knitr::kable(FRCC_outside) 
+```
+
+### HIMS
+
+```{r}
+#| label: HIMS-summary 
+
+HIMS_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "HIMS") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+HIMS_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "HIMS") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+HIMS_plants <- 
+  HIMS_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(HIMS_plants, HIMS_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(HIMS_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(HIMS_plants), glue::glue("{nrow(HIMS_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+HIMS_outside <-
+  HIMS_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = HIMS_plants) +
+  geom_sf(data = HIMS_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(HIMS_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(HIMS_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(HIMS_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(CAMX_outside)} plants fall outside region and subregion."))
+
+knitr::kable(HIMS_outside) 
+```
+
+### HIOA
+
+```{r}
+#| label: HIOA-summary 
+
+HIOA_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "HIOA") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+HIOA_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "HIOA") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+HIOA_plants <- 
+  HIOA_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(HIOA_plants, HIOA_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(HIOA_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(HIOA_plants), glue::glue("{nrow(HIOA_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+HIOA_outside <-
+  HIOA_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = HIOA_plants) +
+  geom_sf(data = HIOA_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(HIOA_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(HIOA_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(HIOA_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(HIOA_outside)} plants fall outside region and subregion."))
+
+knitr::kable(HIOA_outside) 
+
+```
+
+### MROE
+
+```{r}
+#| label: MROE-summary 
+
+MROE_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "MROE") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+MROE_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "MROE") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+MROE_plants <- 
+  MROE_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(MROE_plants, MROE_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(MROE_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(MROE_plants), glue::glue("{nrow(MROE_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+MROE_outside <-
+  MROE_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = MROE_plants) +
+  geom_sf(data = MROE_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(MROE_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(MROE_plants)[[2]]),
+           expand = TRUE)
+
+ifelse(nrow(MROE_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(MROE_outside)} plants fall outside region and subregion."))
+
+knitr::kable(MROE_outside) 
+```
+
+### MROW
+
+```{r}
+#| label: MROW-summary 
+
+MROW_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "MROW") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+MROW_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "MROW") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+MROW_plants <- 
+  MROW_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(MROW_plants, MROW_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(MROW_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(MROW_plants), glue::glue("{nrow(MROW_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+MROW_outside <-
+  MROW_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = MROW_plants) +
+  geom_sf(data = MROW_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(MROW_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(MROW_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(MROW_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(MROW_outside)} plants fall outside region and subregion."))
+
+knitr::kable(MROW_outside) 
+```
+
+### NEWE
+
+```{r}
+#| label: NEWE-summary 
+
+NEWE_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "NEWE") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+NEWE_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "NEWE") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+NEWE_plants <- 
+  NEWE_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NEWE_plants, NEWE_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NEWE_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(NEWE_plants), glue::glue("{nrow(NEWE_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+NEWE_outside <-
+  NEWE_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = NEWE_plants) +
+  geom_sf(data = NEWE_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(NEWE_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(NEWE_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(NEWE_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(NEWE_outside)} plants fall outside region and subregion."))
+
+knitr::kable(NEWE_outside) 
+
+```
+
+### NWPP
+
+```{r}
+#| label: NWPP-summary 
+
+NWPP_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "NWPP") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+NWPP_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "NWPP") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+NWPP_plants <- 
+  NWPP_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NWPP_plants, NWPP_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NWPP_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(NWPP_plants), glue::glue("{nrow(NWPP_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+NWPP_outside <-
+  NWPP_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = NWPP_plants) +
+  geom_sf(data = NWPP_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(NWPP_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(NWPP_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(NWPP_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(NWPP_outside)} plants fall outside region and subregion."))
+
+knitr::kable(NWPP_outside) 
+```
+
+### NYCW
+
+```{r}
+#| label: NYCW-summary 
+
+NYCW_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "NYCW") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+NYCW_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "NYCW") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+NYCW_plants <- 
+  NYCW_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NYCW_plants, AKGD_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NYCW_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(NYCW_plants), glue::glue("{nrow(NYCW_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+NYCW_outside <-
+  NYCW_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = NYCW_plants) +
+  geom_sf(data = NYCW_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(NYCW_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(NYCW_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(NYCW_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(NYCW_outside)} plants fall outside region and subregion."))
+
+knitr::kable(NYCW_outside) 
+```
+
+### NYLI
+
+```{r}
+#| label: NYLI-summary 
+
+NYLI_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "NYLI") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+NYLI_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "NYLI") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+NYLI_plants <- 
+  NYLI_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NYLI_plants, NYLI_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NYLI_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(NYLI_plants), glue::glue("{nrow(NYLI_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+NYLI_outside <-
+  NYLI_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = NYLI_plants) +
+  geom_sf(data = NYLI_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(NYLI_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(NYLI_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(NYLI_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(NYLI_outside)} plants fall outside region and subregion."))
+
+knitr::kable(NYLI_outside) 
+```
+
+### NYUP
+
+```{r}
+#| label: NYUP-summary 
+
+NYUP_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "NYUP") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+NYUP_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "NYUP") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+NYUP_plants <- 
+  NYUP_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NYUP_plants, NYUP_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(NYUP_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(NYUP_plants), glue::glue("{nrow(NYUP_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+NYUP_outside <-
+  NYUP_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = NYUP_plants) +
+  geom_sf(data = NYUP_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(NYUP_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(NYUP_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(NYUP_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(NYUP_outside)} plants fall outside region and subregion."))
+
+knitr::kable(NYUP_outside) 
+
+```
+
+### PRMS
+
+```{r}
+#| label: PRMS-summary 
+
+PRMS_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "PRMS") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+PRMS_shp <- sbrgn_shp %>% filter(subregion == "PRMS") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+PRMS_plants <- 
+  PRMS_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(PRMS_plants, PRMS_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(PRMS_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(PRMS_plants), glue::glue("{nrow(PRMS_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+PRMS_outside <-
+  PRMS_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = PRMS_plants) +
+  geom_sf(data = PRMS_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(PRMS_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(PRMS_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(PRMS_outside) == 0, "No plants fall outside subregion and multi-region.", 
+        glue::glue("{nrow(PRMS_outside)} plants fall outside region and subregion."))
+
+knitr::kable(PRMS_outside) 
+```
+
+### RFCE
+
+```{r}
+#| label: RFCE-summary 
+
+RFCE_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "RFCE") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+RFCE_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "RFCE") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+RFCE_plants <- 
+  RFCE_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RFCE_plants, RFCE_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RFCE_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(RFCE_plants), glue::glue("{nrow(RFCE_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+RFCE_outside <-
+  RFCE_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = RFCE_plants) +
+  geom_sf(data = RFCE_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(RFCE_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(RFCE_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(RFCE_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(RFCE_outside)} plants fall outside region and subregion."))
+
+knitr::kable(RFCE_outside) 
+```
+
+### RFCM
+
+```{r}
+#| label: RFCM-summary 
+
+RFCM_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "RFCM") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+RFCM_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "RFCM") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+RFCM_plants <- 
+  RFCM_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RFCM_plants, RFCM_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RFCM_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(RFCM_plants), glue::glue("{nrow(RFCM_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+RFCM_outside <-
+  RFCM_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = RFCM_plants) +
+  geom_sf(data = RFCM_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(RFCM_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(RFCM_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(RFCM_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(RFCM_outside)} plants fall outside region and subregion."))
+
+knitr::kable(RFCM_outside) 
+```
+
+### RFCW
+
+```{r}
+#| label: RFCW-summary 
+
+RFCW_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "RFCW") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+RFCW_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "RFCW") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+RFCW_plants <- 
+  RFCW_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RFCW_plants, RFCW_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RFCW_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(RFCW_plants), glue::glue("{nrow(RFCW_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+RFCW_outside <-
+  RFCW_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = RFCW_plants) +
+  geom_sf(data = RFCW_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(RFCW_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(RFCW_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(RFCW_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(RFCW_outside)} plants fall outside region and subregion."))
+
+knitr::kable(RFCW_outside) 
+```
+
+### RMPA
+
+```{r}
+#| label: RMPA-summary 
+
+RMPA_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "RMPA") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+RMPA_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "RMPA") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+RMPA_plants <- 
+  RMPA_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RMPA_plants, RMPA_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(RMPA_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(RMPA_plants), glue::glue("{nrow(RMPA_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+RMPA_outside <-
+  RMPA_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = RMPA_plants) +
+  geom_sf(data = RMPA_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(RMPA_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(RMPA_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(RMPA_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(RMPA_outside)} plants fall outside region and subregion."))
+
+knitr::kable(RMPA_outside) 
+```
+
+### SPNO
+
+```{r}
+#| label: SPNO-summary 
+
+SPNO_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "SPNO") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+SPNO_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "SPNO") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+SPNO_plants <- 
+  SPNO_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SPNO_plants, SPNO_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SPNO_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(SPNO_plants), glue::glue("{nrow(SPNO_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+SPNO_outside <-
+  SPNO_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = SPNO_plants) +
+  geom_sf(data = SPNO_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(SPNO_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(SPNO_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(SPNO_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(SPNO_outside)} plants fall outside region and subregion."))
+
+knitr::kable(SPNO_outside) 
+```
+
+### SPSO
+
+```{r}
+#| label: SPSO-summary 
+
+SPSO_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "SPSO") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+SPSO_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "SPSO") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+SPSO_plants <- 
+  SPSO_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SPSO_plants, SPSO_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SPSO_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(SPSO_plants), glue::glue("{nrow(SPSO_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+SPSO_outside <-
+  SPSO_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = SPSO_plants) +
+  geom_sf(data = SPSO_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(SPSO_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(SPSO_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(SPSO_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(SPSO_outside)} plants fall outside region and subregion."))
+
+knitr::kable(SPSO_outside) 
+```
+
+### SRMV
+
+```{r}
+#| label: SRMV-summary 
+
+SRMV_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "SRMV") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+SRMV_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "SRMV") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+SRMV_plants <- 
+  SRMV_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRMV_plants, SRMV_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRMV_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(SRMV_plants), glue::glue("{nrow(SRMV_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+SRMV_outside <-
+  SRMV_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = SRMV_plants) +
+  geom_sf(data = SRMV_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(SRMV_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(SRMV_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(SRMV_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(SRMV_outside)} plants fall outside region and subregion."))
+
+knitr::kable(SRMV_outside) 
+```
+
+### SRSO
+
+```{r}
+#| label: SRSO-summary 
+
+SRSO_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "SRSO") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+SRSO_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "SRSO") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+SRSO_plants <- 
+  SRSO_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRSO_plants, SRSO_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRSO_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(SRSO_plants), glue::glue("{nrow(SRSO_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+SRSO_outside <-
+  SRSO_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = SRSO_plants) +
+  geom_sf(data = SRSO_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(SRSO_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(SRSO_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(SRSO_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(SRSO_outside)} plants fall outside region and subregion."))
+
+knitr::kable(SRSO_outside) 
+```
+
+### SRTV
+
+```{r}
+#| label: SRTV-summary 
+
+SRTV_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "SRTV") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+SRTV_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "SRTV") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+SRTV_plants <- 
+  SRTV_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRTV_plants, SRTV_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRTV_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(SRTV_plants), glue::glue("{nrow(SRTV_plants)} plants in subregion"),
+       "No plants fall within subregion")
+       
+SRTV_outside <-
+  SRTV_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = SRTV_plants) +
+  geom_sf(data = SRTV_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(SRTV_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(SRTV_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(SRTV_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(SRTV_outside)} plants fall outside region and subregion."))
+
+knitr::kable(SRTV_outside) 
+```
+
+### SRVC
+
+```{r}
+#| label: SRVC-summary 
+
+SRVC_plants <- 
+  plant_with_coordinates %>% 
+  filter(egrid_subregion == "SRVC") %>% 
+  select(egrid_subregion, plant_id, primary_fuel_category, lat, lon) %>% 
+  sf::st_as_sf(coords = c("lon", "lat"), crs = "EPSG:4326") %>% 
+  sf::st_transform(sf::st_crs(sbrgn_shp))
+
+SRVC_shp <- 
+  sbrgn_shp %>% 
+  filter(subregion == "SRVC") %>% 
+  sf::st_transform(crs = "EPSG:4326")
+
+SRVC_plants <- 
+  SRVC_plants %>% 
+  mutate(in_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRVC_plants, SRVC_shp)$plant_id),
+                        TRUE, FALSE),
+         multi_region_check = ifelse(plant_id %in% 
+                        c(sf::st_filter(SRVC_plants, multi_sbrgn_shp)$plant_id),
+                        TRUE, FALSE))
+
+ifelse(nrow(SRVC_plants), glue::glue("{nrow(SRVC_plants)} plants in subregion"),
+       "No plants fall within subregion")
+
+SRVC_outside <-
+  SRVC_plants %>%
+  filter(in_region_check == FALSE & multi_region_check == FALSE)
+
+ggplot() + 
+  geom_sf(data = sbrgn_shp, aes(fill = subregion)) +
+  geom_sf(data = multi_sbrgn_shp, aes(color = "Multi-region")) +
+  geom_sf(data = SRVC_plants) +
+  geom_sf(data = SRVC_outside, color = "red") +
+  coord_sf(xlim = as.vector(bounding_box_plot(SRVC_plants)[[1]]),
+           ylim = as.vector(bounding_box_plot(SRVC_plants)[[2]]),
+                    expand = TRUE) 
+
+ifelse(nrow(SRVC_outside) == 0, "No plants fall outside subregion and mulit-region.", 
+        glue::glue("{nrow(SRVC_outside)} plants fall outside region and subregion."))
+
+knitr::kable(SRVC_outside) 
+```
+:::
+
+## FC prime mover
+
+FC prime mover should have no (NA) values for:
+
+-   CO2
+
+-   CH4
+
+-   N2O
+
+-   combustion heat input
+
+```{r}
+#| label: plant-fc-pm
+
+# need to identify plants that ONLY have FC prime mover - and extract plant IDs
+
+# plants assigned to FC
+unit_fc_prime_mover <- 
+  unit_file %>% 
+  filter(prime_mover == "FC") %>% 
+  distinct(plant_id) %>% 
+  pull(plant_id) 
+
+# plants assigned to FC AND another
+unit_other_prime_mover <- 
+  unit_file %>% 
+  filter(plant_id %in% unit_fc_prime_mover) %>% 
+  filter(!(prime_mover == "FC")) %>% 
+  distinct(plant_id) %>% 
+  pull(plant_id) 
+
+# filter plants assigned ONLY to FC and have blank emissions and heat input
+check_plant_fc_values <- 
+  plant_file %>% 
+  filter((plant_id %in% unit_fc_prime_mover & 
+                          !(plant_id %in% unit_other_prime_mover)) &
+                         (!is.na(co2_mass) | !is.na(ch4_mass) | !is.na(n2o_mass) | 
+                          !is.na(heat_input))) 
+
+ifelse(nrow(check_plant_fc_values) == 0, "Status: PASS - All plants with ONLY FC prime mover have blank CO2, N2O, CH4, or annual combustion heat input data.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_fc_values)} plants with ONLY FC prime mover have values for CO2, N2O, CH4, or annual combustion heat input."))
+
+knitr::kable(check_plant_fc_values %>% 
+               select(plant_id, plant_name, co2_mass, 
+                                              ch4_mass, n2o_mass, heat_input))
+
+```
+
+## Biomass adjustment emissions
+
+We have columns labeled co2_biomass, ch4_biomass, etc. We want to make sure the value in that column is [not greater]{.underline} than the total unadjusted emissions (columns unadj_co2_mass, unadj_ch4_mass, etc.). We have a line of code that should set BIO columns to equal UN columns if it is larger, so want to check that is working.
+
+```{r}
+#| label: plant-biomass
+
+check_plant_biomass_emissions <- 
+  plant_file %>% 
+  filter((nox_biomass > unadj_nox_mass) |
+           (nox_bio_oz > unadj_nox_oz_mass) |
+           (so2_biomass > unadj_so2_mass) | 
+           (co2_biomass > unadj_co2_mass) | 
+           (ch4_biomass > unadj_ch4_mass) |
+           (n2o_biomass > unadj_n2o_mass))
+
+ifelse(nrow(check_plant_biomass_emissions) == 0, "Status: PASS - No plants have biomass emissions greater than unadjusted emissions.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_biomass_emissions)} plants have biomass emissions greater than unadjusted emissions."))
+
+knitr::kable(check_plant_biomass_emissions %>% 
+               select(plant_id, plant_name, unadj_nox_mass, 
+                                         nox_biomass, unadj_nox_oz_mass, nox_bio_oz, 
+                                         unadj_so2_mass, so2_biomass, unadj_co2_mass, co2_biomass, 
+                                         unadj_ch4_mass, ch4_biomass, unadj_n2o_mass, n2o_biomass))
+
+```
+
+## Ozone emissions and heat input check
+
+For this, we want to check that the NOx ozone season emissions are not greater than the annual NOx emissions (so columns PLnox_mass and PLnox_oz_mass). Same with annual heat input and ozone season heat input (PLheat_input and PLheat_input_oz/PLheat_inputT and PLheat_input_ozT).
+
+```{r}
+#| label: plant-ozone
+
+check_plant_ozone <- 
+  plant_file %>% 
+  filter((nox_mass < nox_oz_mass) |
+                 (heat_input < heat_input_oz) |
+                 (heat_input < heat_input_oz))
+
+ifelse(nrow(check_plant_ozone) == 0, "Status: PASS - No plants have ozone values greater than annual values", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_ozone)} plants have ozone values greater than annual values."))
+
+knitr::kable(check_plant_ozone %>% select(plant_id, plant_name, nox_mass, 
+                                                      nox_oz_mass, heat_input, heat_input_oz, 
+                                                      heat_input, heat_input_oz))
+
+```
+
+## Duplicate plants
+
+Check for duplicate plants. There should be none.
+
+```{r}
+#| label: plant-duplicates
+
+check_plant_duplicate <- 
+  plant_file %>% 
+  group_by(plant_id) %>% 
+  filter(n() > 1)
+
+ifelse(nrow(check_plant_duplicate) == 0, "Status: PASS - No duplicate plants.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_duplicate)} duplicate plants."))
+
+knitr::kable(check_plant_duplicate %>% 
+               select(plant_id, plant_name))
+
+```
+
+## Negative emission values
+
+```{r}
+#| label: plant-negative-emissions
+
+check_plant_neg_emissions <- 
+  plant_file %>% 
+  filter((nox_mass < 0) | (nox_oz_mass < 0) | (so2_mass < 0), 
+                        (co2_mass < 0) | (ch4_mass < 0) | (n2o_mass < 0))
+
+ifelse(nrow(check_plant_neg_emissions) == 0, "Status: PASS - No plants have negative emission values.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_neg_emissions)} plants have negative emission values."))
+
+knitr::kable(check_plant_neg_emissions %>% 
+               select(plant_id, plant_name, nox_mass, 
+                                                  nox_oz_mass, so2_mass, co2_mass, 
+                                                  ch4_mass, n2o_mass))
+
+```
+
+## Emission rate outliers
+
+```{r}
+#| label: calculate-stats
+
+# output rates that are negative are typically zeroed out 
+# here, we recalculate them and keep the negatives to identify outliers 
+
+plant_rates <- 
+  plant_file %>% 
+  #select(plant_id, net_gen, heat_input, heat_input_oz, contains("rate")) # filter this way if using R plant file output
+  select(plant_id, plant_name, heat_input, heat_input_oz, generation_ann, generation_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, ch4_mass,
+         n2o_mass, co2e_mass, contains("ra"), contains("ro")) %>% 
+  mutate(nox_output_rate = nox_mass / generation_ann * 2000, 
+         nox_oz_output_rate = nox_oz_mass / generation_oz * 2000, 
+         so2_output_rate = so2_mass / generation_ann * 2000, 
+         co2_output_rate = co2_mass/ generation_ann * 2000, 
+         ch4_output_rate = ch4_mass / generation_ann, 
+         n2o_output_rate = n2o_mass / generation_ann,
+         co2e_output_rate = co2e_mass / generation_ann * 2000) 
+
+plant_rates[sapply(plant_rates, is.infinite)] <- NA
+
+plant_stats <- 
+  plant_rates %>% 
+  mutate(across(.cols = c(contains("rate"), contains("ra"), contains("ro")), 
+                .fns = ~ mean(.x, na.rm = TRUE), 
+                .names =  "{.col}_average"), 
+         across(.cols = c(contains("rate"), contains("ra"), contains("ro"), -contains("average")), 
+                .fns = ~ sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_sd"))
+
+plant_stats[sapply(plant_stats, is.infinite)] <- NA
+
+plant_zscore <- 
+  plant_stats %>% 
+  mutate(across(.cols = c(contains("rate"), contains("ra"), contains("ro"), -contains("average"), -contains("sd")), 
+                .fns = ~ (.x - mean(.x, na.rm = TRUE)) / sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_zscore")) 
+```
+
+### Input rate
+
+::: panel-tabset
+#### NOx input rate
+
+```{r}
+#| label: plant-nox-input-outliers
+
+knitr::kable(plant_zscore %>%
+               filter(nox_in_emission_rate_zscore > 3 | nox_in_emission_rate_zscore < -3) %>% 
+               arrange(desc(nox_in_emission_rate_zscore)) %>% select(plant_id, plant_name, nox_in_emission_rate_zscore, nox_in_emission_rate))
+
+```
+
+#### NOx ozone input rate
+
+```{r}
+#| label: plant-nox_oz_mass-input-outliers
+
+knitr::kable(plant_zscore %>% 
+               filter(nox_oz_in_emission_rate_zscore > 3 | nox_oz_in_emission_rate_zscore < -3) %>% 
+               arrange(desc(nox_oz_in_emission_rate_zscore)) %>% 
+               select(plant_id, plant_name, nox_oz_in_emission_rate_zscore, nox_oz_in_emission_rate))
+```
+
+#### SO2 input rate
+
+```{r}
+#| label: plant-so2-input-outliers
+
+knitr::kable(plant_zscore %>% 
+               filter(so2_in_emission_rate_zscore > 3 | so2_in_emission_rate_zscore < -3) %>% 
+               arrange(desc(so2_in_emission_rate_zscore)) %>% 
+               select(plant_id, plant_name, so2_in_emission_rate_zscore, so2_in_emission_rate))
+```
+
+#### CO2 input rate
+
+```{r}
+#| label: plant-co2-input-outliers
+
+knitr::kable(plant_zscore %>% 
+               filter(co2_in_emission_rate_zscore > 3 | co2_in_emission_rate_zscore < -3) %>% 
+               arrange(desc(co2_in_emission_rate_zscore)) %>% 
+               select(plant_id, plant_name, co2_in_emission_rate_zscore, co2_in_emission_rate))
+
+```
+
+#### CH4 input rate
+
+```{r}
+#| label: plant-ch4-input-outliers
+
+knitr::kable(plant_zscore %>% 
+               filter(ch4_in_emission_rate_zscore > 3 | ch4_in_emission_rate_zscore < -3) %>% 
+               arrange(desc(ch4_in_emission_rate_zscore)) %>% 
+               select(plant_id, plant_name, ch4_in_emission_rate_zscore, ch4_in_emission_rate))
+
+```
+
+#### N2O input rate
+
+```{r}
+#| label: plant-n2o-input-outliers
+
+knitr::kable(plant_zscore %>% 
+               filter(n2o_in_emission_rate_zscore > 3 | n2o_in_emission_rate_zscore < -3) %>% 
+               arrange(desc(n2o_in_emission_rate_zscore)) %>% 
+               select(plant_id, plant_name, n2o_in_emission_rate_zscore, n2o_in_emission_rate))
+
+```
+
+#### CO2e input rate
+
+```{r}
+#| label: plant-co2e-input-outliers
+
+knitr::kable(plant_zscore %>% 
+               filter(co2e_in_emission_rate_zscore > 3 | co2e_in_emission_rate_zscore < -3) %>% 
+               arrange(desc(co2e_in_emission_rate_zscore)) %>% 
+               select(plant_id, plant_name, co2e_in_emission_rate_zscore, co2e_in_emission_rate))
+
+```
+:::
+
+### Output rates
+
+::: panel-tabset
+#### NOx output rate
+
+```{r}
+#| label: plant-nox-output-outliers
+
+knitr::kable(plant_zscore %>% 
+               filter(nox_output_rate_zscore > 3 | nox_output_rate_zscore < -3) %>% 
+               arrange(desc(nox_output_rate_zscore)) %>% 
+               select(plant_id, plant_name, nox_output_rate_zscore, nox_output_rate))
+
+```
+
+#### NOx ozone output rate
+
+```{r}
+#| label: plant-nox_oz_mass-output-outliers
+
+knitr::kable(plant_zscore %>% 
+               filter(nox_oz_output_rate_zscore > 3 | nox_oz_output_rate_zscore < -3) %>% 
+               arrange(desc(nox_oz_output_rate_zscore)) %>% select(plant_id, plant_name, nox_oz_output_rate_zscore, nox_oz_output_rate))
+
+```
+
+#### SO2 output rate
+
+```{r}
+#| label: plant-so2-output-outliers
+
+knitr::kable(plant_zscore %>% 
+               filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
+               arrange(desc(so2_output_rate_zscore)) %>% 
+               select(plant_id, plant_name, so2_output_rate_zscore, so2_output_rate))
+
+```
+
+#### CO2 output rate
+
+```{r}
+#| label: plant-co2-output-outliers
+
+knitr::kable(plant_zscore %>% 
+               filter(co2_output_rate_zscore > 3 | co2_output_rate_zscore < -3) %>% 
+               arrange(desc(co2_output_rate_zscore)) %>% 
+               select(plant_id, plant_name, co2_output_rate_zscore, co2_output_rate))
+
+```
+
+#### CH4 output rate
+
+```{r}
+#| label: plant-ch4-output-outliers
+
+knitr::kable(plant_zscore %>% 
+               filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
+               arrange(desc(so2_output_rate_zscore)) %>% 
+               select(plant_id, plant_name, so2_output_rate_zscore, so2_output_rate))
+
+```
+
+#### N2O output rate
+
+```{r}
+#| label: plant_n2o_output_outliers
+
+knitr::kable(plant_zscore %>% 
+               filter(n2o_output_rate_zscore > 3 | n2o_output_rate_zscore < -3) %>% 
+               arrange(desc(n2o_output_rate_zscore)) %>% 
+               select(plant_id, plant_name, n2o_output_rate_zscore, n2o_output_rate))
+
+```
+
+#### CO2e output rate
+
+```{r}
+#| label: plant-co2e-output-outliers
+
+knitr::kable(plant_zscore %>% 
+               filter(co2e_output_rate_zscore > 3 | co2e_output_rate_zscore < -3) %>% 
+               arrange(desc(co2e_output_rate_zscore)) %>% 
+               select(plant_id, plant_name, co2e_output_rate_zscore, co2e_output_rate))
+
+```
+:::
+
+## Capacity factor
+
+The capacity factor must be less than 1. Check if there are any instances of a capacity factor greater than 1.
+
+```{r}
+#| label: plant-cap-fac
+
+check_plant_capfac <- 
+  plant_file %>% 
+  filter(capfac > 1)
+
+ifelse(nrow(check_plant_capfac) == 0, "Status: PASS - No plants have capacity factor greater than 1.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_capfac)} plants have capacity factor greater than 1."))
+
+knitr::kable(check_plant_capfac %>% 
+               select(plant_id, plant_name, primary_fuel_category, primary_fuel_type, capfac))
+
+
+```
+
+## Electric allocation factor
+
+```{r}
+#| label: plant-elec-allocation
+
+check_plant_elec_alloc <- 
+  plant_file %>% 
+  filter(elec_allocation < 0 | elec_allocation > 1)
+
+ifelse(nrow(check_plant_elec_alloc) == 0, "Status: PASS - No plants have an electric allocation factor greater than 1 or less than 0.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_elec_alloc)} plants have electric allocation factor greater than 1 or less than 0."))
+
+knitr::kable(check_plant_elec_alloc %>% 
+               select(plant_id, plant_name, elec_allocation))
+
+```
+
+## Blank subregions
+
+Check if any subregions are blank.
+
+```{r}
+#| label: plant-subrgn-blanks
+
+check_plant_sbrgn_blanks <- 
+  plant_file %>% 
+  filter(is.na(egrid_subregion) | egrid_subregion == "")
+
+ifelse(nrow(check_plant_sbrgn_blanks) == 0, "Status: PASS - No plants have blank subregions.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_sbrgn_blanks)} plants have blank subregions."))
+
+knitr::kable(check_plant_sbrgn_blanks %>% 
+               select(plant_id, plant_name, egrid_subregion))
+
+```
+
+## Nonbaseload factor
+
+```{r}
+#| label: plant-nb-factor
+#| 
+check_plant_nb_factor <- 
+  plant_file %>% 
+  filter(nonbaseload < 0 | nonbaseload > 1)
+
+ifelse(nrow(check_plant_nb_factor) == 0, "Status: PASS - No plants have a nonbaseload factor greater than 1 or less than 0.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_nb_factor)} plants have a nonbaseload factor greater than 1 or less than 0."))
+
+knitr::kable(check_plant_nb_factor %>% 
+               select(plant_id, plant_name, nonbaseload))
+
+```
+
+## Primary fuel blanks
+
+```{r}
+#| label: plant-fuel-blanks
+
+check_plant_fuel_blanks <- 
+  plant_file %>% 
+  filter(is.na(primary_fuel_type) | primary_fuel_type == "")
+
+ifelse(nrow(check_plant_fuel_blanks) == 0, "Status: PASS - All plants have a primary fuel.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_fuel_blanks)} plants are missing a primary fuel."))
+
+knitr::kable(check_plant_fuel_blanks %>% select(plant_id, plant_name, primary_fuel_type))
+
+```
+
+## Primary fuel category matches primary fuel
+
+```{r}
+#| label: plant-fuel-cat
+
+check_plant_fuelcat <- 
+  plant_file %>% filter(is.na(primary_fuel_category) |
+                        (primary_fuel_category == "COAL" & !(primary_fuel_type %in% 
+                          c("ANT","BIT", "COG", "LIG", "RC", "SGC", "SUB", "WC"))) |
+                        (primary_fuel_category == "GAS" & !(primary_fuel_type %in% c("NG", "PG"))) | 
+                        (primary_fuel_category == "OIL" & !(primary_fuel_type %in% 
+                          c("DFO", "JF", "KER", "PC", "RFO", "WO"))) | 
+                        (primary_fuel_category == "OFSL" & !(primary_fuel_type %in% c("BFG", "OG", "TDF"))) |
+                        (primary_fuel_category == "NUCLEAR" & !(primary_fuel_type == "NUC")) | 
+                        (primary_fuel_category == "HYDRO" & !(primary_fuel_type == "WAT")) | 
+                        (primary_fuel_category == "SOLAR" & !(primary_fuel_type == "SUN")) | 
+                        (primary_fuel_category == "WIND" & !(primary_fuel_type == "WND")) | 
+                        (primary_fuel_category == "GEOTHERMAL" & !(primary_fuel_type == "GEO")) | 
+                        (primary_fuel_category == "OTHF" & !(primary_fuel_type %in% 
+                          c("H", "MWH", "OTH", "PRG", "PUR", "WH"))) | 
+                        (primary_fuel_category == "BIOMASS" & !(primary_fuel_type %in% 
+                           c("AB", "BG", "BLQ", "DG", "LFG", "MSB", "MSW", "OBG", "OBL",
+                             "OBS", "SLW", "WDL", "WDS"))))
+
+ifelse(nrow(check_plant_fuelcat) == 0, "Status: PASS - All plants have a primary category and it matches the primary fuel.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_fuelcat)} plants are either missing a primary fuel category or primary fuel cateogry does not match primary fuel."))
+
+knitr::kable(check_plant_fuelcat %>% select(plant_id, plant_name, primary_fuel_type, primary_fuel_category))
+                          
+```
+
+## Emissions without heat input
+
+Check if any values that have positive emission values are missing heat input.
+
+```{r}
+#| label: plant-emissions-no-heatinput
+
+check_plant_emissions_heatinput <- 
+  plant_file %>% 
+  filter((is.na(heat_input) | is.na(heat_input_oz)) & 
+                        (nox_mass > 0 | nox_oz_mass > 0 | 
+                         so2_mass > 0 | co2_mass > 0 |
+                         ch4_mass > 0 | n2o_mass > 0 | 
+                         co2e_mass > 0))
+
+ifelse(nrow(check_plant_emissions_heatinput) == 0, "Status: PASS - All plants with emission values have heat input values.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_emissions_heatinput)} plants that have emissions values are missing heat input."))
+
+knitr::kable(check_plant_emissions_heatinput %>% 
+               select(plant_id, plant_name, heat_input, heat_input_oz, nox_mass, nox_oz_mass, 
+                      so2_mass, co2_mass, ch4_mass, n2o_mass, co2e_mass))
+
+```
+
+## Resource mix adds to 100
+
+Confirm that the resource mix adds to 100%.
+
+```{r}
+#| label: plant-resource-mix
+
+emission_types <- c(
+  "_coal",
+  "_oil",
+  "_gas",
+  "_nuclear",
+  "_hydro",
+  "_biomass",
+  "_wind",
+  "_solar",
+  "_geothermal",
+  "_other_ff",
+  "_other"
+)
+
+plant_resource_mix <- 
+  plant_file %>%
+  select(plant_id, plant_name, contains("perc_ann_gen") & !contains("non") & ends_with(emission_types)) %>%
+  mutate(resource_mix_total = round(rowSums(across(where(is.numeric))), 3))
+
+check_plant_resource_mix <- 
+  plant_resource_mix %>% 
+  filter(!(resource_mix_total == 1)) %>% 
+  mutate()
+
+ifelse(nrow(check_plant_resource_mix) == 0, "Status: PASS = All plant resource mixes add to 100%.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_resource_mix)} plant resource mixes do not add to 100%."))
+
+knitr::kable(check_plant_resource_mix %>% select(plant_id, plant_name,
+                                                 resource_mix_total))
+
+```
+
+# Aggregation file QA
+
+```{r}
+#| label: load-agg-files
+
+state_agg <- read_rds(glue::glue("data/outputs/{params$year}/state_aggregation.RDS"))
+ba_agg <- read_rds(glue::glue("data/outputs/{params$year}/ba_aggregation.RDS"))
+subrgn_agg <- read_rds(glue::glue("data/outputs/{params$year}/subregion_aggregation.RDS"))
+nerc_agg <- read_rds(glue::glue("data/outputs/{params$year}/nerc_aggregation.RDS"))
+us_agg <- read_rds(glue::glue("data/outputs/{params$year}/us_aggregation.RDS"))
+
+```
+
+## Duplicate regions
+
+::: panel-tabset
+### State
+
+```{r}
+#| label: state-duplicates
+
+check_state_duplicates <- 
+  state_agg %>% 
+  group_by(state) %>% 
+  filter(n() > 1)
+
+ifelse(nrow(check_state_duplicates) == 0, "Status: PASS - No duplicate states.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_state_duplicates)} duplicate states."))
+
+knitr::kable(check_state_duplicates %>% 
+               select(state))
+```
+
+### BA
+
+```{r}
+#| label: ba-duplicates
+
+check_ba_duplicates <- 
+  ba_agg %>%
+  group_by(ba_code) %>% 
+  filter(n() > 1)
+
+ifelse(nrow(check_ba_duplicates) == 0, "Status: PASS - No duplicate BA regions.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_ba_duplicates)} duplicate BA regions."))
+
+knitr::kable(check_ba_duplicates %>% 
+               select(ba_code))
+```
+
+### eGRID subregion
+
+```{r}
+#| label: subregion-duplicates
+
+check_subregion_duplicates <- 
+  subrgn_agg %>% 
+  group_by(subregion) %>% 
+  filter(n() > 1)
+
+ifelse(nrow(check_subregion_duplicates) == 0, "Status: PASS - No duplicate eGRID subregions.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_subregion_duplicates)} duplicate states."))
+
+knitr::kable(check_subregion_duplicates %>% 
+               select(subregion))
+```
+
+### NERC
+
+```{r}
+#| label: nerc-duplicates
+
+check_nerc_duplicates <- 
+  nerc_agg %>% 
+  group_by(nerc) %>% 
+  filter(n() > 1)
+
+ifelse(nrow(check_nerc_duplicates) == 0, "Status: PASS - No duplicate NERC regions.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_state_duplicates)} duplicate NERC regions."))
+
+knitr::kable(check_nerc_duplicates %>% 
+               select(nerc))
+```
+:::
+
+## Resource mix
+
+::: panel-tabset
+### State
+
+```{r}
+#| label: state-mix
+
+state_mix <- 
+  state_agg %>%
+  select("state", contains("state_ann_resource_mix") & !contains("non") & ends_with(emission_types)) %>%
+  mutate(resource_mix_total = round(rowSums(across(where(is.numeric))), 3))
+         
+check_state_mix <- 
+  state_mix %>% filter(!(resource_mix_total %in% c(0.999, 1.000, 1.001)))
+
+ifelse(nrow(check_state_mix) == 0, "Status: PASS - All state resource mixes add to 100%.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_state_mix)} state resource mixes do not add to 100%."))
+
+knitr::kable(check_state_mix %>% 
+               select(state, resource_mix_total))
+
+```
+
+### BA
+
+```{r}
+#| label: ba-mix
+
+ba_mix <- 
+  ba_agg %>%
+  select("ba_code", contains("ba_ann_resource_mix") & !contains("non") & ends_with(emission_types)) %>%
+  mutate(resource_mix_total = round(rowSums(across(where(is.numeric))), 3))
+
+check_ba_mix <- 
+  ba_mix %>% filter(!(resource_mix_total %in% c(0.999, 1.000, 1.001)))
+
+ifelse(nrow(check_ba_mix) == 0, "Status: PASS - All BA resource mixes add to 100%.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_ba_mix)} BA resource mixes do not add to 100%."))
+
+knitr::kable(check_ba_mix %>% 
+               select(ba_code, resource_mix_total))
+```
+
+### eGRID subregion
+
+```{r}
+#| label: subregion-mix
+
+subregion_mix <- 
+  subrgn_agg %>% 
+  select("subregion", contains("subregion_ann_resource_mix") & !contains("non") & ends_with(emission_types)) %>%
+  mutate(resource_mix_total = round(rowSums(across(where(is.numeric))), 3))
+
+check_subregion_mix <- 
+  subregion_mix %>% filter(!(resource_mix_total %in% c(0.999, 1.000, 1.001)))
+
+ifelse(nrow(check_subregion_mix) == 0, "Status: PASS - All subregion resource mixes add to 100%.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_subregion_mix)} subregion resource mixes do not add to 100%."))
+
+knitr::kable(check_subregion_mix %>% 
+               select(subregion, resource_mix_total))
+```
+
+### NERC
+
+```{r}
+#| label: nerc-mix
+
+nerc_mix <- 
+  nerc_agg %>% 
+  select("nerc", contains("nerc_ann_resource_mix") & !contains("non") & ends_with(emission_types)) %>%
+  mutate(resource_mix_total = round(rowSums(across(where(is.numeric))), 3))
+
+check_nerc_mix <- 
+  nerc_mix %>% filter(!(resource_mix_total %in% c(0.999, 1.000, 1.001)))
+
+ifelse(nrow(check_nerc_mix) == 0, "Status: PASS - All NERC resource mixes add to 100%.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_nerc_mix)} NERC resource mixes do not add to 100%."))
+
+knitr::kable(check_nerc_mix %>% select(nerc, resource_mix_total))
+```
+:::
+
+## Digits for fuel specific input rates
+
+Check there are an approporate number of digits for fuel specific input rates. For example, if N2O emissions are all zero, there is the possibility that there are not enough digits and they are rounding.
+
+::: panel-tabset
+### State
+
+```{r}
+#| label: state-rate-digits
+
+knitr::kable(state_agg %>% select(state, contains("input_rate_")))
+```
+
+### BA
+
+```{r}
+#| label: ba-rate-digits
+
+knitr::kable(ba_agg %>% select(ba_code, contains("input_rate_")))
+```
+
+### eGRID subregion
+
+```{r}
+#| label: subregion-rate-digits
+
+knitr::kable(subrgn_agg %>% select(subregion, contains("input_rate_")))
+```
+
+### NERC
+
+```{r}
+#| label: nerc-rate-digits
+
+knitr::kable(nerc_agg %>% select(nerc, contains("input_rate_")))
+```
+:::
+
+# Subregion File Only QA
+
+## Outlier check for emission rate
+
+```{r}
+#| label: calculate-subregion-outliers
+
+plant_stats_summary <- 
+  plant_stats %>% 
+  select(contains("average"), contains("sd")) %>% distinct() 
+
+subregion_stats <- 
+  subrgn_agg %>% 
+  mutate(across(.cols = contains("rate") & where(is.numeric), 
+                .fns = ~ mean(.x, na.rm = TRUE), 
+                .names =  "{.col}_average"), 
+         across(.cols = c(contains("rate") & where(is.numeric),
+                          -contains("average") & where(is.numeric)), 
+                .fns = ~ sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_sd")) %>% 
+  select(contains("average") & where(is.numeric), 
+         contains("sd") & where(is.numeric)) %>% distinct()
+
+stats_summary <- bind_cols(plant_stats_summary, subregion_stats) 
+
+subregion_zscore <- 
+  subrgn_agg %>% 
+  mutate(nox_output_zscore = (subregion_nox_output_rate - 
+                                stats_summary$nox_output_rate_average)/ 
+           stats_summary$nox_output_rate_sd, 
+         
+         nox_oz_output_zscore = (subregion_nox_oz_output_rate - 
+                                   stats_summary$nox_oz_output_rate_average)/ 
+           stats_summary$nox_oz_output_rate_sd, 
+         
+         so2_output_zscore = (subregion_so2_output_rate - 
+                                stats_summary$so2_output_rate_average)/ 
+           stats_summary$so2_output_rate_sd,
+         
+         co2_output_zscore = (subregion_co2_output_rate - 
+                                stats_summary$co2_output_rate_average)/ 
+           stats_summary$co2_output_rate_sd,
+         
+         ch4_output_zscore = (subregion_ch4_output_rate - 
+                                stats_summary$ch4_output_rate_average)/ 
+           stats_summary$ch4_output_rate_sd,
+         
+         n2o_output_zscore = (subregion_n2o_output_rate - 
+                                stats_summary$n2o_output_rate_average)/ 
+           stats_summary$n2o_output_rate_sd,
+         
+         co2e_output_zscore = (subregion_co2e_output_rate - 
+                                 stats_summary$co2e_output_rate_average)/ 
+           stats_summary$co2e_output_rate_sd,
+         
+         nox_input_zscore = (subregion_nox_input_rate - 
+                                stats_summary$nox_in_emission_rate_average)/ 
+           stats_summary$nox_in_emission_rate_sd, 
+         
+         nox_oz_input_zscore = (subregion_nox_oz_input_rate - 
+                                   stats_summary$nox_oz_in_emission_rate_average)/ 
+           stats_summary$nox_oz_in_emission_rate_sd, 
+         
+         so2_input_zscore = (subregion_so2_input_rate - 
+                                stats_summary$so2_in_emission_rate_average)/ 
+           stats_summary$so2_in_emission_rate_sd,
+         
+         co2_input_zscore = (subregion_co2_input_rate - 
+                                stats_summary$co2_in_emission_rate_average)/ 
+           stats_summary$co2_in_emission_rate_sd,
+         
+         ch4_input_zscore = (subregion_ch4_input_rate - 
+                                stats_summary$ch4_in_emission_rate_average)/ 
+           stats_summary$ch4_in_emission_rate_sd,
+         
+         n2o_input_zscore = (subregion_n2o_input_rate - 
+                                stats_summary$n2o_in_emission_rate_average)/ 
+           stats_summary$n2o_in_emission_rate_sd,
+         
+         co2e_input_zscore = (subregion_co2e_input_rate - 
+                                 stats_summary$co2e_in_emission_rate_average)/ 
+           stats_summary$co2e_in_emission_rate_sd) %>% 
+  select(subregion, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+```
+
+### Overall input rates
+
+Outliers are identified by any zscores for emission rates \> +/- 3 and are printed in the table if any exist.
+
+::: panel-tabset
+#### NOx input rate
+
+```{r}
+#| label: subregion-nox-input-outliers
+
+knitr::kable(subregion_zscore %>% 
+               filter(nox_input_zscore > 3 | nox_input_zscore < -3) %>% 
+               select(subregion, subregion_nox_input_rate, nox_input_zscore) %>% 
+               arrange(desc(nox_input_zscore)))
+```
+
+#### NOx ozone input rate
+
+```{r}
+#| label: subregion-nox-oz-input-outliers
+
+knitr::kable(subregion_zscore %>% 
+               filter(nox_oz_input_zscore > 3 | nox_oz_input_zscore < -3) %>% 
+               select(subregion, subregion_nox_oz_input_rate, nox_oz_input_zscore) %>% 
+               arrange(desc(nox_oz_input_zscore)))
+
+```
+
+#### SO2 input rate
+
+```{r}
+#| label: subregion-so2-input-outliers
+
+knitr::kable(subregion_zscore %>% 
+               filter(so2_input_zscore > 3 | so2_input_zscore < -3) %>% 
+               select(subregion, subregion_so2_input_rate, so2_input_zscore) %>% 
+               arrange(desc(so2_input_zscore)))
+
+```
+
+#### CO2 input rate
+
+```{r}
+#| label: subregion-co2-input-outliers
+
+
+knitr::kable(subregion_zscore %>% 
+               filter(co2_input_zscore > 3 | co2_input_zscore < -3) %>% 
+               select(subregion, subregion_co2_input_rate, co2_input_zscore) %>% 
+               arrange(desc(co2_input_zscore)))
+
+```
+
+#### CH4 input rate
+
+```{r}
+#| label: subregion-ch4-input-outliers
+
+knitr::kable(subregion_zscore %>% 
+               filter(ch4_input_zscore > 3 | ch4_input_zscore < -3) %>% 
+               select(subregion, subregion_ch4_input_rate, ch4_input_zscore) %>% 
+               arrange(desc(ch4_input_zscore)))
+
+```
+
+#### N2O input rate
+
+```{r}
+#| label: subregion-n2o-input-outliers
+
+knitr::kable(subregion_zscore %>% 
+               filter(n2o_input_zscore > 3 | n2o_input_zscore < -3) %>% 
+               select(subregion, subregion_n2o_input_rate, n2o_input_zscore) %>% 
+               arrange(desc(n2o_input_zscore)))
+
+```
+:::
+
+### Overall output rates
+
+Outliers are identified by any zscores for emission rates \> +/- 3 and are printed in the table if any exist.
+
+::: panel-tabset
+#### NOx output rate
+
+```{r}
+#| label: subregion-nox-output-outliers
+
+knitr::kable(subregion_zscore %>% 
+               filter(nox_output_zscore > 3 | nox_output_zscore < -3) %>% 
+               select(subregion, subregion_nox_output_rate, nox_output_zscore) %>% 
+               arrange(desc(nox_output_zscore)))
+```
+
+#### NOx ozone output rate
+
+```{r}
+#| label: subregion-nox-oz-output-outliers
+
+knitr::kable(subregion_zscore %>% 
+               filter(nox_oz_output_zscore > 3 | nox_oz_output_zscore < -3) %>% 
+               select(subregion, subregion_nox_oz_output_rate, nox_oz_output_zscore) %>% 
+               arrange(desc(nox_oz_output_zscore)))
+
+```
+
+#### SO2 output rate
+
+```{r}
+#| label: subregion-so2-output-outliers
+
+knitr::kable(subregion_zscore %>% 
+               filter(so2_output_zscore > 3 | so2_output_zscore < -3) %>% 
+               select(subregion, subregion_so2_output_rate, so2_output_zscore) %>% 
+               arrange(desc(so2_output_zscore)))
+
+```
+
+#### CO2 output rate
+
+```{r}
+#| label: subregion-co2-output-outliers
+#| 
+knitr::kable(subregion_zscore %>% 
+               filter(co2_output_zscore > 3 | co2_output_zscore < -3) %>% 
+               select(subregion, subregion_co2_output_rate, co2_output_zscore) %>% 
+               arrange(desc(co2_output_zscore)))
+
+```
+
+#### CH4 output rate
+
+```{r}
+#| label: subregion-ch4-output-outliers
+
+knitr::kable(subregion_zscore %>% 
+               filter(ch4_output_zscore > 3 | ch4_output_zscore < -3) %>% 
+               select(subregion, subregion_ch4_output_rate, ch4_output_zscore) %>% 
+               arrange(desc(ch4_output_zscore)))
+
+```
+
+#### N2O output rate
+
+```{r}
+#| label: subregion-n2o-output-outliers
+
+knitr::kable(subregion_zscore %>% 
+               filter(n2o_output_zscore > 3 | n2o_output_zscore < -3) %>% 
+               select(subregion, subregion_n2o_output_rate, n2o_output_zscore) %>% 
+               arrange(desc(n2o_output_zscore)))
+
+```
+:::
+
+# All file QA
+
+## Count of plants in generator, unit, and plant file are equivalent
+
+```{r}
+#| label: count-plants
+
+gen_plants <-
+  generator_file %>%
+  distinct(plant_id)
+
+if (nrow(gen_plants) < nrow(plant_file %>% distinct(plant_id))) {
+  gen_missing_plants <-
+    plant_file %>%
+    distinct(plant_id) %>% 
+    filter(!plant_id %in% gen_plants$plant_id)
+  print(glue::glue("Missing {nrow(gen_missing_plants)} plants in generator file."))
+  print(knitr::kable(gen_missing_plants))
+} else {
+  "No missing plants in generator file"
+}
+
+unit_plants <-
+  unit_file %>%
+  distinct(plant_id)
+
+if (nrow(unit_plants) < nrow(plant_file %>% distinct(plant_id))) {
+  unit_missing_plants <-
+    plant_file %>%
+    distinct(plant_id) %>% 
+    filter(!plant_id %in% unit_plants$plant_id)
+  print(glue::glue("Missing {nrow(unit_missing_plants)} plants in unit file."))
+  print(knitr::kable(unit_missing_plants))
+} else {
+  "No missing plants in unit file"
+}
+
+```
+
+## Sum of generation
+
+Check that generation is equal across plant and generator file.
+
+### Plant by plant comparisons - annual generation
+
+```{r}
+#| label: plant-annual-generation
+
+gen_plant_sum <-
+  generator_file %>%
+  group_by(plant_id) %>%
+  summarize(plant_ann_sum = sum(generation_ann), plant_oz_sum = sum(generation_oz))
+
+check_plant_gen_sum_ann <- gen_plant_sum %>%
+  full_join(plant_file %>% select("plant_id", "generation_ann"), join_by("plant_id")) %>%
+  mutate(sum_diff = round(generation_ann - plant_ann_sum, 5)) %>%
+  filter(sum_diff != 0)
+
+ifelse(nrow(check_plant_gen_sum_ann) == 0, "Status: PASS - All annual generation values between plant and generation files are equal.",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum_ann)} plants do not have the same annual plant generation values between plant and generation files."))
+
+knitr::kable(check_plant_gen_sum_ann %>% select(plant_id, sum_diff))
+```
+
+### Plant by plant comparison - ozone season generation
+
+```{r}
+#| label: plant-ozone-generation
+#| 
+check_plant_gen_sum_oz <- 
+  gen_plant_sum %>%
+  full_join(plant_file %>% select("plant_id", "generation_oz"), join_by("plant_id")) %>%
+  mutate(sum_diff = round(generation_oz - plant_oz_sum, 5)) %>%
+  filter(sum_diff != 0)
+
+ifelse(nrow(check_plant_gen_sum_oz) == 0, "Status: PASS - All annual generation values between plant and generation files are equal.",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum_oz)} plants do not have the same annual plant generation values between plant and generation files."))
+
+knitr::kable(check_plant_gen_sum_oz %>% select(plant_id, sum_diff))
+```
+
+### Total generation comparisons - ozone season and annual
+
+```{r}
+#| label: plant-total-generation
+
+plant_gen_sum <- 
+  plant_file %>% 
+  summarize(gen_total = sum(generation_ann, na.rm = TRUE), 
+            gen_oz_total = sum(generation_oz, na.rm = TRUE))
+
+generator_gen_sum <- 
+  generator_file %>% 
+  summarize(gen_total = sum(generation_ann, na.rm = TRUE),
+            gen_oz_total = sum(generation_oz, na.rm = TRUE))
+
+glue::glue("Plant file total generation: {plant_gen_sum$gen_total}")
+glue::glue("Generator file total generation: {generator_gen_sum$gen_total}")
+glue::glue("Difference (plant - generator): {plant_gen_sum$gen_total - generator_gen_sum$gen_total}")
+
+glue::glue("Plant file ozone season generation: {plant_gen_sum$gen_oz_total}")
+glue::glue("Generator file ozone season generation: {generator_gen_sum$gen_oz_total}")
+glue::glue("Difference (plant - generator): {plant_gen_sum$gen_oz_total - generator_gen_sum$gen_oz_total}")
+
+```
+
+## Sum of emissions
+
+Check that emissions are equal to each other across plant and unit file.
+
+```{r}
+#| label: sum-emissions
+
+plant_emissions_sum <- 
+  plant_file %>% 
+  summarize(nox_total = sum(unadj_nox_mass, na.rm = TRUE), 
+            nox_oz_total = sum(unadj_nox_oz_mass, na.rm = TRUE),
+            so2_total = sum(unadj_so2_mass, na.rm = TRUE), 
+            co2_total = sum(unadj_co2_mass, na.rm = TRUE), 
+            hg_total = sum(unadj_hg_mass, na.rm = TRUE))
+
+unit_emissions_sum <- 
+  unit_file %>% 
+  summarize(nox_total = sum(nox_mass, na.rm = TRUE), 
+            nox_oz_total = sum(nox_oz_mass, na.rm = TRUE),
+            so2_total = sum(so2_mass, na.rm = TRUE), 
+            co2_total = sum(co2_mass, na.rm = TRUE), 
+            hg_total = sum(hg_mass, na.rm = TRUE))
+
+glue::glue("NOx emissions -- plant: {plant_emissions_sum$nox_total}, unit: {unit_emissions_sum$nox_total}, difference: {plant_emissions_sum$nox_total - unit_emissions_sum$nox_total}")
+
+glue::glue("NOx ozone emissions -- plant: {plant_emissions_sum$nox_oz_total}, unit: {unit_emissions_sum$nox_oz_total}, difference: {plant_emissions_sum$nox_oz_total - unit_emissions_sum$nox_oz_total}")
+
+glue::glue("SO2 emissions -- plant: {plant_emissions_sum$so2_total}, unit: {unit_emissions_sum$so2_total}, difference: {plant_emissions_sum$so2_total - unit_emissions_sum$so2_total}")
+
+glue::glue("CO2 emissions -- plant: {plant_emissions_sum$co2_total}, unit: {unit_emissions_sum$co2_total}, difference: {plant_emissions_sum$co2_total - unit_emissions_sum$co2_total}")
+
+glue::glue("Hg emissions -- plant: {plant_emissions_sum$hg_total}, unit: {unit_emissions_sum$hg_total}, difference: {plant_emissions_sum$hg_total - unit_emissions_sum$hg_total}")
+
+```
+
+# Output file QA
+
+## Check excel summary links
+
+Check manually.
+
+## Data year correct in excel output
+
+May need to do some checks manually.
+
+```{r}
+#| label: load-excel-data
+
+excel_load <- function(filename) {
+  sheets <- excel_sheets(filename)
+  all_sheets <- lapply(sheets, function(X) read_excel(filename, sheet = X, skip = 1))
+  names(all_sheets) <- sheets
+  return (all_sheets)
+}
+
+data_excel <- excel_load(glue::glue("data/outputs/{params$year}/egrid{params$year}_data.xlsx"))
+unit_excel <- data_excel[[glue::glue("UNT{params$year_abbrev}")]]
+plant_excel <- data_excel[[glue::glue("PLNT{params$year_abbrev}")]]
+gen_excel <- data_excel[[glue::glue("GEN{params$year_abbrev}")]]
+```
+
+```{r}
+#| label: excel-output-year
+
+years_check <-
+  rbind(unit_excel["YEAR"],
+        plant_excel["YEAR"],
+        gen_excel["YEAR"],
+        data_excel[[glue::glue("ST{params$year_abbrev}")]]["YEAR"],
+        data_excel[[glue::glue("BA{params$year_abbrev}")]]["YEAR"],
+        data_excel[[glue::glue("SRL{params$year_abbrev}")]]["YEAR"],
+        data_excel[[glue::glue("NRL{params$year_abbrev}")]]["YEAR"],
+        data_excel[[glue::glue("US{params$year_abbrev}")]]["YEAR"]) %>%
+  filter(YEAR != params$year)
+
+
+ifelse(nrow(years_check) == 0, "Status: PASS - Excel data year is correct in all instances.", glue::glue("Status: NEEDS CHECKED - Excel data year is not correct in {sum(c(nrow(unit_years_check),nrow(plant_years_check),nrow(generator_years_check)} instances."))
+
+```
+
+## Count of units/generators/plants in excel output match R datasets
+
+```{r}
+#| label: unit-count-comparison
+
+ifelse(nrow(unit_file) == nrow(unit_excel),"Status: PASS - Excel and R Unit files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R unit files differ by {nrow(unit_file) - nrow(unit_excel)} units."))
+
+ifelse(nrow(plant_file) == nrow(plant_excel),"Status: PASS - Excel and R Plant files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R Plant files differ by {nrow(plant_file) - nrow(plant_excel)} units."))
+
+ifelse(nrow(generator_file) == nrow(gen_excel),"Status: PASS - Excel and R Generator files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R Generator files differ by {nrow(generator_file) - nrow(gen_excel)} units."))
+  
+```

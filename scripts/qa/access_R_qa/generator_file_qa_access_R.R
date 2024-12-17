@@ -1,5 +1,7 @@
 ## -------------------------------
 ##
+## Note: this file is for internal QA only. 
+##
 ## Generator file QA 
 ## 
 ## Purpose: 
@@ -136,7 +138,7 @@ check_n_boilers <-
   select(plant_id, generator_id, n_boilers_r, n_boilers_access)
 
 if(nrow(check_n_boilers) > 0) {
-  write_csv(check_plant_state, paste0(save_dir, "check_n_boilers.csv")) }
+  write_csv(check_n_boilers, paste0(save_dir, "check_n_boilers.csv")) }
 
 # check if operating status matches ---------------
 check_status <- 
@@ -254,7 +256,6 @@ if(nrow(check_gen_source) > 0) {
   write_csv(check_gen_source, paste0(save_dir, "check_generation_source.csv"))}
 
 # Identify all unique plant and unit IDs that have differences ------------
-
 files <- grep("check", dir(save_dir), value = TRUE)
 
 plant_gen_diffs <- 

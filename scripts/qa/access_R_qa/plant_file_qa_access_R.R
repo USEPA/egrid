@@ -1,5 +1,7 @@
 ## -------------------------------
 ##
+## Note: this file is for internal QA only. 
+##
 ## Plant file QA 
 ##
 ## Purpose: 
@@ -41,7 +43,6 @@ colnames(plant_r) <- paste0(colnames(plant_r), "_r")
 plant_r <- plant_r %>% rename("plant_id" = "plant_id_r")
 
 ## 2. Access Version ---------------------
-
 plant_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
                            sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000}"), 
                            skip = 1, 
@@ -231,7 +232,6 @@ access_cols <- lapply(colnames(plant_access), FUN=gsub, pattern="_access$", repl
 
 # Check that all access columns appear in the r columns
 #stopifnot(length(access_cols[!access_cols %in% r_cols])==0)
-
 
 ## 4. Combine ------------------------------
 
