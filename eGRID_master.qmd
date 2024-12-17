@@ -18,7 +18,11 @@ format:
     html-table-processing: none
     code-fold: true
 params:
-  eGRID_year: "2021"
+  eGRID_year: "2023"
+  run_demo_file: FALSE # running demographic file takes 4-5 hours
+                       # FALSE = default, do not run
+                       # TRUE = runs script to collect demographic file
+                       # note: commenting out unit_file_create and metric_files_create since causing issues
 editor: visual
 project: 
   execute_dir: project
@@ -719,7 +723,7 @@ generator_file %>%
 
 ```{r}
 #| label: unit_file_create
-#| file: "scripts/unit_file_create.R"
+#|# file: # "scripts/unit_file_create.R"
 #| warning: false
 #| message: false
 ```
@@ -1744,41 +1748,72 @@ direct_use_plot <- ggl_file %>%
 ```
 :::
 
-# Demographic File
+# Demographics File
 
-The demographic file uses geographic coordinates from all plants and EPA's EJScreen tool to calculate the demographic characteristics of surrounding neighborhoods. For more information on the analysis process, [view EJScreen's methodology](https://www.epa.gov/ejscreen/technical-information-and-data-downloads).
+The demographics file uses geographic coordinates from all plants and EPA's EJScreen tool to calculate the demographic characteristics of surrounding neighborhoods. For more information on the analysis process, [view EJScreen's methodology](https://www.epa.gov/ejscreen/technical-information-and-data-downloads).
 
 For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
+```{r}
+#| label: demographics_file_create
+#| message: false
+
+if (params$run_demo_file) {
+
+    source("scripts/demographics_file_create.R")
+    print("demographics_file_create is running because run_script is TRUE. Code will take 4-5 hours to complete.")
+
+} else {
+
+    print("Skipping demographics_file_create.R because run_demo_file is FALSE.")
+
+}
+
+```
+
 # Metric Conversion File
 
-The metric conversion script calculates the imperial units outputs into metric units.
+The metric files converts imperial units outputs into metric units. The following table from `conversion_factors.csv` contains the conversion rates between units. 
 
--   add conversion factor table information
+## Conversion Table 
 
-<!-- ```{r} -->
+```{r}
+#| label: conversion_table
+#| message: false
 
-<!-- #| label: metric_conversion -->
+conversion_table <- read_csv("data/static_tables/conversion_factors.csv")
 
-<!-- #| file: "scripts/metric_file.R" -->
 
-<!-- #| message: false -->
+conversion_table %>%
+      gt::gt() %>%
+      gt::cols_label(
+          from = gt::md("**Imperial**"),
+          to = gt::md("**Metric**"),
+          conversion = gt::md("**Conversion Factor**")
+      )
 
-<!-- ``` -->
+```
+
+```{r}
+#| label: metric_files_create
+##| file: "scripts/metric_files_create.R"
+#| message: false
+
+```
 
 # Final Formatting
 
-To output the data into a clean, readable form, a final style script is applied for all output files. For headers, we add descriptions and label conventions to maintain consistency with previous eGRID releases. Using R package `openxlsx`, we apply formatting and colors to categorize outputs and values. Formatting is applied for both imperial unit version and the metric unit version.
+To output the data into a clean, readable form, a final style script is applied for all output files. For headers, we add descriptions and label conventions to maintain consistency with previous eGRID releases. Using R package `openxlsx`, we apply formatting and colors to categorize outputs and values. Formatting is applied for both imperial unit version and the metric unit version. 
 
-<!-- ```{r} -->
+The final output file is `egrid_dataYYYY.xlsx`.
 
-<!-- #| label: final_formatting -->
+```{r}
 
-<!-- #| file: "scripts/final_formatting.R" -->
+#| label: final_formatting
+#| file: "scripts/final_formatting.R"
+#| message: false
 
-<!-- #| message: false -->
-
-<!-- ``` -->
+```
 
 <!-- ```{r} -->
 
