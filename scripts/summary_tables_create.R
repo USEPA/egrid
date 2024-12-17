@@ -148,140 +148,51 @@ state_resource_mix <-
 # Format as excel sheet ---------------------------
 
 # styles
-toptitle <- createStyle(fontSize = 12, 
-                        halign = "center", 
-                        valign = "center", 
-                        wrapText = TRUE, 
-                        textDecoration = "bold", 
-                        border = "TopLeftRight", 
-                        borderColour = "black", 
-                        borderStyle = "thick")
+titles_gen <- createStyle(
+  halign = "center",
+  valign = "center",
+  wrapText = TRUE, 
+  textDecoration = "bold")
 
-grey_subtitle <- createStyle(fgFill = "#F2F2F2", 
-                             halign = "center", 
-                             valign = "center",
-                             wrapText = TRUE, 
-                             textDecoration = "bold",
-                             border = "TopBottomLeftRight", 
-                             borderColour = "black",
-                             borderStyle = "thin")
+all_borders <- createStyle(
+  border = "TopBottomLeftRight", 
+  borderColour = "black",
+  borderStyle = "thin")
 
-green_subtitle <- createStyle(fgFill = "#ebf1de", 
-                              halign = "center", 
-                              valign = "center", 
-                              wrapText = TRUE, 
-                              textDecoration = "bold", 
-                              border = "TopBottomLeftRight", 
-                              borderColour = "black", 
-                              borderStyle = "thin")
+right_borders <- createStyle(
+  border = "Right", 
+  borderColour = "black",
+  borderStyle = "thin")  
 
-green_subtitle_topborder <- createStyle(fgFill = "#ebf1de", 
-                                        halign = "center", 
-                                        valign = "center", 
-                                        wrapText = TRUE, 
-                                        textDecoration = "bold",
-                                        border = "Top", 
-                                        borderColour = "black", 
-                                        borderStyle = "thin")
+left_borders <- createStyle(
+  border = "Left", 
+  borderColour = "black",
+  borderStyle = "thin") 
 
-green_subtitle_noborder <- createStyle(fgFill = "#ebf1de", 
-                                       halign = "center", 
-                                       valign = "center", 
-                                       wrapText = TRUE, 
-                                       textDecoration = "bold")
+top_borders <- createStyle(
+  border = "Top", 
+  borderColour = "black",
+  borderStyle = "thin")
 
-purple_subtitle <- createStyle(fgFill = "#e4dfec", 
-                               halign = "center", 
-                               valign = "center", 
-                               wrapText = TRUE, 
-                               textDecoration = "bold", 
-                               border = "TopBottomLeftRight", 
-                               borderColour = "black",
-                               borderStyle = "thin")
+toptitle <- createStyle(
+  fontSize = 12,           
+  halign = "center", 
+  valign = "center", 
+  wrapText = TRUE, 
+  textDecoration = "bold", 
+  border = "TopLeftRight", 
+  borderColour = "black", 
+  borderStyle = "thick")
 
-purple_subtitle_topborder <- createStyle(fgFill = "#e4dfec", 
-                                         halign = "center", 
-                                         valign = "center", 
-                                         wrapText = TRUE, 
-                                         textDecoration = "bold",
-                                         border = "TopLeft", 
-                                         borderColour = "black", 
-                                         borderStyle = "thin")
+grey <- createStyle(fgFill = "#F2F2F2")
+green <- createStyle(fgFill = "#ebf1de")
+purple <- createStyle(fgFill = "#e4dfec")
+red <- createStyle(fgFill = "#f2dcdb")
+orange <- createStyle(fgFill = "#fde9d9")
 
-purple_subtitle_leftborder <- createStyle(fgFill = "#e4dfec", 
-                                          halign = "center", 
-                                          valign = "center", 
-                                          wrapText = TRUE, 
-                                          textDecoration = "bold",
-                                          border = "Left", 
-                                          borderColour = "black", 
-                                          borderStyle = "thin")
-
-red_subtitle <- createStyle(fgFill = "#f2dcdb", 
-                            halign = "center", 
-                            valign = "center", 
-                            wrapText = TRUE, 
-                            textDecoration = "bold", 
-                            border = "TopBottomLeftRight", 
-                            borderColour = "black", 
-                            borderStyle = "thin")
-
-orange_subtitle <- createStyle(fgFill = "#fde9d9", 
-                               halign = "center", 
-                               valign = "center", 
-                               wrapText = TRUE, 
-                               textDecoration = "bold", 
-                               border = "TopBottomLeftRight", 
-                               borderColour = "black", 
-                               borderStyle = "thin")
-
-us_smalltitle <- createStyle(textDecoration = "bold",
-                             border = "Top",
+us_boundary <- createStyle(textDecoration = "bold",
+                             border = "TopBottom",
                              borderStyle = "thick",
-                             borderColour = "black")
-
-largenum <- createStyle(numFmt = "#,##0.0",  
-                        border = "TopBottomLeftRight", 
-                        borderStyle = "thin", 
-                        borderColour = "black")
-
-smallnum <- createStyle(numFmt = "#,##0.000",  
-                        border = "TopBottomLeftRight", 
-                        borderStyle = "thin", 
-                        borderColour = "black")
-
-percentnum <- createStyle(numFmt = "#,##0.0%",  
-                          border = "TopBottomLeftRight", 
-                          borderStyle = "thin", 
-                          borderColour = "black")
-
-nodecimnum <- createStyle(numFmt = "#,##0",  
-                          border = "TopBottomLeftRight", 
-                          borderStyle = "thin", 
-                          borderColour = "black")
-
-us_largenum <- createStyle(numFmt = "#,##0.0",
-                           textDecoration = "bold",
-                           border = "TopBottom", 
-                           borderStyle = "thick", 
-                           borderColour = "black")
-
-us_smallnum <- createStyle(numFmt = "#,##0.000",
-                           textDecoration = "bold",
-                           border = "TopBottom", 
-                           borderStyle = "thick", 
-                           borderColour = "black")
-
-us_percentnum <- createStyle(numFmt = "#,##0.0%",  
-                             textDecoration = "bold",
-                             border = "TopBottom", 
-                             borderStyle = "thick", 
-                             borderColour = "black")
-
-us_nodecimnum <- createStyle(numFmt = "#,##0",  
-                             textDecoration = "bold",
-                             border = "TopBottom", 
-                             borderStyle = "thick", 
                              borderColour = "black")
 
 # create workbook
@@ -309,6 +220,9 @@ for (sheet in 1:4) {
   addWorksheet(wb, sheetName = paste0("Table ",sheet))
   sheetWidth <- as.numeric(ncol(table_data[[sheet]]))
   sheetLength <- nrow(table_data[[sheet]]) + colname_rows[sheet]
+  
+  writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1, 
+            borders = "all", colNames = FALSE)
   
   # Sheet 1 formatting ----------------------------------
   if (sheet == 1) {
@@ -346,16 +260,26 @@ for (sheet in 1:4) {
     
     ### Column title formatting ---------------------------
     
-    # write column title and format
+    # write column title
     writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = colname_rows[sheet] - 1) # column titles
     writeData(wb, sheet, colnames_units, startCol = startcol, startRow = 1) # column units and larger categories
-    addStyle(wb, sheet, grey_subtitle, rows = 2:4, cols = c(2:3, 18), gridExpand = TRUE)
-    addStyle(wb, sheet, green_subtitle, rows = 4, cols = 4:10, gridExpand = TRUE)
-    addStyle(wb, sheet, green_subtitle_topborder, rows = 2, cols = 4:10, gridExpand = TRUE)
-    addStyle(wb, sheet, green_subtitle_noborder, rows = 3, cols = 4:10, gridExpand = TRUE)
-    addStyle(wb, sheet, purple_subtitle, rows = 4, cols = 11:17, gridExpand = TRUE)
-    addStyle(wb, sheet, purple_subtitle_topborder, rows = 2, cols = 11:17, gridExpand = TRUE)
-    addStyle(wb, sheet, purple_subtitle_leftborder, rows = 3, cols = 11:17, gridExpand = TRUE)
+    
+    # add borders
+    addStyle(wb, sheet, all_borders, rows = c(1, 4:sheetLength), cols = 1:sheetWidth + 1, 
+             stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, right_borders, rows = 2:4, cols = 1:sheetWidth + 1, 
+             stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, top_borders, rows = 2, cols = 1:sheetWidth +1, 
+             stack = TRUE, gridExpand = TRUE)
+    
+    # add font format
+    #addStyle(wb, sheet, titles_gen, rows = 2:colname_rows[sheet], cols = 1:sheetWidth + 1, 
+         #    stack = TRUE, gridExpand = TRUE)
+    
+    # add shading
+    addStyle(wb, sheet, grey, rows = 2:4, cols = c(2:3, 18), stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, green, rows = 2:4, cols = 4:10, stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, purple, rows = 2:4, cols = 11:17, stack = TRUE, gridExpand = TRUE)
     
     # merge column title cells
     mergeCells(wb, sheet, cols = 2:18, rows = 1)
@@ -371,20 +295,13 @@ for (sheet in 1:4) {
     
     ### Data formatting ------------------------------
     
-    # write in data
-    writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1, 
-              borders = "all", colNames = FALSE) # data
-    writeData(wb, sheet, table_data[[sheet]] %>% 
-                filter(subregion == "U.S."), startCol = startcol, startRow = sheetLength, 
-              borders = "surrounding", borderStyle = "thick", colNames = FALSE) # US data
-    
-    # add data styles
-    addStyle(wb, sheet, largenum, rows = 6:sheetLength - 1, cols = c(4, 7:9, 11, 14:16), gridExpand = TRUE)
-    addStyle(wb, sheet, smallnum, rows = 6:sheetLength - 1, cols = c(5:6, 10, 12:13, 17), gridExpand = TRUE)
-    addStyle(wb, sheet, percentnum, rows = 5:sheetLength - 1, cols = 18, gridExpand = TRUE)
-    addStyle(wb, sheet, us_largenum, rows = sheetLength, cols = c(4, 7:9, 11, 14:16), gridExpand = TRUE)
-    addStyle(wb, sheet, us_smallnum, rows = sheetLength, cols = c(5:6, 10, 12:13, 17), gridExpand = TRUE)
-    addStyle(wb, sheet, us_percentnum, rows = sheetLength, cols = 18, gridExpand = TRUE)
+    # add number format
+    addStyle(wb, sheet, createStyle(numFmt = "#,##0.0"), rows = 5:sheetLength, 
+             cols = c(4, 7:9, 11, 14:16), stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, createStyle(numFmt = "#,##0.000"), rows = 5:sheetLength, 
+             cols = c(5:6, 10, 12:13, 17), stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, createStyle(numFmt = "#,##0.0%"), rows = 5:sheetLength, 
+             cols = 18, stack = TRUE, gridExpand = TRUE)
     
     ### General formatting ---------------------------
     
@@ -425,12 +342,18 @@ for (sheet in 1:4) {
     
     ### Column title formatting ---------------------------
     
-    # write column title and format
+    # write column title
     writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 2)
     writeData(wb, sheet, colnames_upper, startCol = startcol, startRow = 1)
-    addStyle(wb, sheet, grey_subtitle, rows = 2:3, cols = 2:4, gridExpand = TRUE)
-    addStyle(wb, sheet, red_subtitle, rows = 2:3, cols = 5, gridExpand = TRUE)
-    addStyle(wb, sheet, orange_subtitle, rows = 2:3, cols = 6:17, gridExpand = TRUE)
+    
+    # add borders
+    addStyle(wb, sheet, all_borders, rows = 1:sheetLength, cols = 1:sheetWidth + 1,
+             stack = TRUE, gridExpand = TRUE)
+
+    # add shading
+    addStyle(wb, sheet, grey, rows = 2:3, cols = 2:4, stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, red, rows = 2:3, cols = 5, stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, orange, rows = 2:3, cols = 6:16, stack = TRUE, gridExpand = TRUE)
     
     # merge column title cells
     mergeCells(wb, sheet, cols = 2:16, rows = 1)
@@ -442,17 +365,20 @@ for (sheet in 1:4) {
     ### Data formatting ------------------
     
     # write in data
-    writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1, 
-              borders = "all", colNames = FALSE)
-    writeData(wb, sheet, table_data[[sheet]] %>% 
-                filter(subregion == "U.S."), startCol = startcol, startRow = sheetLength, 
-              borders = "surrounding", borderStyle = "thick", colNames = FALSE)
+    # writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1,
+              # borders = "all", colNames = FALSE)
+    # writeData(wb, sheet, table_data[[sheet]] %>% 
+    #             filter(subregion == "U.S."), startCol = startcol, startRow = sheetLength, 
+    #           borders = "surrounding", borderStyle = "thick", colNames = FALSE)
     
-    # add data styles
-    addStyle(wb, sheet, nodecimnum, rows = 5:sheetLength - 1, cols = 4:5, gridExpand = TRUE)
-    addStyle(wb, sheet, percentnum, rows = 5:sheetLength - 1, cols = 6:16, gridExpand = TRUE)
-    addStyle(wb, sheet, us_nodecimnum, rows = sheetLength, cols = 4:5, gridExpand = TRUE)
-    addStyle(wb, sheet, us_percentnum, rows = sheetLength, cols = 6:16, gridExpand = TRUE)
+    # add number format
+    #addStyle(wb, sheet, nodecimnum, rows = 5:sheetLength - 1, cols = 4:5, gridExpand = TRUE)
+    #addStyle(wb, sheet, us_nodecimnum, rows = sheetLength, cols = 4:5, gridExpand = TRUE)
+    #addStyle(wb, sheet, us_percentnum, rows = sheetLength, cols = 6:16, gridExpand = TRUE)
+    addStyle(wb, sheet, createStyle(numFmt = "#,##0"), rows = 4:sheetLength, 
+             cols = 4:5, stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, createStyle(numFmt = "#,##0.0%"), rows = 4:sheetLength, 
+             cols = 6:16, stack = TRUE, gridExpand = TRUE)
     
     ### General formatting -----------------
     
@@ -493,14 +419,21 @@ for (sheet in 1:4) {
     
     ### Column title formatting -----------------
     
-    # write column title and format
+    # write column title
     writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 3)
     writeData(wb, sheet, colnames_units, startCol = startcol, startRow = 1)
-    addStyle(wb, sheet, grey_subtitle, rows = 2:4, cols = 2, gridExpand = TRUE)
-    addStyle(wb, sheet, green_subtitle, rows = 4, cols = 3:9, gridExpand = TRUE) # isnt working
-    addStyle(wb, sheet, green_subtitle_topborder, rows = 2, cols = 3:9, gridExpand = TRUE)
-    addStyle(wb, sheet, green_subtitle_noborder, rows = 3, cols = 3:9, gridExpand = TRUE)
     
+    # add borders
+    addStyle(wb, sheet, all_borders, rows = c(1, 4:sheetLength), cols = 1:sheetWidth + 1, 
+             stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, right_borders, rows = 2:4, cols = 1:sheetWidth + 1, 
+             stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, top_borders, rows = 2, cols = 1:sheetWidth +1, 
+             stack = TRUE, gridExpand = TRUE)
+    # add shading
+    addStyle(wb, sheet, grey, rows = 2:4, cols = 2, stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, green, rows = 2:4, cols = 3:9, stack = TRUE, gridExpand = TRUE)
+
     # merge column title cells
     mergeCells(wb, sheet, cols = 2:9, rows = 1)
     mergeCells(wb, sheet, cols = 2, rows = 2:4)
@@ -511,18 +444,18 @@ for (sheet in 1:4) {
     ### Data formatting ----------------
     
     # write in data
-    writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1, 
-              borders = "all", colNames = FALSE)
-    writeData(wb, sheet, table_data[[sheet]] %>% 
-                filter(state == "U.S."), startCol = startcol, startRow = sheetLength, 
-              borders = "surrounding", borderStyle = "thick", colNames = FALSE)
+   # writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1, 
+  #            borders = "all", colNames = FALSE)
+  #  writeData(wb, sheet, table_data[[sheet]] %>% 
+  #              filter(state == "U.S."), startCol = startcol, startRow = sheetLength, 
+  #           borders = "surrounding", borderStyle = "thick", colNames = FALSE)
     
-    # add styling
-    addStyle(wb, sheet, largenum, rows = 6:sheetLength - 1, cols = c(3, 6:8), gridExpand = TRUE)
-    addStyle(wb, sheet, smallnum, rows = 6:sheetLength - 1, cols = c(4:7, 9), gridExpand = TRUE)
-    addStyle(wb, sheet, us_largenum, rows = sheetLength, cols = c(3, 6:8), gridExpand = TRUE)
-    addStyle(wb, sheet, us_smallnum, rows = sheetLength, cols = c(4:7, 9), gridExpand = TRUE)
-    
+    # add number formats
+    addStyle(wb, sheet, createStyle("#,##0.0"), rows = 5:sheetLength, cols = c(3, 6:8),
+             stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, createStyle("#,##0.000"), rows = 5:sheetLength, cols = c(4:5, 9), 
+             stack = TRUE, gridExpand = TRUE)
+
     ### General formatting ----------------
     
     # set cell sizes
@@ -558,12 +491,18 @@ for (sheet in 1:4) {
     
     # Column title and formatting -----------------
     
-    # write data and format
+    # write column title data
     writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 2)
     writeData(wb, sheet, colnames_upper, startCol = startcol, startRow = 1)
-    addStyle(wb, sheet, grey_subtitle, rows = 2:3, cols = 2:3, gridExpand = TRUE)
-    addStyle(wb, sheet, red_subtitle, rows = 2:3, cols = 4, gridExpand = TRUE)
-    addStyle(wb, sheet, orange_subtitle, rows = 2:3, cols = 5:15, gridExpand = TRUE)
+    
+    #add borders
+    addStyle(wb, sheet, all_borders, rows = 1:sheetLength, cols = 1:sheetWidth + 1,
+             stack = TRUE, gridExpand = TRUE)
+    
+    # add shading
+    addStyle(wb, sheet, grey, rows = 2:3, cols = 2:3, stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, red, rows = 2:3, cols = 4, stack = TRUE,  gridExpand = TRUE)
+    addStyle(wb, sheet, orange, rows = 2:3, cols = 5:15, stack = TRUE, gridExpand = TRUE)
     
     # merge column title cells
     mergeCells(wb, sheet, cols = 2:15, rows = 1)
@@ -575,17 +514,17 @@ for (sheet in 1:4) {
     # Data formatting --------------
     
     # write in data
-    writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1, 
-              borders = "all", colNames = FALSE)
-    writeData(wb, sheet, table_data[[sheet]] %>% 
-                filter(state == "U.S."), startCol = startcol, startRow = sheetLength, 
-              borders = "surrounding", borderStyle = "thick", colNames = FALSE)
-    
-    # add styles
-    addStyle(wb, sheet, nodecimnum, rows = 5:sheetLength - 1, cols = 3:4, gridExpand = TRUE)
-    addStyle(wb, sheet, percentnum, rows = 5:sheetLength - 1, cols = 5:15, gridExpand = TRUE)
-    addStyle(wb, sheet, us_nodecimnum, rows = sheetLength, cols = 3:4, gridExpand = TRUE)
-    addStyle(wb, sheet, us_percentnum, rows = sheetLength, cols = 5:15, gridExpand = TRUE)
+    # writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1, 
+    #           borders = "all", colNames = FALSE)
+    # writeData(wb, sheet, table_data[[sheet]] %>% 
+    #             filter(state == "U.S."), startCol = startcol, startRow = sheetLength, 
+    #           borders = "surrounding", borderStyle = "thick", colNames = FALSE)
+    # 
+    # add number formats
+    addStyle(wb, sheet, createStyle(numFmt = "#,##0"), rows = 4:sheetLength,
+             cols = 3:4, stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, createStyle(numFmt = "#,##0.0%"), rows = 4:sheetLength, 
+             cols = 5:15, stack = TRUE, gridExpand = TRUE)
     
     ### General formatting --------------------
     # set cell sizes
@@ -606,18 +545,19 @@ for (sheet in 1:4) {
   
   # add titles and format
   writeData(wb, sheet, names(table_data[sheet]), startCol = startcol, startRow = 1) # title
-  addStyle(wb, sheet, toptitle, rows = 1, cols = 2:sheetWidth, gridExpand = TRUE)
+  addStyle(wb, sheet, toptitle, rows = 1, cols = 2:sheetWidth, stack = TRUE, gridExpand = TRUE)
+  addStyle(wb, sheet, titles_gen, rows = 2:colname_rows[sheet], cols = 1:sheetWidth + 1, stack = TRUE, gridExpand = TRUE)
   
-  # format US label
-  addStyle(wb, sheet, us_smalltitle, rows = sheetLength, cols = 2, gridExpand = TRUE)
+  # add us boundary
+  addStyle(wb, sheet, us_boundary, rows = sheetLength, cols = 2:sheetWidth + 1, stack = TRUE, gridExpand = TRUE)
   
   # add outer borders
   addStyle(wb, sheet, createStyle(border = "Left", borderColour = "black", borderStyle = "thick"),
-           rows = 1:sheetLength, cols = sheetWidth + 2, gridExpand = TRUE)
+           rows = 1:sheetLength, cols = sheetWidth + 2, stack = TRUE, gridExpand = TRUE)
   addStyle(wb, sheet, createStyle(border = "Right", borderColour = "black", borderStyle = "thick"),
-           rows = 1:sheetLength, cols = 1, gridExpand = TRUE)
+           rows = 1:sheetLength, cols = 1, stack = TRUE, gridExpand = TRUE)
   addStyle(wb, sheet, createStyle(border = "Top", borderColour = "black", borderStyle = "thick"),
-           rows = sheetLength + 1, cols = 2:sheetWidth, gridExpand = TRUE)
+           rows = sheetLength + 1, cols = 2:sheetWidth, stack = TRUE, gridExpand = TRUE)
 }
 
 saveWorkbook(wb, glue::glue("data/outputs/{params$eGRID_year}/summary_tables.xlsx"), overwrite = TRUE)
