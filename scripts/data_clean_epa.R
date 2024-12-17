@@ -86,7 +86,7 @@ xwalk_so2_control_abrvs <-
 epa_r <- 
   epa_raw %>% 
   rename(any_of(rename_cols)) %>%
-  filter(!operating_status %in% c("Future", "Retired", "Long-term Cold Storage"), # removing plants that are listed as future, retired, or long-term cold storage
+  filter((!operating_status %in% c("Future", "Retired", "Long-term Cold Storage") | plant_id == 10154), # removing plants that are listed as future, retired, or long-term cold storage
          (plant_id < 880000 | plant_id == 880004)) %>% # removing plant with plant ids above 880,000 unless they are in Puerto Rico
   mutate(
     plant_id = if_else(plant_id == 880004, 57788, plant_id), # manually update plant ID
@@ -103,6 +103,7 @@ epa_r <-
       operating_status == "Operating" ~ "OP",
       startsWith(operating_status, "Operating") ~ "OP", # Units that started operating in current year have "Operating" plus the date of operation.
       operating_status == "Retired" ~ "RE",
+      plant_id == 10154 ~ "OP",
       TRUE ~ operating_status),
     unit_type = str_replace(unit_type, "\\(.*?\\)", "") %>% str_trim(), # removing notes about start dates and getting rid of extra white space
     unit_type_abb = recode(unit_type, !!!unit_abbs), ## Recoding values based on lookup table. need to looking into cases with multipe types (SB 3/28/2024)

@@ -466,26 +466,7 @@ plant_file_3 <-
                              ba_name == "No BA" ~ NA_character_, 
                              ba_code == "PS" ~ "PSCO", 
                              ba_name == "Hawaiian Electric Co Inc" ~ "HECO",
-                             TRUE ~ ba_code), 
-         ba_code = case_when(is.na(ba_code) & plant_state == "AK" ~ "NA - AK", # update NA BAs to state specific NAs
-                             is.na(ba_code) & plant_state == "HI" ~ "NA - HI", 
-                             is.na(ba_code) & plant_state == "PR" ~ "NA - PR",
-                             is.na(ba_code) & !(plant_state %in% c("AK", "HI", "PR")) ~ "NA",
-                             TRUE ~ ba_code),
-         ba_name = case_when(plant_state == "AK" & # assign Alaska BAs with no BA to NA - AK
-                               (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
-                             "No balancing authority - AK",
-                             plant_state == "HI" & # assign Hawaii BAs with no BA to NA - HI 
-                               (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
-                             "No balancing authority - HI", 
-                             plant_state == "PR" & # assign Puerto Rico BAs with no BA to NA - PR 
-                               (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
-                             "No balancing authority - PR", 
-                             !(plant_state %in% c("AK", "HI", "PR")) &
-                               (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~
-                               "No balancing authority",
-                             ba_name == "No BA" ~ NA_character_, 
-                             TRUE ~ ba_name)) %>% 
+                             TRUE ~ ba_code)) %>% 
   rows_update(ba_codes, by = c("ba_code"), unmatched = "ignore") # update ba_name by ba_code
 
 
@@ -510,7 +491,26 @@ plant_file_4 <-
   rows_patch(xwalk_subregion_utility, by =  c("nerc", "ba_code", "system_owner_id", "utility_id"), unmatched = "ignore") %>% 
   rows_patch(xwalk_oris_subregion, by = c("plant_state", "plant_id"), unmatched = "ignore") %>% 
   rows_patch(xwalk_nerc_assessment, by = c("plant_id"), unmatched = "ignore") %>% 
-  left_join(egrid_subregions, by = c("egrid_subregion")) 
+  left_join(egrid_subregions, by = c("egrid_subregion")) %>% 
+  mutate(ba_code = case_when(is.na(ba_code) & plant_state == "AK" ~ "NA - AK", # update NA BAs to state specific NAs
+                              is.na(ba_code) & plant_state == "HI" ~ "NA - HI", 
+                              is.na(ba_code) & plant_state == "PR" ~ "NA - PR",
+                              is.na(ba_code) & !(plant_state %in% c("AK", "HI", "PR")) ~ "NA",
+                              TRUE ~ ba_code),
+        ba_name = case_when(plant_state == "AK" & # assign Alaska BAs with no BA to NA - AK
+                            (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
+                            "No balancing authority - AK",
+                          plant_state == "HI" & # assign Hawaii BAs with no BA to NA - HI 
+                            (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
+                            "No balancing authority - HI", 
+                          plant_state == "PR" & # assign Puerto Rico BAs with no BA to NA - PR 
+                            (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~ 
+                            "No balancing authority - PR", 
+                          !(plant_state %in% c("AK", "HI", "PR")) &
+                            (is.na(ba_name) | ba_name %in% c("No BA", "No balancing authority")) ~
+                            "No balancing authority",
+                          ba_name == "No BA" ~ NA_character_, 
+                          TRUE ~ ba_name))
 
 ### ISO/RTO assignments -----------------
 
