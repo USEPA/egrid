@@ -45,15 +45,21 @@ if (exists("params")) {
 
 
 # load files
-unt_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
-gen_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
-plnt_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
-st_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/state_aggregation.RDS"))
-ba_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/ba_aggregation.RDS"))
-srl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/subregion_aggregation.RDS"))
-nrl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/nerc_aggregation.RDS"))
-us_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/us_aggregation.RDS"))
-ggl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+unt_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
+gen_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
+plnt_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
+st_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/state_aggregation.RDS"))
+ba_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/ba_aggregation.RDS"))
+srl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/subregion_aggregation.RDS"))
+nrl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/nerc_aggregation.RDS"))
+us_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/us_aggregation.RDS"))
+ggl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+
+params$run_demo_file = TRUE # for testing purposes - remove later
+if (params$run_demo_file) {
+  demo_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
+}
+
 
 # extract last two digits of year for universal labeling
 year <- as.numeric(params$eGRID_year) %% 1000
@@ -947,47 +953,47 @@ writeData(wb,
 format_region(nrl, nrl_rows)
 
 ### US Formatting -----
-
-## create "US" sheet
-us <- glue::glue("US{year}")
-addWorksheet(wb, us)
-
-# convert variables to numeric value
-us_file <- us_file %>%
-           mutate(year = as.numeric(year))
-
-# select number of rows from data frame
-# add two to number of rows (nrows) to account for header + description rows
-us_rows <- nrow(us_file) + 2
-
-## column names and descriptions
-# column names
-us_header <- c("YEAR",	
-               paste0("US", standard_header))
-
-# description of column names
-us_desc <- c("Data Year",
-              paste0("U.S. ", standard_desc))
-
-# add new column names
-colnames(us_file) <- us_header
-
-## write data
-# write data for first row only
-writeData(wb, 
-          sheet = us, 
-          t(us_desc), 
-          startRow = 1, 
-          colNames = FALSE)
-
-# write data to sheet
-writeData(wb, 
-          sheet = us, 
-          us_file,
-          startRow = 2)
-
-## add styles to document
-format_region(us, us_rows)
+# 
+# ## create "US" sheet
+# us <- glue::glue("US{year}")
+# addWorksheet(wb, us)
+# 
+# # convert variables to numeric value
+# us_file <- us_file %>%
+#            mutate(year = as.numeric(year))
+# 
+# # select number of rows from data frame
+# # add two to number of rows (nrows) to account for header + description rows
+# us_rows <- nrow(us_file) + 2
+# 
+# ## column names and descriptions
+# # column names
+# us_header <- c("YEAR",	
+#                paste0("US", standard_header))
+# 
+# # description of column names
+# us_desc <- c("Data Year",
+#               paste0("U.S. ", standard_desc))
+# 
+# # add new column names
+# colnames(us_file) <- us_header
+# 
+# ## write data
+# # write data for first row only
+# writeData(wb, 
+#           sheet = us, 
+#           t(us_desc), 
+#           startRow = 1, 
+#           colNames = FALSE)
+# 
+# # write data to sheet
+# writeData(wb, 
+#           sheet = us, 
+#           us_file,
+#           startRow = 2)
+# 
+# ## add styles to document
+# format_region(us, us_rows)
 
 ### GGL Formatting -----
 
@@ -1055,6 +1061,131 @@ addStyle(wb, sheet = ggl, style = s[['percent_bold']], rows = 8, cols = 6,   gri
 # add text styles
 addStyle(wb, sheet = ggl, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpand = TRUE)
 addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
+
+### DEMO Formatting -----
+if (params$run_demo_file) {
+  
+  ## create "DEMO" sheet
+  demo <- glue::glue("DEMO{year}")
+  addWorksheet(wb, demo)
+  
+  # convert year to numeric value
+  demo_file <- demo_file %>%
+    mutate(year = as.numeric(year))
+  
+  
+  ## column names and descriptions
+  demo_labels <- c("SEQPLT"   = "Plant file sequence number",
+                   "YEAR"     = "Data Year",
+                   "PSTATABB" = "Plant state abbreviation",
+                   "PNAME"    = "Plant name",
+                   "ORISPL"   = "DOE/EIA ORIS plant or facility code",
+                   "LAT"      = "Plant latitude",
+                   "LON"      = "Plant longitude",
+                   "PLPRMFL"  = "Plant primary fuel", 
+                   "PLFUELCT" = "Plant primary fuel category",
+                   "NAMEPCAP" = "Plant nameplate capacity (MW)",
+                   "COALFLAG" = "Flag indicating if the plant burned or generated any amount of coal",
+                   "RAW_D_PEOPCOLOR" = "People of Color",
+                   "RAW_D_INCOME" = "Low Income",
+                   "RAW_D_LESSHS" = "Less Than High School Education",
+                   "RAW_D_LING" = "Limited English Speaking",
+                   "RAW_D_UNDER5" = "Under Age 5",
+                   "RAW_D_OVER64" = "Over Age 64",
+                   # RAW_D_UNEMPLOYED = "Unemployment Rate"
+                   "RAW_D_LIFEEXP" = "Limited Life Expectancy",
+                   "RAW_D_DEMOGIDX2ST" = "Demographic Index",
+                   "RAW_D_DEMOGIDX5ST" = "Supplemental Demographic Index",
+                   "RAW_D_UNEMPLOYED" = "Unemployment Rate",
+                   "S_D_PEOPCOLOR" = "State Average of People of Color",
+                   "S_D_INCOME" = "State Average of Low Income",
+                   "S_D_LESSHS" = "State Average of Less Than High School Education",
+                   "S_D_LING" = "State Average of Limited English Speaking",
+                   "S_D_UNDER5" = "State Average of Under Age 5",
+                   "S_D_OVER64" = "State Average of Over Age 64",
+                   # S_D_UNEMPLOYED
+                   # S_D_LIFEEXP
+                   "S_D_DEMOGIDX2ST" = "State Average of Demographic Index",
+                   # S_D_DEMOGIDX5ST = "State Average of Supplemental Demographic Index"
+                   "S_D_UNEMPLOYED" = "State Average of Unemployment Rate",
+                   "S_D_PEOPCOLOR_PER" = "State Percentile of People of Color", 
+                   "S_D_INCOME_PER" = "State Percentile of Low Income",
+                   "S_D_LESSHS_PER" = "State Percentile of Less Than High School Education",
+                   "S_D_LING_PER" = "State Percentile of Limited English Speaking",
+                   "S_D_UNDER5_PER" = "State Percentile of Under Age 5",
+                   "S_D_OVER64_PER" = "State Percentile of Over Age 64",
+                   "S_D_DEMOGIDX2ST_PER" = "State Percentile of Demographic Index",
+                   # S_D_DEMOGIDX5ST_PER
+                   "S_UNEMPLOYED_PER" = "State Percentile of Unemployment Rate",
+                   "N_D_PEOPCOLOR" = "National Average of People of Color",
+                   "N_D_INCOME" = "National Average of Low Income",
+                   "N_D_LESSHS" = "National Average of Less Than High School Education",
+                   "N_D_LING" = "National Average of Limited English Speaking",
+                   "N_D_UNDER5" = "National Average of Under Age 5",
+                   "N_D_OVER64" = "National Average of Over Age 64",
+                   "N_D_LIFEEXP" = "National Average of Limited Life Expectancy",
+                   # N_D_DEMOGIDX2
+                   # N_D_DEMOGIDX5
+                   "N_D_UNEMPLOYED" = "National Average of Unemployment Rate",
+                   "N_D_MINOR_PER" = "National Percentile of People of Color",
+                   "N_D_INCOME_PER" = "National Percentile of Low Income",
+                   "N_D_LESSHS_PER" = "National Percentile of Less Than High School Education",
+                   "N_D_LING_PER" = "National Percentile of Limited English Speaking",
+                   "N_D_UNDER5_PER" = "National Percentile of Under Age 5",
+                   "N_D_OVER64_PER" = "National Percentile of Over Age 64",
+                   "N_D_LIFEEXP_PER" = "National Percentile of Limited Life Expectancy",
+                   "N_D_UNEMPLOYED_PER" = "National Percentile of Unemployment Rate",
+                   # N_D_DEMOGIDX2_PER
+                   # N_D_DEMOGIDX5_PER
+                   "TOTALPOP" = "Total Population",
+                   "DISTANCE" = "Distance (miles)")
+  
+  
+  demo_header <- names(demo_labels)  # column names
+  demo_desc   <- unname(demo_labels) # description of column names
+  
+  # add new column names
+  colnames(demo_file) <- demo_header
+  
+  ## write data
+  # write data for first row only
+  writeData(wb, 
+            sheet = demo, 
+            t(demo_desc), 
+            startRow = 1, 
+            colNames = FALSE)
+  
+  # write data to sheet
+  writeData(wb, 
+            sheet = demo, 
+            demo_file,
+            startRow = 2)
+  
+  ## add styles to document
+  # add description styles
+  addStyle(wb, sheet = demo, style = s[['desc_style']], rows = 1, cols = 1:55, gridExpand = TRUE)
+  
+  # add header style
+  addStyle(wb, sheet = demo, style = s[['header_style']], rows = 2, cols = 1:55, gridExpand = TRUE)
+  
+  # # set column widths
+  # setColWidths(wb, sheet = demo, cols = 1,   widths = 10)
+  # setColWidths(wb, sheet = demo, cols = 2,   widths = 21.29)
+  # setColWidths(wb, sheet = demo, cols = 3:5, widths = 11.14)
+  # setColWidths(wb, sheet = demo, cols = 6,   widths = 23)
+  # 
+  # # set row heights
+  # setRowHeights(wb, sheet = demo, row = 1, heights = 60.75)
+  # 
+  # # add number styles
+  # addStyle(wb, sheet = demo, style = s[['integer']], rows = 3:7, cols = 3:5, gridExpand = TRUE)
+  # addStyle(wb, sheet = demo, style = s[['percent']], rows = 3:7, cols = 6,   gridExpand = TRUE)
+  # 
+  # # add text styles
+  # addStyle(wb, sheet = demo, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpand = TRUE)
+  # addStyle(wb, sheet = demo, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
+}
+
 
 ### Contents Formatting -------------
 

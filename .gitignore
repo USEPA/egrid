@@ -14,3 +14,7 @@ qa_all.html
 qa_all_files
 qa_annual_comparison.html
 qa_annual_comparison_files
+data/static_tables/qa/egrid2019_data.xlsx
+data/static_tables/qa/egrid2020_data.xlsx
+data/static_tables/qa/egrid2021_data.xlsx
+data/static_tables/qa/egrid2022_data.xlsx
