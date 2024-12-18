@@ -70,13 +70,18 @@ id_input  <- plant_file %>%
              select(plant_id)
 
 lat_input <- plant_file %>%
-             select(lat)
+             select(lat) 
 
 lon_input <- plant_file %>%
              select(lon)
 
 # set up adjustable mile setting
 mile <- 3
+
+
+source("scripts/functions/function_ejscreen_api.R")
+
+demo_data <- lapply(1:nrow(plant_file), function(i) {ejscreen_api(lat_input[i,], lon_input[i,], id_input[i,], mile)})
 
 
 ### EJScreen API Loop -----
@@ -141,6 +146,42 @@ for (i in 1:nrow(id_input)) {
 }
 
 #### Clean and Save Data -----
+
+# run first case to get column names
+# kind of inefficient, need to think of better way for this
+
+lon <- lon_input[1,]
+lat <- lat_input[1,]
+
+# url strings that make up EJScreen API
+url1 <- 'https://ejscreen.epa.gov/mapper/ejscreenRESTbroker.aspx?namestr=&geometry='
+url2 <- '{"spatialReference":{"wkid":4326},'
+lat_lon_input <- glue::glue('"x":{lon},"y":{lat}}')  # latitude, longitude input for plant
+url3 <- glue::glue('&distance={mile}&unit=9035&areatype=&areaid=&f=pjson')
+
+# call EJScreen API
+api_call <- paste0(url1, url2, lat_lon_input, url3)
+
+# load response
+res = GET(api_call)
+
+
+# status = 200 means data is collected
+if (status_code(res) == 200) {
+  
+  # extract data 
+  data <- content(res, as = "text", encoding ="UTF-8")
+  
+  # from extracted data, transform from JSON format
+  data <- fromJSON(data, flatten = TRUE)
+  
+  # converts to useable format
+  data <- cbind(data)
+  
+  # inverses row/column direction
+  data <- t(data)
+}
+
 
 # select column names
 column_names <- c("plant_id", colnames(data))
