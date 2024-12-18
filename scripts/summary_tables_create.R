@@ -164,11 +164,6 @@ right_borders <- createStyle(
   borderColour = "black",
   borderStyle = "thin")  
 
-left_borders <- createStyle(
-  border = "Left", 
-  borderColour = "black",
-  borderStyle = "thin") 
-
 top_borders <- createStyle(
   border = "Top", 
   borderColour = "black",
@@ -197,14 +192,17 @@ us_boundary <- createStyle(textDecoration = "bold",
 
 # create workbook
 wb <- createWorkbook()
-startcol <- 2
+
+# set base font
 modifyBaseFont(wb, fontSize = 8.5, fontName = "Arial")
 
+# define data for sheets
 table_data <- list(subregion_output_emissions,
                    subregion_resource_mix,
                    state_output_emissions,
                    state_resource_mix)
 
+# add sheet titles
 names(table_data) <- c(
   glue::glue("1. Subregion Output Emission Rates (eGRID{params$eGRID_year})"),
   glue::glue("2. Subregion Resource Mix (eGRID{params$eGRID_year})"),
@@ -212,7 +210,11 @@ names(table_data) <- c(
   glue::glue("4. State Resource Mix (eGRID{params$eGRID_year})")
 )
 
-colname_rows <- c(4, 3, 4, 3)
+# define sheet parameters
+startcol <- 2 # column to start data write
+colname_rows <- c(4, 3, 4, 3) # number of rows for titles
+us_datastart <- c(3, 3, 2, 2) # row where US data begins
+sheet_orientation <- c("landscape", "landscape", "portrait", "portrait") #printing orientation
 
 for (sheet in 1:4) {
   
@@ -221,8 +223,12 @@ for (sheet in 1:4) {
   sheetWidth <- as.numeric(ncol(table_data[[sheet]]))
   sheetLength <- nrow(table_data[[sheet]]) + colname_rows[sheet]
   
+  # add page formatting
+  pageSetup(wb, sheet, orientation = sheet_orientation[sheet], fitToWidth = TRUE, fitToHeight = TRUE)
+  
+  # write data onto sheet
   writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1, 
-            borders = "all", colNames = FALSE)
+            colNames = FALSE)
   
   # Sheet 1 formatting ----------------------------------
   if (sheet == 1) {
@@ -260,21 +266,17 @@ for (sheet in 1:4) {
     
     ### Column title formatting ---------------------------
     
-    # write column title
+    # write column titles
     writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = colname_rows[sheet] - 1) # column titles
     writeData(wb, sheet, colnames_units, startCol = startcol, startRow = 1) # column units and larger categories
     
     # add borders
-    addStyle(wb, sheet, all_borders, rows = c(1, 4:sheetLength), cols = 1:sheetWidth + 1, 
+    addStyle(wb, sheet, all_borders, rows = c(1, 4:(sheetLength - 1)), cols = startcol:(sheetWidth + 1),
+            stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, sheet, right_borders, rows = 2:4, cols = startcol:(sheetWidth + 1), 
              stack = TRUE, gridExpand = TRUE)
-    addStyle(wb, sheet, right_borders, rows = 2:4, cols = 1:sheetWidth + 1, 
+    addStyle(wb, sheet, top_borders, rows = 2, cols = startcol:(sheetWidth +1), 
              stack = TRUE, gridExpand = TRUE)
-    addStyle(wb, sheet, top_borders, rows = 2, cols = 1:sheetWidth +1, 
-             stack = TRUE, gridExpand = TRUE)
-    
-    # add font format
-    #addStyle(wb, sheet, titles_gen, rows = 2:colname_rows[sheet], cols = 1:sheetWidth + 1, 
-         #    stack = TRUE, gridExpand = TRUE)
     
     # add shading
     addStyle(wb, sheet, grey, rows = 2:4, cols = c(2:3, 18), stack = TRUE, gridExpand = TRUE)
@@ -295,7 +297,7 @@ for (sheet in 1:4) {
     
     ### Data formatting ------------------------------
     
-    # add number format
+    # add number formats
     addStyle(wb, sheet, createStyle(numFmt = "#,##0.0"), rows = 5:sheetLength, 
              cols = c(4, 7:9, 11, 14:16), stack = TRUE, gridExpand = TRUE)
     addStyle(wb, sheet, createStyle(numFmt = "#,##0.000"), rows = 5:sheetLength, 
@@ -306,19 +308,15 @@ for (sheet in 1:4) {
     ### General formatting ---------------------------
     
     # set cell sizes
-    setRowHeights(wb, sheet, rows = 1, heights = 21.75)
-    setRowHeights(wb, sheet, rows = 2:3, heights = 14.4)
-    setRowHeights(wb, sheet, rows = 4, heights = 33.6)
+    setRowHeights(wb, sheet, rows = 1:4, heights = c(22, 14.4, 14.4, 35))
     setRowHeights(wb, sheet, rows = 5:sheetLength, heights = 15)
-    setColWidths(wb, sheet, cols = 1, width = 1)
-    setColWidths(wb, sheet, cols = 2, widths = 8.14)
-    setColWidths(wb, sheet, cols = 3, widths = 16.57)
-    setColWidths(wb, sheet, cols = 4:17, widths = 6.86)
-    setColWidths(wb, sheet, cols = 18, widths = 7.14)
-    
+    setColWidths(wb, sheet, cols = c(1:3, 18), widths = c(1, 10, 20.29, 9))
+    setColWidths(wb, sheet, cols = 4:17, widths = 7)
+
     # Sheet 2 formatting ----------------------
   } else if (sheet == 2) {
     
+    # column names in sheet
     colnames_lower <- matrix(c(
       "eGRID subregion acronym",
       "eGRID subregion name",
@@ -337,17 +335,18 @@ for (sheet in 1:4) {
       "Other unknown/ purchased fuel"),
       ncol = sheetWidth)
     
+    # column larger categories
     colnames_upper <- colnames_lower
     colnames_upper[5] <- "Generation Resource Mix (percent)*"
     
     ### Column title formatting ---------------------------
     
-    # write column title
+    # write column titles
     writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 2)
     writeData(wb, sheet, colnames_upper, startCol = startcol, startRow = 1)
     
     # add borders
-    addStyle(wb, sheet, all_borders, rows = 1:sheetLength, cols = 1:sheetWidth + 1,
+    addStyle(wb, sheet, all_borders, rows = 1:(sheetLength - 1), cols = startcol:(sheetWidth + 1),
              stack = TRUE, gridExpand = TRUE)
 
     # add shading
@@ -364,17 +363,7 @@ for (sheet in 1:4) {
     
     ### Data formatting ------------------
     
-    # write in data
-    # writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1,
-              # borders = "all", colNames = FALSE)
-    # writeData(wb, sheet, table_data[[sheet]] %>% 
-    #             filter(subregion == "U.S."), startCol = startcol, startRow = sheetLength, 
-    #           borders = "surrounding", borderStyle = "thick", colNames = FALSE)
-    
-    # add number format
-    #addStyle(wb, sheet, nodecimnum, rows = 5:sheetLength - 1, cols = 4:5, gridExpand = TRUE)
-    #addStyle(wb, sheet, us_nodecimnum, rows = sheetLength, cols = 4:5, gridExpand = TRUE)
-    #addStyle(wb, sheet, us_percentnum, rows = sheetLength, cols = 6:16, gridExpand = TRUE)
+    # add number formats
     addStyle(wb, sheet, createStyle(numFmt = "#,##0"), rows = 4:sheetLength, 
              cols = 4:5, stack = TRUE, gridExpand = TRUE)
     addStyle(wb, sheet, createStyle(numFmt = "#,##0.0%"), rows = 4:sheetLength, 
@@ -383,22 +372,16 @@ for (sheet in 1:4) {
     ### General formatting -----------------
     
     # set cell sizes
-    setRowHeights(wb, sheet, rows = 1, heights = 21.75)
-    setRowHeights(wb, sheet, rows = 2, heights = 14.4)
-    setRowHeights(wb, sheet, rows = 3, heights = 43.2)
+    setRowHeights(wb, sheet, rows = 1:3, heights = c(22, 15, 45))
     setRowHeights(wb, sheet, rows = 4:sheetLength, heights = 15)
-    setColWidths(wb, sheet, cols = 1, width = 1)
-    setColWidths(wb, sheet, cols = c(2, 4), widths = 8.43)
-    setColWidths(wb, sheet, cols = 3, widths = 20.29)
-    setColWidths(wb, sheet, cols = 5, widths = 10.14)
-    setColWidths(wb, sheet, cols = c(6:11, 13:14), widths = 6)
-    setColWidths(wb, sheet, cols = 12, widths = 6.86)
-    setColWidths(wb, sheet, cols = 15, widths = 6.57)
-    setColWidths(wb, sheet, cols = 16, widths = 9)
-    
+    setColWidths(wb, sheet, cols = c(1:5, 12, 15, 16), 
+                 widths = c(1, 10, 20.29, 10, 12, 9, 9, 10))
+    setColWidths(wb, sheet, cols = c(6:11, 13:14), widths = 8)
+
     # Sheet 3 formatting -----------
   } else if (sheet == 3) {
     
+    # column names in sheet
     colnames_lower <- matrix(c(
       "State",
       "CO2",
@@ -410,25 +393,27 @@ for (sheet in 1:4) {
       "SO2"),
       ncol = sheetWidth)
     
+    #column larger categories
     colnames_upper <- colnames_lower
     colnames_upper[2] <- "Total output emission rates"
     
+    # units for larger categories
     colnames_units <- rbind(colnames_upper, 
                             matrix(c("", "lb/MWh", "", "", "", "", "", ""), 
                                    ncol = sheetWidth))
     
     ### Column title formatting -----------------
     
-    # write column title
+    # write column titles
     writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 3)
     writeData(wb, sheet, colnames_units, startCol = startcol, startRow = 1)
     
     # add borders
-    addStyle(wb, sheet, all_borders, rows = c(1, 4:sheetLength), cols = 1:sheetWidth + 1, 
+    addStyle(wb, sheet, all_borders, rows = c(1, 4:(sheetLength - 1)), cols = 2:(sheetWidth + 1), 
              stack = TRUE, gridExpand = TRUE)
-    addStyle(wb, sheet, right_borders, rows = 2:4, cols = 1:sheetWidth + 1, 
+    addStyle(wb, sheet, right_borders, rows = 2:4, cols = 2:(sheetWidth + 1), 
              stack = TRUE, gridExpand = TRUE)
-    addStyle(wb, sheet, top_borders, rows = 2, cols = 1:sheetWidth +1, 
+    addStyle(wb, sheet, top_borders, rows = 2, cols = 2:(sheetWidth + 1), 
              stack = TRUE, gridExpand = TRUE)
     # add shading
     addStyle(wb, sheet, grey, rows = 2:4, cols = 2, stack = TRUE, gridExpand = TRUE)
@@ -443,13 +428,6 @@ for (sheet in 1:4) {
     
     ### Data formatting ----------------
     
-    # write in data
-   # writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1, 
-  #            borders = "all", colNames = FALSE)
-  #  writeData(wb, sheet, table_data[[sheet]] %>% 
-  #              filter(state == "U.S."), startCol = startcol, startRow = sheetLength, 
-  #           borders = "surrounding", borderStyle = "thick", colNames = FALSE)
-    
     # add number formats
     addStyle(wb, sheet, createStyle("#,##0.0"), rows = 5:sheetLength, cols = c(3, 6:8),
              stack = TRUE, gridExpand = TRUE)
@@ -459,16 +437,15 @@ for (sheet in 1:4) {
     ### General formatting ----------------
     
     # set cell sizes
-    setRowHeights(wb, sheet, rows = c(1, 4), heights = 21.75)
-    setRowHeights(wb, sheet, rows = 2:3, heights = 11.25)
-    setRowHeights(wb, sheet, rows = 5:sheetLength, heights = 13.5)
-    setColWidths(wb, sheet, cols = 1, width = 1)
-    setColWidths(wb, sheet, cols = 2, widths = 7)
+    setRowHeights(wb, sheet, rows = 1:4, heights = c(22, 11.25, 11.25, 22))
+    setRowHeights(wb, sheet, rows = 5:sheetLength, heights = 15)
+    setColWidths(wb, sheet, cols = 1:2, width = c(1, 9))
     setColWidths(wb, sheet, cols = 3:9, widths = 12.71)
     
     # Sheet 4 formatting ------------------
   } else if (sheet == 4) {
     
+    # column names in sheet
     colnames_lower <- matrix(c(
       "State",
       "Nameplate Capacity (MW)",
@@ -486,17 +463,18 @@ for (sheet in 1:4) {
       "Other unknown/ purchased fuel"),
       ncol = sheetWidth)
     
+    #larger column categories
     colnames_upper <- colnames_lower
     colnames_upper[4] <- "Generation Resource Mix (percent)*"
     
     # Column title and formatting -----------------
     
-    # write column title data
+    # write column titles
     writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 2)
     writeData(wb, sheet, colnames_upper, startCol = startcol, startRow = 1)
     
     #add borders
-    addStyle(wb, sheet, all_borders, rows = 1:sheetLength, cols = 1:sheetWidth + 1,
+    addStyle(wb, sheet, all_borders, rows = 1:(sheetLength - 1), cols = 2:(sheetWidth + 1),
              stack = TRUE, gridExpand = TRUE)
     
     # add shading
@@ -512,14 +490,7 @@ for (sheet in 1:4) {
     }
     
     # Data formatting --------------
-    
-    # write in data
-    # writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1, 
-    #           borders = "all", colNames = FALSE)
-    # writeData(wb, sheet, table_data[[sheet]] %>% 
-    #             filter(state == "U.S."), startCol = startcol, startRow = sheetLength, 
-    #           borders = "surrounding", borderStyle = "thick", colNames = FALSE)
-    # 
+
     # add number formats
     addStyle(wb, sheet, createStyle(numFmt = "#,##0"), rows = 4:sheetLength,
              cols = 3:4, stack = TRUE, gridExpand = TRUE)
@@ -528,39 +499,31 @@ for (sheet in 1:4) {
     
     ### General formatting --------------------
     # set cell sizes
-    setRowHeights(wb, sheet, rows = 1, heights = 21.75)
-    setRowHeights(wb, sheet, rows = 2, heights = 14.4)
-    setRowHeights(wb, sheet, rows = 3, heights = 43.2)
-    setRowHeights(wb, sheet, rows = 4:sheetLength, heights = 13.5)
-    setColWidths(wb, sheet, cols = 1, width = 1)
-    setColWidths(wb, sheet, cols = 2, width = 5)
-    setColWidths(wb, sheet, cols = 3, widths = 8.43)
-    setColWidths(wb, sheet, cols = 4, widths = 10.29)
-    setColWidths(wb, sheet, cols = c(5, 7:10), widths = 5.86)
-    setColWidths(wb, sheet, cols = c(6, 12:13), widths = 5.57)
-    setColWidths(wb, sheet, cols = 11, widths = 6.86)
-    setColWidths(wb, sheet, cols = 14, widths = 6.29)
-    setColWidths(wb, sheet, cols = 15, widths = 8.57)
+    setRowHeights(wb, sheet, rows = 1:3, heights = c(22, 15, 45))
+    setRowHeights(wb, sheet, rows = 4:sheetLength, heights = 15)
+    setColWidths(wb, sheet, cols = c(1:4, 9, 11, 14:15), 
+                 width = c(1, 7, 10, 12, 8, 9, 8.5, 11))
+    setColWidths(wb, sheet, cols = c(5:8, 10, 12:13), widths = 7.5)
   }  
   
-  # add titles and format
+  # add main titles and format
   writeData(wb, sheet, names(table_data[sheet]), startCol = startcol, startRow = 1) # title
-  addStyle(wb, sheet, toptitle, rows = 1, cols = 2:sheetWidth, stack = TRUE, gridExpand = TRUE)
-  addStyle(wb, sheet, titles_gen, rows = 2:colname_rows[sheet], cols = 1:sheetWidth + 1, stack = TRUE, gridExpand = TRUE)
+  addStyle(wb, sheet, toptitle, rows = 1, cols = 1:sheetWidth + 1, stack = TRUE, gridExpand = TRUE)
+  addStyle(wb, sheet, titles_gen, rows = 2:colname_rows[sheet], cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
   
-  # add us boundary
-  addStyle(wb, sheet, us_boundary, rows = sheetLength, cols = 2:sheetWidth + 1, stack = TRUE, gridExpand = TRUE)
+  # format US row with thick outline and bold font
+  addStyle(wb, sheet, right_borders, rows = sheetLength, cols = us_datastart[sheet]:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
+  addStyle(wb, sheet, us_boundary, rows = sheetLength, cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
   
-  # add outer borders
+  # add exterior thick borders
   addStyle(wb, sheet, createStyle(border = "Left", borderColour = "black", borderStyle = "thick"),
            rows = 1:sheetLength, cols = sheetWidth + 2, stack = TRUE, gridExpand = TRUE)
   addStyle(wb, sheet, createStyle(border = "Right", borderColour = "black", borderStyle = "thick"),
            rows = 1:sheetLength, cols = 1, stack = TRUE, gridExpand = TRUE)
   addStyle(wb, sheet, createStyle(border = "Top", borderColour = "black", borderStyle = "thick"),
-           rows = sheetLength + 1, cols = 2:sheetWidth, stack = TRUE, gridExpand = TRUE)
+           rows = sheetLength + 1, cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
 }
 
+# Save excel sheet -------------------------------
+
 saveWorkbook(wb, glue::glue("data/outputs/{params$eGRID_year}/summary_tables.xlsx"), overwrite = TRUE)
-
-# Save -------------------------------
-
