@@ -186,7 +186,7 @@ red <- createStyle(fgFill = "#f2dcdb")
 orange <- createStyle(fgFill = "#fde9d9")
 
 us_boundary <- createStyle(textDecoration = "bold",
-                             border = "TopBottom",
+                             border = "Top",
                              borderStyle = "thick",
                              borderColour = "black")
 
@@ -226,7 +226,31 @@ for (sheet in 1:4) {
   # add page formatting
   pageSetup(wb, sheet, orientation = sheet_orientation[sheet], fitToWidth = TRUE, fitToHeight = TRUE)
   
-  # write data onto sheet
+  if (sheet %in% c(2, 4)) {
+    # add percentages statement for resource mix tables
+    writeData(wb, sheet, "*percentages may not sum to 100 due to rounding", 
+              startCol = startcol, startRow = sheetLength + 1)
+    addStyle(wb, sheet, top_borders, cols = startcol:(sheetWidth + 1), rows = sheetLength + 1)
+    # write creation data
+    creationRow <- sheetLength + 1
+    writeData(wb, sheet, x = matrix(c("Created:", format(Sys.Date(), "%m/%d/%Y")), 
+                                    ncol = 2), startCol = sheetWidth, startRow = creationRow)
+    # remove matrix titles
+    deleteData(wb, sheet, cols = sheetWidth:(sheetWidth + 1), rows = creationRow, gridExpand = TRUE)
+  } else {
+    # write creation data
+    creationRow <- sheetLength
+    writeData(wb, sheet, x = matrix(c("Created:", format(Sys.Date(), "%m/%d/%Y")), 
+                                    ncol = 2), startCol = sheetWidth, startRow = creationRow)
+  }
+  
+  # add creation data styling
+  addStyle(wb, sheet, createStyle(fontSize = 8, halign = "right"), cols = sheetWidth,
+           rows = creationRow + 1)
+  addStyle(wb, sheet, createStyle(fontSize = 8, halign = "center"), cols = sheetWidth + 1,
+           rows = creationRow + 1)
+  
+  # write eGRID data onto sheet
   writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1, 
             colNames = FALSE)
   
@@ -309,7 +333,7 @@ for (sheet in 1:4) {
     
     # set cell sizes
     setRowHeights(wb, sheet, rows = 1:4, heights = c(22, 14.4, 14.4, 35))
-    setRowHeights(wb, sheet, rows = 5:sheetLength, heights = 15)
+    setRowHeights(wb, sheet, rows = 5:(sheetLength + 1), heights = 15)
     setColWidths(wb, sheet, cols = c(1:3, 18), widths = c(1, 10, 20.29, 9))
     setColWidths(wb, sheet, cols = 4:17, widths = 7)
 
@@ -415,6 +439,7 @@ for (sheet in 1:4) {
              stack = TRUE, gridExpand = TRUE)
     addStyle(wb, sheet, top_borders, rows = 2, cols = 2:(sheetWidth + 1), 
              stack = TRUE, gridExpand = TRUE)
+    
     # add shading
     addStyle(wb, sheet, grey, rows = 2:4, cols = 2, stack = TRUE, gridExpand = TRUE)
     addStyle(wb, sheet, green, rows = 2:4, cols = 3:9, stack = TRUE, gridExpand = TRUE)
@@ -429,9 +454,9 @@ for (sheet in 1:4) {
     ### Data formatting ----------------
     
     # add number formats
-    addStyle(wb, sheet, createStyle("#,##0.0"), rows = 5:sheetLength, cols = c(3, 6:8),
+    addStyle(wb, sheet, createStyle(numFmt = "#,##0.0"), rows = 5:sheetLength, cols = c(3, 6:8),
              stack = TRUE, gridExpand = TRUE)
-    addStyle(wb, sheet, createStyle("#,##0.000"), rows = 5:sheetLength, cols = c(4:5, 9), 
+    addStyle(wb, sheet, createStyle(numFmt = "#,##0.000"), rows = 5:sheetLength, cols = c(4:5, 9),
              stack = TRUE, gridExpand = TRUE)
 
     ### General formatting ----------------
@@ -507,8 +532,10 @@ for (sheet in 1:4) {
   }  
   
   # add main titles and format
-  writeData(wb, sheet, names(table_data[sheet]), startCol = startcol, startRow = 1) # title
+  writeData(wb, sheet, names(table_data[sheet]), startCol = startcol, startRow = 1)
   addStyle(wb, sheet, toptitle, rows = 1, cols = 1:sheetWidth + 1, stack = TRUE, gridExpand = TRUE)
+  
+  # add column titles formatting
   addStyle(wb, sheet, titles_gen, rows = 2:colname_rows[sheet], cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
   
   # format US row with thick outline and bold font
@@ -517,11 +544,11 @@ for (sheet in 1:4) {
   
   # add exterior thick borders
   addStyle(wb, sheet, createStyle(border = "Left", borderColour = "black", borderStyle = "thick"),
-           rows = 1:sheetLength, cols = sheetWidth + 2, stack = TRUE, gridExpand = TRUE)
+           rows = 1:creationRow, cols = sheetWidth + 2, stack = TRUE, gridExpand = TRUE)
   addStyle(wb, sheet, createStyle(border = "Right", borderColour = "black", borderStyle = "thick"),
-           rows = 1:sheetLength, cols = 1, stack = TRUE, gridExpand = TRUE)
+           rows = 1:creationRow, cols = 1, stack = TRUE, gridExpand = TRUE)
   addStyle(wb, sheet, createStyle(border = "Top", borderColour = "black", borderStyle = "thick"),
-           rows = sheetLength + 1, cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
+           rows = creationRow + 1, cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
 }
 
 # Save excel sheet -------------------------------
