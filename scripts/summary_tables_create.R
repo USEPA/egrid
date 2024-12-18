@@ -397,7 +397,7 @@ for (sheet in 1:4) {
     
     # set cell sizes
     setRowHeights(wb, sheet, rows = 1:3, heights = c(22, 15, 45))
-    setRowHeights(wb, sheet, rows = 4:sheetLength, heights = 15)
+    setRowHeights(wb, sheet, rows = 4:(sheetLength + 2), heights = 15)
     setColWidths(wb, sheet, cols = c(1:5, 12, 15, 16), 
                  widths = c(1, 10, 20.29, 10, 12, 9, 9, 10))
     setColWidths(wb, sheet, cols = c(6:11, 13:14), widths = 8)
@@ -463,7 +463,7 @@ for (sheet in 1:4) {
     
     # set cell sizes
     setRowHeights(wb, sheet, rows = 1:4, heights = c(22, 11.25, 11.25, 22))
-    setRowHeights(wb, sheet, rows = 5:sheetLength, heights = 15)
+    setRowHeights(wb, sheet, rows = 5:(sheetLength + 1), heights = 15)
     setColWidths(wb, sheet, cols = 1:2, width = c(1, 9))
     setColWidths(wb, sheet, cols = 3:9, widths = 12.71)
     
@@ -525,7 +525,7 @@ for (sheet in 1:4) {
     ### General formatting --------------------
     # set cell sizes
     setRowHeights(wb, sheet, rows = 1:3, heights = c(22, 15, 45))
-    setRowHeights(wb, sheet, rows = 4:sheetLength, heights = 15)
+    setRowHeights(wb, sheet, rows = 4:(sheetLength + 2), heights = 15)
     setColWidths(wb, sheet, cols = c(1:4, 9, 11, 14:15), 
                  width = c(1, 7, 10, 12, 8, 9, 8.5, 11))
     setColWidths(wb, sheet, cols = c(5:8, 10, 12:13), widths = 7.5)
