@@ -1,17 +1,19 @@
 ---
-title: "QA"
+title: "QA Annual Comparison"
 format: 
   html: 
     toc: true
+execute: 
+  echo: false
+  warning: false
 editor: visual
 params: 
-  eGRID_year: "2023"
+  eGRID_year: 2023
+  year_abbrev: 23
 ---
 
 ```{r}
 #| label: set_up_file
-#| warning: False
-#| echo: False
 
 library(ggplot2)
 library(dplyr)
@@ -29,6 +31,8 @@ This file compares the final output of eGRID to previous year outputs.
 ```
 
 # Rate comparison
+
+## Subregion
 
 Compare emission rates from `r prev_yr3` to `r params$eGRID_year` and percent change from `r prev_yr1` to `r params$eGRID_year`.
 
@@ -779,7 +783,14 @@ knitr::kable(co2e_combustion,
 ```
 :::
 
+## ADD STATE HERE
+- include nonbaseload outut rates for both subregion and state levels
+- include fuel-specific input emission rates and output emission rates for both subgregion and state level
+- 
+
 # Resource mix comparison
+
+- move graphs to able
 
 ## US resource mix
 
