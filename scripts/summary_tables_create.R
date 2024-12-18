@@ -261,20 +261,20 @@ for (sheet in 1:4) {
     colnames_lower <- matrix(c(
       "eGRID subregion acronym",
       "eGRID subregion name",
-      "CO2",
-      "CH4",
-      "N2O",
-      "CO2E",
-      "Annual NOx",
-      "Ozone Season NOx",
-      "SO2",
-      "CO2",
-      "CH4",
-      "N2O",
-      "CO2E",
-      "Annual NOx",
-      "Ozone Season NOx",
-      "SO2",
+      paste0("CO", "\u2082"),
+      paste0("CH", "\u2084"),
+      paste0("N", "\u2082", "O"),
+      paste0("CO", "\u2082", "e"),
+      paste0("Annual NO", "\u2093"),
+      paste0("Ozone Season NO", "\u2093"),
+      paste0("SO", "\u2082"),
+      paste0("CO", "\u2082"),
+      paste0("CH", "\u2084"),
+      paste0("N", "\u2082", "O"),
+      paste0("CO", "\u2082", "e"),
+      paste0("Annual NO", "\u2093"),
+      paste0("Ozone Season NO", "\u2093"),
+      paste0("SO", "\u2082"),
       "Grid Gross Loss (%)"), ncol = sheetWidth)
     
     # column larger categories
@@ -291,7 +291,7 @@ for (sheet in 1:4) {
     ### Column title formatting ---------------------------
     
     # write column titles
-    writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = colname_rows[sheet] - 1) # column titles
+    writeData(wb, sheet, eval(colnames_lower), startCol = startcol, startRow = colname_rows[sheet] - 1) # column titles
     writeData(wb, sheet, colnames_units, startCol = startcol, startRow = 1) # column units and larger categories
     
     # add borders
@@ -408,13 +408,13 @@ for (sheet in 1:4) {
     # column names in sheet
     colnames_lower <- matrix(c(
       "State",
-      "CO2",
-      "CH4",
-      "N2O",
-      "CO2E",
-      "Annual NOx",
-      "Ozone Season NOx",
-      "SO2"),
+      paste0("CO", "\u2082"),
+      paste0("CH", "\u2084"),
+      paste0("N", "\u2082", "O"),
+      paste0("CO", "\u2082", "e"),
+      paste0("Annual NO", "\u2093"),
+      paste0("Ozone Season NO", "\u2093"),
+      paste0("SO", "\u2082")),
       ncol = sheetWidth)
     
     #column larger categories
@@ -550,6 +550,9 @@ for (sheet in 1:4) {
   addStyle(wb, sheet, createStyle(border = "Top", borderColour = "black", borderStyle = "thick"),
            rows = creationRow + 1, cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
 }
+
+modifyBaseFont(wb, fontSize = 8.5, fontName = "Arial")
+
 
 # Save excel sheet -------------------------------
 
