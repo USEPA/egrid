@@ -1972,21 +1972,35 @@ all_units_11 <-
 
 ## Implement changes in main unit file ------
 
-# plant ID and plant name manual updates 
-plant_id_updates <- 
+# plant ID and plant name manual corrections 
+plant_id_corrections <- 
   manual_corrections %>% filter(column_to_update == "plant_id") %>% 
   select(plant_id, plant_id_update = update)
 
-plant_name_updates <- 
+plant_name_corrections <- 
   manual_corrections %>% filter(column_to_update == "plant_name") %>% 
   select(plant_id, plant_name_update = update)
+
+# emissions and heat input manual corrections
+heat_emissions_corrections <- 
+  manual_corrections %>% filter(plant_id == "52152") %>% 
+  pivot_wider(id_cols = c("plant_id", "unit_id", "prime_mover"), 
+              names_from = column_to_update, 
+              values_from = update) %>% 
+  mutate(heat_input = as.numeric(heat_input), 
+         heat_input_oz = as.numeric(heat_input_oz), 
+         nox_mass = as.numeric(nox_mass), 
+         nox_oz_mass = as.numeric(nox_oz_mass), 
+         so2_mass = as.numeric(so2_mass), 
+         co2_mass = as.numeric(co2_mass))
+  
 
 all_units_12 <- 
   all_units_11 %>% # update to most recent unit file data frame
   left_join(stack_info, by = c("plant_id", "unit_id", "prime_mover")) %>% 
-  left_join(plant_id_updates, by = c("plant_id")) %>% 
+  left_join(plant_id_corrections, by = c("plant_id")) %>% 
   mutate(plant_id = if_else(!is.na(plant_id_update), plant_id_update, plant_id)) %>% 
-  left_join(plant_name_updates, by = c("plant_id")) %>% 
+  left_join(plant_name_corrections, by = c("plant_id")) %>% 
   mutate(plant_name = if_else(!is.na(plant_name_update), plant_name_update, plant_name)) %>% 
   rows_delete(units_to_remove, 
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
@@ -2000,6 +2014,8 @@ all_units_12 <-
                 by = c("plant_id"), unmatched = "ignore") %>% 
   rows_update(prime_mover_corrections_3, 
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+  rows_update(heat_emissions_corrections, 
+              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(update_status_generators, 
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(update_status_boilers, 

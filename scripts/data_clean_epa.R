@@ -83,13 +83,33 @@ xwalk_so2_control_abrvs <-
   read_csv("data/static_tables/xwalk_so2_control_abbreviations.csv") %>% 
   janitor::clean_names()
 
+# load manual corrections to data
+manual_corrections <- 
+  read_xlsx("data/static_tables/manual_corrections.xlsx", 
+            sheet = "epa_clean", 
+            col_types = c("text", "text", "text"))
+
+plant_id_corrections <- # plant ID corrections
+  manual_corrections %>% 
+  filter(column_to_update == "plant_id") %>% 
+  select(-column_to_update) %>% 
+  mutate(plant_id = as.numeric(plant_id), 
+         update = as.numeric(update))
+
+op_status_corrections <- # operating status corrections
+  manual_corrections %>% 
+  filter(column_to_update == "operating_status") %>% 
+  select(plant_id, operating_status = update)
+
 epa_r <- 
   epa_raw %>% 
   rename(any_of(rename_cols)) %>%
-  filter((!operating_status %in% c("Future", "Retired", "Long-term Cold Storage") | plant_id == 10154), # removing plants that are listed as future, retired, or long-term cold storage
-         (plant_id < 880000 | plant_id == 880004)) %>% # removing plant with plant ids above 880,000 unless they are in Puerto Rico
+  filter((!operating_status %in% c("Future", "Retired", "Long-term Cold Storage") | plant_id %in% manual_corrections$plant_id), # removing plants that are listed as future, retired, or long-term cold storage
+         (plant_id < 880000 | plant_id %in% manual_corrections$plant_id)) %>% # removing plant with plant ids above 880,000 unless they are in Puerto Rico
   mutate(
-    plant_id = if_else(plant_id == 880004, 57788, plant_id), # manually update plant ID
+    plant_id = case_when(
+      plant_id %in% plant_id_corrections$plant_id ~ plant_id_corrections$update, 
+      TRUE ~ plant_id), 
     heat_input_source = if_else(is.na(heat_input_mmbtu), NA_character_, "EPA/CAPD"), # creating source variables based on emissions data
     heat_input_oz_source = if_else(is.na(heat_input_mmbtu_ozone), NA_character_, "EPA/CAPD"),
     nox_source = if_else(is.na(nox_mass_short_tons), NA_character_, "EPA/CAPD"),
@@ -103,7 +123,7 @@ epa_r <-
       operating_status == "Operating" ~ "OP",
       startsWith(operating_status, "Operating") ~ "OP", # Units that started operating in current year have "Operating" plus the date of operation.
       operating_status == "Retired" ~ "RE",
-      plant_id == 10154 ~ "OP",
+      plant_id %in% op_status_corrections$plant_id ~ op_status_corrections$operating_status,
       TRUE ~ operating_status),
     unit_type = str_replace(unit_type, "\\(.*?\\)", "") %>% str_trim(), # removing notes about start dates and getting rid of extra white space
     unit_type_abb = recode(unit_type, !!!unit_abbs), ## Recoding values based on lookup table. need to looking into cases with multipe types (SB 3/28/2024)
