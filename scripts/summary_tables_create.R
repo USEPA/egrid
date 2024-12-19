@@ -649,6 +649,9 @@ addStyle(wb, sheet, createStyle(textDecoration = "underline"), rows = 42:43,
 addStyle(wb, sheet, descrip, cols = contents_start:4, rows = 42:43, stack = TRUE,
          gridExpand = TRUE)
 
+insertImage(wb, sheet, file = , width = 8, height = 6, startRow = , startCol = )
+insertImage()
+
 for (i in 1:length(titles)) {
   writeData(wb, sheet, titles[i], startCol = contents_start, startRow = title_rows[i])
   if ( i == 1) {
@@ -659,7 +662,15 @@ for (i in 1:length(titles)) {
   mergeCells(wb, sheet, rows = title_rows[i], cols = contents_start:contents_width)
 }
 
+worksheetOrder(c())
 
+setRowHeights(wb, sheet, rows = c(), heights = c())
+setColWidths(wb, sheet, cols = c(), widths = ())
+
+addStyle(wb, sheet, right_borders, rows = (), cols = ())
+addStyle(wb, sheet, top_borders, rows = (), cols = ())
+addStyle(wb, sheet, left_borders, rows = (), cols = ())
+addStyle(wb, sheet, bottom_borders, rows = (), cols = ())
 
 # add images
 
