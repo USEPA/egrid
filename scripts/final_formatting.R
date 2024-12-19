@@ -1075,70 +1075,70 @@ if (params$run_demo_file) {
   
   
   ## column names and descriptions
-  demo_labels <- c("SEQPLT"   = "Plant file sequence number",
-                   "YEAR"     = "Data Year",
-                   "PSTATABB" = "Plant state abbreviation",
-                   "PNAME"    = "Plant name",
-                   "ORISPL"   = "DOE/EIA ORIS plant or facility code",
-                   "LAT"      = "Plant latitude",
-                   "LON"      = "Plant longitude",
-                   "PLPRMFL"  = "Plant primary fuel", 
-                   "PLFUELCT" = "Plant primary fuel category",
-                   "NAMEPCAP" = "Plant nameplate capacity (MW)",
-                   "COALFLAG" = "Flag indicating if the plant burned or generated any amount of coal",
-                   "RAW_D_PEOPCOLOR" = "People of Color",
-                   "RAW_D_INCOME" = "Low Income",
-                   "RAW_D_LESSHS" = "Less Than High School Education",
-                   "RAW_D_LING" = "Limited English Speaking",
-                   "RAW_D_UNDER5" = "Under Age 5",
-                   "RAW_D_OVER64" = "Over Age 64",
-                   # RAW_D_UNEMPLOYED = "Unemployment Rate"
-                   "RAW_D_LIFEEXP" = "Limited Life Expectancy",
-                   "RAW_D_DEMOGIDX2ST" = "Demographic Index",
-                   "RAW_D_DEMOGIDX5ST" = "Supplemental Demographic Index",
-                   "RAW_D_UNEMPLOYED" = "Unemployment Rate",
-                   "S_D_PEOPCOLOR" = "State Average of People of Color",
-                   "S_D_INCOME" = "State Average of Low Income",
-                   "S_D_LESSHS" = "State Average of Less Than High School Education",
-                   "S_D_LING" = "State Average of Limited English Speaking",
-                   "S_D_UNDER5" = "State Average of Under Age 5",
-                   "S_D_OVER64" = "State Average of Over Age 64",
+  demo_labels <- c("SEQPLT"              = "Plant file sequence number",
+                   "YEAR"                = "Data Year",
+                   "PSTATABB"            = "Plant state abbreviation",
+                   "PNAME"               = "Plant name",
+                   "ORISPL"              = "DOE/EIA ORIS plant or facility code",
+                   "LAT"                 = "Plant latitude",
+                   "LON"                 = "Plant longitude",
+                   "PLPRMFL"             = "Plant primary fuel", 
+                   "PLFUELCT"            = "Plant primary fuel category",
+                   "NAMEPCAP"            = "Plant nameplate capacity (MW)",
+                   "COALFLAG"            = "Flag indicating if the plant burned or generated any amount of coal",
+                   "RAW_D_PEOPCOLOR"     = "People of Color",
+                   "RAW_D_INCOME"        = "Low Income",
+                   "RAW_D_LESSHS"        = "Less Than High School Education",
+                   "RAW_D_LING"          = "Limited English Speaking",
+                   "RAW_D_UNDER5"        = "Under Age 5",
+                   "RAW_D_OVER64"        = "Over Age 64",
+                   # RAW_D_UNEMPLOYED    = "Unemployment Rate"
+                   "RAW_D_LIFEEXP"       = "Limited Life Expectancy",
+                   "RAW_D_DEMOGIDX2ST"   = "Demographic Index",
+                   "RAW_D_DEMOGIDX5ST"   = "Supplemental Demographic Index",
+                   "RAW_D_UNEMPLOYED"    = "Unemployment Rate",
+                   "S_D_PEOPCOLOR"       = "State Average of People of Color",
+                   "S_D_INCOME"          = "State Average of Low Income",
+                   "S_D_LESSHS"          = "State Average of Less Than High School Education",
+                   "S_D_LING"            = "State Average of Limited English Speaking",
+                   "S_D_UNDER5"          = "State Average of Under Age 5",
+                   "S_D_OVER64"          = "State Average of Over Age 64",
                    # S_D_UNEMPLOYED
                    # S_D_LIFEEXP
-                   "S_D_DEMOGIDX2ST" = "State Average of Demographic Index",
-                   # S_D_DEMOGIDX5ST = "State Average of Supplemental Demographic Index"
-                   "S_D_UNEMPLOYED" = "State Average of Unemployment Rate",
-                   "S_D_PEOPCOLOR_PER" = "State Percentile of People of Color", 
-                   "S_D_INCOME_PER" = "State Percentile of Low Income",
-                   "S_D_LESSHS_PER" = "State Percentile of Less Than High School Education",
-                   "S_D_LING_PER" = "State Percentile of Limited English Speaking",
-                   "S_D_UNDER5_PER" = "State Percentile of Under Age 5",
-                   "S_D_OVER64_PER" = "State Percentile of Over Age 64",
+                   "S_D_DEMOGIDX2ST"     = "State Average of Demographic Index",
+                   # S_D_DEMOGIDX5ST     = "State Average of Supplemental Demographic Index"
+                   "S_D_UNEMPLOYED"      = "State Average of Unemployment Rate",
+                   "S_D_PEOPCOLOR_PER"   = "State Percentile of People of Color", 
+                   "S_D_INCOME_PER"      = "State Percentile of Low Income",
+                   "S_D_LESSHS_PER"      = "State Percentile of Less Than High School Education",
+                   "S_D_LING_PER"        = "State Percentile of Limited English Speaking",
+                   "S_D_UNDER5_PER"      = "State Percentile of Under Age 5",
+                   "S_D_OVER64_PER"      = "State Percentile of Over Age 64",
                    "S_D_DEMOGIDX2ST_PER" = "State Percentile of Demographic Index",
                    # S_D_DEMOGIDX5ST_PER
-                   "S_UNEMPLOYED_PER" = "State Percentile of Unemployment Rate",
-                   "N_D_PEOPCOLOR" = "National Average of People of Color",
-                   "N_D_INCOME" = "National Average of Low Income",
-                   "N_D_LESSHS" = "National Average of Less Than High School Education",
-                   "N_D_LING" = "National Average of Limited English Speaking",
-                   "N_D_UNDER5" = "National Average of Under Age 5",
-                   "N_D_OVER64" = "National Average of Over Age 64",
-                   "N_D_LIFEEXP" = "National Average of Limited Life Expectancy",
+                   "S_UNEMPLOYED_PER"    = "State Percentile of Unemployment Rate",
+                   "N_D_PEOPCOLOR"       = "National Average of People of Color",
+                   "N_D_INCOME"          = "National Average of Low Income",
+                   "N_D_LESSHS"          = "National Average of Less Than High School Education",
+                   "N_D_LING"            = "National Average of Limited English Speaking",
+                   "N_D_UNDER5"          = "National Average of Under Age 5",
+                   "N_D_OVER64"          = "National Average of Over Age 64",
+                   "N_D_LIFEEXP"         = "National Average of Limited Life Expectancy",
                    # N_D_DEMOGIDX2
                    # N_D_DEMOGIDX5
-                   "N_D_UNEMPLOYED" = "National Average of Unemployment Rate",
-                   "N_D_MINOR_PER" = "National Percentile of People of Color",
-                   "N_D_INCOME_PER" = "National Percentile of Low Income",
-                   "N_D_LESSHS_PER" = "National Percentile of Less Than High School Education",
-                   "N_D_LING_PER" = "National Percentile of Limited English Speaking",
-                   "N_D_UNDER5_PER" = "National Percentile of Under Age 5",
-                   "N_D_OVER64_PER" = "National Percentile of Over Age 64",
-                   "N_D_LIFEEXP_PER" = "National Percentile of Limited Life Expectancy",
-                   "N_D_UNEMPLOYED_PER" = "National Percentile of Unemployment Rate",
+                   "N_D_UNEMPLOYED"      = "National Average of Unemployment Rate",
+                   "N_D_MINOR_PER"       = "National Percentile of People of Color",
+                   "N_D_INCOME_PER"      = "National Percentile of Low Income",
+                   "N_D_LESSHS_PER"      = "National Percentile of Less Than High School Education",
+                   "N_D_LING_PER"        = "National Percentile of Limited English Speaking",
+                   "N_D_UNDER5_PER"      = "National Percentile of Under Age 5",
+                   "N_D_OVER64_PER"      = "National Percentile of Over Age 64",
+                   "N_D_LIFEEXP_PER"     = "National Percentile of Limited Life Expectancy",
+                   "N_D_UNEMPLOYED_PER"  = "National Percentile of Unemployment Rate",
                    # N_D_DEMOGIDX2_PER
                    # N_D_DEMOGIDX5_PER
-                   "TOTALPOP" = "Total Population",
-                   "DISTANCE" = "Distance (miles)")
+                   "TOTALPOP"            = "Total Population", # needs to be moved
+                   "DISTANCE"            = "Distance (miles)")
   
   
   demo_header <- names(demo_labels)  # column names
@@ -1168,16 +1168,26 @@ if (params$run_demo_file) {
   # add header style
   addStyle(wb, sheet = demo, style = s[['header_style']], rows = 2, cols = 1:55, gridExpand = TRUE)
   
-  # # set column widths
-  # setColWidths(wb, sheet = demo, cols = 1,   widths = 10)
-  # setColWidths(wb, sheet = demo, cols = 2,   widths = 21.29)
-  # setColWidths(wb, sheet = demo, cols = 3:5, widths = 11.14)
-  # setColWidths(wb, sheet = demo, cols = 6,   widths = 23)
-  # 
-  # # set row heights
-  # setRowHeights(wb, sheet = demo, row = 1, heights = 60.75)
-  # 
-  # # add number styles
+  # set column widths
+  setColWidths(wb, sheet = demo, cols = 1:2,     widths = 12.71)
+  setColWidths(wb, sheet = demo, cols = 3,       widths = 12.43)
+  setColWidths(wb, sheet = demo, cols = 4,       widths = 34.71)
+  setColWidths(wb, sheet = demo, cols = 5:10,    widths = 12.45)
+  setColWidths(wb, sheet = demo, cols = 11,      widths = 12.55)
+  setColWidths(wb, sheet = demo, cols = 12,      widths = 13)
+  setColWidths(wb, sheet = demo, cols = 13,      widths = 15.55)
+  setColWidths(wb, sheet = demo, cols = 14:18,   widths = 13)
+  setColWidths(wb, sheet = demo, cols = 19,      widths = 17.18)
+  setColWidths(wb, sheet = demo, cols = 20,      widths = 13)
+  setColWidths(wb, sheet = demo, cols = 21:22,   widths = 15.55)
+  setColWidths(wb, sheet = demo, cols = 23,      widths = 17.64)
+  setColWidths(wb, sheet = demo, cols = 24:29,   widths = 13.84)
+  setColWidths(wb, sheet = demo, cols = 30:55,   widths = 15)
+
+  # set row heights
+  setRowHeights(wb, sheet = demo, row = 1, heights = 67.5)
+
+  # add number styles
   # addStyle(wb, sheet = demo, style = s[['integer']], rows = 3:7, cols = 3:5, gridExpand = TRUE)
   # addStyle(wb, sheet = demo, style = s[['percent']], rows = 3:7, cols = 6,   gridExpand = TRUE)
   # 
@@ -1190,28 +1200,28 @@ if (params$run_demo_file) {
 ### Contents Formatting -------------
 
 # add link to sheets 
-add_hyperlink(glue::glue("UNT{year}"), row_link = 1, col_link = 1, loc = c(3, 8), text_to_show = glue::glue("UNT{year}"))
-add_hyperlink(glue::glue("GEN{year}"), row_link = 1, col_link = 1, loc = c(3, 9), text_to_show = glue::glue("GEN{year}"))
+add_hyperlink(glue::glue("UNT{year}"),  row_link = 1, col_link = 1, loc = c(3, 8), text_to_show = glue::glue("UNT{year}"))
+add_hyperlink(glue::glue("GEN{year}"),  row_link = 1, col_link = 1, loc = c(3, 9), text_to_show = glue::glue("GEN{year}"))
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 1, loc = c(3, 10), text_to_show = glue::glue("PLNT{year}"))
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 1, loc = c(3, 11), text_to_show = glue::glue("ST{year}"))
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 1, loc = c(3, 12), text_to_show = glue::glue("BA{year}"))
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 1, loc = c(3, 13), text_to_show = glue::glue("SRL{year}"))
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 1, loc = c(3, 14), text_to_show = glue::glue("NRL{year}"))
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 1, loc = c(3, 15), text_to_show = glue::glue("US{year}"))
-add_hyperlink(glue::glue("GGL{year}"), row_link = 1, col_link = 1, loc = c(3, 16), text_to_show = glue::glue("GGL{year}"))
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 1, loc = c(3, 11), text_to_show = glue::glue("ST{year}"))
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 1, loc = c(3, 12), text_to_show = glue::glue("BA{year}"))
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 13), text_to_show = glue::glue("SRL{year}"))
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 14), text_to_show = glue::glue("NRL{year}"))
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 1, loc = c(3, 15), text_to_show = glue::glue("US{year}"))
+add_hyperlink(glue::glue("GGL{year}"),  row_link = 1, col_link = 1, loc = c(3, 16), text_to_show = glue::glue("GGL{year}"))
 
 # add hyperlinks to specific columns
 # annual values 
-add_hyperlink(glue::glue("GEN{year}"), row_link = 1, col_link = 13, loc = c(11, 26), text_to_show = "GEN")
+add_hyperlink(glue::glue("GEN{year}"),  row_link = 1, col_link = 13, loc = c(11, 26), text_to_show = "GEN")
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 37, loc = c(12, 26), text_to_show = "PLNT")
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 5, loc = c(13, 26), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 5, loc = c(14, 26), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 5, loc = c(15, 26), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 5, loc = c(16, 26), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 3, loc = c(17, 26), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 5, loc = c(13, 26), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 5, loc = c(14, 26), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 5, loc = c(15, 26), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 5, loc = c(16, 26), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 3, loc = c(17, 26), text_to_show = "US")
 
 # unadjusted values 
-add_hyperlink(glue::glue("UNT{year}"), row_link = 1, col_link = 15, loc = c(10, 27), text_to_show = "UNT")
+add_hyperlink(glue::glue("UNT{year}"),  row_link = 1, col_link = 15, loc = c(10, 27), text_to_show = "UNT")
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 76, loc = c(12, 27), text_to_show = "PLNT")
 
 # adjustment values (biomass and CHP)
@@ -1219,110 +1229,110 @@ add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 98, loc = c(12,
 
 # output emissions rates 
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 52, loc = c(12, 29), text_to_show = "PLNT")
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 20, loc = c(13, 29), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 20, loc = c(14, 29), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 20, loc = c(15, 29), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 20, loc = c(16, 29), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 18, loc = c(17, 29), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 20, loc = c(13, 29), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 20, loc = c(14, 29), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 20, loc = c(15, 29), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 20, loc = c(16, 29), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 18, loc = c(17, 29), text_to_show = "US")
 
 # input emissions rates
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 60, loc = c(12, 30), text_to_show = "PLNT")
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 28, loc = c(13, 30), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 28, loc = c(14, 30), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 28, loc = c(15, 30), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 28, loc = c(16, 30), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 26, loc = c(17, 30), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 28, loc = c(13, 30), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 28, loc = c(14, 30), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 28, loc = c(15, 30), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 28, loc = c(16, 30), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 26, loc = c(17, 30), text_to_show = "US")
 
 # combustion output emissions rates
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 68, loc = c(12, 31), text_to_show = "PLNT")
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 36, loc = c(13, 31), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 36, loc = c(14, 31), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 36, loc = c(15, 31), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 36, loc = c(16, 31), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 34, loc = c(17, 31), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 36, loc = c(13, 31), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 36, loc = c(14, 31), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 36, loc = c(15, 31), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 36, loc = c(16, 31), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 34, loc = c(17, 31), text_to_show = "US")
 
 # generation by fuel type
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 115, loc = c(12, 32), text_to_show = "PLNT")
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 112, loc = c(13, 32), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 112, loc = c(14, 32), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 112, loc = c(15, 32), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 112, loc = c(16, 32), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 110, loc = c(17, 32), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 112, loc = c(13, 32), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 112, loc = c(14, 32), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 112, loc = c(15, 32), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 112, loc = c(16, 32), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 110, loc = c(17, 32), text_to_show = "US")
 
 # renewable and non-renewable generation
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 126, loc = c(12, 33), text_to_show = "PLNT")
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 123, loc = c(13, 33), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 123, loc = c(14, 33), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 123, loc = c(15, 33), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 123, loc = c(16, 33), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 121, loc = c(17, 33), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 123, loc = c(13, 33), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 123, loc = c(14, 33), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 123, loc = c(15, 33), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 123, loc = c(16, 33), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 121, loc = c(17, 33), text_to_show = "US")
 
 # combustion and non-combustion generation
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 130, loc = c(12, 34), text_to_show = "PLNT")
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 127, loc = c(13, 34), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 127, loc = c(14, 34), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 127, loc = c(15, 34), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 127, loc = c(16, 34), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 125, loc = c(17, 34), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 127, loc = c(13, 34), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 127, loc = c(14, 34), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 127, loc = c(15, 34), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 127, loc = c(16, 34), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 125, loc = c(17, 34), text_to_show = "US")
 
 # resource mix
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 133, loc = c(12, 35), text_to_show = "PLNT")
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 130, loc = c(13, 35), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 130, loc = c(14, 35), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 130, loc = c(15, 35), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 130, loc = c(16, 35), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 128, loc = c(17, 35), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 130, loc = c(13, 35), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 130, loc = c(14, 35), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 130, loc = c(15, 35), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 130, loc = c(16, 35), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 128, loc = c(17, 35), text_to_show = "US")
 
 # renewable and non-renewable resource mix
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 144, loc = c(12, 36), text_to_show = "PLNT")
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 141, loc = c(13, 36), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 141, loc = c(14, 36), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 141, loc = c(15, 36), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 141, loc = c(16, 36), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 139, loc = c(17, 36), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 141, loc = c(13, 36), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 141, loc = c(14, 36), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 141, loc = c(15, 36), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 141, loc = c(16, 36), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 139, loc = c(17, 36), text_to_show = "US")
 
 # combustion and non-combustion resource mix
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 148, loc = c(12, 37), text_to_show = "PLNT")
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 145, loc = c(13, 37), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 145, loc = c(14, 37), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 145, loc = c(15, 37), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 145, loc = c(16, 37), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 143, loc = c(17, 37), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 145, loc = c(13, 37), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 145, loc = c(14, 37), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 145, loc = c(15, 37), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 145, loc = c(16, 37), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 143, loc = c(17, 37), text_to_show = "US")
 
 # output emission rates by fuel type
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 44, loc = c(13, 38), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 44, loc = c(14, 38), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 44, loc = c(15, 38), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 44, loc = c(16, 38), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 42, loc = c(17, 38), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 44, loc = c(13, 38), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 44, loc = c(14, 38), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 44, loc = c(15, 38), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 44, loc = c(16, 38), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 42, loc = c(17, 38), text_to_show = "US")
 
 # input emission rates by fuel type
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 74, loc = c(13, 39), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 74, loc = c(14, 39), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 74, loc = c(15, 39), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 74, loc = c(16, 39), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 72, loc = c(17, 39), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 74, loc = c(13, 39), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 74, loc = c(14, 39), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 74, loc = c(15, 39), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 74, loc = c(16, 39), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 72, loc = c(17, 39), text_to_show = "US")
 
 # nonbaseload output emission rates 
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 104, loc = c(13, 40), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 104, loc = c(14, 40), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 104, loc = c(15, 40), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 104, loc = c(16, 40), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 102, loc = c(17, 40), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 104, loc = c(13, 40), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 104, loc = c(14, 40), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 104, loc = c(15, 40), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 104, loc = c(16, 40), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 102, loc = c(17, 40), text_to_show = "US")
 
 # nonbaseload generation by fuel type
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 148, loc = c(13, 41), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 148, loc = c(14, 41), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 148, loc = c(15, 41), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 148, loc = c(16, 41), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 146, loc = c(17, 41), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 148, loc = c(13, 41), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 148, loc = c(14, 41), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 148, loc = c(15, 41), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 148, loc = c(16, 41), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 146, loc = c(17, 41), text_to_show = "US")
 
 # nonbaseload resource mix
-add_hyperlink(glue::glue("ST{year}"), row_link = 1, col_link = 159, loc = c(13, 42), text_to_show = "ST")
-add_hyperlink(glue::glue("BA{year}"), row_link = 1, col_link = 159, loc = c(14, 42), text_to_show = "BA")
-add_hyperlink(glue::glue("SRL{year}"), row_link = 1, col_link = 159, loc = c(15, 42), text_to_show = "SRL")
-add_hyperlink(glue::glue("NRL{year}"), row_link = 1, col_link = 159, loc = c(16, 42), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"), row_link = 1, col_link = 157, loc = c(17, 42), text_to_show = "US")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 159, loc = c(13, 42), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 159, loc = c(14, 42), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 159, loc = c(15, 42), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 159, loc = c(16, 42), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 157, loc = c(17, 42), text_to_show = "US")
 
 ### Save and export -----
 output <- glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx")
