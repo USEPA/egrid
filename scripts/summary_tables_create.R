@@ -18,7 +18,6 @@ library(dplyr)
 library(glue)
 library(openxlsx)
 library(readr)
-library(readxl)
 library(stringr)
 library(tidyr)
 
@@ -145,9 +144,7 @@ state_resource_mix <-
   bind_rows(us_resource_mix) %>%
   mutate(state = replace_na(state, "U.S."))
 
-# Format as excel sheet ---------------------------
-
-# styles
+# List excel styles ------
 titles_gen <- createStyle(
   halign = "center",
   valign = "center",
@@ -190,6 +187,8 @@ us_boundary <- createStyle(textDecoration = "bold",
                              borderStyle = "thick",
                              borderColour = "black")
 
+# Format as excel sheet ---------------------------
+
 # create workbook
 wb <- createWorkbook()
 
@@ -213,8 +212,7 @@ names(table_data) <- c(
 # define sheet parameters
 startcol <- 2 # column to start data write
 colname_rows <- c(4, 3, 4, 3) # number of rows for titles
-us_datastart <- c(3, 3, 2, 2) # row where US data begins
-sheet_orientation <- c("landscape", "landscape", "portrait", "portrait") #printing orientation
+sheet_orientation <- c("landscape", "landscape", "portrait", "portrait")
 
 for (sheet in 1:4) {
   
@@ -223,9 +221,9 @@ for (sheet in 1:4) {
   sheetWidth <- as.numeric(ncol(table_data[[sheet]]))
   sheetLength <- nrow(table_data[[sheet]]) + colname_rows[sheet]
   
-  # add page formatting
-  pageSetup(wb, sheet, orientation = sheet_orientation[sheet], fitToWidth = TRUE, fitToHeight = TRUE)
-  
+  pageSetup(wb, sheet, orientation = sheet_orientation[sheet], fitToWidth = TRUE,
+            fitToHeight =  TRUE, left = 0.5, right = 0.5, top = 0.5, bottom = 0.5)
+
   if (sheet %in% c(2, 4)) {
     # add percentages statement for resource mix tables
     writeData(wb, sheet, "*percentages may not sum to 100 due to rounding", 
@@ -254,7 +252,7 @@ for (sheet in 1:4) {
   writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1, 
             colNames = FALSE)
   
-  # Sheet 1 formatting ----------------------------------
+  ## Sheet 1 formatting ----------------------------------
   if (sheet == 1) {
     
     # column names in sheet
@@ -295,7 +293,7 @@ for (sheet in 1:4) {
     writeData(wb, sheet, colnames_units, startCol = startcol, startRow = 1) # column units and larger categories
     
     # add borders
-    addStyle(wb, sheet, all_borders, rows = c(1, 4:(sheetLength - 1)), cols = startcol:(sheetWidth + 1),
+    addStyle(wb, sheet, all_borders, rows = c(1, 4:sheetLength), cols = startcol:(sheetWidth + 1),
             stack = TRUE, gridExpand = TRUE)
     addStyle(wb, sheet, right_borders, rows = 2:4, cols = startcol:(sheetWidth + 1), 
              stack = TRUE, gridExpand = TRUE)
@@ -329,15 +327,18 @@ for (sheet in 1:4) {
     addStyle(wb, sheet, createStyle(numFmt = "#,##0.0%"), rows = 5:sheetLength, 
              cols = 18, stack = TRUE, gridExpand = TRUE)
     
+    # merge US cells in resource mix
+    mergeCells(wb, sheet, cols = 2:3, rows = sheetLength)
+    
     ### General formatting ---------------------------
     
     # set cell sizes
     setRowHeights(wb, sheet, rows = 1:4, heights = c(22, 14.4, 14.4, 35))
     setRowHeights(wb, sheet, rows = 5:(sheetLength + 1), heights = 15)
-    setColWidths(wb, sheet, cols = c(1:3, 18), widths = c(1, 10, 20.29, 9))
+    setColWidths(wb, sheet, cols = c(1:3, 18), widths = c(1, 10, 22, 8.75))
     setColWidths(wb, sheet, cols = 4:17, widths = 7)
 
-    # Sheet 2 formatting ----------------------
+    ## Sheet 2 formatting ----------------------
   } else if (sheet == 2) {
     
     # column names in sheet
@@ -370,7 +371,7 @@ for (sheet in 1:4) {
     writeData(wb, sheet, colnames_upper, startCol = startcol, startRow = 1)
     
     # add borders
-    addStyle(wb, sheet, all_borders, rows = 1:(sheetLength - 1), cols = startcol:(sheetWidth + 1),
+    addStyle(wb, sheet, all_borders, rows = 1:sheetLength , cols = startcol:(sheetWidth + 1),
              stack = TRUE, gridExpand = TRUE)
 
     # add shading
@@ -393,16 +394,19 @@ for (sheet in 1:4) {
     addStyle(wb, sheet, createStyle(numFmt = "#,##0.0%"), rows = 4:sheetLength, 
              cols = 6:16, stack = TRUE, gridExpand = TRUE)
     
+    # merge US cells in subregion sheets
+    mergeCells(wb, sheet, cols = 2:3, rows = sheetLength)
+    
     ### General formatting -----------------
     
     # set cell sizes
     setRowHeights(wb, sheet, rows = 1:3, heights = c(22, 15, 45))
     setRowHeights(wb, sheet, rows = 4:(sheetLength + 2), heights = 15)
-    setColWidths(wb, sheet, cols = c(1:5, 12, 15, 16), 
-                 widths = c(1, 10, 20.29, 10, 12, 9, 9, 10))
-    setColWidths(wb, sheet, cols = c(6:11, 13:14), widths = 8)
-
-    # Sheet 3 formatting -----------
+    setColWidths(wb, sheet, cols = c(1:5, 12, 16), 
+                 widths = c(1, 10, 22, 10, 12, 8.2, 10))
+    setColWidths(wb, sheet, cols = c(6:11, 13:15), widths = 8)
+    
+    ## Sheet 3 formatting -----------
   } else if (sheet == 3) {
     
     # column names in sheet
@@ -433,7 +437,7 @@ for (sheet in 1:4) {
     writeData(wb, sheet, colnames_units, startCol = startcol, startRow = 1)
     
     # add borders
-    addStyle(wb, sheet, all_borders, rows = c(1, 4:(sheetLength - 1)), cols = 2:(sheetWidth + 1), 
+    addStyle(wb, sheet, all_borders, rows = c(1, 4:sheetLength), cols = 2:(sheetWidth + 1), 
              stack = TRUE, gridExpand = TRUE)
     addStyle(wb, sheet, right_borders, rows = 2:4, cols = 2:(sheetWidth + 1), 
              stack = TRUE, gridExpand = TRUE)
@@ -464,10 +468,10 @@ for (sheet in 1:4) {
     # set cell sizes
     setRowHeights(wb, sheet, rows = 1:4, heights = c(22, 11.25, 11.25, 22))
     setRowHeights(wb, sheet, rows = 5:(sheetLength + 1), heights = 15)
-    setColWidths(wb, sheet, cols = 1:2, width = c(1, 9))
-    setColWidths(wb, sheet, cols = 3:9, widths = 12.71)
+    setColWidths(wb, sheet, cols = 1:2, width = c(1, 10))
+    setColWidths(wb, sheet, cols = 3:9, widths = 15)
     
-    # Sheet 4 formatting ------------------
+    ## Sheet 4 formatting ------------------
   } else if (sheet == 4) {
     
     # column names in sheet
@@ -492,14 +496,14 @@ for (sheet in 1:4) {
     colnames_upper <- colnames_lower
     colnames_upper[4] <- "Generation Resource Mix (percent)*"
     
-    # Column title and formatting -----------------
+    ### Column title and formatting -----------------
     
     # write column titles
     writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 2)
     writeData(wb, sheet, colnames_upper, startCol = startcol, startRow = 1)
     
     #add borders
-    addStyle(wb, sheet, all_borders, rows = 1:(sheetLength - 1), cols = 2:(sheetWidth + 1),
+    addStyle(wb, sheet, all_borders, rows = 1:sheetLength, cols = 2:(sheetWidth + 1),
              stack = TRUE, gridExpand = TRUE)
     
     # add shading
@@ -514,7 +518,7 @@ for (sheet in 1:4) {
       mergeCells(wb, sheet, cols = colnum, rows = 2:3)
     }
     
-    # Data formatting --------------
+    ### Data formatting --------------
 
     # add number formats
     addStyle(wb, sheet, createStyle(numFmt = "#,##0"), rows = 4:sheetLength,
@@ -527,9 +531,11 @@ for (sheet in 1:4) {
     setRowHeights(wb, sheet, rows = 1:3, heights = c(22, 15, 45))
     setRowHeights(wb, sheet, rows = 4:(sheetLength + 2), heights = 15)
     setColWidths(wb, sheet, cols = c(1:4, 9, 11, 14:15), 
-                 width = c(1, 7, 10, 12, 8, 9, 8.5, 11))
-    setColWidths(wb, sheet, cols = c(5:8, 10, 12:13), widths = 7.5)
+                 width = c(1, 7.5, 10, 12, 8, 9, 8.5, 11))
+    setColWidths(wb, sheet, cols = c(5:8, 10, 12:13), widths = 7)
   }  
+  
+  ## Add general formatting ------
   
   # add main titles and format
   writeData(wb, sheet, names(table_data[sheet]), startCol = startcol, startRow = 1)
@@ -539,16 +545,15 @@ for (sheet in 1:4) {
   addStyle(wb, sheet, titles_gen, rows = 2:colname_rows[sheet], cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
   
   # format US row with thick outline and bold font
-  addStyle(wb, sheet, right_borders, rows = sheetLength, cols = us_datastart[sheet]:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
   addStyle(wb, sheet, us_boundary, rows = sheetLength, cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
   
   # add exterior thick borders
-  addStyle(wb, sheet, createStyle(border = "Left", borderColour = "black", borderStyle = "thick"),
-           rows = 1:creationRow, cols = sheetWidth + 2, stack = TRUE, gridExpand = TRUE)
   addStyle(wb, sheet, createStyle(border = "Right", borderColour = "black", borderStyle = "thick"),
-           rows = 1:creationRow, cols = 1, stack = TRUE, gridExpand = TRUE)
-  addStyle(wb, sheet, createStyle(border = "Top", borderColour = "black", borderStyle = "thick"),
-           rows = creationRow + 1, cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
+           rows = 1:creationRow, cols = sheetWidth + 1, stack = TRUE, gridExpand = TRUE)
+  addStyle(wb, sheet, createStyle(border = "Left", borderColour = "black", borderStyle = "thick"),
+           rows = 1:creationRow, cols = startcol, stack = TRUE, gridExpand = TRUE)
+  addStyle(wb, sheet, createStyle(border = "Bottom", borderColour = "black", borderStyle = "thick"),
+           rows = creationRow, cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
 }
 
 modifyBaseFont(wb, fontSize = 8.5, fontName = "Arial")
