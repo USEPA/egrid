@@ -252,7 +252,7 @@ for (sheet in 1:4) {
   writeData(wb, sheet, table_data[[sheet]], startCol = startcol, startRow = colname_rows[sheet] + 1, 
             colNames = FALSE)
   
-  ## Sheet 1 formatting ----------------------------------
+  ## Table 1 formatting ----------------------------------
   if (sheet == 1) {
     
     # column names in sheet
@@ -338,7 +338,7 @@ for (sheet in 1:4) {
     setColWidths(wb, sheet, cols = c(1:3, 18), widths = c(1, 10, 22, 8.75))
     setColWidths(wb, sheet, cols = 4:17, widths = 7)
 
-    ## Sheet 2 formatting ----------------------
+    ## Table 2 formatting ----------------------
   } else if (sheet == 2) {
     
     # column names in sheet
@@ -406,7 +406,7 @@ for (sheet in 1:4) {
                  widths = c(1, 10, 22, 10, 12, 8.2, 10))
     setColWidths(wb, sheet, cols = c(6:11, 13:15), widths = 8)
     
-    ## Sheet 3 formatting -----------
+    ## Table 3 formatting -----------
   } else if (sheet == 3) {
     
     # column names in sheet
@@ -471,7 +471,7 @@ for (sheet in 1:4) {
     setColWidths(wb, sheet, cols = 1:2, width = c(1, 10))
     setColWidths(wb, sheet, cols = 3:9, widths = 15)
     
-    ## Sheet 4 formatting ------------------
+    ## Table 4 formatting ------------------
   } else if (sheet == 4) {
     
     # column names in sheet
@@ -558,6 +558,114 @@ for (sheet in 1:4) {
 
 modifyBaseFont(wb, fontSize = 8.5, fontName = "Arial")
 
+# Create contents sheet ------------------
+wb <- createWorkbook()
+sheet <- 1
+# styles
+title_main <- createStyle(
+  fontSize = 18,
+  textDecoration = "bold",
+  halign = "center",
+  valign = "center", 
+  fgFill = "#D9D9D9")
+
+title_reg <- createStyle(
+  fontSize = 14,
+  textDecoration = "bold",
+  halign = "center",
+  valign = "center", 
+  fgFill = "#D9D9D9")
+
+descrip <- createStyle(
+  fgFill = "#F2F2F2",
+  wrapText = TRUE,
+  valign = "center")
+
+all_borders <- createStyle(
+  border = "TopBottomLeftRight", 
+  borderColour = "black",
+  borderStyle = "thin")
+
+right_borders <- createStyle(
+  border = "Right", 
+  borderColour = "black",
+  borderStyle = "thin")  
+
+top_borders <- createStyle(
+  border = "Top", 
+  borderColour = "black",
+  borderStyle = "thin")
+
+titles <- c(
+  paste("eGRID Summary Tables"),
+  "Introduction",
+  "Table of Contents",
+  "Feedback")
+
+title_rows <- c(2, 4, 7, 41)
+
+test <- names(table_data)
+remove <- c("\\s*\\([^\\)]+\\)", "[1-4]. ")
+for (pattern in remove) {
+  test <- lapply(test, str_remove, pattern = pattern)
+}
+test2 <- matrix(rbind(c("Table", 1:4), c("Description", test)), ncol = 2, byrow = TRUE)
+introduction_data <- glue::glue("This document provides eGRID{params$eGRID_year} data summary tables. The tables include subregion and state-level emission rates and resource mix as well as grid gross loss values. Please note that the tables presented here only show a subset of the eGRID2022 data. The entire dataset is in the eGRID{params$eGRID_year} Excel file available on the eGRID website.")
+feedback_data <- c("Customer Satisfaction Survey",
+                   "Contact EPA")
+contents_start <- 3
+contents_width <- 11
+addWorksheet(wb, sheetName = "Contents")
+modifyBaseFont(wb, fontSize = 12, fontName = "Arial")
+
+
+
+writeData(wb, sheet, introduction_data, startCol = contents_start + 3, startRow = 4)
+addStyle(wb, sheet, descrip, cols = contents_start + 3, rows = 5, stack = TRUE,
+         gridExpand = TRUE)
+mergeCells(wb, sheet, rows = 5, cols = (contents_start + 3):contents_width)
+
+writeData(wb, sheet, test2, startCol = contents_start, startRow = 7)
+addStyle(wb, sheet, descrip, cols = contents_start:4, rows = 8:13, stack = TRUE, 
+         gridExpand = TRUE)
+for (row in c(8:13, 42:43)) {
+  if (row < 42) {
+    mergecol <- 4
+  } else {
+    mergecol <- 3
+  }
+  mergeCells(wb, sheet, rows = row, cols = mergecol:contents_width)
+}
+addStyle(wb, sheet, createStyle(textDecoration = "underline"), rows = 8, 
+         cols = 3:4, stack = TRUE, gridExpand = TRUE)
+addStyle(wb, sheet, createStyle(textDecoration = "underline"), rows = 9:12, 
+         cols = 3, stack = TRUE, gridExpand = TRUE)
+addStyle(wb, sheet, createStyle(halign = "center"), rows = 8:12, cols = 3,
+         stack = TRUE, gridExpand = TRUE)
+
+writeData(wb, sheet, feedback_data, startCol = contents_start, startRow = 42)
+addStyle(wb, sheet, createStyle(textDecoration = "underline"), rows = 42:43, 
+         cols = 3, stack = TRUE, gridExpand = TRUE)
+addStyle(wb, sheet, descrip, cols = contents_start:4, rows = 42:43, stack = TRUE,
+         gridExpand = TRUE)
+
+for (i in 1:length(titles)) {
+  writeData(wb, sheet, titles[i], startCol = contents_start, startRow = title_rows[i])
+  if ( i == 1) {
+    addStyle(wb, sheet, title_main, rows = title_rows[i], cols = contents_start)
+  } else {
+    addStyle(wb, sheet, title_reg, rows = title_rows[i], cols = contents_start)
+  }
+  mergeCells(wb, sheet, rows = title_rows[i], cols = contents_start:contents_width)
+}
+
+
+
+# add images
+
+# add outlines
+
+saveWorkbook(wb, glue::glue("data/outputs/{params$eGRID_year}/summary_tables_content.xlsx"), overwrite = TRUE)
 
 # Save excel sheet -------------------------------
 
