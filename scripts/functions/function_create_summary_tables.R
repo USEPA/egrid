@@ -1,6 +1,32 @@
-  
+## -------------------------------
+##
+## Create tables for eGRID summary tables.
+## 
+## Purpose: 
+## 
+## This file formats summary data as four tables each within its own sheet in 
+## final summary tables excel sheet. 
+##
+## Authors:  
+##      Emma Russell, Abt Global
+##
+## -------------------------------
 
-create_table_sheets <- function(contents = table_data) {
+create_summary_tables <- function(contents = table_data) {
+  
+  #' create_summary_tables
+  #' 
+  #' Function to create and format summary tables for final excel file.
+  #' 
+  #' @param contents Vector of the datasets containing the data for 
+  #'                 the summary tables - includes four formatted datasets.
+  #' 
+  #' @return Four new excel sheets added to the preexisting workbook each with 
+  #'         one of the formatted summary tables
+  #' 
+  #' @examples 
+  #' # Create the four sheets containing the summary tables
+  #' create_summary_tables()
   
   # Define select styles -------
 
@@ -41,25 +67,33 @@ create_table_sheets <- function(contents = table_data) {
   red <- createStyle(fgFill = "#f2dcdb")
   orange <- createStyle(fgFill = "#fde9d9")
   
-  us_boundary <- createStyle(textDecoration = "bold",
-                             border = "Top",
-                             borderStyle = "thick",
-                             borderColour = "black")
+  us_boundary <- createStyle(
+    textDecoration = "bold",
+    border = "Top",
+    borderStyle = "thick",
+    borderColour = "black")
   
-  # define sheet parameters
+  # Set sheet dimensions and orientations --------------
+  
   startcol <- 2 # column to start data write
   colname_rows <- c(4, 3, 4, 3) # number of rows for titles
-  sheet_orientation <- c("landscape", "landscape", "portrait", "portrait")
+  sheet_orientation <- c("landscape", "landscape", "portrait", "portrait") # print orientation
   
   for (sheet in 2:5) {
     
-    # create worksheets and define sheet width and lengths
+    # Add new worksheet data --------------
+
     addWorksheet(wb, sheetName = paste0("Table ",sheet))
-    sheetWidth <- as.numeric(ncol(contents[[sheet - 1]]))
-    sheetLength <- nrow(contents[[sheet - 1]]) + colname_rows[sheet - 1]
     
+    # define size of data for formatting
+    sheetWidth <- as.numeric(ncol(contents[[sheet - 1]])) 
+    sheetLength <- nrow(contents[[sheet - 1]]) + colname_rows[sheet - 1] 
+    
+    # assign printing preferences
     pageSetup(wb, sheet, orientation = sheet_orientation[sheet - 1], fitToWidth = TRUE,
               fitToHeight =  TRUE, left = 0.5, right = 0.5, top = 0.5, bottom = 0.5)
+    
+    ## Write in sheet data --------
     
     if (sheet %in% c(3, 5)) {
       # add percentages statement for resource mix tables
@@ -89,7 +123,8 @@ create_table_sheets <- function(contents = table_data) {
     writeData(wb, sheet, contents[[sheet - 1]], startCol = startcol, startRow = colname_rows[sheet - 1] + 1, 
               colNames = FALSE)
     
-    ## Table 1 formatting ----------------------------------
+    # Table 1 formatting ----------------------------------
+    
     if (sheet == 2) {
       
       # column names in sheet
@@ -123,7 +158,7 @@ create_table_sheets <- function(contents = table_data) {
                                        "lb/MWh", "", "", "", "", "", "", ""), 
                                      ncol = sheetWidth))
       
-      ### Column title formatting ---------------------------
+      ## Column title formatting ---------------------------
       
       # write column titles
       writeData(wb, sheet, eval(colnames_lower), startCol = startcol, startRow = colname_rows[sheet - 1] - 1) # column titles
@@ -154,7 +189,7 @@ create_table_sheets <- function(contents = table_data) {
         }
       }
       
-      ### Data formatting ------------------------------
+      ## Data formatting ------------------------------
       
       # add number formats
       addStyle(wb, sheet, createStyle(numFmt = "#,##0.0"), rows = 5:sheetLength, 
@@ -167,7 +202,7 @@ create_table_sheets <- function(contents = table_data) {
       # merge US cells in resource mix
       mergeCells(wb, sheet, cols = 2:3, rows = sheetLength)
       
-      ### General formatting ---------------------------
+      ## General formatting ---------------------------
       
       # set cell sizes
       setRowHeights(wb, sheet, rows = 1:4, heights = c(22, 14.4, 14.4, 35))
@@ -175,7 +210,8 @@ create_table_sheets <- function(contents = table_data) {
       setColWidths(wb, sheet, cols = c(1:3, 18), widths = c(1, 10, 22, 8.75))
       setColWidths(wb, sheet, cols = 4:17, widths = 7)
       
-      ## Table 2 formatting ----------------------
+      # Table 2 formatting ----------------------
+      
     } else if (sheet == 3) {
       
       # column names in sheet
@@ -201,7 +237,7 @@ create_table_sheets <- function(contents = table_data) {
       colnames_upper <- colnames_lower
       colnames_upper[5] <- "Generation Resource Mix (percent)*"
       
-      ### Column title formatting ---------------------------
+      ## Column title formatting ---------------------------
       
       # write column titles
       writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 2)
@@ -223,7 +259,7 @@ create_table_sheets <- function(contents = table_data) {
         mergeCells(wb, sheet, cols = colnum, rows = 2:3)
       }
       
-      ### Data formatting ------------------
+      ## Data formatting ------------------
       
       # add number formats
       addStyle(wb, sheet, createStyle(numFmt = "#,##0"), rows = 4:sheetLength, 
@@ -234,7 +270,7 @@ create_table_sheets <- function(contents = table_data) {
       # merge US cells in subregion sheets
       mergeCells(wb, sheet, cols = 2:3, rows = sheetLength)
       
-      ### General formatting -----------------
+      ## General formatting -----------------
       
       # set cell sizes
       setRowHeights(wb, sheet, rows = 1:3, heights = c(22, 15, 45))
@@ -243,7 +279,8 @@ create_table_sheets <- function(contents = table_data) {
                    widths = c(1, 10, 22, 10, 12, 8.2, 10))
       setColWidths(wb, sheet, cols = c(6:11, 13:15), widths = 8)
       
-      ## Table 3 formatting -----------
+      # Table 3 formatting -----------
+      
     } else if (sheet == 4) {
       
       # column names in sheet
@@ -267,7 +304,7 @@ create_table_sheets <- function(contents = table_data) {
                               matrix(c("", "lb/MWh", "", "", "", "", "", ""), 
                                      ncol = sheetWidth))
       
-      ### Column title formatting -----------------
+      ## Column title formatting -----------------
       
       # write column titles
       writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 3)
@@ -292,7 +329,7 @@ create_table_sheets <- function(contents = table_data) {
         mergeCells(wb, sheet, cols = 3:9, rows = rownum)
       }
       
-      ### Data formatting ----------------
+      ## Data formatting ----------------
       
       # add number formats
       addStyle(wb, sheet, createStyle(numFmt = "#,##0.0"), rows = 5:sheetLength, cols = c(3, 6:8),
@@ -300,7 +337,7 @@ create_table_sheets <- function(contents = table_data) {
       addStyle(wb, sheet, createStyle(numFmt = "#,##0.000"), rows = 5:sheetLength, cols = c(4:5, 9),
                stack = TRUE, gridExpand = TRUE)
       
-      ### General formatting ----------------
+      ## General formatting ----------------
       
       # set cell sizes
       setRowHeights(wb, sheet, rows = 1:4, heights = c(22, 11.25, 11.25, 22))
@@ -308,7 +345,8 @@ create_table_sheets <- function(contents = table_data) {
       setColWidths(wb, sheet, cols = 1:2, width = c(1, 10))
       setColWidths(wb, sheet, cols = 3:9, widths = 15)
       
-      ## Table 4 formatting ------------------
+      ##Table 4 formatting ------------------
+      
     } else if (sheet == 5) {
       
       # column names in sheet
@@ -333,7 +371,7 @@ create_table_sheets <- function(contents = table_data) {
       colnames_upper <- colnames_lower
       colnames_upper[4] <- "Generation Resource Mix (percent)*"
       
-      ### Column title and formatting -----------------
+      ## Column title and formatting -----------------
       
       # write column titles
       writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 2)
@@ -355,7 +393,7 @@ create_table_sheets <- function(contents = table_data) {
         mergeCells(wb, sheet, cols = colnum, rows = 2:3)
       }
       
-      ### Data formatting --------------
+      ## Data formatting --------------
       
       # add number formats
       addStyle(wb, sheet, createStyle(numFmt = "#,##0"), rows = 4:sheetLength,
@@ -363,7 +401,7 @@ create_table_sheets <- function(contents = table_data) {
       addStyle(wb, sheet, createStyle(numFmt = "#,##0.0%"), rows = 4:sheetLength, 
                cols = 5:15, stack = TRUE, gridExpand = TRUE)
       
-      ### General formatting --------------------
+      ## General formatting --------------------
       # set cell sizes
       setRowHeights(wb, sheet, rows = 1:3, heights = c(22, 15, 45))
       setRowHeights(wb, sheet, rows = 4:(sheetLength + 2), heights = 15)
@@ -372,7 +410,7 @@ create_table_sheets <- function(contents = table_data) {
       setColWidths(wb, sheet, cols = c(5:8, 10, 12:13), widths = 7)
     }  
     
-    ## Add general formatting ------
+    # All tables formatting ------
     
     # add main titles and format
     writeData(wb, sheet, names(contents[sheet - 1]), startCol = startcol, startRow = 1)

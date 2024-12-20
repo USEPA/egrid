@@ -178,5 +178,8 @@ create_contents_sheet <- function(contents = table_data, sheet = 1) {
   addStyle(wb, sheet, bottom_borders, rows = end_rows, cols = start_cols:width_cols,
            stack = TRUE, gridExpand = TRUE)
   
+  pageSetup(wb, sheet, orientation = "portrait", fitToWidth = TRUE,
+            fitToHeight =  TRUE, left = 0.5, right = 0.5, top = 0.5, bottom = 0.5)
+  
   # add created timestamp
 }
