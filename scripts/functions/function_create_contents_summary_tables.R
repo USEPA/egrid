@@ -81,8 +81,7 @@ create_contents_summary_tables <- function(contents = table_data) {
   for (pattern in remove_strings) {
     worksheet_contents <- lapply(worksheet_contents, str_remove, pattern)
   }
-  table_of_contents <- matrix(rbind(c("Table", as.character(1:4)), c("Description", worksheet_contents)), 
-                              ncol = 2, byrow = TRUE)
+  table_of_contents <- matrix(c("Description", worksheet_contents), nrow = 5, byrow = TRUE)
   
   # write introduction data 
   introduction <- glue::glue("This document provides eGRID{params$eGRID_year} data summary tables. The tables include subregion and state-level emission rates and resource mix as well as grid gross loss values. Please note that the tables presented here only show a subset of the eGRID{params$eGRID_year} data. The entire dataset is in the eGRID{params$eGRID_year} Excel file available on the eGRID website.")
@@ -139,8 +138,8 @@ create_contents_summary_tables <- function(contents = table_data) {
   ## Add data ----------------
   
   # write table of contents twice to account for cell merge
-  writeData(wb, current_worksheet, table_of_contents, startCol = start_cols + 1, startRow = start_rows[3])
-  writeData(wb, current_worksheet, table_of_contents, startCol = start_cols, startRow = start_rows[3])
+  writeData(wb, current_worksheet, table_of_contents, startCol = start_cols + 2, startRow = start_rows[3])
+  writeData(wb, current_worksheet, "Table", startCol = start_cols, startRow = start_rows[3] + 1)
   writeData(wb, current_worksheet, introduction, startCol = start_cols + 4, startRow = start_rows[2])
   writeData(wb, current_worksheet, feedback_data, startCol = start_cols, startRow = start_rows[4] + 1)
   
@@ -175,9 +174,9 @@ create_contents_summary_tables <- function(contents = table_data) {
   ## Add cell sizes -------------
   
   setRowHeights(wb, current_worksheet, rows = c(1:2, 4:5, 7:8, 13:14, 41:42), 
-                heights = c(8.3, 42.8, 17.4, 90.8, 17.4, 15.8, 6.8, 6, 6.5, 17.4))
+                heights = c(8.3, 42.8, 17.4, 90.8, 17.4, 15.8, 6.8, 6, 20, 17.4))
   setColWidths(wb, current_worksheet, cols = 1:12, widths = 8.33)
-  setColWidths(wb, current_worksheet, cols = c(1:6, 12), widths = c(1, 3.78, 0.5, 12, 4.5, 4.4, 7.5))
+  setColWidths(wb, current_worksheet, cols = c(1:6, 12), widths = c(1, 3.78, 0.5, 12, 6.35, 4.89, 13.75))
   
   ## Add section titles ---------------
   
