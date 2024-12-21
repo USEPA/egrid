@@ -150,7 +150,7 @@ state_resource_mix <-
 wb <- createWorkbook()
 
 # set base font
-modifyBaseFont(wb, fontSize = 8.5, fontName = "Arial")
+modifyBaseFont(wb, fontSize = 11, fontName = "Arial")
 
 # define data for sheets
 table_data <- list(subregion_output_emissions,

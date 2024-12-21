@@ -117,8 +117,10 @@ create_contents_summary_tables <- function(contents = table_data) {
   
   current_worksheet <- "Contents"
   addWorksheet(wb, sheetName = current_worksheet)
-  modifyBaseFont(wb, fontSize = 12, fontName = "Arial")
   
+  addStyle(wb, current_worksheet, createStyle(fontName = "Arial", fontSize = "12"), cols = 1:sheetWidth,
+           rows = 1:50, gridExpand = TRUE, stack = TRUE)
+
   ## Add created datestamp
   writeData(wb, current_worksheet, x = matrix(c("Created:", format(Sys.Date(), "%m/%d/%Y")), 
                                   ncol = 2), startCol = sheetWidth - 1, startRow = end_rows[4])
