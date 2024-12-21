@@ -166,12 +166,14 @@ names(table_data) <- c(
   glue::glue("4. State Resource Mix (eGRID{params$eGRID_year})"))
 
 # write contents data on sheet 1
-source("scripts/functions/function_contents_summary_tables.R")
-create_contents_sheet()
+source("scripts/functions/function_create_contents_summary_tables.R")
+create_contents_summary_tables()
 
 # write table data on sheets 2-5
-source("scripts/functions/function_tables_summary_tables.R")
-create_table_sheets()
+source("scripts/functions/function_create_summary_tables.R")
+create_summary_tables()
+
+# add internal hyperlinks to contents page
 
 # Save excel sheet -------------------------------
 

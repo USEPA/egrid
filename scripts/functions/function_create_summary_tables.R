@@ -22,10 +22,11 @@ create_summary_tables <- function(contents = table_data) {
   #'                 the summary tables - includes four formatted datasets.
   #' 
   #' @return Four new excel sheets added to the preexisting workbook each with 
-  #'         one of the formatted summary tables
+  #'         one of the formatted summary tables.
   #' 
   #' @examples 
-  #' # Create the four sheets containing the summary tables
+  #' # Create the four sheets containing the summary tables from the datasets
+  #' # listed in table_data.
   #' create_summary_tables()
   
   # Define select styles -------
@@ -79,53 +80,54 @@ create_summary_tables <- function(contents = table_data) {
   colname_rows <- c(4, 3, 4, 3) # number of rows for titles
   sheet_orientation <- c("landscape", "landscape", "portrait", "portrait") # print orientation
   
-  for (sheet in 2:5) {
+  for (table_num in 1:4) {
     
     # Add new worksheet data --------------
-
-    addWorksheet(wb, sheetName = paste0("Table ",sheet))
+    
+    current_worksheet <- paste0("Table ",table_num)
+    addWorksheet(wb, sheetName = current_worksheet)
     
     # define size of data for formatting
-    sheetWidth <- as.numeric(ncol(contents[[sheet - 1]])) 
-    sheetLength <- nrow(contents[[sheet - 1]]) + colname_rows[sheet - 1] 
+    sheetWidth <- as.numeric(ncol(contents[[table_num]])) 
+    sheetLength <- nrow(contents[[table_num]]) + colname_rows[table_num] 
     
     # assign printing preferences
-    pageSetup(wb, sheet, orientation = sheet_orientation[sheet - 1], fitToWidth = TRUE,
+    pageSetup(wb, current_worksheet, orientation = sheet_orientation[table_num], fitToWidth = TRUE,
               fitToHeight =  TRUE, left = 0.5, right = 0.5, top = 0.5, bottom = 0.5)
     
     ## Write in sheet data --------
     
-    if (sheet %in% c(3, 5)) {
+    if (table_num %in% c(2, 4)) {
       # add percentages statement for resource mix tables
-      writeData(wb, sheet, "*percentages may not sum to 100 due to rounding", 
+      writeData(wb, current_worksheet, "*percentages may not sum to 100 due to rounding", 
                 startCol = startcol, startRow = sheetLength + 1)
-      addStyle(wb, sheet, top_borders, cols = startcol:(sheetWidth + 1), rows = sheetLength + 1)
-      # write creation data
+      addStyle(wb, current_worksheet, top_borders, cols = startcol:(sheetWidth + 1), rows = sheetLength + 1)
+      # write created datestamp
       creationRow <- sheetLength + 1
-      writeData(wb, sheet, x = matrix(c("Created:", format(Sys.Date(), "%m/%d/%Y")), 
+      writeData(wb, current_worksheet, x = matrix(c("Created:", format(Sys.Date(), "%m/%d/%Y")), 
                                       ncol = 2), startCol = sheetWidth, startRow = creationRow)
       # remove matrix titles
-      deleteData(wb, sheet, cols = sheetWidth:(sheetWidth + 1), rows = creationRow, gridExpand = TRUE)
+      deleteData(wb, current_worksheet, cols = sheetWidth:(sheetWidth + 1), rows = creationRow, gridExpand = TRUE)
     } else {
-      # write creation data
+      # write created datestamp
       creationRow <- sheetLength
-      writeData(wb, sheet, x = matrix(c("Created:", format(Sys.Date(), "%m/%d/%Y")), 
+      writeData(wb, current_worksheet, x = matrix(c("Created:", format(Sys.Date(), "%m/%d/%Y")), 
                                       ncol = 2), startCol = sheetWidth, startRow = creationRow)
     }
     
     # add creation data styling
-    addStyle(wb, sheet, createStyle(fontSize = 8, halign = "right"), cols = sheetWidth,
+    addStyle(wb, current_worksheet, createStyle(fontSize = 8, halign = "right"), cols = sheetWidth,
              rows = creationRow + 1)
-    addStyle(wb, sheet, createStyle(fontSize = 8, halign = "center"), cols = sheetWidth + 1,
+    addStyle(wb, current_worksheet, createStyle(fontSize = 8, halign = "center"), cols = sheetWidth + 1,
              rows = creationRow + 1)
     
     # write eGRID data onto sheet
-    writeData(wb, sheet, contents[[sheet - 1]], startCol = startcol, startRow = colname_rows[sheet - 1] + 1, 
+    writeData(wb, current_worksheet, contents[[table_num]], startCol = startcol, startRow = colname_rows[table_num] + 1, 
               colNames = FALSE)
     
     # Table 1 formatting ----------------------------------
     
-    if (sheet == 2) {
+    if (table_num == 1) {
       
       # column names in sheet
       colnames_lower <- matrix(c(
@@ -161,58 +163,58 @@ create_summary_tables <- function(contents = table_data) {
       ## Column title formatting ---------------------------
       
       # write column titles
-      writeData(wb, sheet, eval(colnames_lower), startCol = startcol, startRow = colname_rows[sheet - 1] - 1) # column titles
-      writeData(wb, sheet, colnames_units, startCol = startcol, startRow = 1) # column units and larger categories
+      writeData(wb, current_worksheet, eval(colnames_lower), startCol = startcol, startRow = colname_rows[table_num] - 1) # column titles
+      writeData(wb, current_worksheet, colnames_units, startCol = startcol, startRow = 1) # column units and larger categories
       
       # add borders
-      addStyle(wb, sheet, all_borders, rows = c(1, 4:sheetLength), cols = startcol:(sheetWidth + 1),
+      addStyle(wb, current_worksheet, all_borders, rows = c(1, 4:sheetLength), cols = startcol:(sheetWidth + 1),
                stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, right_borders, rows = 2:4, cols = startcol:(sheetWidth + 1), 
+      addStyle(wb, current_worksheet, right_borders, rows = 2:4, cols = startcol:(sheetWidth + 1), 
                stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, top_borders, rows = 2, cols = startcol:(sheetWidth +1), 
+      addStyle(wb, current_worksheet, top_borders, rows = 2, cols = startcol:(sheetWidth +1), 
                stack = TRUE, gridExpand = TRUE)
       
       # add shading
-      addStyle(wb, sheet, grey, rows = 2:4, cols = c(2:3, 18), stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, green, rows = 2:4, cols = 4:10, stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, purple, rows = 2:4, cols = 11:17, stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, grey, rows = 2:4, cols = c(2:3, 18), stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, green, rows = 2:4, cols = 4:10, stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, purple, rows = 2:4, cols = 11:17, stack = TRUE, gridExpand = TRUE)
       
       # merge column title cells
-      mergeCells(wb, sheet, cols = 2:18, rows = 1)
+      mergeCells(wb, current_worksheet, cols = 2:18, rows = 1)
       for (colnum in c(2, 3, 18)) {
-        mergeCells(wb, sheet, cols = colnum, rows = 2:4)
+        mergeCells(wb, current_worksheet, cols = colnum, rows = 2:4)
       }
       
       for (colnum in c(4, 11)) {
         for (rownum in c(2, 3)) {
-          mergeCells(wb, sheet, cols = c(colnum, colnum + 6), rows = rownum)
+          mergeCells(wb, current_worksheet, cols = c(colnum, colnum + 6), rows = rownum)
         }
       }
       
       ## Data formatting ------------------------------
       
       # add number formats
-      addStyle(wb, sheet, createStyle(numFmt = "#,##0.0"), rows = 5:sheetLength, 
+      addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0"), rows = 5:sheetLength, 
                cols = c(4, 7:9, 11, 14:16), stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, createStyle(numFmt = "#,##0.000"), rows = 5:sheetLength, 
+      addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.000"), rows = 5:sheetLength, 
                cols = c(5:6, 10, 12:13, 17), stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, createStyle(numFmt = "#,##0.0%"), rows = 5:sheetLength, 
+      addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0%"), rows = 5:sheetLength, 
                cols = 18, stack = TRUE, gridExpand = TRUE)
       
       # merge US cells in resource mix
-      mergeCells(wb, sheet, cols = 2:3, rows = sheetLength)
+      mergeCells(wb, current_worksheet, cols = 2:3, rows = sheetLength)
       
       ## General formatting ---------------------------
       
       # set cell sizes
-      setRowHeights(wb, sheet, rows = 1:4, heights = c(22, 14.4, 14.4, 35))
-      setRowHeights(wb, sheet, rows = 5:(sheetLength + 1), heights = 15)
-      setColWidths(wb, sheet, cols = c(1:3, 18), widths = c(1, 10, 22, 8.75))
-      setColWidths(wb, sheet, cols = 4:17, widths = 7)
+      setRowHeights(wb, current_worksheet, rows = 1:4, heights = c(22, 14.4, 14.4, 35))
+      setRowHeights(wb, current_worksheet, rows = 5:(sheetLength + 1), heights = 15)
+      setColWidths(wb, current_worksheet, cols = c(1:3, 18), widths = c(1, 10, 22, 8.75))
+      setColWidths(wb, current_worksheet, cols = 4:17, widths = 7)
       
       # Table 2 formatting ----------------------
       
-    } else if (sheet == 3) {
+    } else if (table_num == 2) {
       
       # column names in sheet
       colnames_lower <- matrix(c(
@@ -240,48 +242,48 @@ create_summary_tables <- function(contents = table_data) {
       ## Column title formatting ---------------------------
       
       # write column titles
-      writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 2)
-      writeData(wb, sheet, colnames_upper, startCol = startcol, startRow = 1)
+      writeData(wb, current_worksheet, colnames_lower, startCol = startcol, startRow = 2)
+      writeData(wb, current_worksheet, colnames_upper, startCol = startcol, startRow = 1)
       
       # add borders
-      addStyle(wb, sheet, all_borders, rows = 1:sheetLength , cols = startcol:(sheetWidth + 1),
+      addStyle(wb, current_worksheet, all_borders, rows = 1:sheetLength , cols = startcol:(sheetWidth + 1),
                stack = TRUE, gridExpand = TRUE)
       
       # add shading
-      addStyle(wb, sheet, grey, rows = 2:3, cols = 2:4, stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, red, rows = 2:3, cols = 5, stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, orange, rows = 2:3, cols = 6:16, stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, grey, rows = 2:3, cols = 2:4, stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, red, rows = 2:3, cols = 5, stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, orange, rows = 2:3, cols = 6:16, stack = TRUE, gridExpand = TRUE)
       
       # merge column title cells
-      mergeCells(wb, sheet, cols = 2:16, rows = 1)
-      mergeCells(wb, sheet, cols = 6:16, rows = 2)
+      mergeCells(wb, current_worksheet, cols = 2:16, rows = 1)
+      mergeCells(wb, current_worksheet, cols = 6:16, rows = 2)
       for (colnum in 2:5) {
-        mergeCells(wb, sheet, cols = colnum, rows = 2:3)
+        mergeCells(wb, current_worksheet, cols = colnum, rows = 2:3)
       }
       
       ## Data formatting ------------------
       
       # add number formats
-      addStyle(wb, sheet, createStyle(numFmt = "#,##0"), rows = 4:sheetLength, 
+      addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0"), rows = 4:sheetLength, 
                cols = 4:5, stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, createStyle(numFmt = "#,##0.0%"), rows = 4:sheetLength, 
+      addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0%"), rows = 4:sheetLength, 
                cols = 6:16, stack = TRUE, gridExpand = TRUE)
       
       # merge US cells in subregion sheets
-      mergeCells(wb, sheet, cols = 2:3, rows = sheetLength)
+      mergeCells(wb, current_worksheet, cols = 2:3, rows = sheetLength)
       
       ## General formatting -----------------
       
       # set cell sizes
-      setRowHeights(wb, sheet, rows = 1:3, heights = c(22, 15, 45))
-      setRowHeights(wb, sheet, rows = 4:(sheetLength + 2), heights = 15)
-      setColWidths(wb, sheet, cols = c(1:5, 12, 16), 
+      setRowHeights(wb, current_worksheet, rows = 1:3, heights = c(22, 15, 45))
+      setRowHeights(wb, current_worksheet, rows = 4:(sheetLength + 2), heights = 15)
+      setColWidths(wb, current_worksheet, cols = c(1:5, 12, 16), 
                    widths = c(1, 10, 22, 10, 12, 8.2, 10))
-      setColWidths(wb, sheet, cols = c(6:11, 13:15), widths = 8)
+      setColWidths(wb, current_worksheet, cols = c(6:11, 13:15), widths = 8)
       
       # Table 3 formatting -----------
       
-    } else if (sheet == 4) {
+    } else if (table_num == 3) {
       
       # column names in sheet
       colnames_lower <- matrix(c(
@@ -307,47 +309,47 @@ create_summary_tables <- function(contents = table_data) {
       ## Column title formatting -----------------
       
       # write column titles
-      writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 3)
-      writeData(wb, sheet, colnames_units, startCol = startcol, startRow = 1)
+      writeData(wb, current_worksheet, colnames_lower, startCol = startcol, startRow = 3)
+      writeData(wb, current_worksheet, colnames_units, startCol = startcol, startRow = 1)
       
       # add borders
-      addStyle(wb, sheet, all_borders, rows = c(1, 4:sheetLength), cols = 2:(sheetWidth + 1), 
+      addStyle(wb, current_worksheet, all_borders, rows = c(1, 4:sheetLength), cols = 2:(sheetWidth + 1), 
                stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, right_borders, rows = 2:4, cols = 2:(sheetWidth + 1), 
+      addStyle(wb, current_worksheet, right_borders, rows = 2:4, cols = 2:(sheetWidth + 1), 
                stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, top_borders, rows = 2, cols = 2:(sheetWidth + 1), 
+      addStyle(wb, current_worksheet, top_borders, rows = 2, cols = 2:(sheetWidth + 1), 
                stack = TRUE, gridExpand = TRUE)
       
       # add shading
-      addStyle(wb, sheet, grey, rows = 2:4, cols = 2, stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, green, rows = 2:4, cols = 3:9, stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, grey, rows = 2:4, cols = 2, stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, green, rows = 2:4, cols = 3:9, stack = TRUE, gridExpand = TRUE)
       
       # merge column title cells
-      mergeCells(wb, sheet, cols = 2:9, rows = 1)
-      mergeCells(wb, sheet, cols = 2, rows = 2:4)
+      mergeCells(wb, current_worksheet, cols = 2:9, rows = 1)
+      mergeCells(wb, current_worksheet, cols = 2, rows = 2:4)
       for (rownum in c(2,3)) {
-        mergeCells(wb, sheet, cols = 3:9, rows = rownum)
+        mergeCells(wb, current_worksheet, cols = 3:9, rows = rownum)
       }
       
       ## Data formatting ----------------
       
       # add number formats
-      addStyle(wb, sheet, createStyle(numFmt = "#,##0.0"), rows = 5:sheetLength, cols = c(3, 6:8),
+      addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0"), rows = 5:sheetLength, cols = c(3, 6:8),
                stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, createStyle(numFmt = "#,##0.000"), rows = 5:sheetLength, cols = c(4:5, 9),
+      addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.000"), rows = 5:sheetLength, cols = c(4:5, 9),
                stack = TRUE, gridExpand = TRUE)
       
       ## General formatting ----------------
       
       # set cell sizes
-      setRowHeights(wb, sheet, rows = 1:4, heights = c(22, 11.25, 11.25, 22))
-      setRowHeights(wb, sheet, rows = 5:(sheetLength + 1), heights = 15)
-      setColWidths(wb, sheet, cols = 1:2, width = c(1, 10))
-      setColWidths(wb, sheet, cols = 3:9, widths = 15)
+      setRowHeights(wb, current_worksheet, rows = 1:4, heights = c(22, 11.25, 11.25, 22))
+      setRowHeights(wb, current_worksheet, rows = 5:(sheetLength + 1), heights = 15)
+      setColWidths(wb, current_worksheet, cols = 1:2, width = c(1, 10))
+      setColWidths(wb, current_worksheet, cols = 3:9, widths = 15)
       
       ##Table 4 formatting ------------------
       
-    } else if (sheet == 5) {
+    } else if (table_num == 4) {
       
       # column names in sheet
       colnames_lower <- matrix(c(
@@ -374,60 +376,60 @@ create_summary_tables <- function(contents = table_data) {
       ## Column title and formatting -----------------
       
       # write column titles
-      writeData(wb, sheet, colnames_lower, startCol = startcol, startRow = 2)
-      writeData(wb, sheet, colnames_upper, startCol = startcol, startRow = 1)
+      writeData(wb, current_worksheet, colnames_lower, startCol = startcol, startRow = 2)
+      writeData(wb, current_worksheet, colnames_upper, startCol = startcol, startRow = 1)
       
       #add borders
-      addStyle(wb, sheet, all_borders, rows = 1:sheetLength, cols = 2:(sheetWidth + 1),
+      addStyle(wb, current_worksheet, all_borders, rows = 1:sheetLength, cols = 2:(sheetWidth + 1),
                stack = TRUE, gridExpand = TRUE)
       
       # add shading
-      addStyle(wb, sheet, grey, rows = 2:3, cols = 2:3, stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, red, rows = 2:3, cols = 4, stack = TRUE,  gridExpand = TRUE)
-      addStyle(wb, sheet, orange, rows = 2:3, cols = 5:15, stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, grey, rows = 2:3, cols = 2:3, stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, red, rows = 2:3, cols = 4, stack = TRUE,  gridExpand = TRUE)
+      addStyle(wb, current_worksheet, orange, rows = 2:3, cols = 5:15, stack = TRUE, gridExpand = TRUE)
       
       # merge column title cells
-      mergeCells(wb, sheet, cols = 2:15, rows = 1)
-      mergeCells(wb, sheet, cols = 5:15, rows = 2)
+      mergeCells(wb, current_worksheet, cols = 2:15, rows = 1)
+      mergeCells(wb, current_worksheet, cols = 5:15, rows = 2)
       for (colnum in 2:4) {
-        mergeCells(wb, sheet, cols = colnum, rows = 2:3)
+        mergeCells(wb, current_worksheet, cols = colnum, rows = 2:3)
       }
       
       ## Data formatting --------------
       
       # add number formats
-      addStyle(wb, sheet, createStyle(numFmt = "#,##0"), rows = 4:sheetLength,
+      addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0"), rows = 4:sheetLength,
                cols = 3:4, stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, sheet, createStyle(numFmt = "#,##0.0%"), rows = 4:sheetLength, 
+      addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0%"), rows = 4:sheetLength, 
                cols = 5:15, stack = TRUE, gridExpand = TRUE)
       
       ## General formatting --------------------
       # set cell sizes
-      setRowHeights(wb, sheet, rows = 1:3, heights = c(22, 15, 45))
-      setRowHeights(wb, sheet, rows = 4:(sheetLength + 2), heights = 15)
-      setColWidths(wb, sheet, cols = c(1:4, 9, 11, 14:15), 
+      setRowHeights(wb, current_worksheet, rows = 1:3, heights = c(22, 15, 45))
+      setRowHeights(wb, current_worksheet, rows = 4:(sheetLength + 2), heights = 15)
+      setColWidths(wb, current_worksheet, cols = c(1:4, 9, 11, 14:15), 
                    width = c(1, 7.5, 10, 12, 8, 9, 8.5, 11))
-      setColWidths(wb, sheet, cols = c(5:8, 10, 12:13), widths = 7)
+      setColWidths(wb, current_worksheet, cols = c(5:8, 10, 12:13), widths = 7)
     }  
     
     # All tables formatting ------
     
     # add main titles and format
-    writeData(wb, sheet, names(contents[sheet - 1]), startCol = startcol, startRow = 1)
-    addStyle(wb, sheet, toptitle, rows = 1, cols = 1:sheetWidth + 1, stack = TRUE, gridExpand = TRUE)
+    writeData(wb, current_worksheet, names(contents[table_num]), startCol = startcol, startRow = 1)
+    addStyle(wb, current_worksheet, toptitle, rows = 1, cols = 1:sheetWidth + 1, stack = TRUE, gridExpand = TRUE)
     
     # add column titles formatting
-    addStyle(wb, sheet, titles_gen, rows = 2:colname_rows[sheet - 1], cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, current_worksheet, titles_gen, rows = 2:colname_rows[table_num], cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
     
     # format US row with thick outline and bold font
-    addStyle(wb, sheet, us_boundary, rows = sheetLength, cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, current_worksheet, us_boundary, rows = sheetLength, cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
     
     # add exterior thick borders
-    addStyle(wb, sheet, createStyle(border = "Right", borderColour = "black", borderStyle = "thick"),
+    addStyle(wb, current_worksheet, createStyle(border = "Right", borderColour = "black", borderStyle = "thick"),
              rows = 1:creationRow, cols = sheetWidth + 1, stack = TRUE, gridExpand = TRUE)
-    addStyle(wb, sheet, createStyle(border = "Left", borderColour = "black", borderStyle = "thick"),
+    addStyle(wb, current_worksheet, createStyle(border = "Left", borderColour = "black", borderStyle = "thick"),
              rows = 1:creationRow, cols = startcol, stack = TRUE, gridExpand = TRUE)
-    addStyle(wb, sheet, createStyle(border = "Bottom", borderColour = "black", borderStyle = "thick"),
+    addStyle(wb, current_worksheet, createStyle(border = "Bottom", borderColour = "black", borderStyle = "thick"),
              rows = creationRow, cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
   }
 }
