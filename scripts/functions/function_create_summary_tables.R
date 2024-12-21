@@ -91,6 +91,11 @@ create_summary_tables <- function(contents = table_data) {
     sheetWidth <- as.numeric(ncol(contents[[table_num]])) 
     sheetLength <- nrow(contents[[table_num]]) + colname_rows[table_num] 
     
+    # assign font size for data regions
+    addStyle(wb, current_worksheet, createStyle(fontSize = 8.5), 
+             rows = 2:(sheetLength + 2), cols = startcol:(sheetWidth + 1), stack = TRUE,
+             gridExpand = TRUE)
+    
     # assign printing preferences
     pageSetup(wb, current_worksheet, orientation = sheet_orientation[table_num], fitToWidth = TRUE,
               fitToHeight =  TRUE, left = 0.5, right = 0.5, top = 0.5, bottom = 0.5)
@@ -101,7 +106,8 @@ create_summary_tables <- function(contents = table_data) {
       # add percentages statement for resource mix tables
       writeData(wb, current_worksheet, "*percentages may not sum to 100 due to rounding", 
                 startCol = startcol, startRow = sheetLength + 1)
-      addStyle(wb, current_worksheet, top_borders, cols = startcol:(sheetWidth + 1), rows = sheetLength + 1)
+      addStyle(wb, current_worksheet, top_borders, cols = startcol:(sheetWidth + 1), 
+               rows = sheetLength + 1, stack = TRUE)
       # write created datestamp
       creationRow <- sheetLength + 1
       writeData(wb, current_worksheet, x = matrix(c("Created:", format(Sys.Date(), "%m/%d/%Y")), 
@@ -207,10 +213,10 @@ create_summary_tables <- function(contents = table_data) {
       ## General formatting ---------------------------
       
       # set cell sizes
-      setRowHeights(wb, current_worksheet, rows = 1:4, heights = c(22, 14.4, 14.4, 35))
+      setRowHeights(wb, current_worksheet, rows = 1:4, heights = c(21.75, 14.4, 14.4, 34))
       setRowHeights(wb, current_worksheet, rows = 5:(sheetLength + 1), heights = 15)
-      setColWidths(wb, current_worksheet, cols = c(1:3, 18), widths = c(1, 10, 22, 8.75))
-      setColWidths(wb, current_worksheet, cols = 4:17, widths = 7)
+      setColWidths(wb, current_worksheet, cols = c(1:3, 18), widths = c(1, 7.75, 16.2, 6.3))
+      setColWidths(wb, current_worksheet, cols = 4:17, widths = 5.5)
       
       # Table 2 formatting ----------------------
       
@@ -275,11 +281,11 @@ create_summary_tables <- function(contents = table_data) {
       ## General formatting -----------------
       
       # set cell sizes
-      setRowHeights(wb, current_worksheet, rows = 1:3, heights = c(22, 15, 45))
+      setRowHeights(wb, current_worksheet, rows = 1:3, heights = c(21.75, 15, 45))
       setRowHeights(wb, current_worksheet, rows = 4:(sheetLength + 2), heights = 15)
-      setColWidths(wb, current_worksheet, cols = c(1:5, 12, 16), 
-                   widths = c(1, 10, 22, 10, 12, 8.2, 10))
-      setColWidths(wb, current_worksheet, cols = c(6:11, 13:15), widths = 8)
+      setColWidths(wb, current_worksheet, cols = c(1:5, 12, 15, 16), 
+                   widths = c(1, 7.75, 16.2, 8.5, 9, 6.4, 6.4, 8))
+      setColWidths(wb, current_worksheet, cols = c(6:11, 13:14), widths = 5.9)
       
       # Table 3 formatting -----------
       
@@ -342,10 +348,10 @@ create_summary_tables <- function(contents = table_data) {
       ## General formatting ----------------
       
       # set cell sizes
-      setRowHeights(wb, current_worksheet, rows = 1:4, heights = c(22, 11.25, 11.25, 22))
-      setRowHeights(wb, current_worksheet, rows = 5:(sheetLength + 1), heights = 15)
-      setColWidths(wb, current_worksheet, cols = 1:2, width = c(1, 10))
-      setColWidths(wb, current_worksheet, cols = 3:9, widths = 15)
+      setRowHeights(wb, current_worksheet, rows = 1:4, heights = c(21.75, 11.25, 11.25, 21.75))
+      setRowHeights(wb, current_worksheet, rows = 5:(sheetLength + 1), heights = 13.5)
+      setColWidths(wb, current_worksheet, cols = 1:2, width = c(1, 7.5))
+      setColWidths(wb, current_worksheet, cols = 3:9, widths = 10)
       
       ##Table 4 formatting ------------------
       
@@ -405,11 +411,12 @@ create_summary_tables <- function(contents = table_data) {
       
       ## General formatting --------------------
       # set cell sizes
-      setRowHeights(wb, current_worksheet, rows = 1:3, heights = c(22, 15, 45))
-      setRowHeights(wb, current_worksheet, rows = 4:(sheetLength + 2), heights = 15)
-      setColWidths(wb, current_worksheet, cols = c(1:4, 9, 11, 14:15), 
-                   width = c(1, 7.5, 10, 12, 8, 9, 8.5, 11))
-      setColWidths(wb, current_worksheet, cols = c(5:8, 10, 12:13), widths = 7)
+      setRowHeights(wb, current_worksheet, rows = 1:3, heights = c(21.75, 11.25, 45))
+      setRowHeights(wb, current_worksheet, rows = 4:(sheetLength + 2), heights = 13.5)
+      setColWidths(wb, current_worksheet, cols = c(1:4, 9, 11, 14:16), 
+                   width = c(1, 5, 7.75, 9, 5.75, 5.9, 5.75, 7.5))
+      setColWidths(wb, current_worksheet, cols = c(9, 12:13), widths = 5.4)
+      setColWidths(wb, current_worksheet, cols = c(5:8, 10, 12:13), widths = 5.4)
     }  
     
     # All tables formatting ------
