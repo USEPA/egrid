@@ -150,7 +150,7 @@ state_resource_mix <-
 wb <- createWorkbook()
 
 # set base font
-modifyBaseFont(wb, fontSize = 11, fontName = "Arial")
+modifyBaseFont(wb, fontName = "Arial")
 
 # define data for sheets
 table_data <- list(subregion_output_emissions,
@@ -174,7 +174,11 @@ source("scripts/functions/function_create_summary_tables.R")
 create_summary_tables()
 
 # add internal hyperlinks to contents page
-
+for (i in 1:4) {
+  link <- makeHyperlinkString(sheet = paste("Table",i), text = i)
+  writeFormula(wb, "Contents", link, xy = c(3, 8 + i))                  
+}
+                      
 # Save excel sheet -------------------------------
 
 saveWorkbook(wb, glue::glue("data/outputs/{params$eGRID_year}/summary_tables.xlsx"), overwrite = TRUE)
