@@ -109,8 +109,8 @@ create_contents_summary_tables <- function(contents = table_data) {
     start_rows[2] + 1,
     start_rows[3] + 6,
     start_rows[4] + 2)
-  start_cols <- 3
-  sheetWidth <- 12
+  start_cols <- 2
+  sheetWidth <- start_cols + 9
   
   # Create new worksheet ----------------
   
@@ -136,7 +136,7 @@ create_contents_summary_tables <- function(contents = table_data) {
   insertImage(wb, current_worksheet, file = "data/static_tables/eGRID_subregions.png",
               width = 7.24, height = 5.41, startRow = 15, startCol = start_cols)
   insertImage(wb, current_worksheet, file = "data/static_tables/eGRID_logo.png",
-              width = 2.06, height = 1.16, startRow = 5, startCol = 4, 
+              width = 2.06, height = 1.16, startRow = 5, startCol = start_cols + 1, 
               address = "https://www.epa.gov/egrid")
   # 
   ## Add data ----------------
@@ -159,20 +159,20 @@ create_contents_summary_tables <- function(contents = table_data) {
                 (start_rows[4] + 1):end_rows[4])) {
     # introduction
     if (row == start_rows[2] + 1) {
-      mergecol <- 7
+      mergecol <- start_cols + 4
       # table of contents
     } else if (row < start_rows[4] + 1) {
-      mergecol <- 5
+      mergecol <- start_cols + 2
       addStyle(wb, current_worksheet, toc_labels, rows = row, cols = start_cols, 
                stack = TRUE, gridExpand = TRUE)
-      mergeCells(wb, current_worksheet, cols = 3:4, rows = row)
+      mergeCells(wb, current_worksheet, cols = start_cols:(start_cols + 1), rows = row)
       if (row == start_rows[3] + 1) {
         addStyle(wb, current_worksheet, createStyle(textDecoration = "underline"), 
-                 rows = row, cols = start_cols:5, stack = TRUE, gridExpand = TRUE)
+                 rows = row, cols = start_cols:(start_cols + 2), stack = TRUE, gridExpand = TRUE)
       }
       # feedback
     } else {
-      mergecol <- 3
+      mergecol <- start_cols
       addStyle(wb, current_worksheet, createStyle(textDecoration = "underline"), rows = row, 
                cols = start_cols, stack = TRUE, gridExpand = TRUE)
     }
@@ -187,7 +187,7 @@ create_contents_summary_tables <- function(contents = table_data) {
   setRowHeights(wb, current_worksheet, rows = c(1:2, 4:5, 7:8, 13:14, 41:42), 
                 heights = c(8.3, 42.8, 17.4, 90.8, 17.4, 15.8, 6.8, 6, 20, 17.4))
   setColWidths(wb, current_worksheet, cols = 1:12, widths = 8.33)
-  setColWidths(wb, current_worksheet, cols = c(1:6, 12), widths = c(1, 3.78, 0.5, 
+  setColWidths(wb, current_worksheet, cols = c(1:5, 11), widths = c(1, 0.5, 
                                                                     12, 6.35, 4.89, 13.75))
   
   ## Add section titles ---------------
