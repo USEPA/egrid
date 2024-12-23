@@ -57,7 +57,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("NOx output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -90,7 +90,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("NOx ozone output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -123,7 +123,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("SO2 output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -156,7 +156,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("CO2 output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -189,7 +189,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("CH4 output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -222,7 +222,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("N2O output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -255,7 +255,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("CO2e output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -292,7 +292,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("NOx input rate (lb/MMBtu)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -325,7 +325,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("NOx ozone input rate (lb/MMBtu)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -358,7 +358,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("SO2 input rate (lb/MMBtu)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -391,7 +391,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("CO2 input rate (lb/MMBtu)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -424,7 +424,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("CH4 input rate (lb/MMBtu)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -457,7 +457,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("N2O input rate (lb/MMBtu)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -490,7 +490,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("CO2e input rate (lb/MMBtu)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -527,7 +527,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("NOx combustion output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -560,7 +560,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("NOx ozone combustion output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -593,7 +593,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("SO2 combustion output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -626,7 +626,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("CO2 combustion output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -659,7 +659,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("CH4 combustion output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -692,7 +692,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("N2O combustion output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
@@ -725,13 +725,248 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                              width = 0.75,
                              position = "dodge") +
                     ylab("CO2e combustion output rate (lb/MWh)") + 
-                    xlab("eGRID Subregion") + 
+                    xlab("Subregion") + 
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
 plotly::ggplotly(rate_comparison)
 
 knitr::kable(co2e_combustion,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+:::
+
+### Nonbaseload output emission rate comparison
+
+::: panel-tabset
+#### NOx nonbaseload output rate
+
+```{r}
+#| label: nox-nonbaseload-rate-subregion
+
+nox_nonbaseload <- 
+  subregion_rate_comparison %>% select(subregion, contains("nox_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(subregion_comparison, aes(x = subregion, 
+                                                y = nox_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx nonbaseload output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(nox_nonbaseload,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### NOx ozone nonbaseload output rate
+
+```{r}
+#| label: nox-oz-nonbaseload-rate-subregion
+
+nox_oz_nonbaseload <- 
+  subregion_rate_comparison %>% select(subregion, contains("nox_oz_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(subregion_comparison, aes(x = subregion,
+                                                y = nox_oz_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx ozone nonbaseload output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(nox_oz_nonbaseload,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### SO2 nonbaseload output rate
+
+```{r}
+#| label: so2-nonbaseload-rate-subregion
+
+so2_nonbaseload <- 
+  subregion_rate_comparison %>% select(subregion, contains("so2_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(subregion_comparison, aes(x = subregion, 
+                                                y = so2_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 nonbaseload output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(so2_nonbaseload,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CO2 nonbaseload output rate
+
+```{r}
+#| label: co2-nonbaseload-rate-subregion
+
+co2_nonbaseload <- 
+  subregion_rate_comparison %>% select(subregion, contains("co2_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(subregion_comparison, aes(x = subregion, 
+                                                y = co2_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 nonbaseload output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(co2_nonbaseload,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CH4 nonbaseload output rate
+
+```{r}
+#| label: ch4-nonbaseload-rate-subregion
+
+ch4_nonbaseload <- 
+  subregion_rate_comparison %>% select(subregion, contains("ch4_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(subregion_comparison, aes(x = subregion, 
+                                                y = ch4_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 nonbaseload output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(ch4_nonbaseload,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### N2O nonbaseload output rate
+
+```{r}
+#| label: n2o-nonbaseload-rate-subregion
+
+n2o_nonbaseload <- 
+  subregion_rate_comparison %>% select(subregion, contains("n2o_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(subregion_comparison, aes(x = subregion, 
+                                                y = n2o_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O nonbaseload output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(n2o_nonbaseload,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CO2e nonbaseload output rate
+
+```{r}
+#| label: co2e-nonbaseload-rate-subregion
+
+co2e_nonbaseload <- 
+  subregion_rate_comparison %>% select(subregion, contains("co2e_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(subregion_comparison, aes(x = subregion, 
+                                                y = co2e_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e nonbaseload output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(co2e_nonbaseload,
              digits = c(0, 0, 0, 0, 0, 2),
              format.args = list(big.mark = ","),
              col.names = c("Subregion", 
@@ -1454,6 +1689,240 @@ knitr::kable(co2e_combustion,
 ```
 :::
 
+### Nonbaseload output emission rate comparison
+
+::: panel-tabset
+#### NOx nonbaseload output rate
+
+```{r}
+#| label: nox-nonbaseload-rate-state
+
+nox_nonbaseload <- 
+  state_rate_comparison %>% select(state, contains("nox_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx nonbaseload output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(nox_nonbaseload,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### NOx ozone nonbaseload output rate
+
+```{r}
+#| label: nox-oz-nonbaseload-rate-state
+
+nox_oz_nonbaseload <- 
+  state_rate_comparison %>% select(state, contains("nox_oz_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state,
+                                                y = nox_oz_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx ozone nonbaseload output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(nox_oz_nonbaseload,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### SO2 nonbaseload output rate
+
+```{r}
+#| label: so2-nonbaseload-rate-state
+
+so2_nonbaseload <- 
+  state_rate_comparison %>% select(state, contains("so2_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = so2_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 nonbaseload output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(so2_nonbaseload,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CO2 nonbaseload output rate
+
+```{r}
+#| label: co2-nonbaseload-rate-state
+
+co2_nonbaseload <- 
+  state_rate_comparison %>% select(state, contains("co2_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 nonbaseload output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(co2_nonbaseload,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CH4 nonbaseload output rate
+
+```{r}
+#| label: ch4-nonbaseload-rate-state
+
+ch4_nonbaseload <- 
+  state_rate_comparison %>% select(state, contains("ch4_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = ch4_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 nonbaseload output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(ch4_nonbaseload,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### N2O nonbaseload output rate
+
+```{r}
+#| label: n2o-nonbaseload-rate-state
+
+n2o_nonbaseload <- 
+  state_rate_comparison %>% select(state, contains("n2o_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = n2o_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O nonbaseload output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(n2o_nonbaseload,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CO2e nonbaseload output rate
+
+```{r}
+#| label: co2e-nonbaseload-rate-state
+
+co2e_nonbaseload <- 
+  state_rate_comparison %>% select(state, contains("co2e_nonbaseload"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2e_nonbaseload_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e nonbaseload output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(co2e_nonbaseload,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+:::
 
 -   include nonbaseload outut rates for both subregion and state levels
 -   include fuel-specific input emission rates and output emission rates for both subgregion and state level
