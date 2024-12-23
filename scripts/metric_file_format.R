@@ -67,6 +67,7 @@ wb <- loadWorkbook(contents)
 # call helper functions into script
 source("scripts/functions/function_format_styles.R")
 source("scripts/functions/function_format_region_m.R")
+source("scripts/functions/function_add_hyperlink.R")
 
 # create eGRID output style list using function
 s <- create_format_styles()
@@ -1245,7 +1246,7 @@ add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 3,  loc = c(17,
 
 # unadjusted values 
 add_hyperlink(glue::glue("UNT{year}"),  row_link = 1, col_link = 15,  loc = c(10, 27), text_to_show = "UNT")
-add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 101, loc = c(12, 27), text_to_show = "PLNT")
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 95, loc = c(12, 27), text_to_show = "PLNT")
 
 # adjustment values (biomass and CHP)
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 117, loc = c(12, 28), text_to_show = "PLNT")
@@ -1256,7 +1257,7 @@ add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 23, loc = c(13,
 add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 23, loc = c(14, 29), text_to_show = "BA")
 add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 23, loc = c(15, 29), text_to_show = "SRL")
 add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 23, loc = c(16, 29), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 19, loc = c(17, 29), text_to_show = "US")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 21, loc = c(17, 29), text_to_show = "US")
 
 # input emissions rates
 add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 71, loc = c(12, 30), text_to_show = "PLNT")
@@ -1291,7 +1292,7 @@ add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 191, loc = c(16
 add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 189, loc = c(17, 33), text_to_show = "US")
 
 # combustion and non-combustion generation
-add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 138, loc = c(12, 34), text_to_show = "PLNT")
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 170, loc = c(12, 34), text_to_show = "PLNT")
 add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 199, loc = c(13, 34), text_to_show = "ST")
 add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 199, loc = c(14, 34), text_to_show = "BA")
 add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 199, loc = c(15, 34), text_to_show = "SRL")
@@ -1320,7 +1321,7 @@ add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 220, loc = c(13
 add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 220, loc = c(14, 37), text_to_show = "BA")
 add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 220, loc = c(15, 37), text_to_show = "SRL")
 add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 220, loc = c(16, 37), text_to_show = "NRL")
-add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 118, loc = c(17, 37), text_to_show = "US")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 218, loc = c(17, 37), text_to_show = "US")
 
 # output emission rates by fuel type
 add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 63, loc = c(13, 38), text_to_show = "ST")
@@ -1359,7 +1360,7 @@ add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 243, loc = c(17
 
 
 ### Save and export -----
-output <- glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx")
+output <- glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data_metric.xlsx")
 saveWorkbook(wb, output, overwrite=TRUE)
 
 print(glue::glue("Saving unit file to folder data/outputs/{params$eGRID_year}/"))

@@ -7,8 +7,6 @@
 ## This file creates all headers used in eGRID
 ## This includes all operating units for the specified eGRID data year
 ##
-## For data or manual changes that need to be checked every year, they are denoted with this note:
-## ### Note: check for updates or changes each data year ###
 ##
 ## Authors:  
 ##      Madeline Zhang, Abt Global

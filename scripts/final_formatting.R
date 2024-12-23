@@ -45,21 +45,27 @@ if (exists("params")) {
 
 
 # load files
-unt_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
-gen_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
-plnt_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
-st_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/state_aggregation.RDS"))
-ba_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/ba_aggregation.RDS"))
-srl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/subregion_aggregation.RDS"))
-nrl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/nerc_aggregation.RDS"))
-us_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/us_aggregation.RDS"))
-ggl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+unt_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
+gen_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
+plnt_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
+st_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/state_aggregation.RDS"))
+ba_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/ba_aggregation.RDS"))
+srl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/subregion_aggregation.RDS"))
+nrl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/nerc_aggregation.RDS"))
+us_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/us_aggregation.RDS"))
+ggl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+
+params$run_demo_file = TRUE # for testing purposes - remove later
+if (params$run_demo_file) {
+  demo_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
+}
 
 
 # extract last two digits of year for universal labeling
 year <- as.numeric(params$eGRID_year) %% 1000
 
 # set up output file
+### Note: check for updates or changes each data year ###
 contents <- "data/static_tables/formatting/egrid_contents_page.xlsx"
 wb <- loadWorkbook(contents)
 
@@ -69,6 +75,7 @@ wb <- loadWorkbook(contents)
 # call helper functions into script
 source("scripts/functions/function_format_styles.R")
 source("scripts/functions/function_format_region.R")
+source("scripts/functions/function_add_hyperlink.R")
 
 # create eGRID output style list using function
 s <- create_format_styles()
@@ -85,6 +92,7 @@ standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
                      "HTIOZT"   = "total ozone season heat input (MMBtu)",	
                      "NGENAN"   = "annual net generation (MWh)",	
                      "NGENOZ"   = "ozone season net generation (MWh)",
+                     "NGENNB"   = "annual nonbaseload generation (MWh)",
                      "NOXAN"    = "annual NOx emissions (tons)",	
                      "NOXOZ"    = "ozone season NOx emissions (tons)",	
                      "SO2AN"    = "annual SO2 emissions (tons)",	
@@ -198,9 +206,11 @@ standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
                      "GENAOP"   = "annual other unknown/ purchased fuel net generation (MWh)",	
                      "GENATN"   = "annual total nonrenewables net generation (MWh)",	
                      "GENATR"   = "annual total renewables net generation (MWh)",	
+                     "GENATO"   = "annual total nonrenewable other unknown/purchased net generation (MWh)", 
                      "GENATH"   = "annual total nonhydro renewables net generation (MWh)",	
                      "GENACY"   = "annual total combustion net generation (MWh)",
-                     "GENACN"   = "annual total noncombustion net generation (MWh)",	
+                     "GENACN"   = "annual total noncombustion net generation (MWh)",
+                     "GENACO"   = "annual total noncombustion other unknown/purchased net generation (MWh)", 
                      "CLPR"     = "coal generation percent (resource mix)",
                      "OLPR"     = "oil generation percent (resource mix)",	
                      "GSPR"     = "gas generation percent (resource mix)",	
@@ -214,9 +224,11 @@ standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
                      "OPPR"     = "other unknown/ purchased fuel generation percent (resource mix)",
                      "TNPR"     = "total nonrenewables generation percent (resource mix)",	
                      "TRPR"     = "total renewables generation percent (resource mix)",	
+                     "TOPR"     = "total nonrenewables other unknown/purchased generation percent (resource mix)", 
                      "THPR"     = "total nonhydro renewables generation percent (resource mix)",	
                      "CYPR"     = "total combustion generation percent (resource mix)",	
-                     "CNPR"     = "total noncombustion generation percent (resource mix)",	
+                     "CNPR"     = "total noncombustion generation percent (resource mix)",
+                     "COPR"     = "total noncombustion other unknown/purchased generation percent (resource mix)", 
                      "NBGNCL"   = "annual nonbaseload coal net generation (MWh)",	
                      "NBGNOL"   = "annual nonbaseload oil net generation (MWh)",	
                      "NBGNGS"   = "annual nonbaseload gas net generation (MWh)",	
@@ -261,7 +273,7 @@ sequnt_label <- setNames("Unit file sequence number", glue::glue("SEQUNT{year}")
 
 # collect number of rows based on data frame
 # add two to number of rows (nrows) to account for header + description rows
-unt_rows <- nrow(unt_file)+2
+unt_rows <- nrow(unt_file) + 2
 
 ## column names and descriptions
 unt_labels <-  c(sequnt_label,
@@ -295,7 +307,8 @@ unt_labels <-  c(sequnt_label,
                  "SO2CTLDV" = "Unit SO2 (scrubber) first control device",
                  "NOXCTLDV" = "Unit NOx first control device",
                  "HGCTLDV"  = "Unit Hg Activated carbon injection system flag",
-                 "UNTYRONL" = "Unit year on-line")
+                 "UNTYRONL" = "Unit year on-line",
+                 "STACKHT"  = "Stack height (feet)")
 
 unt_header <- names(unt_labels)  # column names
 unt_desc   <- unname(unt_labels) # description of column names
@@ -321,12 +334,12 @@ writeData(wb,
 # add description styles
 addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 1:14,  gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = s[['color2_desc']], rows = 1, cols = 15:28, gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 29:32, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 29:33, gridExpand = TRUE)
 
 # add header style
 addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 1:14,  gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = s[['color2_header']], rows = 2, cols = 15:28, gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 29:32, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 29:33, gridExpand = TRUE)
 
 # set column widths
 setColWidths(wb, sheet = unt, cols = 1,     widths = 12.43)
@@ -334,7 +347,7 @@ setColWidths(wb, sheet = unt, cols = 3,     widths = 12.43)
 setColWidths(wb, sheet = unt, cols = 4,     widths = 34.71)
 setColWidths(wb, sheet = unt, cols = 5:9,   widths = 12.43)
 setColWidths(wb, sheet = unt, cols = 10,    widths = 17)
-setColWidths(wb, sheet = unt, cols = 11:32, widths = 12.43)
+setColWidths(wb, sheet = unt, cols = 11:33, widths = 12.43)
 
 # set row heights
 setRowHeights(wb, sheet = unt, row = 1, heights = 60.75)
@@ -346,7 +359,7 @@ addStyle(wb, sheet = unt, style = s[['decimal2']], rows = 3:unt_rows, cols = 17:
 
 # add text styles
 addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 1:13,  gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 22:32, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 22:33, gridExpand = TRUE)
 
 # freeze panes
 freezePane(wb, sheet = unt, firstActiveCol = 5)
@@ -369,7 +382,7 @@ seqgen_label <- setNames("Generator file sequence number", glue::glue("SEQGEN{ye
 
 # select number of rows based on length of dataframe
 # add two to number of rows (nrows) to account for header + description rows
-gen_rows <- nrow(gen_file)+2
+gen_rows <- nrow(gen_file) + 2
 
 ## column names and descriptions
 gen_labels <- c(seqgen_label,
@@ -468,7 +481,7 @@ seqplt_label <- setNames("Plant file sequence number", glue::glue("SEQPLT{year}"
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-plnt_rows <- nrow(plnt_file)+2 
+plnt_rows <- nrow(plnt_file) + 2 
 
 ## column names and descriptions
 plnt_labels <- c(seqplt_label, 
@@ -513,6 +526,7 @@ plnt_labels <- c(seqplt_label,
                  "PLHTIOZT"  = "Plant total ozone season heat input (MMBtu)",
                  "PLNGENAN"  = "Plant annual net generation (MWh)",
                  "PLNGENOZ"  = "Plant ozone season net generation (MWh)",
+                 "PLNGENNB"  = "Plant annual nonbaseload generation (MWh)", 
                  "PLNOXAN"   = "Plant annual NOx emissions (tons)",
                  "PLNOXOZ"   = "Plant ozone season NOx emissions (tons)",
                  "PLSO2AN"   = "Plant annual SO2 emissions (tons)",
@@ -551,6 +565,7 @@ plnt_labels <- c(seqplt_label,
                  "UNCO2"     = "Plant unadjusted annual CO2 emissions (tons)",
                  "UNCH4"     = "Plant unadjusted annual CH4 emissions (lbs)",
                  "UNN2O"     = "Plant unadjusted annual N2O emissions (lbs)",
+                 "UNCO2E"    = "Plant unadjusted annual CO2 equivalent emissions (tons)", 
                  "UNHG"      = "Plant unadjusted annual Hg emissions (lbs)",
                  "UNHTI"     = "Plant unadjusted annual heat input from combustion (MMBtu)",
                  "UNHTIOZ"   = "Plant unadjusted ozone season heat input from combustion (MMBtu)",
@@ -562,6 +577,7 @@ plnt_labels <- c(seqplt_label,
                  "UNCO2SRC"  = "Plant unadjusted annual CO2 emissions source",
                  "UNCH4SRC"  = "Plant unadjusted annual CH4 emissions source",
                  "UNN2OSRC"  = "Plant unadjusted annual N2O emissions source",
+                 "UNC2ESRC"  = "Plant unadjusted annual CO2 equivalent emissions source", 
                  "UNHGSRC"   = "Plant unadjusted annual Hg emissions source",
                  "UNHTISRC"  = "Plant unadjusted annual heat input source",
                  "UNHOZSRC"  = "Plant unadjusted ozone season heat input source",
@@ -571,6 +587,7 @@ plnt_labels <- c(seqplt_label,
                  "BIOCO2"    = "Plant annual CO2 biomass emissions (tons)",
                  "BIOCH4"    = "Plant annual CH4 biomass emissions (lbs)",
                  "BION2O"    = "Plant annual N2O biomass emissions (lbs)",
+                 "BIOCO2E"   = "Plant annual CO2 equivalent biomass emissions (tons)", 
                  "CHPCHTI"   = "Plant combustion heat input CHP adjustment value (MMBtu)",
                  "CHPCHTIOZ" = "Plant combustion annual ozone season heat input CHP adjustment value (MMBtu)",
                  "CHPNOX"    = "Plant annual NOx emissions CHP adjustment value (tons)",
@@ -579,6 +596,7 @@ plnt_labels <- c(seqplt_label,
                  "CHPCO2"    = "Plant annual CO2 emissions CHP adjustment value (tons)",
                  "CHPCH4"    = "Plant annual CH4 emissions CHP adjustment value (lbs)", 
                  "CHPN2O"    = "Plant annual N2O emissions CHP adjustment value (lbs)",
+                 "CHPCO2E"   = "Plant annual CO2 equivalent emissions CHP adjustement value (tons)", 
                  "PLHTRT"    = "Plant nominal heat rate (Btu/kWh)",
                  "PLGENACL"  = "Plant annual coal net generation (MWh)",
                  "PLGENAOL"  = "Plant annual oil net generation (MWh)",
@@ -593,9 +611,11 @@ plnt_labels <- c(seqplt_label,
                  "PLGENAOP"  = "Plant annual other unknown/ purchased fuel net generation (MWh)",
                  "PLGENATN"  = "Plant annual total nonrenewables net generation (MWh)",
                  "PLGENATR"  = "Plant annual total renewables net generation (MWh)",
+                 "PLGENATO"  = "Plant annual total renewables other unknown/purchased net generation (MWh)", 
                  "PLGENATH"  = "Plant annual total nonhydro renewables net generation (MWh)",
                  "PLGENACY"  = "Plant annual total combustion net generation (MWh)",
                  "PLGENACN"  = "Plant annual total noncombustion net generation (MWh)",
+                 "PLGENACO"  = "Plant annual total noncombustion other unknown/purchased net generation (MWh)", 
                  "PLCLPR"    = "Plant coal generation percent (resource mix)",
                  "PLOLPR"    = "Plant oil generation percent (resource mix)",
                  "PLGSPR"    = "Plant gas generation percent (resource mix)",
@@ -609,9 +629,11 @@ plnt_labels <- c(seqplt_label,
                  "PLOPPR"    = "Plant other unknown / purchased fuel generation percent (resource mix)",
                  "PLTNPR"    = "Plant total nonrenewables generation percent (resource mix)",
                  "PLTRPR"    = "Plant total renewables generation percent (resource mix)",
+                 "PLTOPR"    = "Plant total nonrenewables other unknown/purchased generation percent (resource mix)", 
                  "PLTHPR"    = "Plant total nonhydro renewables generation percent (resource mix)",
                  "PLCYPR"    = "Plant total combustion generation percent (resource mix)",
-                 "PLCNPR"    = "Plant total noncombustion generation percent (resource mix)")
+                 "PLCNPR"    = "Plant total noncombustion generation percent (resource mix)", 
+                 "PLCOPR"    = "Plant total noncombustion other unknown/purchased generation percent (resource mix)")
 
 plnt_header <- names(plnt_labels)  # column names
 plnt_desc   <- unname(plnt_labels) # description of column names
@@ -636,39 +658,39 @@ writeData(wb,
 ## add styles to document
 # add description styles
 addStyle(wb, sheet = plnt, style = s[['desc_style']],     rows = 1, cols = 1:36,    gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color1_desc']],    rows = 1, cols = 37:50,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color4_desc']],    rows = 1, cols = 51:58,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color5_desc']],    rows = 1, cols = 59:66,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color6_desc']],    rows = 1, cols = 67:74,   gridExpand = TRUE) 
-addStyle(wb, sheet = plnt, style = s[['color2_desc']],    rows = 1, cols = 75:94,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color3_desc']],    rows = 1, cols = 95:108,  gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['desc_style']],     rows = 1, cols = 109,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color7_desc']],    rows = 1, cols = 110:120, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color8_desc']],    rows = 1, cols = 121:122, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9_desc']],    rows = 1, cols = 123,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9v2_desc']],  rows = 1, cols = 124:125, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color10_desc']],   rows = 1, cols = 126:136, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color11_desc']],   rows = 1, cols = 137:138, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12_desc']],   rows = 1, cols = 139,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12v2_desc']], rows = 1, cols = 140:141, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color1_desc']],    rows = 1, cols = 37:51,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color4_desc']],    rows = 1, cols = 52:59,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color5_desc']],    rows = 1, cols = 60:67,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color6_desc']],    rows = 1, cols = 68:75,   gridExpand = TRUE) 
+addStyle(wb, sheet = plnt, style = s[['color2_desc']],    rows = 1, cols = 76:97,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color3_desc']],    rows = 1, cols = 98:113,  gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['desc_style']],     rows = 1, cols = 114,     gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color7_desc']],    rows = 1, cols = 115:125, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color8_desc']],    rows = 1, cols = 126:128, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color9_desc']],    rows = 1, cols = 129,     gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color9v2_desc']],  rows = 1, cols = 130:132, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color10_desc']],   rows = 1, cols = 133:143, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color11_desc']],   rows = 1, cols = 144:146, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color12_desc']],   rows = 1, cols = 147,     gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color12v2_desc']], rows = 1, cols = 148:150, gridExpand = TRUE)
 
 # add header styles
 addStyle(wb, sheet = plnt, style = s[['header_style']],     rows = 2, cols = 1:36,    gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color1_header']],    rows = 2, cols = 37:50,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color4_header']],    rows = 2, cols = 51:58,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color5_header']],    rows = 2, cols = 59:66,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color6_header']],    rows = 2, cols = 67:74,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color2_header']],    rows = 2, cols = 75:94,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color3_header']],    rows = 2, cols = 95:108,  gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['header_style']],     rows = 2, cols = 109,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color7_header']],    rows = 2, cols = 110:120, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color8_header']],    rows = 2, cols = 121:122, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9_header']],    rows = 2, cols = 123,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9v2_header']],  rows = 2, cols = 124:125, gridExpand = TRUE) 
-addStyle(wb, sheet = plnt, style = s[['color10_header']],   rows = 2, cols = 126:136, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color11_header']],   rows = 2, cols = 137:138, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12_header']],   rows = 2, cols = 139,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12v2_header']], rows = 2, cols = 140:141, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color1_header']],    rows = 2, cols = 37:51,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color4_header']],    rows = 2, cols = 52:59,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color5_header']],    rows = 2, cols = 60:67,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color6_header']],    rows = 2, cols = 68:75,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color2_header']],    rows = 2, cols = 76:97,   gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color3_header']],    rows = 2, cols = 98:113,  gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['header_style']],     rows = 2, cols = 114,     gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color7_header']],    rows = 2, cols = 115:125, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color8_header']],    rows = 2, cols = 126:128, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color9_header']],    rows = 2, cols = 129,     gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color9v2_header']],  rows = 2, cols = 130:132, gridExpand = TRUE) 
+addStyle(wb, sheet = plnt, style = s[['color10_header']],   rows = 2, cols = 133:143, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color11_header']],   rows = 2, cols = 144:146, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color12_header']],   rows = 2, cols = 147,     gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['color12v2_header']], rows = 2, cols = 148:150, gridExpand = TRUE)
 
 # set column widths
 setColWidths(wb, sheet = plnt, cols = 1:2,     widths = 12.71)
@@ -693,24 +715,25 @@ setColWidths(wb, sheet = plnt, cols = 29,      widths = 13.29)
 setColWidths(wb, sheet = plnt, cols = 30,      widths = 13)
 setColWidths(wb, sheet = plnt, cols = 31:33,   widths = 12.71)
 setColWidths(wb, sheet = plnt, cols = 34,      widths = 13.29)
-setColWidths(wb, sheet = plnt, cols = 35:53,   widths = 12.71)
-setColWidths(wb, sheet = plnt, cols = 54,      widths = 13.14)
-setColWidths(wb, sheet = plnt, cols = 55:56,   widths = 12.86)
-setColWidths(wb, sheet = plnt, cols = 57:76,   widths = 12.71)
-setColWidths(wb, sheet = plnt, cols = 77,      widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 78,      widths = 12.71)
-setColWidths(wb, sheet = plnt, cols = 79,      widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 80,      widths = 12.71)
-setColWidths(wb, sheet = plnt, cols = 81,      widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 82,      widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 35:54,   widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 55,      widths = 13.14)
+setColWidths(wb, sheet = plnt, cols = 56:57,   widths = 12.86)
+setColWidths(wb, sheet = plnt, cols = 58:77,   widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 78,      widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 79,      widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 80,      widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 81,      widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 82,      widths = 15.09)
 setColWidths(wb, sheet = plnt, cols = 83,      widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 84:87,   widths = 12.71)
-setColWidths(wb, sheet = plnt, cols = 88,      widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 89,      widths = 12.71)
-setColWidths(wb, sheet = plnt, cols = 90:101,  widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 102,     widths = 14)
-setColWidths(wb, sheet = plnt, cols = 103:115, widths = 12.43)
-setColWidths(wb, sheet = plnt, cols = 116:141, widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 84,      widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 85,      widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 86:88,   widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 89,      widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 90,      widths = 12.71)
+setColWidths(wb, sheet = plnt, cols = 91:102,  widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 103,     widths = 14)
+setColWidths(wb, sheet = plnt, cols = 104:116, widths = 12.43)
+setColWidths(wb, sheet = plnt, cols = 117:150, widths = 12.71)
 
 # set row heights
 setRowHeights(wb, sheet = plnt, row = 1, heights = 67.5)
@@ -728,7 +751,7 @@ addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 7
 addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 95:108,  gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['decimal3']], rows = 3:plnt_rows, cols = 109,     gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['integer2']], rows = 3:plnt_rows, cols = 110:125, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['percent']],  rows = 3:plnt_rows, cols = 126:141, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['percent']],  rows = 3:plnt_rows, cols = 126:150, gridExpand = TRUE)
 
 # add text styles
 addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 1:22,  gridExpand = TRUE)
@@ -752,7 +775,7 @@ st_file <- st_file %>%
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-st_rows <- nrow(st_file)+2 
+st_rows <- nrow(st_file) + 2 
 
 ## column names and descriptions
 # column names
@@ -795,7 +818,7 @@ addWorksheet(wb, ba)
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-ba_rows <- nrow(ba_file)+2 
+ba_rows <- nrow(ba_file) + 2 
 
 # convert variables to numeric value
 ba_file <- ba_file %>%
@@ -847,7 +870,7 @@ srl_file <- srl_file %>%
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-srl_rows <- nrow(srl_file)+2
+srl_rows <- nrow(srl_file) + 2
 
 ## column names and descriptions
 # column names
@@ -894,7 +917,7 @@ nrl_file <- nrl_file %>%
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-nrl_rows <- nrow(nrl_file)+2
+nrl_rows <- nrow(nrl_file) + 2
 
 ## column names and descriptions
 # column names
@@ -930,47 +953,47 @@ writeData(wb,
 format_region(nrl, nrl_rows)
 
 ### US Formatting -----
-
-## create "US" sheet
-us <- glue::glue("US{year}")
-addWorksheet(wb, us)
-
-# convert variables to numeric value
-us_file <- us_file %>%
-           mutate(year = as.numeric(year))
-
-# select number of rows from data frame
-# add two to number of rows (nrows) to account for header + description rows
-us_rows <- nrow(us_file)+2
-
-## column names and descriptions
-# column names
-us_header <- c("YEAR",	
-               paste0("US", standard_header))
-
-# description of column names
-us_desc <- c("Data Year",
-              paste0("U.S. ", standard_desc))
-
-# add new column names
-colnames(us_file) <- us_header
-
-## write data
-# write data for first row only
-writeData(wb, 
-          sheet = us, 
-          t(us_desc), 
-          startRow = 1, 
-          colNames = FALSE)
-
-# write data to sheet
-writeData(wb, 
-          sheet = us, 
-          us_file,
-          startRow = 2)
-
-## add styles to document
-format_region(us, us_rows)
+# 
+# ## create "US" sheet
+# us <- glue::glue("US{year}")
+# addWorksheet(wb, us)
+# 
+# # convert variables to numeric value
+# us_file <- us_file %>%
+#            mutate(year = as.numeric(year))
+# 
+# # select number of rows from data frame
+# # add two to number of rows (nrows) to account for header + description rows
+# us_rows <- nrow(us_file) + 2
+# 
+# ## column names and descriptions
+# # column names
+# us_header <- c("YEAR",	
+#                paste0("US", standard_header))
+# 
+# # description of column names
+# us_desc <- c("Data Year",
+#               paste0("U.S. ", standard_desc))
+# 
+# # add new column names
+# colnames(us_file) <- us_header
+# 
+# ## write data
+# # write data for first row only
+# writeData(wb, 
+#           sheet = us, 
+#           t(us_desc), 
+#           startRow = 1, 
+#           colNames = FALSE)
+# 
+# # write data to sheet
+# writeData(wb, 
+#           sheet = us, 
+#           us_file,
+#           startRow = 2)
+# 
+# ## add styles to document
+# format_region(us, us_rows)
 
 ### GGL Formatting -----
 
@@ -1039,11 +1062,283 @@ addStyle(wb, sheet = ggl, style = s[['percent_bold']], rows = 8, cols = 6,   gri
 addStyle(wb, sheet = ggl, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpand = TRUE)
 addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
 
+### DEMO Formatting -----
+if (params$run_demo_file) {
+  
+  ## create "DEMO" sheet
+  demo <- glue::glue("DEMO{year}")
+  addWorksheet(wb, demo)
+  
+  # convert year to numeric value
+  demo_file <- demo_file %>%
+    mutate(year = as.numeric(year))
+  
+  
+  ## column names and descriptions
+  demo_labels <- c("SEQPLT"              = "Plant file sequence number",
+                   "YEAR"                = "Data Year",
+                   "PSTATABB"            = "Plant state abbreviation",
+                   "PNAME"               = "Plant name",
+                   "ORISPL"              = "DOE/EIA ORIS plant or facility code",
+                   "LAT"                 = "Plant latitude",
+                   "LON"                 = "Plant longitude",
+                   "PLPRMFL"             = "Plant primary fuel", 
+                   "PLFUELCT"            = "Plant primary fuel category",
+                   "NAMEPCAP"            = "Plant nameplate capacity (MW)",
+                   "COALFLAG"            = "Flag indicating if the plant burned or generated any amount of coal",
+                   "RAW_D_PEOPCOLOR"     = "People of Color",
+                   "RAW_D_INCOME"        = "Low Income",
+                   "RAW_D_LESSHS"        = "Less Than High School Education",
+                   "RAW_D_LING"          = "Limited English Speaking",
+                   "RAW_D_UNDER5"        = "Under Age 5",
+                   "RAW_D_OVER64"        = "Over Age 64",
+                   # RAW_D_UNEMPLOYED    = "Unemployment Rate"
+                   "RAW_D_LIFEEXP"       = "Limited Life Expectancy",
+                   "RAW_D_DEMOGIDX2ST"   = "Demographic Index",
+                   "RAW_D_DEMOGIDX5ST"   = "Supplemental Demographic Index",
+                   "RAW_D_UNEMPLOYED"    = "Unemployment Rate",
+                   "S_D_PEOPCOLOR"       = "State Average of People of Color",
+                   "S_D_INCOME"          = "State Average of Low Income",
+                   "S_D_LESSHS"          = "State Average of Less Than High School Education",
+                   "S_D_LING"            = "State Average of Limited English Speaking",
+                   "S_D_UNDER5"          = "State Average of Under Age 5",
+                   "S_D_OVER64"          = "State Average of Over Age 64",
+                   # S_D_UNEMPLOYED
+                   # S_D_LIFEEXP
+                   "S_D_DEMOGIDX2ST"     = "State Average of Demographic Index",
+                   # S_D_DEMOGIDX5ST     = "State Average of Supplemental Demographic Index"
+                   "S_D_UNEMPLOYED"      = "State Average of Unemployment Rate",
+                   "S_D_PEOPCOLOR_PER"   = "State Percentile of People of Color", 
+                   "S_D_INCOME_PER"      = "State Percentile of Low Income",
+                   "S_D_LESSHS_PER"      = "State Percentile of Less Than High School Education",
+                   "S_D_LING_PER"        = "State Percentile of Limited English Speaking",
+                   "S_D_UNDER5_PER"      = "State Percentile of Under Age 5",
+                   "S_D_OVER64_PER"      = "State Percentile of Over Age 64",
+                   "S_D_DEMOGIDX2ST_PER" = "State Percentile of Demographic Index",
+                   # S_D_DEMOGIDX5ST_PER
+                   "S_UNEMPLOYED_PER"    = "State Percentile of Unemployment Rate",
+                   "N_D_PEOPCOLOR"       = "National Average of People of Color",
+                   "N_D_INCOME"          = "National Average of Low Income",
+                   "N_D_LESSHS"          = "National Average of Less Than High School Education",
+                   "N_D_LING"            = "National Average of Limited English Speaking",
+                   "N_D_UNDER5"          = "National Average of Under Age 5",
+                   "N_D_OVER64"          = "National Average of Over Age 64",
+                   "N_D_LIFEEXP"         = "National Average of Limited Life Expectancy",
+                   # N_D_DEMOGIDX2
+                   # N_D_DEMOGIDX5
+                   "N_D_UNEMPLOYED"      = "National Average of Unemployment Rate",
+                   "N_D_MINOR_PER"       = "National Percentile of People of Color",
+                   "N_D_INCOME_PER"      = "National Percentile of Low Income",
+                   "N_D_LESSHS_PER"      = "National Percentile of Less Than High School Education",
+                   "N_D_LING_PER"        = "National Percentile of Limited English Speaking",
+                   "N_D_UNDER5_PER"      = "National Percentile of Under Age 5",
+                   "N_D_OVER64_PER"      = "National Percentile of Over Age 64",
+                   "N_D_LIFEEXP_PER"     = "National Percentile of Limited Life Expectancy",
+                   "N_D_UNEMPLOYED_PER"  = "National Percentile of Unemployment Rate",
+                   # N_D_DEMOGIDX2_PER
+                   # N_D_DEMOGIDX5_PER
+                   "TOTALPOP"            = "Total Population", # needs to be moved
+                   "DISTANCE"            = "Distance (miles)")
+  
+  
+  demo_header <- names(demo_labels)  # column names
+  demo_desc   <- unname(demo_labels) # description of column names
+  
+  # add new column names
+  colnames(demo_file) <- demo_header
+  
+  ## write data
+  # write data for first row only
+  writeData(wb, 
+            sheet = demo, 
+            t(demo_desc), 
+            startRow = 1, 
+            colNames = FALSE)
+  
+  # write data to sheet
+  writeData(wb, 
+            sheet = demo, 
+            demo_file,
+            startRow = 2)
+  
+  ## add styles to document
+  # add description styles
+  addStyle(wb, sheet = demo, style = s[['desc_style']], rows = 1, cols = 1:55, gridExpand = TRUE)
+  
+  # add header style
+  addStyle(wb, sheet = demo, style = s[['header_style']], rows = 2, cols = 1:55, gridExpand = TRUE)
+  
+  # set column widths
+  setColWidths(wb, sheet = demo, cols = 1:2,     widths = 12.71)
+  setColWidths(wb, sheet = demo, cols = 3,       widths = 12.43)
+  setColWidths(wb, sheet = demo, cols = 4,       widths = 34.71)
+  setColWidths(wb, sheet = demo, cols = 5:10,    widths = 12.45)
+  setColWidths(wb, sheet = demo, cols = 11,      widths = 12.55)
+  setColWidths(wb, sheet = demo, cols = 12,      widths = 13)
+  setColWidths(wb, sheet = demo, cols = 13,      widths = 15.55)
+  setColWidths(wb, sheet = demo, cols = 14:18,   widths = 13)
+  setColWidths(wb, sheet = demo, cols = 19,      widths = 17.18)
+  setColWidths(wb, sheet = demo, cols = 20,      widths = 13)
+  setColWidths(wb, sheet = demo, cols = 21:22,   widths = 15.55)
+  setColWidths(wb, sheet = demo, cols = 23,      widths = 17.64)
+  setColWidths(wb, sheet = demo, cols = 24:29,   widths = 13.84)
+  setColWidths(wb, sheet = demo, cols = 30:55,   widths = 15)
+
+  # set row heights
+  setRowHeights(wb, sheet = demo, row = 1, heights = 67.5)
+
+  # add number styles
+  # addStyle(wb, sheet = demo, style = s[['integer']], rows = 3:7, cols = 3:5, gridExpand = TRUE)
+  # addStyle(wb, sheet = demo, style = s[['percent']], rows = 3:7, cols = 6,   gridExpand = TRUE)
+  # 
+  # # add text styles
+  # addStyle(wb, sheet = demo, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpand = TRUE)
+  # addStyle(wb, sheet = demo, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
+}
+
+
+### Contents Formatting -------------
+
+# add link to sheets 
+add_hyperlink(glue::glue("UNT{year}"),  row_link = 1, col_link = 1, loc = c(3, 8), text_to_show = glue::glue("UNT{year}"))
+add_hyperlink(glue::glue("GEN{year}"),  row_link = 1, col_link = 1, loc = c(3, 9), text_to_show = glue::glue("GEN{year}"))
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 1, loc = c(3, 10), text_to_show = glue::glue("PLNT{year}"))
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 1, loc = c(3, 11), text_to_show = glue::glue("ST{year}"))
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 1, loc = c(3, 12), text_to_show = glue::glue("BA{year}"))
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 13), text_to_show = glue::glue("SRL{year}"))
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 14), text_to_show = glue::glue("NRL{year}"))
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 1, loc = c(3, 15), text_to_show = glue::glue("US{year}"))
+add_hyperlink(glue::glue("GGL{year}"),  row_link = 1, col_link = 1, loc = c(3, 16), text_to_show = glue::glue("GGL{year}"))
+
+# add hyperlinks to specific columns
+# annual values 
+add_hyperlink(glue::glue("GEN{year}"),  row_link = 1, col_link = 13, loc = c(11, 26), text_to_show = "GEN")
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 37, loc = c(12, 26), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 5, loc = c(13, 26), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 5, loc = c(14, 26), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 5, loc = c(15, 26), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 5, loc = c(16, 26), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 3, loc = c(17, 26), text_to_show = "US")
+
+# unadjusted values 
+add_hyperlink(glue::glue("UNT{year}"),  row_link = 1, col_link = 15, loc = c(10, 27), text_to_show = "UNT")
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 76, loc = c(12, 27), text_to_show = "PLNT")
+
+# adjustment values (biomass and CHP)
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 98, loc = c(12, 28), text_to_show = "PLNT")
+
+# output emissions rates 
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 52, loc = c(12, 29), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 20, loc = c(13, 29), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 20, loc = c(14, 29), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 20, loc = c(15, 29), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 20, loc = c(16, 29), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 18, loc = c(17, 29), text_to_show = "US")
+
+# input emissions rates
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 60, loc = c(12, 30), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 28, loc = c(13, 30), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 28, loc = c(14, 30), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 28, loc = c(15, 30), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 28, loc = c(16, 30), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 26, loc = c(17, 30), text_to_show = "US")
+
+# combustion output emissions rates
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 68, loc = c(12, 31), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 36, loc = c(13, 31), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 36, loc = c(14, 31), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 36, loc = c(15, 31), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 36, loc = c(16, 31), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 34, loc = c(17, 31), text_to_show = "US")
+
+# generation by fuel type
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 115, loc = c(12, 32), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 112, loc = c(13, 32), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 112, loc = c(14, 32), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 112, loc = c(15, 32), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 112, loc = c(16, 32), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 110, loc = c(17, 32), text_to_show = "US")
+
+# renewable and non-renewable generation
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 126, loc = c(12, 33), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 123, loc = c(13, 33), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 123, loc = c(14, 33), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 123, loc = c(15, 33), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 123, loc = c(16, 33), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 121, loc = c(17, 33), text_to_show = "US")
+
+# combustion and non-combustion generation
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 130, loc = c(12, 34), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 127, loc = c(13, 34), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 127, loc = c(14, 34), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 127, loc = c(15, 34), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 127, loc = c(16, 34), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 125, loc = c(17, 34), text_to_show = "US")
+
+# resource mix
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 133, loc = c(12, 35), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 130, loc = c(13, 35), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 130, loc = c(14, 35), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 130, loc = c(15, 35), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 130, loc = c(16, 35), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 128, loc = c(17, 35), text_to_show = "US")
+
+# renewable and non-renewable resource mix
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 144, loc = c(12, 36), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 141, loc = c(13, 36), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 141, loc = c(14, 36), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 141, loc = c(15, 36), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 141, loc = c(16, 36), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 139, loc = c(17, 36), text_to_show = "US")
+
+# combustion and non-combustion resource mix
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 148, loc = c(12, 37), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 145, loc = c(13, 37), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 145, loc = c(14, 37), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 145, loc = c(15, 37), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 145, loc = c(16, 37), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 143, loc = c(17, 37), text_to_show = "US")
+
+# output emission rates by fuel type
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 44, loc = c(13, 38), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 44, loc = c(14, 38), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 44, loc = c(15, 38), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 44, loc = c(16, 38), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 42, loc = c(17, 38), text_to_show = "US")
+
+# input emission rates by fuel type
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 74, loc = c(13, 39), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 74, loc = c(14, 39), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 74, loc = c(15, 39), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 74, loc = c(16, 39), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 72, loc = c(17, 39), text_to_show = "US")
+
+# nonbaseload output emission rates 
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 104, loc = c(13, 40), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 104, loc = c(14, 40), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 104, loc = c(15, 40), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 104, loc = c(16, 40), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 102, loc = c(17, 40), text_to_show = "US")
+
+# nonbaseload generation by fuel type
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 148, loc = c(13, 41), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 148, loc = c(14, 41), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 148, loc = c(15, 41), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 148, loc = c(16, 41), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 146, loc = c(17, 41), text_to_show = "US")
+
+# nonbaseload resource mix
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 159, loc = c(13, 42), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 159, loc = c(14, 42), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 159, loc = c(15, 42), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 159, loc = c(16, 42), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 157, loc = c(17, 42), text_to_show = "US")
+
 ### Save and export -----
 output <- glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx")
-saveWorkbook(wb, output, overwrite=TRUE)
+saveWorkbook(wb, output, overwrite = TRUE)
 
-print(glue::glue("Saving unit file to folder data/outputs/{params$eGRID_year}/"))
+print(glue::glue("Saving final formatted file to folder data/outputs/{params$eGRID_year}/"))
 
 # remove to save space
 rm(unt_file, gen_file, plnt_file)
