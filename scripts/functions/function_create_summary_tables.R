@@ -93,12 +93,12 @@ create_summary_tables <- function(contents = table_data) {
     
     # assign font size for data regions
     addStyle(wb, current_worksheet, createStyle(fontSize = 8.5), 
-             rows = 2:(sheetLength + 2), cols = startcol:(sheetWidth + 1), stack = TRUE,
-             gridExpand = TRUE)
+             rows = 2:(sheetLength + 2), cols = startcol:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
     
     # assign printing preferences
-    pageSetup(wb, current_worksheet, orientation = sheet_orientation[table_num], fitToWidth = TRUE,
-              fitToHeight =  TRUE, left = 0.5, right = 0.5, top = 0.5, bottom = 0.5)
+    pageSetup(wb, current_worksheet, orientation = sheet_orientation[table_num], 
+              fitToWidth = TRUE, fitToHeight =  TRUE, left = 0.5, right = 0.5, 
+              top = 0.5, bottom = 0.5)
     
     ## Write in sheet data --------
     
@@ -122,14 +122,14 @@ create_summary_tables <- function(contents = table_data) {
     }
     
     # add creation data styling
-    addStyle(wb, current_worksheet, createStyle(fontSize = 8, halign = "right"), cols = sheetWidth,
-             rows = creationRow + 1)
-    addStyle(wb, current_worksheet, createStyle(fontSize = 8, halign = "center"), cols = sheetWidth + 1,
-             rows = creationRow + 1)
+    addStyle(wb, current_worksheet, createStyle(fontSize = 8, halign = "right"), 
+             cols = sheetWidth, rows = creationRow + 1)
+    addStyle(wb, current_worksheet, createStyle(fontSize = 8, halign = "center"), 
+             cols = sheetWidth + 1, rows = creationRow + 1)
     
     # write eGRID data onto sheet
-    writeData(wb, current_worksheet, contents[[table_num]], startCol = startcol, startRow = colname_rows[table_num] + 1, 
-              colNames = FALSE)
+    writeData(wb, current_worksheet, contents[[table_num]], startCol = startcol, 
+              startRow = colname_rows[table_num] + 1, colNames = FALSE)
     
     # Table 1 formatting ----------------------------------
     
@@ -169,12 +169,13 @@ create_summary_tables <- function(contents = table_data) {
       ## Column title formatting ---------------------------
       
       # write column titles
-      writeData(wb, current_worksheet, eval(colnames_lower), startCol = startcol, startRow = colname_rows[table_num] - 1) # column titles
+      writeData(wb, current_worksheet, eval(colnames_lower), startCol = startcol, 
+                startRow = colname_rows[table_num] - 1) # column titles
       writeData(wb, current_worksheet, colnames_units, startCol = startcol, startRow = 1) # column units and larger categories
       
       # add borders
-      addStyle(wb, current_worksheet, all_borders, rows = c(1, 4:sheetLength), cols = startcol:(sheetWidth + 1),
-               stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, all_borders, rows = c(1, 4:sheetLength), 
+               cols = startcol:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
       addStyle(wb, current_worksheet, right_borders, rows = 2:4, cols = startcol:(sheetWidth + 1), 
                stack = TRUE, gridExpand = TRUE)
       addStyle(wb, current_worksheet, top_borders, rows = 2, cols = startcol:(sheetWidth +1), 
@@ -340,10 +341,10 @@ create_summary_tables <- function(contents = table_data) {
       ## Data formatting ----------------
       
       # add number formats
-      addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0"), rows = 5:sheetLength, cols = c(3, 6:8),
-               stack = TRUE, gridExpand = TRUE)
-      addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.000"), rows = 5:sheetLength, cols = c(4:5, 9),
-               stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0"), rows = 5:sheetLength, 
+               cols = c(3, 6:8), stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.000"), rows = 5:sheetLength, 
+               cols = c(4:5, 9), stack = TRUE, gridExpand = TRUE)
       
       ## General formatting ----------------
       
@@ -423,13 +424,16 @@ create_summary_tables <- function(contents = table_data) {
     
     # add main titles and format
     writeData(wb, current_worksheet, names(contents[table_num]), startCol = startcol, startRow = 1)
-    addStyle(wb, current_worksheet, toptitle, rows = 1, cols = 1:sheetWidth + 1, stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, current_worksheet, toptitle, rows = 1, cols = 1:sheetWidth + 1, 
+             stack = TRUE, gridExpand = TRUE)
     
     # add column titles formatting
-    addStyle(wb, current_worksheet, titles_gen, rows = 2:colname_rows[table_num], cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, current_worksheet, titles_gen, rows = 2:colname_rows[table_num], 
+             cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
     
     # format US row with thick outline and bold font
-    addStyle(wb, current_worksheet, us_boundary, rows = sheetLength, cols = 2:(sheetWidth + 1), stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, current_worksheet, us_boundary, rows = sheetLength, cols = 2:(sheetWidth + 1), 
+             stack = TRUE, gridExpand = TRUE)
     
     # add exterior thick borders
     addStyle(wb, current_worksheet, createStyle(border = "Right", borderColour = "black", borderStyle = "thick"),

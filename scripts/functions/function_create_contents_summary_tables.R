@@ -117,31 +117,40 @@ create_contents_summary_tables <- function(contents = table_data) {
   current_worksheet <- "Contents"
   addWorksheet(wb, sheetName = current_worksheet)
   
-  addStyle(wb, current_worksheet, createStyle(fontName = "Arial", fontSize = "12"), cols = 1:sheetWidth,
-           rows = 1:50, gridExpand = TRUE, stack = TRUE)
+  # set font size
+  addStyle(wb, current_worksheet, createStyle(fontName = "Arial", fontSize = "12"), 
+           cols = 1:sheetWidth, rows = 1:50, gridExpand = TRUE, stack = TRUE)
 
-  ## Add created datestamp
+  ## Add created datestamp ----------------
+  
   writeData(wb, current_worksheet, x = matrix(c("Created:", format(Sys.Date(), "%m/%d/%Y")), 
                                   ncol = 2), startCol = sheetWidth - 1, startRow = end_rows[4])
   # add creation data styling
-  addStyle(wb, current_worksheet, createStyle(fontSize = 8, halign = "right"), cols = sheetWidth - 1,
-           rows = end_rows[4] + 1)
-  addStyle(wb, current_worksheet, createStyle(fontSize = 8, halign = "center"), cols = sheetWidth,
-           rows = end_rows[4] + 1)
+  addStyle(wb, current_worksheet, createStyle(fontSize = 8, halign = "right"), 
+           cols = sheetWidth - 1, rows = end_rows[4] + 1)
+  addStyle(wb, current_worksheet, createStyle(fontSize = 8, halign = "center"), 
+           cols = sheetWidth, rows = end_rows[4] + 1)
+  
   ## Add images -------------
   
-  insertImage(wb, current_worksheet, file = "data/static_tables/eGRID_subregions.png", 
+  insertImage(wb, current_worksheet, file = "data/static_tables/eGRID_subregions.png",
               width = 7.24, height = 5.41, startRow = 15, startCol = start_cols)
   insertImage(wb, current_worksheet, file = "data/static_tables/eGRID_logo.png",
-              width = 2.06, height = 1.16, startRow = 5, startCol = 4)
-  
+              width = 2.06, height = 1.16, startRow = 5, startCol = 4, 
+              address = "https://www.epa.gov/egrid")
+  # 
   ## Add data ----------------
   
-  # write table of contents twice to account for cell merge
   writeData(wb, current_worksheet, table_of_contents, startCol = start_cols + 2, startRow = start_rows[3])
   writeData(wb, current_worksheet, "Table", startCol = start_cols, startRow = start_rows[3] + 1)
   writeData(wb, current_worksheet, introduction, startCol = start_cols + 4, startRow = start_rows[2])
   writeData(wb, current_worksheet, feedback_data, startCol = start_cols, startRow = start_rows[4] + 1)
+  
+  # add hyperlinks to sheets
+  for (i in 1:4) {
+    link <- makeHyperlinkString(sheet = paste("Table",i), text = i)
+    writeFormula(wb, "Contents", link, xy = c(start_cols, start_rows[3] + 1 + i))                  
+  }
   
   ## Add styling and merges ---------------------
   
@@ -154,11 +163,12 @@ create_contents_summary_tables <- function(contents = table_data) {
       # table of contents
     } else if (row < start_rows[4] + 1) {
       mergecol <- 5
-      addStyle(wb, current_worksheet, toc_labels, rows = row, cols = start_cols, stack = TRUE, gridExpand = TRUE)
+      addStyle(wb, current_worksheet, toc_labels, rows = row, cols = start_cols, 
+               stack = TRUE, gridExpand = TRUE)
       mergeCells(wb, current_worksheet, cols = 3:4, rows = row)
       if (row == start_rows[3] + 1) {
-        addStyle(wb, current_worksheet, createStyle(textDecoration = "underline"), rows = row, 
-                 cols = start_cols:5, stack = TRUE, gridExpand = TRUE)
+        addStyle(wb, current_worksheet, createStyle(textDecoration = "underline"), 
+                 rows = row, cols = start_cols:5, stack = TRUE, gridExpand = TRUE)
       }
       # feedback
     } else {
@@ -167,7 +177,8 @@ create_contents_summary_tables <- function(contents = table_data) {
                cols = start_cols, stack = TRUE, gridExpand = TRUE)
     }
     # format for all
-    addStyle(wb, current_worksheet, contents, rows = row, cols = start_cols:sheetWidth, stack = TRUE, gridExpand = TRUE)
+    addStyle(wb, current_worksheet, contents, rows = row, cols = start_cols:sheetWidth, 
+             stack = TRUE, gridExpand = TRUE)
     mergeCells(wb, current_worksheet, rows = row, cols = mergecol:sheetWidth)
   }
   
@@ -176,7 +187,8 @@ create_contents_summary_tables <- function(contents = table_data) {
   setRowHeights(wb, current_worksheet, rows = c(1:2, 4:5, 7:8, 13:14, 41:42), 
                 heights = c(8.3, 42.8, 17.4, 90.8, 17.4, 15.8, 6.8, 6, 20, 17.4))
   setColWidths(wb, current_worksheet, cols = 1:12, widths = 8.33)
-  setColWidths(wb, current_worksheet, cols = c(1:6, 12), widths = c(1, 3.78, 0.5, 12, 6.35, 4.89, 13.75))
+  setColWidths(wb, current_worksheet, cols = c(1:6, 12), widths = c(1, 3.78, 0.5, 
+                                                                    12, 6.35, 4.89, 13.75))
   
   ## Add section titles ---------------
   
@@ -193,15 +205,17 @@ create_contents_summary_tables <- function(contents = table_data) {
   ## Add borders --------
   
   addStyle(wb, current_worksheet, right_borders, rows = c(end_rows[1], start_rows[2]:end_rows[2], 
-                                              start_rows[3]:end_rows[3], start_rows[4]:end_rows[4]), cols = sheetWidth, 
-           stack = TRUE, gridExpand = TRUE)
+                                              start_rows[3]:end_rows[3], start_rows[4]:end_rows[4]), 
+           cols = sheetWidth, stack = TRUE, gridExpand = TRUE)
   addStyle(wb, current_worksheet, left_borders, rows = c(end_rows[1], start_rows[2]:end_rows[2], 
-                                             start_rows[3]:end_rows[3], start_rows[4]:end_rows[4]), cols = start_cols, 
-           stack = TRUE, gridExpand = TRUE)
+                                             start_rows[3]:end_rows[3], start_rows[4]:end_rows[4]), 
+           cols = start_cols, stack = TRUE, gridExpand = TRUE)
   addStyle(wb, current_worksheet, top_borders, rows = start_rows, cols = start_cols:sheetWidth,
            stack = TRUE, gridExpand = TRUE)
   addStyle(wb, current_worksheet, bottom_borders, rows = end_rows, cols = start_cols:sheetWidth,
            stack = TRUE, gridExpand = TRUE)
+  
+  ## Set printing preferences ------------
   
   pageSetup(wb, current_worksheet, orientation = "portrait", fitToWidth = TRUE,
             fitToHeight =  TRUE, left = 0.5, right = 0.5, top = 0.5, bottom = 0.5)

@@ -172,13 +172,8 @@ create_contents_summary_tables()
 # write table data on sheets 2-5
 source("scripts/functions/function_create_summary_tables.R")
 create_summary_tables()
-
-# add internal hyperlinks to contents page
-for (i in 1:4) {
-  link <- makeHyperlinkString(sheet = paste("Table",i), text = i)
-  writeFormula(wb, "Contents", link, xy = c(3, 8 + i))                  
-}
                       
 # Save excel sheet -------------------------------
 
-saveWorkbook(wb, glue::glue("data/outputs/{params$eGRID_year}/summary_tables.xlsx"), overwrite = TRUE)
+saveWorkbook(wb, glue::glue("data/outputs/{params$eGRID_year}/summary_tables.xlsx"), 
+             overwrite = TRUE)
