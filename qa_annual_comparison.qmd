@@ -3,6 +3,8 @@ title: "QA Annual Comparison"
 format: 
   html: 
     toc: true
+    toc-expand: true
+    toc-location: left
 execute: 
   echo: false
   warning: false
@@ -32,23 +34,23 @@ This file compares the final output of eGRID to previous year outputs.
 
 # Rate comparison
 
-## Subregions
+## Subregion
 
 Compare subregion emission rates from `r prev_yr3` to `r params$eGRID_year` and percent change from `r prev_yr1` to `r params$eGRID_year`.
 
-## Output emission rate comparison
+### Output emission rate comparison
 
 ::: panel-tabset
-### NOx output rate
+#### NOx output rate
 
 ```{r}
-#| label: nox-output-rate
+#| label: nox-output-rate-subregion
 
 nox_output <- 
-  egrid_rate_comparison %>% 
+  subregion_rate_comparison %>% 
   select(subregion, contains("nox_output"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -73,15 +75,15 @@ knitr::kable(nox_output,
                            "Notes")) 
 ```
 
-### NOx ozone output rate
+#### NOx ozone output rate
 
 ```{r}
-#| label: nox-oz-output-rate
+#| label: nox-oz-output-rate-subregion
 
 nox_oz_output <- 
-  egrid_rate_comparison %>% select(subregion, contains("nox_oz_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("nox_oz_output"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_oz_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -106,15 +108,15 @@ knitr::kable(nox_oz_output,
                            "Notes")) 
 ```
 
-### SO2 output rate
+#### SO2 output rate
 
 ```{r}
-#| label: so2-output-rate
+#| label: so2-output-rate-subregion
 
 so2_output <- 
-  egrid_rate_comparison %>% select(subregion, contains("so2_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("so2_output"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = so2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -139,15 +141,15 @@ knitr::kable(so2_output,
                            "Notes")) 
 ```
 
-### CO2 output rate
+#### CO2 output rate
 
 ```{r}
-#| label: co2-output-rate
+#| label: co2-output-rate-subregion
 
 co2_output <- 
-  egrid_rate_comparison %>% select(subregion, contains("co2_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("co2_output"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = co2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -172,15 +174,15 @@ knitr::kable(co2_output,
                            "Notes")) 
 ```
 
-### CH4 output rate
+#### CH4 output rate
 
 ```{r}
-#| label: ch4-output-rate
+#| label: ch4-output-rate-subregion
 
 ch4_output <- 
-  egrid_rate_comparison %>% select(subregion, contains("ch4_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("ch4_output"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion,
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                                                 y = ch4_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -205,15 +207,15 @@ knitr::kable(ch4_output,
                            "Notes")) 
 ```
 
-### N2O output rate
+#### N2O output rate
 
 ```{r}
-#| label: n2o-output-rate
+#| label: n2o-output-rate-subregion
 
 n2o_output <- 
-  egrid_rate_comparison %>% select(subregion, contains("n2o_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("n2o_output"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion,
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                                                 y = n2o_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -238,15 +240,15 @@ knitr::kable(n2o_output,
                            "Notes")) 
 ```
 
-### CO2e output rate
+#### CO2e output rate
 
 ```{r}
-#| label: co2e-output-rate
+#| label: co2e-output-rate-subregion
 
 co2e_output <- 
-  egrid_rate_comparison %>% select(subregion, contains("co2e_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("co2e_output"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = co2e_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -272,18 +274,18 @@ knitr::kable(co2e_output,
 ```
 :::
 
-## Input emission rate comparison
+### Input emission rate comparison
 
 ::: panel-tabset
-### NOx input rate
+#### NOx input rate
 
 ```{r}
-#| label: nox-input-rate
+#| label: nox-input-rate-subregion
 
 nox_input <- 
-  egrid_rate_comparison %>% select(subregion, contains("nox_input"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("nox_input"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_input_rate,
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -308,15 +310,15 @@ knitr::kable(nox_input,
                            "Notes")) 
 ```
 
-### NOx ozone input rate
+#### NOx ozone input rate
 
 ```{r}
-#| label: nox-input-oz-rate
+#| label: nox-input-oz-rate-subregion
 
 nox_oz_input <- 
-  egrid_rate_comparison %>% select(subregion, contains("nox_oz_input"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("nox_oz_input"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_oz_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -341,15 +343,15 @@ knitr::kable(nox_oz_input,
                            "Notes")) 
 ```
 
-### SO2 input rate
+#### SO2 input rate
 
 ```{r}
-#| label: so2-input-rate
+#| label: so2-input-rate-subregion
 
 so2_input <- 
-  egrid_rate_comparison %>% select(subregion, contains("so2_input"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("so2_input"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = so2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -374,15 +376,15 @@ knitr::kable(so2_output,
                            "Notes")) 
 ```
 
-### CO2 input rate
+#### CO2 input rate
 
 ```{r}
-#| label: co2-input-rate
+#| label: co2-input-rate-subregion
 
 co2_input <- 
-  egrid_rate_comparison %>% select(subregion, contains("co2_input"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("co2_input"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion,
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                                                 y = co2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -407,15 +409,15 @@ knitr::kable(co2_input,
                            "Notes")) 
 ```
 
-### CH4 input rate
+#### CH4 input rate
 
 ```{r}
-#| label: ch4-input-rate
+#| label: ch4-input-rate-subregion
 
 ch4_output <- 
-  egrid_rate_comparison %>% select(subregion, contains("ch4_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("ch4_output"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = ch4_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -440,15 +442,15 @@ knitr::kable(ch4_output,
                            "Notes")) 
 ```
 
-### N2O input rate
+#### N2O input rate
 
 ```{r}
-#| label: n2o-input-rate
+#| label: n2o-input-rate-subregion
 
 n2o_input <- 
-  egrid_rate_comparison %>% select(subregion, contains("n2o_input"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("n2o_input"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = n2o_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -473,15 +475,15 @@ knitr::kable(n2o_input,
                            "Notes")) 
 ```
 
-### CO2e input rate
+#### CO2e input rate
 
 ```{r}
-#| label: co2e-input-rate
+#| label: co2e-input-rate-subregion
 
 co2e_input <- 
-  egrid_rate_comparison %>% select(subregion, contains("co2e_input"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("co2e_input"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = co2e_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -507,18 +509,18 @@ knitr::kable(co2e_input,
 ```
 :::
 
-## Combustion output emission rate comparison
+### Combustion output emission rate comparison
 
 ::: panel-tabset
-### NOx combustion output rate
+#### NOx combustion output rate
 
 ```{r}
-#| label: nox-combustion-rate
+#| label: nox-combustion-rate-subregion
 
 nox_combustion <- 
-  egrid_rate_comparison %>% select(subregion, contains("nox_combustion"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("nox_combustion"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_combustion_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -543,15 +545,15 @@ knitr::kable(nox_combustion,
                            "Notes")) 
 ```
 
-### NOx ozone combustion output rate
+#### NOx ozone combustion output rate
 
 ```{r}
-#| label: nox-oz-combustion-rate
+#| label: nox-oz-combustion-rate-subregion
 
 nox_oz_combustion <- 
-  egrid_rate_comparison %>% select(subregion, contains("nox_oz_combustion"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("nox_oz_combustion"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion,
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                                                 y = nox_oz_combustion_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -576,15 +578,15 @@ knitr::kable(nox_oz_combustion,
                            "Notes")) 
 ```
 
-### SO2 combustion output rate
+#### SO2 combustion output rate
 
 ```{r}
-#| label: so2-combustion-rate
+#| label: so2-combustion-rate-subregion
 
 so2_combustion <- 
-  egrid_rate_comparison %>% select(subregion, contains("so2_combustion"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("so2_combustion"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = so2_combustion_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -609,15 +611,15 @@ knitr::kable(so2_combustion,
                            "Notes")) 
 ```
 
-### CO2 combustion output rate
+#### CO2 combustion output rate
 
 ```{r}
-#| label: co2-combustion-rate
+#| label: co2-combustion-rate-subregion
 
 co2_combustion <- 
-  egrid_rate_comparison %>% select(subregion, contains("co2_combustion"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("co2_combustion"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = co2_combustion_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -642,15 +644,15 @@ knitr::kable(co2_combustion,
                            "Notes")) 
 ```
 
-### CH4 combustion output rate
+#### CH4 combustion output rate
 
 ```{r}
-#| label: ch4-combustion-rate
+#| label: ch4-combustion-rate-subregion
 
 ch4_combustion <- 
-  egrid_rate_comparison %>% select(subregion, contains("ch4_combustion"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("ch4_combustion"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = ch4_combustion_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -675,15 +677,15 @@ knitr::kable(ch4_combustion,
                            "Notes")) 
 ```
 
-### N2O combustion output rate
+#### N2O combustion output rate
 
 ```{r}
-#| label: n2o-combustion-rate
+#| label: n2o-combustion-rate-subregion
 
 n2o_combustion <- 
-  egrid_rate_comparison %>% select(subregion, contains("n2o_combustion"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("n2o_combustion"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = n2o_combustion_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -708,15 +710,15 @@ knitr::kable(n2o_combustion,
                            "Notes")) 
 ```
 
-### CO2e combustion output rate
+#### CO2e combustion output rate
 
 ```{r}
-#| label: co2e-combustion-rate
+#| label: co2e-combustion-rate-subregion
 
 co2e_combustion <- 
-  egrid_rate_comparison %>% select(subregion, contains("co2e_combustion"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("co2e_combustion"), generation_notes)
 
-rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = co2e_combustion_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
@@ -742,7 +744,716 @@ knitr::kable(co2e_combustion,
 ```
 :::
 
-## ADD STATE HERE
+## State
+
+Compare state emission rates from `r prev_yr3` to `r params$eGRID_year` and percent change from `r prev_yr1` to `r params$eGRID_year`.
+
+### Output emission rate comparison
+
+::: panel-tabset
+#### NOx output rate
+
+```{r}
+#| label: nox-output-rate-state
+
+nox_output <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_output"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_output_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 70)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(nox_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### NOx ozone output rate
+
+```{r}
+#| label: nox-oz-output-rate-state
+
+nox_oz_output <- 
+  state_rate_comparison %>% select(state, contains("nox_oz_output"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_oz_output_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx ozone output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(nox_oz_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### SO2 output rate
+
+```{r}
+#| label: so2-output-rate-state
+
+so2_output <- 
+  state_rate_comparison %>% select(state, contains("so2_output"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = so2_output_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(so2_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent Change",
+                           "Notes")) 
+```
+
+#### CO2 output rate
+
+```{r}
+#| label: co2-output-rate-state
+
+co2_output <- 
+  state_rate_comparison %>% select(state, contains("co2_output"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2_output_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(co2_output,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CH4 output rate
+
+```{r}
+#| label: ch4-output-rate-state
+
+ch4_output <- 
+  state_rate_comparison %>% select(state, contains("ch4_output"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state,
+                                                y = ch4_output_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(ch4_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### N2O output rate
+
+```{r}
+#| label: n2o-output-rate-state
+
+n2o_output <- 
+  state_rate_comparison %>% select(state, contains("n2o_output"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state,
+                                                y = n2o_output_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(n2o_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CO2e output rate
+
+```{r}
+#| label: co2e-output-rate-state
+
+co2e_output <- 
+  state_rate_comparison %>% select(state, contains("co2e_output"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2e_output_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(co2e_output,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+:::
+
+### Input emission rate comparison
+
+::: panel-tabset
+#### NOx input rate
+
+```{r}
+#| label: nox-input-rate-state
+
+nox_input <- 
+  state_rate_comparison %>% select(state, contains("nox_input"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_input_rate,
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(nox_input,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### NOx ozone input rate
+
+```{r}
+#| label: nox-input-oz-rate-state
+
+nox_oz_input <- 
+  state_rate_comparison %>% select(state, contains("nox_oz_input"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_oz_input_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx ozone input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(nox_oz_input,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### SO2 input rate
+
+```{r}
+#| label: so2-input-rate-state
+
+so2_input <- 
+  state_rate_comparison %>% select(state, contains("so2_input"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = so2_input_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(so2_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CO2 input rate
+
+```{r}
+#| label: co2-input-rate-state
+
+co2_input <- 
+  state_rate_comparison %>% select(state, contains("co2_input"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state,
+                                                y = co2_input_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(co2_input,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CH4 input rate
+
+```{r}
+#| label: ch4-input-rate-state
+
+ch4_output <- 
+  state_rate_comparison %>% select(state, contains("ch4_output"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = ch4_input_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(ch4_output,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### N2O input rate
+
+```{r}
+#| label: n2o-input-rate-state
+
+n2o_input <- 
+  state_rate_comparison %>% select(state, contains("n2o_input"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = n2o_input_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(n2o_input,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CO2e input rate
+
+```{r}
+#| label: co2e-input-rate-state
+
+co2e_input <- 
+  state_rate_comparison %>% select(state, contains("co2e_input"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2e_input_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(co2e_input,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+:::
+
+### Combustion output emission rate comparison
+
+::: panel-tabset
+#### NOx combustion output rate
+
+```{r}
+#| label: nox-combustion-rate-state
+
+nox_combustion <- 
+  state_rate_comparison %>% select(state, contains("nox_combustion"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_combustion_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx combustion output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(nox_combustion,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### NOx ozone combustion output rate
+
+```{r}
+#| label: nox-oz-combustion-rate-state
+
+nox_oz_combustion <- 
+  state_rate_comparison %>% select(state, contains("nox_oz_combustion"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state,
+                                                y = nox_oz_combustion_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx ozone combustion output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(nox_oz_combustion,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### SO2 combustion output rate
+
+```{r}
+#| label: so2-combustion-rate-state
+
+so2_combustion <- 
+  state_rate_comparison %>% select(state, contains("so2_combustion"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = so2_combustion_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 combustion output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(so2_combustion,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CO2 combustion output rate
+
+```{r}
+#| label: co2-combustion-rate-state
+
+co2_combustion <- 
+  state_rate_comparison %>% select(state, contains("co2_combustion"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2_combustion_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 combustion output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(co2_combustion,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CH4 combustion output rate
+
+```{r}
+#| label: ch4-combustion-rate-state
+
+ch4_combustion <- 
+  state_rate_comparison %>% select(state, contains("ch4_combustion"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = ch4_combustion_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 combustion output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(ch4_combustion,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### N2O combustion output rate
+
+```{r}
+#| label: n2o-combustion-rate-state
+
+n2o_combustion <- 
+  state_rate_comparison %>% select(state, contains("n2o_combustion"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = n2o_combustion_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O combustion output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(n2o_combustion,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+#### CO2e combustion output rate
+
+```{r}
+#| label: co2e-combustion-rate-state
+
+co2e_combustion <- 
+  state_rate_comparison %>% select(state, contains("co2e_combustion"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2e_combustion_rate, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e combustion output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison)
+
+knitr::kable(co2e_combustion,
+             digits = c(0, 0, 0, 0, 0, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+:::
+
 
 -   include nonbaseload outut rates for both subregion and state levels
 -   include fuel-specific input emission rates and output emission rates for both subgregion and state level
@@ -812,9 +1523,9 @@ plotly::ggplotly(resource_comparison)
 
 source("scripts/functions/function_region_summary.R")
 
-create_cap_table_egrid("AKGD", c(prev_yr1, cur_year))
-create_resource_table_egrid("AKGD", c(prev_yr1, cur_year))
-create_resource_plot_egrid("AKGD", c(prev_yr1, cur_year))
+create_cap_table_subregion("AKGD", c(prev_yr1, cur_year))
+create_resource_table_subregion("AKGD", c(prev_yr1, cur_year))
+create_resource_plot_subregion("AKGD", c(prev_yr1, cur_year))
 ```
 
 ### AKMS
@@ -822,9 +1533,9 @@ create_resource_plot_egrid("AKGD", c(prev_yr1, cur_year))
 ```{r}
 #| label: AKMS-summary
 
-create_cap_table_egrid("AKMS", c(prev_yr1, cur_year))
-create_resource_table_egrid("AKMS", c(prev_yr1, cur_year))
-create_resource_plot_egrid("AKMS", c(prev_yr1, cur_year))
+create_cap_table_subregion("AKMS", c(prev_yr1, cur_year))
+create_resource_table_subregion("AKMS", c(prev_yr1, cur_year))
+create_resource_plot_subregion("AKMS", c(prev_yr1, cur_year))
 ```
 
 ### AZNM
@@ -832,11 +1543,11 @@ create_resource_plot_egrid("AKMS", c(prev_yr1, cur_year))
 ```{r}
 #| label: AZNM-summary
 
-create_cap_table_egrid("AZNM", 
+create_cap_table_subregion("AZNM", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("AZNM", 
+create_resource_table_subregion("AZNM", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("AKMS", 
+create_resource_plot_subregion("AKMS", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -845,9 +1556,9 @@ create_resource_plot_egrid("AKMS",
 ```{r}
 #| label: CAMX-summary
 
-create_cap_table_egrid("CAMX", c(prev_yr1, cur_year))
-create_resource_table_egrid("CAMX", c(prev_yr1, cur_year))
-create_resource_plot_egrid("CAMX", c(prev_yr1, cur_year))
+create_cap_table_subregion("CAMX", c(prev_yr1, cur_year))
+create_resource_table_subregion("CAMX", c(prev_yr1, cur_year))
+create_resource_plot_subregion("CAMX", c(prev_yr1, cur_year))
 ```
 
 ### ERCT
@@ -855,9 +1566,9 @@ create_resource_plot_egrid("CAMX", c(prev_yr1, cur_year))
 ```{r}
 #| label: ERCT-summary
 
-create_cap_table_egrid("ERCT", c(prev_yr1, cur_year))
-create_resource_table_egrid("ERCT", c(prev_yr1, cur_year))
-create_resource_plot_egrid("ERCT", c(prev_yr1, cur_year))
+create_cap_table_subregion("ERCT", c(prev_yr1, cur_year))
+create_resource_table_subregion("ERCT", c(prev_yr1, cur_year))
+create_resource_plot_subregion("ERCT", c(prev_yr1, cur_year))
 ```
 
 ### FRCC
@@ -865,9 +1576,9 @@ create_resource_plot_egrid("ERCT", c(prev_yr1, cur_year))
 ```{r}
 #| label: FRCC-summary
 
-create_cap_table_egrid("FRCC", c(prev_yr1, cur_year))
-create_resource_table_egrid("FRCC", c(prev_yr1, cur_year))
-create_resource_plot_egrid("FRCC", c(prev_yr1, cur_year))
+create_cap_table_subregion("FRCC", c(prev_yr1, cur_year))
+create_resource_table_subregion("FRCC", c(prev_yr1, cur_year))
+create_resource_plot_subregion("FRCC", c(prev_yr1, cur_year))
 ```
 
 ### HIMS
@@ -875,9 +1586,9 @@ create_resource_plot_egrid("FRCC", c(prev_yr1, cur_year))
 ```{r}
 #| label: HIMS-summary
 
-create_cap_table_egrid("HIMS", c(prev_yr1, cur_year))
-create_resource_table_egrid("HIMS", c(prev_yr1, cur_year))
-create_resource_plot_egrid("HIMS", c(prev_yr1, cur_year))
+create_cap_table_subregion("HIMS", c(prev_yr1, cur_year))
+create_resource_table_subregion("HIMS", c(prev_yr1, cur_year))
+create_resource_plot_subregion("HIMS", c(prev_yr1, cur_year))
 ```
 
 ### HIOA
@@ -885,11 +1596,11 @@ create_resource_plot_egrid("HIMS", c(prev_yr1, cur_year))
 ```{r}
 #| label: HIOA-summary
 
-create_cap_table_egrid("HIOA", 
+create_cap_table_subregion("HIOA", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("HIOA", 
+create_resource_table_subregion("HIOA", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("HIOA", 
+create_resource_plot_subregion("HIOA", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -898,11 +1609,11 @@ create_resource_plot_egrid("HIOA",
 ```{r}
 #| label: MROE-summary
 
-create_cap_table_egrid("MROE", 
+create_cap_table_subregion("MROE", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("MROE", 
+create_resource_table_subregion("MROE", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("MROE", 
+create_resource_plot_subregion("MROE", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -911,11 +1622,11 @@ create_resource_plot_egrid("MROE",
 ```{r}
 #| label: MROW-summary
 
-create_cap_table_egrid("MROW", 
+create_cap_table_subregion("MROW", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("MROW", 
+create_resource_table_subregion("MROW", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("MROW", 
+create_resource_plot_subregion("MROW", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -924,11 +1635,11 @@ create_resource_plot_egrid("MROW",
 ```{r}
 #| label: NEWE-summary
 
-create_cap_table_egrid("NEWE", 
+create_cap_table_subregion("NEWE", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("NEWE", 
+create_resource_table_subregion("NEWE", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("NEWE", 
+create_resource_plot_subregion("NEWE", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -937,11 +1648,11 @@ create_resource_plot_egrid("NEWE",
 ```{r}
 #| label: NWPP-summary
 
-create_cap_table_egrid("NWPP", 
+create_cap_table_subregion("NWPP", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("NWPP", 
+create_resource_table_subregion("NWPP", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("NWPP", 
+create_resource_plot_subregion("NWPP", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -950,11 +1661,11 @@ create_resource_plot_egrid("NWPP",
 ```{r}
 #| label: NYCW-summary
 
-create_cap_table_egrid("NYCW", 
+create_cap_table_subregion("NYCW", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("NYCW", 
+create_resource_table_subregion("NYCW", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("NYCW", 
+create_resource_plot_subregion("NYCW", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -963,11 +1674,11 @@ create_resource_plot_egrid("NYCW",
 ```{r}
 #| label: NYLI-summary
 
-create_cap_table_egrid("NYLI",
+create_cap_table_subregion("NYLI",
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("NYLI", 
+create_resource_table_subregion("NYLI", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("NYLI", 
+create_resource_plot_subregion("NYLI", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -976,11 +1687,11 @@ create_resource_plot_egrid("NYLI",
 ```{r}
 #| label: NYUP-summary
 
-create_cap_table_egrid("NYUP", 
+create_cap_table_subregion("NYUP", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("NYUP", 
+create_resource_table_subregion("NYUP", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("NYUP", 
+create_resource_plot_subregion("NYUP", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -989,11 +1700,11 @@ create_resource_plot_egrid("NYUP",
 ```{r}
 #| label: PRMS-summary
 
-create_cap_table_egrid("PRMS", 
+create_cap_table_subregion("PRMS", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("PRMS", 
+create_resource_table_subregion("PRMS", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("PRMS", 
+create_resource_plot_subregion("PRMS", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -1002,11 +1713,11 @@ create_resource_plot_egrid("PRMS",
 ```{r}
 #| label: RFCE-summary
 
-create_cap_table_egrid("RFCE", 
+create_cap_table_subregion("RFCE", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("RFCE", 
+create_resource_table_subregion("RFCE", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("RFCE", 
+create_resource_plot_subregion("RFCE", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -1015,11 +1726,11 @@ create_resource_plot_egrid("RFCE",
 ```{r}
 #| label: RFCM-summary
 
-create_cap_table_egrid("RFCM", 
+create_cap_table_subregion("RFCM", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("RFCM", 
+create_resource_table_subregion("RFCM", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("RFCM", 
+create_resource_plot_subregion("RFCM", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -1028,11 +1739,11 @@ create_resource_plot_egrid("RFCM",
 ```{r}
 #| label: RFCW-summary
 
-create_cap_table_egrid("RFCW", 
+create_cap_table_subregion("RFCW", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("RFCW", 
+create_resource_table_subregion("RFCW", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("RFCW", 
+create_resource_plot_subregion("RFCW", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -1041,11 +1752,11 @@ create_resource_plot_egrid("RFCW",
 ```{r}
 #| label: RMPA-summary
 
-create_cap_table_egrid("RMPA", 
+create_cap_table_subregion("RMPA", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("RMPA", 
+create_resource_table_subregion("RMPA", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("RMPA", 
+create_resource_plot_subregion("RMPA", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -1054,11 +1765,11 @@ create_resource_plot_egrid("RMPA",
 ```{r}
 #| label: SPNO-summary
 
-create_cap_table_egrid("SPNO", 
+create_cap_table_subregion("SPNO", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("SPNO", 
+create_resource_table_subregion("SPNO", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("SPNO", 
+create_resource_plot_subregion("SPNO", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -1067,11 +1778,11 @@ create_resource_plot_egrid("SPNO",
 ```{r}
 #| label: SPSO-summary
 
-create_cap_table_egrid("SPSO", 
+create_cap_table_subregion("SPSO", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("SPSO", 
+create_resource_table_subregion("SPSO", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("SPSO", 
+create_resource_plot_subregion("SPSO", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -1080,11 +1791,11 @@ create_resource_plot_egrid("SPSO",
 ```{r}
 #| label: SRMV-summary
 
-create_cap_table_egrid("SRMV", 
+create_cap_table_subregion("SRMV", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("SRMV", 
+create_resource_table_subregion("SRMV", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("SRMV", 
+create_resource_plot_subregion("SRMV", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -1093,11 +1804,11 @@ create_resource_plot_egrid("SRMV",
 ```{r}
 #| label: SRSO-summary
 
-create_cap_table_egrid("SRSO", 
+create_cap_table_subregion("SRSO", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("SRSO", 
+create_resource_table_subregion("SRSO", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("SRSO", 
+create_resource_plot_subregion("SRSO", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -1106,11 +1817,11 @@ create_resource_plot_egrid("SRSO",
 ```{r}
 #| label: SRTV-summary
 
-create_cap_table_egrid("SRTV", 
+create_cap_table_subregion("SRTV", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("SRTV", 
+create_resource_table_subregion("SRTV", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("SRTV", 
+create_resource_plot_subregion("SRTV", 
                            c(prev_yr1, cur_year))
 ```
 
@@ -1119,11 +1830,11 @@ create_resource_plot_egrid("SRTV",
 ```{r}
 #| label: SRVC-summary
 
-create_cap_table_egrid("SRVC", 
+create_cap_table_subregion("SRVC", 
                        c(prev_yr1, cur_year))
-create_resource_table_egrid("SRVC", 
+create_resource_table_subregion("SRVC", 
                             c(prev_yr1, cur_year))
-create_resource_plot_egrid("SRVC", 
+create_resource_plot_subregion("SRVC", 
                            c(prev_yr1, cur_year))
 ```
 :::

@@ -85,11 +85,11 @@ if(!file.exists(path_2019)){
 }
 
 
-## Load and combine eGRID region data -----
+## Load and combine eGRID subregion data -----
 
 # Rename necessary columns to snake_case 
 
-egrid_column_names <- c(
+  subregion_column_names <- c(
   "year" = "YEAR", 
   "subregion" = "SUBRGN",
   "subregion_name" = "SRNAME", 
@@ -129,36 +129,36 @@ egrid_column_names <- c(
   "net_gen" = "SRNGENAN")
 
 # read in subregion data for each data year to compare here
-egrid_prev_yr3 <- 
+subregion_prev_yr3 <- 
   read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr3}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(prev_yr3) %% 1000}"), 
                         skip = 1) %>% 
-  select(any_of(egrid_column_names))
+  select(any_of(subregion_column_names))
   
-egrid_prev_yr2 <- 
+subregion_prev_yr2 <- 
   read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr2}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(prev_yr2) %% 1000}"),
                         skip = 1) %>% 
-  select(any_of(egrid_column_names))
+  select(any_of(subregion_column_names))
 
-egrid_prev_yr1 <- 
+subregion_prev_yr1 <- 
   read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr1}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(prev_yr1) %% 1000}"),
                         skip = 1) %>% 
-  select(any_of(egrid_column_names))
+  select(any_of(subregion_column_names))
 
-egrid_cur_yr <- 
+subregion_cur_yr <- 
   read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(cur_year) %% 1000}"),
                         skip = 1) %>% 
-  select(any_of(egrid_column_names))
+  select(any_of(subregion_column_names))
 
-# combine all egrid years
-egrid_comparison <- 
-  egrid_prev_yr3 %>% 
-  bind_rows(egrid_prev_yr2) %>% 
-  bind_rows(egrid_prev_yr1) %>% 
-  bind_rows(egrid_cur_yr) %>% 
+# combine all subregion years
+subregion_comparison <- 
+  subregion_prev_yr3 %>% 
+  bind_rows(subregion_prev_yr2) %>% 
+  bind_rows(subregion_prev_yr1) %>% 
+  bind_rows(subregion_cur_yr) %>% 
   mutate(year = as.character(year))
 
 ## Load state region data -----
@@ -169,6 +169,27 @@ state_column_names <- c(
   "year" = "YEAR", 
   "state" = "PSTATABB",
   "state_nameplate_capacity" = "STNAMEPCAP", 
+  "nox_output_rate" = "STNOXRTA", 
+  "nox_oz_output_rate" = "STNOXRTO", 
+  "so2_output_rate" = "STSO2RTA",
+  "co2_output_rate" = "STCO2RTA", 
+  "ch4_output_rate" = "STCH4RTA", 
+  "n2o_output_rate" = "STN2ORTA", 
+  "co2e_output_rate" = "STC2ERTA",
+  "nox_input_rate" = "STNOXRA", 
+  "nox_oz_input_rate" = "STNOXRO", 
+  "so2_input_rate" = "STSO2RA",
+  "co2_input_rate" = "STCO2RA", 
+  "ch4_input_rate" = "STCH4RA", 
+  "n2o_input_rate" = "STN2ORA", 
+  "co2e_input_rate" = "STC2ERA",
+  "nox_combustion_rate" = "STNOXCRT", 
+  "nox_oz_combustion_rate" = "STNOXCRO", 
+  "so2_combustion_rate" = "STSO2CRT",
+  "co2_combustion_rate" = "STCO2CRT", 
+  "ch4_combustion_rate" = "STCH4CRT", 
+  "n2o_combustion_rate" = "STN2OCRT", 
+  "co2e_combustion_rate" = "STC2ECRT",
   "coal_gen" = "STGENACL", 
   "oil_gen" = "STGENAOL", 
   "gas_gen" = "STGENAGS", 
@@ -289,17 +310,17 @@ us_comparison <-
          subregion = "US")
 
 ## Combine US and subregion data 
-egrid_us_comparison <- 
+subregion_us_comparison <- 
   us_comparison %>% 
-  bind_rows(egrid_comparison)
+  bind_rows(subregion_comparison)
 
 # Emission rate comparisons -------------
 ## Emission rate comparison across eGRID subregions -------
 
 # calculate emission rate percent change 
 
-egrid_rate_comparison <- 
-  egrid_us_comparison %>% 
+subregion_rate_comparison <- 
+  subregion_us_comparison %>% 
   select(year, subregion, subregion_name, contains("rate"), contains("gen")) %>% 
   pivot_wider(names_from = year, 
               values_from = contains("rate") | contains("gen")) %>% 
@@ -323,14 +344,39 @@ egrid_rate_comparison <-
                                   sprintf("Biomass: %+.1f%%,", biomass_pct), sprintf("Wind: %+.1f%%,", wind_pct),
                                   sprintf("Solar: %+.1f%%,", solar_pct), sprintf("Geothermal: %+.1f%%,", geothermal_pct)))
   
+## Emission rate comparison across eGRID states -------
 
+state_rate_comparison <- 
+  state_comparison %>% 
+  select(year, state, contains("rate"), contains("gen")) %>% 
+  pivot_wider(names_from = year, 
+              values_from = contains("rate") | contains("gen")) %>% 
+  mutate(across(.cols = contains(glue::glue("rate_{cur_year}")), 
+                .fns = ~ (. - get(str_replace(cur_column(), cur_year, prev_yr1))) 
+                / get(str_replace(cur_column(), cur_year, prev_yr1)) * 100,
+                .names = "{sub('_rate.*', '', .col)}_pct"), 
+         across(.cols = contains(glue::glue("gen_{cur_year}")), 
+                .fns = ~ case_when(
+                  (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . == 0) ~ 0, 
+                  (get(str_replace(cur_column(), cur_year, prev_yr1)) != 0) 
+                  ~ round((. - get(str_replace(cur_column(), cur_year, prev_yr1))) 
+                          / get(str_replace(cur_column(), cur_year, prev_yr1)) * 100, 1), 
+                  (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . > 0) ~ 100), 
+                .names = "{sub('_gen.*', '', .col)}_pct")) %>% 
+  select(-contains("gen")) %>% 
+  mutate(generation_notes = paste(sprintf("Coal: %+.1f%%,", coal_pct), # add summary of net generation changes
+                                  sprintf("Oil: %+.1f%%,", oil_pct), 
+                                  sprintf("Gas: %+.1f%%,", gas_pct), sprintf("Other fossil: %+.1f%%,", other_fossil_pct), 
+                                  sprintf("Nuclear: %+.1f%%,", nuclear_pct), sprintf("Hydro: %+.1f%%,", hydro_pct), 
+                                  sprintf("Biomass: %+.1f%%,", biomass_pct), sprintf("Wind: %+.1f%%,", wind_pct),
+                                  sprintf("Solar: %+.1f%%,", solar_pct), sprintf("Geothermal: %+.1f%%,", geothermal_pct)))
 
-# eGRID region and US resource mix -----
+# eGRID subregion and US resource mix -----
 
 # calculate generation percent change
 
-egrid_gen_comparison <- 
-  egrid_us_comparison %>% 
+subregion_gen_comparison <- 
+  subregion_us_comparison %>% 
   select(year, subregion, subregion_name, contains("gen")) %>% 
   pivot_wider(names_from = year, 
               values_from = contains("gen")) %>% 
@@ -349,16 +395,16 @@ egrid_gen_comparison <-
                values_to = "pct_change")
 
 # format generation mix and merge in percent change data
-egrid_resource_mix <- 
-  egrid_us_comparison %>% 
+subregion_resource_mix <- 
+  subregion_us_comparison %>% 
   select(year, subregion, subregion_name, contains("gen"), -net_gen) %>% 
   pivot_longer(cols = contains("gen"), 
                names_to = "energy_source", 
                values_to = "generation") %>% 
   mutate(energy_source = str_replace(energy_source, "_gen", "")) 
 
-egrid_resource_mix$energy_source <- 
-  factor(egrid_resource_mix$energy_source, 
+subregion_resource_mix$energy_source <- 
+  factor(subregion_resource_mix$energy_source, 
           levels = c("coal", 
                      "oil", 
                      "gas",
@@ -372,22 +418,22 @@ egrid_resource_mix$energy_source <-
                      "other_purchased"))
 
 
-egrid_resource_mix_wider <- 
-  egrid_resource_mix %>% 
+subregion_resource_mix_wider <- 
+  subregion_resource_mix %>% 
   pivot_wider(names_from = year, 
               values_from = generation) %>% 
-  left_join(egrid_gen_comparison, by = c("subregion", "subregion_name", "energy_source")) %>% 
+  left_join(subregion_gen_comparison, by = c("subregion", "subregion_name", "energy_source")) %>% 
   select(-subregion_name)
 
 # summarize nameplate capacity and net gen 
-egrid_cap_gen <- 
-  egrid_us_comparison %>% 
+subregion_cap_gen <- 
+  subregion_us_comparison %>% 
   select(year, subregion, subregion_name, nameplate_capacity, net_gen)
 
 
 # calculate us resource mix
 us_resource_mix <-
-  egrid_resource_mix %>%
+  subregion_resource_mix %>%
   group_by(year, energy_source) %>%
   summarize(energy_source_generation = sum(generation, na.rm = TRUE)) %>%
   ungroup() 
