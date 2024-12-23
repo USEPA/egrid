@@ -1513,7 +1513,7 @@ plotly::ggplotly(resource_comparison)
 ```
 :::
 
-## eGRID subregion resource mix
+## Subregion resource mix
 
 ::: panel-tabset
 ### AKGD
@@ -1523,9 +1523,9 @@ plotly::ggplotly(resource_comparison)
 
 source("scripts/functions/function_region_summary.R")
 
+create_resource_plot_subregion("AKGD", c(prev_yr1, cur_year))
 create_cap_table_subregion("AKGD", c(prev_yr1, cur_year))
 create_resource_table_subregion("AKGD", c(prev_yr1, cur_year))
-create_resource_plot_subregion("AKGD", c(prev_yr1, cur_year))
 ```
 
 ### AKMS
@@ -1533,9 +1533,9 @@ create_resource_plot_subregion("AKGD", c(prev_yr1, cur_year))
 ```{r}
 #| label: AKMS-summary
 
+create_resource_plot_subregion("AKMS", c(prev_yr1, cur_year))
 create_cap_table_subregion("AKMS", c(prev_yr1, cur_year))
 create_resource_table_subregion("AKMS", c(prev_yr1, cur_year))
-create_resource_plot_subregion("AKMS", c(prev_yr1, cur_year))
 ```
 
 ### AZNM
@@ -1543,12 +1543,12 @@ create_resource_plot_subregion("AKMS", c(prev_yr1, cur_year))
 ```{r}
 #| label: AZNM-summary
 
+create_resource_plot_subregion("AKMS", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("AZNM", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("AZNM", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("AKMS", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### CAMX
@@ -1556,9 +1556,9 @@ create_resource_plot_subregion("AKMS",
 ```{r}
 #| label: CAMX-summary
 
+create_resource_plot_subregion("CAMX", c(prev_yr1, cur_year))
 create_cap_table_subregion("CAMX", c(prev_yr1, cur_year))
 create_resource_table_subregion("CAMX", c(prev_yr1, cur_year))
-create_resource_plot_subregion("CAMX", c(prev_yr1, cur_year))
 ```
 
 ### ERCT
@@ -1566,9 +1566,9 @@ create_resource_plot_subregion("CAMX", c(prev_yr1, cur_year))
 ```{r}
 #| label: ERCT-summary
 
+create_resource_plot_subregion("ERCT", c(prev_yr1, cur_year))
 create_cap_table_subregion("ERCT", c(prev_yr1, cur_year))
 create_resource_table_subregion("ERCT", c(prev_yr1, cur_year))
-create_resource_plot_subregion("ERCT", c(prev_yr1, cur_year))
 ```
 
 ### FRCC
@@ -1576,9 +1576,9 @@ create_resource_plot_subregion("ERCT", c(prev_yr1, cur_year))
 ```{r}
 #| label: FRCC-summary
 
+create_resource_plot_subregion("FRCC", c(prev_yr1, cur_year))
 create_cap_table_subregion("FRCC", c(prev_yr1, cur_year))
 create_resource_table_subregion("FRCC", c(prev_yr1, cur_year))
-create_resource_plot_subregion("FRCC", c(prev_yr1, cur_year))
 ```
 
 ### HIMS
@@ -1586,9 +1586,9 @@ create_resource_plot_subregion("FRCC", c(prev_yr1, cur_year))
 ```{r}
 #| label: HIMS-summary
 
+create_resource_plot_subregion("HIMS", c(prev_yr1, cur_year))
 create_cap_table_subregion("HIMS", c(prev_yr1, cur_year))
 create_resource_table_subregion("HIMS", c(prev_yr1, cur_year))
-create_resource_plot_subregion("HIMS", c(prev_yr1, cur_year))
 ```
 
 ### HIOA
@@ -1596,12 +1596,12 @@ create_resource_plot_subregion("HIMS", c(prev_yr1, cur_year))
 ```{r}
 #| label: HIOA-summary
 
+create_resource_plot_subregion("HIOA", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("HIOA", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("HIOA", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("HIOA", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### MROE
@@ -1609,12 +1609,12 @@ create_resource_plot_subregion("HIOA",
 ```{r}
 #| label: MROE-summary
 
+create_resource_plot_subregion("MROE", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("MROE", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("MROE", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("MROE", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### MROW
@@ -1622,12 +1622,12 @@ create_resource_plot_subregion("MROE",
 ```{r}
 #| label: MROW-summary
 
+create_resource_plot_subregion("MROW", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("MROW", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("MROW", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("MROW", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### NEWE
@@ -1635,12 +1635,12 @@ create_resource_plot_subregion("MROW",
 ```{r}
 #| label: NEWE-summary
 
+create_resource_plot_subregion("NEWE", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("NEWE", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("NEWE", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("NEWE", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### NWPP
@@ -1648,12 +1648,12 @@ create_resource_plot_subregion("NEWE",
 ```{r}
 #| label: NWPP-summary
 
+create_resource_plot_subregion("NWPP", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("NWPP", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("NWPP", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("NWPP", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### NYCW
@@ -1661,12 +1661,12 @@ create_resource_plot_subregion("NWPP",
 ```{r}
 #| label: NYCW-summary
 
+create_resource_plot_subregion("NYCW", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("NYCW", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("NYCW", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("NYCW", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### NYLI
@@ -1674,12 +1674,12 @@ create_resource_plot_subregion("NYCW",
 ```{r}
 #| label: NYLI-summary
 
+create_resource_plot_subregion("NYLI", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("NYLI",
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("NYLI", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("NYLI", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### NYUP
@@ -1687,12 +1687,12 @@ create_resource_plot_subregion("NYLI",
 ```{r}
 #| label: NYUP-summary
 
+create_resource_plot_subregion("NYUP", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("NYUP", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("NYUP", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("NYUP", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### PRMS
@@ -1700,12 +1700,12 @@ create_resource_plot_subregion("NYUP",
 ```{r}
 #| label: PRMS-summary
 
+create_resource_plot_subregion("PRMS", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("PRMS", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("PRMS", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("PRMS", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### RFCE
@@ -1713,12 +1713,12 @@ create_resource_plot_subregion("PRMS",
 ```{r}
 #| label: RFCE-summary
 
+create_resource_plot_subregion("RFCE", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("RFCE", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("RFCE", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("RFCE", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### RFCM
@@ -1726,12 +1726,12 @@ create_resource_plot_subregion("RFCE",
 ```{r}
 #| label: RFCM-summary
 
+create_resource_plot_subregion("RFCM", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("RFCM", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("RFCM", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("RFCM", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### RFCW
@@ -1739,12 +1739,12 @@ create_resource_plot_subregion("RFCM",
 ```{r}
 #| label: RFCW-summary
 
+create_resource_plot_subregion("RFCW", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("RFCW", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("RFCW", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("RFCW", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### RMPA
@@ -1752,12 +1752,12 @@ create_resource_plot_subregion("RFCW",
 ```{r}
 #| label: RMPA-summary
 
+create_resource_plot_subregion("RMPA", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("RMPA", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("RMPA", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("RMPA", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### SPNO
@@ -1765,12 +1765,12 @@ create_resource_plot_subregion("RMPA",
 ```{r}
 #| label: SPNO-summary
 
+create_resource_plot_subregion("SPNO", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("SPNO", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("SPNO", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("SPNO", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### SPSO
@@ -1778,12 +1778,12 @@ create_resource_plot_subregion("SPNO",
 ```{r}
 #| label: SPSO-summary
 
+create_resource_plot_subregion("SPSO", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("SPSO", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("SPSO", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("SPSO", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### SRMV
@@ -1791,12 +1791,12 @@ create_resource_plot_subregion("SPSO",
 ```{r}
 #| label: SRMV-summary
 
+create_resource_plot_subregion("SRMV", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("SRMV", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("SRMV", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("SRMV", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### SRSO
@@ -1804,12 +1804,12 @@ create_resource_plot_subregion("SRMV",
 ```{r}
 #| label: SRSO-summary
 
+create_resource_plot_subregion("SRSO", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("SRSO", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("SRSO", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("SRSO", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### SRTV
@@ -1817,12 +1817,12 @@ create_resource_plot_subregion("SRSO",
 ```{r}
 #| label: SRTV-summary
 
+create_resource_plot_subregion("SRTV", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("SRTV", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("SRTV", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("SRTV", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### SRVC
@@ -1830,12 +1830,12 @@ create_resource_plot_subregion("SRTV",
 ```{r}
 #| label: SRVC-summary
 
+create_resource_plot_subregion("SRVC", 
+                           c(prev_yr1, cur_year))
 create_cap_table_subregion("SRVC", 
                        c(prev_yr1, cur_year))
 create_resource_table_subregion("SRVC", 
                             c(prev_yr1, cur_year))
-create_resource_plot_subregion("SRVC", 
-                           c(prev_yr1, cur_year))
 ```
 :::
 
@@ -1847,12 +1847,12 @@ create_resource_plot_subregion("SRVC",
 ```{r}
 #| label: AK-summary
 
+create_resource_plot_state("AK", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("AK", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("AK", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("AK", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### AL
@@ -1860,12 +1860,12 @@ create_resource_plot_state("AK",
 ```{r}
 #| label: AL_summary
 
+create_resource_plot_state("AL", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("AL", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("AL", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("AL", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### AR
@@ -1873,12 +1873,12 @@ create_resource_plot_state("AL",
 ```{r}
 #| label: AR-summary
 
+create_resource_plot_state("AR", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("AR", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("AR", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("AR", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### AZ
@@ -1886,12 +1886,12 @@ create_resource_plot_state("AR",
 ```{r}
 #| label: AZ-summary
 
+create_resource_plot_state("AZ", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("AZ", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("AZ", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("AZ", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### CA
@@ -1899,12 +1899,12 @@ create_resource_plot_state("AZ",
 ```{r}
 #| label: CA-summary
 
+create_resource_plot_state("CA", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("CA", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("CA", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("CA", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### CO
@@ -1912,12 +1912,12 @@ create_resource_plot_state("CA",
 ```{r}
 #| label: CO-summary
 
+create_resource_plot_state("CO", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("CO", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("CO", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("CO", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### CT
@@ -1925,12 +1925,12 @@ create_resource_plot_state("CO",
 ```{r}
 #| label: CT-summary
 
+create_resource_plot_state("CT", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("CT", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("CT", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("CT", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### DC
@@ -1938,12 +1938,12 @@ create_resource_plot_state("CT",
 ```{r}
 #| label: DC-summary
 
+create_resource_plot_state("DC", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("DC", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("DC", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("DC", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### DE
@@ -1951,12 +1951,12 @@ create_resource_plot_state("DC",
 ```{r}
 #| label: DE-summary
 
+create_resource_plot_state("DE", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("DE", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("DE", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("DE", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### FL
@@ -1964,12 +1964,12 @@ create_resource_plot_state("DE",
 ```{r}
 #| label: FL-summary
 
+create_resource_plot_state("FL", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("FL", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("FL", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("FL", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### GA
@@ -1977,12 +1977,12 @@ create_resource_plot_state("FL",
 ```{r}
 #| label: GA-summary
 
+create_resource_plot_state("GA", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("GA", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("GA", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("GA", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### HI
@@ -1990,12 +1990,12 @@ create_resource_plot_state("GA",
 ```{r}
 #| label: HI-summary
 
+create_resource_plot_state("HI", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("HI", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("HI", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("HI", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### IA
@@ -2003,12 +2003,12 @@ create_resource_plot_state("HI",
 ```{r}
 #| label: IA-summary
 
+create_resource_plot_state("IA", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("IA", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("IA", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("IA", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### ID
@@ -2016,12 +2016,12 @@ create_resource_plot_state("IA",
 ```{r}
 #| label: ID-summary
 
+create_resource_plot_state("ID", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("ID", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("ID", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("ID", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### IL
@@ -2029,12 +2029,12 @@ create_resource_plot_state("ID",
 ```{r}
 #| label: IL-summary
 
+create_resource_plot_state("IL", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("IL", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("IL", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("IL", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### IN
@@ -2042,12 +2042,12 @@ create_resource_plot_state("IL",
 ```{r}
 #| label: IN-summary
 
+create_resource_plot_state("IN", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("IN", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("IN", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("IN", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### KS
@@ -2055,12 +2055,12 @@ create_resource_plot_state("IN",
 ```{r}
 #| label: KS-summary
 
+create_resource_plot_state("KS", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("KS", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("KS", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("KS", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### KY
@@ -2068,12 +2068,12 @@ create_resource_plot_state("KS",
 ```{r}
 #| label: KY-summary
 
+create_resource_plot_state("KY", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("KY", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("KY", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("KY", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### LA
@@ -2081,12 +2081,12 @@ create_resource_plot_state("KY",
 ```{r}
 #| label: LA-summary
 
+create_resource_plot_state("LA", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("LA", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("LA", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("LA", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### MA
@@ -2094,12 +2094,12 @@ create_resource_plot_state("LA",
 ```{r}
 #| label: MA-summary
 
+create_resource_plot_state("MA", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("MA", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("MA", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("MA", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### MD
@@ -2107,12 +2107,12 @@ create_resource_plot_state("MA",
 ```{r}
 #| label: MD-summary
 
+create_resource_plot_state("MD", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("MD", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("MD", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("MD", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### ME
@@ -2120,12 +2120,12 @@ create_resource_plot_state("MD",
 ```{r}
 #| label: ME-summary
 
+create_resource_plot_state("ME", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("ME", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("ME", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("ME", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### MI
@@ -2133,12 +2133,12 @@ create_resource_plot_state("ME",
 ```{r}
 #| label: MI-summary
 
+create_resource_plot_state("MI", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("MI", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("MI", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("MI", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### MN
@@ -2146,12 +2146,12 @@ create_resource_plot_state("MI",
 ```{r}
 #| label: MN-summary
 
+create_resource_plot_state("MN", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("MN", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("MN", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("MN", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### MO
@@ -2159,12 +2159,12 @@ create_resource_plot_state("MN",
 ```{r}
 #| label: MO-summary
 
+create_resource_plot_state("MO", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("MO", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("MO", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("MO", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### MS
@@ -2172,12 +2172,12 @@ create_resource_plot_state("MO",
 ```{r}
 #| label: MS-summary
 
+create_resource_plot_state("MS", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("MS", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("MS", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("MS", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### MT
@@ -2185,12 +2185,12 @@ create_resource_plot_state("MS",
 ```{r}
 #| label: MT-summary
 
+create_resource_plot_state("MT", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("MT", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("MT", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("MT", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### NC
@@ -2198,12 +2198,12 @@ create_resource_plot_state("MT",
 ```{r}
 #| label: NC-summary
 
+create_resource_plot_state("NC", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("NC", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("NC", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("NC", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### ND
@@ -2211,12 +2211,12 @@ create_resource_plot_state("NC",
 ```{r}
 #| label: ND-summary
 
+create_resource_plot_state("ND", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("ND", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("ND", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("ND", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### NE
@@ -2224,12 +2224,12 @@ create_resource_plot_state("ND",
 ```{r}
 #| label: NE-summary
 
+create_resource_plot_state("NE", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("NE", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("NE", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("NE", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### NH
@@ -2237,12 +2237,12 @@ create_resource_plot_state("NE",
 ```{r}
 #| label: NH-summary
 
+create_resource_plot_state("NH", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("NH", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("NH", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("NH", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### NJ
@@ -2250,12 +2250,12 @@ create_resource_plot_state("NH",
 ```{r}
 #| label: NJ-summary
 
+create_resource_plot_state("NJ", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("NJ", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("NJ", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("NJ", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### NM
@@ -2263,12 +2263,12 @@ create_resource_plot_state("NJ",
 ```{r}
 #| label: NM-summary
 
+create_resource_plot_state("NM", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("NM", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("NM", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("NM", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### NV
@@ -2276,12 +2276,12 @@ create_resource_plot_state("NM",
 ```{r}
 #| label: NV-summary
 
+create_resource_plot_state("NV",
+                           c(prev_yr1, cur_year))
 create_cap_table_state("NV", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("NV", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("NV",
-                           c(prev_yr1, cur_year))
 ```
 
 ### NY
@@ -2289,12 +2289,12 @@ create_resource_plot_state("NV",
 ```{r}
 #| label: NY-summary
 
+create_resource_plot_state("NY", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("NY", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("NY", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("NY", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### OH
@@ -2302,9 +2302,9 @@ create_resource_plot_state("NY",
 ```{r}
 #| label: OH-summary
 
+create_resource_plot_state("OH", c(prev_yr1, cur_year))
 create_cap_table_state("OH", c(prev_yr1, cur_year))
 create_resource_table_state("OH", c(prev_yr1, cur_year))
-create_resource_plot_state("OH", c(prev_yr1, cur_year))
 ```
 
 ### OK
@@ -2312,12 +2312,12 @@ create_resource_plot_state("OH", c(prev_yr1, cur_year))
 ```{r}
 #| label: OK-summary
 
+create_resource_plot_state("OK", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("OK", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("OK", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("OK", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### OR
@@ -2325,12 +2325,12 @@ create_resource_plot_state("OK",
 ```{r}
 #| label: OR-summary
 
+create_resource_plot_state("OR", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("OR", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("OR", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("OR", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### PA
@@ -2338,12 +2338,12 @@ create_resource_plot_state("OR",
 ```{r}
 #| label: PA-summary
 
+create_resource_plot_state("PA", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("PA", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("PA", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("PA", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### PR
@@ -2351,12 +2351,12 @@ create_resource_plot_state("PA",
 ```{r}
 #| label: PR-summary
 
+create_resource_plot_state("PR", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("PR", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("PR", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("PR", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### RI
@@ -2364,12 +2364,12 @@ create_resource_plot_state("PR",
 ```{r}
 #| label: RI-summary
 
+create_resource_plot_state("RI", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("RI", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("RI", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("RI", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### SC
@@ -2377,12 +2377,12 @@ create_resource_plot_state("RI",
 ```{r}
 #| label: SC-summary
 
+create_resource_plot_state("SC", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("SC", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("SC", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("SC", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### SD
@@ -2390,12 +2390,12 @@ create_resource_plot_state("SC",
 ```{r}
 #| label: SD-summary
 
+create_resource_plot_state("SD", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("SD", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("SD", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("SD", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### TN
@@ -2403,12 +2403,12 @@ create_resource_plot_state("SD",
 ```{r}
 #| label: TN-summary
 
+create_resource_plot_state("TN", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("TN", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("TN", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("TN", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### TX
@@ -2416,12 +2416,12 @@ create_resource_plot_state("TN",
 ```{r}
 #| label: TX-summary
 
+create_resource_plot_state("TX", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("TX", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("TX", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("TX", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### UT
@@ -2429,10 +2429,10 @@ create_resource_plot_state("TX",
 ```{r}
 #| label: UT-summary
 
+create_resource_plot_state("UT", c(prev_yr1, cur_year))
 create_cap_table_state("UT", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("UT", c(prev_yr1, cur_year))
-create_resource_plot_state("UT", c(prev_yr1, cur_year))
 ```
 
 ### VA
@@ -2440,11 +2440,11 @@ create_resource_plot_state("UT", c(prev_yr1, cur_year))
 ```{r}
 #| label: VA-summary
 
+create_resource_plot_state("VA", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("VA", c(prev_yr1, cur_year))
 create_resource_table_state("VA", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("VA", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### VT
@@ -2452,12 +2452,12 @@ create_resource_plot_state("VA",
 ```{r}
 #| label: VT-summary
 
+create_resource_plot_state("VT", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("VT", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("VT", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("VT", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### WA
@@ -2465,12 +2465,12 @@ create_resource_plot_state("VT",
 ```{r}
 #| label: WA-summary
 
+create_resource_plot_state("WA", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("WA", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("WA", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("WA", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### WI
@@ -2478,12 +2478,12 @@ create_resource_plot_state("WA",
 ```{r}
 #| label: WI-summary
 
+create_resource_plot_state("WI", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("WI", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("WI", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("WI", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### WV
@@ -2491,12 +2491,12 @@ create_resource_plot_state("WI",
 ```{r}
 #| label: WV-summary
 
+create_resource_plot_state("WV", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("WV", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("WV", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("WV", 
-                           c(prev_yr1, cur_year))
 ```
 
 ### WY
@@ -2504,11 +2504,11 @@ create_resource_plot_state("WV",
 ```{r}
 #| label: WY-summary
 
+create_resource_plot_state("WY", 
+                           c(prev_yr1, cur_year))
 create_cap_table_state("WY", 
                        c(prev_yr1, cur_year))
 create_resource_table_state("WY", 
                             c(prev_yr1, cur_year))
-create_resource_plot_state("WY", 
-                           c(prev_yr1, cur_year))
 ```
 :::
