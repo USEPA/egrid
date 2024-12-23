@@ -1216,6 +1216,148 @@ addStyle(wb, sheet = ggl, style = s[['percent_bold']], rows = 8, cols = 9,   gri
 addStyle(wb, sheet = ggl, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpand = TRUE)
 addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
 
+### Contents Formatting -------------
+
+# add link to sheets 
+add_hyperlink(glue::glue("UNT{year}"),  row_link = 1, col_link = 1, loc = c(3, 8),  text_to_show = glue::glue("UNT{year}"))
+add_hyperlink(glue::glue("GEN{year}"),  row_link = 1, col_link = 1, loc = c(3, 9),  text_to_show = glue::glue("GEN{year}"))
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 1, loc = c(3, 10), text_to_show = glue::glue("PLNT{year}"))
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 1, loc = c(3, 11), text_to_show = glue::glue("ST{year}"))
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 1, loc = c(3, 12), text_to_show = glue::glue("BA{year}"))
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 13), text_to_show = glue::glue("SRL{year}"))
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 14), text_to_show = glue::glue("NRL{year}"))
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 1, loc = c(3, 15), text_to_show = glue::glue("US{year}"))
+add_hyperlink(glue::glue("GGL{year}"),  row_link = 1, col_link = 1, loc = c(3, 16), text_to_show = glue::glue("GGL{year}"))
+
+# feedback columns
+# contact_link <- createHyperlink("https://www.epa.gov/egrid/forms/contact-us-about-egrid")
+
+
+# add hyperlinks to specific columns
+# annual values 
+add_hyperlink(glue::glue("GEN{year}"),  row_link = 1, col_link = 13, loc = c(11, 26), text_to_show = "GEN")
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 37, loc = c(12, 26), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 5,  loc = c(13, 26),  text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 5,  loc = c(14, 26),  text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 5,  loc = c(15, 26),  text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 5,  loc = c(16, 26),  text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 3,  loc = c(17, 26),  text_to_show = "US")
+
+# unadjusted values 
+add_hyperlink(glue::glue("UNT{year}"),  row_link = 1, col_link = 15,  loc = c(10, 27), text_to_show = "UNT")
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 101, loc = c(12, 27), text_to_show = "PLNT")
+
+# adjustment values (biomass and CHP)
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 117, loc = c(12, 28), text_to_show = "PLNT")
+
+# output emissions rates 
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 55, loc = c(12, 29), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 23, loc = c(13, 29), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 23, loc = c(14, 29), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 23, loc = c(15, 29), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 23, loc = c(16, 29), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 19, loc = c(17, 29), text_to_show = "US")
+
+# input emissions rates
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 71, loc = c(12, 30), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 39, loc = c(13, 30), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 39, loc = c(14, 30), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 39, loc = c(15, 30), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 39, loc = c(16, 30), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 37, loc = c(17, 30), text_to_show = "US")
+
+# combustion output emissions rates
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 79, loc = c(12, 31), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 47, loc = c(13, 31), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 47, loc = c(14, 31), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 47, loc = c(15, 31), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 47, loc = c(16, 31), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 45, loc = c(17, 31), text_to_show = "US")
+
+# generation by fuel type
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 134, loc = c(12, 32), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 169, loc = c(13, 32), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 169, loc = c(14, 32), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 169, loc = c(15, 32), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 169, loc = c(16, 32), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 167, loc = c(17, 32), text_to_show = "US")
+
+# renewable and non-renewable generation
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 156, loc = c(12, 33), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 191, loc = c(13, 33), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 191, loc = c(14, 33), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 191, loc = c(15, 33), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 191, loc = c(16, 33), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 189, loc = c(17, 33), text_to_show = "US")
+
+# combustion and non-combustion generation
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 138, loc = c(12, 34), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 199, loc = c(13, 34), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 199, loc = c(14, 34), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 199, loc = c(15, 34), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 199, loc = c(16, 34), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 197, loc = c(17, 34), text_to_show = "US")
+
+# resource mix
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 144, loc = c(12, 35), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 205, loc = c(13, 35), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 205, loc = c(14, 35), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 205, loc = c(15, 35), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 205, loc = c(16, 35), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 203, loc = c(17, 35), text_to_show = "US")
+
+# renewable and non-renewable resource mix
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 181, loc = c(12, 36), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 216, loc = c(13, 36), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 216, loc = c(14, 36), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 216, loc = c(15, 36), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 216, loc = c(16, 36), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 214, loc = c(17, 36), text_to_show = "US")
+
+# combustion and non-combustion resource mix
+add_hyperlink(glue::glue("PLNT{year}"), row_link = 1, col_link = 185, loc = c(12, 37), text_to_show = "PLNT")
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 220, loc = c(13, 37), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 220, loc = c(14, 37), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 220, loc = c(15, 37), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 220, loc = c(16, 37), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 118, loc = c(17, 37), text_to_show = "US")
+
+# output emission rates by fuel type
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 63, loc = c(13, 38), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 63, loc = c(14, 38), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 63, loc = c(15, 38), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 63, loc = c(16, 38), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 61, loc = c(17, 38), text_to_show = "US")
+
+# input emission rates by fuel type
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 123, loc = c(13, 39), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 123, loc = c(14, 39), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 123, loc = c(15, 39), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 123, loc = c(16, 39), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 121, loc = c(17, 39), text_to_show = "US")
+
+# nonbaseload output emission rates 
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 153, loc = c(13, 40), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 153, loc = c(14, 40), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 153, loc = c(15, 40), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 153, loc = c(16, 40), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 151, loc = c(17, 40), text_to_show = "US")
+
+# nonbaseload generation by fuel type
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 223, loc = c(13, 41), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 223, loc = c(14, 41), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 223, loc = c(15, 41), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 223, loc = c(16, 41), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 221, loc = c(17, 41), text_to_show = "US")
+
+# nonbaseload resource mix
+add_hyperlink(glue::glue("ST{year}"),   row_link = 1, col_link = 245, loc = c(13, 42), text_to_show = "ST")
+add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 245, loc = c(14, 42), text_to_show = "BA")
+add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 245, loc = c(15, 42), text_to_show = "SRL")
+add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 245, loc = c(16, 42), text_to_show = "NRL")
+add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 243, loc = c(17, 42), text_to_show = "US")
+
+
 ### Save and export -----
 output <- glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx")
 saveWorkbook(wb, output, overwrite=TRUE)
