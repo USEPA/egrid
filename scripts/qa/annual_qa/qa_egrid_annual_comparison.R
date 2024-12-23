@@ -33,7 +33,7 @@ cur_year <- as.numeric(params$eGRID_year)
 prev_yr1 <- as.character(cur_year - 1)
 prev_yr2 <- as.character(cur_year - 2)
 prev_yr3 <- as.character(cur_year - 3)
-cur_year <- params$eGRID_year
+cur_year <- as.character(cur_year)
 
 # Load and clean data -----
 
@@ -306,7 +306,7 @@ egrid_rate_comparison <-
   mutate(across(.cols = contains(glue::glue("rate_{cur_year}")), 
                 .fns = ~ (. - get(str_replace(cur_column(), cur_year, prev_yr1))) 
                                       / get(str_replace(cur_column(), cur_year, prev_yr1)) * 100,
-                .names = "{sub('_rate.*', '', .col)}_pct}"), 
+                .names = "{sub('_rate.*', '', .col)}_pct"), 
          across(.cols = contains(glue::glue("gen_{cur_year}")), 
                 .fns = ~ case_when(
                   (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . == 0) ~ 0, 

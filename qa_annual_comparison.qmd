@@ -13,7 +13,7 @@ params:
 ---
 
 ```{r}
-#| label: set_up_file
+#| label: set-up-file
 
 library(ggplot2)
 library(dplyr)
@@ -23,18 +23,18 @@ library(kableExtra)
 This file compares the final output of eGRID to previous year outputs.
 
 ```{r}
-#| label: read_qa_file
+#| label: read-qa-file
 #| file: "scripts/qa/annual_qa/qa_egrid_annual_comparison.R"
-#| warning: False
-#| echo: False
+
+
 #| results: False
 ```
 
 # Rate comparison
 
-## Subregion
+## Subregions
 
-Compare emission rates from `r prev_yr3` to `r params$eGRID_year` and percent change from `r prev_yr1` to `r params$eGRID_year`.
+Compare subregion emission rates from `r prev_yr3` to `r params$eGRID_year` and percent change from `r prev_yr1` to `r params$eGRID_year`.
 
 ## Output emission rate comparison
 
@@ -42,12 +42,11 @@ Compare emission rates from `r prev_yr3` to `r params$eGRID_year` and percent ch
 ### NOx output rate
 
 ```{r}
-#| label: nox_output_rate
-#| echo: False
-#| warning: False
+#| label: nox-output-rate
 
 nox_output <- 
-  egrid_rate_comparison %>% select(subregion, contains("nox_output"), generation_notes)
+  egrid_rate_comparison %>% 
+  select(subregion, contains("nox_output"), generation_notes)
 
 rate_comparison <- ggplot(egrid_us_comparison, aes(x = subregion, 
                                                 y = nox_output_rate, 
@@ -77,9 +76,7 @@ knitr::kable(nox_output,
 ### NOx ozone output rate
 
 ```{r}
-#| label: nox_oz_output_rate
-#| echo: False
-#| warning: False
+#| label: nox-oz-output-rate
 
 nox_oz_output <- 
   egrid_rate_comparison %>% select(subregion, contains("nox_oz_output"), generation_notes)
@@ -112,9 +109,7 @@ knitr::kable(nox_oz_output,
 ### SO2 output rate
 
 ```{r}
-#| label: so2_output_rate
-#| echo: False
-#| warning: False
+#| label: so2-output-rate
 
 so2_output <- 
   egrid_rate_comparison %>% select(subregion, contains("so2_output"), generation_notes)
@@ -140,16 +135,14 @@ knitr::kable(so2_output,
                            as.character(prev_yr2),
                            as.character(prev_yr1), 
                            as.character(cur_year), 
-                           "Percent change", 
+                           "Percent Change",
                            "Notes")) 
 ```
 
 ### CO2 output rate
 
 ```{r}
-#| label: co2_output_rate
-#| echo: False
-#| warning: False
+#| label: co2-output-rate
 
 co2_output <- 
   egrid_rate_comparison %>% select(subregion, contains("co2_output"), generation_notes)
@@ -182,9 +175,7 @@ knitr::kable(co2_output,
 ### CH4 output rate
 
 ```{r}
-#| label: ch4_output_rate
-#| echo: False
-#| warning: False
+#| label: ch4-output-rate
 
 ch4_output <- 
   egrid_rate_comparison %>% select(subregion, contains("ch4_output"), generation_notes)
@@ -217,9 +208,7 @@ knitr::kable(ch4_output,
 ### N2O output rate
 
 ```{r}
-#| label: n2o_output_rate
-#| echo: False
-#| warning: False
+#| label: n2o-output-rate
 
 n2o_output <- 
   egrid_rate_comparison %>% select(subregion, contains("n2o_output"), generation_notes)
@@ -252,9 +241,7 @@ knitr::kable(n2o_output,
 ### CO2e output rate
 
 ```{r}
-#| label: co2e_output_rate
-#| echo: False
-#| warning: False
+#| label: co2e-output-rate
 
 co2e_output <- 
   egrid_rate_comparison %>% select(subregion, contains("co2e_output"), generation_notes)
@@ -291,9 +278,7 @@ knitr::kable(co2e_output,
 ### NOx input rate
 
 ```{r}
-#| label: nox_input_rate
-#| echo: False
-#| warning: False
+#| label: nox-input-rate
 
 nox_input <- 
   egrid_rate_comparison %>% select(subregion, contains("nox_input"), generation_notes)
@@ -326,9 +311,7 @@ knitr::kable(nox_input,
 ### NOx ozone input rate
 
 ```{r}
-#| label: nox_input_oz_rate
-#| echo: False
-#| warning: False
+#| label: nox-input-oz-rate
 
 nox_oz_input <- 
   egrid_rate_comparison %>% select(subregion, contains("nox_oz_input"), generation_notes)
@@ -361,9 +344,7 @@ knitr::kable(nox_oz_input,
 ### SO2 input rate
 
 ```{r}
-#| label: so2_input_rate
-#| echo: False
-#| warning: False
+#| label: so2-input-rate
 
 so2_input <- 
   egrid_rate_comparison %>% select(subregion, contains("so2_input"), generation_notes)
@@ -396,9 +377,7 @@ knitr::kable(so2_output,
 ### CO2 input rate
 
 ```{r}
-#| label: co2_input_rate
-#| echo: False
-#| warning: False
+#| label: co2-input-rate
 
 co2_input <- 
   egrid_rate_comparison %>% select(subregion, contains("co2_input"), generation_notes)
@@ -431,9 +410,7 @@ knitr::kable(co2_input,
 ### CH4 input rate
 
 ```{r}
-#| label: ch4_input_rate
-#| echo: False
-#| warning: False
+#| label: ch4-input-rate
 
 ch4_output <- 
   egrid_rate_comparison %>% select(subregion, contains("ch4_output"), generation_notes)
@@ -466,9 +443,7 @@ knitr::kable(ch4_output,
 ### N2O input rate
 
 ```{r}
-#| label: n2o_input_rate
-#| echo: False
-#| warning: False
+#| label: n2o-input-rate
 
 n2o_input <- 
   egrid_rate_comparison %>% select(subregion, contains("n2o_input"), generation_notes)
@@ -501,9 +476,7 @@ knitr::kable(n2o_input,
 ### CO2e input rate
 
 ```{r}
-#| label: co2e_input_rate
-#| echo: False
-#| warning: False
+#| label: co2e-input-rate
 
 co2e_input <- 
   egrid_rate_comparison %>% select(subregion, contains("co2e_input"), generation_notes)
@@ -540,9 +513,7 @@ knitr::kable(co2e_input,
 ### NOx combustion output rate
 
 ```{r}
-#| label: nox_combustion_rate
-#| echo: False
-#| warning: False
+#| label: nox-combustion-rate
 
 nox_combustion <- 
   egrid_rate_comparison %>% select(subregion, contains("nox_combustion"), generation_notes)
@@ -575,9 +546,7 @@ knitr::kable(nox_combustion,
 ### NOx ozone combustion output rate
 
 ```{r}
-#| label: nox_oz_combustion_rate
-#| echo: False
-#| warning: False
+#| label: nox-oz-combustion-rate
 
 nox_oz_combustion <- 
   egrid_rate_comparison %>% select(subregion, contains("nox_oz_combustion"), generation_notes)
@@ -610,9 +579,7 @@ knitr::kable(nox_oz_combustion,
 ### SO2 combustion output rate
 
 ```{r}
-#| label: so2_combustion_rate
-#| echo: False
-#| warning: False
+#| label: so2-combustion-rate
 
 so2_combustion <- 
   egrid_rate_comparison %>% select(subregion, contains("so2_combustion"), generation_notes)
@@ -645,9 +612,7 @@ knitr::kable(so2_combustion,
 ### CO2 combustion output rate
 
 ```{r}
-#| label: co2_combustion_rate
-#| echo: False
-#| warning: False
+#| label: co2-combustion-rate
 
 co2_combustion <- 
   egrid_rate_comparison %>% select(subregion, contains("co2_combustion"), generation_notes)
@@ -680,9 +645,7 @@ knitr::kable(co2_combustion,
 ### CH4 combustion output rate
 
 ```{r}
-#| label: ch4_combustion_rate
-#| echo: False
-#| warning: False
+#| label: ch4-combustion-rate
 
 ch4_combustion <- 
   egrid_rate_comparison %>% select(subregion, contains("ch4_combustion"), generation_notes)
@@ -715,9 +678,7 @@ knitr::kable(ch4_combustion,
 ### N2O combustion output rate
 
 ```{r}
-#| label: n2o_combustion_rate
-#| echo: False
-#| warning: False
+#| label: n2o-combustion-rate
 
 n2o_combustion <- 
   egrid_rate_comparison %>% select(subregion, contains("n2o_combustion"), generation_notes)
@@ -750,9 +711,7 @@ knitr::kable(n2o_combustion,
 ### CO2e combustion output rate
 
 ```{r}
-#| label: co2e_combustion_rate
-#| echo: False
-#| warning: False
+#| label: co2e-combustion-rate
 
 co2e_combustion <- 
   egrid_rate_comparison %>% select(subregion, contains("co2e_combustion"), generation_notes)
@@ -784,13 +743,14 @@ knitr::kable(co2e_combustion,
 :::
 
 ## ADD STATE HERE
-- include nonbaseload outut rates for both subregion and state levels
-- include fuel-specific input emission rates and output emission rates for both subgregion and state level
-- 
+
+-   include nonbaseload outut rates for both subregion and state levels
+-   include fuel-specific input emission rates and output emission rates for both subgregion and state level
+-   
 
 # Resource mix comparison
 
-- move graphs to able
+-   move graphs to able
 
 ## US resource mix
 
@@ -798,10 +758,8 @@ knitr::kable(co2e_combustion,
 ### US resource mix table
 
 ```{r}
-#| label: US_resource_mix_table 
-#| echo: false 
-#| warning: false  
-
+#| label: US-resource-mix-table 
+ 
 knitr::kable(us_resource_mix_formatted,
              digits = 2, 
              format.args = list(big.mark = ","), 
@@ -826,9 +784,8 @@ knitr::kable(us_resource_mix_formatted,
 ### US resource mix figure
 
 ```{r}
-#| label: US_resource_mix_figure
-#| echo: false 
-#| warning: false  
+#| label: US-resource-mix-figure
+ 
 
 resource_comparison <-    
   ggplot(us_resource_mix, 
@@ -851,9 +808,7 @@ plotly::ggplotly(resource_comparison)
 ### AKGD
 
 ```{r}
-#| label: AKGD_summary
-#| echo: false
-#| warning: false
+#| label: AKGD-summary
 
 source("scripts/functions/function_region_summary.R")
 
@@ -865,9 +820,7 @@ create_resource_plot_egrid("AKGD", c(prev_yr1, cur_year))
 ### AKMS
 
 ```{r}
-#| label: AKMS_summary
-#| echo: false
-#| warning: false
+#| label: AKMS-summary
 
 create_cap_table_egrid("AKMS", c(prev_yr1, cur_year))
 create_resource_table_egrid("AKMS", c(prev_yr1, cur_year))
@@ -877,9 +830,7 @@ create_resource_plot_egrid("AKMS", c(prev_yr1, cur_year))
 ### AZNM
 
 ```{r}
-#| label: AZNM_summary
-#| echo: false
-#| warning: false
+#| label: AZNM-summary
 
 create_cap_table_egrid("AZNM", 
                        c(prev_yr1, cur_year))
@@ -892,9 +843,7 @@ create_resource_plot_egrid("AKMS",
 ### CAMX
 
 ```{r}
-#| label: CAMX_summary
-#| echo: false
-#| warning: false
+#| label: CAMX-summary
 
 create_cap_table_egrid("CAMX", c(prev_yr1, cur_year))
 create_resource_table_egrid("CAMX", c(prev_yr1, cur_year))
@@ -904,9 +853,7 @@ create_resource_plot_egrid("CAMX", c(prev_yr1, cur_year))
 ### ERCT
 
 ```{r}
-#| label: ERCT_summary
-#| echo: false
-#| warning: false
+#| label: ERCT-summary
 
 create_cap_table_egrid("ERCT", c(prev_yr1, cur_year))
 create_resource_table_egrid("ERCT", c(prev_yr1, cur_year))
@@ -916,9 +863,7 @@ create_resource_plot_egrid("ERCT", c(prev_yr1, cur_year))
 ### FRCC
 
 ```{r}
-#| label: FRCC_summary
-#| echo: false
-#| warning: false
+#| label: FRCC-summary
 
 create_cap_table_egrid("FRCC", c(prev_yr1, cur_year))
 create_resource_table_egrid("FRCC", c(prev_yr1, cur_year))
@@ -928,9 +873,7 @@ create_resource_plot_egrid("FRCC", c(prev_yr1, cur_year))
 ### HIMS
 
 ```{r}
-#| label: HIMS_summary
-#| echo: false
-#| warning: false
+#| label: HIMS-summary
 
 create_cap_table_egrid("HIMS", c(prev_yr1, cur_year))
 create_resource_table_egrid("HIMS", c(prev_yr1, cur_year))
@@ -940,9 +883,7 @@ create_resource_plot_egrid("HIMS", c(prev_yr1, cur_year))
 ### HIOA
 
 ```{r}
-#| label: HIOA_summary
-#| echo: false
-#| warning: false
+#| label: HIOA-summary
 
 create_cap_table_egrid("HIOA", 
                        c(prev_yr1, cur_year))
@@ -955,9 +896,7 @@ create_resource_plot_egrid("HIOA",
 ### MROE
 
 ```{r}
-#| label: MROE_summary
-#| echo: false
-#| warning: false
+#| label: MROE-summary
 
 create_cap_table_egrid("MROE", 
                        c(prev_yr1, cur_year))
@@ -970,9 +909,7 @@ create_resource_plot_egrid("MROE",
 ### MROW
 
 ```{r}
-#| label: MROW_summary
-#| echo: false
-#| warning: false
+#| label: MROW-summary
 
 create_cap_table_egrid("MROW", 
                        c(prev_yr1, cur_year))
@@ -985,9 +922,7 @@ create_resource_plot_egrid("MROW",
 ### NEWE
 
 ```{r}
-#| label: NEWE_summary
-#| echo: false
-#| warning: false
+#| label: NEWE-summary
 
 create_cap_table_egrid("NEWE", 
                        c(prev_yr1, cur_year))
@@ -1000,9 +935,7 @@ create_resource_plot_egrid("NEWE",
 ### NWPP
 
 ```{r}
-#| label: NWPP_summary
-#| echo: false
-#| warning: false
+#| label: NWPP-summary
 
 create_cap_table_egrid("NWPP", 
                        c(prev_yr1, cur_year))
@@ -1015,9 +948,7 @@ create_resource_plot_egrid("NWPP",
 ### NYCW
 
 ```{r}
-#| label: NYCW_summary
-#| echo: false
-#| warning: false
+#| label: NYCW-summary
 
 create_cap_table_egrid("NYCW", 
                        c(prev_yr1, cur_year))
@@ -1030,9 +961,7 @@ create_resource_plot_egrid("NYCW",
 ### NYLI
 
 ```{r}
-#| label: NYLI_summary
-#| echo: false
-#| warning: false
+#| label: NYLI-summary
 
 create_cap_table_egrid("NYLI",
                        c(prev_yr1, cur_year))
@@ -1045,9 +974,7 @@ create_resource_plot_egrid("NYLI",
 ### NYUP
 
 ```{r}
-#| label: NYUP_summary
-#| echo: false
-#| warning: false
+#| label: NYUP-summary
 
 create_cap_table_egrid("NYUP", 
                        c(prev_yr1, cur_year))
@@ -1060,9 +987,7 @@ create_resource_plot_egrid("NYUP",
 ### PRMS
 
 ```{r}
-#| label: PRMS_summary
-#| echo: false
-#| warning: false
+#| label: PRMS-summary
 
 create_cap_table_egrid("PRMS", 
                        c(prev_yr1, cur_year))
@@ -1075,9 +1000,7 @@ create_resource_plot_egrid("PRMS",
 ### RFCE
 
 ```{r}
-#| label: RFCE_summary
-#| echo: false
-#| warning: false
+#| label: RFCE-summary
 
 create_cap_table_egrid("RFCE", 
                        c(prev_yr1, cur_year))
@@ -1090,9 +1013,7 @@ create_resource_plot_egrid("RFCE",
 ### RFCM
 
 ```{r}
-#| label: RFCM_summary
-#| echo: false
-#| warning: false
+#| label: RFCM-summary
 
 create_cap_table_egrid("RFCM", 
                        c(prev_yr1, cur_year))
@@ -1105,9 +1026,7 @@ create_resource_plot_egrid("RFCM",
 ### RFCW
 
 ```{r}
-#| label: RFCW_summary
-#| echo: false
-#| warning: false
+#| label: RFCW-summary
 
 create_cap_table_egrid("RFCW", 
                        c(prev_yr1, cur_year))
@@ -1120,9 +1039,7 @@ create_resource_plot_egrid("RFCW",
 ### RMPA
 
 ```{r}
-#| label: RMPA_summary
-#| echo: false
-#| warning: false
+#| label: RMPA-summary
 
 create_cap_table_egrid("RMPA", 
                        c(prev_yr1, cur_year))
@@ -1135,9 +1052,7 @@ create_resource_plot_egrid("RMPA",
 ### SPNO
 
 ```{r}
-#| label: SPNO_summary
-#| echo: false
-#| warning: false
+#| label: SPNO-summary
 
 create_cap_table_egrid("SPNO", 
                        c(prev_yr1, cur_year))
@@ -1150,9 +1065,7 @@ create_resource_plot_egrid("SPNO",
 ### SPSO
 
 ```{r}
-#| label: SPSO_summary
-#| echo: false
-#| warning: false
+#| label: SPSO-summary
 
 create_cap_table_egrid("SPSO", 
                        c(prev_yr1, cur_year))
@@ -1165,9 +1078,7 @@ create_resource_plot_egrid("SPSO",
 ### SRMV
 
 ```{r}
-#| label: SRMV_summary
-#| echo: false
-#| warning: false
+#| label: SRMV-summary
 
 create_cap_table_egrid("SRMV", 
                        c(prev_yr1, cur_year))
@@ -1180,9 +1091,7 @@ create_resource_plot_egrid("SRMV",
 ### SRSO
 
 ```{r}
-#| label: SRSO_summary
-#| echo: false
-#| warning: false
+#| label: SRSO-summary
 
 create_cap_table_egrid("SRSO", 
                        c(prev_yr1, cur_year))
@@ -1195,9 +1104,7 @@ create_resource_plot_egrid("SRSO",
 ### SRTV
 
 ```{r}
-#| label: SRTV_summary
-#| echo: false
-#| warning: false
+#| label: SRTV-summary
 
 create_cap_table_egrid("SRTV", 
                        c(prev_yr1, cur_year))
@@ -1210,9 +1117,7 @@ create_resource_plot_egrid("SRTV",
 ### SRVC
 
 ```{r}
-#| label: SRVC_summary
-#| echo: false
-#| warning: false
+#| label: SRVC-summary
 
 create_cap_table_egrid("SRVC", 
                        c(prev_yr1, cur_year))
@@ -1229,9 +1134,7 @@ create_resource_plot_egrid("SRVC",
 ### AK
 
 ```{r}
-#| label: AK_summary
-#| echo: false
-#| warning: false
+#| label: AK-summary
 
 create_cap_table_state("AK", 
                        c(prev_yr1, cur_year))
@@ -1245,8 +1148,6 @@ create_resource_plot_state("AK",
 
 ```{r}
 #| label: AL_summary
-#| echo: false
-#| warning: false
 
 create_cap_table_state("AL", 
                        c(prev_yr1, cur_year))
@@ -1259,9 +1160,7 @@ create_resource_plot_state("AL",
 ### AR
 
 ```{r}
-#| label: AR_summary
-#| echo: false
-#| warning: false
+#| label: AR-summary
 
 create_cap_table_state("AR", 
                        c(prev_yr1, cur_year))
@@ -1274,9 +1173,7 @@ create_resource_plot_state("AR",
 ### AZ
 
 ```{r}
-#| label: AZ_summary
-#| echo: false
-#| warning: false
+#| label: AZ-summary
 
 create_cap_table_state("AZ", 
                        c(prev_yr1, cur_year))
@@ -1289,9 +1186,7 @@ create_resource_plot_state("AZ",
 ### CA
 
 ```{r}
-#| label: CA_summary
-#| echo: false
-#| warning: false
+#| label: CA-summary
 
 create_cap_table_state("CA", 
                        c(prev_yr1, cur_year))
@@ -1304,9 +1199,7 @@ create_resource_plot_state("CA",
 ### CO
 
 ```{r}
-#| label: CO_summary
-#| echo: false
-#| warning: false
+#| label: CO-summary
 
 create_cap_table_state("CO", 
                        c(prev_yr1, cur_year))
@@ -1319,9 +1212,7 @@ create_resource_plot_state("CO",
 ### CT
 
 ```{r}
-#| label: CT_summary
-#| echo: false
-#| warning: false
+#| label: CT-summary
 
 create_cap_table_state("CT", 
                        c(prev_yr1, cur_year))
@@ -1334,9 +1225,7 @@ create_resource_plot_state("CT",
 ### DC
 
 ```{r}
-#| label: DC_summary
-#| echo: false
-#| warning: false
+#| label: DC-summary
 
 create_cap_table_state("DC", 
                        c(prev_yr1, cur_year))
@@ -1349,9 +1238,7 @@ create_resource_plot_state("DC",
 ### DE
 
 ```{r}
-#| label: DE_summary
-#| echo: false
-#| warning: false
+#| label: DE-summary
 
 create_cap_table_state("DE", 
                        c(prev_yr1, cur_year))
@@ -1364,9 +1251,7 @@ create_resource_plot_state("DE",
 ### FL
 
 ```{r}
-#| label: FL_summary
-#| echo: false
-#| warning: false
+#| label: FL-summary
 
 create_cap_table_state("FL", 
                        c(prev_yr1, cur_year))
@@ -1379,9 +1264,7 @@ create_resource_plot_state("FL",
 ### GA
 
 ```{r}
-#| label: GA_summary
-#| echo: false
-#| warning: false
+#| label: GA-summary
 
 create_cap_table_state("GA", 
                        c(prev_yr1, cur_year))
@@ -1394,9 +1277,7 @@ create_resource_plot_state("GA",
 ### HI
 
 ```{r}
-#| label: HI_summary
-#| echo: false
-#| warning: false
+#| label: HI-summary
 
 create_cap_table_state("HI", 
                        c(prev_yr1, cur_year))
@@ -1409,9 +1290,7 @@ create_resource_plot_state("HI",
 ### IA
 
 ```{r}
-#| label: IA_summary
-#| echo: false
-#| warning: false
+#| label: IA-summary
 
 create_cap_table_state("IA", 
                        c(prev_yr1, cur_year))
@@ -1424,9 +1303,7 @@ create_resource_plot_state("IA",
 ### ID
 
 ```{r}
-#| label: ID_summary
-#| echo: false
-#| warning: false
+#| label: ID-summary
 
 create_cap_table_state("ID", 
                        c(prev_yr1, cur_year))
@@ -1439,9 +1316,7 @@ create_resource_plot_state("ID",
 ### IL
 
 ```{r}
-#| label: IL_summary
-#| echo: false
-#| warning: false
+#| label: IL-summary
 
 create_cap_table_state("IL", 
                        c(prev_yr1, cur_year))
@@ -1454,9 +1329,7 @@ create_resource_plot_state("IL",
 ### IN
 
 ```{r}
-#| label: IN_summary
-#| echo: false
-#| warning: false
+#| label: IN-summary
 
 create_cap_table_state("IN", 
                        c(prev_yr1, cur_year))
@@ -1469,9 +1342,7 @@ create_resource_plot_state("IN",
 ### KS
 
 ```{r}
-#| label: KS_summary
-#| echo: false
-#| warning: false
+#| label: KS-summary
 
 create_cap_table_state("KS", 
                        c(prev_yr1, cur_year))
@@ -1484,9 +1355,7 @@ create_resource_plot_state("KS",
 ### KY
 
 ```{r}
-#| label: KY_summary
-#| echo: false
-#| warning: false
+#| label: KY-summary
 
 create_cap_table_state("KY", 
                        c(prev_yr1, cur_year))
@@ -1499,9 +1368,7 @@ create_resource_plot_state("KY",
 ### LA
 
 ```{r}
-#| label: LA_summary
-#| echo: false
-#| warning: false
+#| label: LA-summary
 
 create_cap_table_state("LA", 
                        c(prev_yr1, cur_year))
@@ -1514,9 +1381,7 @@ create_resource_plot_state("LA",
 ### MA
 
 ```{r}
-#| label: MA_summary
-#| echo: false
-#| warning: false
+#| label: MA-summary
 
 create_cap_table_state("MA", 
                        c(prev_yr1, cur_year))
@@ -1529,9 +1394,7 @@ create_resource_plot_state("MA",
 ### MD
 
 ```{r}
-#| label: MD_summary
-#| echo: false
-#| warning: false
+#| label: MD-summary
 
 create_cap_table_state("MD", 
                        c(prev_yr1, cur_year))
@@ -1544,9 +1407,7 @@ create_resource_plot_state("MD",
 ### ME
 
 ```{r}
-#| label: ME_summary
-#| echo: false
-#| warning: false
+#| label: ME-summary
 
 create_cap_table_state("ME", 
                        c(prev_yr1, cur_year))
@@ -1559,9 +1420,7 @@ create_resource_plot_state("ME",
 ### MI
 
 ```{r}
-#| label: MI_summary
-#| echo: false
-#| warning: false
+#| label: MI-summary
 
 create_cap_table_state("MI", 
                        c(prev_yr1, cur_year))
@@ -1574,9 +1433,7 @@ create_resource_plot_state("MI",
 ### MN
 
 ```{r}
-#| label: MN_summary
-#| echo: false
-#| warning: false
+#| label: MN-summary
 
 create_cap_table_state("MN", 
                        c(prev_yr1, cur_year))
@@ -1589,9 +1446,7 @@ create_resource_plot_state("MN",
 ### MO
 
 ```{r}
-#| label: MO_summary
-#| echo: false
-#| warning: false
+#| label: MO-summary
 
 create_cap_table_state("MO", 
                        c(prev_yr1, cur_year))
@@ -1604,9 +1459,7 @@ create_resource_plot_state("MO",
 ### MS
 
 ```{r}
-#| label: MS_summary
-#| echo: false
-#| warning: false
+#| label: MS-summary
 
 create_cap_table_state("MS", 
                        c(prev_yr1, cur_year))
@@ -1619,9 +1472,7 @@ create_resource_plot_state("MS",
 ### MT
 
 ```{r}
-#| label: MT_summary
-#| echo: false
-#| warning: false
+#| label: MT-summary
 
 create_cap_table_state("MT", 
                        c(prev_yr1, cur_year))
@@ -1634,9 +1485,7 @@ create_resource_plot_state("MT",
 ### NC
 
 ```{r}
-#| label: NC_summary
-#| echo: false
-#| warning: false
+#| label: NC-summary
 
 create_cap_table_state("NC", 
                        c(prev_yr1, cur_year))
@@ -1649,9 +1498,7 @@ create_resource_plot_state("NC",
 ### ND
 
 ```{r}
-#| label: ND_summary
-#| echo: false
-#| warning: false
+#| label: ND-summary
 
 create_cap_table_state("ND", 
                        c(prev_yr1, cur_year))
@@ -1664,9 +1511,7 @@ create_resource_plot_state("ND",
 ### NE
 
 ```{r}
-#| label: NE_summary
-#| echo: false
-#| warning: false
+#| label: NE-summary
 
 create_cap_table_state("NE", 
                        c(prev_yr1, cur_year))
@@ -1679,9 +1524,7 @@ create_resource_plot_state("NE",
 ### NH
 
 ```{r}
-#| label: NH_summary
-#| echo: false
-#| warning: false
+#| label: NH-summary
 
 create_cap_table_state("NH", 
                        c(prev_yr1, cur_year))
@@ -1694,9 +1537,7 @@ create_resource_plot_state("NH",
 ### NJ
 
 ```{r}
-#| label: NJ_summary
-#| echo: false
-#| warning: false
+#| label: NJ-summary
 
 create_cap_table_state("NJ", 
                        c(prev_yr1, cur_year))
@@ -1709,9 +1550,7 @@ create_resource_plot_state("NJ",
 ### NM
 
 ```{r}
-#| label: NM_summary
-#| echo: false
-#| warning: false
+#| label: NM-summary
 
 create_cap_table_state("NM", 
                        c(prev_yr1, cur_year))
@@ -1724,9 +1563,7 @@ create_resource_plot_state("NM",
 ### NV
 
 ```{r}
-#| label: NV_summary
-#| echo: false
-#| warning: false
+#| label: NV-summary
 
 create_cap_table_state("NV", 
                        c(prev_yr1, cur_year))
@@ -1739,9 +1576,7 @@ create_resource_plot_state("NV",
 ### NY
 
 ```{r}
-#| label: NY_summary
-#| echo: false
-#| warning: false
+#| label: NY-summary
 
 create_cap_table_state("NY", 
                        c(prev_yr1, cur_year))
@@ -1754,9 +1589,7 @@ create_resource_plot_state("NY",
 ### OH
 
 ```{r}
-#| label: OH_summary
-#| echo: false
-#| warning: false
+#| label: OH-summary
 
 create_cap_table_state("OH", c(prev_yr1, cur_year))
 create_resource_table_state("OH", c(prev_yr1, cur_year))
@@ -1766,9 +1599,7 @@ create_resource_plot_state("OH", c(prev_yr1, cur_year))
 ### OK
 
 ```{r}
-#| label: OK_summary
-#| echo: false
-#| warning: false
+#| label: OK-summary
 
 create_cap_table_state("OK", 
                        c(prev_yr1, cur_year))
@@ -1781,9 +1612,7 @@ create_resource_plot_state("OK",
 ### OR
 
 ```{r}
-#| label: OR_summary
-#| echo: false
-#| warning: false
+#| label: OR-summary
 
 create_cap_table_state("OR", 
                        c(prev_yr1, cur_year))
@@ -1796,9 +1625,7 @@ create_resource_plot_state("OR",
 ### PA
 
 ```{r}
-#| label: PA_summary
-#| echo: false
-#| warning: false
+#| label: PA-summary
 
 create_cap_table_state("PA", 
                        c(prev_yr1, cur_year))
@@ -1811,9 +1638,7 @@ create_resource_plot_state("PA",
 ### PR
 
 ```{r}
-#| label: PR_summary
-#| echo: false
-#| warning: false
+#| label: PR-summary
 
 create_cap_table_state("PR", 
                        c(prev_yr1, cur_year))
@@ -1826,9 +1651,7 @@ create_resource_plot_state("PR",
 ### RI
 
 ```{r}
-#| label: RI_summary
-#| echo: false
-#| warning: false
+#| label: RI-summary
 
 create_cap_table_state("RI", 
                        c(prev_yr1, cur_year))
@@ -1841,9 +1664,7 @@ create_resource_plot_state("RI",
 ### SC
 
 ```{r}
-#| label: SC_summary
-#| echo: false
-#| warning: false
+#| label: SC-summary
 
 create_cap_table_state("SC", 
                        c(prev_yr1, cur_year))
@@ -1856,9 +1677,7 @@ create_resource_plot_state("SC",
 ### SD
 
 ```{r}
-#| label: SD_summary
-#| echo: false
-#| warning: false
+#| label: SD-summary
 
 create_cap_table_state("SD", 
                        c(prev_yr1, cur_year))
@@ -1871,9 +1690,7 @@ create_resource_plot_state("SD",
 ### TN
 
 ```{r}
-#| label: TN_summary
-#| echo: false
-#| warning: false
+#| label: TN-summary
 
 create_cap_table_state("TN", 
                        c(prev_yr1, cur_year))
@@ -1886,9 +1703,7 @@ create_resource_plot_state("TN",
 ### TX
 
 ```{r}
-#| label: TX_summary
-#| echo: false
-#| warning: false
+#| label: TX-summary
 
 create_cap_table_state("TX", 
                        c(prev_yr1, cur_year))
@@ -1901,9 +1716,7 @@ create_resource_plot_state("TX",
 ### UT
 
 ```{r}
-#| label: UT_summary
-#| echo: false
-#| warning: false
+#| label: UT-summary
 
 create_cap_table_state("UT", 
                        c(prev_yr1, cur_year))
@@ -1914,9 +1727,7 @@ create_resource_plot_state("UT", c(prev_yr1, cur_year))
 ### VA
 
 ```{r}
-#| label: VA_summary
-#| echo: false
-#| warning: false
+#| label: VA-summary
 
 create_cap_table_state("VA", c(prev_yr1, cur_year))
 create_resource_table_state("VA", 
@@ -1928,9 +1739,7 @@ create_resource_plot_state("VA",
 ### VT
 
 ```{r}
-#| label: VT_summary
-#| echo: false
-#| warning: false
+#| label: VT-summary
 
 create_cap_table_state("VT", 
                        c(prev_yr1, cur_year))
@@ -1943,9 +1752,7 @@ create_resource_plot_state("VT",
 ### WA
 
 ```{r}
-#| label: WA_summary
-#| echo: false
-#| warning: false
+#| label: WA-summary
 
 create_cap_table_state("WA", 
                        c(prev_yr1, cur_year))
@@ -1958,9 +1765,7 @@ create_resource_plot_state("WA",
 ### WI
 
 ```{r}
-#| label: WI_summary
-#| echo: false
-#| warning: false
+#| label: WI-summary
 
 create_cap_table_state("WI", 
                        c(prev_yr1, cur_year))
@@ -1973,9 +1778,7 @@ create_resource_plot_state("WI",
 ### WV
 
 ```{r}
-#| label: WV_summary
-#| echo: false
-#| warning: false
+#| label: WV-summary
 
 create_cap_table_state("WV", 
                        c(prev_yr1, cur_year))
@@ -1988,9 +1791,7 @@ create_resource_plot_state("WV",
 ### WY
 
 ```{r}
-#| label: WY_summary
-#| echo: false
-#| warning: false
+#| label: WY-summary
 
 create_cap_table_state("WY", 
                        c(prev_yr1, cur_year))
