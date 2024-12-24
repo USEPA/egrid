@@ -37,10 +37,21 @@ if (exists("params")) {
     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
     params$eGRID_year <- as.character(params$eGRID_year) 
   }
+  
+  # if ("run_demo_file" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+  #   print("Demographics file parameter is already defined.") 
+  # } else { # if params() is defined, but eGRID_year is not, define it here 
+  #   params$run_demo_file <- readline(prompt = "Input run_demo_file: ")
+  #   params$run_demo_file <- as.character(params$eGRID_year) 
+  # }
+
 } else { # if params() and eGRID_year are not defined, define them here
   params <- list()
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
+  
+  # params$run_demo_file <- readline(prompt = "Input run_demo_file: ")
+  # params$run_demo_file <- as.character(params$eGRID_year) 
 }
 
 
@@ -858,6 +869,8 @@ writeData(wb,
 ## add styles to document
 format_region(ba, ba_rows)
 
+setColWidths(wb, sheet = ba, cols = 2, widths = 75.55)
+
 ### SRL Formatting -----
 
 ## create "SRL" sheet
@@ -904,6 +917,8 @@ writeData(wb,
 
 ## add styles to document
 format_region(srl, srl_rows)
+
+setColWidths(wb, sheet = srl, cols = 3, widths = 18.45)
 
 ### NRL Formatting -----
 
@@ -952,48 +967,50 @@ writeData(wb,
 ## add styles to document
 format_region(nrl, nrl_rows)
 
+setColWidths(wb, sheet = nrl, cols = 3, widths = 29.45)
+
 ### US Formatting -----
-# 
-# ## create "US" sheet
-# us <- glue::glue("US{year}")
-# addWorksheet(wb, us)
-# 
-# # convert variables to numeric value
-# us_file <- us_file %>%
-#            mutate(year = as.numeric(year))
-# 
-# # select number of rows from data frame
-# # add two to number of rows (nrows) to account for header + description rows
-# us_rows <- nrow(us_file) + 2
-# 
-# ## column names and descriptions
-# # column names
-# us_header <- c("YEAR",	
-#                paste0("US", standard_header))
-# 
-# # description of column names
-# us_desc <- c("Data Year",
-#               paste0("U.S. ", standard_desc))
-# 
-# # add new column names
-# colnames(us_file) <- us_header
-# 
-# ## write data
-# # write data for first row only
-# writeData(wb, 
-#           sheet = us, 
-#           t(us_desc), 
-#           startRow = 1, 
-#           colNames = FALSE)
-# 
-# # write data to sheet
-# writeData(wb, 
-#           sheet = us, 
-#           us_file,
-#           startRow = 2)
-# 
-# ## add styles to document
-# format_region(us, us_rows)
+
+## create "US" sheet
+us <- glue::glue("US{year}")
+addWorksheet(wb, us)
+
+# convert variables to numeric value
+us_file <- us_file %>%
+           mutate(year = as.numeric(year))
+
+# select number of rows from data frame
+# add two to number of rows (nrows) to account for header + description rows
+us_rows <- nrow(us_file) + 2
+
+## column names and descriptions
+# column names
+us_header <- c("YEAR",
+               paste0("US", standard_header))
+
+# description of column names
+us_desc <- c("Data Year",
+              paste0("U.S. ", standard_desc))
+
+# add new column names
+colnames(us_file) <- us_header
+
+## write data
+# write data for first row only
+writeData(wb,
+          sheet = us,
+          t(us_desc),
+          startRow = 1,
+          colNames = FALSE)
+
+# write data to sheet
+writeData(wb,
+          sheet = us,
+          us_file,
+          startRow = 2)
+
+## add styles to document
+format_region(us, us_rows)
 
 ### GGL Formatting -----
 
@@ -1073,6 +1090,7 @@ if (params$run_demo_file) {
   demo_file <- demo_file %>%
     mutate(year = as.numeric(year))
   
+  demo_rows <- nrow(demo_file) + 2
   
   ## column names and descriptions
   demo_labels <- c("SEQPLT"              = "Plant file sequence number",
@@ -1093,7 +1111,8 @@ if (params$run_demo_file) {
                    "RAW_D_UNDER5"        = "Under Age 5",
                    "RAW_D_OVER64"        = "Over Age 64",
                    # RAW_D_UNEMPLOYED    = "Unemployment Rate"
-                   "RAW_D_LIFEEXP"       = "Limited Life Expectancy",
+                   # "RAW_D_LIFEEXP"       = "Limited Life Expectancy",
+                   "RAW_D_INDEX"         = "Index", # ?
                    "RAW_D_DEMOGIDX2ST"   = "Demographic Index",
                    "RAW_D_DEMOGIDX5ST"   = "Supplemental Demographic Index",
                    "RAW_D_UNEMPLOYED"    = "Unemployment Rate",
@@ -1123,7 +1142,8 @@ if (params$run_demo_file) {
                    "N_D_LING"            = "National Average of Limited English Speaking",
                    "N_D_UNDER5"          = "National Average of Under Age 5",
                    "N_D_OVER64"          = "National Average of Over Age 64",
-                   "N_D_LIFEEXP"         = "National Average of Limited Life Expectancy",
+                   # "N_D_LIFEEXP"         = "National Average of Limited Life Expectancy",
+                   "N_D_INDEX"           = "National Average of Index", #?
                    # N_D_DEMOGIDX2
                    # N_D_DEMOGIDX5
                    "N_D_UNEMPLOYED"      = "National Average of Unemployment Rate",
@@ -1133,7 +1153,8 @@ if (params$run_demo_file) {
                    "N_D_LING_PER"        = "National Percentile of Limited English Speaking",
                    "N_D_UNDER5_PER"      = "National Percentile of Under Age 5",
                    "N_D_OVER64_PER"      = "National Percentile of Over Age 64",
-                   "N_D_LIFEEXP_PER"     = "National Percentile of Limited Life Expectancy",
+                   # "N_D_LIFEEXP_PER"     = "National Percentile of Limited Life Expectancy",
+                   "N_D_INDEX_PER"       = "National Percentile of Index", #??
                    "N_D_UNEMPLOYED_PER"  = "National Percentile of Unemployment Rate",
                    # N_D_DEMOGIDX2_PER
                    # N_D_DEMOGIDX5_PER
@@ -1189,11 +1210,11 @@ if (params$run_demo_file) {
 
   # add number styles
   # addStyle(wb, sheet = demo, style = s[['integer']], rows = 3:7, cols = 3:5, gridExpand = TRUE)
-  # addStyle(wb, sheet = demo, style = s[['percent']], rows = 3:7, cols = 6,   gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['percent']], rows = 3:7, cols = 12:18,   gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['percent']], rows = 3:7, cols = 12:18,   gridExpand = TRUE)
   # 
-  # # add text styles
-  # addStyle(wb, sheet = demo, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpand = TRUE)
-  # addStyle(wb, sheet = demo, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
+  # add text styles
+  addStyle(wb, sheet = demo, style = s[['basic']], rows = 3:demo_rows, cols = 1:11, gridExpand = TRUE)
 }
 
 
