@@ -214,6 +214,7 @@ state_column_names <- c(
   "solar_gen" = "STGENASO",
   "geothermal_gen" = "STGENAGT", 
   "other_fossil_gen" = "STGENAOF",
+  "other_purchased_gen" = "STGENAOP",
   "net_gen" = "STNGENAN")
 
 # read in state data for each data year to compare here

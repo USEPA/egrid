@@ -61,7 +61,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -94,7 +94,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_oz_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -127,7 +127,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(so2_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -160,7 +160,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2_output,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -193,7 +193,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(ch4_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -226,7 +226,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(n2o_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -259,7 +259,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2e_output,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -296,7 +296,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_input,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -329,7 +329,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_oz_input,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -362,7 +362,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(so2_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -395,7 +395,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2_input,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -428,7 +428,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(ch4_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -461,7 +461,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(n2o_input,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -494,7 +494,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2e_input,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -531,7 +531,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_combustion,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -564,7 +564,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_oz_combustion,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -597,7 +597,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(so2_combustion,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -630,7 +630,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2_combustion,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -663,7 +663,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(ch4_combustion,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -696,7 +696,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(n2o_combustion,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -729,7 +729,7 @@ rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2e_combustion,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -766,7 +766,7 @@ rate_comparison <- ggplot(subregion_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_nonbaseload,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -799,7 +799,7 @@ rate_comparison <- ggplot(subregion_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_oz_nonbaseload,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -832,7 +832,7 @@ rate_comparison <- ggplot(subregion_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(so2_nonbaseload,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -865,7 +865,7 @@ rate_comparison <- ggplot(subregion_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2_nonbaseload,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -898,7 +898,7 @@ rate_comparison <- ggplot(subregion_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(ch4_nonbaseload,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -931,7 +931,7 @@ rate_comparison <- ggplot(subregion_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(n2o_nonbaseload,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -964,7 +964,7 @@ rate_comparison <- ggplot(subregion_comparison, aes(x = subregion,
                     theme(text = element_text(size = 12), 
                           axis.text.x = element_text(angle = 45)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2e_nonbaseload,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -1004,9 +1004,10 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("NOx output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 70)) 
+                          axis.text.x = element_text(angle = 70),
+                          legend.position = "top") 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1037,9 +1038,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("NOx ozone output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_oz_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1070,9 +1071,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("SO2 output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(so2_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1103,9 +1104,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("CO2 output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2_output,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -1136,9 +1137,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("CH4 output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(ch4_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1169,9 +1170,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("N2O output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(n2o_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1193,18 +1194,19 @@ knitr::kable(n2o_output,
 co2e_output <- 
   state_rate_comparison %>% select(state, contains("co2e_output"), generation_notes)
 
-rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2e_output_rate, 
+rate_comparison <- ggplot(state_comparison, aes(x = state,
+                                                y = co2e_output_rate,
                                                 fill = year)) +
-                    geom_bar(stat = "identity", 
+                    geom_bar(stat = "identity",
                              width = 0.75,
                              position = "dodge") +
-                    ylab("CO2e output rate (lb/MWh)") + 
-                    xlab("State") + 
-                    theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
-  
-plotly::ggplotly(rate_comparison)
+                    ylab("CO2e output rate (lb/MWh)") +
+                    xlab("State") +
+                    theme(text = element_text(size = 12),
+                          axis.text.x = element_text(angle = 70))
+
+plotly::ggplotly(rate_comparison, width = 700) %>%
+  plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2e_output,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -1239,9 +1241,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("NOx input rate (lb/MMBtu)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_input,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1272,9 +1274,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("NOx ozone input rate (lb/MMBtu)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_oz_input,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1305,9 +1307,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("SO2 input rate (lb/MMBtu)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(so2_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1338,9 +1340,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("CO2 input rate (lb/MMBtu)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2_input,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -1371,9 +1373,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("CH4 input rate (lb/MMBtu)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(ch4_output,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1404,9 +1406,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("N2O input rate (lb/MMBtu)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(n2o_input,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1437,9 +1439,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("CO2e input rate (lb/MMBtu)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2e_input,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -1474,9 +1476,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("NOx combustion output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_combustion,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1507,9 +1509,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("NOx ozone combustion output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_oz_combustion,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1540,9 +1542,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("SO2 combustion output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(so2_combustion,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1573,9 +1575,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("CO2 combustion output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2_combustion,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -1606,9 +1608,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("CH4 combustion output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(ch4_combustion,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1639,9 +1641,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("N2O combustion output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(n2o_combustion,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1672,9 +1674,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("CO2e combustion output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2e_combustion,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -1709,9 +1711,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("NOx nonbaseload output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_nonbaseload,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1742,9 +1744,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("NOx ozone nonbaseload output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(nox_oz_nonbaseload,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1775,9 +1777,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("SO2 nonbaseload output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(so2_nonbaseload,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1808,9 +1810,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("CO2 nonbaseload output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2_nonbaseload,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -1841,9 +1843,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("CH4 nonbaseload output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(ch4_nonbaseload,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1874,9 +1876,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("N2O nonbaseload output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(n2o_nonbaseload,
              digits = c(0, 3, 3, 3, 3, 2),
@@ -1907,9 +1909,9 @@ rate_comparison <- ggplot(state_comparison, aes(x = state,
                     ylab("CO2e nonbaseload output rate (lb/MWh)") + 
                     xlab("State") + 
                     theme(text = element_text(size = 12), 
-                          axis.text.x = element_text(angle = 45)) 
+                          axis.text.x = element_text(angle = 70)) 
   
-plotly::ggplotly(rate_comparison)
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
 
 knitr::kable(co2e_nonbaseload,
              digits = c(0, 0, 0, 0, 0, 2),
@@ -1924,13 +1926,9 @@ knitr::kable(co2e_nonbaseload,
 ```
 :::
 
--   include nonbaseload outut rates for both subregion and state levels
 -   include fuel-specific input emission rates and output emission rates for both subgregion and state level
--   
 
 # Resource mix comparison
-
--   move graphs to able
 
 ## US resource mix
 
@@ -1978,7 +1976,8 @@ resource_comparison <-
   ylab("Energy source") +    
   theme(text = element_text(size = 12))     
 
-plotly::ggplotly(resource_comparison)
+plotly::ggplotly(resource_comparison) %>%
+plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))  
 ```
 :::
 

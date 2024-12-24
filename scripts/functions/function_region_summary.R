@@ -43,14 +43,16 @@ create_resource_plot_subregion <- function(subregion_abbr, years) {
            year %in% years)
   
   gen_plot <- 
-    ggplot(region_filter, aes(x = energy_source, y = generation, fill = year)) + 
+    ggplot(region_filter, aes(y = reorder(energy_source, desc(energy_source)),
+                              x = generation, fill = year)) + 
     geom_bar(position = "dodge", 
              stat = "identity") +
     ggtitle("Net Generation") +
-    xlab("Energy source") + 
-    ylab("Net Generation (MWh)")
+    ylab("Energy source") + 
+    xlab("Net Generation (MWh)")
   
-  return(plotly::ggplotly(gen_plot))}
+  return(plotly::ggplotly(gen_plot) %>%
+           plotly::layout(legend = list(orientation = "h", x = 0.35, y = 1.1)))}
 
 ## state level aggregation 
 
@@ -84,12 +86,14 @@ create_resource_plot_state <- function(state_abbr, years) {
            year %in% years)
   
   gen_plot <- 
-    ggplot(region_filter, aes(x = energy_source, y = generation, fill = year)) + 
+    ggplot(region_filter, aes(y = reorder(energy_source, desc(energy_source)),
+                              x = generation, fill = year)) + 
     geom_bar(position = "dodge", 
              stat = "identity") +
     ggtitle("Net Generation") +
-    xlab("Energy source") + 
-    ylab("Net Generation (MWh)")
+    ylab("Energy source") + 
+    xlab("Net Generation (MWh)")
   
-  return(plotly::ggplotly(gen_plot))}
+  return(plotly::ggplotly(gen_plot) %>% 
+           plotly::layout(legend = list(orientation = "h", x = 0.35, y = 1.1)))}
 
