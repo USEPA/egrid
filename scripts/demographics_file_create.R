@@ -79,9 +79,9 @@ lon_input <- plant_file %>%
 mile <- 3
 
 
-source("scripts/functions/function_ejscreen_api.R")
-
-demo_data <- lapply(1:nrow(plant_file), function(i) {ejscreen_api(lat_input[i,], lon_input[i,], id_input[i,], mile)})
+# source("scripts/functions/function_ejscreen_api.R")
+# 
+# demo_data <- lapply(1:nrow(plant_file), function(i) {ejscreen_api(lat_input[i,], lon_input[i,], id_input[i,], mile)})
 
 
 ### EJScreen API Loop -----
@@ -150,44 +150,44 @@ for (i in 1:nrow(id_input)) {
 
 #### Clean and Save Data -----
 
-# run first case to get column names
-# kind of inefficient, need to think of better way for this
-
-lon <- lon_input[1,]
-lat <- lat_input[1,]
-
-# url strings that make up EJScreen API
-url1 <- 'https://ejscreen.epa.gov/mapper/ejscreenRESTbroker1.aspx?namestr=&geometry='
-url2 <- '{"spatialReference":{"wkid":4326},'
-lat_lon_input <- glue::glue('"x":{lon},"y":{lat}}')  # latitude, longitude input for plant
-url3 <- glue::glue('&distance={mile}&unit=9035&areatype=&areaid=&f=pjson')
-
-# call EJScreen API
-api_call <- paste0(url1, url2, lat_lon_input, url3)
-
-# load response
-res = GET(api_call)
-
-
-# status = 200 means data is collected
-if (status_code(res) == 200) {
-  
-  # extract data 
-  data <- content(res, as = "text", encoding ="UTF-8")
-  
-  # from extracted data, transform from JSON format
-  data <- fromJSON(data, flatten = TRUE)
-  
-  # unnest individual rows
-  data <- purrr::flatten(data)
-  data <- purrr::flatten(data)
-  
-  # converts to useable format
-  data <- cbind(data)
-  
-  # inverses row/column direction
-  data <- t(data)
-}
+# # run first case to get column names
+# # kind of inefficient, need to think of better way for this
+# 
+# lon <- lon_input[1,]
+# lat <- lat_input[1,]
+# 
+# # url strings that make up EJScreen API
+# url1 <- 'https://ejscreen.epa.gov/mapper/ejscreenRESTbroker1.aspx?namestr=&geometry='
+# url2 <- '{"spatialReference":{"wkid":4326},'
+# lat_lon_input <- glue::glue('"x":{lon},"y":{lat}}')  # latitude, longitude input for plant
+# url3 <- glue::glue('&distance={mile}&unit=9035&areatype=&areaid=&f=pjson')
+# 
+# # call EJScreen API
+# api_call <- paste0(url1, url2, lat_lon_input, url3)
+# 
+# # load response
+# res = GET(api_call)
+# 
+# 
+# # status = 200 means data is collected
+# if (status_code(res) == 200) {
+#   
+#   # extract data 
+#   data <- content(res, as = "text", encoding ="UTF-8")
+#   
+#   # from extracted data, transform from JSON format
+#   data <- fromJSON(data, flatten = TRUE)
+#   
+#   # unnest individual rows
+#   data <- purrr::flatten(data)
+#   data <- purrr::flatten(data)
+#   
+#   # converts to useable format
+#   data <- cbind(data)
+#   
+#   # inverses row/column direction
+#   data <- t(data)
+# }
 
 
 # select column names
@@ -203,7 +203,7 @@ demo_data <- as.data.frame(demo_data) %>%
 
 # rename columns
 colnames(demo_data) <- column_names
-
+# remove duplicated columns (totalPop, etc.)
 demo_data <- demo_data[, !duplicated(colnames(demo_data))]
 
 # keep only demographic data (not environmental)
@@ -213,8 +213,12 @@ demo_data <- demo_data %>%
 
 # join with plant file columns to keep by plant_id
 demo_file <- plant_file %>%
-             left_join(demo_data, by = "plant_id")
-
+             left_join(demo_data, by = "plant_id") %>%
+             relocate(RAW_D_UNEMPLOYED,.before=RAW_D_LIFEEXP) %>%
+             relocate(S_D_UNEMPLOYED,  .before=S_D_LIFEEXP) %>%
+             relocate(S_D_UNEMPLOYED_PER,  .before=S_D_LIFEEXP_PER) %>%
+             relocate(N_D_UNEMPLOYED,  .before=N_D_LIFEEXP) %>%
+             relocate(N_D_UNEMPLOYED_PER,  .before=N_D_LIFEEXP_PER) 
 
 # takes around 4- 5 hours to full load and process
 # some plants have NA data due to limitations of EJScreen's technical abilities
