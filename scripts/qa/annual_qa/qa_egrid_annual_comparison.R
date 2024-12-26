@@ -364,7 +364,15 @@ state_comparison <-
   bind_rows(state_prev_yr2) %>% 
   bind_rows(state_prev_yr1) %>% 
   bind_rows(state_cur_yr) %>% 
-  mutate(year = as.character(year))
+  mutate(year = as.character(year)) %>%
+  mutate(coal_output_rate = rowSums(across(contains("output_rate_coal"))),
+         oil_output_rate = rowSums(across(contains("output_rate_oil"))),
+         gas_output_rate = rowSums(across(contains("output_rate_gas"))),
+         fossil_output_rate = rowSums(across(contains("output_rate_fossil"))),
+         coal_input_rate = rowSums(across(contains("input_rate_coal"))),
+         oil_input_rate = rowSums(across(contains("input_rate_oil"))),
+         gas_input_rate = rowSums(across(contains("input_rate_gas"))),
+         fossil_input_rate = rowSums(across(contains("input_rate_fossil"))))
 
 ## Load US level data -------------
 
@@ -508,7 +516,15 @@ us_comparison <-
 ## Combine US and subregion data 
 subregion_us_comparison <- 
   us_comparison %>% 
-  bind_rows(subregion_comparison)
+  bind_rows(subregion_comparison) %>%
+  mutate(coal_output_rate = rowSums(across(contains("output_rate_coal"))),
+         oil_output_rate = rowSums(across(contains("output_rate_oil"))),
+         gas_output_rate = rowSums(across(contains("output_rate_gas"))),
+         fossil_output_rate = rowSums(across(contains("output_rate_fossil"))),
+         coal_input_rate = rowSums(across(contains("input_rate_coal"))),
+         oil_input_rate = rowSums(across(contains("input_rate_oil"))),
+         gas_input_rate = rowSums(across(contains("input_rate_gas"))),
+         fossil_input_rate = rowSums(across(contains("input_rate_fossil")))) 
 
 # Emission rate comparisons -------------
 ## Emission rate comparison across eGRID subregions -------
@@ -544,10 +560,11 @@ subregion_rate_comparison <-
                                   sprintf("Biomass: %+.1f%%,", biomass_pct), sprintf("Wind: %+.1f%%,", wind_pct),
                                   sprintf("Solar: %+.1f%%,", solar_pct), sprintf("Geothermal: %+.1f%%,", geothermal_pct)))
   
+
 ## Emission rate comparison across eGRID states -------
 
 state_rate_comparison <- 
-  state_comparison %>% 
+  state_comparison %>%
   select(year, state, contains("rate"), contains("gen")) %>% 
   pivot_wider(names_from = year, 
               values_from = contains("rate") | contains("gen")) %>% 
