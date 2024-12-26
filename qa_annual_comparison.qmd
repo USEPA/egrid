@@ -4,6 +4,7 @@ format:
   html: 
     toc: true
     toc-expand: true
+    toc-depth: 5
     toc-location: left
 execute: 
   echo: false
@@ -48,7 +49,7 @@ Compare subregion emission rates from `r prev_yr3` to `r params$eGRID_year` and 
 
 nox_output <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_output"), generation_notes)
+  select(subregion, contains("nox_output_rate_2"), nox_output_rate_pct,  generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_output_rate, 
@@ -81,7 +82,8 @@ knitr::kable(nox_output,
 #| label: nox-oz-output-rate-subregion
 
 nox_oz_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("nox_oz_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("nox_oz_output_rate_2"),
+nox_oz_output_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_oz_output_rate, 
@@ -114,7 +116,8 @@ knitr::kable(nox_oz_output,
 #| label: so2-output-rate-subregion
 
 so2_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("so2_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("so2_output_rate_2"),
+so2_output_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = so2_output_rate, 
@@ -147,7 +150,8 @@ knitr::kable(so2_output,
 #| label: co2-output-rate-subregion
 
 co2_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("co2_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("co2_output_rate_2"),
+co2_output_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = co2_output_rate, 
@@ -180,7 +184,8 @@ knitr::kable(co2_output,
 #| label: ch4-output-rate-subregion
 
 ch4_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("ch4_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("ch4_output_rate_2"),
+ch4_output_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                                                 y = ch4_output_rate, 
@@ -213,7 +218,8 @@ knitr::kable(ch4_output,
 #| label: n2o-output-rate-subregion
 
 n2o_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("n2o_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("n2o_output_rate_2"),
+n2o_output_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                                                 y = n2o_output_rate, 
@@ -246,7 +252,8 @@ knitr::kable(n2o_output,
 #| label: co2e-output-rate-subregion
 
 co2e_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("co2e_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("co2e_output_rate_2"),
+co2e_output_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = co2e_output_rate, 
@@ -272,8 +279,999 @@ knitr::kable(co2e_output,
                            "Percent change", 
                            "Notes")) 
 ```
+
+
 :::
 
+#### NOx fuel types
+
+::: panel-tabset
+##### NOx coal output rate
+
+```{r}
+#| label: nox-output-rate-coal-subregion
+
+nox_output_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx coal output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### NOx oil output rate
+
+```{r}
+#| label: nox-output-rate-oil-subregion
+
+nox_output_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx oil output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### NOx gas output rate
+
+```{r}
+#| label: nox-output-rate-gas-subregion
+
+nox_output_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx gas output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### NOx fossil fuel output rate
+
+```{r}
+#| label: nox-output-rate-fossil-subregion
+
+nox_output_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx fossil fuel output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### NOx ozone fuel types
+
+::: panel-tabset
+
+##### NOx ozone coal output rate
+
+```{r}
+#| label: nox-oz-output-rate-coal-subregion
+
+nox_oz_output_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_oz_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_oz_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx coal output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### NOx oil output rate
+
+```{r}
+#| label: nox-oz-output-rate-oil-subregion
+
+nox_oz_output_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_oz_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_oz_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx oil output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### NOx gas output rate
+
+```{r}
+#| label: nox-oz-output-rate-gas-subregion
+
+nox_oz_output_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_oz_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_oz_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx gas output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### NOx fossil fuel output rate
+
+```{r}
+#| label: nox-oz-output-rate-fossil-subregion
+
+nox_oz_output_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_oz_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_oz_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx fossil fuel output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### SO2 fuel types
+
+::: panel-tabset
+##### SO2 coal output rate
+
+```{r}
+#| label: so2-output-rate-coal-subregion
+
+so2_output_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("so2_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = so2_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 coal output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### SO2 oil output rate
+
+```{r}
+#| label: so2-output-rate-oil-subregion
+
+so2_output_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("so2_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = so2_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 oil output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### SO2 gas output rate
+
+```{r}
+#| label: so2-output-rate-gas-subregion
+
+so2_output_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("so2_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = so2_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 gas output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### SO2 fossil fuel output rate
+
+```{r}
+#| label: so2-output-rate-fossil-subregion
+
+so2_output_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("so2_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = so2_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 fossil fuel output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### CO2 fuel types
+
+::: panel-tabset
+##### CO2 coal output rate
+
+```{r}
+#| label: co2-output-rate-coal-subregion
+
+co2_output_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 coal output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### CO2 oil output rate
+
+```{r}
+#| label: co2-output-rate-oil-subregion
+
+co2_output_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 oil output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### CO2 gas output rate
+
+```{r}
+#| label: co2-output-rate-gas-subregion
+
+co2_output_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 gas output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### CO2 fossil fuel output rate
+
+```{r}
+#| label: co2-output-rate-fossil-subregion
+
+co2_output_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 fossil fuel output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### CH4 fuel types
+
+::: panel-tabset
+
+##### CH4 coal output rate
+
+```{r}
+#| label: ch4-output-rate-coal-subregion
+
+ch4_output_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("ch4_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = ch4_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 coal output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### CH4 oil output rate
+
+```{r}
+#| label: ch4-output-rate-oil-subregion
+
+ch4_output_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("ch4_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = ch4_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 oil output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### CH4 gas output rate
+
+```{r}
+#| label: ch4-output-rate-gas-subregion
+
+ch4_output_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("ch4_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = ch4_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 gas output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### CH4 fossil fuel output rate
+
+```{r}
+#| label: ch4-output-rate-fossil-subregion
+
+ch4_output_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("ch4_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = ch4_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 fossil fuel output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### N2O fuel types
+
+::: panel-tabset
+
+##### N2O coal output rate
+
+```{r}
+#| label: n2o-output-rate-coal-subregion
+
+n2o_output_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("n2o_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = n2o_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O coal output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### N2O oil output rate
+
+```{r}
+#| label: n2o-output-rate-oil-subregion
+
+n2o_output_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("n2o_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = n2o_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O oil output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### N2O gas output rate
+
+```{r}
+#| label: n2o-output-rate-gas-subregion
+
+n2o_output_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("n2o_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = n2o_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O gas output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### N2O fossil fuel output rate
+
+```{r}
+#| label: n2o-output-rate-fossil-subregion
+
+n2o_output_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("n2o_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = n2o_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O fossil fuel output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+#### CO2e fuel types
+
+::: panel-tabset
+
+##### CO2e coal output rate
+
+```{r}
+#| label: co2e-output-rate-coal-subregion
+
+co2e_output_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2e_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2e_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e coal output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### CO2e oil output rate
+
+```{r}
+#| label: co2e-output-rate-oil-subregion
+
+co2e_output_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2e_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2e_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e oil output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### CO2e gas output rate
+
+```{r}
+#| label: co2e-output-rate-gas-subregion
+
+co2e_output_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2e_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2e_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e gas output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### CO2e fossil fuel output rate
+
+```{r}
+#| label: co2e-output-rate-fossil-subregion
+
+co2e_output_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2e_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2e_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e fossil fuel output rate (lb/MWh)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
 ### Input emission rate comparison
 
 ::: panel-tabset
@@ -283,7 +1281,8 @@ knitr::kable(co2e_output,
 #| label: nox-input-rate-subregion
 
 nox_input <- 
-  subregion_rate_comparison %>% select(subregion, contains("nox_input"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("nox_input_rate_2"),
+nox_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_input_rate,
@@ -316,7 +1315,8 @@ knitr::kable(nox_input,
 #| label: nox-input-oz-rate-subregion
 
 nox_oz_input <- 
-  subregion_rate_comparison %>% select(subregion, contains("nox_oz_input"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("nox_oz_input_rate_2"),
+nox_oz_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_oz_input_rate, 
@@ -349,7 +1349,8 @@ knitr::kable(nox_oz_input,
 #| label: so2-input-rate-subregion
 
 so2_input <- 
-  subregion_rate_comparison %>% select(subregion, contains("so2_input"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("so2_input_rate_2"),
+so2_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = so2_input_rate, 
@@ -382,7 +1383,8 @@ knitr::kable(so2_output,
 #| label: co2-input-rate-subregion
 
 co2_input <- 
-  subregion_rate_comparison %>% select(subregion, contains("co2_input"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("co2_input_rate_2"),
+co2_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                                                 y = co2_input_rate, 
@@ -415,7 +1417,8 @@ knitr::kable(co2_input,
 #| label: ch4-input-rate-subregion
 
 ch4_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("ch4_output"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("ch4_output_rate_2"),
+ch4_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = ch4_input_rate, 
@@ -448,7 +1451,8 @@ knitr::kable(ch4_output,
 #| label: n2o-input-rate-subregion
 
 n2o_input <- 
-  subregion_rate_comparison %>% select(subregion, contains("n2o_input"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("n2o_input_rate_2"),
+n2o_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = n2o_input_rate, 
@@ -481,7 +1485,8 @@ knitr::kable(n2o_input,
 #| label: co2e-input-rate-subregion
 
 co2e_input <- 
-  subregion_rate_comparison %>% select(subregion, contains("co2e_input"), generation_notes)
+  subregion_rate_comparison %>% select(subregion, contains("co2e_input_rate_2"),
+co2e_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = co2e_input_rate, 
@@ -506,6 +1511,996 @@ knitr::kable(co2e_input,
                            as.character(cur_year), 
                            "Percent change", 
                            "Notes")) 
+```
+:::
+
+#### NOx fuel types
+
+::: panel-tabset
+##### NOx coal input rate
+
+```{r}
+#| label: nox-input-rate-coal-subregion
+
+nox_input_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx coal input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### NOx oil input rate
+
+```{r}
+#| label: nox-input-rate-oil-subregion
+
+nox_input_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx oil input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### NOx gas input rate
+
+```{r}
+#| label: nox-input-rate-gas-subregion-subregion
+
+nox_input_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx gas input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### NOx fossil fuel input rate
+
+```{r}
+#| label: nox-input-rate-fossil-subregion
+
+nox_input_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### NOx ozone fuel types
+
+::: panel-tabset
+
+##### NOx ozone coal input rate
+
+```{r}
+#| label: nox-oz-input-rate-coal-subregion
+
+nox_oz_input_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_oz_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_oz_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx coal input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### NOx oil input rate
+
+```{r}
+#| label: nox-oz-input-rate-oil-subregion
+
+nox_oz_input_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_oz_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_oz_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx oil input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### NOx gas input rate
+
+```{r}
+#| label: nox-oz-input-rate-gas-subregion
+
+nox_oz_input_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_oz_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_oz_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx gas input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### NOx fossil fuel input rate
+
+```{r}
+#| label: nox-oz-input-rate-fossil-subregion
+
+nox_oz_input_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_oz_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = nox_oz_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### SO2 fuel types
+
+::: panel-tabset
+##### SO2 coal input rate
+
+```{r}
+#| label: so2-input-rate-coal-subregion
+
+so2_input_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("so2_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = so2_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 coal input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### SO2 oil input rate
+
+```{r}
+#| label: so2-input-rate-oil-subregion
+
+so2_input_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("so2_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = so2_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 oil input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### SO2 gas input rate
+
+```{r}
+#| label: so2-input-rate-gas-subregion
+
+so2_input_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("so2_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = so2_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 gas input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### SO2 fossil fuel input rate
+
+```{r}
+#| label: so2-input-rate-fossil-subregion
+
+so2_input_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("so2_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = so2_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### CO2 fuel types
+
+::: panel-tabset
+##### CO2 coal input rate
+
+```{r}
+#| label: co2-input-rate-coal-subregion
+
+co2_input_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 coal input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### CO2 oil input rate
+
+```{r}
+#| label: co2-input-rate-oil-subregion
+
+co2_input_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 oil input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### CO2 gas input rate
+
+```{r}
+#| label: co2-input-rate-gas-subregion
+
+co2_input_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 gas input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### CO2 fossil fuel input rate
+
+```{r}
+#| label: co2-input-rate-fossil-subregion
+
+co2_input_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### CH4 fuel types
+
+::: panel-tabset
+
+##### CH4 coal input rate
+
+```{r}
+#| label: ch4-input-rate-coal-subregion
+
+ch4_input_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("ch4_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = ch4_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 coal input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### CH4 oil input rate
+
+```{r}
+#| label: ch4-input-rate-oil-subregion
+
+ch4_input_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("ch4_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = ch4_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 oil input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### CH4 gas input rate
+
+```{r}
+#| label: ch4-input-rate-gas-subregion
+
+ch4_input_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("ch4_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = ch4_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 gas input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### CH4 fossil fuel input rate
+
+```{r}
+#| label: ch4-input-rate-fossil-subregion
+
+ch4_input_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("ch4_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = ch4_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### N2O fuel types
+
+::: panel-tabset
+
+##### N2O coal input rate
+
+```{r}
+#| label: n2o-input-rate-coal-subregion
+
+n2o_input_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("n2o_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = n2o_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O coal input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### N2O oil input rate
+
+```{r}
+#| label: n2o-input-rate-oil-subregion
+
+n2o_input_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("n2o_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = n2o_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O oil input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### N2O gas input rate
+
+```{r}
+#| label: n2o-input-rate-gas-subregion
+
+n2o_input_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("n2o_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = n2o_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O gas input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### N2O fossil fuel input rate
+
+```{r}
+#| label: n2o-input-rate-fossil-subregion
+
+n2o_input_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("n2o_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = n2o_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+#### CO2e fuel types
+
+::: panel-tabset
+
+##### CO2e coal input rate
+
+```{r}
+#| label: co2e-input-rate-coal
+
+co2e_input_coal <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2e_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2e_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e coal input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### CO2e oil input rate
+
+```{r}
+#| label: co2e-input-rate-oil-subregion
+
+co2e_input_oil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2e_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2e_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e oil input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### CO2e gas input rate
+
+```{r}
+#| label: co2e-input-rate-gas-subregion
+
+co2e_input_gas <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2e_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2e_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e gas input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### CO2e fossil fuel input rate
+
+```{r}
+#| label: co2e-input-rate-fossil-subregion
+
+co2e_input_fossil <- 
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2e_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
+                                                y = co2e_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("Subregion") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("Subregion", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
 ```
 :::
 
@@ -993,7 +2988,7 @@ Compare state emission rates from `r prev_yr3` to `r params$eGRID_year` and perc
 
 nox_output <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_output"), generation_notes)
+  select(state, contains("nox_output_rate_2"), nox_output_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = nox_output_rate, 
@@ -1027,7 +3022,8 @@ knitr::kable(nox_output,
 #| label: nox-oz-output-rate-state
 
 nox_oz_output <- 
-  state_rate_comparison %>% select(state, contains("nox_oz_output"), generation_notes)
+  state_rate_comparison %>% select(state, contains("nox_oz_output_rate_2"),
+nox_oz_output_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = nox_oz_output_rate, 
@@ -1060,7 +3056,8 @@ knitr::kable(nox_oz_output,
 #| label: so2-output-rate-state
 
 so2_output <- 
-  state_rate_comparison %>% select(state, contains("so2_output"), generation_notes)
+  state_rate_comparison %>% select(state, contains("so2_output_rate_2"),
+so2_output_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = so2_output_rate, 
@@ -1093,7 +3090,8 @@ knitr::kable(so2_output,
 #| label: co2-output-rate-state
 
 co2_output <- 
-  state_rate_comparison %>% select(state, contains("co2_output"), generation_notes)
+  state_rate_comparison %>% select(state, contains("co2_output_rate_2"),
+co2_output_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = co2_output_rate, 
@@ -1126,7 +3124,8 @@ knitr::kable(co2_output,
 #| label: ch4-output-rate-state
 
 ch4_output <- 
-  state_rate_comparison %>% select(state, contains("ch4_output"), generation_notes)
+  state_rate_comparison %>% select(state, contains("ch4_output_rate_2"),
+ch4_output_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state,
                                                 y = ch4_output_rate, 
@@ -1159,7 +3158,8 @@ knitr::kable(ch4_output,
 #| label: n2o-output-rate-state
 
 n2o_output <- 
-  state_rate_comparison %>% select(state, contains("n2o_output"), generation_notes)
+  state_rate_comparison %>% select(state, contains("n2o_output_rate_2"),
+n2o_output_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state,
                                                 y = n2o_output_rate, 
@@ -1192,7 +3192,8 @@ knitr::kable(n2o_output,
 #| label: co2e-output-rate-state
 
 co2e_output <- 
-  state_rate_comparison %>% select(state, contains("co2e_output"), generation_notes)
+  state_rate_comparison %>% select(state, contains("co2e_output_rate_2"),
+co2e_output_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state,
                                                 y = co2e_output_rate,
@@ -1221,6 +3222,996 @@ knitr::kable(co2e_output,
 ```
 :::
 
+#### NOx fuel types
+
+::: panel-tabset
+##### NOx coal output rate
+
+```{r}
+#| label: nox-output-rate-coal-state
+
+nox_output_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx coal output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### NOx oil output rate
+
+```{r}
+#| label: nox-output-rate-oil-state
+
+nox_output_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx oil output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### NOx gas output rate
+
+```{r}
+#| label: nox-output-rate-gas-state
+
+nox_output_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx gas output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### NOx fossil fuel output rate
+
+```{r}
+#| label: nox-output-rate-fossil-state
+
+nox_output_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx fossil fuel output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### NOx ozone fuel types
+
+::: panel-tabset
+
+##### NOx ozone coal output rate
+
+```{r}
+#| label: nox-oz-output-rate-coal-state
+
+nox_oz_output_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_oz_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_oz_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx coal output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### NOx oil output rate
+
+```{r}
+#| label: nox-oz-output-rate-oil-state
+
+nox_oz_output_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_oz_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_oz_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx oil output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### NOx gas output rate
+
+```{r}
+#| label: nox-oz-output-rate-gas-state
+
+nox_oz_output_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_oz_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_oz_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx gas output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### NOx fossil fuel output rate
+
+```{r}
+#| label: nox-oz-output-rate-fossil-state
+
+nox_oz_output_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_oz_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_oz_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx fossil fuel output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### SO2 fuel types
+
+::: panel-tabset
+##### SO2 coal output rate
+
+```{r}
+#| label: so2-output-rate-coal-state
+
+so2_output_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("so2_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = so2_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 coal output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### SO2 oil output rate
+
+```{r}
+#| label: so2-output-rate-oil-state
+
+so2_output_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("so2_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = so2_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 oil output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### SO2 gas output rate
+
+```{r}
+#| label: so2-output-rate-gas-state
+
+so2_output_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("so2_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = so2_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 gas output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### SO2 fossil fuel output rate
+
+```{r}
+#| label: so2-output-rate-fossil-state
+
+so2_output_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("so2_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = so2_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 fossil fuel output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### CO2 fuel types
+
+::: panel-tabset
+##### CO2 coal output rate
+
+```{r}
+#| label: co2-output-rate-coal-state
+
+co2_output_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 coal output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### CO2 oil output rate
+
+```{r}
+#| label: co2-output-rate-oil-state
+
+co2_output_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 oil output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### CO2 gas output rate
+
+```{r}
+#| label: co2-output-rate-gas-state
+
+co2_output_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 gas output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### CO2 fossil fuel output rate
+
+```{r}
+#| label: co2-output-rate-fossil-state
+
+co2_output_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 fossil fuel output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### CH4 fuel types
+
+::: panel-tabset
+
+##### CH4 coal output rate
+
+```{r}
+#| label: ch4-output-rate-coal-state
+
+ch4_output_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("ch4_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = ch4_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 coal output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### CH4 oil output rate
+
+```{r}
+#| label: ch4-output-rate-oil-state
+
+ch4_output_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("ch4_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = ch4_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 oil output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### CH4 gas output rate
+
+```{r}
+#| label: ch4-output-rate-gas-state
+
+ch4_output_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("ch4_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = ch4_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 gas output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### CH4 fossil fuel output rate
+
+```{r}
+#| label: ch4-output-rate-fossil-state
+
+ch4_output_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("ch4_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = ch4_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 fossil fuel output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### N2O fuel types
+
+::: panel-tabset
+
+##### N2O coal output rate
+
+```{r}
+#| label: n2o-output-rate-coal-state
+
+n2o_output_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("n2o_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = n2o_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O coal output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### N2O oil output rate
+
+```{r}
+#| label: n2o-output-rate-oil-state
+
+n2o_output_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("n2o_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = n2o_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O oil output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### N2O gas output rate
+
+```{r}
+#| label: n2o-output-rate-gas-state
+
+n2o_output_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("n2o_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = n2o_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O gas output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### N2O fossil fuel output rate
+
+```{r}
+#| label: n2o-output-rate-fossil-state
+
+n2o_output_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("n2o_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = n2o_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O fossil fuel output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+#### CO2e fuel types
+
+::: panel-tabset
+
+##### CO2e coal output rate
+
+```{r}
+#| label: co2e-output-rate-coal-state
+
+co2e_output_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2e_output_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2e_output_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e coal output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_output_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### CO2e oil output rate
+
+```{r}
+#| label: co2e-output-rate-oil-state
+
+co2e_output_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2e_output_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2e_output_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e oil output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_output_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### CO2e gas output rate
+
+```{r}
+#| label: co2e-output-rate-gas-state
+
+co2e_output_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2e_output_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2e_output_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e gas output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_output_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### CO2e fossil fuel output rate
+
+```{r}
+#| label: co2e-output-rate-fossil-state
+
+co2e_output_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2e_output_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2e_output_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e fossil fuel output rate (lb/MWh)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_output_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
 ### Input emission rate comparison
 
 ::: panel-tabset
@@ -1230,7 +4221,8 @@ knitr::kable(co2e_output,
 #| label: nox-input-rate-state
 
 nox_input <- 
-  state_rate_comparison %>% select(state, contains("nox_input"), generation_notes)
+  state_rate_comparison %>% select(state, contains("nox_input_rate_2"),
+nox_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = nox_input_rate,
@@ -1263,7 +4255,8 @@ knitr::kable(nox_input,
 #| label: nox-input-oz-rate-state
 
 nox_oz_input <- 
-  state_rate_comparison %>% select(state, contains("nox_oz_input"), generation_notes)
+  state_rate_comparison %>% select(state, contains("nox_oz_input_rate_2"),
+nox_oz_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = nox_oz_input_rate, 
@@ -1296,7 +4289,8 @@ knitr::kable(nox_oz_input,
 #| label: so2-input-rate-state
 
 so2_input <- 
-  state_rate_comparison %>% select(state, contains("so2_input"), generation_notes)
+  state_rate_comparison %>% select(state, contains("so2_input_rate_2"),
+so2_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = so2_input_rate, 
@@ -1329,7 +4323,8 @@ knitr::kable(so2_output,
 #| label: co2-input-rate-state
 
 co2_input <- 
-  state_rate_comparison %>% select(state, contains("co2_input"), generation_notes)
+  state_rate_comparison %>% select(state, contains("co2_input_rate_2"),
+co2_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state,
                                                 y = co2_input_rate, 
@@ -1362,7 +4357,8 @@ knitr::kable(co2_input,
 #| label: ch4-input-rate-state
 
 ch4_output <- 
-  state_rate_comparison %>% select(state, contains("ch4_output"), generation_notes)
+  state_rate_comparison %>% select(state, contains("ch4_output_rate_2"),
+ch4_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = ch4_input_rate, 
@@ -1395,7 +4391,8 @@ knitr::kable(ch4_output,
 #| label: n2o-input-rate-state
 
 n2o_input <- 
-  state_rate_comparison %>% select(state, contains("n2o_input"), generation_notes)
+  state_rate_comparison %>% select(state, contains("n2o_input_rate_2"),
+n2o_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = n2o_input_rate, 
@@ -1428,7 +4425,8 @@ knitr::kable(n2o_input,
 #| label: co2e-input-rate-state
 
 co2e_input <- 
-  state_rate_comparison %>% select(state, contains("co2e_input"), generation_notes)
+  state_rate_comparison %>% select(state, contains("co2e_input_rate_2"),
+co2e_input_rate_pct, generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = co2e_input_rate, 
@@ -1453,6 +4451,997 @@ knitr::kable(co2e_input,
                            as.character(cur_year), 
                            "Percent change", 
                            "Notes")) 
+```
+:::
+
+
+#### NOx fuel types
+
+::: panel-tabset
+##### NOx coal input rate
+
+```{r}
+#| label: nox-input-rate-coal-state
+
+nox_input_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx coal input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### NOx oil input rate
+
+```{r}
+#| label: nox-input-rate-oil-state
+
+nox_input_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx oil input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### NOx gas input rate
+
+```{r}
+#| label: nox-input-rate-gas-state
+
+nox_input_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx gas input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### NOx fossil fuel input rate
+
+```{r}
+#| label: nox-input-rate-fossil-state
+
+nox_input_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### NOx ozone fuel types
+
+::: panel-tabset
+
+##### NOx ozone coal input rate
+
+```{r}
+#| label: nox-oz-input-rate-coal-state
+
+nox_oz_input_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_oz_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_oz_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx coal input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### NOx oil input rate
+
+```{r}
+#| label: nox-oz-input-rate-oil-state
+
+nox_oz_input_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_oz_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_oz_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx oil input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### NOx gas input rate
+
+```{r}
+#| label: nox-oz-input-rate-gas-state
+
+nox_oz_input_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_oz_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_oz_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx gas input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### NOx fossil fuel input rate
+
+```{r}
+#| label: nox-oz-input-rate-fossil-state
+
+nox_oz_input_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("nox_oz_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = nox_oz_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("NOx fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(nox_oz_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### SO2 fuel types
+
+::: panel-tabset
+##### SO2 coal input rate
+
+```{r}
+#| label: so2-input-rate-coal-state
+
+so2_input_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("so2_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = so2_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 coal input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### SO2 oil input rate
+
+```{r}
+#| label: so2-input-rate-oil-state
+
+so2_input_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("so2_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = so2_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 oil input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### SO2 gas input rate
+
+```{r}
+#| label: so2-input-rate-gas-state
+
+so2_input_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("so2_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = so2_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 gas input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### SO2 fossil fuel input rate
+
+```{r}
+#| label: so2-input-rate-fossil-state
+
+so2_input_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("so2_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = so2_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("SO2 fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(so2_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### CO2 fuel types
+
+::: panel-tabset
+##### CO2 coal input rate
+
+```{r}
+#| label: co2-input-rate-coal-state
+
+co2_input_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 coal input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### CO2 oil input rate
+
+```{r}
+#| label: co2-input-rate-oil-state
+
+co2_input_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 oil input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### CO2 gas input rate
+
+```{r}
+#| label: co2-input-rate-gas-state
+
+co2_input_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 gas input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### CO2 fossil fuel input rate
+
+```{r}
+#| label: co2-input-rate-fossil-state
+
+co2_input_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2 fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### CH4 fuel types
+
+::: panel-tabset
+
+##### CH4 coal input rate
+
+```{r}
+#| label: ch4-input-rate-coal-state
+
+ch4_input_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("ch4_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = ch4_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 coal input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### CH4 oil input rate
+
+```{r}
+#| label: ch4-input-rate-oil-state
+
+ch4_input_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("ch4_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = ch4_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 oil input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### CH4 gas input rate
+
+```{r}
+#| label: ch4-input-rate-gas-state
+
+ch4_input_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("ch4_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = ch4_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 gas input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### CH4 fossil fuel input rate
+
+```{r}
+#| label: ch4-input-rate-fossil-state
+
+ch4_input_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("ch4_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = ch4_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CH4 fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(ch4_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+
+#### N2O fuel types
+
+::: panel-tabset
+
+##### N2O coal input rate
+
+```{r}
+#| label: n2o-input-rate-coal-state
+
+n2o_input_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("n2o_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = n2o_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O coal input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### N2O oil input rate
+
+```{r}
+#| label: n2o-input-rate-oil-state
+
+n2o_input_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("n2o_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = n2o_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O oil input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### N2O gas input rate
+
+```{r}
+#| label: n2o-input-rate-gas-state
+
+n2o_input_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("n2o_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = n2o_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O gas input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### N2O fossil fuel input rate
+
+```{r}
+#| label: n2o-input-rate-fossil-state
+
+n2o_input_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("n2o_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = n2o_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("N2O fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(n2o_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+:::
+#### CO2e fuel types
+
+::: panel-tabset
+
+##### CO2e coal input rate
+
+```{r}
+#| label: co2e-input-rate-coal-state
+
+co2e_input_coal <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2e_input_rate_coal"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2e_input_rate_coal, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e coal input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_input_coal,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes")) 
+```
+
+##### CO2e oil input rate
+
+```{r}
+#| label: co2e-input-rate-oil-state
+
+co2e_input_oil <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2e_input_rate_oil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2e_input_rate_oil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e oil input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_input_oil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+             
+
+##### CO2e gas input rate
+
+```{r}
+#| label: co2e-input-rate-gas-state
+
+co2e_input_gas <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2e_input_rate_gas"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2e_input_rate_gas, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e gas input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_input_gas,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
+```
+
+##### CO2e fossil fuel input rate
+
+```{r}
+#| label: co2e-input-rate-fossil-state
+
+co2e_input_fossil <- 
+  state_rate_comparison %>% 
+  select(state, contains("co2e_input_rate_fossil"), generation_notes)
+
+rate_comparison <- ggplot(state_comparison, aes(x = state, 
+                                                y = co2e_input_rate_fossil, 
+                                                fill = year)) +
+                    geom_bar(stat = "identity", 
+                             width = 0.75,
+                             position = "dodge") +
+                    ylab("CO2e fossil fuel input rate (lb/MMBtu)") + 
+                    xlab("State") + 
+                    theme(text = element_text(size = 12), 
+                          axis.text.x = element_text(angle = 45)) 
+  
+plotly::ggplotly(rate_comparison, width = 700) %>%   plotly::layout(legend = list(orientation = "h", x = 0.2, y = 1.1))
+
+knitr::kable(co2e_input_fossil,
+             digits = c(0, 3, 3, 3, 3, 2),
+             format.args = list(big.mark = ","),
+             col.names = c("State", 
+                           as.character(prev_yr3), 
+                           as.character(prev_yr2),
+                           as.character(prev_yr1), 
+                           as.character(cur_year), 
+                           "Percent change", 
+                           "Notes"))
 ```
 :::
 

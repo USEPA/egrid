@@ -1,3 +1,6 @@
+
+# Unit --------------
+
 unit_nonmetric <-
   c("SEQUNT" = "sequnt",
     "YEAR" = "year",
@@ -33,6 +36,7 @@ unit_nonmetric <-
     "UNTYRONL" = "year_online",
     "STACKHT" = "stack_height") 
 
+# Unit metric ------------------
 unit_metric <-
   c("SEQUNT" = "sequnt",
     "YEAR" = "year",
@@ -68,6 +72,8 @@ unit_metric <-
     "UNTYRONL" = "year_online",
     "STACKHT" = "stack_height") 
 
+# Generator --------------------
+
 gen_nonmetric <-
   c("SEQGEN" = "seqgen",
     "YEAR" = "year",
@@ -86,6 +92,8 @@ gen_nonmetric <-
     "GENERSRC" = "gen_data_source",
     "GENYRONL" = "operating_year",
     "GENYRRET" = "retirement_year")
+
+# Generator metric --------------------
 
 gen_metric <-
   c("SEQGEN" = "seqgen",
@@ -107,6 +115,8 @@ gen_metric <-
     "GENERSRC" = "gen_data_source",
     "GENYRONL" = "operating_year",
     "GENYRRET" = "retirement_year")
+
+# Plant -----------------------
 
 plant_nonmetric <-
   c("SEQUNT" = "seqplt",
@@ -260,6 +270,8 @@ plant_nonmetric <-
     "PLCNPR" = "perc_ann_gen_non_combust",
     "PLCOPR" = "perc_ann_gen_non_combust_other" 
     )
+
+# Plant metric --------------------
 
 plant_metric <-
   c("SEQUNT" = "seqplt",
@@ -451,6 +463,8 @@ plant_metric <-
     "PLCOPR" = "perc_ann_gen_non_combust_other" 
     )
 
+# State ------------------------
+
 state_nonmetric <- 
   c("YEAR" = "year", 
    "PSTATABB" = "state",
@@ -621,6 +635,8 @@ state_nonmetric <-
    "STNBGTPR" = "state_nonbaseload_resource_mix_geothermal",
    "STNBOFPR" = "state_nonbaseload_resource_mix_ofsl",
    "STNBOPPR" = "state_nonbaseload_resource_mix_othf")
+
+# State metric ----------------------
 
 state_metric <- 
   c("YEAR" = "year", 
@@ -878,7 +894,9 @@ state_metric <-
     "STNBGTPR" = "state_nonbaseload_resource_mix_geothermal",
     "STNBOFPR" = "state_nonbaseload_resource_mix_ofsl",
     "STNBOPPR" = "state_nonbaseload_resource_mix_othf")
-  
+
+# Balancing authority -----------------
+
 ba_nonmetric <-
   c("YEAR" = "year", 
     "BANAME" = "ba_name",
@@ -1050,6 +1068,7 @@ ba_nonmetric <-
     "BANBOFPR" = "ba_nonbaseload_resource_mix_ofsl",
     "BANBOPPR" = "ba_nonbaseload_resource_mix_othf")
 
+# BA metric ------------------------------
 ba_metric <- 
   c("YEAR" = "year", 
     "BANAME" = "ba_name",
@@ -1307,6 +1326,8 @@ ba_metric <-
     "BANBOFPR" = "ba_nonbaseload_resource_mix_ofsl",
     "BANBOPPR" = "ba_nonbaseload_resource_mix_othf")
 
+# Subregion ----------------------
+
 subregion_nonmetric <-
   c("YEAR" = "year", 
     "SUBRGN" = "subregion",
@@ -1477,6 +1498,8 @@ subregion_nonmetric <-
     "SRNBGTPR" = "subregion_nonbaseload_resource_mix_geothermal",
     "SRNBOFPR" = "subregion_nonbaseload_resource_mix_ofsl",
     "SRNBOPPR" = "subregion_nonbaseload_resource_mix_othf")
+
+# Subregion metric ------------------------
 
 subregion_metric <- 
   c("YEAR" = "year", 
@@ -1735,6 +1758,8 @@ subregion_metric <-
     "SRNBOFPR" = "subregion_nonbaseload_resource_mix_ofsl",
     "SRNBOPPR" = "subregion_nonbaseload_resource_mix_othf")
 
+# Nerc ---------------------------------------------
+
 nerc_nonmetric <-
   c("YEAR" = "year", 
     "NERC" = "nerc",
@@ -1905,6 +1930,8 @@ nerc_nonmetric <-
     "NRNBGTPR" = "nerc_nonbaseload_resource_mix_geothermal",
     "NRNBOFPR" = "nerc_nonbaseload_resource_mix_ofsl",
     "NRNBOPPR" = "nerc_nonbaseload_resource_mix_othf")
+
+# Nerc metric ---------------------------------
 
 nerc_metric <- 
   c("YEAR" = "year", 
@@ -2163,6 +2190,8 @@ nerc_metric <-
     "NRNBOFPR" = "nerc_nonbaseload_resource_mix_ofsl",
     "NRNBOPPR" = "nerc_nonbaseload_resource_mix_othf")
 
+# US -----------------------
+
 us_nonmetric <-
   c("YEAR" = "year", 
     "USNAMEPCAP" = "us_nameplate_capacity",
@@ -2331,6 +2360,8 @@ us_nonmetric <-
     "USNBGTPR" = "us_nonbaseload_resource_mix_geothermal",
     "USNBOFPR" = "us_nonbaseload_resource_mix_ofsl",
     "USNBOPPR" = "us_nonbaseload_resource_mix_othf")
+
+# US metric ----------------------------------
 
 us_metric <- 
   c("YEAR" = "year", 
@@ -2587,6 +2618,8 @@ us_metric <-
     "USNBOFPR" = "us_nonbaseload_resource_mix_ofsl",
     "USNBOPPR" = "us_nonbaseload_resource_mix_othf")
 
+# GGL ---------------------------
+
 ggl_nonmetric <-
   c("YEAR" = "data_year",
     "REGION" = "interconnect",
@@ -2594,6 +2627,8 @@ ggl_nonmetric <-
     "TOTDISP" = "tot_disp_sub_ex_sum",
     "DIRCTUSE" = "direct_use_sum",
     "GGRSLOSS" = "ggl")
+
+# GGL metric ----------------------
 
 ggl_metric <-
   c("YEAR" = "data_year",
@@ -2605,6 +2640,8 @@ ggl_metric <-
     "DIRCTUSE" = "direct_use_sum",
     "DIRCTUSE2" = "direct_use_sum_metric",
     "GGRSLOSS" = "ggl")
+
+# Save ------------------
 
 save(unit_nonmetric, 
      unit_metric,
