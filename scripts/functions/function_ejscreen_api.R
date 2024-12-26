@@ -13,7 +13,7 @@ library(data.table)
 
 ejscreen_api <- function(lat, lon, id, mile) {
     # url strings that make up EJScreen API
-    url1 <- 'https://ejscreen.epa.gov/mapper/ejscreenRESTbroker.aspx?namestr=&geometry='
+    url1 <- 'https://ejscreen.epa.gov/mapper/ejscreenRESTbroker1.aspx?namestr=&geometry='
     url2 <- '{"spatialReference":{"wkid":4326},'
     lat_lon_input <- glue::glue('"x":{lon},"y":{lat}}')  # latitude, longitude input for plant
     url3 <- glue::glue('&distance={mile}&unit=9035&areatype=&areaid=&f=pjson')
@@ -34,6 +34,10 @@ ejscreen_api <- function(lat, lon, id, mile) {
         
         # from extracted data, transform from JSON format
         data <- fromJSON(data, flatten = TRUE)
+        
+        # unnest individual rows (need to unnest twice)
+        data <- purrr::flatten(data)
+        data <- purrr::flatten(data)
         
         # converts to useable format
         data <- cbind(data)

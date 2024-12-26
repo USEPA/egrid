@@ -102,7 +102,7 @@ for (i in 1:nrow(id_input)) {
   print(paste("Running plant", as.character(id), "[", i, "/", nrow(id_input), "]"))
   
   # url strings that make up EJScreen API
-  url1 <- 'https://ejscreen.epa.gov/mapper/ejscreenRESTbroker.aspx?namestr=&geometry='
+  url1 <- 'https://ejscreen.epa.gov/mapper/ejscreenRESTbroker1.aspx?namestr=&geometry='
   url2 <- '{"spatialReference":{"wkid":4326},'
   lat_lon_input <- glue::glue('"x":{lon},"y":{lat}}')  # latitude, longitude input for plant
   url3 <- glue::glue('&distance={mile}&unit=9035&areatype=&areaid=&f=pjson')
@@ -123,6 +123,10 @@ for (i in 1:nrow(id_input)) {
     # from extracted data, transform from JSON format
     data <- fromJSON(data, flatten = TRUE)
     
+    # unnest individual rows (need to unnest twice)
+    data <- purrr::flatten(data)
+    data <- purrr::flatten(data)
+    
     # converts to useable format
     data <- cbind(data)
 
@@ -131,7 +135,6 @@ for (i in 1:nrow(id_input)) {
     
     # add id input column for identification
     output_data <- c(id, data)
-    
   
     # add output data to list
     demo_data[[i]] <- output_data
@@ -154,7 +157,7 @@ lon <- lon_input[1,]
 lat <- lat_input[1,]
 
 # url strings that make up EJScreen API
-url1 <- 'https://ejscreen.epa.gov/mapper/ejscreenRESTbroker.aspx?namestr=&geometry='
+url1 <- 'https://ejscreen.epa.gov/mapper/ejscreenRESTbroker1.aspx?namestr=&geometry='
 url2 <- '{"spatialReference":{"wkid":4326},'
 lat_lon_input <- glue::glue('"x":{lon},"y":{lat}}')  # latitude, longitude input for plant
 url3 <- glue::glue('&distance={mile}&unit=9035&areatype=&areaid=&f=pjson')
@@ -175,6 +178,10 @@ if (status_code(res) == 200) {
   # from extracted data, transform from JSON format
   data <- fromJSON(data, flatten = TRUE)
   
+  # unnest individual rows
+  data <- purrr::flatten(data)
+  data <- purrr::flatten(data)
+  
   # converts to useable format
   data <- cbind(data)
   
@@ -187,7 +194,7 @@ if (status_code(res) == 200) {
 column_names <- c("plant_id", colnames(data))
 
 # filter for only full length output data
-demo_data <- Filter(function(x) length(x) == 154, demo_data)
+demo_data <- Filter(function(x) length(x) == 315, demo_data)
 
 # convert list to dataframe
 demo_data <- do.call(rbind, demo_data)
@@ -197,9 +204,11 @@ demo_data <- as.data.frame(demo_data) %>%
 # rename columns
 colnames(demo_data) <- column_names
 
+demo_data <- demo_data[, !duplicated(colnames(demo_data))]
+
 # keep only demographic data (not environmental)
 demo_data <- demo_data %>%
-              select(grep("_D_", colnames(demo_data), value=TRUE), totalPop, distance, plant_id) %>%
+              select(totalPop, grep("_D_", colnames(demo_data), value=TRUE), distance, plant_id) %>%
               unique() # unique since unnest() produced duplicate columns
 
 # join with plant file columns to keep by plant_id
