@@ -1105,15 +1105,18 @@ if (params$run_demo_file) {
                    "PLFUELCT"            = "Plant primary fuel category",
                    "NAMEPCAP"            = "Plant nameplate capacity (MW)",
                    "COALFLAG"            = "Flag indicating if the plant burned or generated any amount of coal",
+                   "TOTALPOP"            = "Total Population", 
                    "RAW_D_PEOPCOLOR"     = "People of Color",
                    "RAW_D_INCOME"        = "Low Income",
                    "RAW_D_LESSHS"        = "Less Than High School Education",
                    "RAW_D_LING"          = "Limited English Speaking",
                    "RAW_D_UNDER5"        = "Under Age 5",
                    "RAW_D_OVER64"        = "Over Age 64",
-                   # RAW_D_UNEMPLOYED    = "Unemployment Rate"
-                   # "RAW_D_LIFEEXP"       = "Limited Life Expectancy",
-                   "RAW_D_INDEX"         = "Index", # ?
+                   "RAW_D_UNEMPLOYED"    = "Unemployment Rate",
+                   "RAW_D_LIFEEXP"       = "Limited Life Expectancy",
+                   # "RAW_D_INDEX"         = "Index", # ?
+                   "RAW_D_DEMOGIDX2"     = "Demographic Index",
+                   "RAW_D_DEMOGIDX5"     = "Supplemental Demographic Index",
                    "RAW_D_DEMOGIDX2ST"   = "Demographic Index",
                    "RAW_D_DEMOGIDX5ST"   = "Supplemental Demographic Index",
                    "RAW_D_UNEMPLOYED"    = "Unemployment Rate",
@@ -1122,11 +1125,11 @@ if (params$run_demo_file) {
                    "S_D_LESSHS"          = "State Average of Less Than High School Education",
                    "S_D_LING"            = "State Average of Limited English Speaking",
                    "S_D_UNDER5"          = "State Average of Under Age 5",
-                   "S_D_OVER64"          = "State Average of Over Age 64",
-                   # S_D_UNEMPLOYED
-                   # S_D_LIFEEXP
+                   "S_D_OVER64"          = "State Average of Over Age 64", 
+                   "S_D_UNEMPLOYED"      = "State Average of Unemployment Rate",
+                   "S_D_LIFEEXP"         = "State Average of Limited Life Expectancy",
                    "S_D_DEMOGIDX2ST"     = "State Average of Demographic Index",
-                   # S_D_DEMOGIDX5ST     = "State Average of Supplemental Demographic Index"
+                   "S_D_DEMOGIDX5ST"     = "State Average of Supplemental Demographic Index",
                    "S_D_UNEMPLOYED"      = "State Average of Unemployment Rate",
                    "S_D_PEOPCOLOR_PER"   = "State Percentile of People of Color", 
                    "S_D_INCOME_PER"      = "State Percentile of Low Income",
@@ -1134,32 +1137,30 @@ if (params$run_demo_file) {
                    "S_D_LING_PER"        = "State Percentile of Limited English Speaking",
                    "S_D_UNDER5_PER"      = "State Percentile of Under Age 5",
                    "S_D_OVER64_PER"      = "State Percentile of Over Age 64",
-                   "S_D_DEMOGIDX2ST_PER" = "State Percentile of Demographic Index",
-                   # S_D_DEMOGIDX5ST_PER
-                   "S_UNEMPLOYED_PER"    = "State Percentile of Unemployment Rate",
+                   "S_D_UNEMPLOYED_PER"  = "State Percentile of Unemployment Rate",
+                   "S_D_LIFEEXP_PER"     = "State Percentile of Limited Life Expectancy",        
+                   "S_D_DEMOGIDX2ST_PER" = "State Percentile of Demographic Index",                                                 
+                   "S_D_DEMOGIDX5ST_PER" = "State Percentile of Supplemental Demographic Index",
                    "N_D_PEOPCOLOR"       = "National Average of People of Color",
                    "N_D_INCOME"          = "National Average of Low Income",
                    "N_D_LESSHS"          = "National Average of Less Than High School Education",
                    "N_D_LING"            = "National Average of Limited English Speaking",
                    "N_D_UNDER5"          = "National Average of Under Age 5",
                    "N_D_OVER64"          = "National Average of Over Age 64",
-                   # "N_D_LIFEEXP"         = "National Average of Limited Life Expectancy",
-                   "N_D_INDEX"           = "National Average of Index", #?
-                   # N_D_DEMOGIDX2
-                   # N_D_DEMOGIDX5
                    "N_D_UNEMPLOYED"      = "National Average of Unemployment Rate",
+                   "N_D_LIFEEXP"         = "National Average of Limited Life Expectancy",
+                   "N_D_DEMOGIDX2"       = "National Percentile of Demographic Index",
+                   "N_D_DEMOGIDX5"       = "National Percentile of Supplemental Demographic Index",
                    "N_D_MINOR_PER"       = "National Percentile of People of Color",
                    "N_D_INCOME_PER"      = "National Percentile of Low Income",
                    "N_D_LESSHS_PER"      = "National Percentile of Less Than High School Education",
                    "N_D_LING_PER"        = "National Percentile of Limited English Speaking",
                    "N_D_UNDER5_PER"      = "National Percentile of Under Age 5",
                    "N_D_OVER64_PER"      = "National Percentile of Over Age 64",
-                   # "N_D_LIFEEXP_PER"     = "National Percentile of Limited Life Expectancy",
-                   "N_D_INDEX_PER"       = "National Percentile of Index", #??
                    "N_D_UNEMPLOYED_PER"  = "National Percentile of Unemployment Rate",
-                   # N_D_DEMOGIDX2_PER
-                   # N_D_DEMOGIDX5_PER
-                   "TOTALPOP"            = "Total Population", # needs to be moved
+                   "N_D_LIFEEXP_PER"     = "National Percentile of Limited Life Expectancy",
+                   "N_D_DEMOGIDX2_PER" = "National Percentile of Demographic Index",
+                   "N_D_DEMOGIDX5_PER" = "National Percentile of Supplemental Demographic Index",
                    "DISTANCE"            = "Distance (miles)")
   
   
@@ -1185,10 +1186,10 @@ if (params$run_demo_file) {
   
   ## add styles to document
   # add description styles
-  addStyle(wb, sheet = demo, style = s[['desc_style']], rows = 1, cols = 1:55, gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['desc_style']], rows = 1, cols = 1:67, gridExpand = TRUE)
   
   # add header style
-  addStyle(wb, sheet = demo, style = s[['header_style']], rows = 2, cols = 1:55, gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['header_style']], rows = 2, cols = 1:67, gridExpand = TRUE)
   
   # set column widths
   setColWidths(wb, sheet = demo, cols = 1:2,     widths = 12.71)
@@ -1204,7 +1205,7 @@ if (params$run_demo_file) {
   setColWidths(wb, sheet = demo, cols = 21:22,   widths = 15.55)
   setColWidths(wb, sheet = demo, cols = 23,      widths = 17.64)
   setColWidths(wb, sheet = demo, cols = 24:29,   widths = 13.84)
-  setColWidths(wb, sheet = demo, cols = 30:55,   widths = 15)
+  setColWidths(wb, sheet = demo, cols = 30:67,   widths = 15)
 
   # set row heights
   setRowHeights(wb, sheet = demo, row = 1, heights = 67.5)
