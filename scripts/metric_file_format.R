@@ -1231,8 +1231,13 @@ add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 1, loc = c(3, 1
 add_hyperlink(glue::glue("GGL{year}"),  row_link = 1, col_link = 1, loc = c(3, 16), text_to_show = glue::glue("GGL{year}"))
 
 # feedback columns
-# contact_link <- createHyperlink("https://www.epa.gov/egrid/forms/contact-us-about-egrid")
-
+contact_link <- "https://www.epa.gov/egrid/forms/contact-us-about-egrid"
+contact_cell <- data.frame(
+  DisplayText = "Contact EPA",
+  Hyperlink = contact_link
+)
+# addHyperlink(wb, sheet = 1, row = 2, col = 22, hyperlink = contact_link)
+writeData(wb, sheet = "Contents", x = contact_cell, startCol=2, startRow=22, colNames = FALSE, rowNames = FALSE)
 
 # add hyperlinks to specific columns
 # annual values 
