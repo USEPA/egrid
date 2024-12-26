@@ -1114,12 +1114,10 @@ if (params$run_demo_file) {
                    "RAW_D_OVER64"        = "Over Age 64",
                    "RAW_D_UNEMPLOYED"    = "Unemployment Rate",
                    "RAW_D_LIFEEXP"       = "Limited Life Expectancy",
-                   # "RAW_D_INDEX"         = "Index", # ?
                    "RAW_D_DEMOGIDX2"     = "Demographic Index",
                    "RAW_D_DEMOGIDX5"     = "Supplemental Demographic Index",
                    "RAW_D_DEMOGIDX2ST"   = "Demographic Index",
                    "RAW_D_DEMOGIDX5ST"   = "Supplemental Demographic Index",
-                   "RAW_D_UNEMPLOYED"    = "Unemployment Rate",
                    "S_D_PEOPCOLOR"       = "State Average of People of Color",
                    "S_D_INCOME"          = "State Average of Low Income",
                    "S_D_LESSHS"          = "State Average of Less Than High School Education",
@@ -1130,7 +1128,6 @@ if (params$run_demo_file) {
                    "S_D_LIFEEXP"         = "State Average of Limited Life Expectancy",
                    "S_D_DEMOGIDX2ST"     = "State Average of Demographic Index",
                    "S_D_DEMOGIDX5ST"     = "State Average of Supplemental Demographic Index",
-                   "S_D_UNEMPLOYED"      = "State Average of Unemployment Rate",
                    "S_D_PEOPCOLOR_PER"   = "State Percentile of People of Color", 
                    "S_D_INCOME_PER"      = "State Percentile of Low Income",
                    "S_D_LESSHS_PER"      = "State Percentile of Less Than High School Education",
@@ -1186,10 +1183,10 @@ if (params$run_demo_file) {
   
   ## add styles to document
   # add description styles
-  addStyle(wb, sheet = demo, style = s[['desc_style']], rows = 1, cols = 1:67, gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['desc_style']], rows = 1, cols = 1:65, gridExpand = TRUE)
   
   # add header style
-  addStyle(wb, sheet = demo, style = s[['header_style']], rows = 2, cols = 1:67, gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['header_style']], rows = 2, cols = 1:65, gridExpand = TRUE)
   
   # set column widths
   setColWidths(wb, sheet = demo, cols = 1:2,     widths = 12.71)
@@ -1198,23 +1195,39 @@ if (params$run_demo_file) {
   setColWidths(wb, sheet = demo, cols = 5:10,    widths = 12.45)
   setColWidths(wb, sheet = demo, cols = 11,      widths = 12.55)
   setColWidths(wb, sheet = demo, cols = 12,      widths = 13)
-  setColWidths(wb, sheet = demo, cols = 13,      widths = 15.55)
+  setColWidths(wb, sheet = demo, cols = 13,      widths = 18)
   setColWidths(wb, sheet = demo, cols = 14:18,   widths = 13)
   setColWidths(wb, sheet = demo, cols = 19,      widths = 17.18)
   setColWidths(wb, sheet = demo, cols = 20,      widths = 13)
   setColWidths(wb, sheet = demo, cols = 21:22,   widths = 15.55)
-  setColWidths(wb, sheet = demo, cols = 23,      widths = 17.64)
-  setColWidths(wb, sheet = demo, cols = 24:29,   widths = 13.84)
-  setColWidths(wb, sheet = demo, cols = 30:67,   widths = 15)
-
+  setColWidths(wb, sheet = demo, cols = 23:24,   widths = 17.64)
+  setColWidths(wb, sheet = demo, cols = 25:29,   widths = 13.84)
+  setColWidths(wb, sheet = demo, cols = 30:34,   widths = 15)
+  setColWidths(wb, sheet = demo, cols = 35,      widths = 18)
+  setColWidths(wb, sheet = demo, cols = 36:40,   widths = 15)
+  setColWidths(wb, sheet = demo, cols = 41,      widths = 18.57)
+  setColWidths(wb, sheet = demo, cols = 42,      widths = 15)
+  setColWidths(wb, sheet = demo, cols = 43:44,   widths = 18.86)
+  setColWidths(wb, sheet = demo, cols = 45:60,   widths = 15)
+  setColWidths(wb, sheet = demo, cols = 61,      widths = 20)
+  setColWidths(wb, sheet = demo, cols = 62,      widths = 15)
+  setColWidths(wb, sheet = demo, cols = 63:64,   widths = 18.29)
+  setColWidths(wb, sheet = demo, cols = 65,      widths = 15)
+  
   # set row heights
   setRowHeights(wb, sheet = demo, row = 1, heights = 67.5)
 
   # add number styles
-  # addStyle(wb, sheet = demo, style = s[['integer']], rows = 3:7, cols = 3:5, gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['percent']], rows = 3:7, cols = 12:18,   gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['percent']], rows = 3:7, cols = 12:18,   gridExpand = TRUE)
-  # 
+  addStyle(wb, sheet = demo, style = s[['integer']],  rows = 3:demo_rows, cols = 12:13,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['percent']],  rows = 3:demo_rows, cols = 13:20,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['decimal5']], rows = 3:demo_rows, cols = 21:24,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['percent']],  rows = 3:demo_rows, cols = 25:31,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['decimal5']], rows = 3:demo_rows, cols = 32:33,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['integer']],  rows = 3:demo_rows, cols = 34:43,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['percent']],  rows = 3:demo_rows, cols = 44:51,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['decimal5']], rows = 3:demo_rows, cols = 51:52,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['percent']],  rows = 3:demo_rows, cols = 53:65,  gridExpand = TRUE)
+  
   # add text styles
   addStyle(wb, sheet = demo, style = s[['basic']], rows = 3:demo_rows, cols = 1:11, gridExpand = TRUE)
 }
@@ -1232,6 +1245,11 @@ add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 1
 add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 14), text_to_show = glue::glue("NRL{year}"))
 add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 1, loc = c(3, 15), text_to_show = glue::glue("US{year}"))
 add_hyperlink(glue::glue("GGL{year}"),  row_link = 1, col_link = 1, loc = c(3, 16), text_to_show = glue::glue("GGL{year}"))
+
+if (params$run_demo_file) {
+  add_hyperlink(glue::glue("DEMO{year}"),  row_link = 1, col_link = 1, loc = c(3, 17), text_to_show = glue::glue("DEMO{year}"))
+}
+
 
 # feedback columns
 contact_link <- "https://www.epa.gov/egrid/forms/contact-us-about-egrid"

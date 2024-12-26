@@ -90,6 +90,10 @@ create_format_styles <- function(font = "Arial", size = 8.5) {
                           fontName = font,
                           fontSize = size)
   
+  decimal5 <- createStyle(numFmt = "#,##0.00",
+                          fontName = font,
+                          fontSize = size)
+  
   ### bold number styles ### 
   
   # bold style (for large integers)
