@@ -224,6 +224,6 @@ demo_file <- plant_file %>%
 # some plants have NA data due to limitations of EJScreen's technical abilities
 
 # save output as RDS
-saveRDS(demo_file, file = glue::glue("data/outputs/{params$eGRID_year}/demo_file.RDS"))
+saveRDS(demo_file, file = glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
 
 
