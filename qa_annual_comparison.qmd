@@ -4,7 +4,7 @@ format:
   html: 
     toc: true
     toc-expand: true
-    toc-depth: 3
+    toc-depth: 4
     toc-location: left
 execute: 
   echo: false
@@ -35,15 +35,16 @@ This file compares the final output of eGRID to previous year outputs.
 
 # Rate comparison
 
-## Subregion output emission rate comparison
+## Subregion
 
 Compare subregion emission rates from `r prev_yr3` to `r params$eGRID_year` and percent change from `r prev_yr1` to `r params$eGRID_year`.
 
-### Emission types
+### Output emission rate comparison
+#### Emission types
 
 ::: panel-tabset
 
-#### NOx output rate
+##### NOx output rate
 
 ```{r}
 #| label: nox-output-rate-subregion
@@ -79,7 +80,7 @@ knitr::kable(nox_output,
                            "Notes")) 
 ```
 
-#### NOx ozone output rate
+##### NOx ozone output rate
 
 ```{r}
 #| label: nox-oz-output-rate-subregion
@@ -114,7 +115,7 @@ knitr::kable(nox_oz_output,
                            "Notes")) 
 ```
 
-#### SO2 output rate
+##### SO2 output rate
 
 ```{r}
 #| label: so2-output-rate-subregion
@@ -149,7 +150,7 @@ knitr::kable(so2_output,
                            "Notes")) 
 ```
 
-#### CO2 output rate
+##### CO2 output rate
 
 ```{r}
 #| label: co2-output-rate-subregion
@@ -184,7 +185,7 @@ knitr::kable(co2_output,
                            "Notes")) 
 ```
 
-#### CH4 output rate
+##### CH4 output rate
 
 ```{r}
 #| label: ch4-output-rate-subregion
@@ -219,7 +220,7 @@ knitr::kable(ch4_output,
                            "Notes")) 
 ```
 
-#### N2O output rate
+##### N2O output rate
 
 ```{r}
 #| label: n2o-output-rate-subregion
@@ -254,7 +255,7 @@ knitr::kable(n2o_output,
                            "Notes")) 
 ```
 
-#### CO2e output rate
+##### CO2e output rate
 
 ```{r}
 #| label: co2e-output-rate-subregion
@@ -290,10 +291,10 @@ knitr::kable(co2e_output,
 ```
 :::
 
-### Fuel types
+#### Fuel types
 
 ::: panel-tabset
-#### Coal output rate
+##### Coal output rate
 
 ```{r}
 #| label: coal-output-rate-subregion
@@ -326,7 +327,7 @@ knitr::kable(coal_output,
                            "Percent change")) 
 ```
 
-#### Oil output rate
+##### Oil output rate
 
 ```{r}
 #| label: oil-output-rate-subregion
@@ -359,7 +360,7 @@ knitr::kable(oil_output,
                            "Percent change")) 
 ```
 
-#### Gas output rate
+##### Gas output rate
 
 ```{r}
 #| label: gas-output-rate-subregion
@@ -392,7 +393,7 @@ knitr::kable(gas_output,
                            "Percent change")) 
 ```
 
-#### Fossil fuel input rate
+##### Fossil fuel input rate
 
 ```{r}
 #| label: fossil-output-rate-subregion
@@ -426,10 +427,10 @@ knitr::kable(fossil_output,
 ```
 :::
 
-#### NOx fuel types
+##### NOx fuel types
 
 ::: panel-tabset
-##### NOx coal output rate
+###### NOx coal output rate
 
 ```{r}
 #| label: nox-output-rate-coal-subregion
@@ -464,7 +465,7 @@ knitr::kable(nox_output_coal,
                            "Notes")) 
 ```
 
-##### NOx oil output rate
+###### NOx oil output rate
 
 ```{r}
 #| label: nox-output-rate-oil-subregion
@@ -499,7 +500,7 @@ knitr::kable(nox_output_oil,
                            "Notes"))
 ```
 
-##### NOx gas output rate
+###### NOx gas output rate
 
 ```{r}
 #| label: nox-output-rate-gas-subregion
@@ -534,7 +535,7 @@ knitr::kable(nox_output_gas,
                            "Notes"))
 ```
 
-##### NOx fossil fuel output rate
+###### NOx fossil fuel output rate
 
 ```{r}
 #| label: nox-output-rate-fossil-subregion
@@ -570,10 +571,10 @@ knitr::kable(nox_output_fossil,
 ```
 :::
 
-#### NOx ozone fuel types
+##### NOx ozone fuel types
 
 ::: panel-tabset
-##### NOx ozone coal output rate
+###### NOx ozone coal output rate
 
 ```{r}
 #| label: nox-oz-output-rate-coal-subregion
@@ -608,7 +609,7 @@ knitr::kable(nox_oz_output_coal,
                            "Notes")) 
 ```
 
-##### NOx oil output rate
+###### NOx oil output rate
 
 ```{r}
 #| label: nox-oz-output-rate-oil-subregion
@@ -643,7 +644,7 @@ knitr::kable(nox_oz_output_oil,
                            "Notes"))
 ```
 
-##### NOx gas output rate
+###### NOx gas output rate
 
 ```{r}
 #| label: nox-oz-output-rate-gas-subregion
@@ -678,7 +679,7 @@ knitr::kable(nox_oz_output_gas,
                            "Notes"))
 ```
 
-##### NOx fossil fuel output rate
+###### NOx fossil fuel output rate
 
 ```{r}
 #| label: nox-oz-output-rate-fossil-subregion
@@ -714,10 +715,10 @@ knitr::kable(nox_oz_output_fossil,
 ```
 :::
 
-#### SO2 fuel types
+##### SO2 fuel types
 
 ::: panel-tabset
-##### SO2 coal output rate
+###### SO2 coal output rate
 
 ```{r}
 #| label: so2-output-rate-coal-subregion
@@ -752,7 +753,7 @@ knitr::kable(so2_output_coal,
                            "Notes")) 
 ```
 
-##### SO2 oil output rate
+###### SO2 oil output rate
 
 ```{r}
 #| label: so2-output-rate-oil-subregion
@@ -787,7 +788,7 @@ knitr::kable(so2_output_oil,
                            "Notes"))
 ```
 
-##### SO2 gas output rate
+###### SO2 gas output rate
 
 ```{r}
 #| label: so2-output-rate-gas-subregion
@@ -822,7 +823,7 @@ knitr::kable(so2_output_gas,
                            "Notes"))
 ```
 
-##### SO2 fossil fuel output rate
+###### SO2 fossil fuel output rate
 
 ```{r}
 #| label: so2-output-rate-fossil-subregion
@@ -858,10 +859,10 @@ knitr::kable(so2_output_fossil,
 ```
 :::
 
-#### CO2 fuel types
+##### CO2 fuel types
 
 ::: panel-tabset
-##### CO2 coal output rate
+###### CO2 coal output rate
 
 ```{r}
 #| label: co2-output-rate-coal-subregion
@@ -896,7 +897,7 @@ knitr::kable(co2_output_coal,
                            "Notes")) 
 ```
 
-##### CO2 oil output rate
+###### CO2 oil output rate
 
 ```{r}
 #| label: co2-output-rate-oil-subregion
@@ -931,7 +932,7 @@ knitr::kable(co2_output_oil,
                            "Notes"))
 ```
 
-##### CO2 gas output rate
+###### CO2 gas output rate
 
 ```{r}
 #| label: co2-output-rate-gas-subregion
@@ -966,7 +967,7 @@ knitr::kable(co2_output_gas,
                            "Notes"))
 ```
 
-##### CO2 fossil fuel output rate
+###### CO2 fossil fuel output rate
 
 ```{r}
 #| label: co2-output-rate-fossil-subregion
@@ -1002,10 +1003,10 @@ knitr::kable(co2_output_fossil,
 ```
 :::
 
-#### CH4 fuel types
+##### CH4 fuel types
 
 ::: panel-tabset
-##### CH4 coal output rate
+###### CH4 coal output rate
 
 ```{r}
 #| label: ch4-output-rate-coal-subregion
@@ -1040,7 +1041,7 @@ knitr::kable(ch4_output_coal,
                            "Notes")) 
 ```
 
-##### CH4 oil output rate
+###### CH4 oil output rate
 
 ```{r}
 #| label: ch4-output-rate-oil-subregion
@@ -1075,7 +1076,7 @@ knitr::kable(ch4_output_oil,
                            "Notes"))
 ```
 
-##### CH4 gas output rate
+###### CH4 gas output rate
 
 ```{r}
 #| label: ch4-output-rate-gas-subregion
@@ -1110,7 +1111,7 @@ knitr::kable(ch4_output_gas,
                            "Notes"))
 ```
 
-##### CH4 fossil fuel output rate
+###### CH4 fossil fuel output rate
 
 ```{r}
 #| label: ch4-output-rate-fossil-subregion
@@ -1146,10 +1147,10 @@ knitr::kable(ch4_output_fossil,
 ```
 :::
 
-#### N2O fuel types
+##### N2O fuel types
 
 ::: panel-tabset
-##### N2O coal output rate
+###### N2O coal output rate
 
 ```{r}
 #| label: n2o-output-rate-coal-subregion
@@ -1184,7 +1185,7 @@ knitr::kable(n2o_output_coal,
                            "Notes")) 
 ```
 
-##### N2O oil output rate
+###### N2O oil output rate
 
 ```{r}
 #| label: n2o-output-rate-oil-subregion
@@ -1219,7 +1220,7 @@ knitr::kable(n2o_output_oil,
                            "Notes"))
 ```
 
-##### N2O gas output rate
+###### N2O gas output rate
 
 ```{r}
 #| label: n2o-output-rate-gas-subregion
@@ -1254,7 +1255,7 @@ knitr::kable(n2o_output_gas,
                            "Notes"))
 ```
 
-##### N2O fossil fuel output rate
+###### N2O fossil fuel output rate
 
 ```{r}
 #| label: n2o-output-rate-fossil-subregion
@@ -1290,10 +1291,10 @@ knitr::kable(n2o_output_fossil,
 ```
 :::
 
-#### CO2e fuel types
+##### CO2e fuel types
 
 ::: panel-tabset
-##### CO2e coal output rate
+###### CO2e coal output rate
 
 ```{r}
 #| label: co2e-output-rate-coal-subregion
@@ -1328,7 +1329,7 @@ knitr::kable(co2e_output_coal,
                            "Notes")) 
 ```
 
-##### CO2e oil output rate
+###### CO2e oil output rate
 
 ```{r}
 #| label: co2e-output-rate-oil-subregion
@@ -1363,7 +1364,7 @@ knitr::kable(co2e_output_oil,
                            "Notes"))
 ```
 
-##### CO2e gas output rate
+###### CO2e gas output rate
 
 ```{r}
 #| label: co2e-output-rate-gas-subregion
@@ -1398,7 +1399,7 @@ knitr::kable(co2e_output_gas,
                            "Notes"))
 ```
 
-##### CO2e fossil fuel output rate
+###### CO2e fossil fuel output rate
 
 ```{r}
 #| label: co2e-output-rate-fossil-subregion
@@ -1434,12 +1435,12 @@ knitr::kable(co2e_output_fossil,
 ```
 :::
 
-## Subregion input emission rate comparison
+### Input emission rate comparison
 
-### Emission type
+#### Emission type
 
 ::: panel-tabset
-#### NOx input rate
+##### NOx input rate
 
 ```{r}
 #| label: nox-input-rate-subregion
@@ -1474,7 +1475,7 @@ knitr::kable(nox_input,
                            "Notes")) 
 ```
 
-#### NOx ozone input rate
+##### NOx ozone input rate
 
 ```{r}
 #| label: nox-input-oz-rate-subregion
@@ -1509,7 +1510,7 @@ knitr::kable(nox_oz_input,
                            "Notes")) 
 ```
 
-#### SO2 input rate
+##### SO2 input rate
 
 ```{r}
 #| label: so2-input-rate-subregion
@@ -1544,7 +1545,7 @@ knitr::kable(so2_output,
                            "Notes")) 
 ```
 
-#### CO2 input rate
+##### CO2 input rate
 
 ```{r}
 #| label: co2-input-rate-subregion
@@ -1579,7 +1580,7 @@ knitr::kable(co2_input,
                            "Notes")) 
 ```
 
-#### CH4 input rate
+##### CH4 input rate
 
 ```{r}
 #| label: ch4-input-rate-subregion
@@ -1614,7 +1615,7 @@ knitr::kable(ch4_output,
                            "Notes")) 
 ```
 
-#### N2O input rate
+##### N2O input rate
 
 ```{r}
 #| label: n2o-input-rate-subregion
@@ -1649,7 +1650,7 @@ knitr::kable(n2o_input,
                            "Notes")) 
 ```
 
-#### CO2e input rate
+##### CO2e input rate
 
 ```{r}
 #| label: co2e-input-rate-subregion
@@ -1685,11 +1686,11 @@ knitr::kable(co2e_input,
 ```
 :::
 
-### Fuel types
+#### Fuel types
 
 ::: panel-tabset
 
-#### Coal input rate
+##### Coal input rate
 
 ```{r}
 #| label: coal-input-rate-subregion
@@ -1722,7 +1723,7 @@ knitr::kable(coal_input,
                            "Percent change")) 
 ```
 
-#### Oil input rate
+##### Oil input rate
 
 ```{r}
 #| label: oil-input-rate-subregion
@@ -1755,7 +1756,7 @@ knitr::kable(oil_input,
                            "Percent change")) 
 ```
 
-#### Gas input rate
+##### Gas input rate
 
 ```{r}
 #| label: gas-input-rate-subregion
@@ -1788,7 +1789,7 @@ knitr::kable(gas_input,
                            "Percent change")) 
 ```
 
-#### Fossil fuel input rate
+##### Fossil fuel input rate
 
 ```{r}
 #| label: fossil-input-rate-subregion
@@ -1822,10 +1823,10 @@ knitr::kable(fossil_input,
 ```
 :::
 
-#### NOx fuel types
+##### NOx fuel types
 
 ::: panel-tabset
-##### NOx coal input rate
+###### NOx coal input rate
 
 ```{r}
 #| label: nox-input-rate-coal-subregion
@@ -1860,7 +1861,7 @@ knitr::kable(nox_input_coal,
                            "Notes")) 
 ```
 
-##### NOx oil input rate
+###### NOx oil input rate
 
 ```{r}
 #| label: nox-input-rate-oil-subregion
@@ -1895,7 +1896,7 @@ knitr::kable(nox_input_oil,
                            "Notes"))
 ```
 
-##### NOx gas input rate
+###### NOx gas input rate
 
 ```{r}
 #| label: nox-input-rate-gas-subregion-subregion
@@ -1930,7 +1931,7 @@ knitr::kable(nox_input_gas,
                            "Notes"))
 ```
 
-##### NOx fossil fuel input rate
+###### NOx fossil fuel input rate
 
 ```{r}
 #| label: nox-input-rate-fossil-subregion
@@ -1966,10 +1967,10 @@ knitr::kable(nox_input_fossil,
 ```
 :::
 
-#### NOx ozone fuel types
+##### NOx ozone fuel types
 
 ::: panel-tabset
-##### NOx ozone coal input rate
+###### NOx ozone coal input rate
 
 ```{r}
 #| label: nox-oz-input-rate-coal-subregion
@@ -2004,7 +2005,7 @@ knitr::kable(nox_oz_input_coal,
                            "Notes")) 
 ```
 
-##### NOx oil input rate
+###### NOx oil input rate
 
 ```{r}
 #| label: nox-oz-input-rate-oil-subregion
@@ -2039,7 +2040,7 @@ knitr::kable(nox_oz_input_oil,
                            "Notes"))
 ```
 
-##### NOx gas input rate
+###### NOx gas input rate
 
 ```{r}
 #| label: nox-oz-input-rate-gas-subregion
@@ -2074,7 +2075,7 @@ knitr::kable(nox_oz_input_gas,
                            "Notes"))
 ```
 
-##### NOx fossil fuel input rate
+###### NOx fossil fuel input rate
 
 ```{r}
 #| label: nox-oz-input-rate-fossil-subregion
@@ -2110,10 +2111,10 @@ knitr::kable(nox_oz_input_fossil,
 ```
 :::
 
-#### SO2 fuel types
+##### SO2 fuel types
 
 ::: panel-tabset
-##### SO2 coal input rate
+###### SO2 coal input rate
 
 ```{r}
 #| label: so2-input-rate-coal-subregion
@@ -2148,7 +2149,7 @@ knitr::kable(so2_input_coal,
                            "Notes")) 
 ```
 
-##### SO2 oil input rate
+###### SO2 oil input rate
 
 ```{r}
 #| label: so2-input-rate-oil-subregion
@@ -2183,7 +2184,7 @@ knitr::kable(so2_input_oil,
                            "Notes"))
 ```
 
-##### SO2 gas input rate
+###### SO2 gas input rate
 
 ```{r}
 #| label: so2-input-rate-gas-subregion
@@ -2218,7 +2219,7 @@ knitr::kable(so2_input_gas,
                            "Notes"))
 ```
 
-##### SO2 fossil fuel input rate
+###### SO2 fossil fuel input rate
 
 ```{r}
 #| label: so2-input-rate-fossil-subregion
@@ -2254,10 +2255,10 @@ knitr::kable(so2_input_fossil,
 ```
 :::
 
-#### CO2 fuel types
+##### CO2 fuel types
 
 ::: panel-tabset
-##### CO2 coal input rate
+###### CO2 coal input rate
 
 ```{r}
 #| label: co2-input-rate-coal-subregion
@@ -2292,7 +2293,7 @@ knitr::kable(co2_input_coal,
                            "Notes")) 
 ```
 
-##### CO2 oil input rate
+###### CO2 oil input rate
 
 ```{r}
 #| label: co2-input-rate-oil-subregion
@@ -2327,7 +2328,7 @@ knitr::kable(co2_input_oil,
                            "Notes"))
 ```
 
-##### CO2 gas input rate
+###### CO2 gas input rate
 
 ```{r}
 #| label: co2-input-rate-gas-subregion
@@ -2362,7 +2363,7 @@ knitr::kable(co2_input_gas,
                            "Notes"))
 ```
 
-##### CO2 fossil fuel input rate
+###### CO2 fossil fuel input rate
 
 ```{r}
 #| label: co2-input-rate-fossil-subregion
@@ -2398,10 +2399,10 @@ knitr::kable(co2_input_fossil,
 ```
 :::
 
-#### CH4 fuel types
+##### CH4 fuel types
 
 ::: panel-tabset
-##### CH4 coal input rate
+###### CH4 coal input rate
 
 ```{r}
 #| label: ch4-input-rate-coal-subregion
@@ -2436,7 +2437,7 @@ knitr::kable(ch4_input_coal,
                            "Notes")) 
 ```
 
-##### CH4 oil input rate
+###### CH4 oil input rate
 
 ```{r}
 #| label: ch4-input-rate-oil-subregion
@@ -2471,7 +2472,7 @@ knitr::kable(ch4_input_oil,
                            "Notes"))
 ```
 
-##### CH4 gas input rate
+###### CH4 gas input rate
 
 ```{r}
 #| label: ch4-input-rate-gas-subregion
@@ -2506,7 +2507,7 @@ knitr::kable(ch4_input_gas,
                            "Notes"))
 ```
 
-##### CH4 fossil fuel input rate
+###### CH4 fossil fuel input rate
 
 ```{r}
 #| label: ch4-input-rate-fossil-subregion
@@ -2542,10 +2543,10 @@ knitr::kable(ch4_input_fossil,
 ```
 :::
 
-#### N2O fuel types
+##### N2O fuel types
 
 ::: panel-tabset
-##### N2O coal input rate
+###### N2O coal input rate
 
 ```{r}
 #| label: n2o-input-rate-coal-subregion
@@ -2580,7 +2581,7 @@ knitr::kable(n2o_input_coal,
                            "Notes")) 
 ```
 
-##### N2O oil input rate
+###### N2O oil input rate
 
 ```{r}
 #| label: n2o-input-rate-oil-subregion
@@ -2615,7 +2616,7 @@ knitr::kable(n2o_input_oil,
                            "Notes"))
 ```
 
-##### N2O gas input rate
+###### N2O gas input rate
 
 ```{r}
 #| label: n2o-input-rate-gas-subregion
@@ -2650,7 +2651,7 @@ knitr::kable(n2o_input_gas,
                            "Notes"))
 ```
 
-##### N2O fossil fuel input rate
+###### N2O fossil fuel input rate
 
 ```{r}
 #| label: n2o-input-rate-fossil-subregion
@@ -2686,10 +2687,10 @@ knitr::kable(n2o_input_fossil,
 ```
 :::
 
-#### CO2e fuel types
+##### CO2e fuel types
 
 ::: panel-tabset
-##### CO2e coal input rate
+###### CO2e coal input rate
 
 ```{r}
 #| label: co2e-input-rate-coal
@@ -2724,7 +2725,7 @@ knitr::kable(co2e_input_coal,
                            "Notes")) 
 ```
 
-##### CO2e oil input rate
+###### CO2e oil input rate
 
 ```{r}
 #| label: co2e-input-rate-oil-subregion
@@ -2759,7 +2760,7 @@ knitr::kable(co2e_input_oil,
                            "Notes"))
 ```
 
-##### CO2e gas input rate
+###### CO2e gas input rate
 
 ```{r}
 #| label: co2e-input-rate-gas-subregion
@@ -2794,7 +2795,7 @@ knitr::kable(co2e_input_gas,
                            "Notes"))
 ```
 
-##### CO2e fossil fuel input rate
+###### CO2e fossil fuel input rate
 
 ```{r}
 #| label: co2e-input-rate-fossil-subregion
@@ -3315,14 +3316,15 @@ knitr::kable(co2e_nonbaseload,
 ```
 :::
 
-## State output emission rate comparison
+## State 
 
 Compare state emission rates from `r prev_yr3` to `r params$eGRID_year` and percent change from `r prev_yr1` to `r params$eGRID_year`.
 
-### Emission type 
+### Output emission rate comparison
+#### Emission type 
 
 ::: panel-tabset
-#### NOx output rate
+##### NOx output rate
 
 ```{r}
 #| label: nox-output-rate-state
@@ -3358,7 +3360,7 @@ knitr::kable(nox_output,
                            "Notes")) 
 ```
 
-#### NOx ozone output rate
+##### NOx ozone output rate
 
 ```{r}
 #| label: nox-oz-output-rate-state
@@ -3393,7 +3395,7 @@ knitr::kable(nox_oz_output,
                            "Notes")) 
 ```
 
-#### SO2 output rate
+##### SO2 output rate
 
 ```{r}
 #| label: so2-output-rate-state
@@ -3428,7 +3430,7 @@ knitr::kable(so2_output,
                            "Notes")) 
 ```
 
-#### CO2 output rate
+##### CO2 output rate
 
 ```{r}
 #| label: co2-output-rate-state
@@ -3463,7 +3465,7 @@ knitr::kable(co2_output,
                            "Notes")) 
 ```
 
-#### CH4 output rate
+##### CH4 output rate
 
 ```{r}
 #| label: ch4-output-rate-state
@@ -3498,7 +3500,7 @@ knitr::kable(ch4_output,
                            "Notes")) 
 ```
 
-#### N2O output rate
+##### N2O output rate
 
 ```{r}
 #| label: n2o-output-rate-state
@@ -3533,7 +3535,7 @@ knitr::kable(n2o_output,
                            "Notes")) 
 ```
 
-#### CO2e output rate
+##### CO2e output rate
 
 ```{r}
 #| label: co2e-output-rate-state
@@ -3570,11 +3572,11 @@ knitr::kable(co2e_output,
 :::
 
 
-### Fuel types
+#### Fuel types
 
 ::: panel-tabset
 
-#### Coal output rate
+##### Coal output rate
 
 ```{r}
 #| label: coal-output-rate-state
@@ -3607,7 +3609,7 @@ knitr::kable(coal_output,
                            "Percent change")) 
 ```
 
-#### Oil output rate
+##### Oil output rate
 
 ```{r}
 #| label: oil-output-rate-state
@@ -3640,7 +3642,7 @@ knitr::kable(oil_output,
                            "Percent change")) 
 ```
 
-#### Gas output rate
+##### Gas output rate
 
 ```{r}
 #| label: gas-output-rate-state
@@ -3673,7 +3675,7 @@ knitr::kable(gas_output,
                            "Percent change")) 
 ```
 
-#### Fossil fuel output rate
+##### Fossil fuel output rate
 
 ```{r}
 #| label: fossil-output-rate-state
@@ -3707,10 +3709,10 @@ knitr::kable(fossil_output,
 ```
 :::
 
-#### NOx fuel types
+##### NOx fuel types
 
 ::: panel-tabset
-##### NOx coal output rate
+###### NOx coal output rate
 
 ```{r}
 #| label: nox-output-rate-coal-state
@@ -3745,7 +3747,7 @@ knitr::kable(nox_output_coal,
                            "Notes")) 
 ```
 
-##### NOx oil output rate
+###### NOx oil output rate
 
 ```{r}
 #| label: nox-output-rate-oil-state
@@ -3780,7 +3782,7 @@ knitr::kable(nox_output_oil,
                            "Notes"))
 ```
 
-##### NOx gas output rate
+###### NOx gas output rate
 
 ```{r}
 #| label: nox-output-rate-gas-state
@@ -3815,7 +3817,7 @@ knitr::kable(nox_output_gas,
                            "Notes"))
 ```
 
-##### NOx fossil fuel output rate
+###### NOx fossil fuel output rate
 
 ```{r}
 #| label: nox-output-rate-fossil-state
@@ -3851,10 +3853,10 @@ knitr::kable(nox_output_fossil,
 ```
 :::
 
-#### NOx ozone fuel types
+##### NOx ozone fuel types
 
 ::: panel-tabset
-##### NOx ozone coal output rate
+###### NOx ozone coal output rate
 
 ```{r}
 #| label: nox-oz-output-rate-coal-state
@@ -3889,7 +3891,7 @@ knitr::kable(nox_oz_output_coal,
                            "Notes")) 
 ```
 
-##### NOx oil output rate
+###### NOx oil output rate
 
 ```{r}
 #| label: nox-oz-output-rate-oil-state
@@ -3924,7 +3926,7 @@ knitr::kable(nox_oz_output_oil,
                            "Notes"))
 ```
 
-##### NOx gas output rate
+###### NOx gas output rate
 
 ```{r}
 #| label: nox-oz-output-rate-gas-state
@@ -3959,7 +3961,7 @@ knitr::kable(nox_oz_output_gas,
                            "Notes"))
 ```
 
-##### NOx fossil fuel output rate
+###### NOx fossil fuel output rate
 
 ```{r}
 #| label: nox-oz-output-rate-fossil-state
@@ -3995,10 +3997,10 @@ knitr::kable(nox_oz_output_fossil,
 ```
 :::
 
-#### SO2 fuel types
+##### SO2 fuel types
 
 ::: panel-tabset
-##### SO2 coal output rate
+###### SO2 coal output rate
 
 ```{r}
 #| label: so2-output-rate-coal-state
@@ -4033,7 +4035,7 @@ knitr::kable(so2_output_coal,
                            "Notes")) 
 ```
 
-##### SO2 oil output rate
+###### SO2 oil output rate
 
 ```{r}
 #| label: so2-output-rate-oil-state
@@ -4068,7 +4070,7 @@ knitr::kable(so2_output_oil,
                            "Notes"))
 ```
 
-##### SO2 gas output rate
+###### SO2 gas output rate
 
 ```{r}
 #| label: so2-output-rate-gas-state
@@ -4103,7 +4105,7 @@ knitr::kable(so2_output_gas,
                            "Notes"))
 ```
 
-##### SO2 fossil fuel output rate
+###### SO2 fossil fuel output rate
 
 ```{r}
 #| label: so2-output-rate-fossil-state
@@ -4139,10 +4141,10 @@ knitr::kable(so2_output_fossil,
 ```
 :::
 
-#### CO2 fuel types
+##### CO2 fuel types
 
 ::: panel-tabset
-##### CO2 coal output rate
+###### CO2 coal output rate
 
 ```{r}
 #| label: co2-output-rate-coal-state
@@ -4177,7 +4179,7 @@ knitr::kable(co2_output_coal,
                            "Notes")) 
 ```
 
-##### CO2 oil output rate
+###### CO2 oil output rate
 
 ```{r}
 #| label: co2-output-rate-oil-state
@@ -4212,7 +4214,7 @@ knitr::kable(co2_output_oil,
                            "Notes"))
 ```
 
-##### CO2 gas output rate
+###### CO2 gas output rate
 
 ```{r}
 #| label: co2-output-rate-gas-state
@@ -4247,7 +4249,7 @@ knitr::kable(co2_output_gas,
                            "Notes"))
 ```
 
-##### CO2 fossil fuel output rate
+###### CO2 fossil fuel output rate
 
 ```{r}
 #| label: co2-output-rate-fossil-state
@@ -4283,10 +4285,10 @@ knitr::kable(co2_output_fossil,
 ```
 :::
 
-#### CH4 fuel types
+##### CH4 fuel types
 
 ::: panel-tabset
-##### CH4 coal output rate
+###### CH4 coal output rate
 
 ```{r}
 #| label: ch4-output-rate-coal-state
@@ -4321,7 +4323,7 @@ knitr::kable(ch4_output_coal,
                            "Notes")) 
 ```
 
-##### CH4 oil output rate
+###### CH4 oil output rate
 
 ```{r}
 #| label: ch4-output-rate-oil-state
@@ -4356,7 +4358,7 @@ knitr::kable(ch4_output_oil,
                            "Notes"))
 ```
 
-##### CH4 gas output rate
+###### CH4 gas output rate
 
 ```{r}
 #| label: ch4-output-rate-gas-state
@@ -4391,7 +4393,7 @@ knitr::kable(ch4_output_gas,
                            "Notes"))
 ```
 
-##### CH4 fossil fuel output rate
+###### CH4 fossil fuel output rate
 
 ```{r}
 #| label: ch4-output-rate-fossil-state
@@ -4427,10 +4429,10 @@ knitr::kable(ch4_output_fossil,
 ```
 :::
 
-#### N2O fuel types
+##### N2O fuel types
 
 ::: panel-tabset
-##### N2O coal output rate
+###### N2O coal output rate
 
 ```{r}
 #| label: n2o-output-rate-coal-state
@@ -4465,7 +4467,7 @@ knitr::kable(n2o_output_coal,
                            "Notes")) 
 ```
 
-##### N2O oil output rate
+###### N2O oil output rate
 
 ```{r}
 #| label: n2o-output-rate-oil-state
@@ -4500,7 +4502,7 @@ knitr::kable(n2o_output_oil,
                            "Notes"))
 ```
 
-##### N2O gas output rate
+###### N2O gas output rate
 
 ```{r}
 #| label: n2o-output-rate-gas-state
@@ -4535,7 +4537,7 @@ knitr::kable(n2o_output_gas,
                            "Notes"))
 ```
 
-##### N2O fossil fuel output rate
+###### N2O fossil fuel output rate
 
 ```{r}
 #| label: n2o-output-rate-fossil-state
@@ -4571,10 +4573,10 @@ knitr::kable(n2o_output_fossil,
 ```
 :::
 
-#### CO2e fuel types
+##### CO2e fuel types
 
 ::: panel-tabset
-##### CO2e coal output rate
+###### CO2e coal output rate
 
 ```{r}
 #| label: co2e-output-rate-coal-state
@@ -4609,7 +4611,7 @@ knitr::kable(co2e_output_coal,
                            "Notes")) 
 ```
 
-##### CO2e oil output rate
+###### CO2e oil output rate
 
 ```{r}
 #| label: co2e-output-rate-oil-state
@@ -4644,7 +4646,7 @@ knitr::kable(co2e_output_oil,
                            "Notes"))
 ```
 
-##### CO2e gas output rate
+###### CO2e gas output rate
 
 ```{r}
 #| label: co2e-output-rate-gas-state
@@ -4679,7 +4681,7 @@ knitr::kable(co2e_output_gas,
                            "Notes"))
 ```
 
-##### CO2e fossil fuel output rate
+###### CO2e fossil fuel output rate
 
 ```{r}
 #| label: co2e-output-rate-fossil-state
@@ -4715,12 +4717,12 @@ knitr::kable(co2e_output_fossil,
 ```
 :::
 
-## State input emission rate comparison
+### Input emission rate comparison
 
-### Emission type
+#### Emission type
 
 ::: panel-tabset
-#### NOx input rate
+##### NOx input rate
 
 ```{r}
 #| label: nox-input-rate-state
@@ -4755,7 +4757,7 @@ knitr::kable(nox_input,
                            "Notes")) 
 ```
 
-#### NOx ozone input rate
+##### NOx ozone input rate
 
 ```{r}
 #| label: nox-input-oz-rate-state
@@ -4790,7 +4792,7 @@ knitr::kable(nox_oz_input,
                            "Notes")) 
 ```
 
-#### SO2 input rate
+##### SO2 input rate
 
 ```{r}
 #| label: so2-input-rate-state
@@ -4825,7 +4827,7 @@ knitr::kable(so2_output,
                            "Notes")) 
 ```
 
-#### CO2 input rate
+##### CO2 input rate
 
 ```{r}
 #| label: co2-input-rate-state
@@ -4860,7 +4862,7 @@ knitr::kable(co2_input,
                            "Notes")) 
 ```
 
-#### CH4 input rate
+##### CH4 input rate
 
 ```{r}
 #| label: ch4-input-rate-state
@@ -4895,7 +4897,7 @@ knitr::kable(ch4_output,
                            "Notes")) 
 ```
 
-#### N2O input rate
+##### N2O input rate
 
 ```{r}
 #| label: n2o-input-rate-state
@@ -4930,7 +4932,7 @@ knitr::kable(n2o_input,
                            "Notes")) 
 ```
 
-#### CO2e input rate
+##### CO2e input rate
 
 ```{r}
 #| label: co2e-input-rate-state
@@ -4967,11 +4969,11 @@ knitr::kable(co2e_input,
 :::
 
 
-### Fuel types
+#### Fuel types
 
 ::: panel-tabset
 
-#### Coal input rate
+##### Coal input rate
 
 ```{r}
 #| label: coal-input-rate-state
@@ -5004,7 +5006,7 @@ knitr::kable(coal_input,
                            "Percent change")) 
 ```
 
-#### Oil input rate
+##### Oil input rate
 
 ```{r}
 #| label: oil-input-rate-state
@@ -5037,7 +5039,7 @@ knitr::kable(oil_input,
                            "Percent change")) 
 ```
 
-#### Gas input rate
+##### Gas input rate
 
 ```{r}
 #| label: gas-input-rate-state
@@ -5070,7 +5072,7 @@ knitr::kable(gas_input,
                            "Percent change")) 
 ```
 
-#### Fossil fuel rate
+##### Fossil fuel rate
 
 ```{r}
 #| label: fossil-input-rate-state
@@ -5103,10 +5105,10 @@ knitr::kable(fossil_input,
                            "Percent change")) 
 ```
 :::
-#### NOx fuel types
+##### NOx fuel types
 
 ::: panel-tabset
-##### NOx coal input rate
+###### NOx coal input rate
 
 ```{r}
 #| label: nox-input-rate-coal-state
@@ -5141,7 +5143,7 @@ knitr::kable(nox_input_coal,
                            "Notes")) 
 ```
 
-##### NOx oil input rate
+###### NOx oil input rate
 
 ```{r}
 #| label: nox-input-rate-oil-state
@@ -5176,7 +5178,7 @@ knitr::kable(nox_input_oil,
                            "Notes"))
 ```
 
-##### NOx gas input rate
+###### NOx gas input rate
 
 ```{r}
 #| label: nox-input-rate-gas-state
@@ -5211,7 +5213,7 @@ knitr::kable(nox_input_gas,
                            "Notes"))
 ```
 
-##### NOx fossil fuel input rate
+###### NOx fossil fuel input rate
 
 ```{r}
 #| label: nox-input-rate-fossil-state
@@ -5247,10 +5249,10 @@ knitr::kable(nox_input_fossil,
 ```
 :::
 
-#### NOx ozone fuel types
+##### NOx ozone fuel types
 
 ::: panel-tabset
-##### NOx ozone coal input rate
+###### NOx ozone coal input rate
 
 ```{r}
 #| label: nox-oz-input-rate-coal-state
@@ -5285,7 +5287,7 @@ knitr::kable(nox_oz_input_coal,
                            "Notes")) 
 ```
 
-##### NOx oil input rate
+###### NOx oil input rate
 
 ```{r}
 #| label: nox-oz-input-rate-oil-state
@@ -5320,7 +5322,7 @@ knitr::kable(nox_oz_input_oil,
                            "Notes"))
 ```
 
-##### NOx gas input rate
+###### NOx gas input rate
 
 ```{r}
 #| label: nox-oz-input-rate-gas-state
@@ -5355,7 +5357,7 @@ knitr::kable(nox_oz_input_gas,
                            "Notes"))
 ```
 
-##### NOx fossil fuel input rate
+###### NOx fossil fuel input rate
 
 ```{r}
 #| label: nox-oz-input-rate-fossil-state
@@ -5391,10 +5393,10 @@ knitr::kable(nox_oz_input_fossil,
 ```
 :::
 
-#### SO2 fuel types
+##### SO2 fuel types
 
 ::: panel-tabset
-##### SO2 coal input rate
+###### SO2 coal input rate
 
 ```{r}
 #| label: so2-input-rate-coal-state
@@ -5429,7 +5431,7 @@ knitr::kable(so2_input_coal,
                            "Notes")) 
 ```
 
-##### SO2 oil input rate
+###### SO2 oil input rate
 
 ```{r}
 #| label: so2-input-rate-oil-state
@@ -5464,7 +5466,7 @@ knitr::kable(so2_input_oil,
                            "Notes"))
 ```
 
-##### SO2 gas input rate
+###### SO2 gas input rate
 
 ```{r}
 #| label: so2-input-rate-gas-state
@@ -5499,7 +5501,7 @@ knitr::kable(so2_input_gas,
                            "Notes"))
 ```
 
-##### SO2 fossil fuel input rate
+###### SO2 fossil fuel input rate
 
 ```{r}
 #| label: so2-input-rate-fossil-state
@@ -5535,10 +5537,10 @@ knitr::kable(so2_input_fossil,
 ```
 :::
 
-#### CO2 fuel types
+##### CO2 fuel types
 
 ::: panel-tabset
-##### CO2 coal input rate
+###### CO2 coal input rate
 
 ```{r}
 #| label: co2-input-rate-coal-state
@@ -5573,7 +5575,7 @@ knitr::kable(co2_input_coal,
                            "Notes")) 
 ```
 
-##### CO2 oil input rate
+###### CO2 oil input rate
 
 ```{r}
 #| label: co2-input-rate-oil-state
@@ -5608,7 +5610,7 @@ knitr::kable(co2_input_oil,
                            "Notes"))
 ```
 
-##### CO2 gas input rate
+###### CO2 gas input rate
 
 ```{r}
 #| label: co2-input-rate-gas-state
@@ -5643,7 +5645,7 @@ knitr::kable(co2_input_gas,
                            "Notes"))
 ```
 
-##### CO2 fossil fuel input rate
+###### CO2 fossil fuel input rate
 
 ```{r}
 #| label: co2-input-rate-fossil-state
@@ -5679,10 +5681,10 @@ knitr::kable(co2_input_fossil,
 ```
 :::
 
-#### CH4 fuel types
+##### CH4 fuel types
 
 ::: panel-tabset
-##### CH4 coal input rate
+###### CH4 coal input rate
 
 ```{r}
 #| label: ch4-input-rate-coal-state
@@ -5717,7 +5719,7 @@ knitr::kable(ch4_input_coal,
                            "Notes")) 
 ```
 
-##### CH4 oil input rate
+###### CH4 oil input rate
 
 ```{r}
 #| label: ch4-input-rate-oil-state
@@ -5752,7 +5754,7 @@ knitr::kable(ch4_input_oil,
                            "Notes"))
 ```
 
-##### CH4 gas input rate
+###### CH4 gas input rate
 
 ```{r}
 #| label: ch4-input-rate-gas-state
@@ -5787,7 +5789,7 @@ knitr::kable(ch4_input_gas,
                            "Notes"))
 ```
 
-##### CH4 fossil fuel input rate
+###### CH4 fossil fuel input rate
 
 ```{r}
 #| label: ch4-input-rate-fossil-state
@@ -5823,10 +5825,10 @@ knitr::kable(ch4_input_fossil,
 ```
 :::
 
-#### N2O fuel types
+##### N2O fuel types
 
 ::: panel-tabset
-##### N2O coal input rate
+###### N2O coal input rate
 
 ```{r}
 #| label: n2o-input-rate-coal-state
@@ -5861,7 +5863,7 @@ knitr::kable(n2o_input_coal,
                            "Notes")) 
 ```
 
-##### N2O oil input rate
+###### N2O oil input rate
 
 ```{r}
 #| label: n2o-input-rate-oil-state
@@ -5896,7 +5898,7 @@ knitr::kable(n2o_input_oil,
                            "Notes"))
 ```
 
-##### N2O gas input rate
+###### N2O gas input rate
 
 ```{r}
 #| label: n2o-input-rate-gas-state
@@ -5931,7 +5933,7 @@ knitr::kable(n2o_input_gas,
                            "Notes"))
 ```
 
-##### N2O fossil fuel input rate
+###### N2O fossil fuel input rate
 
 ```{r}
 #| label: n2o-input-rate-fossil-state
@@ -5967,10 +5969,10 @@ knitr::kable(n2o_input_fossil,
 ```
 :::
 
-#### CO2e fuel types
+##### CO2e fuel types
 
 ::: panel-tabset
-##### CO2e coal input rate
+###### CO2e coal input rate
 
 ```{r}
 #| label: co2e-input-rate-coal-state
@@ -6005,7 +6007,7 @@ knitr::kable(co2e_input_coal,
                            "Notes")) 
 ```
 
-##### CO2e oil input rate
+###### CO2e oil input rate
 
 ```{r}
 #| label: co2e-input-rate-oil-state
@@ -6040,7 +6042,7 @@ knitr::kable(co2e_input_oil,
                            "Notes"))
 ```
 
-##### CO2e gas input rate
+###### CO2e gas input rate
 
 ```{r}
 #| label: co2e-input-rate-gas-state
@@ -6075,7 +6077,7 @@ knitr::kable(co2e_input_gas,
                            "Notes"))
 ```
 
-##### CO2e fossil fuel input rate
+###### CO2e fossil fuel input rate
 
 ```{r}
 #| label: co2e-input-rate-fossil-state
