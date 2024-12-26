@@ -38,20 +38,21 @@ if (exists("params")) {
     params$eGRID_year <- as.character(params$eGRID_year) 
   }
   
-  # if ("run_demo_file" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-  #   print("Demographics file parameter is already defined.") 
-  # } else { # if params() is defined, but eGRID_year is not, define it here 
-  #   params$run_demo_file <- readline(prompt = "Input run_demo_file: ")
-  #   params$run_demo_file <- as.character(params$eGRID_year) 
-  # }
+  if ("run_demo_file" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+    print("Demographics file parameter is already defined.")
+  } else { # if params() is defined, but eGRID_year is not, define it here
+    params$run_demo_file <- readline(prompt = "Input run_demo_file (TRUE/FALSE): ")
+    params$run_demo_file <- toupper(params$run_demo_file) == "TRUE"
+  }
 
 } else { # if params() and eGRID_year are not defined, define them here
   params <- list()
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
   
-  # params$run_demo_file <- readline(prompt = "Input run_demo_file: ")
-  # params$run_demo_file <- as.character(params$eGRID_year) 
+  params$run_demo_file <- readline(prompt = "Input run_demo_file (TRUE/FALSE): ")
+  params$run_demo_file <- toupper(params$run_demo_file) == "TRUE"
+  
 }
 
 
@@ -1230,6 +1231,16 @@ add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 1
 add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 14), text_to_show = glue::glue("NRL{year}"))
 add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 1, loc = c(3, 15), text_to_show = glue::glue("US{year}"))
 add_hyperlink(glue::glue("GGL{year}"),  row_link = 1, col_link = 1, loc = c(3, 16), text_to_show = glue::glue("GGL{year}"))
+
+# feedback columns
+contact_link <- "https://www.epa.gov/egrid/forms/contact-us-about-egrid"
+
+contact_cell <- data.frame(
+  DisplayText <- "Contact EPA",
+  Hyperlink <- contact_link
+)
+
+writeData(wb, sheet="Contents", x=contact_cell, startCol=2, startRow=22, colNames=FALSE, rowNames=FALSE)
 
 # add hyperlinks to specific columns
 # annual values 
