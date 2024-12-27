@@ -42,7 +42,6 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
-
 ### Load in datasets ------
 
 plant_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
@@ -209,7 +208,8 @@ demo_data <- demo_data[, !duplicated(colnames(demo_data))]
 # keep only demographic data (not environmental)
 demo_data <- demo_data %>%
               select(totalPop, grep("_D_", colnames(demo_data), value=TRUE), distance, plant_id) %>%
-              unique() # unique since unnest() produced duplicate columns
+              unique() %>% # unique since unnest() produced duplicate columns
+              mutate(across(-plant_id, ~ as.numeric(sub("%", "",.))))
 
 # join with plant file columns to keep by plant_id
 demo_file <- plant_file %>%
