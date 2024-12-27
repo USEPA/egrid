@@ -58,8 +58,9 @@ ggl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_lo
 year <- as.numeric(params$eGRID_year) %% 1000
 
 # set up output file
-contents <- "data/static_tables/formatting/egrid_contents_page.xlsx"
-wb <- loadWorkbook(contents)
+wb <- createWorkbook()
+source("scripts/functions/function_create_contents_egrid_final.R")
+create_contents_egrid_final()
 
 
 ### Create styles ------
