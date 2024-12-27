@@ -29,12 +29,7 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   
   # Write styles ------------
 
-  # library(dplyr)
-  # library(glue)
-  library(openxlsx)
-  # library(readr)
-  # library(stringr)
-  # library(tidyr)
+  require(openxlsx)
   
   title_main <- createStyle(
     fontName = "Arial",
