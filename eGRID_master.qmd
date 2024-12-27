@@ -723,7 +723,7 @@ generator_file %>%
 
 ```{r}
 #| label: unit_file_create
-#|# file: # "scripts/unit_file_create.R"
+#| file: "scripts/unit_file_create.R"
 #| warning: false
 #| message: false
 ```
@@ -1773,9 +1773,9 @@ if (params$run_demo_file) {
 
 # Metric Conversion File
 
-The metric files converts imperial units outputs into metric units. The following table from `conversion_factors.csv` contains the conversion rates between units. 
+The metric files converts imperial units outputs into metric units. The following table from `conversion_factors.csv` contains the conversion rates between units.
 
-## Conversion Table 
+## Conversion Table
 
 ```{r}
 #| label: conversion_table
@@ -1796,14 +1796,14 @@ conversion_table %>%
 
 ```{r}
 #| label: metric_files_create
-##| file: "scripts/metric_files_create.R"
+#|file: "scripts/metric_files_create.R"
 #| message: false
 
 ```
 
 # Final Formatting
 
-To output the data into a clean, readable form, a final style script is applied for all output files. For headers, we add descriptions and label conventions to maintain consistency with previous eGRID releases. Using R package `openxlsx`, we apply formatting and colors to categorize outputs and values. Formatting is applied for both imperial unit version and the metric unit version. 
+To output the data into a clean, readable form, a final style script is applied for all output files. For headers, we add descriptions and label conventions to maintain consistency with previous eGRID releases. Using R package `openxlsx`, we apply formatting and colors to categorize outputs and values. Formatting is applied for both imperial unit version and the metric unit version.
 
 The final output file is `egrid_dataYYYY.xlsx`.
 
@@ -1815,15 +1815,13 @@ The final output file is `egrid_dataYYYY.xlsx`.
 
 ```
 
-<!-- ```{r} -->
+```{r}
 
-<!-- #| label: metric_final_formatting -->
+#| label: metric_final_formatting
+#| file: "scripts/final_formatting_metric.R"
+#| message: false
 
-<!-- #| file: "scripts/metric_final_formatting.R" -->
-
-<!-- #| message: false -->
-
-<!-- ``` -->
+```
 
 # eGRID Summary
 
