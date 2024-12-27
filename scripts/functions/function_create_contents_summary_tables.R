@@ -15,7 +15,7 @@ create_contents_summary_tables <- function(contents = table_data) {
   
   #' create_summary_tables
   #' 
-  #' Function to create and format summary tables for final excel file.
+  #' Function to create and format contents sheet for summary tables file
   #' 
   #' @param contents Vector of the datasets containing the data for 
   #'                 the summary tables - includes four formatted datasets.
@@ -26,7 +26,7 @@ create_contents_summary_tables <- function(contents = table_data) {
   #' 
   #' @examples 
   #' # Create the contents sheet for the datasets within table_data.
-  #' create_contents_summarytables()
+  #' create_contents_summary_tables()
   
   # Define select styles ------------
   
