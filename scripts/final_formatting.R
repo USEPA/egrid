@@ -66,8 +66,9 @@ year <- as.numeric(params$eGRID_year) %% 1000
 
 # set up output file
 ### Note: check for updates or changes each data year ###
-contents <- "data/static_tables/formatting/egrid_contents_page.xlsx"
-wb <- loadWorkbook(contents)
+wb <- createWorkbook()
+source("scripts/functions/function_create_contents_egrid_final.R")
+create_contents_egrid_final()
 
 
 ### Create styles ------
