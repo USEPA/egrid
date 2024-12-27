@@ -16,7 +16,7 @@
 ## -------------------------------
 
 
-format_region_m <- function(region, reg_rows) {
+format_region_metric <- function(region, reg_rows) {
   
   #' format_region_m
   #' 
@@ -26,6 +26,7 @@ format_region_m <- function(region, reg_rows) {
   #' @region Region for data to be aggregated to,
   #' @reg_rows Count of rows for the region dataframe
   #' @return Formatted dataframe with style
+  #' 
   #' @examples format_region(st, st_rows) # Where st is the sheet name and st_rows = number of rows in the final sheet
   
   require(openxlsx)
@@ -97,7 +98,6 @@ format_region_m <- function(region, reg_rows) {
     
     ## add text styles
     addStyle(wb, sheet = region, style = s[['basic']],    rows = 3:reg_rows, cols = 1:3,     gridExpand = TRUE)
-    
     
     ## freeze pane
     freezePane(wb, sheet = region, firstActiveCol = 4)

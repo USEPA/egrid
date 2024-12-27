@@ -1,7 +1,7 @@
 ## -------------------------------
 ##
 ## Metric file formatting. 
-## Call function format_styles and format_region_m to format the metric file. 
+## Call function format_styles and format_region_metric to format the metric file. 
 ## 
 ## Purpose: 
 ## 
@@ -67,7 +67,7 @@ create_contents_egrid_final()
 
 # call helper functions into script
 source("scripts/functions/function_format_styles.R")
-source("scripts/functions/function_format_region_m.R")
+source("scripts/functions/function_format_region_metric.R")
 source("scripts/functions/function_add_hyperlink.R")
 
 # create eGRID output style list using function
@@ -959,7 +959,7 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region_m(st, st_rows)
+format_region_metric(st, st_rows)
 
 ### BA Formatting -----
 
@@ -1007,7 +1007,7 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region_m(ba, ba_rows)
+format_region_metric(ba, ba_rows)
 
 setColWidths(wb, sheet = ba, cols = 2, widths = 75.55)
 
@@ -1056,7 +1056,7 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region_m(srl, srl_rows)
+format_region_metric(srl, srl_rows)
 
 setColWidths(wb, sheet = srl, cols = 3, widths = 18.45)
 
@@ -1105,7 +1105,7 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region_m(nrl, nrl_rows)
+format_region_metric(nrl, nrl_rows)
 
 setColWidths(wb, sheet = nrl, cols = 3, widths = 29.45)
 
@@ -1146,7 +1146,7 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region_m(us, us_rows)
+format_region_metric(us, us_rows)
 
 ### GGL Formatting -----
 
@@ -1237,7 +1237,7 @@ contact_cell <- data.frame(
   DisplayText = "Contact EPA",
   Hyperlink = contact_link
 )
-# addHyperlink(wb, sheet = 1, row = 2, col = 22, hyperlink = contact_link)
+
 writeData(wb, sheet = "Contents", x = contact_cell, startCol=2, startRow=22, colNames = FALSE, rowNames = FALSE)
 
 # add hyperlinks to specific columns
@@ -1369,7 +1369,7 @@ add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 243, loc = c(17
 output <- glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data_metric.xlsx")
 saveWorkbook(wb, output, overwrite=TRUE)
 
-print(glue::glue("Saving unit file to folder data/outputs/{params$eGRID_year}/"))
+print(glue::glue("Saving final formatted metric file to folder data/outputs/{params$eGRID_year}/"))
 
 # remove to save space
 rm(unt_file, gen_file, plnt_file)
