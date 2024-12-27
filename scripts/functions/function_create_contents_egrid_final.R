@@ -27,45 +27,53 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   #' # Create the contents sheet for the final eGRID file.
   #' create_contents_egrid_final()
   
-  # Define select styles ------------
+  # Write styles ------------
 
-  library(dplyr)
-  library(glue)
+  # library(dplyr)
+  # library(glue)
   library(openxlsx)
-  library(readr)
-  library(stringr)
-  library(tidyr)
+  # library(readr)
+  # library(stringr)
+  # library(tidyr)
   
   title_main <- createStyle(
+    fontName = "Arial",
     fontSize = 14,
     textDecoration = "bold",
     halign = "center",
+    valign = "center",
+    wrapText = TRUE)
+  
+  title_reg <- createStyle(
+    fontName = "Arial",
+    fontSize = 12,
+    textDecoration = "bold",
     valign = "center")
   
   contents <- createStyle(
-    wrapText = TRUE,
+    fontName = "Arial",
     valign = "center",
     fgFill = "#F2F2F2")
 
   top_borders <- createStyle(
     border = "Top", 
     borderColour = "black",
-    borderStyle = "thin")
+    borderStyle = "medium")
   
   bottom_borders <- createStyle(
     border = "Bottom", 
     borderColour = "black",
-    borderStyle = "thin")
+    borderStyle = "medium")
   
   right_borders <- createStyle(
     border = "Right", 
     borderColour = "black",
-    borderStyle = "thin")  
+    borderStyle = "medium")  
   
   left_borders <- createStyle(
     border = "Left", 
     borderColour = "black",
-    borderStyle = "thin") 
+    borderStyle = "medium") 
   
   all_borders <- createStyle(
     border = "LeftRightTopBottom", 
@@ -137,7 +145,7 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
     "Balancing authority area",
     "eGRID subregion",
     "NERC region",
-    "U. S.",
+    "U.S.",
     "Grid Gross Loss (%)")
   
   table_of_contents_descrip <- append(
@@ -204,10 +212,6 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   current_worksheet <- "Contents"
   addWorksheet(wb, sheetName = current_worksheet)
   
-  # set font size
-  addStyle(wb, current_worksheet, createStyle(fontName = "Arial", fontSize = "12"),
-           cols = 1:sheetWidth, rows = 1:54, gridExpand = TRUE, stack = TRUE)
-  
   # set section locations
   start_rows <- c(2, 20, 24, 44, 48)
   end_rows <- c(
@@ -256,9 +260,11 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   ## Add section titles and style ---------------
   
   for (i in 1:length(title_small)) {
-    writeData(wb, current_worksheet, title_small[i], startCol = start_cols, startRow = start_rows[i])
+    writeData(wb, current_worksheet, title_small[i], startCol = start_cols, 
+              startRow = start_rows[i])
     if (i != 1) {
-      addStyle(wb, current_worksheet, createStyle(textDecoration = "bold"), rows = start_rows[i], cols = start_cols, stack = TRUE)
+      addStyle(wb, current_worksheet, title_reg, rows = start_rows[i], 
+               cols = start_cols, stack = TRUE)
     }
   }
   
@@ -275,15 +281,18 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
       format_width <- sheetWidth
       # table of contents description information
       if (row %in% c((start_rows[1] + 5):end_rows[1])) {
-        mergeCells(wb, current_worksheet, rows = row, cols = (start_cols + 1):(start_cols + 2))
-        mergeCells(wb, current_worksheet, rows = row, cols = (start_cols + 3):format_width)
+        mergeCells(wb, current_worksheet, rows = row, 
+                   cols = (start_cols + 1):(start_cols + 2))
+        mergeCells(wb, current_worksheet, rows = row, 
+                   cols = (start_cols + 3):format_width)
       }
       # color coding legend  
     } else if (row %in% c(start_rows[3]:end_rows[3])) {
       format_width <- sheetWidth + 6
       # merging inside rows
       if (row != start_rows[3]) {
-        mergeCells(wb, current_worksheet, rows = row, cols = start_cols:(start_cols + 6))
+        mergeCells(wb, current_worksheet, rows = row, 
+                   cols = start_cols:(start_cols + 6))
       }
       # notes and conversion factors
     } else if (row %in% c(start_rows[4]:end_rows[4],
@@ -291,8 +300,10 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
       format_width <- start_cols + 4
       # merging conversion factors
       if (row %in% c((start_rows[5] + 1):end_rows[5])) {
-        mergeCells(wb, current_worksheet, rows = row, cols = start_cols:(start_cols + 1))
-        mergeCells(wb, current_worksheet, rows = row, cols = (start_cols + 2):(start_cols + 3))
+        mergeCells(wb, current_worksheet, rows = row, 
+                   cols = start_cols:(start_cols + 1))
+        mergeCells(wb, current_worksheet, rows = row, 
+                   cols = (start_cols + 2):(start_cols + 3))
       }
     }
     # main titles
@@ -303,36 +314,60 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
     # borders and shading
     addStyle(wb, current_worksheet, right_borders, rows = row, cols = format_width,
              stack = TRUE, gridExpand = TRUE)
-    addStyle(wb, current_worksheet, contents, rows = row, cols = start_cols:format_width,
+    addStyle(wb, current_worksheet, contents, rows = row, 
+             cols = start_cols:format_width,
              stack = TRUE, gridExpand = TRUE)
     addStyle(wb, current_worksheet, left_borders, rows = row, cols = start_cols, 
              stack = TRUE, gridExpand = TRUE)
     if (row %in% start_rows) {
-      addStyle(wb, current_worksheet, top_borders, rows = row, cols = start_cols:format_width,
+      addStyle(wb, current_worksheet, top_borders, rows = row, 
+               cols = start_cols:format_width,
                stack = TRUE, gridExpand = TRUE)
     } else if (row %in% end_rows) {
-      addStyle(wb, current_worksheet, bottom_borders, rows = row, cols = start_cols:format_width,
+      addStyle(wb, current_worksheet, bottom_borders, rows = row, 
+               cols = start_cols:format_width,
                stack = TRUE, gridExpand = TRUE)
     }
   }
   
   # table of contents
-  addStyle(wb, current_worksheet, title_main, cols = start_cols, rows = start_rows[1]:(start_rows[1] + 4), gridExpand = TRUE, stack = TRUE)
-  addStyle(wb, current_worksheet, createStyle(textDecoration = "underline"), cols = start_cols:sheetWidth, rows = start_rows[1] + 5, gridExpand = TRUE, stack = TRUE)
-  addStyle(wb, current_worksheet, createStyle(halign = "center"), cols = start_cols, rows = (start_rows[1] + 5):end_rows[1], gridExpand = TRUE, stack = TRUE)
+  addStyle(wb, current_worksheet, title_main, cols = start_cols, 
+           rows = start_rows[1]:(start_rows[1] + 4), gridExpand = TRUE, stack = TRUE)
+  addStyle(wb, current_worksheet, createStyle(textDecoration = "underline"), 
+           cols = start_cols:sheetWidth, rows = start_rows[1] + 5, gridExpand = TRUE, 
+           stack = TRUE)
+  addStyle(wb, current_worksheet, createStyle(halign = "center"), cols = start_cols, 
+           rows = (start_rows[1] + 5):end_rows[1], gridExpand = TRUE, stack = TRUE)
+  addStyle(wb, current_worksheet, createStyle(fontSize = 12), cols = start_cols:sheetWidth,
+           rows = (start_rows[1] + 5):end_rows[1], gridExpand = TRUE, stack = TRUE)
   
   # color coding legend
-  addStyle(wb, current_worksheet, createStyle(halign = "center"), cols = start_cols, rows = start_rows[3], gridExpand = TRUE, stack = TRUE)
-  addStyle(wb, current_worksheet, createStyle(halign = "center"), cols = (start_cols + 7):(start_cols + 8), rows = start_rows[3] + 1, gridExpand = TRUE, stack = TRUE)
-  addStyle(wb, current_worksheet, createStyle(textDecoration = "bold"), cols = start_cols:sheetWidth, rows = start_rows[3] + 1, gridExpand = TRUE, stack = TRUE)
-  mergeCells(wb, current_worksheet, cols = (sheetWidth - 1):(sheetWidth + 6), rows = start_rows[3] + 1)
-  addStyle(wb, current_worksheet, all_borders, cols = start_cols:(sheetWidth + 6), rows = (start_rows[3] + 2):end_rows[3], gridExpand = TRUE, stack = TRUE)
-  addStyle(wb, current_worksheet, bottom_borders, cols = start_cols:(sheetWidth + 6), rows = start_rows[3] + 1, gridExpand = TRUE, stack = TRUE)
+  addStyle(wb, current_worksheet, createStyle(halign = "center"), cols = start_cols, 
+           rows = start_rows[3], gridExpand = TRUE, stack = TRUE)
+  addStyle(wb, current_worksheet, createStyle(halign = "center"), 
+           cols = (start_cols + 7):(start_cols + 8), rows = start_rows[3] + 1, 
+           gridExpand = TRUE, stack = TRUE)
+  addStyle(wb, current_worksheet, createStyle(halign = "center"), 
+           cols = (start_cols + 8):(start_cols + 15), rows = (start_rows[3] + 1):end_rows[3], 
+           gridExpand = TRUE, stack = TRUE)
+  addStyle(wb, current_worksheet, title_reg, cols = start_cols:sheetWidth, 
+           rows = start_rows[3] + 1, gridExpand = TRUE, stack = TRUE)
+  mergeCells(wb, current_worksheet, cols = (sheetWidth - 1):(sheetWidth + 6), 
+             rows = start_rows[3] + 1)
+  addStyle(wb, current_worksheet, all_borders, cols = start_cols:(sheetWidth + 6), 
+           rows = (start_rows[3] + 2):end_rows[3], gridExpand = TRUE, stack = TRUE)
+  addStyle(wb, current_worksheet, bottom_borders, cols = start_cols:(sheetWidth + 6), 
+           rows = start_rows[3] + 1, gridExpand = TRUE, stack = TRUE)
 
   # color coding fills
   for (i in 1:length(color_coding)) {
-    addStyle(wb, current_worksheet, createStyle(fgFill = color_coding[i]), cols = start_cols + 7, rows = start_rows[3] + 1 + i, stack = TRUE)
+    addStyle(wb, current_worksheet, createStyle(fgFill = color_coding[i]), 
+             cols = start_cols + 7, rows = start_rows[3] + 1 + i, stack = TRUE)
   }
+  
+  # add font formatting
+  addStyle(wb, current_worksheet, createStyle(fontName = "Arial"), cols = start_cols:(sheetWidth + 6),
+           rows = 1:55, gridExpand = TRUE, stack = TRUE)
   
   ## Add cell sizes -------------
 
