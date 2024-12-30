@@ -1,16 +1,18 @@
 ## -------------------------------
 ##
+## Note: this file is for internal QA only. 
+##
 ## Generator file QA 
 ## 
 ## Purpose: 
 ## 
 ## This file evaluates the differences in the R and Access database 
-## for the generator file creation in 2021. 
+## for the generator file creation for a given year. 
 ##
 ## The checks performed will output a CSV file with any differences 
 ## between Access and R generator files. 
 ## 
-## Author: Teagan Goforth, teagan.goforth@abtglobal.com 
+## Author: Teagan Goforth
 ## 
 ## Date created: 7/29/2024 
 ##
@@ -28,20 +30,26 @@ library(readxl)
 
 if(dir.exists("data/outputs/qa")) {
   print("Folder qa already exists.")
-}else{
-  dir.create("data/outputs/qa")
+} else {
+   dir.create("data/outputs/qa")
 }
 
 if(dir.exists("data/outputs/qa/generator_file_differences")) {
-  print("Folder generator_file_differences already exists.")
-}else{
+  print(glue::glue("Folder generator_file_differences already exists."))
+} else {
   dir.create("data/outputs/qa/generator_file_differences")
 }
 
-save_dir <- "data/outputs/qa/generator_file_differences/"
+if(dir.exists(glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}"))) {
+  print(glue::glue("Folder generator_file_differences/{params$eGRID_year} already exists."))
+} else {
+   dir.create(glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}"))
+}
+
+save_dir <- glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}/")
 
 # load R dataset
-generator_r <- read_rds("data/outputs/generator_file.RDS") 
+generator_r <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
 
 # add "_r" after each variable to easily identify dataset 
 colnames(generator_r) <- paste0(colnames(generator_r), "_r")
@@ -52,10 +60,11 @@ generator_r <-
          "generator_id" = "generator_id_r") %>% select(-seqgen_r)
 
 # load access dataset (from published 2021 eGRID excel sheet)  
-generator_access <- read_excel("data/raw_data/eGRID_2021.xlsx", sheet = "GEN21", 
+generator_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
+                               sheet = glue::glue("GEN{as.numeric(params$eGRID_year) %% 1000}"),  
                                skip = 1, 
                                guess_max = 4000) %>% janitor::clean_names() %>% 
-  select(-seqgen) %>% 
+  select(-seqgen23) %>% 
   rename("year_access" = "year", 
          "plant_id" = "orispl",
          "plant_name_access" = "pname", 
@@ -129,7 +138,7 @@ check_n_boilers <-
   select(plant_id, generator_id, n_boilers_r, n_boilers_access)
 
 if(nrow(check_n_boilers) > 0) {
-  write_csv(check_plant_state, paste0(save_dir, "check_n_boilers.csv")) }
+  write_csv(check_n_boilers, paste0(save_dir, "check_n_boilers.csv")) }
 
 # check if operating status matches ---------------
 check_status <- 
@@ -247,15 +256,14 @@ if(nrow(check_gen_source) > 0) {
   write_csv(check_gen_source, paste0(save_dir, "check_generation_source.csv"))}
 
 # Identify all unique plant and unit IDs that have differences ------------
-
-files <- grep("check", dir("data/outputs/qa/generator_file_differences"), value = TRUE)
+files <- grep("check", dir(save_dir), value = TRUE)
 
 plant_gen_diffs <- 
-  purrr::map_df(paste0("data/outputs/qa/generator_file_differences/", files), 
+  purrr::map_df(paste0(save_dir, files), 
                 read.csv) %>% 
   select(plant_id, generator_id) %>% 
   distinct() %>% 
   mutate(source_diff = "gen_file")
 
-write_csv(plant_gen_diffs, "data/outputs/qa/generator_file_differences/plant_gen_difference_ids.csv")
+write_csv(plant_gen_diffs, paste0(save_dir, "plant_gen_difference_ids.csv"))
 
