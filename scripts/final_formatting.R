@@ -37,7 +37,7 @@ if (exists("params")) {
     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
     params$eGRID_year <- as.character(params$eGRID_year) 
   }
-  
+
   if ("run_demo_file" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
     print("Demographics file parameter is already defined.")
   } else { # if params() is defined, but eGRID_year is not, define it here
@@ -49,10 +49,8 @@ if (exists("params")) {
   params <- list()
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
-  
   params$run_demo_file <- readline(prompt = "Input run_demo_file (TRUE/FALSE): ")
   params$run_demo_file <- toupper(params$run_demo_file)
-  
 }
 
 
@@ -1160,7 +1158,6 @@ if (params$run_demo_file) {
                    "N_D_DEMOGIDX5_PER" = "National Percentile of Supplemental Demographic Index",
                    "DISTANCE"            = "Distance (miles)")
   
-  
   demo_header <- names(demo_labels)  # column names
   demo_desc   <- unname(demo_labels) # description of column names
   
@@ -1249,7 +1246,6 @@ add_hyperlink(glue::glue("GGL{year}"),  row_link = 1, col_link = 1, loc = c(3, 1
 if (params$run_demo_file) {
   add_hyperlink(glue::glue("DEMO{year}"),  row_link = 1, col_link = 1, loc = c(3, 17), text_to_show = glue::glue("DEMO{year}"))
 }
-
 
 # feedback columns
 contact_link <- "https://www.epa.gov/egrid/forms/contact-us-about-egrid"
