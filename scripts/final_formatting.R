@@ -50,7 +50,7 @@ if (exists("params")) {
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
   params$run_demo_file <- readline(prompt = "Input run_demo_file (TRUE/FALSE): ")
-  params$run_demo_file <- toupper(params$run_demo_file) == "TRUE"
+  params$run_demo_file <- toupper(params$run_demo_file)
 }
 
 
@@ -65,7 +65,6 @@ nrl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/nerc_aggrega
 us_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/us_aggregation.RDS"))
 ggl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 
-params$run_demo_file = TRUE # for testing purposes - remove later
 if (params$run_demo_file) {
   demo_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
 }
