@@ -160,10 +160,11 @@ demo_data <- as.data.frame(demo_data) %>%
 
 # rename columns
 colnames(demo_data) <- column_names
-# remove duplicated columns (totalPop, etc.)
+
+# remove duplicated columns 
 demo_data <- demo_data[, !duplicated(colnames(demo_data))]
 
-# keep only demographic data (not environmental)
+# keep only demographic data columns
 demo_data <- demo_data %>%
               select(totalPop, grep("_D_", colnames(demo_data), value = TRUE), distance, plant_id) %>%
               unique() %>% # unique since unnest() produced duplicate columns
