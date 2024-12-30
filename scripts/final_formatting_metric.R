@@ -404,8 +404,6 @@ unt_labels <-  c(sequnt_label,
                  "NOXCTLDV" = "Unit NOx first control device",
                  "HGCTLDV"  = "Unit Hg Activated carbon injection system flag",
                  "UNTYRONL" = "Unit year on-line",
-                 # "" = "Stack or Flue ID
-                 #"" = "Stack Flue Status"
                  "STACKHT"  = "Stack Height (meters)")
 
 unt_header <- names(unt_labels)  # column names
@@ -1238,7 +1236,7 @@ contact_cell <- data.frame(
   Hyperlink = contact_link
 )
 
-writeData(wb, sheet = "Contents", x = contact_cell, startCol=2, startRow=22, colNames = FALSE, rowNames = FALSE)
+writeData(wb, sheet = "Contents", x = contact_cell, startCol = 2, startRow = 22, colNames = FALSE, rowNames = FALSE)
 
 # add hyperlinks to specific columns
 # annual values 
