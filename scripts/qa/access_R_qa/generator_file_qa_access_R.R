@@ -1,5 +1,7 @@
 ## -------------------------------
 ##
+## Note: this file is for internal QA only. 
+##
 ## Generator file QA 
 ## 
 ## Purpose: 
@@ -28,20 +30,26 @@ library(readxl)
 
 if(dir.exists("data/outputs/qa")) {
   print("Folder qa already exists.")
-}else{
-  dir.create("data/outputs/qa")
+} else {
+   dir.create("data/outputs/qa")
 }
 
-if(dir.exists("data/outputs/qa/generator_file_differences/2023")) {
-  print("Folder generator_file_differences already exists.")
-}else{
-  dir.create("data/outputs/qa/generator_file_differences/2023")
+if(dir.exists("data/outputs/qa/generator_file_differences")) {
+  print(glue::glue("Folder generator_file_differences already exists."))
+} else {
+  dir.create("data/outputs/qa/generator_file_differences")
 }
 
-save_dir <- "data/outputs/qa/generator_file_differences/2023/"
+if(dir.exists(glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}"))) {
+  print(glue::glue("Folder generator_file_differences/{params$eGRID_year} already exists."))
+} else {
+   dir.create(glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}"))
+}
+
+save_dir <- glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}/")
 
 # load R dataset
-generator_r <- read_rds("data/outputs/2023/generator_file.RDS") 
+generator_r <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
 
 # add "_r" after each variable to easily identify dataset 
 colnames(generator_r) <- paste0(colnames(generator_r), "_r")
@@ -52,7 +60,8 @@ generator_r <-
          "generator_id" = "generator_id_r") %>% select(-seqgen_r)
 
 # load access dataset (from published 2021 eGRID excel sheet)  
-generator_access <- read_excel("data/raw_data/eGRID_Data2023.xlsx", sheet = "GEN23", 
+generator_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
+                               sheet = glue::glue("GEN{as.numeric(params$eGRID_year) %% 1000}"),  
                                skip = 1, 
                                guess_max = 4000) %>% janitor::clean_names() %>% 
   select(-seqgen23) %>% 
@@ -247,14 +256,14 @@ if(nrow(check_gen_source) > 0) {
   write_csv(check_gen_source, paste0(save_dir, "check_generation_source.csv"))}
 
 # Identify all unique plant and unit IDs that have differences ------------
-files <- grep("check", dir("data/outputs/qa/generator_file_differences/2023/"), value = TRUE)
+files <- grep("check", dir(save_dir), value = TRUE)
 
 plant_gen_diffs <- 
-  purrr::map_df(paste0("data/outputs/qa/generator_file_differences/2023/", files), 
+  purrr::map_df(paste0(save_dir, files), 
                 read.csv) %>% 
   select(plant_id, generator_id) %>% 
   distinct() %>% 
   mutate(source_diff = "gen_file")
 
-write_csv(plant_gen_diffs, "data/outputs/qa/generator_file_differences/plant_gen_difference_ids.csv")
+write_csv(plant_gen_diffs, paste0(save_dir, "plant_gen_difference_ids.csv"))
 

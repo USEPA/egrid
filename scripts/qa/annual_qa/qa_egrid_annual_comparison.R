@@ -33,7 +33,7 @@ cur_year <- as.numeric(params$eGRID_year)
 prev_yr1 <- as.character(cur_year - 1)
 prev_yr2 <- as.character(cur_year - 2)
 prev_yr3 <- as.character(cur_year - 3)
-cur_year <- params$eGRID_year
+cur_year <- as.character(cur_year)
 
 # Load and clean data -----
 
@@ -85,11 +85,11 @@ if(!file.exists(path_2019)){
 }
 
 
-## Load and combine eGRID region data -----
+## Load and combine eGRID subregion data -----
 
 # Rename necessary columns to snake_case 
 
-egrid_column_names <- c(
+  subregion_column_names <- c(
   "year" = "YEAR", 
   "subregion" = "SUBRGN",
   "subregion_name" = "SRNAME", 
@@ -115,6 +115,71 @@ egrid_column_names <- c(
   "ch4_combustion_rate" = "SRCH4CRT", 
   "n2o_combustion_rate" = "SRN2OCRT", 
   "co2e_combustion_rate" = "SRC2ECRT",
+  "nox_output_rate_coal" = "SRCNOXRT",
+  "nox_output_rate_oil" = "SRONOXRT",
+  "nox_output_rate_gas" = "SRGNOXRT",
+  "nox_output_rate_fossil" = "SRFSNXRT",
+  "nox_oz_output_rate_coal" = "SRCNXORT",
+  "nox_oz_output_rate_oil" = "SRONXORT",
+  "nox_oz_output_rate_gas" = "SRGNXORT",
+  "nox_oz_output_rate_fossil" = "SRFSNORT",
+  "so2_output_rate_coal" = "SRCSO2RT",
+  "so2_output_rate_oil" = "SROSO2RT",
+  "so2_output_rate_gas" = "SRGSO2RT",
+  "so2_output_rate_fossil" = "SRFSS2RT",
+  "co2_output_rate_coal" = "SRCCO2RT",
+  "co2_output_rate_oil" = "SROCO2RT",
+  "co2_output_rate_gas" = "SRGCO2RT",
+  "co2_output_rate_fossil" = "SRFSC2RT",
+  "ch4_output_rate_coal" = "SRCCH4RT",
+  "ch4_output_rate_oil" = "SROCH4RT",
+  "ch4_output_rate_gas" = "SRGCH4RT",
+  "ch4_output_rate_fossil" = "SRFCH4RT",
+  "n2o_output_rate_coal" = "SRCN2ORT",
+  "n2o_output_rate_oil" = "SRON2ORT",
+  "n2o_output_rate_gas" = "SRGN2ORT",
+  "n2o_output_rate_fossil" = "SRFN2ORT",
+  "n2o_output_rate_coal" = "SRCN2ORT",
+  "co2e_output_rate_coal" = "SRCC2ERT",
+  "co2e_output_rate_oil" = "SROC2ERT",
+  "co2e_output_rate_gas" = "SRGC2ERT",
+  "co2e_output_rate_fossil" = "SRFSC2ERT",
+  "nox_input_rate_coal" = "SRCNOXR",
+  "nox_input_rate_oil" = "SRONOXR",
+  "nox_input_rate_gas" = "SRGNOXR",
+  "nox_input_rate_fossil" = "SRFSNXR",
+  "nox_oz_input_rate_coal" = "SRCNXOR",
+  "nox_oz_input_rate_oil" = "SRONXOR",
+  "nox_oz_input_rate_gas" = "SRGNXOR",
+  "nox_oz_input_rate_fossil" = "SRFSNOR",
+  "so2_input_rate_coal" = "SRCSO2R",
+  "so2_input_rate_oil" = "SROSO2R",
+  "so2_input_rate_gas" = "SRGSO2R",
+  "so2_input_rate_fossil" = "SRFSS2R",
+  "co2_input_rate_coal" = "SRCCO2R",
+  "co2_input_rate_oil" = "SROCO2R",
+  "co2_input_rate_gas" = "SRGCO2R",
+  "co2_input_rate_fossil" = "SRFSC2R",
+  "ch4_input_rate_coal" = "SRCCH4R",
+  "ch4_input_rate_oil" = "SROCH4R",
+  "ch4_input_rate_gas" = "SRGCH4R",
+  "ch4_input_rate_fossil" = "SRFCH4R",
+  "n2o_input_rate_coal" = "SRCN2OR",
+  "n2o_input_rate_oil" = "SRON2OR",
+  "n2o_input_rate_gas" = "SRGN2OR",
+  "n2o_input_rate_fossil" = "SRFN2OR",
+  "n2o_input_rate_coal" = "SRCN2OR",
+  "co2e_input_rate_coal" = "SRCC2ER",
+  "co2e_input_rate_oil" = "SROC2ER",
+  "co2e_input_rate_gas" = "SRGC2ER",
+  "co2e_input_rate_fossil" = "SRFSC2ER",
+  "nox_nonbaseload_rate" = "SRNBNOX",
+  "nox_oz_nonbaseload_rate" = "SRNBNXO",
+  "so2_nonbaseload_rate" = "SRNBSO2",
+  "co2_nonbaseload_rate" = "SRNBCO2",
+  "ch4_nonbaseload_rate" =  "SRNBCH4",
+  "n2o_nonbaseload_rate" =  "SRNBN2O",
+  "co2e_nonbaseload_rate" = "SRNBC2E",
   "coal_gen" = "SRGENACL", 
   "oil_gen" = "SRGENAOL", 
   "gas_gen" = "SRGENAGS", 
@@ -129,36 +194,36 @@ egrid_column_names <- c(
   "net_gen" = "SRNGENAN")
 
 # read in subregion data for each data year to compare here
-egrid_prev_yr3 <- 
+subregion_prev_yr3 <- 
   read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr3}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(prev_yr3) %% 1000}"), 
                         skip = 1) %>% 
-  select(any_of(egrid_column_names))
+  select(any_of(subregion_column_names))
   
-egrid_prev_yr2 <- 
+subregion_prev_yr2 <- 
   read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr2}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(prev_yr2) %% 1000}"),
                         skip = 1) %>% 
-  select(any_of(egrid_column_names))
+  select(any_of(subregion_column_names))
 
-egrid_prev_yr1 <- 
+subregion_prev_yr1 <- 
   read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr1}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(prev_yr1) %% 1000}"),
                         skip = 1) %>% 
-  select(any_of(egrid_column_names))
+  select(any_of(subregion_column_names))
 
-egrid_cur_yr <- 
+subregion_cur_yr <- 
   read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(cur_year) %% 1000}"),
                         skip = 1) %>% 
-  select(any_of(egrid_column_names))
+  select(any_of(subregion_column_names))
 
-# combine all egrid years
-egrid_comparison <- 
-  egrid_prev_yr3 %>% 
-  bind_rows(egrid_prev_yr2) %>% 
-  bind_rows(egrid_prev_yr1) %>% 
-  bind_rows(egrid_cur_yr) %>% 
+# combine all subregion years
+subregion_comparison <- 
+  subregion_prev_yr3 %>% 
+  bind_rows(subregion_prev_yr2) %>% 
+  bind_rows(subregion_prev_yr1) %>% 
+  bind_rows(subregion_cur_yr) %>% 
   mutate(year = as.character(year))
 
 ## Load state region data -----
@@ -169,6 +234,92 @@ state_column_names <- c(
   "year" = "YEAR", 
   "state" = "PSTATABB",
   "state_nameplate_capacity" = "STNAMEPCAP", 
+  "nox_output_rate" = "STNOXRTA", 
+  "nox_oz_output_rate" = "STNOXRTO", 
+  "so2_output_rate" = "STSO2RTA",
+  "co2_output_rate" = "STCO2RTA", 
+  "ch4_output_rate" = "STCH4RTA", 
+  "n2o_output_rate" = "STN2ORTA", 
+  "co2e_output_rate" = "STC2ERTA",
+  "nox_input_rate" = "STNOXRA", 
+  "nox_oz_input_rate" = "STNOXRO", 
+  "so2_input_rate" = "STSO2RA",
+  "co2_input_rate" = "STCO2RA", 
+  "ch4_input_rate" = "STCH4RA", 
+  "n2o_input_rate" = "STN2ORA", 
+  "co2e_input_rate" = "STC2ERA",
+  "nox_combustion_rate" = "STNOXCRT", 
+  "nox_oz_combustion_rate" = "STNOXCRO", 
+  "so2_combustion_rate" = "STSO2CRT",
+  "co2_combustion_rate" = "STCO2CRT", 
+  "ch4_combustion_rate" = "STCH4CRT", 
+  "n2o_combustion_rate" = "STN2OCRT", 
+  "co2e_combustion_rate" = "STC2ECRT",
+  "nox_output_rate_coal" = "STCNOXRT",
+  "nox_output_rate_oil" = "STONOXRT",
+  "nox_output_rate_gas" = "STGNOXRT",
+  "nox_output_rate_fossil" = "STFSNXRT",
+  "nox_oz_output_rate_coal" = "STCNXORT",
+  "nox_oz_output_rate_oil" = "STONXORT",
+  "nox_oz_output_rate_gas" = "STGNXORT",
+  "nox_oz_output_rate_fossil" = "STFSNORT",
+  "so2_output_rate_coal" = "STCSO2RT",
+  "so2_output_rate_oil" = "STOSO2RT",
+  "so2_output_rate_gas" = "STGSO2RT",
+  "so2_output_rate_fossil" = "STFSS2RT",
+  "co2_output_rate_coal" = "STCCO2RT",
+  "co2_output_rate_oil" = "STOCO2RT",
+  "co2_output_rate_gas" = "STGCO2RT",
+  "co2_output_rate_fossil" = "STFSC2RT",
+  "ch4_output_rate_coal" = "STCCH4RT",
+  "ch4_output_rate_oil" = "STOCH4RT",
+  "ch4_output_rate_gas" = "STGCH4RT",
+  "ch4_output_rate_fossil" = "STFCH4RT",
+  "n2o_output_rate_coal" = "STCN2ORT",
+  "n2o_output_rate_oil" = "STON2ORT",
+  "n2o_output_rate_gas" = "STGN2ORT",
+  "n2o_output_rate_fossil" = "STFN2ORT",
+  "n2o_output_rate_coal" = "STCN2ORT",
+  "co2e_output_rate_coal" = "STCC2ERT",
+  "co2e_output_rate_oil" = "STOC2ERT",
+  "co2e_output_rate_gas" = "STGC2ERT",
+  "co2e_output_rate_fossil" = "STFSC2ERT",
+  "nox_input_rate_coal" = "STCNOXR",
+  "nox_input_rate_oil" = "STONOXR",
+  "nox_input_rate_gas" = "STGNOXR",
+  "nox_input_rate_fossil" = "STFSNXR",
+  "nox_oz_input_rate_coal" = "STCNXOR",
+  "nox_oz_input_rate_oil" = "STONXOR",
+  "nox_oz_input_rate_gas" = "STGNXOR",
+  "nox_oz_input_rate_fossil" = "STFSNOR",
+  "so2_input_rate_coal" = "STCSO2R",
+  "so2_input_rate_oil" = "STOSO2R",
+  "so2_input_rate_gas" = "STGSO2R",
+  "so2_input_rate_fossil" = "STFSS2R",
+  "co2_input_rate_coal" = "STCCO2R",
+  "co2_input_rate_oil" = "STOCO2R",
+  "co2_input_rate_gas" = "STGCO2R",
+  "co2_input_rate_fossil" = "STFSC2R",
+  "ch4_input_rate_coal" = "STCCH4R",
+  "ch4_input_rate_oil" = "STOCH4R",
+  "ch4_input_rate_gas" = "STGCH4R",
+  "ch4_input_rate_fossil" = "STFCH4R",
+  "n2o_input_rate_coal" = "STCN2OR",
+  "n2o_input_rate_oil" = "STON2OR",
+  "n2o_input_rate_gas" = "STGN2OR",
+  "n2o_input_rate_fossil" = "STFN2OR",
+  "n2o_input_rate_coal" = "STCN2OR",
+  "co2e_input_rate_coal" = "STCC2ER",
+  "co2e_input_rate_oil" = "STOC2ER",
+  "co2e_input_rate_gas" = "STGC2ER",
+  "co2e_input_rate_fossil" = "STFSC2ER",
+  "nox_nonbaseload_rate" = "STNBNOX",
+  "nox_oz_nonbaseload_rate" = "STNBNXO",
+  "so2_nonbaseload_rate" = "STNBSO2",
+  "co2_nonbaseload_rate" = "STNBCO2",
+  "ch4_nonbaseload_rate" =  "STNBCH4",
+  "n2o_nonbaseload_rate" =  "STNBN2O",
+  "co2e_nonbaseload_rate" = "STNBC2E",
   "coal_gen" = "STGENACL", 
   "oil_gen" = "STGENAOL", 
   "gas_gen" = "STGENAGS", 
@@ -179,6 +330,7 @@ state_column_names <- c(
   "solar_gen" = "STGENASO",
   "geothermal_gen" = "STGENAGT", 
   "other_fossil_gen" = "STGENAOF",
+  "other_purchased_gen" = "STGENAOP",
   "net_gen" = "STNGENAN")
 
 # read in state data for each data year to compare here
@@ -212,7 +364,15 @@ state_comparison <-
   bind_rows(state_prev_yr2) %>% 
   bind_rows(state_prev_yr1) %>% 
   bind_rows(state_cur_yr) %>% 
-  mutate(year = as.character(year))
+  mutate(year = as.character(year)) %>%
+  mutate(coal_output_rate = rowSums(across(contains("output_rate_coal"))),
+         oil_output_rate = rowSums(across(contains("output_rate_oil"))),
+         gas_output_rate = rowSums(across(contains("output_rate_gas"))),
+         fossil_output_rate = rowSums(across(contains("output_rate_fossil"))),
+         coal_input_rate = rowSums(across(contains("input_rate_coal"))),
+         oil_input_rate = rowSums(across(contains("input_rate_oil"))),
+         gas_input_rate = rowSums(across(contains("input_rate_gas"))),
+         fossil_input_rate = rowSums(across(contains("input_rate_fossil"))))
 
 ## Load US level data -------------
 
@@ -241,6 +401,71 @@ us_column_names <- c(
   "ch4_combustion_rate" = "USCH4CRT", 
   "n2o_combustion_rate" = "USN2OCRT", 
   "co2e_combustion_rate" = "USC2ECRT",
+  "nox_output_rate_coal" = "USCNOXRT",
+  "nox_output_rate_oil" = "USONOXRT",
+  "nox_output_rate_gas" = "USGNOXRT",
+  "nox_output_rate_fossil" = "USFSNXRT",
+  "nox_oz_output_rate_coal" = "USCNXORT",
+  "nox_oz_output_rate_oil" = "USONXORT",
+  "nox_oz_output_rate_gas" = "USGNXORT",
+  "nox_oz_output_rate_fossil" = "USFSNORT",
+  "so2_output_rate_coal" = "USCSO2RT",
+  "so2_output_rate_oil" = "USOSO2RT",
+  "so2_output_rate_gas" = "USGSO2RT",
+  "so2_output_rate_fossil" = "USFSS2RT",
+  "co2_output_rate_coal" = "USCCO2RT",
+  "co2_output_rate_oil" = "USOCO2RT",
+  "co2_output_rate_gas" = "USGCO2RT",
+  "co2_output_rate_fossil" = "USFSC2RT",
+  "ch4_output_rate_coal" = "USCCH4RT",
+  "ch4_output_rate_oil" = "USOCH4RT",
+  "ch4_output_rate_gas" = "USGCH4RT",
+  "ch4_output_rate_fossil" = "USFCH4RT",
+  "n2o_output_rate_coal" = "USCN2ORT",
+  "n2o_output_rate_oil" = "USON2ORT",
+  "n2o_output_rate_gas" = "USGN2ORT",
+  "n2o_output_rate_fossil" = "USFN2ORT",
+  "n2o_output_rate_coal" = "USCN2ORT",
+  "co2e_output_rate_coal" = "USCC2ERT",
+  "co2e_output_rate_oil" = "USOC2ERT",
+  "co2e_output_rate_gas" = "USGC2ERT",
+  "co2e_output_rate_fossil" = "USFSC2ERT",
+  "nox_input_rate_coal" = "USCNOXR",
+  "nox_input_rate_oil" = "USONOXR",
+  "nox_input_rate_gas" = "USGNOXR",
+  "nox_input_rate_fossil" = "USFSNXR",
+  "nox_oz_input_rate_coal" = "USCNXOR",
+  "nox_oz_input_rate_oil" = "USONXOR",
+  "nox_oz_input_rate_gas" = "USGNXOR",
+  "nox_oz_input_rate_fossil" = "USFSNOR",
+  "so2_input_rate_coal" = "USCSO2R",
+  "so2_input_rate_oil" = "USOSO2R",
+  "so2_input_rate_gas" = "USGSO2R",
+  "so2_input_rate_fossil" = "USFSS2R",
+  "co2_input_rate_coal" = "USCCO2R",
+  "co2_input_rate_oil" = "USOCO2R",
+  "co2_input_rate_gas" = "USGCO2R",
+  "co2_input_rate_fossil" = "USFSC2R",
+  "ch4_input_rate_coal" = "USCCH4R",
+  "ch4_input_rate_oil" = "USOCH4R",
+  "ch4_input_rate_gas" = "USGCH4R",
+  "ch4_input_rate_fossil" = "USFCH4R",
+  "n2o_input_rate_coal" = "USCN2OR",
+  "n2o_input_rate_oil" = "USON2OR",
+  "n2o_input_rate_gas" = "USGN2OR",
+  "n2o_input_rate_fossil" = "USFN2OR",
+  "n2o_input_rate_coal" = "USCN2OR",
+  "co2e_input_rate_coal" = "USCC2ER",
+  "co2e_input_rate_oil" = "USOC2ER",
+  "co2e_input_rate_gas" = "USGC2ER",
+  "co2e_input_rate_fossil" = "USFSC2ER",
+  "nox_nonbaseload_rate" = "USNBNOX",
+  "nox_oz_nonbaseload_rate" = "USNBNXO",
+  "so2_nonbaseload_rate" = "USNBSO2",
+  "co2_nonbaseload_rate" = "USNBCO2",
+  "ch4_nonbaseload_rate" =  "USNBCH4",
+  "n2o_nonbaseload_rate" =  "USNBN2O",
+  "co2e_nonbaseload_rate" = "USNBC2E",
   "coal_gen" = "USGENACL", 
   "oil_gen" = "USGENAOL", 
   "gas_gen" = "USGENAGS", 
@@ -289,24 +514,36 @@ us_comparison <-
          subregion = "US")
 
 ## Combine US and subregion data 
-egrid_us_comparison <- 
+subregion_us_comparison <- 
   us_comparison %>% 
-  bind_rows(egrid_comparison)
+  bind_rows(subregion_comparison) %>%
+  mutate(coal_output_rate = rowSums(across(contains("output_rate_coal"))),
+         oil_output_rate = rowSums(across(contains("output_rate_oil"))),
+         gas_output_rate = rowSums(across(contains("output_rate_gas"))),
+         fossil_output_rate = rowSums(across(contains("output_rate_fossil"))),
+         coal_input_rate = rowSums(across(contains("input_rate_coal"))),
+         oil_input_rate = rowSums(across(contains("input_rate_oil"))),
+         gas_input_rate = rowSums(across(contains("input_rate_gas"))),
+         fossil_input_rate = rowSums(across(contains("input_rate_fossil")))) 
 
 # Emission rate comparisons -------------
 ## Emission rate comparison across eGRID subregions -------
 
 # calculate emission rate percent change 
 
-egrid_rate_comparison <- 
-  egrid_us_comparison %>% 
+subregion_rate_comparison <- 
+  subregion_us_comparison %>% 
   select(year, subregion, subregion_name, contains("rate"), contains("gen")) %>% 
   pivot_wider(names_from = year, 
               values_from = contains("rate") | contains("gen")) %>% 
-  mutate(across(.cols = contains(glue::glue("rate_{cur_year}")), 
+  mutate(across(.cols = contains(c(glue::glue("rate_{cur_year}"), 
+                                   glue::glue("rate_coal_{cur_year}"),
+                                   glue::glue("rate_oil_{cur_year}"),
+                                   glue::glue("rate_gas_{cur_year}"), 
+                                   glue::glue("rate_fossil_{cur_year}"))),
                 .fns = ~ (. - get(str_replace(cur_column(), cur_year, prev_yr1))) 
                                       / get(str_replace(cur_column(), cur_year, prev_yr1)) * 100,
-                .names = "{sub('_rate.*', '', .col)}_pct}"), 
+                .names = "{sub(glue::glue('{cur_year}'), '', .col)}pct"), 
          across(.cols = contains(glue::glue("gen_{cur_year}")), 
                 .fns = ~ case_when(
                   (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . == 0) ~ 0, 
@@ -324,13 +561,43 @@ egrid_rate_comparison <-
                                   sprintf("Solar: %+.1f%%,", solar_pct), sprintf("Geothermal: %+.1f%%,", geothermal_pct)))
   
 
+## Emission rate comparison across eGRID states -------
 
-# eGRID region and US resource mix -----
+state_rate_comparison <- 
+  state_comparison %>%
+  select(year, state, contains("rate"), contains("gen")) %>% 
+  pivot_wider(names_from = year, 
+              values_from = contains("rate") | contains("gen")) %>% 
+  mutate(across(.cols = contains(c(glue::glue("rate_{cur_year}"), 
+                                   glue::glue("rate_coal_{cur_year}"),
+                                   glue::glue("rate_oil_{cur_year}"),
+                                   glue::glue("rate_gas_{cur_year}"), 
+                                   glue::glue("rate_fossil_{cur_year}"))),
+                .fns = ~ (. - get(str_replace(cur_column(), cur_year, prev_yr1))) 
+                / get(str_replace(cur_column(), cur_year, prev_yr1)) * 100,
+                .names = "{sub(glue::glue('{cur_year}'), '', .col)}pct"), , 
+         across(.cols = contains(glue::glue("gen_{cur_year}")), 
+                .fns = ~ case_when(
+                  (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . == 0) ~ 0, 
+                  (get(str_replace(cur_column(), cur_year, prev_yr1)) != 0) 
+                  ~ round((. - get(str_replace(cur_column(), cur_year, prev_yr1))) 
+                          / get(str_replace(cur_column(), cur_year, prev_yr1)) * 100, 1), 
+                  (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . > 0) ~ 100), 
+                .names = "{sub('_gen.*', '', .col)}_pct")) %>% 
+  select(-contains("gen")) %>% 
+  mutate(generation_notes = paste(sprintf("Coal: %+.1f%%,", coal_pct), # add summary of net generation changes
+                                  sprintf("Oil: %+.1f%%,", oil_pct), 
+                                  sprintf("Gas: %+.1f%%,", gas_pct), sprintf("Other fossil: %+.1f%%,", other_fossil_pct), 
+                                  sprintf("Nuclear: %+.1f%%,", nuclear_pct), sprintf("Hydro: %+.1f%%,", hydro_pct), 
+                                  sprintf("Biomass: %+.1f%%,", biomass_pct), sprintf("Wind: %+.1f%%,", wind_pct),
+                                  sprintf("Solar: %+.1f%%,", solar_pct), sprintf("Geothermal: %+.1f%%,", geothermal_pct)))
+
+# eGRID subregion and US resource mix -----
 
 # calculate generation percent change
 
-egrid_gen_comparison <- 
-  egrid_us_comparison %>% 
+subregion_gen_comparison <- 
+  subregion_us_comparison %>% 
   select(year, subregion, subregion_name, contains("gen")) %>% 
   pivot_wider(names_from = year, 
               values_from = contains("gen")) %>% 
@@ -349,16 +616,16 @@ egrid_gen_comparison <-
                values_to = "pct_change")
 
 # format generation mix and merge in percent change data
-egrid_resource_mix <- 
-  egrid_us_comparison %>% 
+subregion_resource_mix <- 
+  subregion_us_comparison %>% 
   select(year, subregion, subregion_name, contains("gen"), -net_gen) %>% 
   pivot_longer(cols = contains("gen"), 
                names_to = "energy_source", 
                values_to = "generation") %>% 
   mutate(energy_source = str_replace(energy_source, "_gen", "")) 
 
-egrid_resource_mix$energy_source <- 
-  factor(egrid_resource_mix$energy_source, 
+subregion_resource_mix$energy_source <- 
+  factor(subregion_resource_mix$energy_source, 
           levels = c("coal", 
                      "oil", 
                      "gas",
@@ -372,22 +639,22 @@ egrid_resource_mix$energy_source <-
                      "other_purchased"))
 
 
-egrid_resource_mix_wider <- 
-  egrid_resource_mix %>% 
+subregion_resource_mix_wider <- 
+  subregion_resource_mix %>% 
   pivot_wider(names_from = year, 
               values_from = generation) %>% 
-  left_join(egrid_gen_comparison, by = c("subregion", "subregion_name", "energy_source")) %>% 
+  left_join(subregion_gen_comparison, by = c("subregion", "subregion_name", "energy_source")) %>% 
   select(-subregion_name)
 
 # summarize nameplate capacity and net gen 
-egrid_cap_gen <- 
-  egrid_us_comparison %>% 
+subregion_cap_gen <- 
+  subregion_us_comparison %>% 
   select(year, subregion, subregion_name, nameplate_capacity, net_gen)
 
 
 # calculate us resource mix
 us_resource_mix <-
-  egrid_resource_mix %>%
+  subregion_resource_mix %>%
   group_by(year, energy_source) %>%
   summarize(energy_source_generation = sum(generation, na.rm = TRUE)) %>%
   ungroup() 

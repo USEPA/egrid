@@ -64,26 +64,38 @@ eia_860_combined <- eia_860$combined %>%
          status, 
          energy_source_1, 
          nameplate_capacity,
+         planned_retirement_year,
          retirement_year,
          operating_year)
 
-# Load crosswalks ------------
+# Load crosswalks and static tables ------------
 
 xwalk_fuel_codes <- # xwalk for specific changes made to certain generator fuel types
-  read_csv("data/static_tables/xwalk_fuel_type.csv", 
+  read_csv("data/static_tables/og_oth_units_to_change_fuel_type.csv", 
            col_types = "cccccccc") %>% 
-  rename("generator_id" = unit_id) %>% 
-  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>% # creating id to facilitate join
-  select(id_pm, fuel_code)
+  select(plant_id, fuel_code) %>% distinct()
 
-xwalk_eia_epa <- # xwalk for updating certain plants to camd plant names and ids
+xwalk_eia_epa <- # xwalk for updating certain plants to EPA plant names and ids
   read_csv("data/static_tables/xwalk_oris_epa.csv", 
            col_types = "cccc") # all fields are characters
+
+epa_plants_to_delete <- 
+  read_csv("data/static_tables/epa_plants_to_delete.csv", 
+           col_types = cols_only(`ORIS Code` = "c")) %>% 
+  janitor::clean_names() %>% 
+  rename("plant_id" = oris_code)
 
 manual_corrections <- # manual corrections needed for generator file
   read_xlsx("data/static_tables/manual_corrections.xlsx", 
             sheet = "generator_file", 
             col_types = c("text", "text", "text", "text", "text"))
+
+# Load EPA data to update plant names to EPA versions
+if(file.exists(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))) { # if file does not exist, stop code and print error
+  epa <- read_rds(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")) %>% 
+    select(plant_id, plant_name) %>% distinct()
+} else { 
+  stop("epa_clean.RDS does not exist. Run data_load_epa.R and data_clean_epa.R to obtain.")}
 
 # Create lookup table for generator IDs with leading zeroes ------------
 # some IDs in EIA-923 do not have leading zeroes, but should match to generators in EIA-860 that have leading zeroes
@@ -161,7 +173,8 @@ eia_860_combined_r <-
   left_join(gen_id_manual_corrections, by = c("plant_id", "generator_id")) %>% 
   mutate(
     generator_id = if_else(!(plant_id %in% plant_keep_leading_zeroes), str_remove(generator_id, "^0+"), generator_id), # remove leading zeroes from generator IDs
-    generator_id = if_else(!is.na(update), update, generator_id)) %>% # update generator IDs from manual_corrections
+    generator_id = if_else(!is.na(update), update, generator_id), # update generator IDs from manual_corrections
+    retirement_year = if_else(is.na(retirement_year), planned_retirement_year, retirement_year)) %>% 
   select(-update)
     
 eia_860_boiler_count <- # creating count of boilers for each generator
@@ -270,7 +283,8 @@ eia_gen_genfuel_diff <-
                                             abs_diff_generation_ann / tot_generation_ann_fuel), # calculating the percentage of the difference over the fuel levels in gen_fuel file
          perc_diff_generation_oz = if_else(abs_diff_generation_oz == 0, 0, 
                                            abs_diff_generation_oz / tot_generation_oz_fuel),
-         overwrite = if_else(perc_diff_generation_ann > 0.001, "overwrite", "EIA-923 Generator File"))
+         overwrite = if_else(perc_diff_generation_ann > 0.001, "overwrite", "EIA-923 Generator File")) %>% 
+  filter(tot_generation_ann_fuel != 0)
 
 
 ## Where overwrite == overwrite, we distribute the the generation figures in the EIA-923 Gen and Fuel file and 
@@ -318,7 +332,7 @@ december_netgen <-
                                             "yes", "no")) %>% # identifying cases where annual generation = december generation
   left_join(eia_gen_fuel_generation_sum) %>% ## pulling in Gen fuel data
   group_by(plant_id, prime_mover) %>%
-  mutate(tot_nameplate_cap = sum(nameplate_capacity),
+  mutate(tot_nameplate_capacity = sum(nameplate_capacity, na.rm = TRUE),
          prop = if_else(tot_nameplate_capacity != 0, # creating proportion based on nameplate_capacity used to distribute generation across generators
                         nameplate_capacity / tot_nameplate_capacity, 
                         NA_real_)) %>% 
@@ -387,14 +401,16 @@ if(nrow(generators_combined) > (nrow(gen_dist_no_dec_overwritten) + nrow(decembe
 # Final modifications to generator file -----------
 
 # creating lookup tables based on xwalk to use with recode() 
-lookup_fuel_codes <- with(xwalk_fuel_codes, setNames(fuel_code, id_pm))
+#lookup_fuel_codes <- with(xwalk_fuel_codes, setNames(fuel_code, id))
+
 lookup_eia_id_epa_id <- with(xwalk_eia_epa, setNames(epa_plant_id, eia_plant_id))
 lookup_epa_id_name <- with(xwalk_eia_epa, setNames(epa_plant_name, epa_plant_id))
 
 generators_edits <- 
   generators_combined %>% 
+  left_join(xwalk_fuel_codes %>% rename(fuel_code_update = fuel_code), by = c("plant_id")) %>% 
   mutate(id = paste0(plant_id, "_", generator_id), 
-         fuel_code = recode(id_pm, !!!lookup_fuel_codes, .default = energy_source_1), # creating fuel_code based on lookup table and energy_source_1 if not in lookup table. recode() essentially matches on id, then replaces with key value  
+         fuel_code = if_else(plant_id %in% xwalk_fuel_codes$plant_id & energy_source_1 %in% c("OG", "OTH"), fuel_code_update, energy_source_1),
          generator_id = recode(id, !!!lookup_860_leading_zeroes, .default = generator_id), # updating generator ID to add back in leading zeroes
          generator_id = recode(id, !!!lookup_923_leading_zeroes, .default = generator_id), # updating generator ID to add back in leading zeroes
          plant_id = recode(plant_id, !!!lookup_eia_id_epa_id), # updating plant_id to corresponding EPA IDs with lookup table
@@ -402,7 +418,9 @@ generators_edits <-
          gen_data_source = if_else(is.na(generation_ann), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
          year = params$eGRID_year,
          capfact = if_else(nameplate_capacity != 0, generation_ann / (nameplate_capacity * 8760), 0)) %>%  # calculating capacity factor
-  left_join(eia_860_boiler_count)
+  left_join(eia_860_boiler_count) %>% 
+  rows_update(epa, by = c("plant_id"), unmatched = "ignore") %>% 
+  rows_delete(epa_plants_to_delete, by = c("plant_id"), unmatched = "ignore")
 
 # creating named vector of final variable order and variable name included in generator file
 final_vars <-
