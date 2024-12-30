@@ -1,5 +1,7 @@
 ## -------------------------------
 ##
+## Note: this file is for internal QA only. 
+##
 ## Plant file QA 
 ##
 ## Purpose: 
@@ -25,8 +27,9 @@ library(stringr)
 
 # set directory for saving files 
 save_dir <- here("data/outputs/qa/plant_file_differences", Sys.Date(),"")
+
 # create it if it doesn't already exist
-if(!dir.exists(save_dir)){ dir.create(save_dir,recursive = T)}
+if(!dir.exists(save_dir)) {dir.create(save_dir,recursive = T)}
 do.call(file.remove, list(dir(save_dir, full.names = TRUE)))
 
 ## 1. R Version --------------
@@ -71,7 +74,7 @@ plant_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_yea
          "county_access" = "cntyname",
          "lat_access" = "lat",
          "lon_access" = "lon",
-         "camd_flag_access" = "camdflag",
+         "capd_flag_access" = "camdflag",
          "num_units_access" = "numunt", 
          "num_generators_access"= "numgen",   
          "primary_fuel_type_access" = "plprmfl",
@@ -92,6 +95,7 @@ plant_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_yea
          "heat_input_oz_access"="plhtiozt",
          "generation_ann_access"="plngenan", 
          "generation_oz_access" = "plngenoz",
+         "generation_nonbaseload_access" = "plngennb",
          "nox_mass_access"="plnoxan",
          "nox_oz_mass_access"="plnoxoz",
          "so2_mass_access"="plso2an",
@@ -116,20 +120,21 @@ plant_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_yea
          "n2o_in_emission_rate_access"="pln2ora",
          "co2e_in_emission_rate_access"= "plc2era",
          "hg_in_emission_rate_access"="plhgra",
-         "nox_combust_out_emission_rate_access"="plnoxcrt",
-         "nox_oz_combust_out_emission_rate_access"="plnoxcro",
-         "so2_combust_out_emission_rate_access"="plso2crt",
-         "co2_combust_out_emission_rate_access"="plco2crt",
-         "ch4_combust_out_emission_rate_access"="plch4crt",
-         "n2o_combust_out_emission_rate_access"="pln2ocrt",
-         "co2e_combust_out_emission_rate_access"="plc2ecrt",
-         "hg_combust_out_emission_rate_access"="plhgcrt",
-         "unadj_nox_mass_access"="unnox",
-         "unadj_nox_oz_mass_access"="unnoxoz",
-         "unadj_so2_mass_access"="unso2",
-         "unadj_co2_mass_access"="unco2",
-         "unadj_ch4_mass_access"="unch4",
-         "unadj_n2o_mass_access"="unn2o",
+         "nox_combust_out_emission_rate_access" = "plnoxcrt",
+         "nox_oz_combust_out_emission_rate_access" = "plnoxcro",
+         "so2_combust_out_emission_rate_access" = "plso2crt",
+         "co2_combust_out_emission_rate_access" = "plco2crt",
+         "ch4_combust_out_emission_rate_access" = "plch4crt",
+         "n2o_combust_out_emission_rate_access" = "pln2ocrt",
+         "co2e_combust_out_emission_rate_access" = "plc2ecrt",
+         "hg_combust_out_emission_rate_access" = "plhgcrt",
+         "unadj_nox_mass_access" = "unnox",
+         "unadj_nox_oz_mass_access" = "unnoxoz",
+         "unadj_so2_mass_access" = "unso2",
+         "unadj_co2_mass_access" = "unco2",
+         "unadj_ch4_mass_access" = "unch4",
+         "unadj_n2o_mass_access" = "unn2o",
+         "unadj_co2e_mass_access" = "unco2e",
          "unadj_hg_mass_access"="unhg",
          "unadj_combust_heat_input_access"="unhti",
          "unadj_combust_heat_input_oz_access"="unhtioz",
@@ -141,6 +146,7 @@ plant_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_yea
          "unadj_co2_source_access"="unco2src",
          "unadj_ch4_source_access"="unch4src",
          "unadj_n2o_source_access"="unn2osrc",
+         "unadj_co2e_source_access" = "unc2esrc", 
          "unadj_hg_source_access"="unhgsrc",
          "unadj_heat_input_source_access"="unhtisrc",
          "unadj_heat_input_oz_source_access"="unhozsrc",
@@ -151,6 +157,7 @@ plant_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_yea
          "co2_non_biomass_access"="bioch4",
          "ch4_biomass_access"="bioch4",
          "n2o_biomass_access"="bion2o",
+         "co2e_biomass_access" = "bioco2e", 
          "chp_combust_heat_input_access"="chpchti",
          "chp_combust_heat_input_oz_access"="chpchtioz",
          "chp_nox_access"="chpnox",
@@ -159,6 +166,7 @@ plant_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_yea
          "chp_co2_access"="chpco2",
          "chp_ch4_access"="chpch4",
          "chp_n2o_access"="chpn2o",
+         "chp_co2e_access" = "chpco2e",
          "nominal_heat_rate_access"="plhtrt", 
          "ann_gen_coal_access"="plgenacl",
          "ann_gen_oil_access"="plgenaol",
@@ -173,9 +181,11 @@ plant_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_yea
          "ann_gen_other_access"="plgenaop",
          "ann_gen_non_renew_access"="plgenatn",
          "ann_gen_renew_access"="plgenatr",
+         "ann_gen_non_renew_other_access" = "plgenato",
          "ann_gen_renew_nonhydro_access"="plgenath",
          "ann_gen_combust_access" = "plgenacy",
          "ann_gen_non_combust_access"="plgenacn",
+         "ann_gen_non_combust_other_access" = "plgenaco", 
          "perc_ann_gen_coal_access"="plclpr",
          "perc_ann_gen_oil_access"="plolpr",
          "perc_ann_gen_gas_access"="plgspr",
@@ -189,18 +199,20 @@ plant_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_yea
          "perc_ann_gen_other_access"="ploppr",
          "perc_ann_gen_non_renew_access"="pltnpr",
          "perc_ann_gen_renew_access"="pltrpr",
+         "perc_ann_gen_non_renew_other_access" = "pltopr", 
          "perc_ann_gen_renew_nonhydro_access"="plthpr",
          "perc_ann_gen_combust_access"="plcypr",
-         "perc_ann_gen_non_combust_access"="plcnpr") 
+         "perc_ann_gen_non_combust_access"="plcnpr", 
+         "perc_ann_gen_non_combust_other_access" = "plcopr") 
 
 # load plant differences from unit and gen files
 
 gen_diffs <- 
-  read_csv("data/outputs/qa/generator_file_differences/plant_gen_difference_ids.csv") %>% 
+  read_csv(glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}/plant_gen_difference_ids.csv")) %>% 
   select(plant_id, source_diff) %>% distinct()
 
 unit_diffs <- 
-  read_csv("data/outputs/qa/unit_file_differences/plant_unit_difference_ids.csv") %>% 
+  read_csv(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}/plant_unit_difference_ids.csv")) %>% 
   select(plant_id, source_diff) %>% distinct()
 
 gen_unit_diffs <- 
@@ -252,7 +264,7 @@ if(nrow(check_diff_plant_access) > 0) {
 
 # create function to make comparison ---------------
 
-plant_compare <- function(x, data = plant_comparison, outdir = save_dir){
+plant_compare <- function(x, data = plant_comparison, outdir = save_dir) {
   r_name <- as.name(paste0(x,"_r"))
   access_name <- as.name(paste0(x,"_access"))
   comp <- data %>% 
@@ -267,13 +279,13 @@ plant_compare <- function(x, data = plant_comparison, outdir = save_dir){
 #  - exclude plant_id and other_cols by looking at access_cols
 cols <- access_cols[access_cols != "plant_id"]
 
-for(i in cols){
+for(i in cols) {
   x <- plant_compare(i)
-  if(nrow(x)> 0){
+  if(nrow(x)> 0) {
     assign(paste0("check_", i), x)
     rm(x)
-  }else{
-    rm(x)
+  } else {
+     rm(x)
   }
 }
 
