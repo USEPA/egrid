@@ -7,6 +7,8 @@
 ## This file accesses EPA's EJScreen API to collect information about neighboring demographics
 ## of plants at a 3-mile radius. 
 ##
+## Note: This file takes 4-5 hours to download data from the EJScreen API. 
+##       params$run_demo_file in egrid_master.qmd is used as a flag whether to create this file when running eGRID. 
 ##
 ## Authors:  
 ##      Madeline Zhang, Abt Global
@@ -14,7 +16,7 @@
 ## -------------------------------
 
 
-### Load libraries ------
+# Load libraries ------
 
 library(dplyr)
 library(tidyr)
@@ -27,7 +29,7 @@ library(httr)
 library(jsonlite)
 library(data.table)
 
-### Set parameters ------
+# Set parameters ------
 
 if (exists("params")) {
   if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
@@ -42,7 +44,7 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
-### Load in datasets ------
+# Load in datasets ------
 
 plant_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
 
@@ -74,20 +76,16 @@ lat_input <- plant_file %>%
 lon_input <- plant_file %>%
              select(lon)
 
-# set up adjustable mile setting
+# assign radius around plants to fetch demographic data from
 mile <- 3
 
 
-# source("scripts/functions/function_ejscreen_api.R")
-# 
-# demo_data <- lapply(1:nrow(plant_file), function(i) {ejscreen_api(lat_input[i,], lon_input[i,], id_input[i,], mile)})
-
-
-### EJScreen API Loop -----
+# Load plant data from EJScreen API -----
 
 # create empty list to store data
 demo_data <- list()
 
+# this loop takes around 4- 5 hours to full load and process data from the EJScreen API
 for (i in 1:nrow(id_input)) {
   
   # inputs for API
@@ -147,47 +145,7 @@ for (i in 1:nrow(id_input)) {
   
 }
 
-#### Clean and Save Data -----
-
-# # run first case to get column names
-# # kind of inefficient, need to think of better way for this
-# 
-# lon <- lon_input[1,]
-# lat <- lat_input[1,]
-# 
-# # url strings that make up EJScreen API
-# url1 <- 'https://ejscreen.epa.gov/mapper/ejscreenRESTbroker1.aspx?namestr=&geometry='
-# url2 <- '{"spatialReference":{"wkid":4326},'
-# lat_lon_input <- glue::glue('"x":{lon},"y":{lat}}')  # latitude, longitude input for plant
-# url3 <- glue::glue('&distance={mile}&unit=9035&areatype=&areaid=&f=pjson')
-# 
-# # call EJScreen API
-# api_call <- paste0(url1, url2, lat_lon_input, url3)
-# 
-# # load response
-# res = GET(api_call)
-# 
-# 
-# # status = 200 means data is collected
-# if (status_code(res) == 200) {
-#   
-#   # extract data 
-#   data <- content(res, as = "text", encoding ="UTF-8")
-#   
-#   # from extracted data, transform from JSON format
-#   data <- fromJSON(data, flatten = TRUE)
-#   
-#   # unnest individual rows
-#   data <- purrr::flatten(data)
-#   data <- purrr::flatten(data)
-#   
-#   # converts to useable format
-#   data <- cbind(data)
-#   
-#   # inverses row/column direction
-#   data <- t(data)
-# }
-
+# Clean and save Data -----
 
 # select column names
 column_names <- c("plant_id", colnames(data))
@@ -207,7 +165,7 @@ demo_data <- demo_data[, !duplicated(colnames(demo_data))]
 
 # keep only demographic data (not environmental)
 demo_data <- demo_data %>%
-              select(totalPop, grep("_D_", colnames(demo_data), value=TRUE), distance, plant_id) %>%
+              select(totalPop, grep("_D_", colnames(demo_data), value = TRUE), distance, plant_id) %>%
               unique() %>% # unique since unnest() produced duplicate columns
               mutate(across(-plant_id, ~ as.numeric(sub("%", "",.))))
 
@@ -219,9 +177,6 @@ demo_file <- plant_file %>%
              relocate(S_D_UNEMPLOYED_PER, .before = S_D_LIFEEXP_PER) %>%
              relocate(N_D_UNEMPLOYED, .before = N_D_LIFEEXP) %>%
              relocate(N_D_UNEMPLOYED_PER, .before = N_D_LIFEEXP_PER) 
-
-# takes around 4- 5 hours to full load and process
-# some plants have NA data due to limitations of EJScreen's technical abilities
 
 # save output as RDS
 write_rds(demo_file, file = glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
