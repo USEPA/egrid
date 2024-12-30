@@ -64,13 +64,13 @@ The data used to create eGRID are EPA and Energy Information Administration (EIA
 To create the eGRID dataset: 
 
 1. Obtain an API key for EPA data. 
-    a. Request an API key from https://www.epa.gov/power-sector/cam-api-portal.
-    b. Create folder `api_keys/` within the root of the eGRID.
-    c. Create a text file named `epa_api_key.txt` within the folder `api_keys/` and save the API key here on a single line.
+    + Request an API key from https://www.epa.gov/power-sector/cam-api-portal.
+    + Create folder `api_keys/` within the root of the eGRID.
+    + Create a text file named `epa_api_key.txt` within the folder `api_keys/` and save the API key here on a single line.
 2. Load `eGRID_R.Rproj` within RStudio to enable the project environment.
 3. Render `eGRID_master.qmd`. 
-    a. Set data year in `params` (eGRID_year) in the YAML as a string in the format "YYYY" (ex: `"2023"`).
-    b. Render `eGRID_master.qmd`. This will run all scripts and build the eGRID dataset. 
+    + Set data year in `params` (eGRID_year) in the YAML as a string in the format "YYYY" (ex: `"2023"`).
+    + Render `eGRID_master.qmd`. This will run all scripts and build the eGRID dataset. 
 
 
 ## Outputs
