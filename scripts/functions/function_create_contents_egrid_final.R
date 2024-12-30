@@ -265,6 +265,10 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   
   ## Add merging, borders, and styling --------
   
+  # lines within color coding legend
+  addStyle(wb, current_worksheet, all_borders, cols = start_cols:(sheetWidth + 6), 
+           rows = (start_rows[3] + 2):end_rows[3], gridExpand = TRUE, stack = TRUE)
+  
   for (row in c(start_rows[1]:end_rows[1],
                 start_rows[2]:end_rows[2],
                 start_rows[3]:end_rows[3],
@@ -349,8 +353,6 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
            rows = start_rows[3] + 1, gridExpand = TRUE, stack = TRUE)
   mergeCells(wb, current_worksheet, cols = (sheetWidth - 1):(sheetWidth + 6), 
              rows = start_rows[3] + 1)
-  addStyle(wb, current_worksheet, all_borders, cols = start_cols:(sheetWidth + 6), 
-           rows = (start_rows[3] + 2):end_rows[3], gridExpand = TRUE, stack = TRUE)
   addStyle(wb, current_worksheet, bottom_borders, cols = start_cols:(sheetWidth + 6), 
            rows = start_rows[3] + 1, gridExpand = TRUE, stack = TRUE)
 
