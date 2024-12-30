@@ -24,7 +24,8 @@ format_region <- function(region, reg_rows) {
   #' @param region Region for data to be aggregated to,
   #' @param reg_rows Count of rows for the region dataframe
   #' @return Formatted dataframe with style
-  #' @examples format_region(st, st_rows) # Where st is the sheet name and st_rows = number of rows in the final sheet
+  #' @examples 
+  #' format_region(st, st_rows) # Where st is the sheet name and st_rows = number of rows in the final sheet
   
   require(openxlsx)
   
