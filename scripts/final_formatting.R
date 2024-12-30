@@ -65,7 +65,7 @@ nrl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/nerc_aggrega
 us_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/us_aggregation.RDS"))
 ggl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 
-if (params$run_demo_file) {
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   demo_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
 }
 
@@ -1079,14 +1079,15 @@ addStyle(wb, sheet = ggl, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpa
 addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
 
 ### DEMO Formatting -----
-if (params$run_demo_file) {
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   
   ## create "DEMO" sheet
   demo <- glue::glue("DEMO{year}")
   addWorksheet(wb, demo)
   
   # convert year to numeric value
-  demo_file <- demo_file %>%
+  demo_file <- 
+    demo_file %>%
     mutate(year = as.numeric(year))
   
   demo_rows <- nrow(demo_file) + 2
@@ -1116,47 +1117,51 @@ if (params$run_demo_file) {
                    "RAW_D_DEMOGIDX5"     = "Supplemental Demographic Index",
                    "RAW_D_DEMOGIDX2ST"   = "Demographic Index",
                    "RAW_D_DEMOGIDX5ST"   = "Supplemental Demographic Index",
-                   "S_D_PEOPCOLOR"       = "State Average of People of Color",
-                   "S_D_INCOME"          = "State Average of Low Income",
-                   "S_D_LESSHS"          = "State Average of Less Than High School Education",
-                   "S_D_LING"            = "State Average of Limited English Speaking",
-                   "S_D_UNDER5"          = "State Average of Under Age 5",
-                   "S_D_OVER64"          = "State Average of Over Age 64", 
-                   "S_D_UNEMPLOYED"      = "State Average of Unemployment Rate",
-                   "S_D_LIFEEXP"         = "State Average of Limited Life Expectancy",
-                   "S_D_DEMOGIDX2ST"     = "State Average of Demographic Index",
-                   "S_D_DEMOGIDX5ST"     = "State Average of Supplemental Demographic Index",
-                   "S_D_PEOPCOLOR_PER"   = "State Percentile of People of Color", 
-                   "S_D_INCOME_PER"      = "State Percentile of Low Income",
-                   "S_D_LESSHS_PER"      = "State Percentile of Less Than High School Education",
-                   "S_D_LING_PER"        = "State Percentile of Limited English Speaking",
-                   "S_D_UNDER5_PER"      = "State Percentile of Under Age 5",
-                   "S_D_OVER64_PER"      = "State Percentile of Over Age 64",
-                   "S_D_UNEMPLOYED_PER"  = "State Percentile of Unemployment Rate",
-                   "S_D_LIFEEXP_PER"     = "State Percentile of Limited Life Expectancy",        
-                   "S_D_DEMOGIDX2ST_PER" = "State Percentile of Demographic Index",                                                 
-                   "S_D_DEMOGIDX5ST_PER" = "State Percentile of Supplemental Demographic Index",
-                   "N_D_PEOPCOLOR"       = "National Average of People of Color",
-                   "N_D_INCOME"          = "National Average of Low Income",
-                   "N_D_LESSHS"          = "National Average of Less Than High School Education",
-                   "N_D_LING"            = "National Average of Limited English Speaking",
-                   "N_D_UNDER5"          = "National Average of Under Age 5",
-                   "N_D_OVER64"          = "National Average of Over Age 64",
-                   "N_D_UNEMPLOYED"      = "National Average of Unemployment Rate",
-                   "N_D_LIFEEXP"         = "National Average of Limited Life Expectancy",
-                   "N_D_DEMOGIDX2"       = "National Percentile of Demographic Index",
-                   "N_D_DEMOGIDX5"       = "National Percentile of Supplemental Demographic Index",
-                   "N_D_MINOR_PER"       = "National Percentile of People of Color",
-                   "N_D_INCOME_PER"      = "National Percentile of Low Income",
-                   "N_D_LESSHS_PER"      = "National Percentile of Less Than High School Education",
-                   "N_D_LING_PER"        = "National Percentile of Limited English Speaking",
-                   "N_D_UNDER5_PER"      = "National Percentile of Under Age 5",
-                   "N_D_OVER64_PER"      = "National Percentile of Over Age 64",
-                   "N_D_UNEMPLOYED_PER"  = "National Percentile of Unemployment Rate",
-                   "N_D_LIFEEXP_PER"     = "National Percentile of Limited Life Expectancy",
-                   "N_D_DEMOGIDX2_PER" = "National Percentile of Demographic Index",
-                   "N_D_DEMOGIDX5_PER" = "National Percentile of Supplemental Demographic Index",
+                   "N_D_DEMOGIDX2"       = "National percentile of Demographic Index",
+                   "N_D_DEMOGIDX5"       = "National percentile of Supplemental Demographic Index",
+                   "N_D_MINOR_PER"       = "National percentile of People of Color",
+                   "N_D_INCOME_PER"      = "National percentile of Low Income",
+                   "N_D_LESSHS_PER"      = "National percentile of Less Than High School Education",
+                   "N_D_LING_PER"        = "National percentile of Limited English Speaking",
+                   "N_D_UNDER5_PER"      = "National percentile of Under Age 5",
+                   "N_D_OVER64_PER"      = "National percentile of Over Age 64",
+                   "N_D_UNEMPLOYED_PER"  = "National percentile of Unemployment Rate",
+                   "N_D_LIFEEXP_PER"     = "National percentile of Limited Life Expectancy",
+                   "N_D_DEMOGIDX2_PER"   = "National percentile of Demographic Index",
+                   "N_D_DEMOGIDX5_PER"   = "National percentile of Supplemental Demographic Index",
+                   "S_D_PEOPCOLOR_PER"   = "State percentile of People of Color", 
+                   "S_D_INCOME_PER"      = "State percentile of Low Income",
+                   "S_D_LESSHS_PER"      = "State percentile of Less Than High School Education",
+                   "S_D_LING_PER"        = "State percentile of Limited English Speaking",
+                   "S_D_UNDER5_PER"      = "State percentile of Under Age 5",
+                   "S_D_OVER64_PER"      = "State percentile of Over Age 64",
+                   "S_D_UNEMPLOYED_PER"  = "State percentile of Unemployment Rate",
+                   "S_D_LIFEEXP_PER"     = "State percentile of Limited Life Expectancy",        
+                   "S_D_DEMOGIDX2ST_PER" = "State percentile of Demographic Index",                                                 
+                   "S_D_DEMOGIDX5ST_PER" = "State percentile of Supplemental Demographic Index",
+                   "N_D_PEOPCOLOR"       = "National average of People of Color",
+                   "N_D_INCOME"          = "National average of Low Income",
+                   "N_D_LESSHS"          = "National average of Less Than High School Education",
+                   "N_D_LING"            = "National average of Limited English Speaking",
+                   "N_D_UNDER5"          = "National average of Under Age 5",
+                   "N_D_OVER64"          = "National average of Over Age 64",
+                   "N_D_UNEMPLOYED"      = "National average of Unemployment Rate",
+                   "N_D_LIFEEXP"         = "National average of Limited Life Expectancy",
+                   "S_D_PEOPCOLOR"       = "State average of People of Color",
+                   "S_D_INCOME"          = "State average of Low Income",
+                   "S_D_LESSHS"          = "State average of Less Than High School Education",
+                   "S_D_LING"            = "State average of Limited English Speaking",
+                   "S_D_UNDER5"          = "State average of Under Age 5",
+                   "S_D_OVER64"          = "State average of Over Age 64", 
+                   "S_D_UNEMPLOYED"      = "State average of Unemployment Rate",
+                   "S_D_LIFEEXP"         = "State average of Limited Life Expectancy",
+                   "S_D_DEMOGIDX2ST"     = "State average of Demographic Index",
+                   "S_D_DEMOGIDX5ST"     = "State average of Supplemental Demographic Index",
                    "DISTANCE"            = "Distance (miles)")
+  
+  demo_file <- 
+    demo_file %>% 
+    select(names(demo_labels))
   
   demo_header <- names(demo_labels)  # column names
   demo_desc   <- unname(demo_labels) # description of column names
@@ -1215,15 +1220,11 @@ if (params$run_demo_file) {
   setRowHeights(wb, sheet = demo, row = 1, heights = 67.5)
 
   # add number styles
-  addStyle(wb, sheet = demo, style = s[['integer']],  rows = 3:demo_rows, cols = 12:13,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['percent']],  rows = 3:demo_rows, cols = 13:20,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['decimal5']], rows = 3:demo_rows, cols = 21:24,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['percent']],  rows = 3:demo_rows, cols = 25:31,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['decimal5']], rows = 3:demo_rows, cols = 32:33,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['integer']],  rows = 3:demo_rows, cols = 34:43,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['percent']],  rows = 3:demo_rows, cols = 44:51,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['decimal5']], rows = 3:demo_rows, cols = 51:52,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['percent']],  rows = 3:demo_rows, cols = 53:65,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['integer']],  rows = 3:demo_rows, cols = 12:20,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['decimal5']],  rows = 3:demo_rows, cols = 21:24,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['integer']],  rows = 3:demo_rows, cols = 25:46,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['decimal5']], rows = 3:demo_rows, cols = 47:64,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['integer']],  rows = 3:demo_rows, cols = 64:65,  gridExpand = TRUE)
   
   # add text styles
   addStyle(wb, sheet = demo, style = s[['basic']], rows = 3:demo_rows, cols = 1:11, gridExpand = TRUE)
@@ -1243,7 +1244,7 @@ add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 1
 add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 1, loc = c(3, 15), text_to_show = glue::glue("US{year}"))
 add_hyperlink(glue::glue("GGL{year}"),  row_link = 1, col_link = 1, loc = c(3, 16), text_to_show = glue::glue("GGL{year}"))
 
-if (params$run_demo_file) {
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   add_hyperlink(glue::glue("DEMO{year}"),  row_link = 1, col_link = 1, loc = c(3, 17), text_to_show = glue::glue("DEMO{year}"))
 }
 
@@ -1255,7 +1256,7 @@ contact_cell <- data.frame(
   Hyperlink <- contact_link
 )
 
-writeData(wb, sheet="Contents", x=contact_cell, startCol=2, startRow=22, colNames=FALSE, rowNames=FALSE)
+writeData(wb, sheet = "Contents", x = contact_cell, startCol = 2, startRow = 22, colNames = FALSE, rowNames = FALSE)
 
 # add hyperlinks to specific columns
 # annual values 
