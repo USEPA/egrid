@@ -17,8 +17,9 @@
 library(dplyr)
 library(readr)
 library(tidyr)
-library(stringr)
+library(purrr)
 library(readxl)
+
 
 # check if parameters for eGRID data year need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
@@ -36,6 +37,13 @@ if (exists("params")) {
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
 }
+
+# Load manual corrections ----------
+
+manual_corrections <- 
+  read_xlsx("data/static_tables/manual_corrections.xlsx", 
+            sheet = "eia_clean", 
+            col_types = c("text", "text", "text"))
 
 # List file in EIA raw data folders ------------
 
@@ -163,10 +171,11 @@ epa_clean <- readr::read_rds(glue::glue("data/clean_data/epa/{params$eGRID_year}
 
 generator_dfs_mod <-
   generator_dfs %>% 
-  purrr::map_at("proposed", # only keeping proposed plants in camd and removing if already in operable
+  purrr::map_at("proposed", # only keeping proposed plants in EPA and removing if already in operable
                 ~ .x %>% 
                   filter(plant_code %in% epa_clean$plant_id,
-                         !plant_code %in% generator_dfs$operable$plant_code)) %>% 
+                         !plant_code %in% generator_dfs$operable$plant_code, 
+                         plant_code %in% manual_corrections$plant_id)) %>% 
   purrr::map_at("retired_and_canceled", # retaining only plants retired in eGRID year
                 ~ .x %>% 
                   filter(retirement_year == {params$eGRID_year}))
@@ -343,6 +352,7 @@ dfs_860 <-
 
 eia_860_combined <- 
   bind_rows(dfs_860$operable,
+            dfs_860$proposed, 
             dfs_860$retired_and_canceled,
             dfs_860$operating_pr,
             dfs_860$retired_pr) %>% 

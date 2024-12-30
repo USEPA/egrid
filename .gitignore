@@ -12,14 +12,5 @@ brand
 *.Rproj
 qa_all.html
 qa_all_files
-<<<<<<< HEAD
 qa_annual_comparison_files
 data/static_tables/qa/
-=======
-qa_annual_comparison.html
-qa_annual_comparison_files
-data/static_tables/qa/egrid2019_data.xlsx
-data/static_tables/qa/egrid2020_data.xlsx
-data/static_tables/qa/egrid2021_data.xlsx
-data/static_tables/qa/egrid2022_data.xlsx
->>>>>>> 27799cb9b6a6d0f740666edd53693cabfcc42d10
