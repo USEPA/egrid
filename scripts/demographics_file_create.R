@@ -1,6 +1,6 @@
 ## -------------------------------
 ##
-## Demographics create 
+## Demographics file create 
 ## 
 ## Purpose: 
 ## 
@@ -27,7 +27,7 @@ library(httr)
 library(jsonlite)
 library(data.table)
 
-### Set Params ------
+### Set parameters ------
 
 if (exists("params")) {
   if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
@@ -214,16 +214,16 @@ demo_data <- demo_data %>%
 # join with plant file columns to keep by plant_id
 demo_file <- plant_file %>%
              left_join(demo_data, by = "plant_id") %>%
-             relocate(RAW_D_UNEMPLOYED,.before=RAW_D_LIFEEXP) %>%
-             relocate(S_D_UNEMPLOYED,  .before=S_D_LIFEEXP) %>%
-             relocate(S_D_UNEMPLOYED_PER,  .before=S_D_LIFEEXP_PER) %>%
-             relocate(N_D_UNEMPLOYED,  .before=N_D_LIFEEXP) %>%
-             relocate(N_D_UNEMPLOYED_PER,  .before=N_D_LIFEEXP_PER) 
+             relocate(RAW_D_UNEMPLOYED, .before = RAW_D_LIFEEXP) %>%
+             relocate(S_D_UNEMPLOYED, .before = S_D_LIFEEXP) %>%
+             relocate(S_D_UNEMPLOYED_PER, .before = S_D_LIFEEXP_PER) %>%
+             relocate(N_D_UNEMPLOYED, .before = N_D_LIFEEXP) %>%
+             relocate(N_D_UNEMPLOYED_PER, .before = N_D_LIFEEXP_PER) 
 
 # takes around 4- 5 hours to full load and process
 # some plants have NA data due to limitations of EJScreen's technical abilities
 
 # save output as RDS
-saveRDS(demo_file, file = glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
+write_rds(demo_file, file = glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
 
 
