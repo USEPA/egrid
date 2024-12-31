@@ -450,7 +450,7 @@ eia_fuel_consum_fuel_type <- # summing fuel and consum to PM and fuel_type level
 # distributing heat input from only ozone reporting plants to non-ozone months
 epa_oz_reporters_dist <- 
   epa_oz_reporters %>%
-  group_by(plant_id, prime_mover) %>% 
+  group_by(plant_id, prime_mover, primary_fuel_type) %>% 
   left_join(eia_fuel_consum_fuel_type, 
             by = c("plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>% 
   mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% # sum to plant/pm for distributional proportion 
@@ -460,7 +460,7 @@ epa_oz_reporters_dist <-
   ungroup() %>% 
   mutate(prop = if_else(sum_heat_input_oz != 0, heat_input_oz / sum_heat_input_oz, NA_real_),
          heat_input_nonoz = heat_input_nonoz_923 * prop, # distributing nonoz 
-         heat_input = heat_input_oz + heat_input_nonoz, # annual heat input = distributed non-oz heat + ozone heat
+         heat_input = if_else(is.na(heat_input_nonoz), heat_input_oz, heat_input_oz + heat_input_nonoz), # annual heat input = distributed non-oz heat + ozone heat
          heat_input_source = if_else(is.na(heat_input), "EPA/CAPD", "EIA non-ozone season distributed and EPA/CAPD ozone season"))
 
 # distributing heat input from plants with both annual and ozone reporting units
@@ -572,14 +572,10 @@ epa_oz_reporters_dist_nox_rates <- # filling annual NOx mass with nox_rates wher
   epa_oz_reporters_dist_2 %>%
   inner_join(nox_rates_ann,
              by = c("plant_id", "unit_id")) %>%
-  mutate(nox_nonoz_mass = (heat_input_nonoz * nox_rate_ann) / 2000, 
+  mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover),
+         nox_nonoz_mass = (heat_input_nonoz * nox_rate_ann) / 2000, 
          nox_mass = if_else(reporting_frequency == "OS", nox_nonoz_mass + nox_oz_mass, nox_mass), 
          nox_source = if_else(is.na(nox_mass), nox_source, "Estimated based on unit-level NOx emission rates and EPA/CAPD ozone season emissions"))
-
-nox_rates_ids <- # creating unique ids to filter out later
-  epa_oz_reporters_dist_nox_rates %>% 
-  mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
-  pull(id)
 
 
 #### NOx EF -----------------
@@ -587,8 +583,9 @@ nox_rates_ids <- # creating unique ids to filter out later
 # Joining EFs data frame with EPA ozone reporters to calculate non-ozone NOx mass
 
 epa_oz_reporters_dist_nox_ef <-
-  epa_oz_reporters_dist %>% 
-  filter(!paste0(plant_id, "_", unit_id, "_", prime_mover) %in% nox_rates_ids) %>% # removing units that were filled with nox_rates
+  epa_oz_reporters_dist_2 %>% 
+  mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
+  filter(!id %in% epa_oz_reporters_dist_nox_rates$id) %>% # removing units that were filled with nox_rates
   left_join(emission_factors %>%
               filter(nox_unit_flag == "PhysicalUnits") %>% 
               mutate(botfirty = if_else(botfirty %in% c("null", "N/A"), NA_character_, botfirty)) %>% 
@@ -608,7 +605,11 @@ epa_oz_reporters_dist_final <- # combining all distributed ozone season reporter
   epa_oz_reporters_dist_nox_rates %>% 
   distinct(pick(all_of(distinct_cols))) %>%
   bind_rows(epa_oz_reporters_dist_nox_ef %>% 
-              distinct(pick(all_of(distinct_cols)))) 
+              distinct(pick(all_of(distinct_cols))), 
+            epa_oz_reporters_dist_2 %>% 
+              filter(!(paste0(plant_id, "_", unit_id, "_", prime_mover) %in% epa_oz_reporters_dist_nox_ef$id), 
+                     !(paste0(plant_id, "_", unit_id, "_", prime_mover) %in% epa_oz_reporters_dist_nox_rates$id)) %>% 
+              distinct(pick(all_of(distinct_cols))))  
 
 # check number of ozone reporting units, and compare to number of units that have distributed values
 print(glue::glue("There are {nrow(epa_oz_reporters_dist)} total OS reporting units. The dataframe with distributed values contains {nrow(epa_oz_reporters_dist_final)}"))
@@ -715,7 +716,8 @@ eia_boilers_to_add <-
   eia_923_boilers_heat %>% 
   mutate(id = paste0(plant_id, "_", boiler_id), 
          id_pm = paste0(plant_id, "_", boiler_id, "_", prime_mover)) %>%
-  filter(!plant_id %in% epa_7$plant_id) %>%  # removing boilers that are in plants in EPA
+  filter(!plant_id %in% epa_7$plant_id, # removing boilers that are in plants in EPA
+         !plant_id %in% epa_plants_to_delete$plant_id) %>% # removing plants that are in epa_plants_to_delete
   filter(id %in% eia_860_boil_gen_ids | id_pm %in% eia_860_combined_ids) %>%  # keeping only boilers that are in 860, under boiler or unit id
   mutate(heat_input_source = "EIA Unit-level Data",
          heat_input_oz_source = "EIA Unit-level Data") %>% 
@@ -760,7 +762,8 @@ eia_860_generators_to_add <-
   mutate(id = paste0(plant_id, "_", generator_id),
          id_pm = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% 
   filter(!(plant_id %in% epa_7$plant_id & !id_pm %in% renewable_ids), # removing generators from plants in EPA, unless it is a renewable generator
-         !id %in% eia_860_gens_to_remove) %>%  
+         !id %in% eia_860_gens_to_remove, 
+         !plant_id %in% epa_plants_to_delete$plant_id) %>%  
   select(plant_id, 
          plant_name,
          plant_state, 
