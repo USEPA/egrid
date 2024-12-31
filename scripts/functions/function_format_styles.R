@@ -16,7 +16,7 @@
 
 create_format_styles <- function(font = "Arial", size = 8.5) {
   
-  #' header_styles
+  #' create_format_styles
   #' 
   #' Helper function to create headers for final_formatting.R
   #'
