@@ -372,7 +372,7 @@ sequnt_label <- setNames("Unit file sequence number", glue::glue("SEQUNT{year}")
 
 # collect number of rows based on data frame
 # add two to number of rows (nrows) to account for header + description rows
-unt_rows <- nrow(unt_file)+2
+unt_rows <- nrow(unt_file) + 2
 
 ## column names and descriptions
 unt_labels <-  c(sequnt_label,
@@ -461,7 +461,7 @@ addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 1:13, 
 addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 22:33, gridExpand = TRUE)
 
 # freeze panes
-freezePane(wb, sheet = unt, firstActiveCol = 5)
+freezePane(wb, sheet = unt, firstActiveCol = 7)
 
 ### GEN Formatting -----
 
@@ -481,7 +481,7 @@ seqgen_label <- setNames("Generator file sequence number", glue::glue("SEQGEN{ye
 
 # select number of rows based on length of dataframe
 # add two to number of rows (nrows) to account for header + description rows
-gen_rows <- nrow(gen_file)+2
+gen_rows <- nrow(gen_file) + 2
 
 ## column names and descriptions
 gen_labels <- c(seqgen_label,
@@ -562,7 +562,7 @@ addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 6:10, 
 addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 17:19,   gridExpand = TRUE)
 
 # freeze panes
-freezePane(wb, sheet = gen, firstActiveCol = 6)
+freezePane(wb, sheet = gen, firstActiveCol = 7)
 
 ### PLNT Formatting -----
 
@@ -582,7 +582,7 @@ seqplt_label <- setNames("Plant file sequence number", glue::glue("SEQPLT{year}"
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-plnt_rows <- nrow(plnt_file)+2 
+plnt_rows <- nrow(plnt_file) + 2 
 
 ## column names and descriptions
 plnt_labels <- c(seqplt_label, 
@@ -657,7 +657,6 @@ plnt_labels <- c(seqplt_label,
                  "PLC2ERTA2" = "Plant annual CO2 equivalent total output emission rate (kg/GJ)", # new metric
                  "PLHGRTA"   = "Plant annual Hg total output emission rate (kg/MWh)",
                  "PLHGRTA2"  = "Plant annual Hg total output emission rate (kg/GJ)", # new metric
-                 
                  
                  "PLNOXRA"   = "Plant annual NOx input emission rate (kg/GJ)",
                  "PLNOXRO"   = "Plant ozone season NOx input emission rate (kg/GJ)",
@@ -913,7 +912,7 @@ addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 36, 
 addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 107:116, gridExpand = TRUE)
 
 # freeze panes
-freezePane(wb, sheet = plnt, firstActiveCol = 6)
+freezePane(wb, sheet = plnt, firstActiveCol = 7)
 
 ### ST Formatting -----
 
@@ -927,7 +926,7 @@ st_file <- st_file %>%
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-st_rows <- nrow(st_file)+2 
+st_rows <- nrow(st_file) + 2 
 
 ## column names and descriptions
 # column names
@@ -962,6 +961,9 @@ writeData(wb,
 ## add styles to document
 format_region_metric(st, st_rows)
 
+# freeze panes
+freezePane(wb, sheet = st, firstActiveCol = 4)
+
 ### BA Formatting -----
 
 ## create "BA" sheet
@@ -970,7 +972,7 @@ addWorksheet(wb, ba)
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-ba_rows <- nrow(ba_file)+2 
+ba_rows <- nrow(ba_file) + 2 
 
 # convert variables to numeric value
 ba_file <- ba_file %>%
@@ -1012,6 +1014,9 @@ format_region_metric(ba, ba_rows)
 
 setColWidths(wb, sheet = ba, cols = 2, widths = 75.55)
 
+# freeze panes
+freezePane(wb, sheet = ba, firstActiveCol = 4)
+
 ### SRL Formatting -----
 
 ## create "SRL" sheet
@@ -1024,7 +1029,7 @@ srl_file <- srl_file %>%
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-srl_rows <- nrow(srl_file)+2
+srl_rows <- nrow(srl_file) + 2
 
 ## column names and descriptions
 # column names
@@ -1061,6 +1066,9 @@ format_region_metric(srl, srl_rows)
 
 setColWidths(wb, sheet = srl, cols = 3, widths = 18.45)
 
+# freeze panes
+freezePane(wb, sheet = srl, firstActiveCol = 4)
+
 ### NRL Formatting -----
 
 ## create "NRL" sheet
@@ -1073,7 +1081,7 @@ nrl_file <- nrl_file %>%
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-nrl_rows <- nrow(nrl_file)+2
+nrl_rows <- nrow(nrl_file) + 2
 
 ## column names and descriptions
 # column names
@@ -1110,6 +1118,9 @@ format_region_metric(nrl, nrl_rows)
 
 setColWidths(wb, sheet = nrl, cols = 3, widths = 29.45)
 
+# freeze panes
+freezePane(wb, sheet = nrl, firstActiveCol = 4)
+
 ### US Formatting -----
 
 ## create "US" sheet
@@ -1118,7 +1129,7 @@ addWorksheet(wb, us)
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
-us_rows <- nrow(us_file)+2
+us_rows <- nrow(us_file) + 2
 
 ## column names and descriptions
 # column names
@@ -1221,6 +1232,8 @@ addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpa
 
 
 ### DEMO Formatting -----
+# only build demographics file if the file exists in outputs
+# this is because pulling data from the EJScreen API to build the demographics file takes several hours
 if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   
   ## create "DEMO" sheet
@@ -1228,7 +1241,8 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RD
   addWorksheet(wb, demo)
   
   # convert year to numeric value
-  demo_file <- demo_file %>%
+  demo_file <- 
+    demo_file %>%
     mutate(year = as.numeric(year))
   
   demo_rows <- nrow(demo_file) + 2
@@ -1246,26 +1260,26 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RD
                    "NAMEPCAP"            = "Plant nameplate capacity (MW)",
                    "COALFLAG"            = "Flag indicating if the plant burned or generated any amount of coal",
                    "TOTALPOP"            = "Total Population", 
-                   "RAW_D_PEOPCOLOR"     = "People of Color",
-                   "RAW_D_INCOME"        = "Low Income",
-                   "RAW_D_LESSHS"        = "Less Than High School Education",
-                   "RAW_D_LING"          = "Limited English Speaking",
-                   "RAW_D_UNDER5"        = "Under Age 5",
-                   "RAW_D_OVER64"        = "Over Age 64",
-                   "RAW_D_UNEMPLOYED"    = "Unemployment Rate",
-                   "RAW_D_LIFEEXP"       = "Limited Life Expectancy",
+                   "RAW_D_PEOPCOLOR"     = "People of Color (%)",
+                   "RAW_D_INCOME"        = "Low Income (%)",
+                   "RAW_D_LESSHS"        = "Less Than High School Education (%)",
+                   "RAW_D_LING"          = "Limited English Speaking (%)",
+                   "RAW_D_UNDER5"        = "Under Age 5 (%)",
+                   "RAW_D_OVER64"        = "Over Age 64 (%)",
+                   "RAW_D_UNEMPLOYED"    = "Unemployment Rate (%)",
+                   "RAW_D_LIFEEXP"       = "Limited Life Expectancy (%)",
                    "RAW_D_DEMOGIDX2"     = "Demographic Index",
                    "RAW_D_DEMOGIDX5"     = "Supplemental Demographic Index",
-                   "RAW_D_DEMOGIDX2ST"   = "Demographic Index",
-                   "RAW_D_DEMOGIDX5ST"   = "Supplemental Demographic Index",
-                   "S_D_PEOPCOLOR"       = "State Average of People of Color",
-                   "S_D_INCOME"          = "State Average of Low Income",
-                   "S_D_LESSHS"          = "State Average of Less Than High School Education",
-                   "S_D_LING"            = "State Average of Limited English Speaking",
-                   "S_D_UNDER5"          = "State Average of Under Age 5",
-                   "S_D_OVER64"          = "State Average of Over Age 64", 
-                   "S_D_UNEMPLOYED"      = "State Average of Unemployment Rate",
-                   "S_D_LIFEEXP"         = "State Average of Limited Life Expectancy",
+                   "RAW_D_DEMOGIDX2ST"   = "State Demographic Index",
+                   "RAW_D_DEMOGIDX5ST"   = "State Supplemental Demographic Index",
+                   "S_D_PEOPCOLOR"       = "State Average of People of Color (%)",
+                   "S_D_INCOME"          = "State Average of Low Income (%)",
+                   "S_D_LESSHS"          = "State Average of Less Than High School Education (%)",
+                   "S_D_LING"            = "State Average of Limited English Speaking (%)",
+                   "S_D_UNDER5"          = "State Average of Under Age 5 (%)",
+                   "S_D_OVER64"          = "State Average of Over Age 64 (%)", 
+                   "S_D_UNEMPLOYED"      = "State Average of Unemployment Rate (%)",
+                   "S_D_LIFEEXP"         = "State Average of Limited Life Expectancy (%)",
                    "S_D_DEMOGIDX2ST"     = "State Average of Demographic Index",
                    "S_D_DEMOGIDX5ST"     = "State Average of Supplemental Demographic Index",
                    "S_D_PEOPCOLOR_PER"   = "State Percentile of People of Color", 
@@ -1278,16 +1292,16 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RD
                    "S_D_LIFEEXP_PER"     = "State Percentile of Limited Life Expectancy",        
                    "S_D_DEMOGIDX2ST_PER" = "State Percentile of Demographic Index",                                                 
                    "S_D_DEMOGIDX5ST_PER" = "State Percentile of Supplemental Demographic Index",
-                   "N_D_PEOPCOLOR"       = "National Average of People of Color",
-                   "N_D_INCOME"          = "National Average of Low Income",
-                   "N_D_LESSHS"          = "National Average of Less Than High School Education",
-                   "N_D_LING"            = "National Average of Limited English Speaking",
-                   "N_D_UNDER5"          = "National Average of Under Age 5",
-                   "N_D_OVER64"          = "National Average of Over Age 64",
-                   "N_D_UNEMPLOYED"      = "National Average of Unemployment Rate",
-                   "N_D_LIFEEXP"         = "National Average of Limited Life Expectancy",
-                   "N_D_DEMOGIDX2"       = "National Percentile of Demographic Index",
-                   "N_D_DEMOGIDX5"       = "National Percentile of Supplemental Demographic Index",
+                   "N_D_PEOPCOLOR"       = "National Average of People of Color (%)",
+                   "N_D_INCOME"          = "National Average of Low Income (%)",
+                   "N_D_LESSHS"          = "National Average of Less Than High School Education (%)",
+                   "N_D_LING"            = "National Average of Limited English Speaking (%)",
+                   "N_D_UNDER5"          = "National Average of Under Age 5 (%)",
+                   "N_D_OVER64"          = "National Average of Over Age 64 (%)",
+                   "N_D_UNEMPLOYED"      = "National Average of Unemployment Rate (%)",
+                   "N_D_LIFEEXP"         = "National Average of Limited Life Expectancy (%)",
+                   "N_D_DEMOGIDX2"       = "National Average of Demographic Index",
+                   "N_D_DEMOGIDX5"       = "National Average of Supplemental Demographic Index",
                    "N_D_MINOR_PER"       = "National Percentile of People of Color",
                    "N_D_INCOME_PER"      = "National Percentile of Low Income",
                    "N_D_LESSHS_PER"      = "National Percentile of Less Than High School Education",
@@ -1296,10 +1310,9 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RD
                    "N_D_OVER64_PER"      = "National Percentile of Over Age 64",
                    "N_D_UNEMPLOYED_PER"  = "National Percentile of Unemployment Rate",
                    "N_D_LIFEEXP_PER"     = "National Percentile of Limited Life Expectancy",
-                   "N_D_DEMOGIDX2_PER" = "National Percentile of Demographic Index",
-                   "N_D_DEMOGIDX5_PER" = "National Percentile of Supplemental Demographic Index",
+                   "N_D_DEMOGIDX2_PER"   = "National Percentile of Demographic Index",
+                   "N_D_DEMOGIDX5_PER"   = "National Percentile of Supplemental Demographic Index",
                    "DISTANCE"            = "Distance (miles)")
-  
   
   demo_header <- names(demo_labels)  # column names
   demo_desc   <- unname(demo_labels) # description of column names
@@ -1358,18 +1371,19 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RD
   setRowHeights(wb, sheet = demo, row = 1, heights = 67.5)
   
   # add number styles
-  addStyle(wb, sheet = demo, style = s[['integer']],  rows = 3:demo_rows, cols = 12:13,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['percent']],  rows = 3:demo_rows, cols = 13:20,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['decimal5']], rows = 3:demo_rows, cols = 21:24,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['percent']],  rows = 3:demo_rows, cols = 25:31,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['decimal5']], rows = 3:demo_rows, cols = 32:33,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['integer']],  rows = 3:demo_rows, cols = 34:43,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['percent']],  rows = 3:demo_rows, cols = 44:51,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['decimal5']], rows = 3:demo_rows, cols = 51:52,  gridExpand = TRUE)
-  addStyle(wb, sheet = demo, style = s[['percent']],  rows = 3:demo_rows, cols = 53:65,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['integer']],   rows = 3:demo_rows, cols = 12:20,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['decimal5']],  rows = 3:demo_rows, cols = 21:24,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['integer']],   rows = 3:demo_rows, cols = 25:32,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['decimal5']],  rows = 3:demo_rows, cols = 33:34,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['integer']],   rows = 3:demo_rows, cols = 35:52,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['decimal5']],  rows = 3:demo_rows, cols = 53:54,  gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['integer']],   rows = 3:demo_rows, cols = 55:65,  gridExpand = TRUE)
   
   # add text styles
   addStyle(wb, sheet = demo, style = s[['basic']], rows = 3:demo_rows, cols = 1:11, gridExpand = TRUE)
+  
+  # freeze panes
+  freezePane(wb, sheet = demo, firstActiveCol = 6)
 }
 
 
@@ -1526,7 +1540,7 @@ add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 243, loc = c(17
 
 ### Save and export -----
 output <- glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data_metric.xlsx")
-saveWorkbook(wb, output, overwrite=TRUE)
+saveWorkbook(wb, output, overwrite = TRUE)
 
 print(glue::glue("Saving final formatted metric file to folder data/outputs/{params$eGRID_year}/"))
 
