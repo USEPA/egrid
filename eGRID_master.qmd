@@ -18,7 +18,6 @@ format:
     html-table-processing: none
     code-fold: true
 execute: 
-  fig-height: 10
   message: false
   warning: false
 params:
@@ -757,7 +756,7 @@ create_summary_table(unit_file)
 
 ```{r}
 #| label: unit-file-heat-in-dist
-##| fig-height: 10
+#| fig-height: 10
 
 plot_unt_heat_in <-
   unit_file %>%
@@ -816,7 +815,7 @@ plot_unt_heat_in_oz_source_dist <-
 
 ```{r}
 #| label: unit-file-nox-dist
-##| fig-height: 10
+#| fig-height: 10
 
 plot_unt_nox <-
   unit_file %>%
@@ -875,7 +874,7 @@ plot_unt_nox_oz_source_dist <-
 
 ```{r}
 #| label: unit-file-so2-dist
-##| fig-height: 10
+#| fig-height: 10
 
 plot_unt_so2 <-
   unit_file %>%
@@ -909,7 +908,7 @@ plot_unt_so2 / plot_unt_so2_sources_dist
 
 ```{r}
 #| label: unit-file-co2-dist
-##| fig-height: 10
+#| fig-height: 10
 
 plot_unt_co2 <-
   unit_file %>%
@@ -1021,7 +1020,7 @@ create_summary_table(plant_file)
 
 ```{r}
 #| label: plant-file-heat-in-dist
-##| fig-height: 10
+#| fig-height: 10
 
 plot_plnt_heat_in <-
   plant_file %>%
@@ -1062,7 +1061,7 @@ plot_plnt_heat_in_dist <-
 
 ```{r}
 #| label: plant-file-heat-in-oz-dist
-##| fig-height: 10
+#| fig-height: 10
 
 plot_plnt_heat_in_oz <-
   plant_file %>%
@@ -1103,7 +1102,7 @@ plot_plnt_heat_in_oz_dist <-
 
 ```{r}
 #| label: plant-file-nox-dist
-##| fig-height: 10
+#| fig-height: 10
 
 plot_plnt_nox <-
   plant_file %>%
@@ -1152,7 +1151,7 @@ plot_plnt_nox_dist <-
 
 ```{r}
 #| label: plant-file-nox-oz-dist
-##| fig-height: 10
+#| fig-height: 10
 
 plot_plnt_nox_oz <-
   plant_file %>%
@@ -1201,7 +1200,7 @@ plot_plnt_nox_oz_dist <-
 
 ```{r}
 #| label: plant-file-so2-dist
-##| fig-height: 10
+#| fig-height: 10
 
 plot_plnt_so2 <-
   plant_file %>%
@@ -1250,7 +1249,7 @@ plot_plnt_so2_dist <-
 
 ```{r}
 #| label: plant-file-co2-dist
-##| fig-height: 10
+#| fig-height: 10
 
 plot_plnt_co2 <-
   plant_file %>%
@@ -1299,7 +1298,7 @@ plot_plnt_co2_dist <-
 
 ```{r}
 #| label: plant-file-ch4-dist
-##| fig-height: 10
+#| fig-height: 10
 
 plot_plnt_ch4 <-
   plant_file %>%
@@ -1348,7 +1347,7 @@ plot_plnt_ch4_dist <-
 
 ```{r}
 #| label: plant-file-n2o-dist
-##| fig-height: 10
+#| fig-height: 10
 
 plot_plnt_n2o <-
   plant_file %>%
@@ -1391,55 +1390,6 @@ plot_plnt_n2o_dist <-
     )
 
 (plot_plnt_n2o + plot_plnt_unadj_n2o) / plot_plnt_n2o_rate / plot_plnt_n2o_dist
-```
-
-#### Hg Distributions
-
-```{r}
-#| label: plant-file-hg-dist
-##| fig-height: 10
-
-plot_plnt_hg <-
-  plant_file %>%
-  ggplot(aes(x = hg_mass)) +
-  geom_histogram() +
-  theme_minimal() +
-  labs(title = "Hg Mass")
-
-plot_plnt_unadj_hg <-
-  plant_file %>%
-  ggplot(aes(x = unadj_hg_mass)) +
-  geom_histogram() +
-  theme_minimal() +
-  labs(title = "Unadjusted Hg Mass")
-
-plot_plnt_hg_rate <-
-  plant_file %>%
-  ggplot(aes(x = hg_out_emission_rate)) +
-  geom_histogram() +
-  theme_minimal() +
-  #xlim(c(0, 100)) + # adding in limit to deal with outliers
-  labs(title = "Hg Emission Output Rate")
-
-plot_plnt_hg_dist <-
-  plant_file %>%
-  count(unadj_hg_source) %>%
-  mutate(proportion = n/sum(n)) %>%
-  ggplot(aes(x = unadj_hg_source, y = proportion)) +
-  geom_col() +
-  coord_flip() +
-  scale_x_discrete(labels = scales::wrap_format(30)) +
-  scale_y_continuous(labels = scales::label_percent()) +
-  geom_text(aes(label = scales::percent(proportion)),
-            nudge_y = .05) +
-  theme_minimal() +
-  labs(
-    title = "Distribution of Unadj. Hg Mass Data Sources",
-    y = "Share of units",
-    x = NULL
-    )
-
-(plot_plnt_hg + plot_plnt_unadj_hg) / plot_plnt_hg_rate / plot_plnt_hg_dist
 ```
 :::
 
