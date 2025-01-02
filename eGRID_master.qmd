@@ -18,7 +18,7 @@ format:
     html-table-processing: none
     code-fold: true
 execute: 
-  eval: true
+  eval: false
   message: false
   warning: false
 params:
@@ -61,7 +61,7 @@ The final eGRID database includes eight levels of data aggregation:
 
 ## Using the .qmd file
 
-This is a Quarto (.qmd) file that documents and runs the code necessary to create the eGRID database. Along with sequentially executing the necessary scripts used to create the database, the process is documented throughout, including built-in outputs (e.g., counts of rows, variable names, etc.) and QA steps. This document can be used in two ways: First, when used within an IDE, such as RStudio, it serves as an enhanced master script, allowing users to easily perform each step necessary to create the eGRID database from within a single file. Second, when viewing as a rendered file, it provides thorough documentation of the steps involved in creating eGRID. When rendered, this file provides additional information and tools for navigating the project. The table of contents (TOC) provides both a convenient look at the project structure and method for navigating the document. There are also hidden code chunks throughout, marked by a button ("Code" with an arrow next to it). Clicking this button reveals the underlying code from the R script that is being sourced in a given section.
+This is a Quarto (.qmd) file that documents and runs the code necessary to create the eGRID database. Along with sequentially executing the necessary scripts used to create the database, the process is documented throughout, including built-in outputs (e.g., counts of rows, variable names, etc.) and QA steps. This document can be used in two ways: First, when used within an IDE, such as RStudio, it serves as an enhanced master script, allowing users to easily perform each step necessary to create the eGRID database from within a single file. Second, when viewing as a rendered file, it provides thorough documentation of the steps involved in creating eGRID. When rendered, this file provides additional information and tools for navigating the project. The table of contents provides both a convenient look at the project structure and method for navigating the document. There are also hidden code chunks throughout, marked by a button ("Code" with an arrow next to it). Clicking this button reveals the underlying code from the R script that is being sourced in a given section.
 
 # Install Libraries and Set Parameters
 
@@ -80,6 +80,7 @@ The script `install_libraries.R` detects all necessary libraries within the proj
 ```{r}
 #| label: load-packages
 #| echo: false
+#| include: false
 
 library(docstring)
 library(dplyr)
@@ -94,7 +95,7 @@ library(readxl)
 library(stringr)
 ```
 
-## Defining eGRID year
+## Define eGRID year
 
 The year of eGRID specified as the parameter "eGRID_year" within the YAML of the Quarto document. When a year value needs to be specified (e.g., when pulling relevant data from the CAMPD API), it is done so by calling `params$eGRID_year`.
 
@@ -119,6 +120,7 @@ purrr::walk(paste0("scripts/functions/", functions), ~ source(.x))
 *Click on the tab to view the helper function names.*
 
 ### Helper Functions
+
 ```{r}
 #| label: list-functions
 #| echo: false
@@ -130,15 +132,15 @@ kable(stringr::str_remove(stringr::str_remove(functions, ".R"), "function_"),
 ```
 :::
 
-# Loading Data
+# Load Data
 
-## Loading data from raw sources
+## Load data from raw sources
 
 ### EIA
 
 The U.S. Energy Information Administration (EIA), a part of the Department of Energy, collects and maintains energy-related data for policy making and for the public. eGRID integrates several EIA data forms into its database for relevant values.
 
-As of 2024, the EIA API does not contain the most detailed data available, which is necessary for the construction of eGRID. More detailed data for the EIA forms [923](https://www.eia.gov/electricity/data/eia923/), [860](https://www.eia.gov/electricity/data/eia860/), and [861](https://www.eia.gov/electricity/data/eia861/) are available as zipped excel file downloads on the EIA website. `data_eia_load.R` creates a new folder in the project folder called "raw_data". The zip files for each of the forms are downloaded and unzipped within this newly created folder. Each excel file contains several sheets that serve as the raw EIA data sources used to create eGRID.
+As of 2024, the EIA API does not contain the most detailed data available, which is necessary for the construction of eGRID. More detailed data for the EIA forms [923](https://www.eia.gov/electricity/data/eia923/), [860](https://www.eia.gov/electricity/data/eia860/), and [861](https://www.eia.gov/electricity/data/eia861/) are available as zipped excel file downloads on the EIA website. `data_load_eia.R` creates a new folder in the project folder called "raw_data". The zip files for each of the forms are downloaded and unzipped within this newly created folder. Each excel file contains several sheets that serve as the raw EIA data sources used to create eGRID.
 
 ```{r}
 #| label: data-load-eia
@@ -343,7 +345,7 @@ table_emissions_ozone
 ```
 :::
 
-## Loading Crosswalks
+## Load Crosswalks
 
 Crosswalks and static tables are used to supplement EPA and EIA files and provide information on one-off changes, descriptions, or overall conversions.
 
@@ -408,7 +410,7 @@ tab_xwalk
 ```
 :::
 
-# Cleaning Raw Data File
+# Clean Raw Data Files
 
 ## EIA
 
@@ -614,9 +616,7 @@ create_summary_table(readr::read_rds(glue::glue("data/clean_data/epa/{params$eGR
 
 # Generator File
 
-## Combining Data Sources
-
-The generator file extracts data from `eia_860_clean.RDS`, including all operable and retired generators . The code pulls variables from EIA-860 data (`eia_860$boiler_generator` and `eia_860$combined`) and counts the number of boilers. Then, we assign generation to each generator value.
+The generator file extracts data from `eia_860_clean.RDS`, including all operable and retired generators . The code pulls variables from EIA-860 data (`boiler_generator` and `combined`) and counts the number of boilers. Then, we assign generation to each generator value.
 
 Direct generation is assigned to each generator values through the `EIA-923 Generator` file. For values not included in the `EIA-923 Generator` file, generation is determined by using a nameplate capacity ratio with `EIA-923 Generator and Fuel` data. A capacity factor is assigned to each generator. Some updates to fuel types, plant codes, and plant names are made to match EIA and EPA data.
 
@@ -624,10 +624,15 @@ For full documentation, reference the [eGRID Technical Guide](https://www.epa.go
 
 Crosswalks used in this file:
 
--   `xwalk_fuel_type.csv`
+-   `epa_plants_to_delete.csv`
+
+-   `manual_corrections.xlsx`
+
+-   `og_oth_units_to_change_fuel_type.csv`
 
 -   `xwalk_oris_epa.csv`
 
+## Produce Generator File
 ```{r}
 #| label: generator-file-create
 #| file: "scripts/generator_file_create.R"
@@ -642,7 +647,7 @@ generator_file <- readr::read_rds(
            glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
 ```
 
-## View Data
+## View Generator File Data
 
 ::: panel-tabset
 #### Overview
@@ -715,8 +720,6 @@ generator_file %>%
 
 # Unit File
 
-## Combining Data Sources
-
 The unit file data includes grid connected units from EPA/CAMPD data, unique EIA-923 boilers, unique EIA-860 boilers, and renewable units from EIA not included previously. Some units are ozone season reporters where they only reports data during the ozone season of May - September. After flagging which EPA plants are ozone season reporters, we fill in the missing months with EIA data.
 
 Unit level emissions come from CAMPD Power Sector Emissions Data. For units not included in EPA, but in EIA, the emissions are calculated through reported unit level heat input from EIA.
@@ -725,29 +728,37 @@ For full documentation, reference the [eGRID Technical Guide](https://www.epa.go
 
 Crosswalks used in this file:
 
--   `xwalk_epa_eia_power_sector.csv`
-
 -   `biomass_units_to_add_to_unit_file.csv`
-
--   `xwalk_boiler_firing_type.csv`
-
--   `epa_plants_to_delete.csv`
-
--   `xwalk_860_boiler_control_id.csv`
-
--   `emission_factors.csv`
-
--   `og_oth_units_to_change_fuel_type.csv`
 
 -   `co2_ch4_n2o_ef.csv`
 
--   `nrel_geothermal_table.csv`
+-   `emission_factors.csv`
+
+-   `epa_plants_to_delete.csv`
+
+-   `fuel_type_categories.csv`
 
 -   `geothermal_emission_factors.csv`
 
+-   `manual_corrections.xlsx`
+
+-   `nrel_geothermal_table.csv`
+
+-   `og_oth_units_to_change_fuel_type.csv`
+
 -   `units_to_remove.csv`
 
+-   `xwalk_860_boiler_control_id.csv`
+
+-   `xwalk_boiler_firing_type.csv`
+
+-   `xwalk_epa_eia_power_sector.csv`
+
+-   `xwalk_oris_epa.csv`
+
 -   `xwalk_pr_oris.csv`
+
+## Produce Unit File
 
 ```{r}
 #| label: unit-file-create
@@ -763,7 +774,7 @@ unit_file <- readr::read_rds(
            glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
 ```
 
-## View Data
+## View Unit File Data
 
 ::: panel-tabset
 #### Overview
@@ -967,8 +978,6 @@ plot_unt_co2 / plot_unt_co2_sources_dist
 
 # Plant File
 
-## Combining Data Sources
-
 The plant file combines EIA form data, `EIA-860`, `EIA-861`, and `EIA-923`, with the outputs of the previous two files: `generator_file.RDS` and `unit_file.RDS`.
 
 Plant level emissions reflect combination of monitored and estimated data. In the emissions and emissions rates, losses within generating plants are accounted for. However, additional losses, such as transmission losses between points of generation and points of consumption, are not accounted for.
@@ -983,35 +992,45 @@ For full documentation, reference the [eGRID Technical Guide](https://www.epa.go
 
 Crosswalks used in this file:
 
--   `xwalk_oris_epa.csv`
+-   `ba_codes.csv`
+
+-   `chp_database.csv`
 
 -   `co2_ch4_n2o_ef.csv`
 
--   `xwalk_fips_names_update.csv`
+-   `egrid_2022_chp.csv`
+
+-   `egrid_nerc_subregions.csv`
+
+-   `fuel_type_categories.csv`
+
+-   `global_warming_potential.csv`
+
+-   `manual_corrections.xlsx`
+
+-   `nerc_assessment_areas_grouped_by_plant.csv`
+
+-   `og_oth_units_to_change_fuel_type.csv`
 
 -   `state_county_fips.csv`
 
 -   `xwalk_alaska_fips.csv`
 
--   `ba_codes.csv`
-
 -   `xwalk_balancing_authority.csv`
 
--   `xwalk_ba_transmission.csv`
-
--   `xwalk_ba_pjm.csv`
-
--   `xwalk_oris_wecc.csv`
-
--   `nerc_assessment_areas_grouped_by_plant.csv`
+-   `xwalk_fips_names_update.csv`
 
 -   `xwalk_nerc_assessment.csv`
 
--   `egrid_nerc_subregions.csv`
+-   `xwalk_oris_epa.csv`
 
--   `og_oth_units_to_change_fuel_type.csv`
+-   `xwalk_oris_subregion.csv`
 
--   `chp_plants.csv`
+-   `xwalk_subregion_transmission.csv`
+
+-   `xwalk_subregion_utility.csv`
+
+## Produce Plant File
 
 ```{r}
 #| label: plant-file-create
@@ -1027,7 +1046,7 @@ plant_file <- readr::read_rds(
            glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
 ```
 
-## View Data
+## View Plant File Data
 
 ::: panel-tabset
 #### Overview
@@ -1421,8 +1440,6 @@ plot_plnt_n2o_dist <-
 
 # Region Aggregation
 
-## Aggregating Files
-
 After loading in plant file data (`plant_file.RDS`), we sum the adjusted heat input, adjusted emissions, adjusted fuel-based emissions, generation, fuel-based net generation, and nameplate capacity from the plant-level data to the various aggregated levels (state, balancing authority, eGRID subregion, NERC region, and US level).
 
 Then, we calculate the output, input, combustion output, fuel-specific output, fuel-specific input, and nonbaseload output emissions rates. The aggregated level resource mix is estimated based on the summed generation by fuel values from the plant file. The nonbaseload generation is estimated by fuel type and resource mix.
@@ -1432,6 +1449,8 @@ For full documentation, reference the [eGRID Technical Guide](https://www.epa.go
 Crosswalks used in this file:
 
 -   `nerc_region_names.csv`
+
+## Produce Aggregation Files
 
 ```{r}
 #| label: region-aggregation-create
@@ -1455,7 +1474,7 @@ us_agg  <- read_rds(
         glue::glue("data/outputs/{params$eGRID_year}/us_aggregation.RDS"))
 ```
 
-## View Data
+## View Aggregation Files Data
 
 ::: panel-tabset
 #### Overview
@@ -1515,8 +1534,6 @@ create_summary_table(us_agg)
 
 # Grid Gross Loss File
 
-## Combining Data Sources
-
 The grid gross loss (GGL) requires a separate EIA data source known as State Electricity Profiles, specifically `Table 10: Supply and disposition of energy`. This contains values necessary for the GGL formula, *estimated losses* divided by the difference between the *total disposition minus exports* and *direct use*.
 
 For states with multiple interconnections, like Montana and Nebraska, a ratio is created. The ratio consists of the total generation produced by plants within the one interconnection compared to total state generation. Net state generation and interconnect generation is calculated using data sources `EIA-860 Combined`, `EIA-860 Plant`, and `EIA-923 Generation and Fuel Data`.
@@ -1528,6 +1545,8 @@ Crosswalk used in this file:
 -   `state_and_interconnection.csv`
 
 -   `nerc_region_and_interconnect.xlsx`
+
+## Produce Grid Gross Loss File
 
 ```{r}
 #| label: grid-gross-loss-create
@@ -1543,7 +1562,7 @@ ggl_file <- readr::read_rds(
            glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 ```
 
-## View Data
+## View Grid Gross Loss File Data
 
 ::: panel-tabset
 #### Overview
@@ -1628,6 +1647,8 @@ The demographics file uses geographic coordinates from all plants and EPA's EJSc
 
 For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
+## Produce Demographics File
+
 ```{r}
 #| label: demographics-file-create
 #| results: hold
@@ -1665,7 +1686,7 @@ conversion_table %>%
       )
 ```
 
-## Producing Metric Version Files
+## Produce Metric Version Files
 
 ```{r}
 #| label: metric-files-create
@@ -1677,9 +1698,12 @@ conversion_table %>%
 
 To output the data into a clean, readable form, a final style script is applied for all output files. For headers, we add descriptions and label conventions to maintain consistency with previous eGRID releases. Using R package `openxlsx`, we apply formatting and colors to categorize outputs and values. Formatting is applied for both imperial unit version and the metric unit version.
 
-The final output file is `egrid_dataYYYY.xlsx`.
+## Produce Final eGRID Documents
 
-## Imperial Unit Version
+### Imperial Version
+
+The final output file is `r glue::glue("egrid{params$eGRID_year}_data.xlsx")`.
+
 
 ```{r}
 #| label: final-formatting
@@ -1687,7 +1711,10 @@ The final output file is `egrid_dataYYYY.xlsx`.
 #| results: hold
 ```
 
-## Metric Unit Version
+### Metric Version
+
+The final output file is `r glue::glue("egrid{params$eGRID_year}_data_metric.xlsx")`.
+
 
 ```{r}
 #| label: metric-final-formatting
