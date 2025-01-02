@@ -17,16 +17,18 @@ format:
     toc-location: left
     html-table-processing: none
     code-fold: true
+execute: 
+  fig-height: 10
+  message: false
+  warning: false
 params:
   eGRID_year: "2023"
   run_demo_file: FALSE # running demographic file takes 4-5 hours
                        # FALSE = default, do not run
                        # TRUE = runs script to collect demographic file
-                       # note: commenting out unit_file_create and metric_files_create since causing issues
 editor: visual
 project: 
   execute_dir: project
-css: style.css # specific branding/styling can be added here
 ---
 
 # Overview
@@ -35,7 +37,7 @@ This project includes all necessary scripts and documentation to create the Emis
 
 # Background
 
-eGRID is a comprehensive source of data from EPA's Clean Air Markets Program Data on the environmental characteristics of almost all electric power generated in the United States. The preeminent source of emissions data for the electric power sector, eGRID is based on available plant-specific data for all U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, but are not limited to, net electric generation; resource mix (for renewable and nonrenewable generation); mass emissions of carbon dioxide (CO2), nitrogen oxides (NOx), sulfur dioxide (SO2), methane (CH4), nitrous oxide (N2O), and mercury (Hg); emission rates for CO2, NOx, SO2, CH4, and N2O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for NOx) at different levels of aggregation.
+eGRID is a comprehensive source of data from EPA's Clean Air Markets Program Data on the environmental characteristics of almost all electric power generated in the United States. The preeminent source of emissions data for the electric power sector, eGRID is based on available plant-specific data for all U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, but are not limited to, net electric generation; resource mix (for renewable and nonrenewable generation); mass emissions of carbon dioxide (CO~2~), nitrogen oxides (NO~x~), sulfur dioxide (SO~2~), methane (CH~4~), nitrous oxide (N~2~O), and mercury (Hg); emission rates for CO~2~, NO~x~, SO~2~, CH~4~, and N~2~O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for NO~x~) at different levels of aggregation.
 
 The data includes emissions, emission rates, generation, heat input, resource mix, and many other attributes. eGRID is typically used for greenhouse gas registries and inventories, carbon footprints, consumer information disclosure, emission inventories and standards, power market changes, and avoided emission estimates.
 
@@ -70,11 +72,9 @@ Before loading any data or beginning to construct the eGRID database, we install
 The script `install_libraries.R` detects all necessary libraries within the project using `renv::dependencies()`, checks for installation, and installs (if needed) and loads into the workspace.
 
 ```{r}
-#| label: install_libraries.R
+#| label: install-libraries.R
 #| file: "scripts/install_libraries.R"
 #| echo: false
-#| message: false
-
 ```
 
 ## Defining eGRID year
@@ -88,13 +88,11 @@ The year of eGRID specified as the parameter "eGRID_year" within the YAML of the
 There are a set of helper functions used throughout the project. These are defined in the folder `scripts/functions`. The `docstring` package is used to provide documentation for functions, similar to typical package documentation. To view the documentation for a given function, run `docstring({function_name})`
 
 ```{r}
-#| label: load_functions
+#| label: load-functions
 #| echo: false
-#| message: false
 
 # sourcing each file in functions folder
 purrr::walk(paste0("scripts/functions/",list.files('scripts/functions')), ~ source(.x))
-
 ```
 
 # Loading Data
@@ -108,18 +106,17 @@ The U.S. Energy Information Administration (EIA), a part of the Department of En
 As of 2024, the EIA API does not contain the most detailed data available, which is necessary for the construction of eGRID. More detailed data for the EIA forms [923](https://www.eia.gov/electricity/data/eia923/), [860](https://www.eia.gov/electricity/data/eia860/), and [861](https://www.eia.gov/electricity/data/eia861/) are available as zipped excel file downloads on the EIA website. `data_eia_load.R` creates a new folder in the project folder called "raw_data". The zip files for each of the forms are downloaded and unzipped within this newly created folder. Each excel file contains several sheets that serve as the raw EIA data sources used to create eGRID.
 
 ```{r}
-#| label: data_load_eia
+#| label: data-load-eia
 #| file: "scripts/data_load_eia.R"
-#| warning: FALSE
-#| error: FALSE
+#| error: false
 #| echo: fenced
 ```
 
 The tables within EIA Files and Sheets display each of the unzipped raw files across the three EIA forms, including the sheets embedded within.
 
 ```{r}
+#| label: custom-gt-print
 #| echo: false
-#| label: custom_gt_print
 
 library(knitr)
 knit_print.gt <- function(x, ...) {
@@ -127,34 +124,28 @@ knit_print.gt <- function(x, ...) {
     knitr::asis_output()
 }
 registerS3method("knit_print", 'gt_tbl', knit_print.gt, envir = asNamespace("gt"))
-
 ```
 
 <!--# Would be nice to highlight the sheets that will actually be used in eGRID productions... -->
 
 ```{r}
-#| message: FALSE
-#| warning: FALSE
-#| label: create_eia_sheets_list
+#| label: create-eia-sheets-list
 
 library(readxl)
 library(dplyr)
 library(gt)
 library(gtExtras)
 
-
 sheets_923  <- get_sheets("923")
 sheets_860  <- get_sheets("860")
 sheets_861  <- get_sheets("861")
 sheets_860m <- get_sheets("860m")
-
 
 tab_923  <- make_sheets_table(sheets_923, "923") 
 tab_860  <- make_sheets_table(sheets_860, "860")
 tab_861  <- make_sheets_table(sheets_861, "861")
 tab_860m <- make_sheets_table(sheets_860m, "860m")
  
-
 sheets_used923 <-   c("Page 1 Generation and Fuel Data", # eia-923
                       "Page 1 Puerto Rico",
                       "Page 3 Boiler Fuel Data",
@@ -188,8 +179,6 @@ sheets_used861 <- c("Balancing Authority",
 # tab_860 <- style_sheets_table(sheets_used860, tab_860)
 # tab_860m <- style_sheets_table(sheets_used860m, tab_860m)
 # tab_861 <- style_sheets_table(sheets_used861, tab_861)
-
-
 ```
 
 #### EIA Files and Sheets {#eia-files-sheets}
@@ -210,39 +199,40 @@ sheets_used861 <- c("Balancing Authority",
 #### EIA-923
 
 ```{r}
+#| label: print-eia-923-sheets
 #| tbl-cap: "EIA-923 sheets"
 #| echo: false
-#| label: print_eia_923_sheets
 
 tab_923
-
 ```
 
 #### EIA-860
 
 ```{r}
-#| tbl-cap: "EIA-860 sheets"
+#| label: print-eia-860-sheets
 #| echo: false
-#| label: print_eia_860_sheets
-tab_860
+#| tbl-cap: "EIA-860 sheets"
 
+tab_860
 ```
 
 #### EIA-861
 
 ```{r}
-#| tbl-cap: "EIA-861 sheets"
+#| label: print-eia-861-sheets
 #| echo: false
-#| label: print_eia_861_sheets
+#| tbl-cap: "EIA-861 sheets"
+
 tab_861
 ```
 
 #### EIA-860m
 
 ```{r}
-#| tbl-cap: "EIA-860m sheets"
+#| label: print-eia-860m-sheets
 #| echo: false
-#| label: print_eia_860m_sheets
+#| tbl-cap: "EIA-860m sheets"
+
 tab_860m
 ```
 :::
@@ -256,13 +246,10 @@ These data are available through the [CAMPD API](https://www.epa.gov/power-secto
 An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-portal#/api-key-signup). Once a key is obtained, paste your key into the file `api_keys/epa_api_key.txt` and save. Once saved, the script `data_load_epa.R` will be able to successfully connect to and load data from the CAMPD API.
 
 ```{r}
-#| label: load_data_epa
-#| warnings: false
-#| message: false
-#| error: false 
-#| echo: fenced
+#| label: load-data-epa
 #| file: "scripts/data_load_epa.R"
-
+#| echo: fenced
+#| error: false 
 ```
 
 Three data tables are downloaded from the the CAMPD and stored into one .RDS file, `epa_raw.RDS`. This file consists of facility attributes, annual emissions data, and containing annual emissions data for the ozone months. See a summary of the raw EPA file below, separated into categories.
@@ -270,9 +257,8 @@ Three data tables are downloaded from the the CAMPD and stored into one .RDS fil
 #### EPA Raw Tables
 
 ```{r}
+#| label: create-epa-tables
 #| echo: false
-#| label: create_epa_tables
-#| warnings: false
 
 source("scripts/functions/function_summary_table.R") # function to create summary table
 
@@ -287,8 +273,6 @@ epa_emissions_ozone <- epa_raw[47:58]
 table_facilities      <- create_summary_table(epa_facilities)
 table_emissions       <- create_summary_table(epa_emissions)
 table_emissions_ozone <- create_summary_table(epa_emissions_ozone)
-
-
 ```
 
 ::: panel-tabset
@@ -305,24 +289,27 @@ table_emissions_ozone <- create_summary_table(epa_emissions_ozone)
 #### EPA facility attributes
 
 ```{r}
+#| label: print-epa-tab-facilities
 #| echo: false
-#| label: print_epa_tab_facilities
+
 table_facilities
 ```
 
 #### EPA annual emissions
 
 ```{r}
+#| label: print-epa-tab-emissions
 #| echo: false
-#| label: print_epa_tab_emissions
+
 table_emissions
 ```
 
 #### EPA ozone season emissions
 
 ```{r}
+#| label: print-epa-tab-emissions-ozone
 #| echo: false
-#| label: print_epa_tab_emissions_ozone
+
 table_emissions_ozone
 ```
 :::
@@ -352,7 +339,7 @@ Crosswalks and static tables are used to supplement EPA and EIA files and provid
     -   ex. `xwalk_fips_names_update.csv`
 
 ```{r}
-#| label: create_xwalk_summary
+#| label: create-xwalk-summary
 
 path <- glue::glue("data/static_tables")
 
@@ -375,7 +362,6 @@ tab_xwalk <-
         locations = cells_column_labels()
       ) %>%
       gt::tab_caption(caption = glue::glue("Crosswalks and Static Tables"))
-
 ```
 
 ::: panel-tabset
@@ -386,12 +372,10 @@ tab_xwalk <-
 #### Files
 
 ```{r}
-#| label: xwalk_summary
-#| message: false
-#| warning: false
+#| label: xwalk-summary
+#| echo: false
 
 tab_xwalk
-
 ```
 :::
 
@@ -440,14 +424,13 @@ There are several procedures that are applied to each of the raw EIA files:
         -   `nameplate_capacity`
 
 ```{r}
-#| label: data_clean_eia
-#| message: FALSE
-#| warning: FALSE
+#| label: data-clean-eia
 #| file: "scripts/data_clean_eia.R"
+#| results: hold
 ```
 
 ```{r}
-#| label: load_eia_clean_files
+#| label: load-eia-clean-files
 #| echo: false
 
 eia_923_files <- read_rds(
@@ -466,9 +449,8 @@ eia_861_files <- read_rds(
 *Click through the tabs above to preview values represented from required EIA-923 files.*
 
 ```{r}
+#| label: eia-923-summary-tabs
 #| results: asis
-#| label: eia_923_summary_tabs
-#| echo: false
 
 tabs_923 <- 
   eia_923_files %>% 
@@ -492,20 +474,19 @@ purrr::iwalk(tabs_923, ~ {
 *Click through the tabs above to preview values represented from required EIA-860 files.*
 
 ```{r}
-#| results: false
-#| label: eia_860_summary_tabs
+#| label: eia-860-summary-tabs
 #| echo: false
+#| results: false
 
 tabs_860 <- 
   eia_860_files %>% 
   map(., ~ create_summary_table(.x))
-
 ```
 
 ```{r}
-#| results: asis
-#| label: eia_860_summary_tabs2
+#| label: eia-860-summary-tabs-2
 #| echo: false
+#| results: asis
 
 purrr::iwalk(tabs_860, ~ {
   cat('#### ', .y, '\n\n')
@@ -514,7 +495,6 @@ purrr::iwalk(tabs_860, ~ {
   
   cat('\n\n')
 } )
-
 ```
 :::
 
@@ -526,10 +506,9 @@ purrr::iwalk(tabs_860, ~ {
 *Click through the tabs above to preview values represented from required EIA-861 files.*
 
 ```{r}
-#| results: asis
-#| label: eia_861_summary_tabs
+#| label: eia-861-summary-tabs
 #| echo: false
-#| message: false
+#| results: asis
 
 tabs_861 <- 
   eia_861_files %>% 
@@ -542,7 +521,6 @@ purrr::iwalk(tabs_861, ~ {
   
   cat('\n\n')
 } )
-
 ```
 :::
 
@@ -585,9 +563,9 @@ There are several procedures applied to the raw EPA file:
     -   This keeps all data rows into a usable, consistent format. In the raw version, some plants have added notes about dates or the plant.
 
 ```{r}
-#| message: false
-#| label: data_clean_epa
+#| label: data-clean-epa
 #| file: "scripts/data_clean_epa.R"
+#| results: hold
 ```
 
 ::: panel-tabset
@@ -598,21 +576,19 @@ There are several procedures applied to the raw EPA file:
 #### EPA clean
 
 ```{r}
+#| label: create-epa-summary-table
 #| echo: false
-#| label: create_epa_summary_table
 
 create_summary_table(readr::read_rds(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")))
-
 ```
 :::
 
 # Generator File
 
 ```{r}
-#| label: generator_file_create
+#| label: generator-file-create
 #| file: "scripts/generator_file_create.R"
-#| message: false
-
+#| results: hold
 ```
 
 ## Combining Data Sources
@@ -630,7 +606,7 @@ Crosswalks used in this file:
 -   `xwalk_oris_epa.csv`
 
 ```{r}
-#| label: generator_file_table
+#| label: generator-file-table
 #| include: false
 
 generator_file <- readr::read_rds(
@@ -647,20 +623,15 @@ generator_file <- readr::read_rds(
 #### Data Summary
 
 ```{r}
-#| label: gen_file_summary
-#| message: false
-#| warning: false
+#| label: gen-file-summary
 
 create_summary_table(generator_file)
-
 ```
 
 #### Generation Distributions
 
 ```{r}
-#| label: gen_file_distributions 
-#| warning: false
-#| message: false
+#| label: gen-file-distributions 
 #| fig-height: 10
 
 library(ggplot2)
@@ -690,14 +661,13 @@ plot_gen_ann_source <-
   scale_x_discrete(labels = scales::wrap_format(30)) +
   labs(title = "Annual Generation by Data Source")
 
-
   (plot_gen_ann + plot_gen_oz) / plot_gen_ann_source
 ```
 
 #### Distribution of Data Sources
 
 ```{r}
-#| label: generator_file_data_source_dists
+#| label: generator-file-data-source-dists
 
 generator_file %>% 
   count(gen_data_source) %>% 
@@ -715,17 +685,15 @@ generator_file %>%
     y = "Share of generators",
     x = NULL
   )
-  
 ```
 :::
 
 # Unit File
 
 ```{r}
-#| label: unit_file_create
+#| label: unit-file-create
 #| file: "scripts/unit_file_create.R"
-#| warning: false
-#| message: false
+#| results: hold
 ```
 
 ## Combining Data Sources
@@ -763,12 +731,11 @@ Crosswalks used in this file:
 -   `xwalk_pr_oris.csv`
 
 ```{r}
-#| label: unit_file_table
+#| label: unit-file-table
 #| include: false
 
 unit_file <- readr::read_rds(
            glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
-
 ```
 
 ## View Data
@@ -781,21 +748,16 @@ unit_file <- readr::read_rds(
 #### Data Summary
 
 ```{r}
-#| label: unt_file_summary
-#| message: false
-#| warning: false
+#| label: unit-file-summary
 
 create_summary_table(unit_file)
-
 ```
 
 #### Heat Input Distributions
 
 ```{r}
-#| label: unt_file_heat_in_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
+#| label: unit-file-heat-in-dist
+##| fig-height: 10
 
 plot_unt_heat_in <-
   unit_file %>%
@@ -848,16 +810,13 @@ plot_unt_heat_in_oz_source_dist <-
     )
 
 (plot_unt_heat_in + plot_unt_heat_in_oz) / plot_unt_heat_in_source_dist / plot_unt_heat_in_oz_source_dist
-
 ```
 
 #### NOx Distributions
 
 ```{r}
-#| label: unt_file_nox_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
+#| label: unit-file-nox-dist
+##| fig-height: 10
 
 plot_unt_nox <-
   unit_file %>%
@@ -910,16 +869,13 @@ plot_unt_nox_oz_source_dist <-
     )
 
 (plot_unt_nox + plot_unt_nox_oz) / (plot_unt_nox_sources_dist) / (plot_unt_nox_oz_source_dist)
-
 ```
 
 #### SO2 Distributions
 
 ```{r}
-#| label: unt_file_so2_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
+#| label: unit-file-so2-dist
+##| fig-height: 10
 
 plot_unt_so2 <-
   unit_file %>%
@@ -947,16 +903,13 @@ plot_unt_so2_sources_dist <-
     )
 
 plot_unt_so2 / plot_unt_so2_sources_dist
-
 ```
 
 #### CO2 Distributions
 
 ```{r}
-#| label: unt_file_co2_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
+#| label: unit-file-co2-dist
+##| fig-height: 10
 
 plot_unt_co2 <-
   unit_file %>%
@@ -984,16 +937,15 @@ plot_unt_co2_sources_dist <-
     )
 
 plot_unt_co2 / plot_unt_co2_sources_dist
-
 ```
 :::
 
 # Plant File
 
 ```{r}
-#| label: plant_file_create
+#| label: plant-file-create
 #| file: "scripts/plant_file_create.R"
-#| message: false
+#| results: hold
 ```
 
 ## Combining Data Sources
@@ -1043,12 +995,11 @@ Crosswalks used in this file:
 -   `chp_plants.csv`
 
 ```{r}
-#| label: plant_file_table
+#| label: plant-file-table
 #| include: false
 
 plant_file <- readr::read_rds(
            glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
-
 ```
 
 ## View Data
@@ -1061,21 +1012,16 @@ plant_file <- readr::read_rds(
 #### Data Summary
 
 ```{r}
-#| label: plnt_file_summary
-#| message: false
-#| warning: false
+#| label: plant-file-summary
 
 create_summary_table(plant_file)
-
 ```
 
 #### Heat Input Distributions
 
 ```{r}
-#| label: plnt_file_heat_in_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
+#| label: plant-file-heat-in-dist
+##| fig-height: 10
 
 plot_plnt_heat_in <-
   plant_file %>%
@@ -1110,16 +1056,13 @@ plot_plnt_heat_in_dist <-
     )
 
 (plot_plnt_heat_in + plot_plnt_unadj_heat_in) / plot_plnt_heat_in_dist
-
 ```
 
 #### Heat Input Ozone Distributions
 
 ```{r}
-#| label: plnt_file_heat_in_oz_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
+#| label: plant-file-heat-in-oz-dist
+##| fig-height: 10
 
 plot_plnt_heat_in_oz <-
   plant_file %>%
@@ -1154,16 +1097,13 @@ plot_plnt_heat_in_oz_dist <-
     )
 
 (plot_plnt_heat_in_oz + plot_plnt_unadj_heat_in_oz) / plot_plnt_heat_in_oz_dist
-
 ```
 
 #### NOx Distributions
 
 ```{r}
-#| label: plnt_file_nox_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
+#| label: plant-file-nox-dist
+##| fig-height: 10
 
 plot_plnt_nox <-
   plant_file %>%
@@ -1206,16 +1146,13 @@ plot_plnt_nox_dist <-
     )
 
 (plot_plnt_nox + plot_plnt_unadj_nox) / plot_plnt_nox_rate / plot_plnt_nox_dist
-
 ```
 
 #### NOx Ozone Distributions
 
 ```{r}
-#| label: plnt_file_nox_oz_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
+#| label: plant-file-nox-oz-dist
+##| fig-height: 10
 
 plot_plnt_nox_oz <-
   plant_file %>%
@@ -1258,17 +1195,13 @@ plot_plnt_nox_oz_dist <-
     )
 
 (plot_plnt_nox_oz + plot_plnt_unadj_nox_oz) / plot_plnt_nox_oz_rate / plot_plnt_nox_oz_dist
-
 ```
 
 #### SO2 Distributions
 
 ```{r}
-#| label: plnt_file_so2_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
-# 
+#| label: plant-file-so2-dist
+##| fig-height: 10
 
 plot_plnt_so2 <-
   plant_file %>%
@@ -1311,16 +1244,13 @@ plot_plnt_so2_dist <-
     )
 
 (plot_plnt_so2 + plot_plnt_unadj_so2) / plot_plnt_so2_rate / plot_plnt_so2_dist
-
 ```
 
 #### CO2 Distributions
 
 ```{r}
-#| label: plnt_file_co2_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
+#| label: plant-file-co2-dist
+##| fig-height: 10
 
 plot_plnt_co2 <-
   plant_file %>%
@@ -1363,16 +1293,13 @@ plot_plnt_co2_dist <-
     )
 
 (plot_plnt_co2 + plot_plnt_unadj_co2) / plot_plnt_co2_rate / plot_plnt_co2_dist
-
 ```
 
 #### CH4 Distributions
 
 ```{r}
-#| label: plnt_file_ch4_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
+#| label: plant-file-ch4-dist
+##| fig-height: 10
 
 plot_plnt_ch4 <-
   plant_file %>%
@@ -1415,16 +1342,13 @@ plot_plnt_ch4_dist <-
     )
 
 (plot_plnt_ch4 + plot_plnt_unadj_ch4) / plot_plnt_ch4_rate / plot_plnt_ch4_dist
-
 ```
 
 #### N2O Distributions
 
 ```{r}
-#| label: plnt_file_n2o_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
+#| label: plant-file-n2o-dist
+##| fig-height: 10
 
 plot_plnt_n2o <-
   plant_file %>%
@@ -1467,16 +1391,13 @@ plot_plnt_n2o_dist <-
     )
 
 (plot_plnt_n2o + plot_plnt_unadj_n2o) / plot_plnt_n2o_rate / plot_plnt_n2o_dist
-
 ```
 
 #### Hg Distributions
 
 ```{r}
-#| label: plnt_file_hg_dist
-#| warning: false
-#| message: false
-#| fig-height: 10
+#| label: plant-file-hg-dist
+##| fig-height: 10
 
 plot_plnt_hg <-
   plant_file %>%
@@ -1519,16 +1440,15 @@ plot_plnt_hg_dist <-
     )
 
 (plot_plnt_hg + plot_plnt_unadj_hg) / plot_plnt_hg_rate / plot_plnt_hg_dist
-
 ```
 :::
 
 # Region Aggregation
 
 ```{r}
-#| label: region_aggregation_create
+#| label: region-aggregation-create
 #| file: "scripts/region_aggregation_create.R"
-#| message: false
+#| results: hold
 ```
 
 ## Aggregating Files
@@ -1544,7 +1464,7 @@ Crosswalks used in this file:
 -   `nerc_region_names.csv`
 
 ```{r}
-#| label: load_reg_agg_files
+#| label: load-reg-agg-files
 #| echo: false
 
 ba_agg  <- read_rds(
@@ -1579,65 +1499,50 @@ us_agg  <- read_rds(
 #### BA
 
 ```{r}
-#| label: ba_agg_summary
-#| message: false
-#| warning: false
+#| label: ba-agg-summary
 
 create_summary_table(ba_agg)
-
 ```
 
 #### ST
 
 ```{r}
-#| label: st_agg_summary
-#| message: false
-#| warning: false
+#| label: st-agg-summary
 
 create_summary_table(st_agg)
-
 ```
 
 #### SRL
 
 ```{r}
-#| label: srl_agg_summary
-#| message: false
-#| warning: false
+#| label: srl-agg-summary
 
 create_summary_table(srl_agg)
-
 ```
 
 #### NRL
 
 ```{r}
-#| label: nrl_agg_summary
-#| message: false
-#| warning: false
+#| label: nrl-agg-summary
 
 create_summary_table(nrl_agg)
-
 ```
 
 #### US
 
 ```{r}
-#| label: us_agg_summary
-#| message: false
-#| warning: false
+#| label: us-agg-summary
 
 create_summary_table(us_agg)
-
 ```
 :::
 
 # Grid Gross Loss File
 
 ```{r}
-#| label: grid_gross_loss_create
+#| label: grid-gross-loss-create
 #| file: "scripts/grid_gross_loss_create.R"
-#| message: false
+#| results: hold
 ```
 
 ## Combining Data Sources
@@ -1655,12 +1560,11 @@ Crosswalk used in this file:
 -   `nerc_region_and_interconnect.xlsx`
 
 ```{r}
-#| label: ggl_file_table
+#| label: ggl-file-table
 #| include: false
 
 ggl_file <- readr::read_rds(
            glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
-
 ```
 
 ## View Data
@@ -1673,20 +1577,15 @@ ggl_file <- readr::read_rds(
 #### Data Summary
 
 ```{r}
-#| label: ggl_file_summary
-#| message: false
-#| warning: false
-#| 
-create_summary_table(ggl_file)
+#| label: ggl-file-summary
 
+create_summary_table(ggl_file)
 ```
 
 #### View Plots
 
 ```{r}
-#| label: ggl_file_plots
-#| message: false
-#| warning: false
+#| label: ggl-file-plots
 
 ggl_plot <- ggl_file %>%
               ggplot(aes(x = interconnect, y = ggl*100)) +
@@ -1744,7 +1643,6 @@ direct_use_plot <- ggl_file %>%
 
 
 (ggl_plot) / (est_losses_plot + tot_disp_sub_ex_plot + direct_use_plot) + plot_layout(heights = c(2,1))
-
 ```
 :::
 
@@ -1755,8 +1653,8 @@ The demographics file uses geographic coordinates from all plants and EPA's EJSc
 For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
 ```{r}
-#| label: demographics_file_create
-#| message: false
+#| label: demographics-file-create
+#| results: hold
 
 if (params$run_demo_file) {
 
@@ -1768,7 +1666,6 @@ if (params$run_demo_file) {
     print("Skipping demographics_file_create.R because run_demo_file is FALSE.")
 
 }
-
 ```
 
 # Metric Conversion File
@@ -1778,8 +1675,7 @@ The metric files converts imperial units outputs into metric units. The followin
 ## Conversion Table
 
 ```{r}
-#| label: conversion_table
-#| message: false
+#| label: conversion-table
 
 conversion_table <- read_csv("data/static_tables/conversion_factors.csv")
 
@@ -1791,14 +1687,12 @@ conversion_table %>%
           to = gt::md("**Metric**"),
           conversion = gt::md("**Conversion Factor**")
       )
-
 ```
 
 ```{r}
-#| label: metric_files_create
-#|file: "scripts/metric_files_create.R"
-#| message: false
-
+#| label: metric-files-create
+#| file: "scripts/metric_files_create.R"
+#| results: hold
 ```
 
 # Final Formatting
@@ -1808,19 +1702,15 @@ To output the data into a clean, readable form, a final style script is applied 
 The final output file is `egrid_dataYYYY.xlsx`.
 
 ```{r}
-
-#| label: final_formatting
+#| label: final-formatting
 #| file: "scripts/final_formatting.R"
-#| message: false
-
+#| results: hold
 ```
 
 ```{r}
-
-#| label: metric_final_formatting
+#| label: metric-final-formatting
 #| file: "scripts/final_formatting_metric.R"
-#| message: false
-
+#| results: hold
 ```
 
 # eGRID Summary
@@ -1828,7 +1718,8 @@ The final output file is `egrid_dataYYYY.xlsx`.
 The following lines outputs the number of records for contained within each level of aggregation.
 
 ```{r}
-#| label: egrid_summary
+#| label: egrid-summary
+#| results: hold
 
 print(glue::glue("Generator (GEN) Records: {nrow(generator_file)}"))
 print(glue::glue("Unit (UNIT) Records: {nrow(unit_file)}"))
@@ -1838,6 +1729,4 @@ print(glue::glue("Balancing Authority (BA) Records: {nrow(ba_agg)}"))
 print(glue::glue("eGRID Subregion (SRL) Records: {nrow(srl_agg)}"))
 print(glue::glue("NERC Region (NRL) Records: {nrow(nrl_agg)}"))
 print(glue::glue("US (US) Records: {nrow(us_agg)}"))
-
-
 ```
