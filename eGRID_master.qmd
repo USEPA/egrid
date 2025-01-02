@@ -30,6 +30,20 @@ project:
   execute_dir: project
 ---
 
+```{r}
+#| label: install-libraries
+#| echo: false
+
+library(knitr)
+library(dplyr)
+library(ggiraph)
+library(ggplot2)
+library(gt)
+library(gtExtras)
+library(patchwork)
+library(readxl)
+```
+
 # Overview
 
 This project includes all necessary scripts and documentation to create the Emissions & Generation Resource Integrated Database (eGRID).
@@ -117,7 +131,6 @@ The tables within EIA Files and Sheets display each of the unzipped raw files ac
 #| label: custom-gt-print
 #| echo: false
 
-library(knitr)
 knit_print.gt <- function(x, ...) {
   stringr::str_c("<div style='all:initial;'>\n", gt::as_raw_html(x), "\n</div>") %>%
     knitr::asis_output()
@@ -129,11 +142,6 @@ registerS3method("knit_print", 'gt_tbl', knit_print.gt, envir = asNamespace("gt"
 
 ```{r}
 #| label: create-eia-sheets-list
-
-library(readxl)
-library(dplyr)
-library(gt)
-library(gtExtras)
 
 sheets_923  <- get_sheets("923")
 sheets_860  <- get_sheets("860")
@@ -632,10 +640,6 @@ create_summary_table(generator_file)
 ```{r}
 #| label: gen-file-distributions 
 #| fig-height: 10
-
-library(ggplot2)
-library(patchwork)
-library(ggiraph)
 
 plot_gen_ann <- 
   generator_file %>% 
