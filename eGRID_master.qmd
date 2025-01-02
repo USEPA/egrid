@@ -18,6 +18,7 @@ format:
     html-table-processing: none
     code-fold: true
 execute: 
+  eval: true
   message: false
   warning: false
 params:
@@ -29,20 +30,6 @@ editor: visual
 project: 
   execute_dir: project
 ---
-
-```{r}
-#| label: install-libraries
-#| echo: false
-
-library(knitr)
-library(dplyr)
-library(ggiraph)
-library(ggplot2)
-library(gt)
-library(gtExtras)
-library(patchwork)
-library(readxl)
-```
 
 # Overview
 
@@ -90,6 +77,23 @@ The script `install_libraries.R` detects all necessary libraries within the proj
 #| echo: false
 ```
 
+```{r}
+#| label: load-packages
+#| echo: false
+
+library(docstring)
+library(dplyr)
+library(ggiraph)
+library(ggplot2)
+library(gt)
+library(gtExtras)
+library(kableExtra)
+library(knitr)
+library(patchwork)
+library(readxl)
+library(stringr)
+```
+
 ## Defining eGRID year
 
 The year of eGRID specified as the parameter "eGRID_year" within the YAML of the Quarto document. When a year value needs to be specified (e.g., when pulling relevant data from the CAMPD API), it is done so by calling `params$eGRID_year`.
@@ -105,8 +109,26 @@ There are a set of helper functions used throughout the project. These are defin
 #| echo: false
 
 # sourcing each file in functions folder
-purrr::walk(paste0("scripts/functions/",list.files('scripts/functions')), ~ source(.x))
+functions <- list.files("scripts/functions")
+purrr::walk(paste0("scripts/functions/", functions), ~ source(.x))
 ```
+
+::: panel-tabset
+### Overview
+
+*Click on the tab to view the helper function names.*
+
+### Helper Functions
+```{r}
+#| label: list-functions
+#| echo: false
+
+# listing function names
+kable(stringr::str_remove(stringr::str_remove(functions, ".R"), "function_"),
+      col.names = c("Helper Functions")) %>%
+            kable_styling(full_width = F)
+```
+:::
 
 # Loading Data
 
@@ -135,7 +157,7 @@ knit_print.gt <- function(x, ...) {
   stringr::str_c("<div style='all:initial;'>\n", gt::as_raw_html(x), "\n</div>") %>%
     knitr::asis_output()
 }
-registerS3method("knit_print", 'gt_tbl', knit_print.gt, envir = asNamespace("gt"))
+registerS3method("knit_print", "gt_tbl", knit_print.gt, envir = asNamespace("gt"))
 ```
 
 <!--# Would be nice to highlight the sheets that will actually be used in eGRID productions... -->
@@ -464,11 +486,11 @@ tabs_923 <-
   map(., ~ create_summary_table(.x))
 
 purrr::iwalk(tabs_923, ~ {
-  cat('#### ', .y, '\n\n')
+  cat("#### ", .y, "\n\n")
   
   print(.x)
   
-  cat('\n\n')
+  cat("\n\n")
 } )
 ```
 :::
@@ -496,11 +518,11 @@ tabs_860 <-
 #| results: asis
 
 purrr::iwalk(tabs_860, ~ {
-  cat('#### ', .y, '\n\n')
+  cat("#### ", .y, "\n\n")
   
   print(.x)
   
-  cat('\n\n')
+  cat("\n\n")
 } )
 ```
 :::
@@ -522,11 +544,11 @@ tabs_861 <-
   map(., ~ create_summary_table(.x))
 
 purrr::iwalk(tabs_861, ~ {
-  cat('#### ', .y, '\n\n')
+  cat("#### ", .y, "\n\n")
   
   print(.x)
   
-  cat('\n\n')
+  cat("\n\n")
 } )
 ```
 :::
@@ -1567,8 +1589,8 @@ est_losses_plot <- ggl_file %>%
                       )
 
 tot_disp_sub_ex_plot <- ggl_file %>%
-                          ggplot(aes(x = interconnect, y=tot_disp_sub_ex_sum)) +
-                          geom_bar(stat="identity") +
+                          ggplot(aes(x = interconnect, y = tot_disp_sub_ex_sum)) +
+                          geom_bar(stat = "identity") +
                           #geom_text(aes(label = sprintf("%.2f", tot_disp_sub_ex_sum)), vjust = -0.5) + 
                           theme_minimal() +
                           theme(
@@ -1582,9 +1604,9 @@ tot_disp_sub_ex_plot <- ggl_file %>%
 
 
 direct_use_plot <- ggl_file %>%
-                    ggplot(aes(x=interconnect, y= direct_use_sum)) +
+                    ggplot(aes(x = interconnect, y = direct_use_sum)) +
                     # geom_text(aes(label = sprintf("%.2f", direct_use_sum)), vjust = -0.5) + 
-                    geom_bar(stat="identity") +
+                    geom_bar(stat = "identity") +
                     theme_minimal() +
                     theme(
                       axis.text.x = element_text(angle = 45, hjust = 1)
