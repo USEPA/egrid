@@ -33,6 +33,11 @@ The dataset that this code produces is publicly available [here](https://www.epa
 
 ## Architecture
 
+This year EPA will be releasing the methodology to develop eGRID as an RStudio project. Recently, 
+there has been an increased interest from users in understanding the methods used to create the eGRID data. 
+In an effort to increase transparency in the process of creating eGRID, EPA has used the R programming language 
+to develop eGRID starting with eGRID2023, and EPA has made the R scripts available for users to view and use.
+
 Figure 2 displays a summary of eGRID architecture, which specifies data sources, inputs, and outputs for creating eGRID. 
 
 ![Figure 2: eGRID architecture.](egrid_architecture.png)
@@ -40,7 +45,6 @@ Figure 2 displays a summary of eGRID architecture, which specifies data sources,
 ## Code base organization
 
 This project is structured as an RStudio project. To ensure that all scripts run correctly, load the `eGRID_R.Rproj` within RStudio to enable the project environment. `eGRID_master.qmd` is a Quarto document that serves as a master script (i.e., it runs all necessary scripts in the correct order), while also providing documentation for the scripts and steps performed therein. 
-
 
 The code base is structured as follows: 
 
