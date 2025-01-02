@@ -614,12 +614,6 @@ create_summary_table(readr::read_rds(glue::glue("data/clean_data/epa/{params$eGR
 
 # Generator File
 
-```{r}
-#| label: generator-file-create
-#| file: "scripts/generator_file_create.R"
-#| results: hold
-```
-
 ## Combining Data Sources
 
 The generator file extracts data from `eia_860_clean.RDS`, including all operable and retired generators . The code pulls variables from EIA-860 data (`eia_860$boiler_generator` and `eia_860$combined`) and counts the number of boilers. Then, we assign generation to each generator value.
@@ -633,6 +627,12 @@ Crosswalks used in this file:
 -   `xwalk_fuel_type.csv`
 
 -   `xwalk_oris_epa.csv`
+
+```{r}
+#| label: generator-file-create
+#| file: "scripts/generator_file_create.R"
+#| results: hold
+```
 
 ```{r}
 #| label: generator-file-table
@@ -715,12 +715,6 @@ generator_file %>%
 
 # Unit File
 
-```{r}
-#| label: unit-file-create
-#| file: "scripts/unit_file_create.R"
-#| results: hold
-```
-
 ## Combining Data Sources
 
 The unit file data includes grid connected units from EPA/CAMPD data, unique EIA-923 boilers, unique EIA-860 boilers, and renewable units from EIA not included previously. Some units are ozone season reporters where they only reports data during the ozone season of May - September. After flagging which EPA plants are ozone season reporters, we fill in the missing months with EIA data.
@@ -754,6 +748,12 @@ Crosswalks used in this file:
 -   `units_to_remove.csv`
 
 -   `xwalk_pr_oris.csv`
+
+```{r}
+#| label: unit-file-create
+#| file: "scripts/unit_file_create.R"
+#| results: hold
+```
 
 ```{r}
 #| label: unit-file-table
@@ -967,12 +967,6 @@ plot_unt_co2 / plot_unt_co2_sources_dist
 
 # Plant File
 
-```{r}
-#| label: plant-file-create
-#| file: "scripts/plant_file_create.R"
-#| results: hold
-```
-
 ## Combining Data Sources
 
 The plant file combines EIA form data, `EIA-860`, `EIA-861`, and `EIA-923`, with the outputs of the previous two files: `generator_file.RDS` and `unit_file.RDS`.
@@ -1018,6 +1012,12 @@ Crosswalks used in this file:
 -   `og_oth_units_to_change_fuel_type.csv`
 
 -   `chp_plants.csv`
+
+```{r}
+#| label: plant-file-create
+#| file: "scripts/plant_file_create.R"
+#| results: hold
+```
 
 ```{r}
 #| label: plant-file-table
@@ -1421,12 +1421,6 @@ plot_plnt_n2o_dist <-
 
 # Region Aggregation
 
-```{r}
-#| label: region-aggregation-create
-#| file: "scripts/region_aggregation_create.R"
-#| results: hold
-```
-
 ## Aggregating Files
 
 After loading in plant file data (`plant_file.RDS`), we sum the adjusted heat input, adjusted emissions, adjusted fuel-based emissions, generation, fuel-based net generation, and nameplate capacity from the plant-level data to the various aggregated levels (state, balancing authority, eGRID subregion, NERC region, and US level).
@@ -1438,6 +1432,12 @@ For full documentation, reference the [eGRID Technical Guide](https://www.epa.go
 Crosswalks used in this file:
 
 -   `nerc_region_names.csv`
+
+```{r}
+#| label: region-aggregation-create
+#| file: "scripts/region_aggregation_create.R"
+#| results: hold
+```
 
 ```{r}
 #| label: load-reg-agg-files
@@ -1515,12 +1515,6 @@ create_summary_table(us_agg)
 
 # Grid Gross Loss File
 
-```{r}
-#| label: grid-gross-loss-create
-#| file: "scripts/grid_gross_loss_create.R"
-#| results: hold
-```
-
 ## Combining Data Sources
 
 The grid gross loss (GGL) requires a separate EIA data source known as State Electricity Profiles, specifically `Table 10: Supply and disposition of energy`. This contains values necessary for the GGL formula, *estimated losses* divided by the difference between the *total disposition minus exports* and *direct use*.
@@ -1534,6 +1528,12 @@ Crosswalk used in this file:
 -   `state_and_interconnection.csv`
 
 -   `nerc_region_and_interconnect.xlsx`
+
+```{r}
+#| label: grid-gross-loss-create
+#| file: "scripts/grid_gross_loss_create.R"
+#| results: hold
+```
 
 ```{r}
 #| label: ggl-file-table
@@ -1665,6 +1665,8 @@ conversion_table %>%
       )
 ```
 
+## Producing Metric Version Files
+
 ```{r}
 #| label: metric-files-create
 #| file: "scripts/metric_files_create.R"
@@ -1677,11 +1679,15 @@ To output the data into a clean, readable form, a final style script is applied 
 
 The final output file is `egrid_dataYYYY.xlsx`.
 
+## Imperial Unit Version
+
 ```{r}
 #| label: final-formatting
 #| file: "scripts/final_formatting.R"
 #| results: hold
 ```
+
+## Metric Unit Version
 
 ```{r}
 #| label: metric-final-formatting
