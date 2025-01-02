@@ -1534,8 +1534,11 @@ create_summary_table(us_agg)
 
 # Grid Gross Loss File
 
-The grid gross loss (GGL) requires a separate EIA data source known as State Electricity Profiles, specifically `Table 10: Supply and disposition of energy`. This contains values necessary for the GGL formula, *estimated losses* divided by the difference between the *total disposition minus exports* and *direct use*.
+The grid gross loss (GGL) requires a separate EIA data source known as State Electricity Profiles, specifically `Table 10: Supply and disposition of energy`. This contains values necessary for the GGL percentage formula:
 
+$$
+GGL = \frac{estimated\ losses}{total\ disposition\ without\ exports - direct\ use} * 100\ \%
+$$
 For states with multiple interconnections, like Montana and Nebraska, a ratio is created. The ratio consists of the total generation produced by plants within the one interconnection compared to total state generation. Net state generation and interconnect generation is calculated using data sources `EIA-860 Combined`, `EIA-860 Plant`, and `EIA-923 Generation and Fuel Data`.
 
 For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
@@ -1667,7 +1670,27 @@ if (params$run_demo_file) {
 
 # Metric Conversion File
 
-The metric files converts imperial units outputs into metric units. The following table from `conversion_factors.csv` contains the conversion rates between units.
+The metric file script produces a metric version of the eGRID datasets by converting certain data from imperial to metric units. The results are the following metric version files:
+
+-   `generator_file_metric`
+
+-   `unit_file_metric`
+
+-   `plant_file_metric`
+
+-   `state_aggregation_metric`
+
+-   `ba_aggregation_metric`
+
+-   `subregion_aggregation_metric`
+
+-   `nerc_aggregation_metric`
+
+-   `us_aggregation_metric`
+
+-   `grid_gross_loss_metric`
+
+The eGRID variables added or altered in the metric file versions are included in the `metric_structure.xlsx` document while the conversion rates between imperial and metric units are listed in `conversion_factors.csv` as shown below. 
 
 ## Conversion Table
 
@@ -1696,7 +1719,7 @@ conversion_table %>%
 
 # Final Formatting
 
-To output the data into a clean, readable form, a final style script is applied for all output files. For headers, we add descriptions and label conventions to maintain consistency with previous eGRID releases. Using R package `openxlsx`, we apply formatting and colors to categorize outputs and values. Formatting is applied for both imperial unit version and the metric unit version.
+To output the data into a clean, readable form, a final style script is applied to combine and format all output files. For headers, we add descriptions and label conventions to maintain consistency with previous eGRID releases. Using R package `openxlsx`, we apply formatting and colors to categorize outputs and values. Formatting is applied for both imperial unit version and the metric unit version.
 
 ## Produce Final eGRID Documents
 
