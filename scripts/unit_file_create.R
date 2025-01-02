@@ -612,10 +612,10 @@ epa_oz_reporters_dist_final <- # combining all distributed ozone season reporter
               distinct(pick(all_of(distinct_cols))))  
 
 # check number of ozone reporting units, and compare to number of units that have distributed values
-print(glue::glue("There are {nrow(epa_oz_reporters_dist)} total OS reporting units. The dataframe with distributed values contains {nrow(epa_oz_reporters_dist_final)}"))
+print(glue::glue("There are {nrow(epa_oz_reporters_dist_2)} total OS reporting units. The dataframe with distributed values contains {nrow(epa_oz_reporters_dist_final)}"))
 
-if(nrow(epa_oz_reporters_dist) < nrow(epa_oz_reporters_dist_final)) { # check if there are any units with duplicate entries 
-  print(glue::glue("There are {nrow(epa_oz_reporters_dist)} total OS reporting units. The dataframe with distributed values contains {nrow(epa_oz_reporters_dist_final)}"))
+if(nrow(epa_oz_reporters_dist_2) < nrow(epa_oz_reporters_dist_final)) { # check if there are any units with duplicate entries 
+  print(glue::glue("There are {nrow(epa_oz_reporters_dist_2)} total OS reporting units. The dataframe with distributed values contains {nrow(epa_oz_reporters_dist_final)}"))
   
   dupe_ids <- 
   epa_oz_reporters_dist_final %>%
@@ -635,8 +635,14 @@ if(nrow(epa_oz_reporters_dist) < nrow(epa_oz_reporters_dist_final)) { # check if
 
 epa_7 <- # Updated with gap-filled OS reporters
   epa_6 %>% 
-  rows_update(epa_oz_reporters_dist_final, # Updating OS reporters with new distributed heat inputs, nox_mass, and the source variables for both
-              by = c("plant_id", "unit_id", "prime_mover")) %>% 
+  rows_update(epa_oz_reporters_dist_final %>% 
+                select(plant_id, unit_id, prime_mover, heat_input, heat_input_source) %>% 
+                drop_na(), 
+              by = c("plant_id", "unit_id", "prime_mover")) %>% # Updating OS reporters with new distributed heat input and source
+  rows_update(epa_oz_reporters_dist_final %>% 
+                select(plant_id, unit_id, prime_mover, nox_mass, nox_source) %>% 
+                drop_na(), 
+              by = c("plant_id", "unit_id", "prime_mover")) %>% # Updating OS reporters with new distributed NOx mass and source
   mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover))
   
 
@@ -834,7 +840,9 @@ nuc_geo_gens_to_add <-
          primary_fuel_type = energy_source_1,
          operating_status = status,
          heat_input,
-         heat_input_oz)
+         heat_input_oz, 
+         heat_input_source, 
+         heat_input_oz_source)
 
 eia_860_generators_to_add_3 <-
   eia_860_generators_to_add_2 %>%
@@ -1325,7 +1333,7 @@ prop_manual_corrections <-
 
 units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emissions with distributed heat input and fuel consumption
   all_units_5 %>% 
-  group_by(plant_id, plant_state, prime_mover, primary_fuel_type, botfirty) %>% 
+  group_by(plant_id, plant_state, prime_mover, primary_fuel_type) %>% 
   mutate(total_heat_input = sum(heat_input, na.rm = TRUE)) %>% 
   ungroup() %>% 
   mutate(prop = if_else(total_heat_input != 0, heat_input / total_heat_input, 1)) %>% # handle divide by 0 by assigning prop of 1 to zero total_heat_input values
@@ -1907,7 +1915,8 @@ delete_retired_units <-
   eia_860$boiler_info_design_parameters %>% 
   left_join(all_units_10 %>% select(plant_id, unit_id, operating_status), 
             by = c("plant_id", "boiler_id" = "unit_id")) %>% 
-  filter(boiler_status == "RE" & as.numeric(retirement_year) < as.numeric(params$eGRID_year) &
+  filter(boiler_status == "RE" & 
+           (as.numeric(retirement_year) < as.numeric(params$eGRID_year) | is.na(retirement_year)) &
            (operating_status == "RE" | is.na(operating_status))) %>% 
   select(plant_id, 
          unit_id = "boiler_id", 
