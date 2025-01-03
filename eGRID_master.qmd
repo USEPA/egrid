@@ -267,7 +267,7 @@ tab_860m
 ```
 :::
 
-### EPA```
+### EPA
 
 The EPA's Clean Air Markets Program Data (CAMPD) contains power plant emissions, compliance, and allowance data. We create and incorporate a composite file from several CAMPD sources, containing data about facilities and annual emissions. Specifically, we include data about facility attributes, annual emissions, and annual emissions during ozone months.
 
@@ -615,7 +615,7 @@ create_summary_table(readr::read_rds(glue::glue("data/clean_data/epa/{params$eGR
 
 # Generator File
 
-The generator file extracts data from `eia_860_clean.RDS`, including all operable and retired generators . The code pulls variables from EIA-860 data (`boiler_generator` and `combined`) and counts the number of boilers. Then, we assign generation to each generator value.
+The generator file uses data from `eia_860_clean.RDS`, including all operable and retired generators . The code pulls variables from EIA-860 data (`boiler_generator` and `combined`) and counts the number of boilers. Then, we assign generation to each generator value.
 
 Direct generation is assigned to each generator values through the `EIA-923 Generator` file. For values not included in the `EIA-923 Generator` file, generation is determined by using a nameplate capacity ratio with `EIA-923 Generator and Fuel` data. A capacity factor is assigned to each generator. Some updates to fuel types, plant codes, and plant names are made to match EIA and EPA data.
 
