@@ -61,11 +61,16 @@ unit_r <- unit_r %>%
   mutate(num_generators_r = as.numeric(num_generators_r), 
          year_online_r = as.character(year_online_r))
 
-unit_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
-                          sheet = glue::glue("UNT{as.numeric(params$eGRID_year) %% 1000}"), 
-                          skip = 1, 
-                          guess_max = 4000) %>% janitor::clean_names() %>% 
-  rename("sequnt_access" = glue::glue("sequnt{as.numeric(params$eGRID_year) %% 1000}"),
+unit_access <- 
+  read_excel("data/raw_data/unit file 12_18_24.xlsx",
+             sheet = "Sheet2", 
+             skip = 1, 
+             guess_max = 4000) %>% janitor::clean_names() %>% 
+  #read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
+  #                        sheet = glue::glue("UNT{as.numeric(params$eGRID_year) %% 1000}"), 
+  #                        skip = 1, 
+  #                        guess_max = 4000) %>% janitor::clean_names() %>% 
+  rename(#"sequnt_access" = glue::glue("sequnt{as.numeric(params$eGRID_year) %% 1000}"),
          #"year_access" = "year", 
          "plant_id" = "orispl",
          "plant_name_access" = "pname", 
@@ -333,7 +338,6 @@ check_nox_ann_unit <-
   unit_comparison %>% 
   filter(mapply(identical, nox_mass_r, nox_mass_access) == FALSE) %>% 
   mutate(diff_nox_mass = nox_mass_r - nox_mass_access) %>% 
-  filter(diff_nox_mass > 1 | diff_nox_mass < -1 | is.na(diff_nox_mass)) %>% 
   select(plant_id, unit_id, primary_fuel_type_r, primary_fuel_type_access, 
          prime_mover, heat_input_r, heat_input_access,
          nox_mass_r, nox_mass_access, diff_nox_mass, nox_source_r, nox_source_access)
@@ -346,7 +350,6 @@ check_nox_oz_unit <-
   unit_comparison %>% 
   filter(mapply(identical, nox_oz_mass_r, nox_oz_mass_access) == FALSE) %>% 
   mutate(diff_nox_oz_mass = nox_oz_mass_r - nox_oz_mass_access) %>% 
-  filter(diff_nox_oz_mass > 1 | diff_nox_oz_mass < -1 | is.na(diff_nox_oz_mass)) %>% 
   select(plant_id, unit_id, prime_mover, primary_fuel_type_r, primary_fuel_type_access, 
          heat_input_oz_r, heat_input_oz_access,
          nox_oz_mass_r, nox_oz_mass_access, diff_nox_oz_mass, nox_oz_source_r, nox_oz_source_access)
@@ -394,7 +397,6 @@ check_so2_unit <-
   unit_comparison %>% 
   filter(mapply(identical, so2_mass_r, so2_mass_access) == FALSE) %>% 
   mutate(diff_so2_mass = so2_mass_r - so2_mass_access) %>% 
-  filter(diff_so2_mass > 1 | diff_so2_mass < -1 | is.na(diff_so2_mass)) %>% 
   select(plant_id, unit_id, prime_mover,
          primary_fuel_type_r, primary_fuel_type_access, 
          heat_input_r, heat_input_access,
