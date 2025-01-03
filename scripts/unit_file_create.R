@@ -481,10 +481,10 @@ epa_q_oz_reporters_dist <-
   filter(reporting_frequency == "OS") %>% # select only ozone reporting units 
   mutate(annual_heat_diff = heat_input_ann_923 - tot_heat_input, # calculating annual heat difference 
          annual_heat_diff_wout_oz = annual_heat_diff - heat_input_oz_923) %>% # calculating difference - ozone month totals to get the leftover nonozone heat input
-  filter(annual_heat_diff_wout_oz > 0) %>%  # annual heat difference without ozone must be positive to have heat input to distribute
+  #filter(annual_heat_diff_wout_oz > 0) %>%  # annual heat difference without ozone must be positive to have heat input to distribute
   mutate(prop = if_else(sum_heat_input_oz_pm != 0, sum_heat_input_oz / sum_heat_input_oz_pm, NA_real_), # calculate proportion of heat input for each unit
-         heat_input_nonoz = annual_heat_diff_wout_oz * prop, # calculate non-ozone heat input 
-         heat_input = heat_input_nonoz + heat_input_oz, # calculate total heat input
+         heat_input_nonoz = if_else(annual_heat_diff_wout_oz > 0, annual_heat_diff_wout_oz * prop, 0), # calculate non-ozone heat input 
+         heat_input = if_else(is.na(heat_input_nonoz), heat_input_oz, heat_input_oz + heat_input_nonoz), # calculate total heat input
          heat_input_source = if_else(is.na(heat_input), "EPA/CAPD", "EIA non-ozone season distributed and EPA/CAPD ozone season")) 
   
 # combine ozone reporters datasets 
@@ -554,7 +554,7 @@ nox_rates_ann <- # calculating annual NOx emission rates used to estimate NOx em
   schedule_8c %>% 
   rename(unit_id = boiler_id) %>%
   select(plant_id, unit_id, nox_emission_rate_entire_year_lbs_mmbtu, status) %>%
-  filter(status == "OP" & !is.na(nox_emission_rate_entire_year_lbs_mmbtu)) %>% 
+  filter(!is.na(nox_emission_rate_entire_year_lbs_mmbtu)) %>% 
   group_by(plant_id, unit_id) %>%
   summarize(nox_rate_ann = min(nox_emission_rate_entire_year_lbs_mmbtu, na.rm = TRUE)) %>% 
   ungroup()
@@ -563,7 +563,7 @@ nox_rates_oz <- # calculating ozone NOx emission rates used to estimate NOx emis
   schedule_8c %>% 
   rename(unit_id = boiler_id) %>%
   select(plant_id, unit_id, nox_emission_rate_may_through_september_lbs_mmbtu, status) %>%
-  filter(status == "OP" & !is.na(nox_emission_rate_may_through_september_lbs_mmbtu)) %>% 
+  filter(!is.na(nox_emission_rate_may_through_september_lbs_mmbtu)) %>% 
   group_by(plant_id, unit_id) %>%
   summarize(nox_rate_oz = min(nox_emission_rate_may_through_september_lbs_mmbtu, na.rm = TRUE)) %>% 
   ungroup()
@@ -1336,7 +1336,8 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
   group_by(plant_id, plant_state, prime_mover, primary_fuel_type) %>% 
   mutate(total_heat_input = sum(heat_input, na.rm = TRUE)) %>% 
   ungroup() %>% 
-  mutate(prop = if_else(total_heat_input != 0, heat_input / total_heat_input, 1)) %>% # handle divide by 0 by assigning prop of 1 to zero total_heat_input values
+  filter(!is.na(heat_input)) %>% 
+  mutate(prop = if_else(total_heat_input != 0, heat_input / total_heat_input, 0)) %>% # handle divide by 0 by assigning prop of 0 to zero total_heat_input values
   select(plant_id, 
          plant_state,
          prime_mover, 
