@@ -267,7 +267,7 @@ tab_860m
 ```
 :::
 
-### EPA/CAMPD
+### EPA```
 
 The EPA's Clean Air Markets Program Data (CAMPD) contains power plant emissions, compliance, and allowance data. We create and incorporate a composite file from several CAMPD sources, containing data about facilities and annual emissions. Specifically, we include data about facility attributes, annual emissions, and annual emissions during ozone months.
 
