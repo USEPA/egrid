@@ -346,7 +346,7 @@ table_emissions_ozone
 
 ## Load Crosswalks
 
-Crosswalks and static tables are used to supplement EPA and EIA files and provide information on one-off changes, descriptions, or overall conversions.
+Crosswalks and static tables are used to supplement EPA and EIA files and provide information on one-off changes, descriptions, emission factors, or overall conversions.
 
 -   Units to add, delete, or account for differences between EPA and EIA
 
