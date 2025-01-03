@@ -348,26 +348,6 @@ table_emissions_ozone
 
 Crosswalks and static tables are used to supplement EPA and EIA files and provide information on one-off changes, descriptions, emission factors, or overall conversions.
 
--   Units to add, delete, or account for differences between EPA and EIA
-
-    -   ex. `units_to_remove.csv`, `xwalk_oris_epa.csv`
-
--   Data on information not found in EIA/EPA
-
-    -   ex. `chp_plants.csv`
-
--   Conversion tables for values
-
-    -   ex. `emissions_factors.csv`
-
--   Descriptions for groupings or naming
-
-    -   ex. `xwalk_balancing_authority.csv`, `egrid_nerc_subregions.csv`
-
--   Updates for consistent naming
-
-    -   ex. `xwalk_fips_names_update.csv`
-
 ```{r}
 #| label: create-xwalk-summary
 
