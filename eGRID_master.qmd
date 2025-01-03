@@ -1513,10 +1513,6 @@ create_summary_table(us_agg)
 
 Grid gross loss (GGL) is calculated using EIA's State Electricity Profiles: `Table 10: Supply and disposition of energy`.
 
-$$
-GGL = \frac{estimated\ losses}{total\ disposition\ without\ exports - direct\ use} * 100\ \%
-$$
-
 For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
 Crosswalk used in this file:
