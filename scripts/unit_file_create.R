@@ -248,17 +248,19 @@ epa_2 <-
     # 2) Coal fuel type with highest fuel consumption in EIA-923 
     # 3) Plants with Coal and Biomass units require a manual update to Coal fuel types, ignoring max fuel consumption from Biomass fuel types
 
-# identify coal fuels in EPA use crosswalk to identify primary fuel type  
+# identify fuels in EPA use crosswalk to identify primary fuel type  
 coal_xwalk_update <- 
   xwalk_eia_epa %>% 
-  filter(epa_fuel_type == "Coal") %>% # extract only Coal units 
-  left_join(epa_2, by = c("epa_plant_id" = "plant_id", "epa_unit_id" = "unit_id", "eia_unit_type" = "prime_mover")) %>% 
-  left_join(eia_860$combined, by = c("eia_plant_id" = "plant_id", "eia_generator_id" = "generator_id", "eia_unit_type" = "prime_mover")) %>% 
-  mutate(energy_source_1 = if_else(eia_fuel_type %in% coal_fuels, eia_fuel_type, NA_character_)) %>%  # only use EIA fuel type if it is a coal fuel type
+  select(epa_plant_id, epa_unit_id, eia_plant_id, eia_generator_id, eia_unit_type) %>% 
+  inner_join(epa_2 %>% filter(str_detect(primary_fuel_type, "^Coal")), 
+             by = c("epa_plant_id" = "plant_id", "epa_unit_id" = "unit_id", "eia_unit_type" = "prime_mover")) %>% 
+  filter(paste0(epa_plant_id, "_", epa_unit_id) != paste0(eia_plant_id, "_", eia_generator_id)) %>% 
+  left_join(eia_860$combined, 
+            by = c("eia_plant_id" = "plant_id", "eia_generator_id" = "generator_id", "eia_unit_type" = "prime_mover")) %>% 
   select(plant_id = epa_plant_id, 
          unit_id = epa_unit_id, 
          prime_mover = eia_unit_type, 
-         energy_source_1_coal = energy_source_1) %>%
+         energy_source_1) %>%
   distinct() %>% group_by(plant_id, unit_id) %>% filter(!n() > 1) %>% # keep units with only 1 fuel type 
   drop_na() %>% ungroup() 
 
@@ -304,11 +306,7 @@ epa_3 <-
   left_join(eia_860$combined %>% # joining with 860_combined to get EIA primary fuel codes
               distinct(plant_id, generator_id, energy_source_1), 
             by = c("plant_id", "unit_id" = "generator_id")) %>% 
-  left_join(coal_xwalk_update, by = c("plant_id", "unit_id", "prime_mover")) %>% # update Coal energy sources if energy_source_1 is NA or energy_source_1 is not a Coal fuel type for Coal EPA units
-  mutate(energy_source_1 = if_else(str_detect(primary_fuel_type, "^Coal") & # update energy source if primary fuel type is Coal
-                                   (is.na(energy_source_1) | 
-                                   !energy_source_1 %in% coal_fuels), 
-                                   energy_source_1_coal, energy_source_1)) %>% 
+  rows_update(coal_xwalk_update, by = c("plant_id", "unit_id", "prime_mover")) %>% # update Coal energy sources via EIA-EPA crosswalk
   mutate(primary_fuel_type = case_when(
     primary_fuel_type %in% c("Other Oil", "Other Solid Fuel", "Coal") ~ energy_source_1,
     primary_fuel_type == "Diesel Oil" ~ "DFO",
