@@ -406,7 +406,6 @@ epa_oz_reporters <- # creating dataframe with all plants and associated units th
   epa_6 %>%
   filter(plant_id %in% epa_oz_reporter_plants)
 
-
 ### Summing heat input values in the EIA-923 Gen and Fuel file. These totals will be used to distribute heat for the non-ozone months in the EPA data.
 ### We also add consumption totals here, which will be used later when estimating NOx emissions.
 
@@ -1203,7 +1202,8 @@ avg_sulfur_content_fuel <- # avg sulfur content grouped by fuel type
 
 estimated_so2_emissions_content <- 
   all_units_4 %>% select(plant_id, unit_id, prime_mover, botfirty, primary_fuel_type) %>% 
-  inner_join(avg_sulfur_content, by = c("plant_id", "unit_id" = "boiler_id", "primary_fuel_type" = "fuel_type", "prime_mover")) %>% # inner join to only include units with sulfur content
+  inner_join(avg_sulfur_content %>% filter(avg_sulfur_content > 0), 
+             by = c("plant_id", "unit_id" = "boiler_id", "primary_fuel_type" = "fuel_type", "prime_mover")) %>% # inner join to only include units with sulfur content
   left_join(schedule_8c %>% 
               select(plant_id, boiler_id, so2_removal_efficiency_rate_at_annual_operating_factor) %>% 
               group_by(plant_id, boiler_id) %>% 
@@ -1317,7 +1317,8 @@ biomass_consum_edits <-
   filter(fuel_type %in% c("MSN", "MSB")) %>% 
   mutate(fuel_type = "MSW") %>% 
   group_by(plant_id, prime_mover, fuel_type) %>% 
-  slice_max(fuel_consum_ann_923) %>% ungroup()
+  summarize(across(contains("923"), 
+                   ~ sum(.)))
 
 eia_fuel_consum_fuel_type_2 <- 
   rbind(eia_fuel_consum_fuel_type %>% filter(!fuel_type %in% c("MSN", "MSB")), 
