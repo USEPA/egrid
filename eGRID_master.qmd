@@ -18,7 +18,6 @@ format:
     html-table-processing: none
     code-fold: true
 execute: 
-  eval: false
   message: false
   warning: false
 params:
@@ -80,8 +79,6 @@ The script `install_libraries.R` detects all necessary libraries within the proj
 ```{r}
 #| label: load-packages
 #| echo: false
-#| include: false
-#| eval: true
 
 library(docstring)
 library(dplyr)
@@ -1721,255 +1718,32 @@ The final metric output file is ``r glue::glue("egrid{params$eGRID_year}_data_me
 
 # eGRID Summary
 
-Summary tables are produced to provide a synopsis of the information across aggregated regions.
+## Summary Tables
 
-## Produce Summary Tables Document
+A summary tables document is produced to provide a synopsis of the eGRID information across states and eGRID subregions. The summary tables are saved as `summary_tables.xlsx`.
+
+### Produce Summary Tables
 
 ```{r}
 #| label: summary-tables-create
 #| file: "scripts/summary_tables_create.R"
 #| results: false
-#| eval: true
 ```
 
+### Summary Tables Data
+
+Below are the names of the summary tables included in the document. 
+
 ```{r}
-#| label: summary-tables-data-prep
+#| label: summary-tables-list
 #| echo: false
-#| eval: true
 
-subregion_output_emissions_clean <-
-  subregion_output_emissions %>%
-  mutate(ggl = ifelse(is.na(ggl), ggl, paste0(ggl * 100, "%")), 
-         name = str_replace_all(name, c("Miscellaneous" = "Misc.", "/" = "/ ")),
-         across(contains(c("co2", "nox")), ~ round(.x, digits = 1)),
-         across(.fns = ~ replace(.x, is.na(.x), "-")),)
-
-subregion_resource_mix_clean <-
-  subregion_resource_mix %>%
-  mutate(#ggl = ifelse(is.na(ggl), ggl, paste0(ggl * 100, "%")), 
-         name = str_replace_all(name, c("Miscellaneous" = "Misc.", "/" = "/ ")),
-         across(-contains(c("subregion", "name", "gen")),
-                ~ ifelse(is.na(.x), .x, paste0(round(.x * 100, digits = 1), "%"))),
-         across(c(nameplate_capacity, generation_ann), ~ round(.x, digits = 0)),
-         across(.fns = ~ replace(.x, is.na(.x), "-")),)
-
-options(knitr.table.format = "html", knitr.kable.na = "-")
-
+kbl(names(table_data), col.names = "Summary Table Names") %>%
+  kable_styling()
 ```
 
-## View Summary Tables Data
 
-::: column-screen-inset-right
-
-::: panel-tabset
-
-### Overview
-
-*Click through the tabs to view summary tables*
-
-### Subregion Output Emission Rates
-
-```{r}
-#| label: summary-tables-subregion-output
-#| eval: true
-
-subregion_output_colnames <- c(
-  "eGRID subregion acronym",
-  "eGRID subregion name",
-  paste0("CO", "\u2082"),
-  paste0("CH", "\u2084"),
-  paste0("N", "\u2082", "O"),
-  paste0("CO", "\u2082", "e"),
-  paste0("Annual NO", "\u2093"),
-  paste0("Ozone Season NO", "\u2093"),
-  paste0("SO", "\u2082"),
-  paste0("CO", "\u2082"),
-  paste0("CH", "\u2084"),
-  paste0("N", "\u2082", "O"),
-  paste0("CO", "\u2082", "e"),
-  paste0("Annual NO", "\u2093"),
-  paste0("Ozone Season NO", "\u2093"),
-  paste0("SO", "\u2082"),
-  "Grid Gross Loss (%)")
-
-kbl(subregion_output_emissions_clean, col.names = subregion_output_colnames) %>%
-  kable_styling(font_size = 14.5) %>%
-  column_spec(1, width_max = "2.35cm", background = "#F2F2F2", include_thead = T) %>%
-  column_spec(2, width_max = "2.45cm", background = "#F2F2F2", include_thead = T) %>%
-  column_spec(3:9, width_max = "1.7cm", background = "#ebf1de", include_thead = T) %>%
-  column_spec(10:16, width_max = "1.7cm", background = "#e4dfec", include_thead = T) %>%
-  column_spec(17, width_max = "1.8cm", background = "#F2F2F2", include_thead = T) %>%
-  column_spec(1:17, border_right = "1px solid lightgray", border_left = "1px solid lightgray",
-              include_thead = T) %>%
-  row_spec(0, align = "c", extra_css = "vertical-align:middle;") %>%
-  add_header_above(c("__" = 1, "__" = 1, "lb/MWh" = 7, "lb/MWh" = 7, "__" = 1),
-                   color = c("#F2F2F2", "#F2F2F2", "black", "black", "#F2F2F2"),
-                   background = c("#F2F2F2", "#F2F2F2", "#ebf1de", "#e4dfec", "#F2F2F2"),
-                   extra_css = "vertical-align:middle;", 
-                   border_right = "1px solid lightgray",
-                   border_left = "1px solid lightgray") %>%
-  add_header_above(c("__" = 1, "__" = 1, "Total Output Emission Rates" = 7,
-                    "Non-baseload Output Emission Rates" = 7, "__" = 1),
-                   color = c("#F2F2F2", "#F2F2F2", "black", "black", "#F2F2F2"),
-                   background = c("#F2F2F2", "#F2F2F2", "#ebf1de", "#e4dfec", "#F2F2F2"),
-                   extra_css = "vertical-align:middle;",
-                   border_right = "1px solid lightgray",
-                   border_left = "1px solid lightgray") %>%
-  row_spec(1:27, background = "white")%>%
-  row_spec(28, bold = T, background = "#F2F2F2")
-```
-
-### Subregion Resource Mix
-
-```{r}
-#| label: summary-tables-subregion-resource-mix
-#| eval: true
-
-subregion_resource_colnames <- c(
-        "eGRID subregion acronym",
-        "eGRID subregion name",
-        "Nameplate Capacity (MW)",
-        "Net Generation (MWh)",
-        "Coal",
-        "Oil",
-        "Gas",
-        "Other Fossil",
-        "Nuclear",
-        "Hydro",
-        "Biomass",
-        "Wind",
-        "Solar",
-        "Geo- thermal",
-        "Other unknown/ purchased fuel")
-
-kbl(subregion_resource_mix_clean, col.names = subregion_resource_colnames,
-format.args = list(big.mark = ",")) %>%
-  kable_styling(font_size = 14.5) %>%
-  column_spec(1, width_max = "2.25cm", background = "#F2F2F2", include_thead = T) %>%
-  column_spec(2, width_max = "2.35cm", background = "#F2F2F2", include_thead = T) %>%
-  column_spec(3, width_max = "2.5cm", background = "#F2F2F2", include_thead = T) %>%
-  column_spec(4, width_max = "2.5cm", background = "#f2dcdb", include_thead = T) %>%
-  column_spec(5:14, width_max = "1.7cm", background = "#fde9d9", include_thead = T) %>%
-  column_spec(15, width_max = "2cm", background = "#fde9d9", include_thead = T) %>%
-  column_spec(1:14, border_right = "1px solid lightgray", border_left = "1px solid lightgray",
-              include_thead = T) %>%
-  row_spec(0, align = "c", extra_css = "vertical-align:middle;") %>%
-  add_header_above(c("__" = 1, "__" = 1, "__" = 1, "__" = 1, "Generation Resource Mix (percent)*" = 11),
-                   color = c("#F2F2F2", "#F2F2F2","#F2F2F2", "#f2dcdb", "black"),
-                   background = c("#F2F2F2", "#F2F2F2", "#F2F2F2", "#f2dcdb", "#fde9d9"),
-                   extra_css = "vertical-align:middle;", 
-                   border_right = "1px solid lightgray",
-                   border_left = "1px solid lightgray") %>%
-  row_spec(1:27, background = "white")%>%
-  row_spec(28, bold = T, background = "#F2F2F2")
-```
-
-### State Output Emission Rates
-
-```{r}
-#| label: summary-tables-state-output
-#| eval: true
-
-colnames_lower <- c(
-  "eGRID subregion acronym",
-  "eGRID subregion name",
-  paste0("CO", "\u2082"),
-  paste0("CH", "\u2084"),
-  paste0("N", "\u2082", "O"),
-  paste0("CO", "\u2082", "e"),
-  paste0("Annual NO", "\u2093"),
-  paste0("Ozone Season NO", "\u2093"),
-  paste0("SO", "\u2082"),
-  paste0("CO", "\u2082"),
-  paste0("CH", "\u2084"),
-  paste0("N", "\u2082", "O"),
-  paste0("CO", "\u2082", "e"),
-  paste0("Annual NO", "\u2093"),
-  paste0("Ozone Season NO", "\u2093"),
-  paste0("SO", "\u2082"),
-  "Grid Gross Loss (%)")
-
-kbl(subregion_output_emissions, col.names = colnames_lower) %>%
-  kable_styling(font_size = 14.5) %>%
-  column_spec(1, width_max = "2.35cm", background = "#F2F2F2", include_thead = T) %>%
-  column_spec(2, width_max = "2.45cm", background = "#F2F2F2", include_thead = T) %>%
-  column_spec(3:9, width_max = "1.7cm", background = "#ebf1de", include_thead = T) %>%
-  column_spec(10:16, width_max = "1.7cm", background = "#e4dfec", include_thead = T) %>%
-  column_spec(17, width_max = "1.8cm", background = "#F2F2F2", include_thead = T) %>%
-  column_spec(1:17, border_right = "1px solid lightgray", border_left = "1px solid lightgray",
-              include_thead = T) %>%
-  row_spec(0, align = "c", extra_css = "vertical-align:middle;") %>%
-  add_header_above(c("__" = 1, "__" = 1, "lb/MWh" = 7, "lb/MWh" = 7, "__" = 1),
-                   color = c("#F2F2F2", "#F2F2F2", "black", "black", "#F2F2F2"),
-                   background = c("#F2F2F2", "#F2F2F2", "#ebf1de", "#e4dfec", "#F2F2F2"),
-                   extra_css = "vertical-align:middle;", 
-                   border_right = "1px solid lightgray",
-                   border_left = "1px solid lightgray") %>%
-  add_header_above(c("__" = 1, "__" = 1, "Total Output Emission Rates" = 7,
-                    "Non-baseload Output Emission Rates" = 7, "__" = 1),
-                   color = c("#F2F2F2", "#F2F2F2", "black", "black", "#F2F2F2"),
-                   background = c("#F2F2F2", "#F2F2F2", "#ebf1de", "#e4dfec", "#F2F2F2"),
-                   extra_css = "vertical-align:middle;",
-                   border_right = "1px solid lightgray",
-                   border_left = "1px solid lightgray") %>%
-  row_spec(1:27, background = "white")%>%
-  row_spec(28, bold = T, background = "#F2F2F2")
-```
-
-### State Resource Mix
-
-```{r}
-#| label: summary-tables-state-resource-mix
-#| eval: true
-
-colnames_lower <- c(
-  "eGRID subregion acronym",
-  "eGRID subregion name",
-  paste0("CO", "\u2082"),
-  paste0("CH", "\u2084"),
-  paste0("N", "\u2082", "O"),
-  paste0("CO", "\u2082", "e"),
-  paste0("Annual NO", "\u2093"),
-  paste0("Ozone Season NO", "\u2093"),
-  paste0("SO", "\u2082"),
-  paste0("CO", "\u2082"),
-  paste0("CH", "\u2084"),
-  paste0("N", "\u2082", "O"),
-  paste0("CO", "\u2082", "e"),
-  paste0("Annual NO", "\u2093"),
-  paste0("Ozone Season NO", "\u2093"),
-  paste0("SO", "\u2082"),
-  "Grid Gross Loss (%)")
-
-kbl(subregion_output_emissions, col.names = colnames_lower) %>%
-  kable_styling(font_size = 14.5) %>%
-  column_spec(1, width_max = "2.35cm", background = "#F2F2F2", include_thead = T) %>%
-  column_spec(2, width_max = "2.45cm", background = "#F2F2F2", include_thead = T) %>%
-  column_spec(3:9, width_max = "1.7cm", background = "#ebf1de", include_thead = T) %>%
-  column_spec(10:16, width_max = "1.7cm", background = "#e4dfec", include_thead = T) %>%
-  column_spec(17, width_max = "1.8cm", background = "#F2F2F2", include_thead = T) %>%
-  column_spec(1:17, border_right = "1px solid lightgray", border_left = "1px solid lightgray",
-              include_thead = T) %>%
-  row_spec(0, align = "c", extra_css = "vertical-align:middle;") %>%
-  add_header_above(c("__" = 1, "__" = 1, "lb/MWh" = 7, "lb/MWh" = 7, "__" = 1),
-                   color = c("#F2F2F2", "#F2F2F2", "black", "black", "#F2F2F2"),
-                   background = c("#F2F2F2", "#F2F2F2", "#ebf1de", "#e4dfec", "#F2F2F2"),
-                   extra_css = "vertical-align:middle;", 
-                   border_right = "1px solid lightgray",
-                   border_left = "1px solid lightgray") %>%
-  add_header_above(c("__" = 1, "__" = 1, "Total Output Emission Rates" = 7,
-                    "Non-baseload Output Emission Rates" = 7, "__" = 1),
-                   color = c("#F2F2F2", "#F2F2F2", "black", "black", "#F2F2F2"),
-                   background = c("#F2F2F2", "#F2F2F2", "#ebf1de", "#e4dfec", "#F2F2F2"),
-                   extra_css = "vertical-align:middle;",
-                   border_right = "1px solid lightgray",
-                   border_left = "1px solid lightgray") %>%
-  row_spec(1:27, background = "white")%>%
-  row_spec(28, bold = T, background = "#F2F2F2")
-```
-
-:::
-:::
+## Number of Records
 
 The following lines outputs the number of records for contained within each level of aggregation.
 
