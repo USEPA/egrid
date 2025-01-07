@@ -119,7 +119,7 @@ Not automated. Need to check manually. Not done here.
 
 ## EPA fuel crosswalks
 
-Can maybe be automated. Will wait for confirmation.
+Not automated. Need to check manually. Not done here.
 
 # Generator File QA
 
@@ -613,12 +613,15 @@ Map plants for each region and fix accordingly if needed.
 #| label: load-subregion-shapefile 
 #| results: false
 
+options(timeout = 180)
+
 # download subregion shapefiles from EPA website
 shp_download <- function(shp_type) {
   temp_file <- tempfile()
   download.file(glue::glue("https://www.epa.gov/system/files/other-files/2024-05/egrid2022_{tolower(shp_type)}_shapefile.zip"), temp_file)
   shp_file <- unzip(temp_file, exdir="data/shapefiles")
   unlink(temp_file)
+  
   shp <- 
     sf::st_read(glue::glue("data/shapefiles/eGRID2022_{shp_type}.shp")) %>%
     drop_na() %>% 
@@ -627,17 +630,22 @@ shp_download <- function(shp_type) {
   return (shp)
 }
 
-sbrgn_shp <- shp_download("Subregions")
-multi_sbrgn_shp <- shp_download("Multiple_Subregions")
-
-# # plot subregions
-# ggplot(sbrgn_shp[1]) +
-#   geom_sf() +
-#   coord_sf(xlim = c(-166, -67), ylim = c(19, 71))
-
-# ggplot(multi_sbrgn_shp[1]) +
-#   geom_sf() +
-#   coord_sf(xlim = c(-166, -67), ylim = c(19, 71))
+if(length(list.files("data/shapefiles") == 1)) {
+  sbrgn_shp <- shp_download("Subregions")
+  multi_sbrgn_shp <- shp_download("Multiple_Subregions")
+} else {
+  subrgn_shp <- 
+    sf::st_read(glue::glue("data/shapefiles/eGRID2022_Subregions.shp")) %>%
+    drop_na() %>% 
+    rename("subregion" = "ZipSubregi") %>% 
+    sf::st_transform(crs = "EPSG:4326")
+  
+  muti_subrgn_shp <- 
+    sf::st_read(glue::glue("data/shapefiles/eGRID2022_Mutiple_Subregions.shp")) %>%
+    drop_na() %>% 
+    rename("subregion" = "ZipSubregi") %>% 
+    sf::st_transform(crs = "EPSG:4326")
+}
 
 sf::sf_use_s2(FALSE)
 
@@ -1954,14 +1962,14 @@ check_plant_fc_values <-
   filter((plant_id %in% unit_fc_prime_mover & 
                           !(plant_id %in% unit_other_prime_mover)) &
                          (!is.na(co2_mass) | !is.na(ch4_mass) | !is.na(n2o_mass) | 
-                          !is.na(heat_input))) 
+                          !is.na(combust_heat_input))) 
 
 ifelse(nrow(check_plant_fc_values) == 0, "Status: PASS - All plants with ONLY FC prime mover have blank CO2, N2O, CH4, or annual combustion heat input data.", 
         glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_fc_values)} plants with ONLY FC prime mover have values for CO2, N2O, CH4, or annual combustion heat input."))
 
 knitr::kable(check_plant_fc_values %>% 
                select(plant_id, plant_name, co2_mass, 
-                                              ch4_mass, n2o_mass, heat_input))
+                      ch4_mass, n2o_mass, combust_heat_input))
 
 ```
 

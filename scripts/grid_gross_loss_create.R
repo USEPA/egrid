@@ -15,7 +15,7 @@
 ##
 ## -------------------------------
 
-### Load libraries ------
+# Load libraries ------
 
 library(dplyr)
 library(tidyr)
@@ -89,7 +89,7 @@ nerc_interconnect <-
          interconnect = Interconnect)
 
 
-## 01: Create GGL table at state level for non duplicate states -----
+# Create GGL table at state level for non duplicate states -----
 
 # vector of duplicate states 
 # check if needed to update every year
@@ -120,7 +120,7 @@ ggl_state <-
   inner_join(ggl_r, by = c("state", "state_abbr")) %>%
   filter(!state %in% dup_state) # only states that fall into one interconnection 
 
-### 02: States with multiple interconnects -----
+# Identify states with multiple interconnects -----
 
 # create vector, count number of interconnects
 multi_interconnect_states <- 
@@ -129,7 +129,8 @@ multi_interconnect_states <-
   mutate(interconnect_count = n_distinct(interconnect)) %>%
   filter(interconnect_count > 1) 
 
-### 03: Sum of generation for multiple interconnect states ------
+
+# Sum generation for multiple states with multiple interconnects ------
 
 # create sum of total generation by state
 sum_tot_generation <- 
@@ -142,7 +143,8 @@ sum_tot_generation <-
 multi_interconnect_states <- multi_interconnect_states %>% 
   inner_join(sum_tot_generation, by = c("state_abbr" = "plant_state"))
 
-### 04: Sum of gen for multiple interconnect states by NERC ---------
+
+# Sum generation for states with multiple interconnect by NERC region ---------
 
 # find the sum of generation for only the states with multiple interconnects 
 multi_interconnect_sum <- 
@@ -155,7 +157,7 @@ multi_interconnect_sum <-
   group_by(plant_state, interconnect, nerc_region) %>%
   summarise(sum_net_generation = sum(net_generation_megawatthours)) 
 
-### 05: Grouped generation by interconnect ------- 
+# Group generation by interconnect ------- 
 
 # sum of generation at each interconnect level within the state
 grouped_gen_by_interconnect <- 
@@ -164,7 +166,7 @@ grouped_gen_by_interconnect <-
   group_by(plant_state, interconnect) %>%
   summarise(sum_net_gen_interconnect = sum(sum_net_generation))
 
-### 06: Ratio of generation for multiple interconnect states ------
+# Create ratio of generation for states with multiple interconnects ------
 
 # alter dataframe - prevents duplication in joining
 multi_interconnect_states2 <- 
@@ -181,7 +183,7 @@ ratio_gen_multi_interconnect <-
          sum_net_generation = as.numeric(sum_net_generation),
          ratio = sum_net_gen_interconnect / sum_net_generation)
 
-### 07: Append multiple interconnect states to GGL -----
+# Append multiple interconnect states to GGL table -----
 
 # create new values for energy distribution using ratio created in step 6
 insert_multi_interconnect <- 
@@ -215,7 +217,7 @@ insert_multi_interconnect <-
 # add rows into initially created ggl_state table  
 ggl_state <- rbind(ggl_state, insert_multi_interconnect)
 
-### 08: Create GGL table at interconnect level
+# Create GGL table at interconnect level -----------
 ggl_interconnect <- 
   ggl_state %>%
   group_by(interconnect) %>%
@@ -223,13 +225,13 @@ ggl_interconnect <-
             tot_disp_sub_ex_sum = sum(tot_disp_sub_ex),
             direct_use_sum = sum(direct_use))
 
-### 09: Update GGL interconnect table with GGL values
+# Update GGL interconnect table with GGL values ----------------
 ggl_interconnect_2 <- 
   ggl_interconnect %>%
   mutate(ggl = est_losses_sum / (tot_disp_sub_ex_sum - direct_use_sum),
          ggl = round(ggl, 3))
 
-### 10: Sum generation and disposition to US
+# Sum generation and disposition to US level ----------------
 ggl_us <- 
   ggl_interconnect_2 %>%
   summarise(est_losses_sum = sum(est_losses_sum),
@@ -239,15 +241,36 @@ ggl_us <-
          ggl = est_losses_sum /(tot_disp_sub_ex_sum - direct_use_sum),
          ggl = round(ggl, 3))
 
-### 11: Append US
+# Append US GGL data -------------
 ggl_interconnect_3 <- rbind(ggl_interconnect_2, ggl_us)
 
-
-### 12: Adding year to dataframe
+# Add year to dataframe ------------
 ggl_interconnect_4 <- cbind(data_year, ggl_interconnect_3)
 
-### 13: Export table to Excel
+# Export GGL file -------------- 
+
+# check if folders exist 
+if(dir.exists("data/outputs")) {
+  print("Folder output already exists.")
+} else {
+  dir.create("data/outputs")
+}
+
+if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
+  print("Folder output already exists.")
+} else {
+  dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
+}
+
+# write RDS file
+print(glue::glue("Saving grid gross loss file to folder data/outputs/{params$eGRID_year}"))
+
 write_rds(ggl_interconnect_4, glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 
-
+# check if file is successfully written to folder 
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))){
+  print(glue::glue("File grid_gross_loss.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
+} else {
+  print("File grid_gross_loss.RDS failed to write to folder.")
+} 
 

@@ -2,75 +2,76 @@ fuel_type,fuel_category,eia_fuel_code,co2_ef,co2_units,ch4_ef,ch4_units,n2o_ef,n
 Nuclear,NA,NA,0,ton CO2/mmBtu,0,lbs CH4/mmBtu,0,lbs N2O/mmBtu,no EF
 Megawatt hours,NA,NA,0,ton CO2/mmBtu,0,lbs CH4/mmBtu,0,lbs N2O/mmBtu,no EF
 Purchased Steam,NA,NA,0,ton CO2/mmBtu,0,lbs CH4/mmBtu,0,lbs N2O/mmBtu,no EF
-Anthracite,Coal and Coke,ANT,0.114133280422406,ton CO2/mmBtu,0.0242508686220216,lbs CH4/mmBtu,0.00352739907229404,lbs N2O/mmBtu,EPA GHG MRR
-Bituminous,Coal and Coke,BIT,0.102955846933095,ton CO2/mmBtu,0.0242508686220216,lbs CH4/mmBtu,0.00352739907229404,lbs N2O/mmBtu,EPA GHG MRR
-Subbituminous,Coal and Coke,SUB,0.106946212734999,ton CO2/mmBtu,0.0242508686220216,lbs CH4/mmBtu,0.00352739907229404,lbs N2O/mmBtu,EPA GHG MRR
-Lignite,Coal and Coke,LIG,0.106218687478298,ton CO2/mmBtu,0.0242508686220216,lbs CH4/mmBtu,0.00352739907229404,lbs N2O/mmBtu,EPA GHG MRR
-Coke,Coal and Coke,NA,0.112479813929904,ton CO2/mmBtu,0.0242508686220216,lbs CH4/mmBtu,0.00352739907229404,lbs N2O/mmBtu,EPA GHG MRR
-Mixed (Commercial sector),Coal and Coke,NA,0.105006145383797,ton CO2/mmBtu,0.0242508686220216,lbs CH4/mmBtu,0.00352739907229404,lbs N2O/mmBtu,EPA GHG MRR
-Mixed (Industrial coking),Coal and Coke,NA,0.103231424681845,ton CO2/mmBtu,0.0242508686220216,lbs CH4/mmBtu,0.00352739907229404,lbs N2O/mmBtu,EPA GHG MRR
-Mixed (Industrial sector),Coal and Coke,NA,0.103518025540546,ton CO2/mmBtu,0.0242508686220216,lbs CH4/mmBtu,0.00352739907229404,lbs N2O/mmBtu,EPA GHG MRR
-Mixed (Electric Power sector),Coal and Coke,NA,0.104036111708196,ton CO2/mmBtu,0.0242508686220216,lbs CH4/mmBtu,0.00352739907229404,lbs N2O/mmBtu,EPA GHG MRR
-Pipeline (Weighted U.S. Average),Natural Gas,NG,0.0584445289549541,ton CO2/mmBtu,0.00220462442018378,lbs CH4/mmBtu,2.20462442018378e-4,lbs N2O/mmBtu,EPA GHG MRR
-Distillate Fuel Oil (avg),Petroleum Products,DFO,0.0816628728796589,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Residual Fuel Oil (avg),Petroleum Products,RFO,0.0815875482950005,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Still Gas,Petroleum Products,NA,0.073546189586468,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Kerosene,Petroleum Products,KER,0.0828937868240767,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Liquefied petroleum gases (LPG),Petroleum Products,NA,0.0694235464651642,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Propane,Petroleum Products,PG,0.0677480337527627,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Propylene,Petroleum Products,NA,0.0726974101203172,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Ethane,Petroleum Products,NA,0.0690487607268639,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Ethylene,Petroleum Products,NA,0.0743288303929188,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Isobutane,Petroleum Products,NA,0.0715510066855162,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Isobutylene,Petroleum Products,NA,0.0746705468013691,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Butane,Petroleum Products,NA,0.0718155613243164,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Butylene,Petroleum Products,NA,0.0746595236914191,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Naphtha (<401 deg F),Petroleum Products,NA,0.0749791938799694,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Natural Gasoline,Petroleum Products,NA,0.0736674437959181,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Other Oil (>401 deg F),Petroleum Products,NA,0.0840181440389777,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Pentanes Plus,Petroleum Products,NA,0.0771838158699714,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Petrochemical Feedstocks,Petroleum Products,NA,0.0782310113152224,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Petroleum Coke,Petroleum Products,PC,0.112887668998054,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Special Naphtha,Petroleum Products,NA,0.0797411773783738,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Unfinished Oils,Petroleum Products,NA,0.082111146017626,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Heavy Gas Oils,Petroleum Products,NA,0.0825851397454764,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Lubricants,Petroleum Products,NA,0.0818686375987257,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Motor Gasoline,Petroleum Products,NA,0.0774042780689716,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Aviation Gasoline,Petroleum Products,NA,0.0763350364038206,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Kerosene-Type Jet Fuel,Petroleum Products,JF,0.0796089000589736,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Asphalt and Road Oil,Petroleum Products,NA,0.0830701565832768,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Crude Oil,Petroleum Products,NA,0.082111146017626,ton CO2/mmBtu,0.00661387326055133,lbs CH4/mmBtu,0.00132277465211027,lbs N2O/mmBtu,EPA GHG MRR
-Municipal Solid Waste,Fossil fuel-derived fuels (solid),MSW,0.0999796072465925,ton CO2/mmBtu,0.0705479814458809,lbs CH4/mmBtu,0.00925942256477186,lbs N2O/mmBtu,EPA GHG MRR
-Tires,Fossil fuel-derived fuels (solid),TDF,0.0947656762402377,ton CO2/mmBtu,0.0705479814458809,lbs CH4/mmBtu,0.00925942256477186,lbs N2O/mmBtu,EPA GHG MRR
-Blast Furnace Gas,Fossil fuel-derived fuels (gaseous),BFG,0.30238595214868,ton CO2/mmBtu,4.85017372440431e-5,lbs CH4/mmBtu,2.20462442018378e-4,lbs N2O/mmBtu,EPA GHG MRR
-Coke Oven Gas,Fossil fuel-derived fuels (gaseous),COG,0.0516432701157978,ton CO2/mmBtu,0.00105821972168821,lbs CH4/mmBtu,2.20462442018378e-4,lbs N2O/mmBtu,EPA GHG MRR
-Wood and Wood Residuals,Biomass fuels—solid,WDS,0.103396771331096,ton CO2/mmBtu,0.0705479814458809,lbs CH4/mmBtu,0.00925942256477186,lbs N2O/mmBtu,EPA GHG MRR
-Agricultural Byproducts,Biomass fuels—solid,AB,0.13026009027927,ton CO2/mmBtu,0.0705479814458809,lbs CH4/mmBtu,0.00925942256477186,lbs N2O/mmBtu,EPA GHG MRR
-Peat,Biomass fuels—solid,NA,0.123282461680914,ton CO2/mmBtu,0.0705479814458809,lbs CH4/mmBtu,0.00925942256477186,lbs N2O/mmBtu,EPA GHG MRR
-Solid Byproducts,Biomass fuels—solid,NA,0.116304833082558,ton CO2/mmBtu,0.0705479814458809,lbs CH4/mmBtu,0.00925942256477186,lbs N2O/mmBtu,EPA GHG MRR
-Biogas (Captured Methane),Biomass fuels—gaseous,NA,0.0573973335097031,ton CO2/mmBtu,0.00705479814458809,lbs CH4/mmBtu,0.00138891338471578,lbs N2O/mmBtu,EPA GHG MRR
-Ethanol (100%),Biomass fuels - liquid,NA,0.075442164497869807,ton CO2/mmBtu,0.00242508686220216,lbs CH4/mmBtu,2.42508686220216e-4,lbs N2O/mmBtu,EPA GHG MRR
-Biodisesel (100%),Biomass fuels - liquid,NA,0.0813946438708753,ton CO2/mmBtu,0.00242508686220216,lbs CH4/mmBtu,2.42508686220216e-4,lbs N2O/mmBtu,EPA GHG MRR
-Rendered Animal Fat,Biomass fuels - liquid,NA,0.0783302193047725,ton CO2/mmBtu,0.00242508686220216,lbs CH4/mmBtu,2.42508686220216e-4,lbs N2O/mmBtu,EPA GHG MRR
-Vegetable Oil,Biomass fuels - liquid,NA,0.0898934616423332,ton CO2/mmBtu,0.00242508686220216,lbs CH4/mmBtu,2.42508686220216e-4,lbs N2O/mmBtu,EPA GHG MRR
-Waste Oils,NA,WO,0.0852478863890126,ton CO2/mmBtu,0.0697800657780071,lbs CH4/mmBtu,0.00930400877040094,lbs N2O/mmBtu,IPCC
-Sulphite lyes (Black Liquour),NA,BLQ,0.110833882303859,ton CO2/mmBtu,0.00697800657780071,lbs CH4/mmBtu,0.00465200438520047,lbs N2O/mmBtu,IPCC
-Other Primary Solid Biomass,NA,OBS,0.116299981431122,ton CO2/mmBtu,0.0697800657780071,lbs CH4/mmBtu,0.00930400877040094,lbs N2O/mmBtu,IPCC
-Other Liquid Biofuels,NA,OBL,0.0925747852191733,ton CO2/mmBtu,0.00697800657780071,lbs CH4/mmBtu,0.00139560131556014,lbs N2O/mmBtu,IPCC
-Landfill Gas,NA,LFG,0.0634997898613927,ton CO2/mmBtu,0.00232600219260024,lbs CH4/mmBtu,2.32600219260024e-4,lbs N2O/mmBtu,IPCC
-Other Biogas,NA,OBG,0.0634997898613927,ton CO2/mmBtu,0.00232600219260024,lbs CH4/mmBtu,2.32600219260024e-4,lbs N2O/mmBtu,IPCC
+Anthracite,Coal and Coke,ANT,0.11413328,ton CO2/mmBtu,0.024250869,lbs CH4/mmBtu,0.003527399,lbs N2O/mmBtu,EPA GHG MRR
+Bituminous,Coal and Coke,BIT,0.102955847,ton CO2/mmBtu,0.024250869,lbs CH4/mmBtu,0.003527399,lbs N2O/mmBtu,EPA GHG MRR
+Subbituminous,Coal and Coke,SUB,0.106946213,ton CO2/mmBtu,0.024250869,lbs CH4/mmBtu,0.003527399,lbs N2O/mmBtu,EPA GHG MRR
+Lignite,Coal and Coke,LIG,0.106218687,ton CO2/mmBtu,0.024250869,lbs CH4/mmBtu,0.003527399,lbs N2O/mmBtu,EPA GHG MRR
+Coke,Coal and Coke,NA,0.112479814,ton CO2/mmBtu,0.024250869,lbs CH4/mmBtu,0.003527399,lbs N2O/mmBtu,EPA GHG MRR
+Mixed (Commercial sector),Coal and Coke,NA,0.105006145,ton CO2/mmBtu,0.024250869,lbs CH4/mmBtu,0.003527399,lbs N2O/mmBtu,EPA GHG MRR
+Mixed (Industrial coking),Coal and Coke,NA,0.103231425,ton CO2/mmBtu,0.024250869,lbs CH4/mmBtu,0.003527399,lbs N2O/mmBtu,EPA GHG MRR
+Mixed (Industrial sector),Coal and Coke,NA,0.103518026,ton CO2/mmBtu,0.024250869,lbs CH4/mmBtu,0.003527399,lbs N2O/mmBtu,EPA GHG MRR
+Mixed (Electric Power sector),Coal and Coke,NA,0.104036112,ton CO2/mmBtu,0.024250869,lbs CH4/mmBtu,0.003527399,lbs N2O/mmBtu,EPA GHG MRR
+Pipeline (Weighted U.S. Average),Natural Gas,NG,0.058444529,ton CO2/mmBtu,0.002204624,lbs CH4/mmBtu,2.20E-04,lbs N2O/mmBtu,EPA GHG MRR
+Distillate Fuel Oil (avg),Petroleum Products,DFO,0.081662873,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Residual Fuel Oil (avg),Petroleum Products,RFO,0.081587548,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Still Gas,Petroleum Products,NA,0.07354619,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Kerosene,Petroleum Products,KER,0.082893787,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Liquefied petroleum gases (LPG),Petroleum Products,NA,0.069423546,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Propane,Petroleum Products,PG,0.067748034,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Propylene,Petroleum Products,NA,0.07269741,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Ethane,Petroleum Products,NA,0.069048761,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Ethylene,Petroleum Products,NA,0.07432883,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Isobutane,Petroleum Products,NA,0.071551007,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Isobutylene,Petroleum Products,NA,0.074670547,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Butane,Petroleum Products,NA,0.071815561,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Butylene,Petroleum Products,NA,0.074659524,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Naphtha (<401 deg F),Petroleum Products,NA,0.074979194,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Natural Gasoline,Petroleum Products,NA,0.073667444,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Other Oil (>401 deg F),Petroleum Products,NA,0.084018144,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Pentanes Plus,Petroleum Products,NA,0.077183816,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Petrochemical Feedstocks,Petroleum Products,NA,0.078231011,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Petroleum Coke,Petroleum Products,PC,0.112887669,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Special Naphtha,Petroleum Products,NA,0.079741177,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Unfinished Oils,Petroleum Products,NA,0.082111146,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Heavy Gas Oils,Petroleum Products,NA,0.08258514,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Lubricants,Petroleum Products,NA,0.081868638,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Motor Gasoline,Petroleum Products,NA,0.077404278,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Aviation Gasoline,Petroleum Products,NA,0.076335036,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Kerosene-Type Jet Fuel,Petroleum Products,JF,0.0796089,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Asphalt and Road Oil,Petroleum Products,NA,0.083070157,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Crude Oil,Petroleum Products,NA,0.082111146,ton CO2/mmBtu,0.006613873,lbs CH4/mmBtu,0.001322775,lbs N2O/mmBtu,EPA GHG MRR
+Municipal Solid Waste,Fossil fuel-derived fuels (solid),MSW,0.099979607,ton CO2/mmBtu,0.070547981,lbs CH4/mmBtu,0.009259423,lbs N2O/mmBtu,EPA GHG MRR
+Tires,Fossil fuel-derived fuels (solid),TDF,0.094765676,ton CO2/mmBtu,0.070547981,lbs CH4/mmBtu,0.009259423,lbs N2O/mmBtu,EPA GHG MRR
+Blast Furnace Gas,Fossil fuel-derived fuels (gaseous),BFG,0.302385952,ton CO2/mmBtu,4.85E-05,lbs CH4/mmBtu,2.20E-04,lbs N2O/mmBtu,EPA GHG MRR
+Coke Oven Gas,Fossil fuel-derived fuels (gaseous),COG,0.05164327,ton CO2/mmBtu,0.00105822,lbs CH4/mmBtu,2.20E-04,lbs N2O/mmBtu,EPA GHG MRR
+Wood and Wood Residuals,Biomass fuels—solid,WDS,0.103396771,ton CO2/mmBtu,0.070547981,lbs CH4/mmBtu,0.009259423,lbs N2O/mmBtu,EPA GHG MRR
+Agricultural Byproducts,Biomass fuels—solid,AB,0.13026009,ton CO2/mmBtu,0.070547981,lbs CH4/mmBtu,0.009259423,lbs N2O/mmBtu,EPA GHG MRR
+Peat,Biomass fuels—solid,NA,0.123282462,ton CO2/mmBtu,0.070547981,lbs CH4/mmBtu,0.009259423,lbs N2O/mmBtu,EPA GHG MRR
+Solid Byproducts,Biomass fuels—solid,NA,0.116304833,ton CO2/mmBtu,0.070547981,lbs CH4/mmBtu,0.009259423,lbs N2O/mmBtu,EPA GHG MRR
+Biogas (Captured Methane),Biomass fuels—gaseous,NA,0.057397334,ton CO2/mmBtu,0.007054798,lbs CH4/mmBtu,0.001388913,lbs N2O/mmBtu,EPA GHG MRR
+Ethanol (100%),Biomass fuels - liquid,NA,0.075442164,ton CO2/mmBtu,0.002425087,lbs CH4/mmBtu,2.43E-04,lbs N2O/mmBtu,EPA GHG MRR
+Biodisesel (100%),Biomass fuels - liquid,NA,0.081394644,ton CO2/mmBtu,0.002425087,lbs CH4/mmBtu,2.43E-04,lbs N2O/mmBtu,EPA GHG MRR
+Rendered Animal Fat,Biomass fuels - liquid,NA,0.078330219,ton CO2/mmBtu,0.002425087,lbs CH4/mmBtu,2.43E-04,lbs N2O/mmBtu,EPA GHG MRR
+Vegetable Oil,Biomass fuels - liquid,NA,0.089893462,ton CO2/mmBtu,0.002425087,lbs CH4/mmBtu,2.43E-04,lbs N2O/mmBtu,EPA GHG MRR
+Waste Oils,NA,WO,0.085247886,ton CO2/mmBtu,0.069780066,lbs CH4/mmBtu,0.009304009,lbs N2O/mmBtu,IPCC
+Sulphite lyes (Black Liquour),NA,BLQ,0.110833882,ton CO2/mmBtu,0.006978007,lbs CH4/mmBtu,0.004652004,lbs N2O/mmBtu,IPCC
+Other Primary Solid Biomass,NA,OBS,0.116299981,ton CO2/mmBtu,0.069780066,lbs CH4/mmBtu,0.009304009,lbs N2O/mmBtu,IPCC
+Other Liquid Biofuels,NA,OBL,0.092574785,ton CO2/mmBtu,0.006978007,lbs CH4/mmBtu,0.001395601,lbs N2O/mmBtu,IPCC
+Landfill Gas,NA,LFG,0.06349979,ton CO2/mmBtu,0.002326002,lbs CH4/mmBtu,2.33E-04,lbs N2O/mmBtu,IPCC
+Other Biogas,NA,OBG,0.06349979,ton CO2/mmBtu,0.002326002,lbs CH4/mmBtu,2.33E-04,lbs N2O/mmBtu,IPCC
 Solar,NA,NA,0,ton CO2/mmBtu,0,lbs CH4/mmBtu,0,lbs N2O/mmBtu,no EF
 Waste Heat,NA,NA,0,ton CO2/mmBtu,0,lbs CH4/mmBtu,0,lbs N2O/mmBtu,no EF
-"Wood, Wood Waste Liquid",NA,WDL,0.0925747852191733,ton CO2/mmBtu,0.00697800657780071,lbs CH4/mmBtu,0.00139560131556014,lbs N2O/mmBtu,use OBL
-Refined Coal,NA,RC,0.105288976833333,ton CO2/mmBtu,0.024251,lbs CH4/mmBtu,0.003527,lbs N2O/mmBtu,EPA GHG MRR
-Waste Coal,NA,WC,0.105288976833333,ton CO2/mmBtu,0.024251,lbs CH4/mmBtu,0.003527,lbs N2O/mmBtu,EPA GHG MRR
-Sludge Waste,NA,SLW,0.0925747852191733,ton CO2/mmBtu,0.00697800657780071,lbs CH4/mmBtu,0.00139560131556014,lbs N2O/mmBtu,use OBL
-Process Gas,NA,PRG,0.0584445289549541,ton CO2/mmBtu,0.00220462442018378,lbs CH4/mmBtu,2.20462442018378e-4,lbs N2O/mmBtu,use NG
-Synthetic Gas - Petroleum Coke,NA,SGP,0.0584445289549541,ton CO2/mmBtu,0.00220462442018378,lbs CH4/mmBtu,2.20462442018378e-4,lbs N2O/mmBtu,use NG
+"Wood, Wood Waste Liquid",NA,WDL,0.092574785,ton CO2/mmBtu,0.006978007,lbs CH4/mmBtu,0.001395601,lbs N2O/mmBtu,use OBL
+Refined Coal,NA,RC,0.105288977,ton CO2/mmBtu,0.024251,lbs CH4/mmBtu,0.003527,lbs N2O/mmBtu,EPA GHG MRR
+Waste Coal,NA,WC,0.105288977,ton CO2/mmBtu,0.024251,lbs CH4/mmBtu,0.003527,lbs N2O/mmBtu,EPA GHG MRR
+Sludge Waste,NA,SLW,0.092574785,ton CO2/mmBtu,0.006978007,lbs CH4/mmBtu,0.001395601,lbs N2O/mmBtu,use OBL
+Process Gas,NA,PRG,0.058444529,ton CO2/mmBtu,0.002204624,lbs CH4/mmBtu,2.20E-04,lbs N2O/mmBtu,use NG
+Synthetic Gas - Petroleum Coke,NA,SGP,0.058444529,ton CO2/mmBtu,0.002204624,lbs CH4/mmBtu,2.20E-04,lbs N2O/mmBtu,use NG
 Water,NA,NA,0,ton CO2/mmBtu,0,lbs CH4/mmBtu,0,lbs N2O/mmBtu,no EF
 Wind,NA,NA,0,ton CO2/mmBtu,0,lbs CH4/mmBtu,0,lbs N2O/mmBtu,no EF
 Hydrogen,NA,NA,0,ton CO2/mmBtu,0,lbs CH4/mmBtu,0,lbs N2O/mmBtu,no EF
-Other Gas,NA,OG,0.058445,ton CO2/mmBtu,0.002205,lbs CH4/mmBtu,2.2e-4,lbs N2O/mmBtu,use NG
-Municipal Solid Waste,Fossil fuel-derived fuels (solid),MSB,0.0999796072465925,ton CO2/mmBtu,0.0705479814458809,lbs CH4/mmBtu,0.00925942256477186,lbs N2O/mmBtu,EPA GHG MRR
-Municipal Solid Waste,Fossil fuel-derived fuels (solid),MSN,0.0999796072465925,ton CO2/mmBtu,0.0705479814458809,lbs CH4/mmBtu,0.00925942256477186,lbs N2O/mmBtu,EPA GHG MRR
+Other Gas,NA,OG,0.058445,ton CO2/mmBtu,0.002205,lbs CH4/mmBtu,2.20E-04,lbs N2O/mmBtu,use NG
+Municipal Solid Waste,Fossil fuel-derived fuels (solid),MSB,0.099979607,ton CO2/mmBtu,0.070547981,lbs CH4/mmBtu,0.009259423,lbs N2O/mmBtu,EPA GHG MRR
+Municipal Solid Waste,Fossil fuel-derived fuels (solid),MSN,0.099979607,ton CO2/mmBtu,0.070547981,lbs CH4/mmBtu,0.009259423,lbs N2O/mmBtu,EPA GHG MRR
 Geothermal,NA,NA,0,ton CO2/mmBtu,0,lbs CH4/mmBtu,0,lbs N2O/mmBtu,no EF
+Other,NA,OTH,0.058445,ton CO2/mmBtu,0.002205,lbs CH4/mmBtu,2.20E-04,lbs N2O/mmBtu,use NG

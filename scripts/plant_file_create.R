@@ -351,7 +351,8 @@ unit_heat_input <-
 
 combust_heat_input <- 
   unit_heat_input %>% 
-  filter(primary_fuel_type %in% fuel_type_categories[["combustion_fuels"]]) %>%
+  filter(primary_fuel_type %in% fuel_type_categories[["combustion_fuels"]], 
+         prime_mover != "FC") %>%
   group_by(plant_id) %>% 
   summarize(unadj_combust_heat_input = sum(unadj_heat_input, na.rm = TRUE), # sum heat input for combustion fuels
             unadj_combust_heat_input_oz = sum(unadj_heat_input_oz, na.rm = TRUE)) %>% ungroup()
@@ -487,8 +488,8 @@ plant_file_4 <-
                                     TRUE ~ NA_character_),
          system_owner_id = if_else(is.na(system_owner_id), "-9999", system_owner_id)) %>% 
   rows_patch(xwalk_ba, by = c("ba_code"), unmatched = "ignore") %>% 
-  rows_patch(xwalk_subregion_transmission, by = c("nerc", "ba_code", "system_owner_id"), unmatched = "ignore") %>% 
   rows_patch(xwalk_subregion_utility, by =  c("nerc", "ba_code", "system_owner_id", "utility_id"), unmatched = "ignore") %>% 
+  rows_patch(xwalk_subregion_transmission, by = c("nerc", "ba_code", "system_owner_id"), unmatched = "ignore") %>% 
   rows_patch(xwalk_oris_subregion, by = c("plant_state", "plant_id"), unmatched = "ignore") %>% 
   rows_patch(xwalk_nerc_assessment, by = c("plant_id"), unmatched = "ignore") %>% 
   left_join(egrid_subregions, by = c("egrid_subregion")) %>% 
