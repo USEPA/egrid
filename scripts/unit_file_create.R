@@ -249,20 +249,34 @@ epa_2 <-
     # 3) Plants with Coal and Biomass units require a manual update to Coal fuel types, ignoring max fuel consumption from Biomass fuel types
 
 # identify fuels in EPA use crosswalk to identify primary fuel type  
+
+# some EPA units have leading zeroes in their unit_id
+# We remove them to match the EIA-EPA crosswalk, and then replace them using a lookup table
+epa_leading_zeroes <- 
+  epa_2 %>% 
+  filter(str_detect(unit_id, "^0+")) %>%  
+  select(plant_id, unit_id) %>% 
+  mutate(unit_id_clean = str_remove(unit_id, "^0+"),
+         id = paste0(plant_id, "_", unit_id_clean))
+
+lookup_epa_leading_zeroes <- with(epa_leading_zeroes, setNames(unit_id, id))
+
 coal_xwalk_update <- 
   xwalk_eia_epa %>% 
   select(epa_plant_id, epa_unit_id, eia_plant_id, eia_generator_id, eia_unit_type) %>% 
-  inner_join(epa_2 %>% filter(str_detect(primary_fuel_type, "^Coal")), 
+  inner_join(epa_2 %>% filter(str_detect(primary_fuel_type, "^Coal")) %>% 
+               mutate(unit_id = str_remove(unit_id, "^0+")), 
              by = c("epa_plant_id" = "plant_id", "epa_unit_id" = "unit_id", "eia_unit_type" = "prime_mover")) %>% 
-  filter(paste0(epa_plant_id, "_", epa_unit_id) != paste0(eia_plant_id, "_", eia_generator_id)) %>% 
   left_join(eia_860$combined, 
             by = c("eia_plant_id" = "plant_id", "eia_generator_id" = "generator_id", "eia_unit_type" = "prime_mover")) %>% 
+  mutate(id = paste0(epa_plant_id, "_", epa_unit_id), 
+         epa_unit_id = recode(id, !!!lookup_epa_leading_zeroes, .default = epa_unit_id)) %>% # replace leading zeroes that were removed when matching to crosswalk
   select(plant_id = epa_plant_id, 
          unit_id = epa_unit_id, 
          prime_mover = eia_unit_type, 
          energy_source_1) %>%
   distinct() %>% group_by(plant_id, unit_id) %>% filter(!n() > 1) %>% # keep units with only 1 fuel type 
-  drop_na() %>% ungroup() 
+  drop_na() %>% ungroup()  
 
 # identify coal fuel types in EPA and match to primary coal fuel types in EIA-923
 # these coal fuel types will update the primary fuel type for those that do not have an energy_source_1 listed in EIA-860
@@ -812,7 +826,11 @@ gen_fuel_types_to_update <-
 eia_860_generators_to_add_2 <- 
   eia_860_generators_to_add %>%
   rows_update(gen_fuel_types_to_update, # updating with new fuel codes
-            by = c("plant_id", "generator_id"), unmatched = "ignore") 
+            by = c("plant_id", "generator_id"), unmatched = "ignore") %>% 
+  left_join(prime_mover_corrections %>% rename("generator_id" = boiler_id), 
+              by = c("plant_id", "generator_id", "prime_mover")) %>% 
+  mutate(prime_mover = if_else(!is.na(update), update, prime_mover)) %>% 
+  select(-update)
 
 
 ### Add NUC and GEO generators -------
