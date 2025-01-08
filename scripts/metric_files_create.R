@@ -19,6 +19,8 @@ library(dplyr)
 library(glue)
 library(readr)
 library(readxl)
+library(renv)
+detach("package:renv", unload=TRUE)
 
 # Define parameters -------------------------
 

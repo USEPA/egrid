@@ -1,0 +1,39 @@
+﻿ORIS Code,Facility Name,State,Notes
+127,Oklaunion Power Station,TX,"Added in 2021: in LTCS, not in 860 or 923"
+478,Zuni,CO,"These plants do not connect to the grid, we are making any heat input and emissions null"
+764,Honolulu Generating Station,HI,Retired
+1552,C P Crane,MD,Retired in 2019 and not in EIA data at all
+1594,Blackstone,MA,"These plants do not connect to the grid, we are making any heat input and emissions null"
+2440,AbiBow US Inc. - Catawba Operations,SC,"These plants do not connect to the grid, we are making any heat input and emissions null"
+2535,"Cayuga Operating Company, LLC",NY,Retired in 2019 and not in EIA data at all
+2549,Huntley Power,NY,"These plants do not connect to the grid, we are making any heat input and emissions null"
+2837,Eastlake,OH,"These plants do not connect to the grid, we are making any heat input and emissions null"
+3946,Willow Island Power Station,WV,"Added in 2022: in LTCS, not in 860 or 923"
+6082,Somerset Operating Company  (Kintigh),NY,Added in 2021; closed in 2020 not in 860 or 923
+6094,Bruce Mansfield,PA,Added in 2021; retired and not in 860 or 923
+6106,Boardman,OR,Added in 2021; retired and not in 860 or 923
+6136,Gibbons Creek Steam Electric Station,TX,Retired in 2019 and not in EIA data at all
+10071,Virginia Renewable Power-Portsmouth LLC,VA,"These plants do not connect to the grid, we are making any heat input and emissions null"
+10111,DTE Pontiac North LLC,MI,"These plants do not connect to the grid, we are making any heat input and emissions null"
+10350,Greenleaf One,CA,Not operating in 2021
+10381,Coastal Carolina Clean Power LLC,NC,"These plants do not connect to the grid, we are making any heat input and emissions null"
+10384,"Edgecombe Genco, LLC",NC,Retired in 2019 and not in EIA data at all
+10675,AES Thames,CT,"These plants do not connect to the grid, we are making any heat input and emissions null"
+10788,Chemours Belle Plant,WV,"These plants do not connect to the grid, we are making any heat input and emissions null"
+50044,The Ohio State University,OH,"These plants do not connect to the grid, we are making any heat input and emissions null"
+50137,New Gulf Power Facility,TX,Retired
+50151,UCC South Charleston Plant,WV,"These plants do not connect to the grid, we are making any heat input and emissions null"
+50202,"Niagara Generation, LLC",NY,"These plants do not connect to the grid, we are making any heat input and emissions null"
+50247,Smart Papers LLC,OH,"These plants do not connect to the grid, we are making any heat input and emissions null"
+50282,Luke Paper Company,MD,Retired in 2019 and not in EIA data at all
+50607,Veolia Energy Philadelphia - Schuylkill,PA,"These plants do not connect to the grid, we are making any heat input and emissions null"
+50976,"Indiantown Cogeneration, LP",FL,Added in 2021; retired in 2020 and 0 in 923
+52106,Philadelphia Refinery,PA,Partially retired in 2019 and partially not connected to the grid. Not in EIA at all
+54035,Roanoke Valley Energy Facility I,NC,"These plants do not connect to the grid, we are making any heat input and emissions null"
+54571,North East Cogeneration Plant,PA,"These plants do not connect to the grid, we are making any heat input and emissions null"
+54755,Roanoke Valley Energy Facility II,NC,"These plants do not connect to the grid, we are making any heat input and emissions null"
+55098,Frontera Generation Facility,TX,"These plants do not connect to the grid, we are making any heat input and emissions null"
+55422,Desoto County Energy Park,FL,"These plants do not connect to the grid, we are making any heat input and emissions null"
+55703,"Valero Refining Company-Tennessee, LLC",TN,"These plants do not connect to the grid, we are making any heat input and emissions null"
+55833,Auburndale Peaker Energy Center,FL,LTCS in 2019 and not in EIA data at all
+59073,Cove Point LNG Terminal,MD,"These plants do not connect to the grid, we are making any heat input and emissions null"
