@@ -3085,7 +3085,7 @@ years_check <-
   filter(YEAR != params$year)
 
 
-ifelse(nrow(years_check) == 0, "Status: PASS - Excel data year is correct in all instances.", glue::glue("Status: NEEDS CHECKED - Excel data year is not correct in {sum(c(nrow(unit_years_check),nrow(plant_years_check),nrow(generator_years_check)} instances."))
+ifelse(nrow(years_check) == 0, "Status: PASS - Excel data year is correct in all instances.", glue::glue("Status: NEEDS CHECKED - Excel data year is not correct in {sum(c(nrow(unit_years_check),nrow(plant_years_check),nrow(generator_years_check)))} instances."))
 
 ```
 

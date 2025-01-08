@@ -402,6 +402,7 @@ if(nrow(generators_combined) > (nrow(gen_dist_no_dec_overwritten) + nrow(decembe
 
 # creating lookup tables based on xwalk to use with recode() 
 #lookup_fuel_codes <- with(xwalk_fuel_codes, setNames(fuel_code, id))
+
 lookup_eia_id_epa_id <- with(xwalk_eia_epa, setNames(epa_plant_id, eia_plant_id))
 lookup_epa_id_name <- with(xwalk_eia_epa, setNames(epa_plant_name, epa_plant_id))
 
