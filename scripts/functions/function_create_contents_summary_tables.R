@@ -93,11 +93,15 @@ create_contents_summary_tables <- function(contents = table_data) {
                             "Contact EPA")
   class(feedback_data) <- "hyperlink"
   
-  # Classify workheet parameters ---------------
+  # write production link
+  production_link <- c("eGRID R production model X." = "https://github.com/USEPA/egrid")
+  class(production_link) <- "hyperlink"
+  
+  # Classify worksheet parameters ---------------
   
   # section names
   titles <- c(
-    paste("eGRID Summary Tables"),
+    paste("eGRID Summary Tables", params$eGRID_year),
     "Introduction",
     "Table of Contents",
     "Feedback")
@@ -131,14 +135,27 @@ create_contents_summary_tables <- function(contents = table_data) {
   addStyle(wb, current_worksheet, createStyle(fontSize = 8, halign = "center"), 
            cols = sheetWidth, rows = end_rows[4] + 1)
   
+  ## Add production note -----------
+  
+  writeData(wb, current_worksheet, "Produced with", startCol = start_cols, startRow = end_rows[4] + 2)
+  writeData(wb, current_worksheet, production_link, startCol = start_cols + 2, startRow = end_rows[4] + 2)
+  
+  # add production note styling
+  addStyle(wb, current_worksheet, createStyle(halign = "center"), cols = start_cols,
+           rows = end_rows[4] + 2, stack = TRUE)
+  mergeCells(wb, current_worksheet, cols = start_cols:(start_cols + 1), 
+             rows = end_rows[4] + 2)
+  mergeCells(wb, current_worksheet, cols = (start_cols + 2):sheetWidth, 
+             rows = end_rows[4] + 2)
+  
   ## Add images -------------
   
   insertImage(wb, current_worksheet, file = "data/static_tables/eGRID_subregions.png",
-              width = 7.24, height = 5.41, startRow = 15, startCol = start_cols)
+              width = 7.24, height = 5.41, startRow = end_rows[3] + 2, startCol = start_cols)
   insertImage(wb, current_worksheet, file = "data/static_tables/eGRID_logo.png",
-              width = 2.06, height = 1.16, startRow = 5, startCol = start_cols + 1, 
+              width = 2.06, height = 1.16, startRow = start_rows[2] + 1, startCol = start_cols + 1, 
               address = "https://www.epa.gov/egrid")
-  # 
+   
   ## Add data ----------------
   
   writeData(wb, current_worksheet, table_of_contents, startCol = start_cols + 2, startRow = start_rows[3])
@@ -166,6 +183,7 @@ create_contents_summary_tables <- function(contents = table_data) {
       addStyle(wb, current_worksheet, toc_labels, rows = row, cols = start_cols, 
                stack = TRUE, gridExpand = TRUE)
       mergeCells(wb, current_worksheet, cols = start_cols:(start_cols + 1), rows = row)
+      # table of contents numbers
       if (row == start_rows[3] + 1) {
         addStyle(wb, current_worksheet, createStyle(textDecoration = "underline"), 
                  rows = row, cols = start_cols:(start_cols + 2), stack = TRUE, gridExpand = TRUE)
@@ -184,11 +202,13 @@ create_contents_summary_tables <- function(contents = table_data) {
   
   ## Add cell sizes -------------
   
-  setRowHeights(wb, current_worksheet, rows = c(1:2, 4:5, 7:8, 13:14, 41:42), 
+  setRowHeights(wb, current_worksheet, rows = c(start_rows[1] - 1, start_rows[1],
+    start_rows[2], start_rows[2] + 1, start_rows[3], start_rows[3] + 1,
+    end_rows[3], end_rows[3] + 1, start_rows[4] - 1, start_rows[4]),
                 heights = c(8.3, 42.8, 17.4, 90.8, 17.4, 15.8, 6.8, 6, 20, 17.4))
   setColWidths(wb, current_worksheet, cols = 1:12, widths = 8.33)
   setColWidths(wb, current_worksheet, cols = c(1:5, 11), widths = c(1, 0.5, 
-                                                                    12, 6.35, 4.89, 13.75))
+                                                                    11.5, 7.35, 4.89, 13.75))
   
   ## Add section titles ---------------
   

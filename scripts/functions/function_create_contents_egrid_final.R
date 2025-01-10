@@ -146,6 +146,10 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   table_of_contents_descrip <- append(
     paste(sheet_names, glue::glue("year {year} data")),
     glue::glue("Surrounding demographic data for eGRID{year} plants"))
+  
+  # table of contents production model note
+  production_link <- c("eGRID R production model X." = "https://github.com/USEPA/egrid")
+  class(production_link) <- "hyperlink"
 
   ## Color coding legend ---------------
   
@@ -208,9 +212,9 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   addWorksheet(wb, sheetName = current_worksheet)
   
   # set section locations
-  start_rows <- c(2, 20, 24, 44, 48)
+  start_rows <- c(2, 21, 25, 45, 49)
   end_rows <- c(
-    start_rows[1] + 16,
+    start_rows[1] + 17,
     start_rows[2] + 2,
     start_rows[3] + 18,
     start_rows[4] + 2,
@@ -229,6 +233,10 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
             startCol = start_cols, startRow = start_rows[1] + length(title) + 2)
   writeData(wb, current_worksheet, table_of_contents_descrip, startCol = start_cols + 3, 
             startRow = start_rows[1] + length(title) + 2)
+  writeData(wb, current_worksheet, "Produced with", startCol = start_cols, 
+            startRow = end_rows[1])
+  writeData(wb, current_worksheet, production_link, startCol = start_cols + 1, 
+                                             startRow = end_rows[1])
   
   # feedback
   writeData(wb, current_worksheet, feedback_data, startCol = start_cols, 
@@ -279,11 +287,15 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
                    start_rows[2]:end_rows[2])) {
       format_width <- sheetWidth
       # table of contents description information
-      if (row %in% c((start_rows[1] + 5):end_rows[1])) {
+      if (row %in% c((start_rows[1] + 5):(end_rows[1] - 1))) {
         mergeCells(wb, current_worksheet, rows = row, 
                    cols = (start_cols + 1):(start_cols + 2))
         mergeCells(wb, current_worksheet, rows = row, 
                    cols = (start_cols + 3):format_width)
+      }
+      else if (row == end_rows[1]) {
+        mergeCells(wb, current_worksheet, rows = row,
+                   cols = (start_cols + 1):format_width)
       }
       # color coding legend  
     } else if (row %in% c(start_rows[3]:end_rows[3])) {
@@ -306,7 +318,7 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
       }
     }
     # main titles
-    if (row %in% c(start_rows[1]:(start_rows[1] + 4), start_rows[2]:end_rows[2],
+    if (row %in% c(start_rows[1]:(start_rows[1] + 4), start_rows[2]:end_rows[2], 
                    start_rows[3], start_rows[4]:end_rows[4], start_rows[5])) {
       mergeCells(wb, current_worksheet, rows = row, cols = start_cols:format_width)
     }
@@ -372,6 +384,6 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   setRowHeights(wb, current_worksheet, rows = c(7, 18, 20, 24), heights = 15.6)
   setRowHeights(wb, current_worksheet, rows = c(5:6, 25), heights = c(43.8, 25.8, 16.2))
   setColWidths(wb, current_worksheet, cols = 1:12, widths = 10.33)
-  setColWidths(wb, current_worksheet, cols = c(1:2, 5), widths = c(1, 11.89, 14.33))
+  setColWidths(wb, current_worksheet, cols = c(1:2, 5), widths = c(1, 14.33, 14.33))
   setColWidths(wb, current_worksheet, cols = 10:19, widths = 5)
 }
