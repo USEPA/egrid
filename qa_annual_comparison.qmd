@@ -1302,7 +1302,7 @@ knitr::kable(co2e_output_fossil,
 
 ### Input emission rate comparison
 
-#### Overall output rates
+#### Overall input rates
 
 ::: panel-tabset
 ##### NOx input rate
@@ -1551,9 +1551,9 @@ knitr::kable(co2e_input,
 ```
 :::
 
-#### Fuel specific output rates
+#### Fuel specific input rates
 
-##### Fuel specific NOx output rates
+##### Fuel specific NOx input rates
 
 ::: panel-tabset
 ###### NOx coal input rate
@@ -1697,7 +1697,7 @@ knitr::kable(nox_input_fossil,
 ```
 :::
 
-##### Fuel specific NOx ozone output rates
+##### Fuel specific NOx ozone input rates
 
 ::: panel-tabset
 ###### NOx ozone coal input rate
@@ -1841,7 +1841,7 @@ knitr::kable(nox_oz_input_fossil,
 ```
 :::
 
-##### Fuel specific SO2 output rates
+##### Fuel specific SO2 input rates
 
 ::: panel-tabset
 ###### SO2 coal input rate
@@ -1985,7 +1985,7 @@ knitr::kable(so2_input_fossil,
 ```
 :::
 
-##### Fuel specific CO2 output rates
+##### Fuel specific CO2 input rates
 
 ::: panel-tabset
 ###### CO2 coal input rate
@@ -2129,7 +2129,7 @@ knitr::kable(co2_input_fossil,
 ```
 :::
 
-##### Fuel specific CH4 output rates
+##### Fuel specific CH4 input rates
 
 ::: panel-tabset
 ###### CH4 coal input rate
@@ -2273,7 +2273,7 @@ knitr::kable(ch4_input_fossil,
 ```
 :::
 
-##### Fuel specific N2O output rates
+##### Fuel specific N2O input rates
 
 ::: panel-tabset
 ###### N2O coal input rate
@@ -2417,7 +2417,7 @@ knitr::kable(n2o_input_fossil,
 ```
 :::
 
-##### Fuel specific CO2e output rates
+##### Fuel specific CO2e input rates
 
 ::: panel-tabset
 ###### CO2e coal input rate
@@ -4314,7 +4314,7 @@ knitr::kable(co2e_output_fossil,
 
 ### Input emission rate comparison
 
-#### Overall output rates
+#### Overall input rates
 
 ::: panel-tabset
 ##### NOx input rate
@@ -4563,9 +4563,9 @@ knitr::kable(co2e_input,
 ```
 :::
 
-#### Fuel specific output rates
+#### Fuel specific input rates
 
-##### Fuel specific NOx output rates
+##### Fuel specific NOx input rates
 
 ::: panel-tabset
 ###### NOx coal input rate
@@ -4709,7 +4709,7 @@ knitr::kable(nox_input_fossil,
 ```
 :::
 
-##### Fuel specific NOx ozone output rates
+##### Fuel specific NOx ozone input rates
 
 ::: panel-tabset
 ###### NOx ozone coal input rate
@@ -4853,7 +4853,7 @@ knitr::kable(nox_oz_input_fossil,
 ```
 :::
 
-##### Fuel specific SO2 output rates
+##### Fuel specific SO2 input rates
 
 ::: panel-tabset
 ###### SO2 coal input rate
@@ -4997,7 +4997,7 @@ knitr::kable(so2_input_fossil,
 ```
 :::
 
-##### Fuel specific CO2 output rates
+##### Fuel specific CO2 input rates
 
 ::: panel-tabset
 ###### CO2 coal input rate
@@ -5141,7 +5141,7 @@ knitr::kable(co2_input_fossil,
 ```
 :::
 
-##### Fuel specific CH4 output rates
+##### Fuel specific CH4 input rates
 
 ::: panel-tabset
 ###### CH4 coal input rate
@@ -5285,7 +5285,7 @@ knitr::kable(ch4_input_fossil,
 ```
 :::
 
-##### Fuel specific N2O output rates
+##### Fuel specific N2O input rates
 
 ::: panel-tabset
 ###### N2O coal input rate
@@ -5429,7 +5429,7 @@ knitr::kable(n2o_input_fossil,
 ```
 :::
 
-##### Fuel specific CO2e output rates
+##### Fuel specific CO2e input rates
 
 ::: panel-tabset
 ###### CO2e coal input rate

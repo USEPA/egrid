@@ -167,6 +167,48 @@ unit_file <-
 
 ```
 
+## Prime mover, botfirty, and fuel type missing from EF table
+
+missing_from_ef \<-
+
+unit_pm_botfirty_fuel %\>% anti_join(ef_pm_botfirty_fuel)
+
+```{r}
+#| label: check-ef-table
+
+emission_factors_pu <- 
+  read_csv("data/static_tables/emission_factors_physicalunits.csv")
+
+emission_factors_hi <- 
+  read_csv("data/static_tables/emission_factors_heatinput.csv")
+
+emission_factors <- 
+  rbind(emission_factors_pu, emission_factors_hi) %>% distinct()
+
+fuel_type_category <- 
+  read_csv("data/static_tables/fuel_type_categories.csv", 
+           col_types = cols_only(combustion_fuels = "c")) 
+
+combustion_fuels <- fuel_type_category[["combustion_fuels"]]
+
+unit_pm_botfirty_fuel <- 
+  unit_file %>% 
+  select(prime_mover, botfirty, primary_fuel_type, contains("mass")) %>% 
+  filter(primary_fuel_type %in% c(combustion_fuels, "OTH")) %>% 
+  distinct()
+
+ef_pm_botfirty_fuel <- 
+  emission_factors %>% 
+  select(prime_mover, botfirty, primary_fuel_type) %>% 
+  mutate(botfirty = if_else(botfirty %in% c("N/A", "null"), NA_character_, botfirty)) %>% 
+  distinct()
+
+missing_from_ef <- 
+  unit_pm_botfirty_fuel %>% anti_join(ef_pm_botfirty_fuel)
+
+knitr::kable(missing_from_ef %>% arrange(primary_fuel_type))
+```
+
 ## FC prime mover
 
 FC prime mover units must not have any CO2 emissions or sources.
