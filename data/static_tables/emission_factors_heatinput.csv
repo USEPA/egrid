@@ -21,12 +21,12 @@ GT,null,LFG,0.045,,lb,MMBtu,HeatInput,AP-42,,0.087,lb,mcf,PhysicalUnits,EIA Elec
 CS,null,LFG,0.045,,lb,MMBtu,HeatInput,AP-42,,0.087,lb,mcf,PhysicalUnits,AP-42,
 CT,null,LFG,0.045,,lb,MMBtu,HeatInput,AP-42,,0.087,lb,mcf,PhysicalUnits,AP-42,
 CA,null,LFG,0.045,,lb,MMBtu,HeatInput,AP-42,,0.087,lb,mcf,PhysicalUnits,AP-42,
-CT,null,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,0.32,lb,MMBtu,,EIA Electricity Annual,
-CT,CC,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,0.32,lb,MMBtu,,EIA Electricity Annual,
-GT,null,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,0.32,lb,MMBtu,,EIA Electricity Annual,
-CS,null,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,0.32,lb,MMBtu,,EIA Electricity Annual,
+CT,null,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,0.32,lb,MMBtu,HeatInput,EIA Electricity Annual,
+CT,CC,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,0.32,lb,MMBtu,HeatInput,EIA Electricity Annual,
+GT,null,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,0.32,lb,MMBtu,HeatInput,EIA Electricity Annual,
+CS,null,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,0.32,lb,MMBtu,HeatInput,EIA Electricity Annual,
 ST,WALL,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,0.28,lb,mcf,PhysicalUnits,EIA Electricity Annual,
-IC,null,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,2.768,lb,mcf,PhysicalUnits,EIA Electricity Annual,
+IC,null,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,2.666666667,lb,MMBtu,heatinput,EIA Electricity Annual,using  conversion factor of 1 Mcf =1.038 MMBtu
 ST,OTHER BOILER,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,
 CA,null,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,0.32,lb,MMBtu,,EIA Electricity Annual,
 ST,null,NG,0.003196,,lb,MMBtu,HeatInput,AP-42,,0.17,lb,mcf,PhysicalUnits,EIA Electricity Annual,
@@ -83,3 +83,5 @@ CS,null,WO,1.01,S,lb,MMBtu,HeatInput,AP-42,DFO,3.8724,lb,barrels,PhysicalUnits,E
 GT,null,WO,1.01,S,lb,MMBtu,HeatInput,AP-42,DFO,3.8724,lb,barrels,PhysicalUnits,EIA Electricity Annual,
 CT,null,WO,1.01,S,lb,MMBtu,HeatInput,AP-42,DFO,3.8724,lb,barrels,PhysicalUnits,EIA Electricity Annual,
 IC,null,WO,0.29,,lb,MMBtu,HeatInput,AP-42,DFO,14.0784,lb,barrels,PhysicalUnits,EIA Electricity Annual,
+IC,null,OTH,0.000578035,,lb,MMBtu,HeatInput,AP-42,,2.666666667,lb,MMBtu,HeatInput,EIA Electricity Annual,using  conversion factor of 1 Mcf =1.038 MMBtu
+IC,null,PG,0.000578035,,lb,MMBtu,HeatInput,EIA Electricity Annual,,0.773949904,lb,MMBtu,HeatInput,EIA Electricity Annual,using  conversion factor of 1 Mcf =1.038 MMBtu

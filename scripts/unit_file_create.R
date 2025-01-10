@@ -466,9 +466,9 @@ eia_fuel_consum_fuel_type <- # summing fuel and consum to PM and fuel_type level
 # distributing heat input from only ozone reporting plants to non-ozone months
 epa_oz_reporters_dist <- 
   epa_oz_reporters %>%
-  group_by(plant_id, prime_mover, primary_fuel_type) %>% 
-  left_join(eia_fuel_consum_fuel_type, 
-            by = c("plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>% 
+  group_by(plant_id, prime_mover) %>% 
+  left_join(eia_fuel_consum_pm, 
+            by = c("plant_id", "prime_mover")) %>% 
   mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% # sum to plant/pm for distributional proportion 
   ungroup() %>% 
   group_by(plant_id) %>% 
@@ -477,7 +477,7 @@ epa_oz_reporters_dist <-
   mutate(prop = if_else(sum_heat_input_oz != 0, heat_input_oz / sum_heat_input_oz, NA_real_),
          heat_input_nonoz = heat_input_nonoz_923 * prop, # distributing nonoz 
          heat_input = if_else(is.na(heat_input_nonoz), heat_input_oz, heat_input_oz + heat_input_nonoz), # annual heat input = distributed non-oz heat + ozone heat
-         heat_input_source = if_else(is.na(heat_input), "EPA/CAPD", "EIA non-ozone season distributed and EPA/CAPD ozone season"))
+         heat_input_source = if_else(is.na(heat_input) | heat_input == heat_input_oz, "EPA/CAPD", "EIA non-ozone season distributed and EPA/CAPD ozone season"))
 
 # distributing heat input from plants with both annual and ozone reporting units
 epa_q_oz_reporters_dist <- 
@@ -501,7 +501,7 @@ epa_q_oz_reporters_dist <-
   mutate(prop = if_else(sum_heat_input_oz_pm != 0, sum_heat_input_oz / sum_heat_input_oz_pm, NA_real_), # calculate proportion of heat input for each unit
          heat_input_nonoz = if_else(annual_heat_diff_wout_oz > 0, annual_heat_diff_wout_oz * prop, 0), # calculate non-ozone heat input 
          heat_input = if_else(is.na(heat_input_nonoz), heat_input_oz, heat_input_oz + heat_input_nonoz), # calculate total heat input
-         heat_input_source = if_else(is.na(heat_input), "EPA/CAPD", "EIA non-ozone season distributed and EPA/CAPD ozone season")) 
+         heat_input_source = if_else(is.na(heat_input) | heat_input == heat_input_oz, "EPA/CAPD", "EIA non-ozone season distributed and EPA/CAPD ozone season")) 
   
 # combine ozone reporters datasets 
 epa_oz_reporters_dist_2 <- 
@@ -600,6 +600,12 @@ epa_oz_reporters_dist_nox_rates <- # filling annual NOx mass with nox_rates wher
 
 epa_oz_reporters_dist_nox_ef <-
   epa_oz_reporters_dist_2 %>% 
+  select(-contains("923")) %>% 
+  left_join(eia_fuel_consum_fuel_type, 
+            by = c("plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>% 
+  group_by(plant_id, prime_mover, primary_fuel_type, botfirty) %>% 
+  mutate(sum_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>%
+  ungroup() %>% 
   mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
   filter(!id %in% epa_oz_reporters_dist_nox_rates$id) %>% # removing units that were filled with nox_rates
   left_join(emission_factors_pu %>%
@@ -607,9 +613,10 @@ epa_oz_reporters_dist_nox_ef <-
               mutate(botfirty = if_else(botfirty %in% c("null", "N/A"), NA_character_, botfirty)) %>% 
               select(prime_mover, botfirty, primary_fuel_type, nox_ef) %>% 
               distinct()) %>% # there are duplicates based on other columns in the emission_factors data. Getting distinct rows.
-  mutate(fuel_consum_nonoz = fuel_consum_nonoz_923 * prop, # calculating distributed non-ozone fuel consumption 
+  mutate(prop = if_else(sum_heat_input_oz != 0, heat_input_oz / sum_heat_input_oz, NA_real_), 
+         fuel_consum_nonoz = fuel_consum_nonoz_923 * prop, # calculating distributed non-ozone fuel consumption 
          nox_nonoz_mass = fuel_consum_nonoz * nox_ef / 2000, 
-         nox_mass = nox_oz_mass + nox_nonoz_mass,
+         nox_mass = if_else(reporting_frequency == "OS", nox_nonoz_mass + nox_oz_mass, nox_mass), 
          nox_source = if_else(is.na(nox_mass), "EPA/CAPD", "Estimated using emissions factor and EIA data for non-ozone season and EPA/CAPD ozone season emissions")) 
 
 
@@ -1467,6 +1474,11 @@ so2_emissions_pu_noncoal <-
 
 so2_emissions_heat_coal <- 
   units_estimated_fuel %>% 
+  rows_update(all_units_5 %>% # update NA heat inputs with those from the unit file
+                select(plant_id, unit_id, prime_mover, heat_input) %>% 
+                filter(!is.na(heat_input)) %>% 
+                distinct(), 
+              by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
   left_join(default_sulfur_content_coal, # renaming for consistent naming
             by = c("primary_fuel_type" = "fuel_type",
                    "plant_state")) %>% 
@@ -1490,6 +1502,11 @@ so2_emissions_heat_coal <-
 
 so2_emissions_heat_noncoal <- 
   units_estimated_fuel %>% 
+  rows_update(all_units_5 %>% # update NA heat inputs with those from the unit file
+                select(plant_id, unit_id, prime_mover, heat_input) %>% 
+                filter(!is.na(heat_input)) %>% 
+                distinct(), 
+              by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
   left_join(avg_sulfur_content_fuel %>% select(fuel_type, avg_sulfur_content), # renaming for consistent naming
             by = c("primary_fuel_type" = "fuel_type")) %>%
   left_join(emission_factors_so2_heat %>% 
@@ -1629,13 +1646,18 @@ nox_oz_emissions_factor <-
 
 emission_factors_nox_hi <- 
   emission_factors_hi %>%
-  filter(nox_ef_denom == "MMBtu") %>%
+  filter(nox_unit_flag == "HeatInput") %>%
   select(!starts_with("so2") & -c(unit_flag)) %>%
   mutate(botfirty = if_else(botfirty %in% c("null", "N/A"), NA_character_, botfirty)) %>% # some null or NA botfirty are text, fill with NA
   distinct() 
 
 nox_emissions_heat_input <- 
   nox_emissions_rates %>%
+  rows_update(all_units_7 %>% # update NA heat inputs with those from the unit file
+                select(plant_id, unit_id, prime_mover, heat_input) %>% 
+                filter(!is.na(heat_input)) %>% 
+                distinct(), 
+              by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
   inner_join(emission_factors_nox_hi %>%
               select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
@@ -1658,6 +1680,11 @@ nox_emissions_heat_input <-
 
 nox_oz_emissions_heat_input <- 
   nox_emissions_rates %>%
+  rows_update(all_units_7 %>% # update NA heat inputs with those from the unit file
+                select(plant_id, unit_id, prime_mover, heat_input) %>% 
+                filter(!is.na(heat_input)) %>% 
+                distinct(), 
+              by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
   left_join(emission_factors_nox_hi %>% 
               select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
