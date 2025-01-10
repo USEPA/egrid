@@ -134,6 +134,84 @@ kable(stringr::str_remove(stringr::str_remove(functions, ".R"), "function_"),
 
 ## Load data from raw sources
 
+### EPA
+
+The EPA's Clean Air and Power Division (CAPD) contains power plant emissions, compliance, and allowance data. We create and incorporate a composite file from several CAPD sources, containing data about facilities and annual emissions. Specifically, we include data about facility attributes, annual emissions, and annual emissions during ozone months.
+
+These data are available through the [CAPD API](https://www.epa.gov/power-sector/cam-api-portal#/documentation). `data_load_epa.R` downloads the facility attributes and emissions data for a selected year from the CAPD API. These raw files will be combined and cleaned in subsequent steps. For this script to run, an API key is required.
+
+An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-portal#/api-key-signup). Once a key is obtained, paste your key into the file `api_keys/epa_api_key.txt` and save. Once saved, the script `data_load_epa.R` will be able to successfully connect to and load data from the CAPD API.
+
+```{r}
+#| label: load-data-epa 
+#| file: "scripts/data_load_epa.R" 
+#| echo: fenced 
+#| error: false 
+```
+
+Three data tables are downloaded from the the CAPD and stored into one .RDS file, `epa_raw.RDS`. This file consists of facility attributes, annual emissions data, and containing annual emissions data for the ozone months. See a summary of the raw EPA file below, separated into categories.
+
+#### EPA Raw Tables
+
+```{r}
+#| label: create-epa-tables 
+#| echo: false  
+
+source("scripts/functions/function_summary_table.R") 
+
+# function to create summary table  
+epa_raw <- read_rds(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS")) 
+
+table_epa_raw <- create_summary_table(epa_raw)  
+
+epa_facilities      <- epa_raw[1:26] 
+epa_emissions       <- epa_raw[27:46] 
+epa_emissions_ozone <- epa_raw[47:58]  
+
+table_facilities      <- create_summary_table(epa_facilities) 
+table_emissions       <- create_summary_table(epa_emissions) 
+table_emissions_ozone <- create_summary_table(epa_emissions_ozone)
+```
+
+::: panel-tabset
+#### Overview
+
+*Click through the tabs above to view files represented from each EPA source.*
+
+**EPA facility attributes**: Columns 1 - 26 of `epa_raw.RDS`.
+
+**EPA annual emissions**: Columns 27 - 47 of `epa_raw.RDS`.
+
+**EPA ozone season emissions**: Columns 47 - 58 of `epa_raw.RDS`. The ozone season is defined as May through September.
+
+#### EPA facility attributes
+
+```{r}
+#| label: print-epa-tab-facilities 
+#| echo: false  
+
+table_facilities
+```
+
+#### EPA annual emissions
+
+```{r}
+#| label: print-epa-tab-emissions 
+#| echo: false  
+
+table_emissions
+```
+
+#### EPA ozone season emissions
+
+```{r}
+#| label: print-epa-tab-emissions-ozone 
+#| echo: false  
+
+table_emissions_ozone
+```
+:::
+
 ### EIA
 
 The U.S. Energy Information Administration (EIA), a part of the Department of Energy, collects and maintains energy-related data for policy making and for the public. eGRID integrates several EIA data forms into its database for relevant values.
@@ -159,8 +237,6 @@ knit_print.gt <- function(x, ...) {
 }
 registerS3method("knit_print", "gt_tbl", knit_print.gt, envir = asNamespace("gt"))
 ```
-
-<!--# Would be nice to highlight the sheets that will actually be used in eGRID productions... -->
 
 ```{r}
 #| label: create-eia-sheets-list
@@ -266,83 +342,6 @@ tab_860m
 ```
 :::
 
-### EPA
-
-The EPA's Clean Air and Power Division (CAPD) contains power plant emissions, compliance, and allowance data. We create and incorporate a composite file from several CAPD sources, containing data about facilities and annual emissions. Specifically, we include data about facility attributes, annual emissions, and annual emissions during ozone months.
-
-These data are available through the [CAPD API](https://www.epa.gov/power-sector/cam-api-portal#/documentation). `data_load_epa.R` downloads the facility attributes and emissions data for a selected year from the CAPD API. These raw files will be combined and cleaned in subsequent steps. For this script to run, an API key is required. 
-
-An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-portal#/api-key-signup). Once a key is obtained, paste your key into the file `api_keys/epa_api_key.txt` and save. Once saved, the script `data_load_epa.R` will be able to successfully connect to and load data from the CAPD API.
-
-```{r}
-#| label: load-data-epa
-#| file: "scripts/data_load_epa.R"
-#| echo: fenced
-#| error: false 
-```
-
-Three data tables are downloaded from the the CAPD and stored into one .RDS file, `epa_raw.RDS`. This file consists of facility attributes, annual emissions data, and containing annual emissions data for the ozone months. See a summary of the raw EPA file below, separated into categories.
-
-#### EPA Raw Tables
-
-```{r}
-#| label: create-epa-tables
-#| echo: false
-
-source("scripts/functions/function_summary_table.R") # function to create summary table
-
-epa_raw <- read_rds(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))
-
-table_epa_raw <- create_summary_table(epa_raw)
-
-epa_facilities      <- epa_raw[1:26]
-epa_emissions       <- epa_raw[27:46]
-epa_emissions_ozone <- epa_raw[47:58]
-
-table_facilities      <- create_summary_table(epa_facilities)
-table_emissions       <- create_summary_table(epa_emissions)
-table_emissions_ozone <- create_summary_table(epa_emissions_ozone)
-```
-
-::: panel-tabset
-#### Overview
-
-*Click through the tabs above to view files represented from each EPA source.*
-
-**EPA facility attributes**: Columns 1 - 26 of `epa_raw.RDS`.
-
-**EPA annual emissions**: Columns 27 - 47 of `epa_raw.RDS`.
-
-**EPA ozone season emissions**: Columns 47 - 58 of `epa_raw.RDS`. The ozone season is defined as May through September.
-
-#### EPA facility attributes
-
-```{r}
-#| label: print-epa-tab-facilities
-#| echo: false
-
-table_facilities
-```
-
-#### EPA annual emissions
-
-```{r}
-#| label: print-epa-tab-emissions
-#| echo: false
-
-table_emissions
-```
-
-#### EPA ozone season emissions
-
-```{r}
-#| label: print-epa-tab-emissions-ozone
-#| echo: false
-
-table_emissions_ozone
-```
-:::
-
 ## Load Crosswalks and Static Tables
 
 Crosswalks and static tables are used to supplement EPA and EIA files and provide information on one-off changes, descriptions, emission factors, or overall conversions.
@@ -390,25 +389,9 @@ tab_xwalk
 
 # Clean Raw Data Files
 
-## EIA
+## EPA
 
-From the raw Excel downloads, we load, clean, and save select files that are used in eGRID production. Three "clean" EIA files are ultimately created:
-
--   `eia_923_clean.RDS`
-
--   `eia_860_clean.RDS`
-
--   `eia_861_clean.RDS`
-
-Each of these .RDS files contains lists of the relevant tables (stored as dataframes) from each EIA form.
-
-There are several procedures that are applied to each of the raw EIA files:
-
--   Handling Excel format
-
-    -   Each Excel file contains header rows of varying lengths. These rows are skipped when read in.
-
-    -   Files contain various missing value characters, including: " ","X", and ".". These characters are converted to explicit missing values (i.e., "NA")
+There are several procedures applied to the raw EPA file:
 
 -   Variable name standardization
 
@@ -431,6 +414,79 @@ There are several procedures that are applied to each of the raw EIA files:
         -   `boiler_id`
 
         -   `nameplate_capacity`
+
+-   Removing unnecessary plants and columns
+
+    -   Plants listed as future, retired, or long-term cold storage are removed. Additionally, plants with IDs above 80000 are removed
+
+-   Create source variables and apply source: `EPA/CAPD`
+
+    -   `heat_input_source`
+
+    -   `heat_input_oz_source`
+
+    -   `nox_source`
+
+    -   `nox_oz_source`
+
+    -   `so2_source`
+
+    -   `co2_source`
+
+    -   `hg_source`
+
+-   Re-coding values to standardized abbreviations
+
+    -   Ex. Operating Status to OP, unit type description to unit type abbreviation
+
+-   Removing unnecessary notes about start date
+
+    -   This keeps all data rows into a usable, consistent format. In the raw version, some plants have added notes about dates or the plant.
+
+```{r}
+#| label: data-clean-epa 
+#| file: "scripts/data_clean_epa.R" 
+#| results: hold
+```
+
+::: panel-tabset
+#### Overview
+
+*Click tab above to view variables contained in* `epa_clean.RDS`.
+
+#### EPA clean
+
+```{r}
+#| label: create-epa-summary-table 
+#| echo: false  
+
+create_summary_table(readr::read_rds(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")))
+```
+:::
+
+## EIA
+
+From the raw Excel downloads, we load, clean, and save select files that are used in eGRID production. Three "clean" EIA files are ultimately created:
+
+-   `eia_923_clean.RDS`
+
+-   `eia_860_clean.RDS`
+
+-   `eia_861_clean.RDS`
+
+Each of these .RDS files contains lists of the relevant tables (stored as dataframes) from each EIA form.
+
+There are several procedures that are applied to each of the raw EIA files:
+
+-   Handling Excel format
+
+    -   Each Excel file contains header rows of varying lengths. These rows are skipped when read in.
+
+    -   Files contain various missing value characters, including: " ","X", and ".". These characters are converted to explicit missing values (i.e., "NA")
+
+-   Variable name standardization
+
+    -   The same method as EPA data above.
 
 ```{r}
 #| label: data-clean-eia
@@ -533,69 +589,11 @@ purrr::iwalk(tabs_861, ~ {
 ```
 :::
 
-## EPA
-
-
-There are several procedures applied to the raw EPA file:
-
--   Variable name standardization
-
-    -   Same methodology as for EIA above
-
--   Removing unnecessary plants and columns
-
-    -   Plants listed as future, retired, or long-term cold storage are removed. Additionally, plants with IDs above 80000 are removed
-
--   Create source variables and apply source: `EPA/CAPD`
-
-    -   `heat_input_source`
-
-    -   `heat_input_oz_source`
-
-    -   `nox_source`
-
-    -   `nox_oz_source`
-
-    -   `so2_source`
-
-    -   `co2_source`
-
-    -   `hg_source`
-
--   Re-coding values to standardized abbreviations
-
-    -   Ex. Operating Status to OP, unit type description to unit type abbreviation
-
--   Removing unnecessary notes about start date
-
-    -   This keeps all data rows into a usable, consistent format. In the raw version, some plants have added notes about dates or the plant.
-
-```{r}
-#| label: data-clean-epa
-#| file: "scripts/data_clean_epa.R"
-#| results: hold
-```
-
-::: panel-tabset
-#### Overview
-
-*Click tab above to view variables contained in* `epa_clean.RDS`.
-
-#### EPA clean
-
-```{r}
-#| label: create-epa-summary-table
-#| echo: false
-
-create_summary_table(readr::read_rds(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")))
-```
-:::
-
 # Generator File
 
 The generator file uses data from `eia_860_clean.RDS`, including all operable and retired generators . The code pulls variables from EIA-860 data (`boiler_generator` and `combined`) and counts the number of boilers. Then, we assign generation to each generator value.
 
-Direct generation is assigned to each generator values through the `EIA-923 Generator` file. For values not included in the `EIA-923 Generator` file, generation is determined by using a nameplate capacity ratio with `EIA-923 Generator and Fuel` data. A capacity factor is assigned to each generator. 
+Direct generation is assigned to each generator values through the `EIA-923 Generator` file. For values not included in the `EIA-923 Generator` file, generation is determined by using a nameplate capacity ratio with `EIA-923 Generator and Fuel` data. A capacity factor is assigned to each generator.
 
 For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
@@ -610,6 +608,7 @@ Crosswalks used in this file:
 -   `xwalk_oris_epa.csv`
 
 ## Produce Generator File
+
 ```{r}
 #| label: generator-file-create
 #| file: "scripts/generator_file_create.R"
@@ -697,9 +696,9 @@ generator_file %>%
 
 # Unit File
 
-The unit file data includes grid connected units from EPA/CAPD data, unique EIA-923 boilers, unique EIA-860 generators. 
+The unit file data includes grid connected units from EPA/CAPD data, unique EIA-923 boilers, unique EIA-860 generators.
 
-The unit file includes heat input and emissions values for each unit included where data is available. 
+The unit file includes heat input and emissions values for each unit included where data is available.
 
 For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
@@ -957,12 +956,9 @@ plot_unt_co2 / plot_unt_co2_sources_dist
 
 The plant file combines EIA form data, `EIA-860`, `EIA-861`, and `EIA-923`, with the outputs of the previous two files: `generator_file.RDS` and `unit_file.RDS`.
 
-The plant file calculates unadjusted and adjusted heat input and emissions, generation (total and by fuel type), emission rates, and resource mixes for each plant. 
+The plant file calculates unadjusted and adjusted heat input and emissions, generation (total and by fuel type), emission rates, and resource mixes for each plant.
 
-Adjusted heat input and emission values account for combined heat and power (CHP) and biomass facilities. The plant file also reports CHP and biomass specific heat input and emissions values. 
-
-
-
+Adjusted heat input and emission values account for combined heat and power (CHP) and biomass facilities. The plant file also reports CHP and biomass specific heat input and emissions values.
 
 For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
@@ -1661,7 +1657,7 @@ The metric file script produces a metric version of the eGRID datasets by conver
 
 -   `grid_gross_loss_metric`
 
-The eGRID variables added or altered in the metric file versions are included in the `metric_structure.xlsx` document while the conversion rates between imperial and metric units are listed in `conversion_factors.csv` as shown below. 
+The eGRID variables added or altered in the metric file versions are included in the `metric_structure.xlsx` document while the conversion rates between imperial and metric units are listed in `conversion_factors.csv` as shown below.
 
 ## Conversion Table
 
@@ -1696,8 +1692,7 @@ The data is formatted into an Excel file that contains all eight levels of data 
 
 ### Imperial Version
 
-The final output file is ``r glue::glue("egrid{params$eGRID_year}_data.xlsx")``.
-
+The final output file is `r glue::glue("egrid{params$eGRID_year}_data.xlsx")`.
 
 ```{r}
 #| label: final-formatting
@@ -1707,8 +1702,7 @@ The final output file is ``r glue::glue("egrid{params$eGRID_year}_data.xlsx")``.
 
 ### Metric Version
 
-The final metric output file is ``r glue::glue("egrid{params$eGRID_year}_data_metric.xlsx")``.
-
+The final metric output file is `r glue::glue("egrid{params$eGRID_year}_data_metric.xlsx")`.
 
 ```{r}
 #| label: metric-final-formatting
@@ -1732,7 +1726,7 @@ A summary tables document is produced to provide a synopsis of the eGRID informa
 
 ### Summary Tables Data
 
-Below are the names of the summary tables included in the document. 
+Below are the names of the summary tables included in the document.
 
 ```{r}
 #| label: summary-tables-list
@@ -1741,7 +1735,6 @@ Below are the names of the summary tables included in the document.
 kbl(names(table_data), col.names = "Summary Table Names") %>%
   kable_styling()
 ```
-
 
 ## Number of Records
 
