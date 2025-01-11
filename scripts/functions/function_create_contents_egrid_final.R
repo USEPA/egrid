@@ -226,17 +226,17 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
 
   # table of contents
   writeData(wb, current_worksheet, table_of_contents_titles, startCol = start_cols, 
-            startRow = start_rows[1]+ length(title))
+            startRow = start_rows[1]+ length(title) + 1)
   writeData(wb, current_worksheet, title, startCol = start_cols, 
             startRow = start_rows[1] + 1)
   writeData(wb, current_worksheet, x = 1:length(table_of_contents_descrip), 
-            startCol = start_cols, startRow = start_rows[1] + length(title) + 2)
+            startCol = start_cols, startRow = start_rows[1] + length(title) + 3)
   writeData(wb, current_worksheet, table_of_contents_descrip, startCol = start_cols + 3, 
-            startRow = start_rows[1] + length(title) + 2)
+            startRow = start_rows[1] + length(title) + 3)
   writeData(wb, current_worksheet, "Produced with", startCol = start_cols, 
-            startRow = end_rows[1])
-  writeData(wb, current_worksheet, production_link, startCol = start_cols + 1, 
-                                             startRow = end_rows[1])
+            startRow = start_rows[1]+ length(title) + 1)
+  writeData(wb, current_worksheet, production_link, startCol = start_cols + 4, 
+            startRow = start_rows[1]+ length(title) + 1)
   
   # feedback
   writeData(wb, current_worksheet, feedback_data, startCol = start_cols, 
@@ -287,7 +287,7 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
                    start_rows[2]:end_rows[2])) {
       format_width <- sheetWidth
       # table of contents description information
-      if (row %in% c((start_rows[1] + 5):(end_rows[1] - 1))) {
+      if (row %in% c((start_rows[1] + 6):(end_rows[1] - 1))) {
         mergeCells(wb, current_worksheet, rows = row, 
                    cols = (start_cols + 1):(start_cols + 2))
         mergeCells(wb, current_worksheet, rows = row, 
@@ -345,12 +345,21 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   addStyle(wb, current_worksheet, title_main, cols = start_cols, 
            rows = start_rows[1]:(start_rows[1] + 4), gridExpand = TRUE, stack = TRUE)
   addStyle(wb, current_worksheet, createStyle(textDecoration = "underline"), 
-           cols = start_cols:sheetWidth, rows = start_rows[1] + 5, gridExpand = TRUE, 
+           cols = start_cols:sheetWidth, rows = start_rows[1] + 6, gridExpand = TRUE, 
            stack = TRUE)
   addStyle(wb, current_worksheet, createStyle(halign = "center"), cols = start_cols, 
            rows = (start_rows[1] + 5):end_rows[1], gridExpand = TRUE, stack = TRUE)
   addStyle(wb, current_worksheet, createStyle(fontSize = 12), cols = start_cols:sheetWidth,
            rows = (start_rows[1] + 5):end_rows[1], gridExpand = TRUE, stack = TRUE)
+  addStyle(wb, current_worksheet, createStyle(halign = "right", textDecoration = "bold"),
+           rows = start_rows[1] + 5, cols = start_cols, gridExpand = TRUE, stack = TRUE)
+  addStyle(wb, current_worksheet, createStyle(valign = "bottom", fontSize = 12), rows = start_rows[1] + 4, 
+           cols = start_cols, gridExpand = TRUE, stack = TRUE)
+  addStyle(wb, current_worksheet, createStyle(valign = "top"),
+           rows = start_rows[1] + 5, cols = start_cols:sheetWidth, gridExpand = TRUE, stack = TRUE)
+  
+  mergeCells(wb, current_worksheet, cols = start_cols:(start_cols + 3), rows = start_rows[1] + 5)
+  mergeCells(wb, current_worksheet, cols = (start_cols + 4):sheetWidth, rows = start_rows[1] + 5)
   
   # color coding legend
   addStyle(wb, current_worksheet, createStyle(halign = "center"), cols = start_cols, 
@@ -382,8 +391,8 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
 
   setRowHeights(wb, current_worksheet, rows = 2:4, heights = 17.4)
   setRowHeights(wb, current_worksheet, rows = c(7, 18, 20, 24), heights = 15.6)
-  setRowHeights(wb, current_worksheet, rows = c(5:6, 25), heights = c(43.8, 25.8, 16.2))
+  setRowHeights(wb, current_worksheet, rows = c(5:7, 25), heights = c(43.8, 25.8, 25.8, 16.2))
   setColWidths(wb, current_worksheet, cols = 1:12, widths = 10.33)
-  setColWidths(wb, current_worksheet, cols = c(1:2, 5), widths = c(1, 14.33, 14.33))
+  setColWidths(wb, current_worksheet, cols = c(1:2, 5:6), widths = c(1, 14.33, 9.33, 15.33))
   setColWidths(wb, current_worksheet, cols = 10:19, widths = 5)
 }
