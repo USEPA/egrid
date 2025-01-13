@@ -101,7 +101,7 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   title <- c(
     "for",
     glue::glue("eGRID{year}_Data.xlsx"),
-    glue::glue("eGRID{year} Unit, Generator, Plant, State, Balancing Authority Area, eGRID Subregion, NERC Region, U.S., and Grid Gross Loss (%) Data Files"),
+    glue::glue("eGRID{year} Unit, Generator, Plant, State, Balancing Authority Area, eGRID Subregion, NERC Region, U.S., Grid Gross Loss (%), and Demographic Data Files"),
     format(Sys.Date(), "%B %d, %Y"))
   
   ## Subsection titles -----------

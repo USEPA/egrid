@@ -1253,16 +1253,6 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RD
   add_hyperlink(glue::glue("DEMO{year}"),  row_link = 1, col_link = 1, loc = c(3, 18), text_to_show = glue::glue("DEMO{year}"))
 }
 
-# feedback columns
-contact_link <- "https://www.epa.gov/egrid/forms/contact-us-about-egrid"
-
-contact_cell <- data.frame(
-  DisplayText <- "Contact EPA",
-  Hyperlink <- contact_link
-)
-
-writeData(wb, sheet = "Contents", x = contact_cell, startCol = 2, startRow = 22, colNames = FALSE, rowNames = FALSE)
-
 # add hyperlinks to specific columns
 # annual values 
 add_hyperlink(glue::glue("GEN{year}"),  row_link = 1, col_link = 13, loc = c(11, 27), text_to_show = "GEN")
