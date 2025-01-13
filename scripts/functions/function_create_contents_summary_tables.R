@@ -53,6 +53,12 @@ create_contents_summary_tables <- function(contents = table_data) {
     textDecoration = "underline",
     halign = "center")
   
+  created_stamp <- createStyle(
+    fontSize = 8,
+    valign = "center",
+    halign = "center"
+    )
+  
   top_borders <- createStyle(
     border = "Top", 
     borderColour = "black",
@@ -127,32 +133,26 @@ create_contents_summary_tables <- function(contents = table_data) {
 
   ## Add created datestamp ----------------
   
-  writeData(wb, current_worksheet, x = matrix(c("Created:", format(Sys.Date(), "%m/%d/%Y")), 
-                                  ncol = 2), startCol = sheetWidth - 1, startRow = end_rows[4])
+  addStyle(wb, current_worksheet, created_stamp, cols = start_cols:sheetWidth,
+           rows = end_rows[4] + 1)
+  
+  writeData(wb, current_worksheet, glue::glue("Produced on {format(Sys.Date(), '%m/%d/%Y')} with"), 
+            startCol = sheetWidth - 3, startRow = end_rows[4])
+  writeData(wb, current_worksheet, production_link, startCol = sheetWidth - 1, startRow = end_rows[4] + 1)
+  
   # add creation data styling
-  addStyle(wb, current_worksheet, createStyle(fontSize = 8, halign = "right"), 
-           cols = sheetWidth - 1, rows = end_rows[4] + 1)
-  addStyle(wb, current_worksheet, createStyle(fontSize = 8, halign = "center"), 
-           cols = sheetWidth, rows = end_rows[4] + 1)
-  
-  ## Add production note -----------
-  
-  writeData(wb, current_worksheet, "Produced with", startCol = start_cols, startRow = end_rows[4] + 2)
-  writeData(wb, current_worksheet, production_link, startCol = start_cols + 2, startRow = end_rows[4] + 2)
-  
-  # add production note styling
-  addStyle(wb, current_worksheet, createStyle(halign = "center"), cols = start_cols,
-           rows = end_rows[4] + 2, stack = TRUE)
-  mergeCells(wb, current_worksheet, cols = start_cols:(start_cols + 1), 
-             rows = end_rows[4] + 2)
-  mergeCells(wb, current_worksheet, cols = (start_cols + 2):sheetWidth, 
-             rows = end_rows[4] + 2)
-  
+  mergeCells(wb, current_worksheet, cols = (sheetWidth - 3):(sheetWidth - 2),
+             rows = end_rows[4] + 1)
+  mergeCells(wb, current_worksheet, cols = (sheetWidth - 1):sheetWidth,
+             rows = end_rows[4] + 1)
+  addStyle(wb, current_worksheet, createStyle(halign = "right"),
+           cols = sheetWidth - 3, rows = end_rows[4] + 1, stack = TRUE)
+
   ## Add images -------------
   
   insertImage(wb, current_worksheet, file = "data/static_tables/eGRID_subregions.png",
               width = 7.24, height = 5.41, startRow = end_rows[3] + 2, startCol = start_cols)
-  insertImage(wb, current_worksheet, file = "data/static_tables/eGRID_logo.png",
+  insertImage(wb, current_worksheet, file = glue::glue("data/static_tables/eGRIDLogoYear{params$eGRID_year}.png"),
               width = 2.06, height = 1.16, startRow = start_rows[2] + 1, startCol = start_cols + 1, 
               address = "https://www.epa.gov/egrid")
    
@@ -207,8 +207,8 @@ create_contents_summary_tables <- function(contents = table_data) {
     end_rows[3], end_rows[3] + 1, start_rows[4] - 1, start_rows[4]),
                 heights = c(8.3, 42.8, 17.4, 90.8, 17.4, 15.8, 6.8, 6, 20, 17.4))
   setColWidths(wb, current_worksheet, cols = 1:12, widths = 8.33)
-  setColWidths(wb, current_worksheet, cols = c(1:5, 11), widths = c(1, 0.5, 
-                                                                    11.5, 7.35, 4.89, 13.75))
+  setColWidths(wb, current_worksheet, cols = c(1:5, 7, 9, 11), 
+               widths = c(1, 0.5, 11.5, 7.35, 4.89, 11.41, 9, 10))
   
   ## Add section titles ---------------
   
