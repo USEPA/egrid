@@ -1991,8 +1991,8 @@ units_formatted <-
   arrange(plant_state, plant_name) %>% 
   mutate(sequnt = row_number(), 
          year = params$eGRID_year) %>% 
-  select(as_tibble(final_vars)$value) # keeping columns with tidy names for QA steps
-
+  select(as_tibble(final_vars)$value) %>% # keeping columns with tidy names for QA steps
+  drop_na(plant_id, unit_id)
 
 # Export unit file -------------
 

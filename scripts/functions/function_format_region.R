@@ -95,8 +95,8 @@ format_region <- function(region, reg_rows) {
   addStyle(wb, sheet = region, style = s[['decimal1']], rows = 3:reg_rows, cols = 98:111,  gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['integer2']], rows = 3:reg_rows, cols = 112:129, gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['percent']],  rows = 3:reg_rows, cols = 130:145, gridExpand = TRUE)
-  addStyle(wb, sheet = region, style = s[['integer2']], rows = 3:reg_rows, cols = 146:156, gridExpand = TRUE)
-  addStyle(wb, sheet = region, style = s[['percent']],  rows = 3:reg_rows, cols = 157:169, gridExpand = TRUE)
+  addStyle(wb, sheet = region, style = s[['integer2']], rows = 3:reg_rows, cols = 146:158, gridExpand = TRUE)
+  addStyle(wb, sheet = region, style = s[['percent']],  rows = 3:reg_rows, cols = 159:169, gridExpand = TRUE)
   
   ## add text styles
   addStyle(wb, sheet = region, style = s[['basic']],    rows = 3:reg_rows, cols = 1:3,     gridExpand = TRUE)

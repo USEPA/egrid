@@ -750,8 +750,8 @@ addStyle(wb, sheet = plnt, style = s[['decimal1']], rows = 3:plnt_rows, cols = 5
 addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 75:85,   gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 95:108,  gridExpand = TRUE)
 addStyle(wb, sheet = plnt, style = s[['decimal3']], rows = 3:plnt_rows, cols = 109,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['integer2']], rows = 3:plnt_rows, cols = 110:125, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['percent']],  rows = 3:plnt_rows, cols = 126:150, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['integer2']], rows = 3:plnt_rows, cols = 110:132, gridExpand = TRUE)
+addStyle(wb, sheet = plnt, style = s[['percent']],  rows = 3:plnt_rows, cols = 133:150, gridExpand = TRUE)
 
 # add text styles
 addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 1:22,  gridExpand = TRUE)
