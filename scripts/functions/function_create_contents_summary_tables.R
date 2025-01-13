@@ -100,7 +100,7 @@ create_contents_summary_tables <- function(contents = table_data) {
   class(feedback_data) <- "hyperlink"
   
   # write production link
-  production_link <- c("eGRID R production model X." = "https://github.com/USEPA/egrid")
+  production_link <- c("eGRID R production model 1.0.0." = "https://github.com/USEPA/egrid")
   class(production_link) <- "hyperlink"
   
   # Classify worksheet parameters ---------------
@@ -208,7 +208,7 @@ create_contents_summary_tables <- function(contents = table_data) {
                 heights = c(8.3, 42.8, 17.4, 90.8, 17.4, 15.8, 6.8, 6, 20, 17.4))
   setColWidths(wb, current_worksheet, cols = 1:12, widths = 8.33)
   setColWidths(wb, current_worksheet, cols = c(1:5, 7, 9, 11), 
-               widths = c(1, 0.5, 11.5, 7.35, 4.89, 11.41, 9, 10))
+               widths = c(1, 0.5, 11.5, 7.35, 4.89, 10.41, 9, 11))
   
   ## Add section titles ---------------
   
