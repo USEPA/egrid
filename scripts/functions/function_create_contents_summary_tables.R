@@ -150,9 +150,9 @@ create_contents_summary_tables <- function(contents = table_data) {
 
   ## Add images -------------
   
-  insertImage(wb, current_worksheet, file = "data/static_tables/eGRID_subregions.png",
+  insertImage(wb, current_worksheet, file = "data/static_tables/formatting/eGRID_subregions.png",
               width = 7.24, height = 5.41, startRow = end_rows[3] + 2, startCol = start_cols)
-  insertImage(wb, current_worksheet, file = glue::glue("data/static_tables/eGRIDLogoYear{params$eGRID_year}.png"),
+  insertImage(wb, current_worksheet, file = glue::glue("data/static_tables/formatting/eGRIDLogoYear{params$eGRID_year}.png"),
               width = 2.06, height = 1.16, startRow = start_rows[2] + 1, startCol = start_cols + 1, 
               address = "https://www.epa.gov/egrid")
    
