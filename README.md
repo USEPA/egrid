@@ -40,6 +40,9 @@ to develop eGRID starting with eGRID2023, and EPA has made the R scripts availab
 
 Figure 2 displays a summary of eGRID architecture, which specifies data sources, inputs, and outputs for creating eGRID. 
 
+A data dictionary is provided in `eGRID Production Model Data Dictionary.xlsx`. This file provides the row number, name, 
+description, imperial units, metric units, source, and calculation method for each column reported in the final eGRID dataset. 
+
 ![Figure 2: eGRID architecture.](egrid_architecture.png)
 
 ## Code base organization
