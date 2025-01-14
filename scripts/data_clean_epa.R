@@ -83,6 +83,9 @@ xwalk_so2_control_abrvs <-
   read_csv("data/static_tables/xwalk_so2_control_abbreviations.csv") %>% 
   janitor::clean_names()
 
+epa_nox_controls <- 
+  read_csv("data/static_tables/epa_nox_controls.csv") 
+
 # load manual corrections to data
 manual_corrections <- 
   read_xlsx("data/static_tables/manual_corrections.xlsx", 
@@ -131,7 +134,8 @@ epa_r <-
     ) %>% 
   left_join(xwalk_so2_control_abrvs, by = c("so2_controls")) %>% 
   mutate(so2_controls = if_else(!is.na(so2_control_abbreviation), so2_control_abbreviation, so2_controls)) %>% 
-  select(-so2_control_abbreviation)
+  select(-so2_control_abbreviation) %>% 
+  rows_update(epa_nox_controls, by = c("plant_id", "unit_id"), unmatched = "ignore")
  
 print(glue::glue("{nrow(epa_raw) - nrow(epa_r)} rows removed because units have status of future, retired, long-term cold storage, or the plant ID is > 80,000."))
 

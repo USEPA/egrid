@@ -575,8 +575,12 @@ gen_fuel_by_plant <-
 # drop fuel_code and take distinct values 
 fuel_by_plant <- 
   unit_fuel_by_plant %>% 
-  full_join(gen_fuel_by_plant, relationship = "many-to-many") %>%
-  mutate(primary_fuel_type = if_else(heat_input == 0, fuel_code, primary_fuel_type)) %>% 
+  full_join(gen_fuel_by_plant, by = c("plant_id"), relationship = "many-to-many") %>%
+  mutate(primary_fuel_type = case_when(
+                                  heat_input == 0 & is.na(fuel_code) ~ primary_fuel_type, 
+                                  heat_input == 0 ~ fuel_code, 
+                                  is.na(primary_fuel_type) & !is.na(fuel_code) ~ fuel_code,
+                                  TRUE ~ primary_fuel_type)) %>% 
   select(-fuel_code) %>% distinct()
 
 # from EIA-923 replace NA values in total_fuel_consumption_mmbtu with 0 
@@ -598,7 +602,7 @@ fuel_dups <-
                    "primary_fuel_type" = "fuel_type")) %>% 
   distinct() %>% 
   group_by(plant_id) %>% 
-  filter(total_fuel_consumption_mmbtu == max(total_fuel_consumption_mmbtu))
+  filter(total_fuel_consumption_mmbtu == max(total_fuel_consumption_mmbtu, na.rm = TRUE))
 
 # drop dups from fuel_by_plant for easier joining later
 fuel_by_plant_2 <- 

@@ -896,6 +896,18 @@ biomass_units_to_add <-
 
 ## Combine all units ------
 
+### Update prime mover -----------
+
+prime_mover_corrections_3 <- 
+  manual_corrections %>% 
+  filter(column_to_update == "prime_mover" & !is.na(prime_mover)) %>% 
+  select(plant_id, unit_id, prime_mover, update)
+
+primary_fuel_corrections <- 
+  manual_corrections %>% 
+  filter(column_to_update == "primary_fuel_type") %>% 
+  select(plant_id, unit_id, prime_mover, primary_fuel_type = update)
+
 all_units <- # binding all units together, and adding a source column to track row origins
   bind_rows((epa_7 %>% mutate(source = "EPA", id = paste0(plant_id, "_", unit_id, "_", prime_mover))),
             (eia_boilers_to_add %>% select(-id) %>% mutate(source = "923_boilers") %>% 
@@ -905,7 +917,12 @@ all_units <- # binding all units together, and adding a source column to track r
             (biomass_units_to_add %>% mutate(source = "plant_file", id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
                filter(!id %in% epa_7$id, 
                       !id %in% eia_boilers_to_add$id, 
-                      !id %in% eia_860_generators_to_add_3$id))) 
+                      !id %in% eia_860_generators_to_add_3$id))) %>% 
+  select(-update) %>% 
+  left_join(prime_mover_corrections_3, by = c("plant_id", "unit_id", "prime_mover")) %>% 
+  mutate(prime_mover = if_else(!is.na(update), update, prime_mover)) %>% 
+  select(-update) %>% 
+  rows_update(primary_fuel_corrections, by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore")
 
 # Remove plants from EIA that are in EPA 
 # These plants are duplicated since they have different plant IDs, so we are removing the EIA units 
@@ -1428,7 +1445,7 @@ emission_factors_so2_heat <-
 
 so2_emissions_pu_coal <-
   units_estimated_fuel %>% 
-  left_join(default_sulfur_content_coal, 
+  inner_join(default_sulfur_content_coal, 
             by = c("plant_state",
                    "primary_fuel_type" = "fuel_type")) %>% 
   left_join(emission_factors_so2_pu %>% 
@@ -1839,12 +1856,6 @@ eia_units_to_delete <-
   filter(column_to_update == "delete") %>% 
   select(plant_id) %>% distinct()
 
-## Update prime mover -----------
-
-prime_mover_corrections_3 <- 
-  manual_corrections %>% 
-  filter(column_to_update == "prime_mover" & !is.na(prime_mover) & plant_id == "7063") %>% 
-  select(plant_id, unit_id, prime_mover = update)
 
 ## Update status ------
 # Update operating status via EIA-860 Boiler Info and Design Parameters for boilers and EIA-860 Generator file for EIA generators
@@ -1932,8 +1943,6 @@ all_units_12 <-
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_update(check_plant_names, 
                 by = c("plant_id"), unmatched = "ignore") %>% 
-  rows_update(prime_mover_corrections_3, 
-                by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_update(heat_emissions_corrections, 
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(update_status_generators, 
