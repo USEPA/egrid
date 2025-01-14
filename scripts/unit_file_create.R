@@ -1414,7 +1414,7 @@ default_sulfur_content_coal <-
     avg_sulfur_content = if_else(total_fuel_consumption_quantity > 0, # calculating avg sulfur content with condition to ignore if total_fuel_consumption is 0
                                  rowSums(pick(starts_with("sulfur_content")), na.rm = TRUE) / total_fuel_consumption_quantity, 
                                  rowSums(pick(starts_with("sulfur_content")), na.rm = TRUE) / 1)) %>%
-  filter(fuel_type %in% coal_fuels) %>% 
+  filter(fuel_type %in% coal_fuels & avg_sulfur_content > 0) %>% 
   select(plant_state,
          fuel_type,
          avg_sulfur_content)

@@ -118,7 +118,7 @@ for (i in 1:nrow(id_input)) {
     data <- content(res, as = "text", encoding ="UTF-8")
   
     # from extracted data, transform from JSON format
-    data <- fromJSON(data, flatten = TRUE)
+    data <- fromJSON(data)
     
     # unnest individual rows (need to unnest twice)
     data <- purrr::flatten(data)
