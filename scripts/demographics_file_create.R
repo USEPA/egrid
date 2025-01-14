@@ -24,7 +24,6 @@ library(readr)
 library(readxl)
 library(stringr)
 library(openxlsx)
-library(rjson)
 library(httr)
 library(jsonlite)
 library(data.table)
@@ -118,7 +117,7 @@ for (i in 1:nrow(id_input)) {
     data <- content(res, as = "text", encoding ="UTF-8")
   
     # from extracted data, transform from JSON format
-    data <- fromJSON(data)
+    data <- fromJSON(data, flatten = TRUE)
     
     # unnest individual rows (need to unnest twice)
     data <- purrr::flatten(data)
