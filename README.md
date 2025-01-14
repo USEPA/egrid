@@ -8,9 +8,9 @@ eGRID is a comprehensive source of data from [EPA's Clean Air and Power Division
 
 The final eGRID dataset includes eight levels of data aggregation:
 
--   **Generator**: Generators connected to the U.S. electricity grid. A generator is defined as a unit that produces electricity.
+-   **Generator**: Generators connected to the U.S. electricity grid. A generator is defined as a set of equipment that produces electricity and is connected to the U.S. electricity grid.
 
--   **Unit**: Units connected to the U.S. electricity grid. A unit is defined in eGRID as either a generator (produces electricity) or a boiler (uses fuel to heat water and produce steam). 
+-   **Unit**: Units connected to the U.S. electricity grid. A unit is defined as a set of equipment that either produces electricity and is connected to the U.S electricity grid or a set of equipment that is connected to a generator which produces electricity and is connected to the U.S. electricity grid.  
 
 -   **Plant**: Plants that provide power to the electric grid. 
 
@@ -93,8 +93,6 @@ The codebase contains two QA files as Quarto documents:
 - `qa_all.qmd`: Annual checks to confirm results are as expected for each file created in the codebase.
 
 - `qa_annual_comparison.qmd`: Comparison of output data to previous eGRID years. 
-
-QA files located in `scripts/qa/access_R_qa/` are meant for internal QA only. 
 
 
 ## Contributing to eGRID 
