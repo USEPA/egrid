@@ -101,7 +101,7 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   title <- c(
     "for",
     glue::glue("eGRID{year}_Data.xlsx"),
-    glue::glue("eGRID{year} Unit, Generator, Plant, State, Balancing Authority Area, eGRID Subregion, NERC Region, U.S., and Grid Gross Loss (%) Data Files"),
+    glue::glue("eGRID{year} Unit, Generator, Plant, State, Balancing Authority Area, eGRID Subregion, NERC Region, U.S., Grid Gross Loss (%), and Demographic Data Files"),
     format(Sys.Date(), "%B %d, %Y"))
   
   ## Subsection titles -----------
@@ -148,7 +148,7 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
     glue::glue("Surrounding demographic data for eGRID{year} plants"))
   
   # table of contents production model note
-  production_link <- c("eGRID R production model X." = "https://github.com/USEPA/egrid")
+  production_link <- c("eGRID R production model 1.0.0." = "https://github.com/USEPA/egrid")
   class(production_link) <- "hyperlink"
 
   ## Color coding legend ---------------
@@ -393,6 +393,6 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   setRowHeights(wb, current_worksheet, rows = c(7, 18, 20, 24), heights = 15.6)
   setRowHeights(wb, current_worksheet, rows = c(5:7, 25), heights = c(43.8, 25.8, 25.8, 16.2))
   setColWidths(wb, current_worksheet, cols = 1:12, widths = 10.33)
-  setColWidths(wb, current_worksheet, cols = c(1:2, 5:6), widths = c(1, 14.33, 9.33, 15.33))
+  setColWidths(wb, current_worksheet, cols = c(1:2, 5:6), widths = c(1, 14.33, 8.33, 18))
   setColWidths(wb, current_worksheet, cols = 10:19, widths = 5)
 }
