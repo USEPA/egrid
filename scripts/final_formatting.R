@@ -761,7 +761,7 @@ addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 36, 
 addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 86:94, gridExpand = TRUE)
 
 # freeze panes
-freezePane(wb, sheet = plnt, firstActiveCol = 7)
+freezePane(wb, sheet = plnt, firstActiveCol = 6)
 
 ### ST Formatting -----
 
