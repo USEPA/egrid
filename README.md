@@ -6,7 +6,7 @@ This repository includes all necessary scripts and documentation to create the [
 
 eGRID is a comprehensive source of data from [EPA's Clean Air and Power Division (CAPD)](https://epa.gov/power-sector) on the environmental 
 characteristics of almost all electric power generated in the United States. eGRID is based on available plant-specific data for all 
-U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, 
+U.S. electricity generating plants that provide power to the electric grid and report emissions and electricity data to the U.S. government. Data reported include, 
 but are not limited to, net electric generation; resource mix (the share of generation by resource or fuel type); mass emissions of carbon dioxide 
 (CO<sub>2</sub>), nitrogen oxides (NO<sub>x</sub>), sulfur dioxide (SO<sub>2</sub>), methane (CH<sub>4</sub>), and nitrous oxide (N<sub>2</sub>O); emission rates for CO<sub>2</sub>, NO<sub>x</sub>, SO<sub>2</sub>, 
 CH<sub>4</sub>, and N<sub>2</sub>O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for 
