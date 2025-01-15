@@ -36,27 +36,29 @@ This project includes all necessary scripts and documentation to create the Emis
 
 # Background
 
-eGRID is a comprehensive source of data from EPA's Clean Air Markets Program Data on the environmental characteristics of almost all electric power generated in the United States. The preeminent source of emissions data for the electric power sector, eGRID is based on available plant-specific data for all U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, but are not limited to, net electric generation; resource mix (for renewable and nonrenewable generation); mass emissions of carbon dioxide (CO~2~), nitrogen oxides (NO~x~), sulfur dioxide (SO~2~), methane (CH~4~), nitrous oxide (N~2~O), and mercury (Hg); emission rates for CO~2~, NO~x~, SO~2~, CH~4~, and N~2~O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for NO~x~) at different levels of aggregation.
+eGRID is a comprehensive source of data from [EPA's Clean Air and Power Division (CAPD)](https://epa.gov/power-sector) on the environmental characteristics of almost all electric power generated in the United States. eGRID is based on available plant-specific data for all U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, but are not limited to, net electric generation; resource mix (for renewable and nonrenewable generation); mass emissions of carbon dioxide (CO2), nitrogen oxides (NOx), sulfur dioxide (SO2), methane (CH4), and nitrous oxide (N2O); emission rates for CO2, NOx, SO2, CH4, and N2O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for heat input and NOx) at different levels of aggregation.
 
-The data includes emissions, emission rates, generation, heat input, resource mix, and many other attributes. eGRID is typically used for greenhouse gas registries and inventories, carbon footprints, consumer information disclosure, emission inventories and standards, power market changes, and avoided emission estimates.
+The final eGRID dataset includes eight levels of data aggregation:
 
-The final eGRID database includes eight levels of data aggregation:
+-   **Generator**: Generators connected to the U.S. electricity grid. A generator is defined as a set of equipment that produces electricity and is connected to the U.S. electricity grid.
 
--   **Unit**: A unit available to provide electric power to the grid.
+-   **Unit**: Units connected to the U.S. electricity grid. A unit is defined as a set of equipment that either produces electricity and is connected to the U.S electricity grid or a set of equipment that is connected to a generator which produces electricity and is connected to the U.S. electricity grid.
 
--   **Generator**: A facility that produces electricity, commonly expressed in kilowatthours (kWh) or megawatthours (MWh). Electric generators include electric utilities and independent power producers.
+-   **Plant**: Plants that provide power to the electric grid.
 
--   **Plant**: A term commonly used either as a synonym for an industrial establishment or a generating facility or to refer to a particular process within an establishment.
+-   **State**: U.S. states, Puerto Rico (PR), and District of Columbia (DC).
 
--   **State**: A political entity within the United States (U.S.) that has defined geographic borders. eGRID includes the official 50 U.S. states with territories District of Columbia (D.C.) and Puerto Rico (PR).
+-   **Balancing authority**: Regional operators that ensure a balance of supply and demand.
 
--   **Balancing authority**: The responsible entity that integrates resource plans ahead of time, maintains load-interchange-generation balance within a balancing authority Area, and supports Interconnection frequency in real time.
+-   **eGRID subregion**: EPA defined subregions defined to limit import and export of electricity (shown in Figure 1).
 
--   **eGRID subregion**: eGRID subregions are identified and defined by EPA and were developed as a compromise between NERC regions (which EPA felt were too big) and balancing authorities (which EPA felt were generally too small). Using NERC regions and balancing authorities as a guide, the subregions were defined to limit the import and export of electricity in order to establish an aggregated area where the determined emission rates most accurately matched the generation and emissions from the plants within that subregion.
+-   **NERC (North American Electric Reliability Corporation) regions**: Each NERC region listed in eGRID represents one of nine regional portions of the North American electricity transmission grid: six in the contiguous United States, plus Alaska, Hawaii, and Puerto Rico (which are not part of the formal NERC regions but are considered so in eGRID).
 
--   **NERC region**: The North American Electric Reliability Corporation (NERC) consists of regional reliability entities covering the interconnected power regions of the contiguous United States, Canada, and Mexico.
+-   **National U.S.**: Contains all 50 states, Puerto Rico (PR), and District of Columbia (DC).
 
--   **US**: The total of all state data included in the database.
+Further information on the eGRID methodology can be found in the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
+
+The dataset that this code produces is publicly available [here](https://www.epa.gov/egrid/download-data).
 
 ## Using the .qmd file
 
