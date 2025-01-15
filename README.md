@@ -4,25 +4,34 @@ This repository includes all necessary scripts and documentation to create the [
 
 ## Background
 
-eGRID is a comprehensive source of data from [EPA's Clean Air and Power Division (CAPD)](https://epa.gov/power-sector) on the environmental characteristics of almost all electric power generated in the United States. eGRID is based on available plant-specific data for all U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, but are not limited to, net electric generation; resource mix (for renewable and nonrenewable generation); mass emissions of carbon dioxide (CO2), nitrogen oxides (NOx), sulfur dioxide (SO2), methane (CH4), and nitrous oxide (N2O); emission rates for CO2, NOx, SO2, CH4, and N2O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for heat input and NOx) at different levels of aggregation.
+eGRID is a comprehensive source of data from [EPA's Clean Air and Power Division (CAPD)](https://epa.gov/power-sector) on the environmental 
+characteristics of almost all electric power generated in the United States. eGRID is based on available plant-specific data for all 
+U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, 
+but are not limited to, net electric generation; resource mix (the share of generation by resource or fuel type); mass emissions of carbon dioxide 
+(CO~2~), nitrogen oxides (NO~x~), sulfur dioxide (SO~2~), methane (CH~4~), and nitrous oxide (N~2~O); emission rates for CO~2~, NO~x~, SO~2~, 
+CH~4~, and N~2~O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for 
+heat input and NO~x~) at different levels of geographic aggregation.
 
 The final eGRID dataset includes eight levels of data aggregation:
 
--   **Generator**: Generators connected to the U.S. electricity grid. A generator is defined as a set of equipment that produces electricity and is connected to the U.S. electricity grid.
+-   **Generator**: A set of equipment that produces electricity and is connected to the U.S. electricity grid. 
 
--   **Unit**: Units connected to the U.S. electricity grid. A unit is defined as a set of equipment that either produces electricity and is connected to the U.S electricity grid or a set of equipment that is connected to a generator which produces electricity and is connected to the U.S. electricity grid.
+-   **Unit**: A set of equipment that either produces electricity and is connected to the U.S electricity grid or 
+a set of equipment that is connected to a generator which produces electricity and is connected to the U.S. electricity grid.
 
--   **Plant**: Plants that provide power to the electric grid.
+-   **Plant**: A facility with one or more units and/or generators that provide power to the electric grid.
 
--   **State**: U.S. states, Puerto Rico (PR), and District of Columbia (DC).
+-   **State**: U.S. states, Puerto Rico (PR), and the District of Columbia (DC).
 
--   **Balancing authority**: Regional operators that ensure a balance of supply and demand.
+-   **Balancing authority**: Regional power system operators that ensure a balance of supply and demand.
 
--   **eGRID subregion**: EPA defined subregions defined to limit import and export of electricity (shown in Figure 1).
+-   **eGRID subregion**: EPA defined subregions designed to limit the impacts of the import and export of electricity (shown in Figure 1).
 
--   **NERC (North American Electric Reliability Corporation) regions**: Each NERC region listed in eGRID represents one of nine regional portions of the North American electricity transmission grid: six in the contiguous United States, plus Alaska, Hawaii, and Puerto Rico (which are not part of the formal NERC regions but are considered so in eGRID).
+-   **NERC (North American Electric Reliability Corporation) regions**: Each NERC region listed in eGRID represents one of nine regional 
+portions of the North American electricity transmission grid: six in the contiguous United States, plus Alaska, Hawaii, and 
+Puerto Rico (which are not part of the formal NERC regions but are considered so in eGRID).
 
--   **National U.S.**: Contains all 50 states, Puerto Rico (PR), and District of Columbia (DC).
+-   **National U.S.**: Contains all 50 states, Puerto Rico (PR), and the District of Columbia (DC).
 
 Further information on the eGRID methodology can be found in the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
 
@@ -32,7 +41,7 @@ The dataset that this code produces is publicly available [here](https://www.epa
 
 ## Architecture
 
-This year EPA will be releasing the methodology to develop eGRID as an RStudio project. Recently, there has been an increased interest from users in understanding the methods used to create the eGRID data. In an effort to increase transparency in the process of creating eGRID, EPA has used the R programming language to develop eGRID starting with eGRID2023, and EPA has made the R scripts available for users to view and use.
+This year EPA will be releasing the methodology to develop eGRID as an RStudio project. Recently, there has been increased interest from users in understanding the methods used to create the eGRID data. To increase transparency in the eGRID production process, EPA has made the R scripts available for users to view and use. EPA used the RStudio project beginning in 2024 to produce eGRID2023.
 
 Figure 2 displays a summary of eGRID architecture, which specifies data sources, inputs, and outputs for creating eGRID.
 
