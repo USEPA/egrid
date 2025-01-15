@@ -169,9 +169,7 @@ unit_file <-
 
 ## Prime mover, botfirty, and fuel type missing from EF table
 
-missing_from_ef \<-
-
-unit_pm_botfirty_fuel %\>% anti_join(ef_pm_botfirty_fuel)
+Identify if any combinations are missing from NOx and SO2 EF table.
 
 ```{r}
 #| label: check-ef-table
@@ -206,7 +204,10 @@ ef_pm_botfirty_fuel <-
 missing_from_ef <- 
   unit_pm_botfirty_fuel %>% anti_join(ef_pm_botfirty_fuel)
 
-knitr::kable(missing_from_ef %>% arrange(primary_fuel_type))
+knitr::kable(missing_from_ef %>% 
+               select(prime_mover, botfirty, primary_fuel_type) %>% 
+               distinct() %>% 
+               arrange(primary_fuel_type))
 ```
 
 ## FC prime mover
