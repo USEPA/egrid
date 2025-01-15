@@ -8,9 +8,9 @@ eGRID is a comprehensive source of data from [EPA's Clean Air and Power Division
 characteristics of almost all electric power generated in the United States. eGRID is based on available plant-specific data for all 
 U.S. electricity generating plants that provide power to the electric grid and report data to the U.S. government. Data reported include, 
 but are not limited to, net electric generation; resource mix (the share of generation by resource or fuel type); mass emissions of carbon dioxide 
-(CO~2~), nitrogen oxides (NO~x~), sulfur dioxide (SO~2~), methane (CH~4~), and nitrous oxide (N~2~O); emission rates for CO~2~, NO~x~, SO~2~, 
-CH~4~, and N~2~O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for 
-heat input and NO~x~) at different levels of geographic aggregation.
+(CO<sub>2</sub>), nitrogen oxides (NO<sub>x</sub>), sulfur dioxide (SO<sub>2</sub>), methane (CH<sub>4</sub>), and nitrous oxide (N<sub>2</sub>O); emission rates for CO<sub>2</sub>, NO<sub>x</sub>, SO<sub>2</sub>, 
+CH<sub>4</sub>, and N<sub>2</sub>O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for 
+heat input and NO<sub>x</sub>) at different levels of geographic aggregation.
 
 The final eGRID dataset includes eight levels of data aggregation:
 
