@@ -74,7 +74,6 @@ region_aggregation <- function(region, region_cols) {
       "ann_gen_other_ff",
       "ann_gen_other",
       "ann_gen_non_renew",
-      "ann_gen_non_renew_other",
       "ann_gen_renew",
       "ann_gen_non_renew_other", 
       "ann_gen_renew_nonhydro",
