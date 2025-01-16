@@ -789,7 +789,10 @@ eia_923_lfg <-
 plant_file_15 <- 
   plant_file_14 %>% 
   left_join(eia_923_lfg) %>%
-  mutate(co2e_biomass = sum(co2_biomass, ch4_biomass, n2o_biomass, na.rm = TRUE), # calculate CO2e biomass
+  mutate(co2e_biomass = 
+           if_else(is.na(co2_biomass), 0, co2_biomass) + 
+           if_else(is.na(ch4_biomass), 0, gwp$gwp[gwp$gas == "CH4"] * ch4_biomass / 2000) + 
+           if_else(is.na(n2o_biomass), 0, gwp$gwp[gwp$gas == "N2O"] * n2o_biomass / 2000), # calculate CO2e biomass
          # if all emission masses are NA, fill CO2e mass with NA
          co2e_biomass = if_else(is.na(co2_biomass) & is.na(ch4_biomass) & is.na(n2o_biomass), 
                                 NA_real_, co2e_biomass), 
