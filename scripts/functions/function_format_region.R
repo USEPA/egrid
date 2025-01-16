@@ -77,11 +77,20 @@ format_region <- function(region, reg_rows) {
   setColWidths(wb, sheet = region, cols = 1,       widths = 12)
   setColWidths(wb, sheet = region, cols = 2,       widths = 14)
   setColWidths(wb, sheet = region, cols = 3,       widths = 18.43)
-  setColWidths(wb, sheet = region, cols = 4:152,   widths = 14)
+  setColWidths(wb, sheet = region, cols = 4:124,   widths = 14)
+  setColWidths(wb, sheet = region, cols = 125,     widths = 16.57)
+  setColWidths(wb, sheet = region, cols = 126:128, widths = 14)
+  setColWidths(wb, sheet = region, cols = 129,     widths = 16.57)
+  setColWidths(wb, sheet = region, cols = 130:142, widths = 14)
+  setColWidths(wb, sheet = region, cols = 143,     widths = 16.57)
+  setColWidths(wb, sheet = region, cols = 144:146, widths = 14)
+  setColWidths(wb, sheet = region, cols = 147,     widths = 16.57)
+  setColWidths(wb, sheet = region, cols = 149:152, widths = 14)
   setColWidths(wb, sheet = region, cols = 153,     widths = 15.11)
   setColWidths(wb, sheet = region, cols = 154:163, widths = 14)
   setColWidths(wb, sheet = region, cols = 164,     widths = 15.11)
   setColWidths(wb, sheet = region, cols = 165:169, widths = 14)
+
   
   ## set row heights
   setRowHeights(wb, sheet = region, row = 1, heights = 67.5)
@@ -101,9 +110,8 @@ format_region <- function(region, reg_rows) {
   ## add text styles
   addStyle(wb, sheet = region, style = s[['basic']],    rows = 3:reg_rows, cols = 1:3,     gridExpand = TRUE)
   
-  
   ## freeze pane
-  freezePane(wb, sheet = region, firstActiveCol = 4)
+  freezePane(wb, sheet = region, firstActiveCol = 4, firstActiveRow = 3)
   
   } else {
   
@@ -150,9 +158,17 @@ format_region <- function(region, reg_rows) {
   addStyle(wb, sheet = region, style = s[['color17_header']],   rows = 2, cols = 157:167,  gridExpand = TRUE)
   
   ## set column widths
-  setColWidths(wb, sheet = region, cols = 1:4,   widths = 14.14)
-  setColWidths(wb, sheet = region, cols = 5:6,   widths = 14.43)
-  setColWidths(wb, sheet = region, cols = 7:167, widths = 14.14)
+  setColWidths(wb, sheet = region, cols = 1:4,     widths = 14.14)
+  setColWidths(wb, sheet = region, cols = 5:6,     widths = 14.43)
+  setColWidths(wb, sheet = region, cols = 7:124,   widths = 14.14)
+  setColWidths(wb, sheet = region, cols = 123,     widths = 16.57)
+  setColWidths(wb, sheet = region, cols = 124:126, widths = 14.14)
+  setColWidths(wb, sheet = region, cols = 127,     widths = 16.57)
+  setColWidths(wb, sheet = region, cols = 128:140, widths = 14.14)
+  setColWidths(wb, sheet = region, cols = 141,     widths = 16.57)
+  setColWidths(wb, sheet = region, cols = 142:144, widths = 14.14)
+  setColWidths(wb, sheet = region, cols = 145,     widths = 16.57)
+  setColWidths(wb, sheet = region, cols = 146:165, widths = 14.14)
   
   ## set row heights
   setRowHeights(wb, sheet = region, row = 1, heights = 67.5)
