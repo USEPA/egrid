@@ -100,7 +100,8 @@ create_contents_summary_tables <- function(contents = table_data) {
   class(feedback_data) <- "hyperlink"
   
   # write production link
-  production_link <- c("eGRID R production model 1.0.0." = "https://github.com/USEPA/egrid")
+  production_link <- c("https://github.com/USEPA/egrid")
+  names(production_link) <- c(glue::glue("eGRID R production model {params$version}."))
   class(production_link) <- "hyperlink"
   
   # Classify worksheet parameters ---------------

@@ -31,16 +31,20 @@ library(openxlsx)
 # user will be prompted to input eGRID year in the console if params does not exist
 
 if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
+  if ("eGRID_year" %in% names(params) & "version" %in% names(params)) { # if params() and params$eGRID_year, params$version exist, do not re-define
+    print("eGRID year and version parameters are already defined.") 
   } else { # if params() is defined, but eGRID_year is not, define it here 
     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+    params$eGRID_year <- as.character(params$eGRID_year) 
+    params$eGRID_year <- readline(prompt = "Input version (format X.X.X): ")
     params$eGRID_year <- as.character(params$eGRID_year) 
   }
 } else { # if params() and eGRID_year are not defined, define them here
   params <- list()
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
+  params$eGRID_year <- readline(prompt = "Input version (format X.X.X): ")
+  params$eGRID_year <- as.character(params$eGRID_year) 
 }
 
 
