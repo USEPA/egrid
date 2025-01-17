@@ -789,20 +789,12 @@ eia_923_lfg <-
 plant_file_15 <- 
   plant_file_14 %>% 
   left_join(eia_923_lfg) %>%
-  mutate(co2e_biomass = 
-           if_else(is.na(co2_biomass), 0, co2_biomass) + 
-           if_else(is.na(ch4_biomass), 0, gwp$gwp[gwp$gas == "CH4"] * ch4_biomass / 2000) + 
-           if_else(is.na(n2o_biomass), 0, gwp$gwp[gwp$gas == "N2O"] * n2o_biomass / 2000), # calculate CO2e biomass
-         # if all emission masses are NA, fill CO2e mass with NA
-         co2e_biomass = if_else(is.na(co2_biomass) & is.na(ch4_biomass) & is.na(n2o_biomass), 
-                                NA_real_, co2e_biomass), 
-         nox_mass = if_else(!is.na(nox_biomass), pmax(unadj_nox_mass - nox_biomass, 0), unadj_nox_mass), # take the max to avoid negative values
+  mutate(nox_mass = if_else(!is.na(nox_biomass), pmax(unadj_nox_mass - nox_biomass, 0), unadj_nox_mass), # take the max to avoid negative values
          nox_oz_mass = if_else(!is.na(nox_bio_oz), pmax(unadj_nox_oz_mass - nox_bio_oz, 0), unadj_nox_oz_mass),
          so2_mass = if_else(!is.na(so2_biomass), pmax(unadj_so2_mass - so2_biomass, 0), unadj_so2_mass),
          co2_mass = if_else(!is.na(co2_biomass), pmax(unadj_co2_mass - co2_biomass, 0), unadj_co2_mass),
          ch4_mass = if_else(!is.na(ch4_biomass), pmax(unadj_ch4_mass - ch4_biomass, 0), unadj_ch4_mass),
          n2o_mass = if_else(!is.na(n2o_biomass), pmax(unadj_n2o_mass - n2o_biomass, 0), unadj_n2o_mass),
-         co2e_mass = if_else(!is.na(co2e_biomass), pmax(unadj_co2e_mass - co2e_biomass, 0), unadj_co2e_mass), 
          hg_mass = unadj_hg_mass, # no biomass variable for Hg 
          nox_oz_mass = pmin(nox_oz_mass, nox_mass, na.rm = TRUE), # if annual NOx mass is lower than ozone NOx mass, use the annual NOx mass 
          biomass_adj_flag = if_else(biomass_adj_flag == "Yes" | biomass_adj_flag1 == "Yes", "Yes", NA_character_)) %>%
@@ -812,7 +804,16 @@ plant_file_15 <-
          ch4_biomass = pmin(ch4_biomass, unadj_ch4_mass),
          n2o_biomass = pmin(n2o_biomass, unadj_n2o_mass),
          so2_biomass = pmin(so2_biomass, unadj_so2_mass),
-         co2_biomass = pmin(co2_biomass, unadj_co2_mass), 
+         co2_biomass = pmin(co2_biomass, unadj_co2_mass),
+         # calculate CO2e biomass after adjustments to all GHG masses are made
+         co2e_biomass = 
+           if_else(is.na(co2_biomass), 0, co2_biomass) + 
+           if_else(is.na(ch4_biomass), 0, gwp$gwp[gwp$gas == "CH4"] * ch4_biomass / 2000) + 
+           if_else(is.na(n2o_biomass), 0, gwp$gwp[gwp$gas == "N2O"] * n2o_biomass / 2000), # calculate CO2e biomass
+         # if all emission masses are NA, fill CO2e mass with NA
+         co2e_biomass = if_else(is.na(co2_biomass) & is.na(ch4_biomass) & is.na(n2o_biomass), 
+                                NA_real_, co2e_biomass), 
+         co2e_mass = if_else(!is.na(co2e_biomass), pmax(unadj_co2e_mass - co2e_biomass, 0), unadj_co2e_mass),
          co2e_biomass = pmin(co2e_biomass, unadj_co2e_mass))
 
 
