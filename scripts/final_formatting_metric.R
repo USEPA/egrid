@@ -29,16 +29,20 @@ library(openxlsx)
 # user will be prompted to input eGRID year in the console if params does not exist
 
 if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
+  if ("eGRID_year" %in% names(params) & "version" %in% names(params)) { # if params() and params$eGRID_year, params$version exist, do not re-define
+    print("eGRID year and version parameters are already defined.") 
   } else { # if params() is defined, but eGRID_year is not, define it here 
     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
     params$eGRID_year <- as.character(params$eGRID_year) 
+    params$version <- readline(prompt = "Input version (format X.X.X): ")
+    params$version <- as.character(params$version) 
   }
 } else { # if params() and eGRID_year are not defined, define them here
   params <- list()
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
+  params$version <- readline(prompt = "Input version (format X.X.X): ")
+  params$version <- as.character(params$version) 
 }
 
 
@@ -461,7 +465,7 @@ addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 1:13, 
 addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 22:33, gridExpand = TRUE)
 
 # freeze panes
-freezePane(wb, sheet = unt, firstActiveCol = 7)
+freezePane(wb, sheet = unt, firstActiveCol = 7, firstActiveRow = 3)
 
 ### GEN Formatting -----
 
@@ -562,7 +566,7 @@ addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 6:10, 
 addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 17:19,   gridExpand = TRUE)
 
 # freeze panes
-freezePane(wb, sheet = gen, firstActiveCol = 7)
+freezePane(wb, sheet = gen, firstActiveCol = 7, firstActiveRow = 3)
 
 ### PLNT Formatting -----
 
@@ -912,7 +916,7 @@ addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 36, 
 addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 107:116, gridExpand = TRUE)
 
 # freeze panes
-freezePane(wb, sheet = plnt, firstActiveCol = 6)
+freezePane(wb, sheet = plnt, firstActiveCol = 6, firstActiveRow = 3)
 
 ### ST Formatting -----
 
@@ -961,8 +965,6 @@ writeData(wb,
 ## add styles to document
 format_region_metric(st, st_rows)
 
-# freeze panes
-freezePane(wb, sheet = st, firstActiveCol = 4)
 
 ### BA Formatting -----
 
@@ -1014,8 +1016,6 @@ format_region_metric(ba, ba_rows)
 
 setColWidths(wb, sheet = ba, cols = 2, widths = 75.55)
 
-# freeze panes
-freezePane(wb, sheet = ba, firstActiveCol = 4)
 
 ### SRL Formatting -----
 
@@ -1066,8 +1066,6 @@ format_region_metric(srl, srl_rows)
 
 setColWidths(wb, sheet = srl, cols = 3, widths = 18.45)
 
-# freeze panes
-freezePane(wb, sheet = srl, firstActiveCol = 4)
 
 ### NRL Formatting -----
 
@@ -1118,8 +1116,6 @@ format_region_metric(nrl, nrl_rows)
 
 setColWidths(wb, sheet = nrl, cols = 3, widths = 29.45)
 
-# freeze panes
-freezePane(wb, sheet = nrl, firstActiveCol = 4)
 
 ### US Formatting -----
 
@@ -1383,7 +1379,7 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RD
   addStyle(wb, sheet = demo, style = s[['basic']], rows = 3:demo_rows, cols = 1:11, gridExpand = TRUE)
   
   # freeze panes
-  freezePane(wb, sheet = demo, firstActiveCol = 6)
+  freezePane(wb, sheet = demo, firstActiveCol = 6, firstActiveRow = 3)
 }
 
 

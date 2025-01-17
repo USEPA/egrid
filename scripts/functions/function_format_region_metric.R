@@ -100,7 +100,7 @@ format_region_metric <- function(region, reg_rows) {
     addStyle(wb, sheet = region, style = s[['basic']],    rows = 3:reg_rows, cols = 1:3,     gridExpand = TRUE)
     
     ## freeze pane
-    freezePane(wb, sheet = region, firstActiveCol = 4)
+    freezePane(wb, sheet = region, firstActiveCol = 4, firstActiveRow = 3)
     
   } else {
     
