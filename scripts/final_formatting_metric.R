@@ -34,15 +34,15 @@ if (exists("params")) {
   } else { # if params() is defined, but eGRID_year is not, define it here 
     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
     params$eGRID_year <- as.character(params$eGRID_year) 
-    params$eGRID_year <- readline(prompt = "Input version (format X.X.X): ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
+    params$version <- readline(prompt = "Input version (format X.X.X): ")
+    params$version <- as.character(params$version) 
   }
 } else { # if params() and eGRID_year are not defined, define them here
   params <- list()
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
-  params$eGRID_year <- readline(prompt = "Input version (format X.X.X): ")
-  params$eGRID_year <- as.character(params$eGRID_year) 
+  params$version <- readline(prompt = "Input version (format X.X.X): ")
+  params$version <- as.character(params$version) 
 }
 
 
