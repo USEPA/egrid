@@ -23,6 +23,8 @@ execute:
 params:
   eGRID_year: "2023"
   version: "1.0.1"
+  temporal_res: "monthly" # temporal resolution of output either: 
+                          # "annual" or "monthly"
   run_demo_file: FALSE # running demographic file takes 4-5 hours
                        # FALSE = default, do not run
                        # TRUE = runs script to collect demographic file
