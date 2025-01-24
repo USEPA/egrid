@@ -78,7 +78,7 @@ facility_path <-
   bulk_files %>% 
   unnest(cols = metadata) %>% 
   filter(year == params$eGRID_year,
-         dataType == "Facility" ) %>% 
+         dataType == "Facility") %>% 
   pull(s3Path)
 
 
@@ -110,7 +110,6 @@ emissions_files <-
 emissions_data <- 
   purrr::map_df(emissions_files$file_path, ~ read_csv(.x))
 
-
 cols_to_sum <- 
   c("operating_time_count",
     "sum_of_the_operating_time",
@@ -140,21 +139,28 @@ emissions_data_r <-
   select(-date) %>%
   mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) %>% # SB 6/4/2024: Temporary fix for issue in API where there are a mix of pipes and commas in some character values
   group_by(pick(-c(all_of(cols_to_sum)))) %>% 
-  summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first
+  summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first 
   ungroup() %>% 
   group_by(facility_id, unit_id, primary_fuel_type, unit_type) %>% 
   mutate(reporting_months = paste(month, collapse = ", "), # creating column with list of reporting months 
          reporting_frequency = if_else(grepl("january|february|march|october|november|december", # filtering out non-ozone season reporting months, excluding april
-                                             reporting_months), "Q", "OS")) %>% # assigning reporting frequency 
-  group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% 
-  mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions
+                                             reporting_months), "Q", "OS")) %>% # assigning reporting frequency
+  group_by(pick(-all_of(cols_to_sum), -c(reporting_months, reporting_frequency))) %>% 
+  # group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% # (annual ver.)
+  mutate(# across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions (annual ver.)
          across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
-  select(-month) %>% # removing month so distinct() will aggregate to unit level
-  select(-all_of(cols_to_sum), reporting_months, reporting_frequency) %>% 
-  rename_with(.cols = contains("_annual"), # removing annual suffix
-              .fn = ~ str_remove(.x, "_annual")) %>% 
+  # select(-month) %>% # removing month so distinct() will aggregate to unit level (annual ver.)
+  # select(-all_of(cols_to_sum), reporting_months, reporting_frequency) %>%  (annual ver.)
+  ungroup() %>%
+  group_by(pick(-all_of(cols_to_sum), -all_of(ends_with("ozone")), -c(month, reporting_months, reporting_frequency))) %>% # (monthly ver.)
+  mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions (monthly ver.)
+         across(all_of(ends_with("ozone")), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual")) %>% # calculating annual ozone emissions (monthly ver.)
+  # rename_with(.cols = contains("_annual"), # removing annual suffix (annual ver.)
+  #             .fn = ~ str_remove(.x, "_annual")) %>% # (annual ver.)
   ungroup() %>% 
-  distinct() # removing duplicate rows that aren't needed after ozone calculation
+  distinct() %>% # removing duplicate rows that aren't needed after ozone calculation
+  rename_with(~str_c(., "_monthly"), all_of(cols_to_sum)) %>% # (monthly ver.)
+  rename_with(~str_c(., "_monthly"), all_of(ends_with("ozone"))) # (monthly ver.)
 
 ## Get MATS data --------------
 
@@ -192,10 +198,18 @@ mats_data_r <-
   select(all_of(cols)) %>%
   mutate(hg_mass_lbs = as.numeric(hg_mass_lbs),
          year = as.character(year(date)),
-         month = as.character(month(date))) %>% 
-  group_by(year, state, facility_name, facility_id, unit_id, primary_fuel_type, secondary_fuel_type, hg_controls) %>% 
-  summarize(hg_mass_lbs = sum(hg_mass_lbs, na.rm = TRUE)) %>% 
-  ungroup() 
+         month = as.character(month(date)),
+         month = recode(month, !!!month_name_map)) %>% # (monthly ver.)
+  # group_by(year, state, facility_name, facility_id, unit_id, primary_fuel_type, secondary_fuel_type, hg_controls) %>% # (annual ver.)
+  group_by(year, month, state, facility_name, facility_id, unit_id, primary_fuel_type, secondary_fuel_type, hg_controls) %>% # (monthly ver.)
+  # summarize(hg_mass_lbs = sum(hg_mass_lbs, na.rm = TRUE)) %>% # (annual ver.)
+  mutate(hg_mass_lbs_monthly = sum(hg_mass_lbs, na.rm = TRUE)) %>%  # (monthly ver.)
+  ungroup() %>%
+  group_by(year, state, facility_name, facility_id, unit_id, primary_fuel_type, secondary_fuel_type, hg_controls) %>% # (monthly ver.)
+  mutate(hg_mass_lbs_annual = sum(hg_mass_lbs, na.rm = TRUE)) %>% # (monthly ver.)
+  select(-c(date, hg_mass_lbs)) %>% # (monthly ver.)
+  ungroup() %>% # (monthly ver.)
+  distinct() # (monthly ver.)
 
 ## Join facility, emissions, and MATS data --------
 
