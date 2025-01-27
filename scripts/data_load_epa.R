@@ -152,29 +152,17 @@ emissions_data_r <-
   mutate(reporting_months = paste(month, collapse = ", "), # creating column with list of reporting months 
          reporting_frequency = if_else(grepl("january|february|march|october|november|december", # filtering out non-ozone season reporting months, excluding april
                                              reporting_months), "Q", "OS")) %>% # assigning reporting frequency
-  # group_by(pick(-all_of(cols_to_sum), -c(reporting_months, reporting_frequency))) %>% 
-  group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% # (annual ver.)
-  mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions (annual ver.)
+  group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% # group data by year
+  mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions 
          across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
-  # select(-month) %>% # removing month so distinct() will aggregate to unit level (annual ver.)
-  # select(-all_of(cols_to_sum), reporting_months, reporting_frequency) %>%  (annual ver.)
   ungroup() %>%
-  group_by(pick(-all_of(cols_to_sum), -all_of(ends_with("ozone")), -c(month, reporting_months, reporting_frequency))) %>% # (monthly ver.)
-  # mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual")) %>% # , # calculating annual emissions (monthly ver.)
-        # across(all_of(ends_with("ozone")), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual")) %>% # calculating annual ozone emissions (monthly ver.)
-  ungroup() %>% 
   distinct() %>% # removing duplicate rows that aren't needed after ozone calculation
-  # rename_with(~str_c(., "_monthly"), all_of(cols_to_sum)) %>% # (monthly ver.)
-  # rename_with(~str_c(., "_monthly"), all_of(ends_with("ozone"))) # (monthly ver.)
-  pivot_wider(id_cols = c(emissions_id_cols, year, reporting_months, reporting_frequency, paste0(cols_to_sum, "_annual"), paste0(cols_to_sum, "_ozone")), # pivot
+  pivot_wider(id_cols = c(emissions_id_cols, year, reporing_months, reporting_frequency, paste0(cols_to_sum, "_annual"), paste0(cols_to_sum, "_ozone")), # pivot
               names_from = "month",
               values_from = all_of(cols_to_sum),
               names_glue = "{.value}_{month}") %>%
-  rename_with(.cols = contains("_annual"), # removing annual suffix (annual ver.)
+  rename_with(.cols = contains("_annual"), # removing annual suffix 
               .fn = ~ str_remove(.x, "_annual")) 
-
-# might be better to export as monthly as 
-# think about whether or not to always download file / overwrite files 
 
 ## Get MATS data --------------
 
@@ -213,23 +201,16 @@ mats_data_r <-
   mutate(hg_mass_lbs = as.numeric(hg_mass_lbs),
          year = as.character(year(date)),
          month = as.character(month(date)),
-         month = recode(month, !!!month_name_map)) %>% # (monthly ver.)
-  # group_by(year, state, facility_name, facility_id, unit_id, primary_fuel_type, secondary_fuel_type, hg_controls) %>% # (annual ver.)
-  group_by(year, month, state, facility_name, facility_id, unit_id, primary_fuel_type, secondary_fuel_type, hg_controls) %>% # (monthly ver.)
-  # summarize(hg_mass_lbs = sum(hg_mass_lbs, na.rm = TRUE)) %>% # (annual ver.)
-  mutate(hg_mass_lbs_monthly = sum(hg_mass_lbs, na.rm = TRUE)) %>%  # (monthly ver.)
+         month = recode(month, !!!month_name_map)) %>% 
+  group_by(year, month, state, facility_name, facility_id, unit_id, primary_fuel_type, secondary_fuel_type, hg_controls) %>% 
+  summarize(hg_mass_lbs = sum(hg_mass_lbs, na.rm = TRUE)) %>% # aggregate to the monthly level
   ungroup() %>%
-  group_by(year, state, facility_name, facility_id, unit_id, primary_fuel_type, secondary_fuel_type, hg_controls) %>% # (monthly ver.)
-  mutate(hg_mass_lbs_annual = sum(hg_mass_lbs, na.rm = TRUE)) %>% # (monthly ver.)
-  select(-c(date, hg_mass_lbs)) %>% # (monthly ver.)
-  ungroup() %>% # (monthly ver.)
-  distinct() %>% # (monthly ver.)
-  rename(hg_mass_lbs = hg_mass_lbs_monthly) %>%
+  distinct() %>%
   pivot_wider(id_cols = c("state", "facility_name", "facility_id", "unit_id", "primary_fuel_type", "secondary_fuel_type"), # pivot
               names_from = "month",
               values_from = "hg_mass_lbs",
               names_glue = "{.value}_{month}") %>%
-  mutate(hg_mass_lbs = rowSums(select(.,starts_with("hg_mass_lbs_")), na.rm=TRUE)) # pivot
+  mutate(hg_mass_lbs = rowSums(select(.,starts_with("hg_mass_lbs_")), na.rm=TRUE)) # sum all months to create annual value
 
 
 ## Join facility, emissions, and MATS data --------
