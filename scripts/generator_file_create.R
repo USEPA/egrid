@@ -28,16 +28,20 @@ library(readxl)
 # user will be prompted to input eGRID year in the console if params does not exist
 
 if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+  if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
     print("eGRID year parameter is already defined.") 
   } else { # if params() is defined, but eGRID_year is not, define it here 
     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
     params$eGRID_year <- as.character(params$eGRID_year) 
+    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+    params$temporal_res <- as.character(params$temporal_res) 
   }
 } else { # if params() and eGRID_year are not defined, define them here
   params <- list()
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
+  params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+  params$temporal_res <- as.character(params$temporal_res) 
 }
 
 # Load in necessary 923 and 860 files ----------
@@ -270,11 +274,47 @@ print(glue::glue("{nrow(gen_distributed) - (nrow(eia_gen_generation) - nrow(miss
 
 ### Determine differences between EIA-923 Generator File and EIA-923 Generation and Fuel file, and identify and distribute large cases --------- 
 
+
+if (params$temporal_res == "annual") {
+  cols_to_keep <-
+    c("plant_id",
+      "prime_mover",
+      "overwrite")
+  
+  cols_to_remove <-
+    gen_distributed %>%
+    select(all_of(contains(month.name)),
+          "generation_ann_diff",
+          "generation_oz_diff",
+          "generation_oz",
+          "generation_ann",
+          "net_generation_year_to_date") %>%
+    colnames()
+}
+if (params$temporal_res == "monthly") {
+  cols_to_keep <-
+    c("plant_id",
+      "prime_mover",
+      "generator_id",
+      "overwrite")
+  
+  cols_to_remove <-
+    c("generation_ann_diff",
+      "generation_oz_diff",
+      "generation_oz",
+      "generation_ann",
+      "net_generation_year_to_date"
+    )
+}
+
+
 eia_gen_genfuel_diff <- 
   gen_distributed %>% 
   group_by(plant_id, prime_mover) %>% 
-  summarize(tot_generation_ann_gen = sum(generation_ann, na.rm = TRUE), # summing generation to plant/pm level to compare to gen_fuel file
-            tot_generation_oz_gen = sum(generation_oz, na.rm = TRUE)) %>% 
+  # summarize(tot_generation_ann_gen = sum(generation_ann, na.rm = TRUE), # summing generation to plant/pm level to compare to gen_fuel file (original ver.)
+  #           tot_generation_oz_gen = sum(generation_oz, na.rm = TRUE)) %>%
+  mutate(tot_generation_ann_gen = sum(generation_ann, na.rm = TRUE), # summing generation to plant/pm level to compare to gen_fuel file (monthly ver.)
+         tot_generation_oz_gen = sum(generation_oz, na.rm = TRUE)) %>%
   ungroup() %>% 
   left_join(eia_gen_fuel_generation_sum, by = c("plant_id", "prime_mover")) %>% # joining with gen_fuel file
   mutate(abs_diff_generation_ann = abs(tot_generation_ann_fuel - tot_generation_ann_gen), # calculating absolute differences between generation values
@@ -284,7 +324,10 @@ eia_gen_genfuel_diff <-
          perc_diff_generation_oz = if_else(abs_diff_generation_oz == 0, 0, 
                                            abs_diff_generation_oz / tot_generation_oz_fuel),
          overwrite = if_else(perc_diff_generation_ann > 0.001, "overwrite", "EIA-923 Generator File")) %>% 
-  filter(tot_generation_ann_fuel != 0)
+  filter(tot_generation_ann_fuel != 0) %>%
+  select(all_of(cols_to_keep), all_of(contains("generation"))) %>%
+  select(-all_of(cols_to_remove)) %>%
+  distinct()
 
 
 ## Where overwrite == overwrite, we distribute the the generation figures in the EIA-923 Gen and Fuel file and 
@@ -385,15 +428,15 @@ if(nrow(generators_combined) > (nrow(gen_dist_no_dec_overwritten) + nrow(decembe
   print(glue::glue("There are {nrow(gen_dist_no_dec_overwritten)} generators that are not overwritten or use December generation data. 
                    There are {nrow(december_and_overwritten)} generators. The dataframe with all generators {nrow(generators_combined)} generators."))
   
-  check_dupe_ids <- 
+  dup_ids <- 
     generators_combined %>%
     count(plant_id, generator_id, sort =  TRUE) %>% 
     filter(n > 1) %>% 
     mutate(plant_gen = glue::glue("Plant :{plant_id}, Generator: {generator_id}")) %>% 
-    pull(plant_unit) %>% 
+    pull(plant_gen) %>% 
     str_c(., collapse = "\n")
   
-  stop(glue::glue("There are more rows than there should be in the generators_combined dataframe. There are multiple rows for the following units: {\n dupe_ids}.\n Check for possible sources of duplicate generator_ids."))
+  stop(glue::glue("There are more rows than there should be in the generators_combined dataframe. There are multiple rows for the following units: {\n dup_ids}.\n Check for possible sources of duplicate generator_ids."))
 } else{
   print("The number of rows in generators_combined matches the sum of generators that are overwritten, generators that use December generation, and all other generators.")
 }
