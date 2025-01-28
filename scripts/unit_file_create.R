@@ -87,7 +87,27 @@ if (params$temporal_res == "annual") {
       "hg_controls",
       "year_online"
     )} 
-if (params$temporal_res == "monthly") { #### CHECK update this once EPA data is in monthly format #####
+if (params$temporal_res == "monthly") { 
+  
+  # select and rename monthly columns for each monthly value in EPA data
+  operating_hours_monthly <- paste0("operating_time_count_", tolower(month.name))
+  operating_hours_monthly <- setNames(operating_hours_monthly, paste0("operating_hours_", tolower(month.name)))
+  
+  heat_input_monthly <- paste0("heat_input_mmbtu_", tolower(month.name))
+  heat_input_monthly <- setNames(heat_input_monthly, paste0("heat_input_", tolower(month.name)))
+  
+  nox_monthly <- paste0("nox_mass_short_tons_", tolower(month.name))
+  nox_monthly <- setNames(nox_monthly, paste0("nox_mass_", tolower(month.name)))
+  
+  so2_monthly <- paste0("so2_mass_short_tons_", tolower(month.name))
+  so2_monthly <- setNames(so2_monthly, paste0("so2_mass_", tolower(month.name)))
+  
+  co2_monthly <- paste0("co2_mass_short_tons_", tolower(month.name))
+  co2_monthly <- setNames(co2_monthly, paste0("co2_mass_", tolower(month.name)))
+  
+  hg_monthly <- paste0("hg_mass_lbs_", tolower(month.name))
+  hg_monthly <- setNames(hg_monthly, paste0("hg_mass_", tolower(month.name)))
+  
   epa_vars_to_keep <- 
     c("year",
       "plant_state",
@@ -101,14 +121,20 @@ if (params$temporal_res == "monthly") { #### CHECK update this once EPA data is 
       "nameplate_capacity",
       "unit_type" = "unit_type_abb",
       "operating_hours" = "operating_time_count",
+      operating_hours_monthly, 
       "heat_input" = "heat_input_mmbtu",
+      heat_input_monthly, 
       "heat_input_oz" = "heat_input_mmbtu_ozone",
       "nox_mass" = "nox_mass_short_tons",
+      nox_monthly, 
       "nox_oz_mass" = "nox_mass_short_tons_ozone",
       "so2_mass" = "so2_mass_short_tons",
+      so2_monthly, 
       "so2_mass_oz" = "so2_mass_short_tons_ozone",
       "co2_mass" = "co2_mass_short_tons",
+      co2_monthly, 
       "hg_mass" = "hg_mass_lbs",
+      hg_monthly, 
       "heat_input_source",
       "heat_input_oz_source",
       "nox_source",
@@ -119,9 +145,8 @@ if (params$temporal_res == "monthly") { #### CHECK update this once EPA data is 
       "so2_controls",
       "nox_controls",
       "hg_controls",
-      "year_online"
+      "year_online" 
     )}
-
 
 
 if(file.exists(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))) { 
@@ -528,9 +553,9 @@ eia_fuel_consum_fuel_type <- # summing fuel and consum to PM and fuel_type level
             fuel_consum_923_nonoz = sum(unit_consum_nonoz, na.rm = TRUE),
             fuel_consum_923_oz = sum(unit_consum_oz, na.rm = TRUE),
             fuel_consum_923_ann = sum(total_fuel_consumption_quantity, na.rm = TRUE), # consumption in quantity is referred to as "fuel consumption"
-            across(.cols = c(all_of(heat_923_nonoz_months), all_of(heat_923_oz_months)), # rename monthly heat input columns 
+            across(.cols = c(all_of(heat_923_nonoz_months), all_of(heat_923_oz_months)), 
                    .fns = ~ sum(., na.rm = TRUE), 
-                   .names = "{str_replace(.col, 'tot_mmbtu_', 'heat_input_923_')}"), 
+                   .names = "{str_replace(.col, 'tot_mmbtu_', 'heat_input_923_')}"), # rename monthly heat input columns 
             across(.cols = c(all_of(consum_923_nonoz_months), all_of(consum_923_oz_months)), 
                    .fns = ~ sum(., na.rm = TRUE), 
                    .names = "{str_replace(.col, 'quantity_', 'fuel_consum_923_')}") # rename monthly fuel consumption columns
@@ -538,6 +563,7 @@ eia_fuel_consum_fuel_type <- # summing fuel and consum to PM and fuel_type level
   select(plant_id, prime_mover, fuel_type, all_of(temporal_res_eia_cols))
 
 # distributing heat input from only ozone reporting plants to non-ozone months
+##### CHECK do we want to equally distribute heat input to non-ozone months when doing monthly rates? ########
 epa_oz_reporters_dist <- 
   epa_oz_reporters %>%
   group_by(plant_id, prime_mover) %>% 
@@ -1390,8 +1416,7 @@ estimated_so2_emissions_content <-
               mutate(botfirty = if_else(botfirty %in% c("null", "N/A"), NA_character_, botfirty)) %>% # fill null or N/A botfirty with NA
                        distinct(), 
             by = c("prime_mover", "botfirty", "primary_fuel_type")) %>%
-  mutate(#avg_sulfur_content = if_else(so2_flag == "S" & !is.na(so2_flag), avg_sulfur_content, 1), # if so2_flag is not S, change avg_sulfur_content to 1
-         across(.cols = contains("sulfur_content"), 
+  mutate(across(.cols = contains("sulfur_content"), 
                 .fns = ~ if_else(so2_flag == "S" & !is.na(so2_flag), .x, 1)), # if so2_flag is not S, change avg_sulfur_content to 1
          across(.cols = contains("sulfur_content"), 
                 .fns = ~ if_else(unit_flag == "PhysicalUnits", 
@@ -1465,25 +1490,6 @@ estimated_so2_emissions_content_pr <- # estimate SO2 mass for PR coal plants
   select(plant_id, unit_id = generator_id, prime_mover, so2_mass, so2_source) 
 
 ### Join sulfur emissions to all units df  --------
-  
-if (params$temporal_res == "monthly") { # add empty monthly columns to all_units DF
-  #### CHECK - I think these will be created in EPA data already #######
-  all_units_4 <- 
-    cbind(all_units_4, 
-          so2_mass_january = NA_real_, 
-          so2_mass_february = NA_real_, 
-          so2_mass_march = NA_real_, 
-          so2_mass_april = NA_real_, 
-          so2_mass_may = NA_real_, 
-          so2_mass_june = NA_real_, 
-          so2_mass_july = NA_real_, 
-          so2_mass_august = NA_real_, 
-          so2_mass_september = NA_real_,
-          so2_mass_october = NA_real_, 
-          so2_mass_november = NA_real_, 
-          so2_mass_december = NA_real_
-          )
-}
 
 all_units_5 <- # update all units
   all_units_4 %>%
@@ -1534,11 +1540,7 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
              by = c("plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>%
   rows_update(og_fuel_types_update %>% select(plant_id, unit_id, "primary_fuel_type" = fuel_code), # convert fuel type back to more specific gas to calculate emissions
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  mutate(#fuel_consumption = fuel_consum_923_ann * prop,
-         #fuel_consumption_oz = fuel_consum_923_oz * prop,
-         #heat_input = heat_input_923_ann * prop,
-         #heat_input_oz = heat_input_923_oz * prop, 
-         across(.cols = all_of(temporal_res_eia_cols), 
+  mutate(across(.cols = all_of(temporal_res_eia_cols), 
                 .fns = ~ .x * prop, 
                 .names = "{str_replace(.col, '_923', '')}")) %>% 
   select(-c(contains("923")), -c(contains("nonoz"))) %>% 
@@ -1605,10 +1607,7 @@ so2_emissions_pu_coal <-
                    "botfirty",
                    "primary_fuel_type")) %>%
   mutate(avg_sulfur_content = if_else(so2_flag == "S" & !is.na(so2_flag), avg_sulfur_content, 1),
-         #so2_mass = if_else(unit_flag == "PhysicalUnits",
-        #                    so2_ef * avg_sulfur_content * fuel_consumption / 2000, 
-        #                    so2_ef * avg_sulfur_content * heat_input / 2000)) %>% 
-        across(.cols = contains("fuel_consum"), 
+         across(.cols = contains("fuel_consum"), 
                .fns = ~ if_else(unit_flag == "PhysicalUnits", 
                                 so2_ef * avg_sulfur_content * .x / 2000,
                                 so2_ef * avg_sulfur_content * get(str_replace(cur_column(), "fuel_consum", "heat_input")) / 2000), 
@@ -1633,10 +1632,7 @@ so2_emissions_pu_noncoal <-
                    "botfirty",
                    "primary_fuel_type")) %>%
   mutate(avg_sulfur_content = if_else(so2_flag == "S" & !is.na(so2_flag), avg_sulfur_content, 1),
-         #so2_mass = if_else(unit_flag == "PhysicalUnits",
-        #                    so2_ef * avg_sulfur_content * fuel_consumption / 2000, 
-        #                    so2_ef * avg_sulfur_content * heat_input / 2000)) %>% 
-        across(.cols = contains("fuel_consum"), 
+         across(.cols = contains("fuel_consum"), 
                .fns = ~ if_else(unit_flag == "PhysicalUnits", 
                                 so2_ef * avg_sulfur_content * .x / 2000,
                                 so2_ef * avg_sulfur_content * get(str_replace(cur_column(), "fuel_consum", "heat_input")) / 2000), 
@@ -1668,9 +1664,7 @@ so2_emissions_heat_coal <-
                    "botfirty",
                    "primary_fuel_type")) %>%
   mutate(avg_sulfur_content = if_else(so2_flag == "S" & !is.na(so2_flag), avg_sulfur_content, 1),
-         #so2_mass = if_else(unit_flag == "HeatInput",
-        #                    so2_ef * avg_sulfur_content * heat_input / 2000, 0)) %>%
-        across(.cols = contains("heat_input"), 
+         across(.cols = contains("heat_input"), 
                .fns = ~ if_else(unit_flag == "HeatInput", 
                                 so2_ef * avg_sulfur_content * .x / 2000, 0), 
                .names = "{str_replace(.col, 'heat_input', 'so2_mass')}")) %>% 
@@ -1700,9 +1694,7 @@ so2_emissions_heat_noncoal <-
                    "botfirty",
                    "primary_fuel_type")) %>%
   mutate(avg_sulfur_content = if_else(so2_flag == "S" & !is.na(so2_flag), avg_sulfur_content, 1),
-         #so2_mass = if_else(unit_flag == "HeatInput",
-        #                    so2_ef * avg_sulfur_content * heat_input / 2000, 0)) %>%
-        across(.cols = contains("heat_input"), 
+         across(.cols = contains("heat_input"), 
                .fns = ~ if_else(unit_flag == "HeatInput", 
                                 so2_ef * avg_sulfur_content * .x / 2000, 0), 
                .names = "{str_replace(.col, 'heat_input', 'so2_mass')}")) %>% 
@@ -1739,8 +1731,7 @@ co2_emissions <-
   inner_join(co2_ef %>%
               filter(!is.na(eia_fuel_code)) %>%
               select(eia_fuel_code, co2_ef), by = c("primary_fuel_type" = "eia_fuel_code")) %>%
-  mutate(#co2_mass = heat_input * co2_ef, 
-         across(.col = c(all_of(temporal_res_heat_cols), -contains("oz")), 
+  mutate(across(.col = c(all_of(temporal_res_heat_cols), -contains("oz")), 
                 .fns = ~ .x * co2_ef, 
                 .names = "{str_replace(.col, 'heat_input', 'co2_mass')}"), 
          co2_source = "Estimated using emissions factor") %>%
@@ -1748,24 +1739,6 @@ co2_emissions <-
   filter(!is.na(co2_mass))
 
 ### Updating units with estimated CO2 emissions --------
-
-if (params$temporal_res == "monthly") { # add empty monthly columns to all_units DF
-  #### CHECK - I think these will be created in EPA data already #######
-  all_units_6 <- 
-    cbind(all_units_6, 
-          co2_mass_january = NA_real_, 
-          co2_mass_february = NA_real_, 
-          co2_mass_march = NA_real_, 
-          co2_mass_april = NA_real_, 
-          co2_mass_may = NA_real_, 
-          co2_mass_june = NA_real_, 
-          co2_mass_july = NA_real_, 
-          co2_mass_august = NA_real_, 
-          co2_mass_september = NA_real_,
-          co2_mass_october = NA_real_, 
-          co2_mass_november = NA_real_, 
-          co2_mass_december = NA_real_)
-}
 
 all_units_7 <- 
   all_units_6 %>% 
@@ -1779,8 +1752,8 @@ all_units_7 <-
 nox_emissions_ann <- 
   all_units_7 %>% select(plant_id, unit_id, prime_mover, all_of(temporal_res_heat_cols)) %>% 
   inner_join(nox_rates_ann) %>% 
-  mutate(#nox_mass = (nox_rate_ann * heat_input) / 2000,
-         across(.cols = c(all_of(temporal_res_heat_cols), -contains("oz")), 
+  mutate(# calculate NOx emissions for each month or annual level based on params$temporal_res
+         across(.cols = c(all_of(temporal_res_heat_cols), -contains("oz")),  
                 .fns = ~ nox_rate_ann * .x / 2000, 
                 .names = "{str_replace(.col, 'heat_input', 'nox_mass')}"),
          nox_source = "Estimated based on unit-level NOx emission rates") %>%
@@ -1794,24 +1767,6 @@ nox_emissions_oz <-
          nox_oz_source = "Estimated based on unit-level NOx ozone season emission rates") %>%
   select(-nox_rate_oz) %>% 
   filter(!is.na(nox_oz_mass))
-
-if (params$temporal_res == "monthly") { # add empty monthly columns to all_units DF
-  #### CHECK - I think these will be created in EPA data already #######
-  all_units_7 <- 
-    cbind(all_units_7, 
-          nox_mass_january = NA_real_, 
-          nox_mass_february = NA_real_, 
-          nox_mass_march = NA_real_, 
-          nox_mass_april = NA_real_, 
-          nox_mass_may = NA_real_, 
-          nox_mass_june = NA_real_, 
-          nox_mass_july = NA_real_, 
-          nox_mass_august = NA_real_, 
-          nox_mass_september = NA_real_,
-          nox_mass_october = NA_real_, 
-          nox_mass_november = NA_real_, 
-          nox_mass_december = NA_real_)
-}
 
 nox_emissions_rates <- # update all_units DF
   all_units_7 %>%
@@ -1842,7 +1797,7 @@ nox_emissions_factor <-
                    "botfirty",
                    "primary_fuel_type")) %>%
   group_by(plant_id, unit_id) %>%
-  mutate(#nox_mass = (fuel_consumption * nox_ef) / 2000,
+  mutate(# calculate NOx emissions across months or annually based on params$temporal_res
          across(.cols = c(contains("fuel_consum"), -contains("oz")), 
                 .fns = ~ .x * nox_ef / 2000, 
                 .names = "{str_replace(.col, 'fuel_consum', 'nox_mass')}"), 
@@ -1888,11 +1843,6 @@ emission_factors_nox_hi <-
 
 nox_emissions_heat_input <- 
   nox_emissions_rates %>%
-  #rows_update(all_units_7 %>% # update NA heat inputs with those from the unit file
-  #              select(plant_id, unit_id, prime_mover, heat_input) %>% 
-  #              filter(!is.na(heat_input)) %>% 
-  #              distinct(), 
-  #            by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
   inner_join(emission_factors_nox_hi %>%
               select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
@@ -1900,7 +1850,7 @@ nox_emissions_heat_input <-
                    "primary_fuel_type")) %>%
   select(plant_id, unit_id, primary_fuel_type, prime_mover, contains("heat_input"), nox_ef, nox_ef, nox_ef_num, nox_ef_denom) %>%
   group_by(plant_id, unit_id, primary_fuel_type, nox_ef, nox_ef_num, nox_ef_denom) %>%
-  mutate(#nox_mass = (heat_input * nox_ef) / 2000,
+  mutate(# calculate NOx emissions across months or annually based on params$temporal_res
          across(.cols = c(all_of(temporal_res_heat_cols), -contains("oz")), 
                 .fns = ~ .x * nox_ef / 2000, 
                 .names = "{str_replace(.col, 'heat_input', 'nox_mass')}"),
@@ -1918,11 +1868,6 @@ nox_emissions_heat_input <-
 
 nox_oz_emissions_heat_input <- 
   nox_emissions_rates %>%
-  #rows_update(all_units_7 %>% # update NA heat inputs with those from the unit file
-  #              select(plant_id, unit_id, prime_mover, heat_input) %>% 
-  #              filter(!is.na(heat_input)) %>% 
-  #              distinct(), 
-  #            by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
   left_join(emission_factors_nox_hi %>% 
               select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
             by = c("prime_mover",
@@ -1972,13 +1917,16 @@ geo_emissions <-
   rows_patch(nrel_geo_type %>% filter(table_flag == "old"), # gap fill with old geothermal data for units that do not have a geo_code in newest data table
                 by = "plant_id", unmatched = "ignore") %>% 
   left_join(geo_emission_factors , by = "geo_type_code") %>% 
-  mutate(#nox_mass = (heat_input * nox_ef_lb_mmbtu) / 2000,
-         #nox_oz_mass = (heat_input_oz * nox_ef_lb_mmbtu) / 2000, 
+  mutate(# calculate geothermal emissions 
          across(.cols = all_of(temporal_res_heat_cols), 
                 .fns = ~ .x * nox_ef_lb_mmbtu / 2000, 
                 .names = "{str_replace(.col, 'heat_input', 'nox_mass')}"), 
-         so2_mass = (heat_input * so2_ef_lb_mmbtu) / 2000, 
-         co2_mass = (heat_input * co2_ef_lb_mmbtu) / 2000, 
+         across(.cols = all_of(temporal_res_heat_cols), 
+                .fns = ~ .x * so2_ef_lb_mmbtu / 2000, 
+                .names = "{str_replace(.col, 'heat_input', 'so2_mass')}"),
+         across(.cols = all_of(temporal_res_heat_cols), 
+                .fns = ~ .x * co2_ef_lb_mmbtu / 2000, 
+                .names = "{str_replace(.col, 'heat_input', 'co2_mass')}"),
          nox_source = if_else(!is.na(nox_mass), "Estimated using emissions factor", NA_character_), 
          nox_oz_source = if_else(!is.na(nox_mass_oz), "Estimated using emissions factor", NA_character_), 
          so2_source = if_else(!is.na(so2_mass), "Estimated using emissions factor", NA_character_), 
@@ -1987,8 +1935,8 @@ geo_emissions <-
          unit_id, 
          contains("nox_mass"), 
          "nox_oz_mass" = nox_mass_oz, 
-         contains("so2_mass"), 
-         contains("co2_mass"), 
+         contains("so2_mass"), -so2_mass_oz, 
+         contains("co2_mass"), -co2_mass_oz, 
          nox_source, 
          nox_oz_source, 
          so2_source, 
@@ -2232,6 +2180,7 @@ if (params$temporal_res == "annual") {
 }
 
 if (params$temporal_res == "monthly") {
+  ###### CHECK need to insert final vars here. Waiting on list #########
   # insert final vars here 
 }
 
