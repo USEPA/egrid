@@ -157,7 +157,7 @@ emissions_data_r <-
          across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
   ungroup() %>%
   distinct() %>% # removing duplicate rows that aren't needed after ozone calculation
-  pivot_wider(id_cols = c(emissions_id_cols, year, reporing_months, reporting_frequency, paste0(cols_to_sum, "_annual"), paste0(cols_to_sum, "_ozone")), # pivot
+  pivot_wider(id_cols = c(emissions_id_cols, year, reporting_months, reporting_frequency, paste0(cols_to_sum, "_annual"), paste0(cols_to_sum, "_ozone")), # pivot
               names_from = "month",
               values_from = all_of(cols_to_sum),
               names_glue = "{.value}_{month}") %>%
@@ -207,7 +207,7 @@ mats_data_r <-
   ungroup() %>%
   distinct() %>%
   pivot_wider(id_cols = c("state", "facility_name", "facility_id", "unit_id", "primary_fuel_type", "secondary_fuel_type"), # pivot
-              names_from = "month",
+              names_from = "month", 
               values_from = "hg_mass_lbs",
               names_glue = "{.value}_{month}") %>%
   mutate(hg_mass_lbs = rowSums(select(.,starts_with("hg_mass_lbs_")), na.rm=TRUE)) # sum all months to create annual value
