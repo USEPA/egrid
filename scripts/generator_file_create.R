@@ -101,6 +101,9 @@ if(file.exists(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS
 } else { 
   stop("epa_clean.RDS does not exist. Run data_load_epa.R and data_clean_epa.R to obtain.")}
 
+# Load necessary functions
+source("scripts/functions/function_coalesce_join_vars.R")
+
 # Create lookup table for generator IDs with leading zeroes ------------
 # some IDs in EIA-923 do not have leading zeroes, but should match to generators in EIA-860 that have leading zeroes
 # we do this to match more generators between EIA-923 and EIA-860
@@ -280,7 +283,7 @@ if (params$temporal_res == "annual") {
     c("plant_id",
       "prime_mover",
       "overwrite")
-  
+
   cols_to_remove <-
     gen_distributed %>%
     select(all_of(contains(month.name)),
@@ -338,13 +341,27 @@ eia_gen_genfuel_diff <-
 
 # creating vector of column names that are essentials for modified dataframes. 
 # These are used to reduce clutter in dfs before they are combined in final structure below. 
-key_columns <- 
-  c("plant_id", 
-    "prime_mover",
-    "generator_id",
-    "generation_ann",
-    "generation_oz",
-    "gen_data_source")
+
+if (params$temporal_res == "annual") {
+  key_columns <- 
+    c("plant_id", 
+      "prime_mover",
+      "generator_id",
+      "generation_ann",
+      "generation_oz",
+      "gen_data_source")
+}
+
+if (params$temporal_res == "monthly") {
+  key_columns <- 
+    c("plant_id", 
+      "prime_mover",
+      "generator_id",
+      "generation_ann",
+      "generation_oz",
+      "gen_data_source",
+      paste0("net_generation_", tolower(month.name)))
+}
 
 gen_overwrite <- 
   eia_gen_genfuel_diff %>% 
@@ -405,7 +422,8 @@ december_and_overwritten <-
     gen_overwrite) %>% 
   left_join(eia_gen_generation %>% # merging all columns back in
               select(-c(starts_with("generation"), gen_data_source)),
-            by = c("plant_id", "generator_id", "prime_mover"))  
+            by = c("plant_id", "generator_id", "prime_mover"))  %>%
+  coalesce_join_vars() # added MZ check
 
 print(glue::glue("{length(check_dup_ids)} generators are in both december_netgen and gen_overwrite. We default to gen_overwrite."))
 print(glue::glue("{nrow(december_and_overwritten)} generator generation data are either overwritten from EIA-923 Generator and Fuel or from December generation."))
@@ -484,6 +502,12 @@ final_vars <-
       "GENERSRC" = "gen_data_source",
       "GENYRONL" = "operating_year",
       "GENYRRET" = "retirement_year")
+
+if (params$temporal_res == "monthly") {
+  final_vars <-
+    c(final_vars, 
+      paste0("net_generation_", tolower(month.name)))
+}
 
 generators_formatted <-
   generators_edits %>%
