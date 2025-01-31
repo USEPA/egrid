@@ -2181,7 +2181,53 @@ if (params$temporal_res == "annual") {
 
 if (params$temporal_res == "monthly") {
   ###### CHECK need to insert final vars here. Waiting on list #########
-  # insert final vars here 
+  operating_hours_monthly_final <- paste0("operating_hours_", tolower(month.name))
+  heat_input_monthly_final <- paste0("heat_input_", tolower(month.name))
+  nox_mass_monthly_final <- paste0("nox_mass_", tolower(month.name))
+  so2_mass_monthly_final <- paste0("so2_mass_", tolower(month.name))
+  co2_mass_monthly_final <- paste0("co2_mass_", tolower(month.name))
+  hg_mass_monthly_final <- paste0("hg_mass_", tolower(month.name))
+
+  final_vars <-
+    c("SEQUNT" = "sequnt",
+      "YEAR" = "year",
+      "PSTATABB" = "plant_state",
+      "PNAME" = "plant_name",
+      "ORISPL" = "plant_id",
+      "UNITID" = "unit_id",
+      "PRMVR" =  "prime_mover",
+      "UNTOPST" = "operating_status",
+      "CAPDFLAG" = "capd_flag", 
+      "PRGCODE" = "program_code", 
+      "BOTFIRTY" = "botfirty", 
+      "NUMGEN" = "num_generators", 
+      "FUELU1" = "primary_fuel_type",
+      "HRSOP" = "operating_hours", 
+      operating_hours_monthly_final,
+      "HTIAN" = "heat_input", 
+      "HTIOZ" = "heat_input_oz",
+      heat_input_monthly_final, 
+      "NOXAN" = "nox_mass",
+      "NOXOZ" = "nox_oz_mass", 
+      nox_mass_monthly_final,
+      "SO2AN" = "so2_mass",
+      so2_mass_monthly_final, 
+      "CO2AN" = "co2_mass",
+      co2_mass_monthly_final, 
+      "HGAN" = "hg_mass",
+      hg_mass_monthly_final, 
+      "HTIANSRC" = "heat_input_source",
+      "HTIOZSRC" = "heat_input_oz_source",
+      "NOXANSRC" = "nox_source", 
+      "NOXOZSRC" = "nox_oz_source", 
+      "SO2SRC" = "so2_source", 
+      "CO2SRC" = "co2_source", 
+      "HGSRC" = "hg_source", 
+      "SO2CTLDV" = "so2_controls", 
+      "NOXCTLDV" = "nox_controls", 
+      "HGCTLDV" = "hg_controls_flag", 
+      "UNTYRONL" = "year_online", 
+      "STACKHT" = "stack_height")
 }
 
 units_formatted <-
