@@ -269,11 +269,13 @@ plant_gen <-
             # assign NA if all values are NA
             nameplate_capacity = if_else(all(is.na(nameplate_capacity)), 
                                          NA_real_, sum(nameplate_capacity, na.rm = TRUE)), # units: MW
-            generation_ann = if_else(all(is.na(generation_ann)), 
-                                     NA_real_, sum(generation_ann, na.rm = TRUE)), # units: MWh
-            generation_oz = if_else(all(is.na(generation_oz)), 
-                                    NA_real_, sum(generation_oz, na.rm = TRUE)), # units: MWh
-            fuel_code = paste_concat(fuel_code)) %>% 
+            #generation_ann = if_else(all(is.na(generation_ann)), 
+             #                        NA_real_, sum(generation_ann, na.rm = TRUE)), # units: MWh
+            #generation_oz = if_else(all(is.na(generation_oz)), 
+             #                       NA_real_, sum(generation_oz, na.rm = TRUE)), # units: MWh
+            fuel_code = paste_concat(fuel_code), 
+            across(.cols = starts_with("generation"), 
+                   .fns = ~ sum(.x, na.rm = TRUE))) %>% 
   ungroup()
 
 # Combustion heat input ---------------------------------------
@@ -1224,12 +1226,26 @@ plant_file_16 <-
 # Electricity allocation is a ratio of emissions that are attributed to electricity
 # Power to heat ratio is is the ratio of heat value of electricity genreation to the facility's useful thermal output
 
+if (params$temporal_res == "annual") { 
+  temporal_res_gen_fuel <- 
+    c("total_fuel_consumption_mmbtu", 
+      "elec_fuel_consumption_mmbtu")}
+if (params$temporal_res == "monthly") { 
+  temporal_res_gen_fuel <- 
+    c("total_fuel_consumption_mmbtu", 
+      "elec_fuel_consumption_mmbtu", 
+      paste0("tot_mmbtu_", tolower(month.name)), 
+      paste0("elec_mmbtu_", tolower(month.name)))}
+
+
 # sum total fuel consumption and electric fuel consumption to the plant level
 eia_923_thermal_output <- 
   eia_923$generation_and_fuel_combined %>% 
   group_by(plant_id) %>%
-  summarize(total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE),
-            elec_fuel_consumption_mmbtu = sum(elec_fuel_consumption_mmbtu, na.rm = TRUE)) %>% ungroup()
+  summarize(#total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE),
+            #elec_fuel_consumption_mmbtu = sum(elec_fuel_consumption_mmbtu, na.rm = TRUE), 
+            across(.cols = all_of(temporal_res_gen_fuel), 
+                   .fns = ~ sum(.x, na.rm = TRUE))) %>% ungroup()
 
 chp_plants <- # identify CHP plants from EIA-860, EIA-923, EPA CHP database, and the previous eGRID year data
   eia_860$combined %>% 
@@ -1254,24 +1270,34 @@ chp <-
   chp_plants %>% 
   left_join(xwalk_oris_epa %>% filter(!epa_plant_id %in% chp_plants$plant_id), by = c("plant_id" = "eia_plant_id")) %>% 
   left_join(eia_923_thermal_output) %>%
-  mutate(
-    useful_thermal_output = 0.8 * (total_fuel_consumption_mmbtu - elec_fuel_consumption_mmbtu), # calculate useful thermal output
-    # 0.8 is the assumed efficiency factor from the combustion of the consumed fuel
+  mutate( # calculate useful thermal output
+    across(.cols = c(all_of(temporal_res_gen_fuel), -contains("elec")), 
+           .fns = ~ 0.8 * (.x - get(str_replace_all(cur_column(), c("total" = "elec", "tot" = "elec")))), # 0.8 is the assumed efficiency factor from the combustion of the consumed fuel
+           .names = "{str_replace_all(.col, c('tot_mmbtu' = 'useful_thermal_output', 
+                                              'total_fuel_consumption_mmbtu' = 'useful_thermal_output'))}"), 
     chp_flag = "Yes", 
     plant_id = if_else(!is.na(epa_plant_id), epa_plant_id, plant_id)) %>% # assign CHP flags to all plants in this object
-  select(plant_id, useful_thermal_output, chp_flag) %>% 
-  left_join(plant_file_14 %>% select(plant_id, generation_ann), by = c("plant_id")) %>% 
-  mutate(power_heat_ratio = if_else(useful_thermal_output == 0 | is.na(useful_thermal_output), 
-                                 NA_real_,
-                                 3.413 * generation_ann / useful_thermal_output), # calculate power to heat ratio
-                                 # 3.413 converts MWh to MMBtu
-         elec_allocation = if_else(useful_thermal_output != 0, # calculate electric allocation
-                                   3.413 * generation_ann / (0.75 * useful_thermal_output + 3.413 * generation_ann), 
-                                   # 0.75 is an efficiency factor that accounts for once the fuel is combusted, about 75% of useful thermal output can be used for other purposes
-                                   1), 
-         elec_allocation = if_else(elec_allocation < 0, 0, elec_allocation), 
-         elec_allocation = if_else(elec_allocation > 1, 1, elec_allocation)) %>% 
-  select(-generation_ann)
+  select(plant_id, contains("useful_thermal_output"), chp_flag) %>% 
+  left_join(plant_file_14 %>% select(plant_id, starts_with("generation"), "generation" = generation_ann), by = c("plant_id")) %>% 
+  mutate(# calculate power to heat ratio
+         across(.cols = starts_with("useful_thermal_output"), 
+                .fns = ~ if_else(.x == 0 | is.na(.x), 
+                                 NA_real_, 
+                                 3.413 * get(str_replace(cur_column(), "useful_thermal_output", "generation"))), # 3.413 converts MWh to MMBtu
+                .names = "{str_replace(.col, 'useful_thermal_output', 'power_heat_ratio')}"),
+         # calculate electric allocation
+         across(.cols = starts_with("useful_thermal_output"), 
+                .fns = ~ if_else(.x != 0, 
+                                 3.413 *  get(str_replace(cur_column(), "useful_thermal_output", "generation")) / 
+                                   (0.75 * .x + 3.413 * get(str_replace(cur_column(), "useful_thermal_output", "generation"))), # 0.75 is an efficiency factor that accounts for once the fuel is combusted, about 75% of useful thermal output can be used for other purposes
+                                 1), 
+                .names = "{str_replace(.col, 'useful_thermal_output', 'elec_allocation')}"), 
+         # check and re-assign electric allocation if it is less than 0 or greater than 1
+         across(.cols = starts_with("elec_allocation"), 
+                .fns = ~ if_else(.x < 0, 0, .x)), 
+         across(.cols = starts_with("elec_allocation"), 
+                .fns = ~ if_else(.x > 1, 1, .x))) %>% 
+  select(-starts_with("generation"))
 
 plant_file_17 <- 
   plant_file_16 %>% 
@@ -1285,20 +1311,28 @@ plant_chp <-
   filter(chp_flag == "Yes") %>% 
   # rename adjusted emission masses to include biomass adjustments, since we are now applying CHP adjustments
   rename_with(.fn = function(.x){paste0(.x, "_bio_adj")}, 
-              c(contains("mass"), -contains("unadj"), -contains("bio"))) %>% 
-  mutate(# calculate adjusted values 
+              c(contains("mass"), -contains("unadj"), -contains("bio"), -contains("hg"))) %>% 
+  mutate(elec_allocation_oz = elec_allocation, # assign ozone elec allocation to be the same
+         # calculate adjusted values 
          # calculate adjusted heat input 
          across(.cols = c(contains("unadj_heat_input"), -contains("combust"), -contains("source")), 
-                .fns = ~ (elec_allocation * get(str_replace(cur_column(), "unadj_heat_input", "unadj_combust_heat_input"))) + 
-                       (.x - get(str_replace(cur_column(), "unadj_heat_input", "unadj_combust_heat_input"))), 
+                .fns = ~ (get(str_replace(cur_column(), "unadj_heat_input", "elec_allocation")) * get(str_replace(cur_column(), "unadj_heat_input", "unadj_combust_heat_input"))) + 
+                          (.x - get(str_replace(cur_column(), "unadj_heat_input", "unadj_combust_heat_input"))), 
                 .names = "{str_replace(.col, 'unadj_', '')}"), 
          # calculate adjusted combust heat input
          across(.cols = contains("unadj_combust_heat_input"), 
-                .fns = ~ elec_allocation * .x, 
+                .fns = ~ get(str_replace(cur_column(), "unadj_combust_heat_input", "elec_allocation")) * .x, 
                 .names = "{str_replace(.col, 'unadj_', '')}"), 
          # calculate adjusted emission mass 
          across(.cols = contains("bio_adj"), 
-                .fns = ~ elec_allocation * .x, 
+                .fns = ~ .x * get(str_replace_all(cur_column(), c("nox_mass" = "elec_allocation",
+                                                                  "nox_oz_mass" = "elec_allocation", 
+                                                                  "so2_mass" = "elec_allocation", 
+                                                                  "co2e_mass" = "elec_allocation", 
+                                                                  "co2_mass" = "elec_allocation", 
+                                                                  "n2o_mass" = "elec_allocation", 
+                                                                  "ch4_mass" = "elec_allocation", 
+                                                                  "_bio_adj" = ""))), 
                 .names = "{str_replace(.col, '_bio_adj', '')}"),
          # calculate CHP adjustment values
          # CHP adjustement combust heat input
@@ -1314,6 +1348,8 @@ plant_chp <-
                 .fns = ~ if_else(.x > get(str_replace(cur_column(), "chp", "unadj")) | 
                                    .x < 0, get(str_replace(cur_column(), "chp", "unadj")), .x))) %>% 
   select(-contains("bio_adj"))
+
+######################### 2/3/2025 start here ########################
 
 plant_file_18 <- 
   plant_file_17 %>% 
