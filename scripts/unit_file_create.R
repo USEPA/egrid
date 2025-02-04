@@ -174,6 +174,13 @@ if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean
 ## Crosswalks and static tables ---------
 # for each crosswalk or static table, we specify the column types (ex: character or numeric) to avoid misread values
 
+# load in name matches for shorthand to snake_case
+if(file.exists("data/static_tables/name_matches.RData")) {
+  load("data/static_tables/name_matches.RData")
+} else { 
+  source("scripts/name_matching.R")
+  load("data/static_scripts/name_matches.RData")}
+
 # Power Sector Data Crosswalk matches units between EPA and EIA data sets
 # this will be used to help update Coal units in EPA and assign correct primary fuel type
 xwalk_eia_epa <- read_csv("data/static_tables/xwalk_epa_eia_power_sector.csv",
@@ -2129,106 +2136,19 @@ all_units_12 <-
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
   rows_patch(update_status_boilers, 
                 by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  mutate(heat_input = round(heat_input, 3), 
-         heat_input_oz = round(heat_input_oz, 3), 
-         nox_mass = round(nox_mass, 3), 
-         nox_oz_mass = round(nox_oz_mass, 3), 
-         so2_mass = round(so2_mass, 4), 
-         co2_mass = round(co2_mass, 3), 
-         hg_mass = round(hg_mass, 3)) 
+  mutate(across(c(starts_with("heat_input"), -contains("source")), ~ round(.x, 3)), 
+         across(contains("_mass"), ~ round(.x, 3))) 
 
 # Format unit file --------------
 
 # specify final columns in output depending on temporal_res parameter
 
+# creating named vector of final variable order and variable name included in unit file
+# load names from name_matches.R
 if (params$temporal_res == "annual") {
-  # creating named vector of final variable order and variable name included in unit file
-  final_vars <-
-    c("SEQUNT" = "sequnt",
-      "YEAR" = "year",
-      "PSTATABB" = "plant_state",
-      "PNAME" = "plant_name",
-      "ORISPL" = "plant_id",
-      "UNITID" = "unit_id",
-      "PRMVR" =  "prime_mover",
-      "UNTOPST" = "operating_status",
-      "CAPDFLAG" = "capd_flag", 
-      "PRGCODE" = "program_code", 
-      "BOTFIRTY" = "botfirty", 
-      "NUMGEN" = "num_generators", 
-      "FUELU1" = "primary_fuel_type",
-      "HRSOP" = "operating_hours", 
-      "HTIAN" = "heat_input", 
-      "HTIOZ" = "heat_input_oz",
-      "NOXAN" = "nox_mass",
-      "NOXOZ" = "nox_oz_mass", 
-      "SO2AN" = "so2_mass",
-      "CO2AN" = "co2_mass",
-      "HGAN" = "hg_mass",
-      "HTIANSRC" = "heat_input_source",
-      "HTIOZSRC" = "heat_input_oz_source",
-      "NOXANSRC" = "nox_source", 
-      "NOXOZSRC" = "nox_oz_source", 
-      "SO2SRC" = "so2_source", 
-      "CO2SRC" = "co2_source", 
-      "HGSRC" = "hg_source", 
-      "SO2CTLDV" = "so2_controls", 
-      "NOXCTLDV" = "nox_controls", 
-      "HGCTLDV" = "hg_controls_flag", 
-      "UNTYRONL" = "year_online", 
-      "STACKHT" = "stack_height")
-}
-
+  final_vars <- unit_nonmetric}
 if (params$temporal_res == "monthly") {
-  ###### CHECK need to insert final vars here. Waiting on list #########
-  operating_hours_monthly_final <- paste0("operating_hours_", tolower(month.name))
-  heat_input_monthly_final <- paste0("heat_input_", tolower(month.name))
-  nox_mass_monthly_final <- paste0("nox_mass_", tolower(month.name))
-  so2_mass_monthly_final <- paste0("so2_mass_", tolower(month.name))
-  co2_mass_monthly_final <- paste0("co2_mass_", tolower(month.name))
-  hg_mass_monthly_final <- paste0("hg_mass_", tolower(month.name))
-
-  final_vars <-
-    c("SEQUNT" = "sequnt",
-      "YEAR" = "year",
-      "PSTATABB" = "plant_state",
-      "PNAME" = "plant_name",
-      "ORISPL" = "plant_id",
-      "UNITID" = "unit_id",
-      "PRMVR" =  "prime_mover",
-      "UNTOPST" = "operating_status",
-      "CAPDFLAG" = "capd_flag", 
-      "PRGCODE" = "program_code", 
-      "BOTFIRTY" = "botfirty", 
-      "NUMGEN" = "num_generators", 
-      "FUELU1" = "primary_fuel_type",
-      "HRSOP" = "operating_hours", 
-      operating_hours_monthly_final,
-      "HTIAN" = "heat_input", 
-      "HTIOZ" = "heat_input_oz",
-      heat_input_monthly_final, 
-      "NOXAN" = "nox_mass",
-      "NOXOZ" = "nox_oz_mass", 
-      nox_mass_monthly_final,
-      "SO2AN" = "so2_mass",
-      so2_mass_monthly_final, 
-      "CO2AN" = "co2_mass",
-      co2_mass_monthly_final, 
-      "HGAN" = "hg_mass",
-      hg_mass_monthly_final, 
-      "HTIANSRC" = "heat_input_source",
-      "HTIOZSRC" = "heat_input_oz_source",
-      "NOXANSRC" = "nox_source", 
-      "NOXOZSRC" = "nox_oz_source", 
-      "SO2SRC" = "so2_source", 
-      "CO2SRC" = "co2_source", 
-      "HGSRC" = "hg_source", 
-      "SO2CTLDV" = "so2_controls", 
-      "NOXCTLDV" = "nox_controls", 
-      "HGCTLDV" = "hg_controls_flag", 
-      "UNTYRONL" = "year_online", 
-      "STACKHT" = "stack_height")
-}
+  final_vars <- unit_nonmetric_monthly}
 
 units_formatted <-
   all_units_12 %>%
