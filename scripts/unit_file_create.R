@@ -825,7 +825,7 @@ eia_923_boilers_grouped <-
            fuel_type) %>%
   mutate(across(# summing heat input by either monthly or annual values 
                 .cols = starts_with("heat_input"), 
-                .fns = ~ sum(., na.rm = TRUE))) %>% 
+                .fns = ~ sum(.x))) %>% 
   ungroup()
 
 eia_923_boilers_heat <- 
@@ -833,7 +833,7 @@ eia_923_boilers_heat <-
   group_by(pick(starts_with("plant")), prime_mover, boiler_id) %>% 
   summarize(across(# summing heat input by either monthly or annual values 
                    .cols = starts_with("heat_input"), 
-                   .fns = ~ sum(., na.rm = TRUE))) %>% 
+                   .fns = ~ sum(.x))) %>% 
   ungroup()
 
 ## Determining primary fuel type for EIA-923 boilers based on type of unit with max fuel consumption 
