@@ -905,27 +905,18 @@ plant_file_15 <-
          nox_oz_mass = pmin(nox_oz_mass, nox_mass, na.rm = TRUE), # if annual NOx mass is lower than ozone NOx mass, use the annual NOx mass 
          biomass_adj_flag = if_else(biomass_adj_flag == "Yes" | biomass_adj_flag1 == "Yes", "Yes", NA_character_)) %>%
   select(-biomass_adj_flag1) %>% 
-  mutate(#nox_biomass = pmin(nox_biomass, unadj_nox_mass), # assign the minimum between biomass mass and unadjusted mass to biomass emissions
-         across(.cols = starts_with("nox_biomass"), 
+  mutate(across(.cols = starts_with("nox_biomass"), 
                 .fns = ~ pmin(.x, get(str_replace(cur_column(), "nox_biomass", "unadj_nox_mass")))), 
          nox_bio_oz = pmin(nox_bio_oz, unadj_nox_oz_mass),
-         #ch4_biomass = pmin(ch4_biomass, unadj_ch4_mass),
          across(.cols = starts_with("ch4_biomass"), 
                 .fns = ~ pmin(.x, get(str_replace(cur_column(), "ch4_biomass", "unadj_ch4_mass")))), 
-         #n2o_biomass = pmin(n2o_biomass, unadj_n2o_mass),
          across(.cols = starts_with("n2o_biomass"), 
                 .fns = ~ pmin(.x, get(str_replace(cur_column(), "n2o_biomass", "unadj_n2o_mass")))), 
-         #so2_biomass = pmin(so2_biomass, unadj_so2_mass),
          across(.cols = starts_with("so2_biomass"), 
                 .fns = ~ pmin(.x, get(str_replace(cur_column(), "so2_biomass", "unadj_so2_mass")))), 
-         #co2_biomass = pmin(co2_biomass, unadj_co2_mass),
          across(.cols = starts_with("co2_biomass"), 
                 .fns = ~ pmin(.x, get(str_replace(cur_column(), "co2_biomass", "unadj_co2_mass")))), 
          # calculate CO2e biomass after adjustments to all GHG masses are made
-         #co2e_biomass = 
-        #   if_else(is.na(co2_biomass), 0, co2_biomass) + 
-        #   if_else(is.na(ch4_biomass), 0, gwp$gwp[gwp$gas == "CH4"] * ch4_biomass / 2000) + 
-        #   if_else(is.na(n2o_biomass), 0, gwp$gwp[gwp$gas == "N2O"] * n2o_biomass / 2000), # calculate CO2e biomass
          across(.cols = starts_with("co2_biomass"), 
                 .fns = ~ if_else(is.na(.x), 0, .x) + 
                          if_else(is.na(get(str_replace(cur_column(), "co2", "ch4"))), 0, 
@@ -970,7 +961,9 @@ gen_by_fuel <-
   summarize(# generation by plant and fuel type
             across(.cols = all_of(temporal_res_gen_cols), 
                    .fns = ~ if_else(all(is.na(.x)), NA_real_, 
-                                    sum(.x, na.rm = TRUE)))) %>% 
+                                    sum(.x, na.rm = TRUE))), 
+            across(.cols = all_of(temporal_res_gen_cols), 
+                   .fns = ~ if_else(.x < 0, 0, .x))) %>% 
   ungroup() %>% 
   group_by(plant_id) %>%
   mutate(# plant total generation
@@ -1299,12 +1292,12 @@ chp <-
          across(.cols = starts_with("useful_thermal_output"), 
                 .fns = ~ if_else(.x == 0 | is.na(.x), 
                                  NA_real_, 
-                                 3.413 * get(str_replace(cur_column(), "useful_thermal_output", "generation"))), # 3.413 converts MWh to MMBtu
+                                 3.413 * get(str_replace(cur_column(), "useful_thermal_output", "generation")) / .x), # 3.413 converts MWh to MMBtu
                 .names = "{str_replace(.col, 'useful_thermal_output', 'power_heat_ratio')}"),
          # calculate electric allocation
          across(.cols = starts_with("useful_thermal_output"), 
                 .fns = ~ if_else(.x != 0, 
-                                 3.413 *  get(str_replace(cur_column(), "useful_thermal_output", "generation")) / 
+                                 3.413 * get(str_replace(cur_column(), "useful_thermal_output", "generation")) / 
                                    (0.75 * .x + 3.413 * get(str_replace(cur_column(), "useful_thermal_output", "generation"))), # 0.75 is an efficiency factor that accounts for once the fuel is combusted, about 75% of useful thermal output can be used for other purposes
                                  1), 
                 .names = "{str_replace(.col, 'useful_thermal_output', 'elec_allocation')}"), 
@@ -1670,3 +1663,4 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))){
 } else {
    print("File plant_file.RDS failed to write to folder.")
 } 
+
