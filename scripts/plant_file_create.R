@@ -90,6 +90,13 @@ source("scripts/functions/function_update_source.R")
 
 ### Load crosswalks and static tables ----------------------
 
+# load in name matches for shorthand to snake_case
+if(file.exists("data/static_tables/name_matches.RData")) {
+  load("data/static_tables/name_matches.RData")
+} else { 
+    source("scripts/name_matching.R")
+    load("data/static_scripts/name_matches.RData")}
+
 # crosswalk for plant IDs between EPA and EIA data
 xwalk_oris_epa <- 
   read_csv("data/static_tables/xwalk_oris_epa.csv") %>% 
@@ -227,27 +234,25 @@ plant_unit <-
   group_by(year, plant_id, plant_state, plant_name) %>%
   summarize(capd_flag = paste_concat(capd_flag),
             num_units = n(), # count units in a plant
-            #unadj_heat_input = if_else(all(is.na(heat_input)), NA_real_, sum(heat_input, na.rm = TRUE)), # units: MMBtu
+            # unadjusted heat input
             across(.cols = c(contains("heat_input"), -contains("source")), # sum all heat_input columns 
                    .fns = ~ if_else(all(is.na(.x)), NA_real_, sum(.x, na.rm = TRUE)),
                    .names = "unadj_{.col}"), 
             unadj_heat_input_source = paste_concat(heat_input_source),
-            #unadj_heat_input_oz = if_else(all(is.na(heat_input_oz)), NA_real_, sum(heat_input_oz, na.rm = TRUE)), # units: MMBtu 
             unadj_heat_input_oz_source = paste_concat(heat_input_oz_source),
-            #unadj_nox_mass = if_else(all(is.na(nox_mass)), NA_real_, sum(nox_mass, na.rm = TRUE)), # units: tons
-            across(.cols = c(contains("nox"), -contains("source"), -contains("controls")), # sum all nox_mass columns 
+            # unadjusted NOx and NOx ozone mass
+            across(.cols = c(contains("nox"), -contains("source"), -contains("controls")), # sum all nox_mass columns, units: tons
                    .fns = ~ if_else(all(is.na(.x)), NA_real_, sum(.x, na.rm = TRUE)),
                    .names = "unadj_{.col}"),
             unadj_nox_source = paste_concat(nox_source),
-            #unadj_nox_oz_mass = if_else(all(is.na(nox_oz_mass)), NA_real_, sum(nox_oz_mass, na.rm = TRUE)), # units: tons
             unadj_nox_oz_source = paste_concat(nox_oz_source),
-            #unadj_so2_mass = if_else(all(is.na(so2_mass)), NA_real_, sum(so2_mass, na.rm = TRUE)), # units: tons
-            across(.cols = c(contains("so2_mass"), -contains("source")), # sum all so2_mass columns 
+            # unadjusted SO2 mass
+            across(.cols = c(contains("so2_mass"), -contains("source")), # sum all so2_mass columns, units: tons
                    .fns = ~ if_else(all(is.na(.x)), NA_real_, sum(.x, na.rm = TRUE)),
                    .names = "unadj_{.col}"),
             unadj_so2_source = paste_concat(so2_source),
-            #unadj_co2_mass = if_else(all(is.na(co2_mass)), NA_real_, sum(co2_mass, na.rm = TRUE)), # units: tons
-            across(.cols = c(contains("co2_mass"), -contains("source")), # sum all co2_mass columns 
+            # unadjusted CO2 mass
+            across(.cols = c(contains("co2_mass"), -contains("source")), # sum all co2_mass columns, units: tons
                    .fns = ~ if_else(all(is.na(.x)), NA_real_, sum(.x, na.rm = TRUE)),
                    .names = "unadj_{.col}"),
             unadj_co2_source = paste_concat(co2_source),
@@ -269,12 +274,8 @@ plant_gen <-
             # assign NA if all values are NA
             nameplate_capacity = if_else(all(is.na(nameplate_capacity)), 
                                          NA_real_, sum(nameplate_capacity, na.rm = TRUE)), # units: MW
-            #generation_ann = if_else(all(is.na(generation_ann)), 
-             #                        NA_real_, sum(generation_ann, na.rm = TRUE)), # units: MWh
-            #generation_oz = if_else(all(is.na(generation_oz)), 
-             #                       NA_real_, sum(generation_oz, na.rm = TRUE)), # units: MWh
             fuel_code = paste_concat(fuel_code), 
-            across(.cols = starts_with("generation"), 
+            across(.cols = starts_with("generation"), # units: MWh
                    .fns = ~ sum(.x, na.rm = TRUE))) %>% 
   ungroup()
 
@@ -293,8 +294,7 @@ combust_heat_input <-
   filter(primary_fuel_type %in% fuel_type_categories[["combustion_fuels"]], 
          prime_mover != "FC") %>%
   group_by(plant_id) %>% 
-  summarize(#unadj_combust_heat_input = sum(unadj_heat_input, na.rm = TRUE), # sum heat input for combustion fuels
-            #unadj_combust_heat_input_oz = sum(unadj_heat_input_oz, na.rm = TRUE), 
+  summarize(# unadjusted combustion heat input 
             across(.cols = contains("unadj_heat_input"), 
                    .fns = ~ sum(.x, na.rm = TRUE), 
                    .names = "{str_replace(.col, 'unadj', 'unadj_combust')}")) %>% ungroup()
@@ -306,10 +306,32 @@ plant_unit_2 <-
 
 # Update capacity factor  -----------------------------------------------
 
+# create dataframe of number of hours in each year or month
+if (params$temporal_res == "annual") { 
+  hours <- data.frame("hours_ann" = 8760)}
+if (params$temporal_res == "monthly") { 
+  hours <- 
+    data.frame("hours_ann" = 8760, 
+               "hours_january" = 744, 
+               "hours_february" = 672, 
+               "hours_march" = 744, 
+               "hours_april" = 720, 
+               "hours_may" = 744, 
+               "hours_june" = 720, 
+               "hours_july" = 744, 
+               "hours_august" = 744, 
+               "hours_september" = 720, 
+               "hours_october" = 744,
+               "hours_november" = 720, 
+               "hours_december" = 744)}
+
 plant_gen_2 <- 
-  plant_gen %>% 
-  mutate(capfac = if_else(generation_ann / (nameplate_capacity * 8760) < 0, 0, # some generation values may be negative, set to 0 if so
-                          generation_ann / (nameplate_capacity * 8760)))
+  cbind(plant_gen, hours) %>% 
+  mutate(across(.cols = c(starts_with("generation"), -generation_oz), 
+                .fns = ~ if_else(.x < 0, 0, # some generation values may be negative, set to 0 if so
+                                 .x / (nameplate_capacity * get(str_replace(cur_column(), "generation", "hours")))), 
+                .names = "{str_replace_all(.col, c('generation' = 'capfac', '_ann' = ''))}")) %>% 
+  select(-starts_with("hours"))
 
 # Calculate CH4 emissions N2O emissions  ----------------------------------------
 
@@ -326,7 +348,8 @@ if (params$temporal_res == "monthly") {
 emissions_ch4_n2o <- 
   eia_923$generation_and_fuel_combined %>% 
   filter(prime_mover != "FC") %>% 
-  select(plant_id, "tot_mmbtu" = total_fuel_consumption_mmbtu, starts_with("tot_mmbtu"), fuel_type) %>%
+  rename("tot_mmbtu" = total_fuel_consumption_mmbtu) %>% 
+  select(plant_id, all_of(temporal_res_eia_cols), fuel_type) %>%
   left_join(ef_co2_ch4_n2o, by = c("fuel_type" = "eia_fuel_code")) %>%
   mutate(across(.cols = all_of(temporal_res_eia_cols), # calculate CH4 mass by fuel type
                 .fns = ~ ch4_ef * .x, 
@@ -793,15 +816,12 @@ eia_923_biomass <-
   select(plant_id, "tot_mmbtu" = total_fuel_consumption_mmbtu, fuel_type, starts_with("tot_mmbtu")) %>%
   left_join(ef_co2_ch4_n2o, by = c("fuel_type" = "eia_fuel_code")) %>% 
   filter(fuel_type %in% biomass_fuel_adj[!is.na(biomass_fuel_adj)] & tot_mmbtu > 0) %>%
-  mutate(#co2_biomass = co2_ef * total_fuel_consumption_mmbtu, 
-         across(.cols = all_of(temporal_res_eia_cols), 
+  mutate(across(.cols = all_of(temporal_res_eia_cols), 
                 .fns = ~ co2_ef * .x, 
                 .names = "{str_replace(.col, 'tot_mmbtu', 'co2_biomass')}")) %>%
   group_by(plant_id) %>%
-  summarize(#co2_biomass = sum(co2_biomass, na.rm = TRUE),
-            across(.cols = starts_with("co2_biomass"), 
+  summarize(across(.cols = starts_with("co2_biomass"), 
                    .fns = ~ sum(.x, na.rm = TRUE)), 
-            #total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE)
             across(.cols = starts_with("tot_mmbtu"), 
                    .fns = ~ sum(.x, na.rm = TRUE))) %>%
   mutate(biomass_adj_flag = "Yes") %>%   # add a flag for this adjustment
@@ -810,8 +830,7 @@ eia_923_biomass <-
 plant_file_14 <- 
   plant_file_13 %>% 
   left_join(eia_923_biomass, by = c("plant_id"))  %>%
-  mutate(#co2_mass = unadj_co2_mass - co2_biomass
-         across(.cols = starts_with("co2_biomass"), # define CO2 mass, adjusted for biomass CO2 values
+  mutate(across(.cols = starts_with("co2_biomass"), # define CO2 mass, adjusted for biomass CO2 values
                 .fns = ~ get(str_replace(cur_column(), "co2_biomass", "unadj_co2_mass")) - .x, 
                 .names = "{str_replace(.col, 'co2_biomass', 'co2_mass')}")) 
 
@@ -825,29 +844,22 @@ eia_923_lfg <-
   left_join(ef_co2_ch4_n2o, by = c("fuel_type" = "eia_fuel_code")) %>%
   group_by(plant_id) %>%
   summarize(heat_input_oz_season = sum(tot_mmbtu_may, tot_mmbtu_june, tot_mmbtu_july, tot_mmbtu_august, tot_mmbtu_september, na.rm = TRUE), 
-            #tot_mmbtu = sum(tot_mmbtu, na.rm = TRUE),
             across(.cols = all_of(temporal_res_eia_cols), 
                    .fns = ~ sum(.x, na.rm = TRUE)), 
             ch4_ef = paste_concat(ch4_ef, number = TRUE),
             n2o_ef = paste_concat(n2o_ef, number = TRUE)) %>%
   ungroup() %>% 
   mutate(
-    ##### CHECK --- is there a NOX EF that should be used here? ######
-    #nox_biomass = 0.08 * pmax(tot_mmbtu, 0),
     across(.cols = all_of(temporal_res_eia_cols), 
            .fns = ~ 0.08 * pmax(.x, 0), 
            .names = "{str_replace(.col, 'tot_mmbtu', 'nox_biomass')}"),
     nox_bio_oz = 0.08 * pmax(heat_input_oz_season, 0),
-    #ch4_biomass = ch4_ef * total_fuel_consumption_mmbtu,
     across(.cols = all_of(temporal_res_eia_cols), 
            .fns = ~ ch4_ef * .x, 
            .names = "{str_replace(.col, 'tot_mmbtu', 'ch4_biomass')}"),
-    #n2o_biomass = n2o_ef * total_fuel_consumption_mmbtu,
     across(.cols = all_of(temporal_res_eia_cols), 
            .fns = ~ n2o_ef * .x, 
            .names = "{str_replace(.col, 'tot_mmbtu', 'n2o_biomass')}"),
-    #so2_biomass = 0.0115 / 2000 * pmax(tot_mmbtu, 0), 
-    ##### CHECK --- is there an SO2 EF that should be used here? ######
     across(.cols = all_of(temporal_res_eia_cols), 
            .fns = ~ 0.0115 / 2000 * pmax(.x, 0), 
            .names = "{str_replace(.col, 'tot_mmbtu', 'so2_biomass')}"),
@@ -1186,31 +1198,35 @@ plant_file_16 <-
          primary_fuel_category = if_else(nuclear_perc_gen > 0.50 & !is.na(nuclear_perc_gen), "NUCLEAR", primary_fuel_category), 
          across(.cols = contains("netgen"), # fill values with 0 if annual generation is not NA
                 .fns = ~ if_else(is.na(.x) & !is.na(generation_ann), 0, .x))) %>% 
+  rename("generation" = generation_ann) %>% 
   rowwise() %>% 
-  mutate(# recalculate generation if the difference between generation_ann and fuel type generation is > 2
-         generation_ann = if_else(abs(generation_ann - sum(coal_netgen, 
-                                                           oil_netgen, 
-                                                           gas_netgen, 
-                                                           nuclear_netgen, 
-                                                           hydro_netgen, 
-                                                           biomass_netgen, 
-                                                           wind_netgen, 
-                                                           solar_netgen,
-                                                           geothermal_netgen, 
-                                                           other_ff_netgen, 
-                                                           other_netgen, na.rm = TRUE)) > 2,
-                                        sum(coal_netgen, 
-                                            oil_netgen, 
-                                            gas_netgen, 
-                                            nuclear_netgen, 
-                                            hydro_netgen, 
-                                            biomass_netgen, 
-                                            wind_netgen, 
-                                            solar_netgen,
-                                            geothermal_netgen, 
-                                            other_ff_netgen, 
-                                            other_netgen, na.rm = TRUE),
-                                        generation_ann)) %>% ungroup()
+  mutate(# recalculate generation if the difference between generation and fuel type generation is > 2
+         across(.cols = c(starts_with("generation"), -generation_oz), 
+                .fns = ~ if_else(abs(.x - sum(get(str_replace(cur_column(), "generation", "coal_netgen")), 
+                                              get(str_replace(cur_column(), "generation", "oil_netgen")),
+                                              get(str_replace(cur_column(), "generation", "gas_netgen")),
+                                              get(str_replace(cur_column(), "generation", "nuclear_netgen")),
+                                              get(str_replace(cur_column(), "generation", "hydro_netgen")), 
+                                              get(str_replace(cur_column(), "generation", "biomass_netgen")),
+                                              get(str_replace(cur_column(), "generation", "wind_netgen")), 
+                                              get(str_replace(cur_column(), "generation", "solar_netgen")), 
+                                              get(str_replace(cur_column(), "generation", "geothermal_netgen")), 
+                                              get(str_replace(cur_column(), "generation", "other_ff_netgen")), 
+                                              get(str_replace(cur_column(), "generation", "other_netgen")), 
+                                              na.rm = TRUE)) > 2, 
+                                 sum(get(str_replace(cur_column(), "generation", "coal_netgen")), 
+                                     get(str_replace(cur_column(), "generation", "oil_netgen")),
+                                     get(str_replace(cur_column(), "generation", "gas_netgen")),
+                                     get(str_replace(cur_column(), "generation", "nuclear_netgen")),
+                                     get(str_replace(cur_column(), "generation", "hydro_netgen")), 
+                                     get(str_replace(cur_column(), "generation", "biomass_netgen")),
+                                     get(str_replace(cur_column(), "generation", "wind_netgen")), 
+                                     get(str_replace(cur_column(), "generation", "solar_netgen")), 
+                                     get(str_replace(cur_column(), "generation", "geothermal_netgen")), 
+                                     get(str_replace(cur_column(), "generation", "other_ff_netgen")), 
+                                     get(str_replace(cur_column(), "generation", "other_netgen")), 
+                                     na.rm = TRUE), .x))) %>% ungroup() %>% 
+  rename("generation_ann" = generation)
       
 
 # CHP plants ---------------
@@ -1349,8 +1365,6 @@ plant_chp <-
                                    .x < 0, get(str_replace(cur_column(), "chp", "unadj")), .x))) %>% 
   select(-contains("bio_adj"))
 
-######################### 2/3/2025 start here ########################
-
 plant_file_18 <- 
   plant_file_17 %>% 
   filter(is.na(chp_flag)) %>% # filter out CHP flags to easily join in new CHP data
@@ -1359,9 +1373,11 @@ plant_file_18 <-
          across(.cols = c(starts_with("heat_input"), starts_with("combust_heat_input")), 
                 .fns = ~ if_else(is.na(.x), get(paste0("unadj_", cur_column())), .x)), 
          # calculate nominal heat rate
-         nominal_heat_rate = if_else((combust_flag == 1 | combust_flag == 0.5) & !is.na(combust_netgen) & combust_netgen != 0, 
-                                    combust_heat_input * 1000 / combust_netgen,
-                                    NA_real_))
+         across(.cols = starts_with("combust_netgen"), 
+                .fns = ~ if_else((combust_flag == 1 | combust_flag == 0.5) & !is.na(.x) & .x != 0, 
+                                 get(str_replace(cur_column(), "netgen", "heat_input")) * 1000 / .x, 
+                                 NA_real_), 
+                .names = "{str_replace(.col, 'combust_netgen', 'nominal_heat_rate')}"))
 
 
 # Update negative emissions values ----------------------------------------
@@ -1395,7 +1411,7 @@ plant_file_20 <-
                                  2000 * .x / get(paste0("combust_netgen", str_sub(cur_column(), 9)))), 
                 .names = "{str_replace(.col, 'mass', 'combust_out_rate')}"), 
          # calculate NOx ozone combustion output rate
-         nox_oz_combust_out_emission_rate = if_else(combust_netgen * (generation_oz / generation_ann) <= 0 | is.na(combust_netgen), 
+         nox_oz_combust_out_rate = if_else(combust_netgen * (generation_oz / generation_ann) <= 0 | is.na(combust_netgen), 
                                                     NA_real_, 2000 * nox_oz_mass / (combust_netgen * (generation_oz / generation_ann))),
          # calculate CH4 and N2O combustion output rate
          across(.cols = c(paste0("ch4", temporal_res_emission_cols),
@@ -1428,7 +1444,7 @@ plant_file_21 <-
                                  2000 * .x / get(paste0("heat_input", str_sub(cur_column(), 9)))), 
                 .names = "{str_replace(.col, 'mass', 'input_rate')}"),
          # calculate NOx ozone input rate
-         nox_oz_in_emission_rate = if_else(heat_input_oz <= 0 | is.na(heat_input_oz), NA_real_, 
+         nox_oz_input_rate = if_else(heat_input_oz <= 0 | is.na(heat_input_oz), NA_real_, 
                                            2000 * nox_oz_mass / heat_input_oz),
          # calculate CO2e input rate
          across(.cols = paste0("co2e", temporal_res_emission_cols), 
@@ -1450,45 +1466,37 @@ plant_file_21 <-
 
 ### Output emission rates ----------------------------------------
 
-##### CHECK - need monthly columns from generator file here #######
-
 plant_file_22 <- 
-  plant_file_21 %>% 
-  mutate(#nox_out_emission_rate = if_else(generation_ann <= 0 | is.na(generation_ann), NA_real_, 
-        #                                 2000 * nox_mass / generation_ann),
-         # calculate NOx, SO2, and CO2 output rate
+  plant_file_21 %>% rename("generation" = generation_ann) %>% 
+  mutate(# calculate NOx, SO2, and CO2 output rate
          across(.cols = c(paste0("nox", temporal_res_emission_cols),
                           paste0("so2", temporal_res_emission_cols),
                           paste0("co2", temporal_res_emission_cols)), 
-                .fns = ~ if_else(get(paste0("netgen", str_sub(cur_column(), 9))) <= 0 | 
-                                   is.na(get(paste0("netgen", str_sub(cur_column(), 9)))), NA_real_, 
-                                 2000 * .x / get(paste0("netgen", str_sub(cur_column(), 9)))), 
+                .fns = ~ if_else(get(paste0("generation", str_sub(cur_column(), 9))) <= 0 | 
+                                   is.na(get(paste0("generation", str_sub(cur_column(), 9)))), NA_real_, 
+                                 2000 * .x / get(paste0("generation", str_sub(cur_column(), 9)))), 
                 .names = "{str_replace(.col, 'mass', 'output_rate')}"),
-         nox_oz_out_emission_rate = if_else(generation_oz <= 0 | is.na(generation_oz), NA_real_, 
+         # calculate NOx ozone output rate
+         nox_oz_output_rate = if_else(generation_oz <= 0 | is.na(generation_oz), NA_real_, 
                                            2000 * nox_oz_mass / generation_oz),
          # calculate CO2e output rate
          across(.cols = paste0("co2e", temporal_res_emission_cols), 
-                .fns = ~ if_else(get(paste0("netgen", str_sub(cur_column(), 10))) <= 0 | 
-                                   is.na(get(paste0("netgen", str_sub(cur_column(), 10)))), NA_real_, 
-                                 2000* .x / get(paste0("netgen", str_sub(cur_column(), 10)))), 
+                .fns = ~ if_else(get(paste0("generation", str_sub(cur_column(), 10))) <= 0 | 
+                                   is.na(get(paste0("generation", str_sub(cur_column(), 10)))), NA_real_, 
+                                 2000* .x / get(paste0("generation", str_sub(cur_column(), 10)))), 
                 .names = "{str_replace(.col, 'mass', 'output_rate')}"),
-         #ch4_out_emission_rate = if_else(generation_ann <= 0 | is.na(generation_ann), NA_real_, 
-          #                               ch4_mass / generation_ann),
-         #n2o_out_emission_rate = if_else(generation_ann <= 0 | is.na(generation_ann), NA_real_, 
-          #                               n2o_mass / generation_ann),
          # calculate CH4 and N2O output rate
          across(.cols = c(paste0("ch4", temporal_res_emission_cols),
                           paste0("n2o", temporal_res_emission_cols)), 
-                .fns = ~ if_else(get(paste0("netgen", str_sub(cur_column(), 9))) <= 0 | 
-                                   is.na(get(paste0("netgen", str_sub(cur_column(), 9)))), NA_real_, 
-                                 .x / get(paste0("netgen", str_sub(cur_column(), 9)))), 
+                .fns = ~ if_else(get(paste0("generation", str_sub(cur_column(), 9))) <= 0 | 
+                                   is.na(get(paste0("generation", str_sub(cur_column(), 9)))), NA_real_, 
+                                 .x / get(paste0("generation", str_sub(cur_column(), 9)))), 
                 .names = "{str_replace(.col, 'mass', 'output_rate')}"),
-         #co2e_out_emission_rate = if_else(generation_ann <= 0 | is.na(generation_ann), NA_real_, 
-          #                                2000 * co2e_mass / generation_ann),
          # assign NAs to Hg input rate
          across(.cols = paste0("hg", temporal_res_emission_cols), 
                 .fns = ~ NA_real_, 
-                .names = "{str_replace(.col, 'mass', 'output_rate')}"))
+                .names = "{str_replace(.col, 'mass', 'output_rate')}")) %>% 
+  rename("generation_ann" = generation)
 
 # Calculate nonbaseload factor and generation ---------------------------------
 
@@ -1496,14 +1504,17 @@ plant_file_22 <-
 # some fuel types are excluded from this 
 plant_file_23 <- 
   plant_file_22 %>% 
-  mutate(nonbaseload = if_else(!primary_fuel_type %in% c("GEO", "MWH", "NUC", "PUR", "SUN", "WAT", "WND"), 
-                               case_when(capfac > 0 & capfac < 0.2 ~ 1,
-                                         capfac > 0.8 ~ 0,
-                                         capfac == 0 ~ NA_real_,
-                                         TRUE ~ (-5/3 * capfac) + 4/3),
-                                         NA_real_), 
-         generation_nonbaseload = nonbaseload * generation_ann) # calculate nonbaseload generation for each plant
-
+  mutate(across(.cols = starts_with("capfac"), 
+                .fns = ~ if_else(!primary_fuel_type %in% c("GEO", "MWH", "NUC", "PUR", "SUN", "WAT", "WND"), 
+                                 case_when(.x > 0 & .x < 0.2 ~ 1,
+                                           .x > 0.8 ~ 0,
+                                           .x == 0 ~ NA_real_,
+                                           TRUE ~ (-5/3 * .x) + 4/3),
+                               NA_real_), 
+                .names = "{str_replace(.col, 'capfac', 'nonbaseload')}"), 
+         across(.cols = c(starts_with("generation"), -generation_oz),
+                .fns = ~ .x * get(str_replace_all(cur_column(), c("_ann" = "", "generation" = "nonbaseload"))),  # calculate nonbaseload generation for each plant and month
+                .names = "{str_replace_all(.col, c('_ann' = '', 'generation' = 'generation_nonbaseload'))}"))
 
 # Update source columns ------------------------------
 
@@ -1587,264 +1598,50 @@ plant_file_24 <-
 plant_file_25 <- 
   plant_file_24 %>% 
   mutate(capfac = round(capfac, 5), # capacity factor
-         power_heat_ratio = round(power_heat_ratio, 3), #CHP power heat ration
-         elec_allocation = round(elec_allocation, 6), # CHP electric allocation
-         # heat input
-         combust_heat_input = round(combust_heat_input, 3),
-         combust_heat_input_oz = round(combust_heat_input_oz, 3), 
-         heat_input = round(heat_input, 3),
-         heat_input_oz = round(heat_input_oz, 3),
-         # annual generation
-         generation_ann = round(generation_ann, 3), 
-         generation_oz = round(generation_oz, 3), 
-         generation_nonbaseload = round(generation_nonbaseload, 3),
+         # heat input (unadjusted and adjusted)
+         across(contains("combust_heat_input"), ~ round(.x, 3)), 
+         across(c(contains("heat_input"), -contains("source")), ~ round(.x, 3)),
+         # generation
+         across(starts_with("generation"), ~ round(.x, 3)), 
          # emissions mass
-         nox_mass = round(nox_mass, 3), 
-         nox_oz_mass = round(nox_oz_mass, 3),
-         so2_mass = round(so2_mass, 3),
-         co2_mass = round(co2_mass, 3),
-         ch4_mass = round(ch4_mass, 3),
-         n2o_mass = round(n2o_mass, 3),
-         co2e_mass = round(co2e_mass, 3),
+         across(contains("_mass"), ~ round(.x, 3)),
          # output emissions rates
-         nox_out_emission_rate = round(nox_out_emission_rate, 3), 
-         nox_oz_out_emission_rate = round(nox_oz_out_emission_rate, 3),
-         so2_out_emission_rate = round(so2_out_emission_rate, 3),
-         co2_out_emission_rate = round(co2_out_emission_rate, 3),
-         ch4_out_emission_rate = round(ch4_out_emission_rate, 3),
-         n2o_out_emission_rate = round(n2o_out_emission_rate, 3),
-         co2e_out_emission_rate = round(co2e_out_emission_rate, 3),
+         across(contains("output_rate"), ~ round(.x, 3)), 
          # input emissions rates
-         nox_in_emission_rate = round(nox_in_emission_rate, 3), 
-         nox_oz_in_emission_rate = round(nox_oz_in_emission_rate, 3),
-         so2_in_emission_rate = round(so2_in_emission_rate, 3),
-         co2_in_emission_rate = round(co2_in_emission_rate, 3),
-         ch4_in_emission_rate = round(ch4_in_emission_rate, 3),
-         n2o_in_emission_rate = round(n2o_in_emission_rate, 3),
-         co2e_in_emission_rate = round(co2e_in_emission_rate, 3),
+         across(contains("input_rate"), ~ round(.x, 3)),
          # combustion output emissions rates
-         nox_combust_out_emission_rate = round(nox_combust_out_emission_rate, 3), 
-         nox_oz_combust_out_emission_rate = round(nox_oz_combust_out_emission_rate, 3),
-         so2_combust_out_emission_rate = round(so2_combust_out_emission_rate, 3),
-         co2_combust_out_emission_rate = round(co2_combust_out_emission_rate, 3),
-         ch4_combust_out_emission_rate = round(ch4_combust_out_emission_rate, 3),
-         n2o_combust_out_emission_rate = round(n2o_combust_out_emission_rate, 3),
-         co2e_combust_out_emission_rate = round(co2e_combust_out_emission_rate, 3),
-         # undjusted emission mass
-         unadj_nox_mass = round(unadj_nox_mass, 3), 
-         unadj_nox_oz_mass = round(unadj_nox_oz_mass, 3),
-         unadj_so2_mass = round(unadj_so2_mass, 3),
-         unadj_co2_mass = round(unadj_co2_mass, 3),
-         unadj_ch4_mass = round(unadj_ch4_mass, 3),
-         unadj_n2o_mass = round(unadj_n2o_mass, 3),
-         unadj_co2e_mass = round(unadj_co2e_mass, 3), 
-         # unadjusted heat input
-         unadj_combust_heat_input = round(unadj_combust_heat_input, 3),
-         unadj_combust_heat_input_oz = round( unadj_combust_heat_input_oz, 3), 
-         unadj_heat_input = round(unadj_heat_input, 3),
-         unadj_heat_input_oz = round(unadj_heat_input_oz, 3),
+         across(contains("combust_out_rate"), ~ round(.x, 3)),
          # nominal heat rate
          nominal_heat_rate = round(nominal_heat_rate, 6),
          # annual generation (by fuel)
-         ann_gen_coal = round(ann_gen_coal, 3),
-         ann_gen_oil = round(ann_gen_oil, 3),
-         ann_gen_gas = round(ann_gen_gas, 3),
-         ann_gen_combust = round(ann_gen_combust, 3),
-         ann_gen_hydro = round(ann_gen_hydro, 3),
-         ann_gen_biomass = round(ann_gen_biomass, 3),
-         ann_gen_wind = round(ann_gen_wind, 3),
-         ann_gen_solar = round(ann_gen_solar, 3),
-         ann_gen_geothermal = round(ann_gen_geothermal, 3),
-         ann_gen_other_ff = round(ann_gen_other_ff, 3),
-         ann_gen_other = round(ann_gen_other, 3),
-         ann_gen_non_renew = round(ann_gen_non_renew, 3),
-         ann_gen_renew = round(ann_gen_renew, 3),
-         ann_gen_non_renew = round(ann_gen_non_renew, 3),
-         ann_gen_renew_nonhydro = round(ann_gen_renew_nonhydro, 3),
-         ann_gen_combust = round(ann_gen_combust, 3),
-         ann_gen_non_combust = round(ann_gen_non_combust, 3),
+         across(contains("netgen"), ~ round(.x, 3)),
          # biomass 
-         nox_biomass = round(nox_biomass, 3), 
-         nox_bio_oz = round(nox_bio_oz, 3),
-         so2_biomass = round(so2_biomass, 3),
-         co2_biomass = round(co2_biomass, 3),
-         ch4_biomass = round(ch4_biomass, 3),
-         n2o_biomass = round(n2o_biomass, 3),
-         co2e_biomass = round(co2e_biomass, 3), 
+         across(contains("_bio"), ~ round(.x, 3)),
          # CHP emission mass
-         chp_nox = round(chp_nox, 3), 
-         chp_nox_oz = round(chp_nox_oz, 3),
-         chp_so2 = round(chp_so2, 3),
-         chp_co2 = round(chp_co2, 3),
-         chp_ch4 = round(chp_ch4, 3),
-         chp_n2o = round(chp_n2o, 3),
-         chp_co2e = round(chp_co2e, 3), 
-         # useful_thermal_output
-         useful_thermal_output = round(useful_thermal_output,3)
+         across(c(starts_with("chp"), -contains("flag")), ~ round(.x, 3)),
+         # power to heat ratio, electricity allocation, and useful thermal output
+         across(starts_with("power_heat_ratio"), ~ round(.x, 3)), 
+         across(starts_with("elec_allocation"), ~ round(.x, 6)), 
+         across(starts_with("useful_thermal_output"), ~ round(.x, 3))
          ) 
 
 
 # Format plant file --------------
 
 # creating named vector of final variable order and variable name included in plant file
-final_vars <-
-  c("SEQPLT" = "seqplt",
-    "YEAR" = "year",
-    "PSTATABB" = "plant_state",
-    "PNAME" = "plant_name",
-    "ORISPL" = "plant_id",
-    "OPRNAME" = "system_owner", 
-    "OPRCODE" = "system_owner_id", 
-    "UTLSRVNM" = "utility_name", 
-    "UTLSRVID" = "utility_id", 
-    "SECTOR" = "sector_name", 
-    "BANAME" = "ba_name", 
-    "BACODE" = "ba_code", 
-    "NERC" = "nerc", 
-    "SUBRGN" = "egrid_subregion", 
-    "SRNAME" = "egrid_subregion_name", 
-    "ISORTO" = "isorto", 
-    "FIPSST" = "fips_state_code", 
-    "FIPSCNTY" = "fips_county_code", 
-    "CNTYNAME" = "county",
-    "LAT" = "lat", 
-    "LON" = "lon", 
-    "CAPDFLAG" = "capd_flag", 
-    "NUMUNT" = "num_units", 
-    "NUMGEN" = "num_generators", 
-    "PLPRMFL" = "primary_fuel_type", 
-    "PLFUELCT" = "primary_fuel_category", 
-    "COALFLAG" = "coal_flag", 
-    "CAPFAC" = "capfac", 
-    "NAMEPCAP" = "nameplate_capacity", 
-    "NBFACTOR" = "nonbaseload", 
-    "RMBMFLAG" = "biomass_adj_flag", 
-    "CHPFLAG" = "chp_flag", 
-    "USETHRMO" = "useful_thermal_output", 
-    "PWRTOHT" = "power_heat_ratio", 
-    "ELCALLOC" = "elec_allocation", 
-    "PSFLAG" = "ps_flag", 
-    "PLHTIAN" = "combust_heat_input", 
-    "PLHTIOZ" = "combust_heat_input_oz", 
-    "PLHTIANT" = "heat_input", 
-    "PLHTIOZT" = "heat_input_oz", 
-    "PLNGENAN" = "generation_ann", 
-    "PLNGENOZ" = "generation_oz", 
-    "PLNGENNB" = "generation_nonbaseload", 
-    "PLNOXAN" = "nox_mass", 
-    "PLNOXOZ" = "nox_oz_mass", 
-    "PLSO2AN" = "so2_mass", 
-    "PLCO2AN" = "co2_mass", 
-    "PLCH4AN" = "ch4_mass", 
-    "PLN2OAN" = "n2o_mass", 
-    "PLCO2EQA" = "co2e_mass", 
-    "PLHGAN" = "hg_mass", 
-    "PLNOXRTA" = "nox_out_emission_rate", 
-    "PLNOXRTO" = "nox_oz_out_emission_rate", 
-    "PLSO2RTA" = "so2_out_emission_rate", 
-    "PLCO2RTA" = "co2_out_emission_rate", 
-    "PLCH4RTA" = "ch4_out_emission_rate", 
-    "PLN2ORTA" = "n2o_out_emission_rate", 
-    "PLC2ERTA" = "co2e_out_emission_rate", 
-    "PLHGRTA" = "hg_out_emission_rate", 
-    "PLNOXRA" = "nox_in_emission_rate", 
-    "PLNOXRO" = "nox_oz_in_emission_rate", 
-    "PLSO2RA" = "so2_in_emission_rate", 
-    "PLCO2RA" = "co2_in_emission_rate", 
-    "PLCH4RA" = "ch4_in_emission_rate", 
-    "PLN2ORA" = "n2o_in_emission_rate", 
-    "PLC2ERA" = "co2e_in_emission_rate", 
-    "PLHGRA" = "hg_in_emission_rate", 
-    "PLNOXCRT" = "nox_combust_out_emission_rate", 
-    "PLNOXCRO" = "nox_oz_combust_out_emission_rate", 
-    "PLSO2CRT" = "so2_combust_out_emission_rate", 
-    "PLCO2CRT" = "co2_combust_out_emission_rate", 
-    "PLCH4CRT" = "ch4_combust_out_emission_rate", 
-    "PLN2OCRT" = "n2o_combust_out_emission_rate", 
-    "PLC2ERT" = "co2e_combust_out_emission_rate", 
-    "PLHGCRT" = "hg_combust_out_emission_rate", 
-    "UNNOX" = "unadj_nox_mass", 
-    "UNNOXOZ" = "unadj_nox_oz_mass", 
-    "UNSO2" = "unadj_so2_mass", 
-    "UNCO2" = "unadj_co2_mass", 
-    "UNCH4" = "unadj_ch4_mass", 
-    "UNN2O" = "unadj_n2o_mass", 
-    "UNCO2E" = "unadj_co2e_mass", 
-    "UNHG" = "unadj_hg_mass", 
-    "UNHTI" = "unadj_combust_heat_input", 
-    "UNHTIOZ" = "unadj_combust_heat_input_oz", 
-    "UNHTIT" = "unadj_heat_input", 
-    "UNHTIOZT" = "unadj_heat_input_oz", 
-    "UNNOXSRC" = "unadj_nox_source", 
-    "UNNOZSRC" = "unadj_nox_oz_source", 
-    "UNSO2SRC" = "unadj_so2_source", 
-    "UNCO2SRC" = "unadj_co2_source", 
-    "UNCH4SRC" = "unadj_ch4_source", 
-    "UNN2OSRC" = "unadj_n2o_source", 
-    "UNC2ESRC" = "unadj_co2e_source",
-    "UNHGSRC" = "unadj_hg_source", 
-    "UNHTISRC" = "unadj_heat_input_source", 
-    "UNHOZSRC" = "unadj_heat_input_oz_source", 
-    "BIONOX" = "nox_biomass", 
-    "BIONOXOZ" = "nox_bio_oz", 
-    "BIOSO2" = "so2_biomass", 
-    "BIOCO2" = "co2_biomass", 
-    "BIOCH4" = "ch4_biomass", 
-    "BION2O" = "n2o_biomass", 
-    "BIOCO2E" = "co2e_biomass", 
-    "CHPCHTI" = "chp_combust_heat_input", 
-    "CHPCHTIOZ" = "chp_combust_heat_input_oz", 
-    "CHPNOX" = "chp_nox", 
-    "CHPNOXOZ" = "chp_nox_oz", 
-    "CHPSO2" = "chp_so2", 
-    "CHPCO2" = "chp_co2",
-    "CHPCH4" = "chp_ch4", 
-    "CHPN2O" = "chp_n2o", 
-    "CHPCO2E" = "chp_co2e",
-    "PLHTRT" = "nominal_heat_rate", 
-    "PLGENACL" = "ann_gen_coal", 
-    "PLGENAOL" = "ann_gen_oil", 
-    "PLGENAGS" = "ann_gen_gas", 
-    "PLGENANC" = "ann_gen_nuclear", 
-    "PLGENAHY" = "ann_gen_hydro", 
-    "PLGENABM" = "ann_gen_biomass", 
-    "PLGENAWI" = "ann_gen_wind", 
-    "PLGENASO" = "ann_gen_solar", 
-    "PLGENAGT" = "ann_gen_geothermal", 
-    "PLGENAOF" = "ann_gen_other_ff", 
-    "PLGENAOP" = "ann_gen_other", 
-    "PLGENATN" = "ann_gen_non_renew", 
-    "PLGENATR" = "ann_gen_renew", 
-    "PLGENATO" = "ann_gen_non_renew_other", 
-    "PLGENATH" = "ann_gen_renew_nonhydro", 
-    "PLGENACY" = "ann_gen_combust", 
-    "PLGENACN" = "ann_gen_non_combust", 
-    "PLGENACO" = "ann_gen_non_combust_other", 
-    "PLCLPR" = "perc_ann_gen_coal", 
-    "PLOLPR" = "perc_ann_gen_oil", 
-    "PLGSPR" = "perc_ann_gen_gas", 
-    "PLNCPR" = "perc_ann_gen_nuclear", 
-    "PLHYPR" = "perc_ann_gen_hydro", 
-    "PLBMPR" = "perc_ann_gen_biomass", 
-    "PLWIPR" = "perc_ann_gen_wind", 
-    "PLSOPR" = "perc_ann_gen_solar", 
-    "PLGTPR" = "perc_ann_gen_geothermal", 
-    "PLOFPR" = "perc_ann_gen_other_ff", 
-    "PLOPPR" = "perc_ann_gen_other", 
-    "PLTNPR" = "perc_ann_gen_non_renew", 
-    "PLTRPR" = "perc_ann_gen_renew", 
-    "PLTOPR" = "perc_ann_gen_non_renew_other",
-    "PLTHPR" = "perc_ann_gen_renew_nonhydro", 
-    "PLCYPR" = "perc_ann_gen_combust", 
-    "PLCNPR" = "perc_ann_gen_non_combust",
-    "PLCOPR" = "perc_ann_gen_non_combust_other")
+if (params$temporal_res == "annual") {
+  final_vars <-
+    plant_nonmetric}
+if (params$temporal_res == "monthly") { 
+  final_vars <- 
+    plant_nonmetric_monthly}
 
 plant_formatted <-
   plant_file_25 %>%
   arrange(plant_state, plant_name) %>% 
   mutate(seqplt = row_number(), 
          year = params$eGRID_year) %>% 
-  select(as_tibble(final_vars)$value) %>%  # keeping columns with tidy names until final formatting
+  select(as_tibble(final_vars)$value) %>%  # keeping columns with snake_case names until final formatting
   filter(!is.na(plant_id))
 
 # Export plant file -------------
