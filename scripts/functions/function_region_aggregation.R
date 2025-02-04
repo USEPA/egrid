@@ -62,24 +62,24 @@ region_aggregation <- function(region, region_cols) {
       "n2o_mass",
       "co2e_mass",
       "hg_mass",
-      "ann_gen_coal",
-      "ann_gen_oil",
-      "ann_gen_gas",
-      "ann_gen_nuclear",
-      "ann_gen_hydro",
-      "ann_gen_biomass",
-      "ann_gen_wind",
-      "ann_gen_solar",
-      "ann_gen_geothermal",
-      "ann_gen_other_ff",
-      "ann_gen_other",
-      "ann_gen_non_renew",
-      "ann_gen_renew",
-      "ann_gen_non_renew_other", 
-      "ann_gen_renew_nonhydro",
-      "ann_gen_combust",
-      "ann_gen_non_combust",
-      "ann_gen_non_combust_other"
+      "coal_netgen",
+      "oil_netgen",
+      "gas_netgen",
+      "nuclear_netgen",
+      "hydro_netgen",
+      "biomass_netgen",
+      "wind_netgen",
+      "solar_netgen",
+      "geothermal_netgen",
+      "other_ff_netgen",
+      "other_netgen",
+      "nonrenew_netgen",
+      "renew_netgen",
+      "nonrenew_other_netgen", 
+      "renew_nonhydro_netgen",
+      "combust_netgen",
+      "noncombust_netgen",
+      "noncombust_other_netgen"
     )
   
   # read in NERC names to add to plant file
@@ -124,7 +124,7 @@ region_aggregation <- function(region, region_cols) {
                                  "generation_oz", 
                                  "generation_nonbaseload",
                                  contains("_mass"), 
-                                 contains("ann_gen")), 
+                                 contains("netgen")), 
                        .fns = ~ sum(.x, na.rm = TRUE),
                        .names = "region_{.col}")) %>% 
       mutate(region_hg_mass = "--") %>% 
@@ -191,16 +191,16 @@ region_aggregation <- function(region, region_cols) {
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ if_else(region_ann_gen_combust != 0, 2000 * . / region_ann_gen_combust, NA_real_), 
+               .fns = ~ if_else(region_combust_netgen != 0, 2000 * . / region_combust_netgen, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
         region_nox_oz_combustion_rate = if_else(region_generation_oz != 0 & 
-                                                  region_ann_gen_combust != 0 &
+                                                  region_combust_netgen != 0 &
                                                   region_generation_ann != 0, 
                                                 2000 * region_nox_oz_mass / 
-          (region_ann_gen_combust * (region_generation_oz / region_generation_ann)), NA_real_), 
+          (region_combust_netgen * (region_generation_oz / region_generation_ann)), NA_real_), 
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ if_else(region_ann_gen_combust != 0, . / region_ann_gen_combust, NA_real_), 
+               .fns = ~ if_else(region_combust_netgen != 0, . / region_combust_netgen, NA_real_), 
                .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
         region_hg_combustion_rate = "--") %>% 
       relocate(region_nox_oz_combustion_rate, .after = region_nox_combustion_rate) %>%  
@@ -226,9 +226,9 @@ region_aggregation <- function(region, region_cols) {
                                  "generation_ann", 
                                  "generation_oz", 
                                  contains("mass"), 
-                                 "ann_gen_coal", 
-                                 "ann_gen_oil", 
-                                 "ann_gen_gas"), 
+                                 "coal_netgen", 
+                                 "oil_netgen", 
+                                 "gas_netgen"), 
                        .fns = ~ sum(.x, na.rm = TRUE),
                        .names = "region_{.col}")) %>% 
       mutate(
@@ -286,10 +286,10 @@ region_aggregation <- function(region, region_cols) {
                                  "generation_ann", 
                                  "generation_oz", 
                                  contains("mass"), 
-                                 "ann_gen_coal", 
-                                 "ann_gen_oil", 
-                                 "ann_gen_gas", 
-                                 "ann_gen_other_ff"), 
+                                 "coal_netgen", 
+                                 "oil_netgen", 
+                                 "gas_netgen", 
+                                 "other_ff_netgen"), 
                        .fns = ~ sum(.x, na.rm = TRUE),
                        .names = "region_{.col}")) %>% 
       mutate(# output emission rates (lb/MWh)
@@ -380,7 +380,7 @@ region_aggregation <- function(region, region_cols) {
       mutate(across(.cols = -c({{ region_cols }}, "region_generation_ann"), 
                     .fns = ~ if_else(region_generation_ann != 0, 
                                      . / region_generation_ann, NA_real_), # convert to percentage 
-                    .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
+                    .names = "{str_replace(.col, 'netgen', 'resource_mix')}")) %>% 
       select({{ region_cols }}, contains("resource_mix"))
     
     
@@ -416,7 +416,7 @@ region_aggregation <- function(region, region_cols) {
     ### Join necessary data -----
     
     region_merged <- 
-      region_agg %>% select(-contains("ann_gen")) %>% 
+      region_agg %>% select(-contains("netgen")) %>% 
       left_join(region_output_rates) %>% # output emission rates
       left_join(region_input_rates) %>% # input emission rates
       left_join(region_combustion_rates) %>% # combustion emission rates
@@ -495,20 +495,20 @@ region_aggregation <- function(region, region_cols) {
     ### Export region aggregation file -----------
     
     if(dir.exists("data/outputs")) {
-      print("Folder output already exists.")
+      print("Folder outputs already exists.")
     } else {
       dir.create("data/outputs")
     }
     
     if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
-      print("Folder output already exists.")
+      print(glue::glue("Folder outputs/{params$eGRID_year} already exists."))
     } else {
       dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
     }
     
     print(glue::glue("Saving {region} aggregation file to folder data/outputs/{params$eGRID_year}"))
     
-    write_rds(region_formatted, glue::glue("data/outputs//{params$eGRID_year}/{region}_aggregation.RDS")) 
+    write_rds(region_formatted, glue::glue("data/outputs/{params$eGRID_year}/{region}_aggregation.RDS")) 
     
   } else {
 
@@ -585,7 +585,7 @@ region_aggregation <- function(region, region_cols) {
     
     region_combustion_rates <- 
       plant_file %>% 
-      summarize(region_combustion_gen = sum(ann_gen_combust, na.rm = TRUE)) %>% 
+      summarize(region_combustion_gen = sum(combust_netgen, na.rm = TRUE)) %>% 
       cbind(plant_file, region_agg) %>% 
       mutate(# calculating combustion emissions rates (lb/MWh)
         across(.cols = c("region_nox_mass",  
@@ -628,9 +628,9 @@ region_aggregation <- function(region, region_cols) {
                                  "generation_ann", 
                                  "generation_oz", 
                                  contains("mass"), 
-                                 "ann_gen_coal", 
-                                 "ann_gen_oil", 
-                                 "ann_gen_gas"), 
+                                 "coal_netgen", 
+                                 "oil_netgen", 
+                                 "gas_netgen"), 
                        .fns = ~ sum(.x, na.rm = TRUE),
                        .names = "region_{.col}")) %>% 
       mutate(# output emission rates (lb/MWh)
@@ -686,10 +686,10 @@ region_aggregation <- function(region, region_cols) {
                                  "generation_ann", 
                                  "generation_oz", 
                                  contains("mass"), 
-                                 "ann_gen_coal", 
-                                 "ann_gen_oil", 
-                                 "ann_gen_gas", 
-                                 "ann_gen_other_ff"), 
+                                 "coal_netgen", 
+                                 "oil_netgen", 
+                                 "gas_netgen", 
+                                 "other_ff_netgen"), 
                        .fns = ~ sum(.x, na.rm = TRUE),
                        .names = "region_{.col}")) %>% 
       mutate(# output emission rates (lb/MWh)
@@ -782,7 +782,7 @@ region_aggregation <- function(region, region_cols) {
       mutate(across(.cols = -c("region_generation_ann"), 
                     .fns = ~ if_else(region_generation_ann != 0, 
                                      . / region_generation_ann, NA_real_), # convert to percentage 
-                    .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
+                    .names = "{str_replace(.col, 'netgen', 'resource_mix')}")) %>% 
       select(contains("resource_mix")) %>% 
       distinct()
     
@@ -895,13 +895,13 @@ region_aggregation <- function(region, region_cols) {
     ## Export region aggregation file -----------
     
     if(dir.exists("data/outputs")) {
-      print("Folder output already exists.")
+      print("Folder outputs already exists.")
     } else {
       dir.create("data/outputs")
     }
     
     if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
-      print("Folder output already exists.")
+      print(glue::glue("Folder outputs/{params$eGRID_year} already exists."))
     } else {
       dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
     }
