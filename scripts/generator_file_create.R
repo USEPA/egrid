@@ -319,7 +319,7 @@ eia_gen_genfuel_diff <-
                                          abs_diff_monthly_generation_ann / tot_monthly_generation_ann_fuel),
          overwrite = if_else(perc_diff_generation_ann > 0.001, "overwrite", "EIA-923 Generator File"),
          overwrite = if_else(perc_diff_monthly_gen > 0.001, "overwrite", "EIA-923 Generator File")) %>% 
-  # filter(tot_generation_ann_fuel != 0) %>%
+  # filter(tot_generation_ann_fuel != 0) %>% (annual)
   filter(tot_generation_ann_fuel != 0 | tot_monthly_generation_ann_fuel != 0) %>%
   # select(all_of(cols_to_keep)) %>%
   select(all_of(cols_to_keep), starts_with("tot"), starts_with("abs"), starts_with("perc")) %>%
@@ -354,7 +354,8 @@ if (params$temporal_res == "monthly") {
       "generation_ann",
       "generation_oz",
       "gen_data_source",
-      paste0("net_generation_", tolower(month.name)))
+      paste0("netgen_", tolower(month.name)),
+      "overwrite")
 }
 
 gen_overwrite <- 
@@ -374,8 +375,9 @@ gen_overwrite <-
                 .fns = ~ . * prop,
                 .names = "{gsub('tot_', '', col)}"),
          gen_data_source = "Data from EIA-923 Generator File overwritten with distributed data from EIA-923 Generation and Fuel") %>% 
-  select(any_of(key_columns), overwrite) %>%  # reducing columns for clarity and to facilitate QA
-  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id))  # creating unique idea to identify duplicates
+  select(any_of(key_columns)) %>%  # reducing columns for clarity and to facilitate QA
+  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>% # creating unique idea to identify duplicates
+  mutate(gen_ann_compare = rowSums(select(.,contains(month.name)), na.rm = TRUE))
   
 print(glue::glue("{nrow(gen_overwrite)} generators have generation data overwritten from EIA-923 Generator file with distributed data from EIA-923 Generation and Fuel due to percent difference >0.1% between data sources."))
 
@@ -400,15 +402,15 @@ december_netgen <-
                             tot_generation_oz_fuel * prop, generation_oz),
     gen_data_source = "EIA-923 Generator File") %>% 
   filter(generation_ann_dec_equal == "yes") %>%
-  select(any_of(key_columns), generation_ann_dec_equal) %>%  # keeping only necessary columns
+  select(c(any_of(key_columns), generation_ann_dec_equal)) %>%  # keeping only necessary columns
   mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) # creating unique idea to identify duplicates
 
-if (params$temporal_res == "monthly") {
-  december_netgen <- 
-    december_netgen %>%
-    mutate(net_generation_december = net_generation_november) # all net_generation_december issue generators have 0/NA values
-}
-  
+# if (params$temporal_res == "monthly") {
+#   december_netgen <- 
+#     december_netgen %>%
+#     mutate(net_generation_december = net_generation_november) # all net_generation_december issue generators have 0/NA values
+# }
+#   
 print(glue::glue("{nrow(december_netgen)} generators have generation data where generation data equals December generation."))
 
 # create if all monthly generation values are 0, but annual net generation > 0, replace 0 with NA
@@ -416,7 +418,7 @@ print(glue::glue("{nrow(december_netgen)} generators have generation data where 
 
 # Form generator file structure ------------
 
-check_dup_ids <- 
+check_dup_ids <-  
   december_netgen %>% 
   filter(id_pm %in% gen_overwrite$id_pm) %>% 
   pull(id_pm)
@@ -465,6 +467,41 @@ if(nrow(generators_combined) > (nrow(gen_dist_no_dec_overwritten) + nrow(decembe
   print("The number of rows in generators_combined matches the sum of generators that are overwritten, generators that use December generation, and all other generators.")
 }
 
+# Update capacity factor  -----------------------------------------------
+
+# create dataframe of number of hours in each year or month
+if (params$temporal_res == "annual") { 
+  hours <- data.frame("hours_ann" = 8760)}
+if (params$temporal_res == "monthly") { 
+  hours <- 
+    data.frame("hours_ann"       = 8760, 
+               "hours_january"   = 744, 
+               "hours_february"  = 672, 
+               "hours_march"     = 744, 
+               "hours_april"     = 720, 
+               "hours_may"       = 744, 
+               "hours_june"      = 720, 
+               "hours_july"      = 744, 
+               "hours_august"    = 744, 
+               "hours_september" = 720, 
+               "hours_october"   = 744,
+               "hours_november"  = 720, 
+               "hours_december"  = 744)
+  if ((as.numeric(params$eGRID_year) %% 4 == 0 & as.numeric(params$eGRID_year) %% 100 != 0) | 
+      (as.numeric(params$eGRID_year) %% 400 == 0)) { 
+    hours$hours_february = 696}} # if it is a leap year, assign hours of 29 days to february
+
+generators_combined2 <- 
+  cbind(generators_combined, hours) %>% 
+  rename_with(~ gsub("^net_", "",.), starts_with("net_generation_")) %>% # rename for easier selection
+  mutate(across(.cols = c(starts_with("generation"), -c(generation_year_to_date, ends_with("diff"), generation_oz, generation_ann_dec_equal)), 
+                .fns = ~ if_else(tot_nameplate_capacity != 0, # where nameplate capacity is not 0 
+                                 .x / (tot_nameplate_capacity * get(str_replace(cur_column(), "generation", "hours"))),
+                                 0), 
+                .names = "{str_replace_all(.col, c('generation' = 'capfac', '_ann' = ''))}")) %>% 
+  select(-starts_with("hours"))
+
+
 # Final modifications to generator file -----------
 
 # creating lookup tables based on xwalk to use with recode() 
@@ -474,7 +511,7 @@ lookup_eia_id_epa_id <- with(xwalk_eia_epa, setNames(epa_plant_id, eia_plant_id)
 lookup_epa_id_name <- with(xwalk_eia_epa, setNames(epa_plant_name, epa_plant_id))
 
 generators_edits <- 
-  generators_combined %>% 
+  generators_combined2 %>% 
   left_join(xwalk_fuel_codes %>% rename(fuel_code_update = fuel_code), by = c("plant_id")) %>% 
   mutate(id = paste0(plant_id, "_", generator_id), 
          fuel_code = if_else(plant_id %in% xwalk_fuel_codes$plant_id & energy_source_1 %in% c("OG", "OTH"), fuel_code_update, energy_source_1),
@@ -483,8 +520,8 @@ generators_edits <-
          plant_id = recode(plant_id, !!!lookup_eia_id_epa_id), # updating plant_id to corresponding EPA IDs with lookup table
          plant_name = recode(plant_id, !!!lookup_epa_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
          gen_data_source = if_else(is.na(generation_ann), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
-         year = params$eGRID_year,
-         capfact = if_else(nameplate_capacity != 0, generation_ann / (nameplate_capacity * 8760), 0)) %>%  # calculating capacity factor
+         year = params$eGRID_year) %>%#,
+         #capfact = if_else(nameplate_capacity != 0, generation_ann / (nameplate_capacity * 8760), 0)) %>%  # calculating capacity factor
   left_join(eia_860_boiler_count) %>% 
   rows_update(epa, by = c("plant_id"), unmatched = "ignore") %>% 
   rows_delete(epa_plants_to_delete, by = c("plant_id"), unmatched = "ignore")
@@ -502,7 +539,7 @@ final_vars <-
       "PRMVR" =  "prime_mover",
       "FUELG1" = "fuel_code",
       "NAMEPCAP" = "nameplate_capacity",
-      "CFACT" = "capfact",
+      "CFACT" = "capfac",
       "GENNTAN" = "generation_ann",
       "GENNTOZ" = "generation_oz",
       "GENERSRC" = "gen_data_source",
@@ -512,7 +549,8 @@ final_vars <-
 if (params$temporal_res == "monthly") {
   final_vars <-
     c(final_vars, 
-      paste0("net_generation_", tolower(month.name)))
+      paste0("generation_", tolower(month.name)),
+      paste0("capfac_", tolower(month.name)))
 }
 
 generators_formatted <-
@@ -521,8 +559,7 @@ generators_formatted <-
   mutate(seqgen = row_number()) %>%
   select(as_tibble(final_vars)$value) %>% # keeping columns with tidy names since the rename is done in the final formatting script
   drop_na(plant_id, generator_id) %>%
-  rename_with(~ gsub("^net_", "",.), starts_with("net_generation_")) %>%
-  mutate(across(c("capfact", starts_with("generation")), ~ round(.x, 3)))
+  mutate(across(c(starts_with("capfac"), starts_with("generation")), ~ round(.x, 3)))
 
 # Export generator file -----------
 
