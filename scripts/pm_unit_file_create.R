@@ -169,10 +169,11 @@ unit_pm_emissions_updated <-
   rows_patch(pm_removal_efficiencies, by = c("unitid", "orispl", "prmvr")) %>%
   rows_patch(pm_emission_factors, by = c("unitid", "orispl", "prmvr"))
 
+
 # format final version of pm2.5 unit file ------------
 
 #adjust pm2.5 emissions for renewable fuel types and select desired columns
-unit_pm_emissions_final <-
+unit_pm_emissions_formatted <-
   unit_pm_emissions_updated %>%
   # set pm2.5 emissions to NA for renewable fuel types
   mutate(pm25an = if_else(fuelu1 %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, pm25), 
@@ -182,3 +183,30 @@ unit_pm_emissions_final <-
          pm25rt = pm25an * 2000 / htian) %>%
   # select desired variables for final version
   select(pstatabb, pname, orispl, unitid, prmvr, untopst, botfirty, fuelu1, hrsop, htian, pm25an, pm25rt, htiansrc, pm25src2, untyronl)
+
+# export PM2.5 unit file ---------
+
+save_file <- "pm_unit_file.RDS"
+
+if(dir.exists("data/outputs")) {
+  print("Folder outputs already exists.")
+} else {
+  dir.create("data/outputs")
+}
+
+if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
+  print(glue::glue("Folder outputs/{params$eGRID_year} already exists."))
+} else {
+  dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
+}
+
+print(glue::glue("Saving PM2.5 unit file to folder data/outputs/{params$eGRID_year}"))
+
+write_rds(unit_pm_emissions_formatted, glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))
+
+# check if file is successfully written to folder 
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))){
+  print(glue::glue("File {save_file} successfully written to folder data/outputs/{params$eGRID_year}"))
+} else {
+  print(glue::glue("File {save_file} failed to write to folder."))
+} 
