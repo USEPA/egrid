@@ -1,14 +1,17 @@
 ## -------------------------------
 ##
-## Name
+## PM unit file create
 ## 
 ## Purpose: 
 ## 
-## Purpose
+## This file creates the PM2.5 unit file for eGRID. 
+## This file includes PM2.5 emission data, either calculated
+## or estimated for the units of the specified eGRID year
+## 
+## The method of PM2.5 calculations are listed within pm25_source
 ##
 ## Additional notes
 ##
-## Authors:  
 ##      Emma Russell, Abt Global
 ##
 ## -------------------------------
@@ -41,27 +44,27 @@ if (exists("params")) {
 #   eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 # } else { 
 #   stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
-eia_923 <- read_csv("data/raw_data/923/2023/eia_923_test.csv") %>%
+eia_923 <- read_csv("data/raw_data/923/2023/eia_923_test.csv", col_types = "ccccccccddddcccdccddcdc") %>%
   janitor::clean_names()
 
 ## NEI PM2.5 data
 if(file.exists(glue::glue("data/raw_data/nei/{params$eGRID_year}/nei_particulate_matter_emissions_raw.csv"))) { 
-  pm_raw_nei <- read_csv(glue::glue("data/raw_data/nei/{params$eGRID_year}/nei_particulate_matter_emissions_raw.csv")) %>%
+  pm_raw_nei <- read_csv(glue::glue("data/raw_data/nei/{params$eGRID_year}/nei_particulate_matter_emissions_raw.csv"), col_types = "cccccccccccccccccdcc") %>%
     janitor::clean_names()
 } else { 
   stop("nei_particulate_matter_emissions_raw.csv does not exist.")}
   # access and r both have 355919 observations
 
 ## NEI-EIA crosswalk matching NEI and EIA unit ids
-nei_eia_xwalk <- read_csv("data/static_tables/xwalk_nei_eia.csv") %>% #, #col_types = "cccccccccccccccccccc") 
+nei_eia_xwalk <- read_csv("data/static_tables/xwalk_nei_eia.csv", col_types = "cccccccccccccccccccc") %>%
   janitor::clean_names()
 
 ## Particulate matter emission factors from EPA AP-42 dataset
-pm_efs <- read_csv("data/static_tables/emission_factors_particulate_matter.csv") %>%
+pm_efs <- read_csv("data/static_tables/emission_factors_particulate_matter.csv", col_types = "cccdccc") %>%
   janitor::clean_names()
 
 ## eGRID production model data - unit file
-unit_file <- read_xlsx(glue::glue("data/outputs/{params$eGRID_year}/unit_file_2021_access.xlsx")) %>%
+unit_file <- read_csv(glue::glue("data/outputs/{params$eGRID_year}/unit_file_2021_access.csv"), col_types = "ccccccccccicddddddddccccccccccc") %>%
   janitor::clean_names()
 # unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
 
@@ -166,4 +169,16 @@ unit_pm_emissions_updated <-
   rows_patch(pm_removal_efficiencies, by = c("unitid", "orispl", "prmvr")) %>%
   rows_patch(pm_emission_factors, by = c("unitid", "orispl", "prmvr"))
 
-# update and format unit pm emissions data to save ------------
+# format final version of pm2.5 unit file ------------
+
+#adjust pm2.5 emissions for renewable fuel types and select desired columns
+unit_pm_emissions_final <-
+  unit_pm_emissions_updated %>%
+  # set pm2.5 emissions to NA for renewable fuel types
+  mutate(pm25an = if_else(fuelu1 %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, pm25), 
+         # set pm2.5 source type to NA for renewable fuel types
+         pm25src2 = if_else(pm25an >= 0, pm25_source, NA), 
+         # add data column with adjusted pm2.5 rate
+         pm25rt = pm25an * 2000 / htian) %>%
+  # select desired variables for final version
+  select(pstatabb, pname, orispl, unitid, prmvr, untopst, botfirty, fuelu1, hrsop, htian, pm25an, pm25rt, htiansrc, pm25src2, untyronl)
