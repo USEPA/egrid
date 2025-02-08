@@ -28,21 +28,29 @@ library(stringr)
 # user will be prompted to input eGRID year in the console if params does not exist
 
 if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+  if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
     print("eGRID year parameter is already defined.") 
   } else { # if params() is defined, but eGRID_year is not, define it here 
     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
     params$eGRID_year <- as.character(params$eGRID_year) 
+    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+    params$temporal_res <- as.character(params$temporal_res) 
   }
 } else { # if params() and eGRID_year are not defined, define them here
   params <- list()
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
+  params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+  params$temporal_res <- as.character(params$temporal_res) 
 }
+
 
 # Load aggregation function -------------
 
 source("scripts/functions/function_region_aggregation.R")
+
+# Load ordered names and abbreviations -------------
+load("data/static_tables/name_matches.Rdata")
 
 # Call aggregation function for each region ------------
 

@@ -152,7 +152,7 @@ if (params$temporal_res == "monthly") {
 if(file.exists(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))) { 
   epa <- 
     read_rds(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")) %>% 
-    select(all_of(epa_vars_to_keep)) # keeping only necessary variables
+    select(any_of(epa_vars_to_keep)) # keeping only necessary variables
 } else { 
    stop("epa_clean.RDS does not exist. Run data_load_epa.R and data_clean_epa.R to obtain.")}
 
@@ -538,21 +538,21 @@ eia_fuel_consum_pm <- # summing fuel and consum to PM level
             fuel_consum_923_nonoz = sum(unit_consum_nonoz, na.rm = TRUE),
             fuel_consum_923_oz = sum(unit_consum_oz, na.rm = TRUE),
             fuel_consum_923_ann = sum(total_fuel_consumption_quantity, na.rm = TRUE), # consumption in quantity is referred to as "fuel consumption"
-            across(.cols = c(all_of(heat_923_nonoz_months), all_of(heat_923_oz_months)), # rename monthly heat input columns 
+            across(.cols = c(any_of(heat_923_nonoz_months), any_of(heat_923_oz_months)), # rename monthly heat input columns 
                    .fns = ~ sum(., na.rm = TRUE), 
                    .names = "{str_replace(.col, 'tot_mmbtu_', 'heat_input_923_')}"), 
-            across(.cols = c(all_of(consum_923_nonoz_months), all_of(consum_923_oz_months)), 
+            across(.cols = c(any_of(consum_923_nonoz_months), any_of(consum_923_oz_months)), 
                    .fns = ~ sum(., na.rm = TRUE), 
                    .names = "{str_replace(.col, 'quantity_', 'fuel_consum_923_')}") # rename monthly fuel consumption columns
             ) %>% ungroup() %>% 
-  select(plant_id, prime_mover, all_of(temporal_res_eia_cols))
+  select(plant_id, prime_mover, any_of(temporal_res_eia_cols))
 
 eia_fuel_consum_fuel_type <- # summing fuel and consum to PM and fuel_type level
   eia_923$generation_and_fuel_combined %>%
-  mutate(unit_heat_nonoz = rowSums(pick(all_of(heat_923_nonoz_months)), na.rm = TRUE),
-         unit_heat_oz = rowSums(pick(all_of(heat_923_oz_months)), na.rm = TRUE),
-         unit_consum_nonoz = rowSums(pick(all_of(consum_923_nonoz_months)), na.rm = TRUE),
-         unit_consum_oz = rowSums(pick(all_of(consum_923_oz_months)), na.rm = TRUE)) %>%
+  mutate(unit_heat_nonoz = rowSums(pick(any_of(heat_923_nonoz_months)), na.rm = TRUE),
+         unit_heat_oz = rowSums(pick(any_of(heat_923_oz_months)), na.rm = TRUE),
+         unit_consum_nonoz = rowSums(pick(any_of(consum_923_nonoz_months)), na.rm = TRUE),
+         unit_consum_oz = rowSums(pick(any_of(consum_923_oz_months)), na.rm = TRUE)) %>%
   group_by(plant_id, prime_mover, fuel_type) %>%
   summarize(heat_input_923_nonoz = sum(unit_heat_nonoz, na.rm = TRUE),
             heat_input_923_oz = sum(unit_heat_oz, na.rm = TRUE),
@@ -560,14 +560,14 @@ eia_fuel_consum_fuel_type <- # summing fuel and consum to PM and fuel_type level
             fuel_consum_923_nonoz = sum(unit_consum_nonoz, na.rm = TRUE),
             fuel_consum_923_oz = sum(unit_consum_oz, na.rm = TRUE),
             fuel_consum_923_ann = sum(total_fuel_consumption_quantity, na.rm = TRUE), # consumption in quantity is referred to as "fuel consumption"
-            across(.cols = c(all_of(heat_923_nonoz_months), all_of(heat_923_oz_months)), 
-                   .fns = ~ sum(., na.rm = TRUE), 
+            across(.cols = c(any_of(heat_923_nonoz_months), any_of(heat_923_oz_months)), 
+                   .fns = ~ sum(.x, na.rm = TRUE), 
                    .names = "{str_replace(.col, 'tot_mmbtu_', 'heat_input_923_')}"), # rename monthly heat input columns 
-            across(.cols = c(all_of(consum_923_nonoz_months), all_of(consum_923_oz_months)), 
-                   .fns = ~ sum(., na.rm = TRUE), 
+            across(.cols = c(any_of(consum_923_nonoz_months), any_of(consum_923_oz_months)), 
+                   .fns = ~ sum(.x, na.rm = TRUE), 
                    .names = "{str_replace(.col, 'quantity_', 'fuel_consum_923_')}") # rename monthly fuel consumption columns
   ) %>% ungroup() %>% 
-  select(plant_id, prime_mover, fuel_type, all_of(temporal_res_eia_cols))
+  select(plant_id, prime_mover, fuel_type, any_of(temporal_res_eia_cols))
 
 # distributing heat input from only ozone reporting plants to non-ozone months
 ##### CHECK do we want to equally distribute heat input to non-ozone months when doing monthly rates? ########
@@ -811,7 +811,7 @@ eia_923_boilers <-
                 .names = "heat_input_{str_replace(.col, 'quantity_of_fuel_consumed_','')}"),
          heat_input = rowSums(pick(all_of(starts_with("heat_input")))), # getting annual heat_input, summing across all monthly heat columns
          heat_input_oz = rowSums(pick(all_of(paste0("heat_input_",tolower(month.name[5:9])))))) %>%  # summing across ozone months
-  select(plant_id, plant_name, plant_state, prime_mover, boiler_id, fuel_type, total_fuel_consumption_quantity, all_of(temporal_res_heat_cols)) %>% 
+  select(plant_id, plant_name, plant_state, prime_mover, boiler_id, fuel_type, total_fuel_consumption_quantity, any_of(temporal_res_heat_cols)) %>% 
   left_join(prime_mover_corrections, by = c("plant_id", "boiler_id", "prime_mover")) %>% 
   mutate(prime_mover = if_else(!is.na(update), update, prime_mover)) %>% 
   rows_update(prime_mover_corrections_2, by = c("plant_id", "boiler_id"), unmatched = "ignore") %>% 
@@ -990,7 +990,7 @@ nuc_geo_gens_to_add <-
          prime_mover,
          primary_fuel_type = energy_source_1,
          operating_status = status,
-         all_of(temporal_res_heat_cols))
+         any_of(temporal_res_heat_cols))
 
 eia_860_generators_to_add_3 <-
   eia_860_generators_to_add_2 %>%
@@ -1099,14 +1099,14 @@ if (params$temporal_res == "monthly") {
 distributed_heat_input <- # determining distributional heat input via proportion of nameplate capacity
   dist_props %>% 
   left_join(eia_fuel_consum_pm) %>% 
-  mutate(across(.cols = all_of(temporal_res_heat_923_cols), 
+  mutate(across(.cols = any_of(temporal_res_heat_923_cols), 
                 .fns = ~ prop * .x, 
                 .names = "{str_replace(.col, '_923', '')}")) %>% 
   rename(heat_input = heat_input_ann) %>% 
   select(plant_id, 
          prime_mover, 
          generator_id, 
-         all_of(temporal_res_heat_cols)) %>% 
+         any_of(temporal_res_heat_cols)) %>% 
   filter(!is.na(heat_input), # keeping only heat inputs that aren't missing or aren't 0
          heat_input != 0) 
 
@@ -1134,7 +1134,7 @@ units_missing_heat_2 <- # creating updated dataframe with remaining missing heat
 units_heat_updated_boiler_matches <- 
   units_missing_heat_2 %>% 
   rows_patch(eia_923_boilers %>% 
-               select(plant_id, unit_id = boiler_id, prime_mover, total_fuel_consumption_quantity, all_of(temporal_res_heat_cols)) %>% 
+               select(plant_id, unit_id = boiler_id, prime_mover, total_fuel_consumption_quantity, any_of(temporal_res_heat_cols)) %>% 
                group_by(plant_id, unit_id, prime_mover) %>% 
                slice_max(total_fuel_consumption_quantity, n = 1) %>% 
                select(-total_fuel_consumption_quantity) %>% 
@@ -1147,7 +1147,7 @@ units_heat_updated_boiler_matches <-
   select(plant_id, 
          unit_id, 
          prime_mover,
-         all_of(temporal_res_heat_cols), 
+         any_of(temporal_res_heat_cols), 
          heat_input_source,
          heat_input_oz_source) %>% 
   ungroup()
@@ -1185,7 +1185,7 @@ heat_differences <- # calculating prime mover-level heat differences between uni
   rows_update(units_heat_updated_pm_data, by = c("plant_id", "unit_id")) %>% 
   rows_update(units_heat_updated_boiler_matches, by = c("plant_id", "unit_id")) %>% 
   group_by(plant_id, prime_mover) %>% 
-  summarize(across(all_of(temporal_res_heat_cols), ~ sum(.x, na.rm = TRUE))) %>% 
+  summarize(across(any_of(temporal_res_heat_cols), ~ sum(.x, na.rm = TRUE))) %>% 
   left_join(eia_fuel_consum_pm) %>% 
   rename(heat_input_ann = heat_input) %>% 
   mutate(across(.cols = c("heat_input_ann", any_of(temporal_res_heat_cols)), 
@@ -1231,7 +1231,7 @@ filled_heat_inputs <-
   bind_rows(units_heat_updated_pm_data, 
             units_heat_updated_boiler_matches, 
             units_heat_updated_boiler_distributed) %>% 
-  select(plant_id, unit_id, prime_mover, all_of(temporal_res_heat_cols))
+  select(plant_id, unit_id, prime_mover, any_of(temporal_res_heat_cols))
 
 
 all_units_3 <- 
@@ -1381,7 +1381,7 @@ avg_sulfur_content <-
          physical_unit_label,
          annual_heat_input,
          "annual_quantity_of_fuel_consumed" = total_fuel_consumption_quantity, 
-         all_of(temporal_res_sulfur_cols)) 
+         any_of(temporal_res_sulfur_cols)) 
 
 avg_sulfur_content_fuel <- # avg sulfur content grouped by fuel type
   avg_sulfur_content %>%
@@ -1531,7 +1531,7 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
   group_by(plant_id, plant_state, prime_mover, primary_fuel_type) %>% 
   mutate(total_heat_input = sum(heat_input, na.rm = TRUE)) %>% 
   ungroup() %>% 
-  filter(!is.na(heat_input)) %>% 
+  filter(!is.na(heat_input)) %>%   
   mutate(prop = if_else(total_heat_input != 0, heat_input / total_heat_input, 0)) %>% # handle divide by 0 by assigning prop of 0 to zero total_heat_input values
   select(plant_id, 
          plant_state,
@@ -1547,7 +1547,7 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
              by = c("plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>%
   rows_update(og_fuel_types_update %>% select(plant_id, unit_id, "primary_fuel_type" = fuel_code), # convert fuel type back to more specific gas to calculate emissions
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
-  mutate(across(.cols = all_of(temporal_res_eia_cols), 
+  mutate(across(.cols = any_of(temporal_res_eia_cols), 
                 .fns = ~ .x * prop, 
                 .names = "{str_replace(.col, '_923', '')}")) %>% 
   select(-c(contains("923")), -c(contains("nonoz"))) %>% 
@@ -1734,11 +1734,11 @@ all_units_6 <-
 
 co2_emissions <- 
   all_units_6 %>%
-  select(plant_id, unit_id, primary_fuel_type, prime_mover, all_of(temporal_res_heat_cols), contains("co2_mass")) %>%
+  select(plant_id, unit_id, primary_fuel_type, prime_mover, any_of(temporal_res_heat_cols), contains("co2_mass")) %>%
   inner_join(co2_ef %>%
               filter(!is.na(eia_fuel_code)) %>%
               select(eia_fuel_code, co2_ef), by = c("primary_fuel_type" = "eia_fuel_code")) %>%
-  mutate(across(.col = c(all_of(temporal_res_heat_cols), -contains("oz")), 
+  mutate(across(.col = c(any_of(temporal_res_heat_cols), -contains("oz")), 
                 .fns = ~ .x * co2_ef, 
                 .names = "{str_replace(.col, 'heat_input', 'co2_mass')}"), 
          co2_source = "Estimated using emissions factor") %>%
@@ -1757,10 +1757,10 @@ all_units_7 <-
 ### NOx emissions - rate -------
 
 nox_emissions_ann <- 
-  all_units_7 %>% select(plant_id, unit_id, prime_mover, all_of(temporal_res_heat_cols)) %>% 
+  all_units_7 %>% select(plant_id, unit_id, prime_mover, any_of(temporal_res_heat_cols)) %>% 
   inner_join(nox_rates_ann) %>% 
   mutate(# calculate NOx emissions for each month or annual level based on params$temporal_res
-         across(.cols = c(all_of(temporal_res_heat_cols), -contains("oz")),  
+         across(.cols = c(any_of(temporal_res_heat_cols), -contains("oz")),  
                 .fns = ~ nox_rate_ann * .x / 2000, 
                 .names = "{str_replace(.col, 'heat_input', 'nox_mass')}"),
          nox_source = "Estimated based on unit-level NOx emission rates") %>%
@@ -1858,7 +1858,7 @@ nox_emissions_heat_input <-
   select(plant_id, unit_id, primary_fuel_type, prime_mover, contains("heat_input"), nox_ef, nox_ef, nox_ef_num, nox_ef_denom) %>%
   group_by(plant_id, unit_id, primary_fuel_type, nox_ef, nox_ef_num, nox_ef_denom) %>%
   mutate(# calculate NOx emissions across months or annually based on params$temporal_res
-         across(.cols = c(all_of(temporal_res_heat_cols), -contains("oz")), 
+         across(.cols = c(any_of(temporal_res_heat_cols), -contains("oz")), 
                 .fns = ~ .x * nox_ef / 2000, 
                 .names = "{str_replace(.col, 'heat_input', 'nox_mass')}"),
          nox_source = "Estimated using emissions factor") %>%
@@ -1925,13 +1925,13 @@ geo_emissions <-
                 by = "plant_id", unmatched = "ignore") %>% 
   left_join(geo_emission_factors , by = "geo_type_code") %>% 
   mutate(# calculate geothermal emissions 
-         across(.cols = all_of(temporal_res_heat_cols), 
+         across(.cols = any_of(temporal_res_heat_cols), 
                 .fns = ~ .x * nox_ef_lb_mmbtu / 2000, 
                 .names = "{str_replace(.col, 'heat_input', 'nox_mass')}"), 
-         across(.cols = all_of(temporal_res_heat_cols), 
+         across(.cols = any_of(temporal_res_heat_cols), 
                 .fns = ~ .x * so2_ef_lb_mmbtu / 2000, 
                 .names = "{str_replace(.col, 'heat_input', 'so2_mass')}"),
-         across(.cols = all_of(temporal_res_heat_cols), 
+         across(.cols = any_of(temporal_res_heat_cols), 
                 .fns = ~ .x * co2_ef_lb_mmbtu / 2000, 
                 .names = "{str_replace(.col, 'heat_input', 'co2_mass')}"),
          nox_source = if_else(!is.na(nox_mass), "Estimated using emissions factor", NA_character_), 
