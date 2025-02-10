@@ -318,6 +318,7 @@ eia_gen_genfuel_diff <-
          perc_diff_monthly_gen = if_else(abs_diff_monthly_generation_ann == 0, 0,
                                          abs_diff_monthly_generation_ann / tot_monthly_generation_ann_fuel),
          overwrite = if_else(perc_diff_generation_ann > 0.001, "overwrite", "EIA-923 Generator File"),
+         overwrite = if_else(perc_diff_generation_oz > 0.001, "overwrite", "EIA-923 Generator File"),
          overwrite = if_else(perc_diff_monthly_gen > 0.001, "overwrite", "EIA-923 Generator File")) %>% 
   # filter(tot_generation_ann_fuel != 0) %>% (annual)
   filter(tot_generation_ann_fuel != 0 | tot_monthly_generation_ann_fuel != 0) %>%
@@ -376,14 +377,27 @@ gen_overwrite <-
                 .names = "{gsub('tot_', '', col)}"),
          gen_data_source = "Data from EIA-923 Generator File overwritten with distributed data from EIA-923 Generation and Fuel") %>% 
   select(any_of(key_columns)) %>%  # reducing columns for clarity and to facilitate QA
-  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>% # creating unique idea to identify duplicates
+  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>% # creating unique id to identify duplicates
   mutate(gen_ann_compare = rowSums(select(.,contains(month.name)), na.rm = TRUE))
+
+if (params$temporal_res == "monthly") {
+  gen_overwrite <- 
+    gen_overwrite %>%
+    rename_with(~gsub("netgen_", "net_generation_", .x) ,starts_with("netgen_"))
+}
   
 print(glue::glue("{nrow(gen_overwrite)} generators have generation data overwritten from EIA-923 Generator file with distributed data from EIA-923 Generation and Fuel due to percent difference >0.1% between data sources."))
 
 ## December generation ------
 # find plants in the EIA-923 Generator file that are using the same net generation amount in December and redistribute using GenFuel file 
 # these plants incorrectly have the total generation in the column net_generation_december
+
+if (params$temporal_res == "monthly") {
+  key_columns <- 
+    c(key_columns,
+      paste0("tot_netgen_", tolower(month.name)),
+      "prop")
+}
 
 december_netgen <- 
   gen_distributed %>% 
@@ -402,15 +416,17 @@ december_netgen <-
                             tot_generation_oz_fuel * prop, generation_oz),
     gen_data_source = "EIA-923 Generator File") %>% 
   filter(generation_ann_dec_equal == "yes") %>%
-  select(c(any_of(key_columns), generation_ann_dec_equal)) %>%  # keeping only necessary columns
+  select(any_of(key_columns), generation_ann_dec_equal) %>%  # keeping only necessary columns
   mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) # creating unique idea to identify duplicates
 
-# if (params$temporal_res == "monthly") {
-#   december_netgen <- 
-#     december_netgen %>%
-#     mutate(net_generation_december = net_generation_november) # all net_generation_december issue generators have 0/NA values
-# }
-#   
+if (params$temporal_res == "monthly") {
+  december_netgen <-
+    december_netgen %>%
+    mutate(across(all_of(paste0("tot_netgen_", tolower(month.name))),
+                  .fns = ~ . * prop,
+                  .names = "{gsub('tot_netgen_', 'net_generation_', col)}"))
+   #  rename_with(~gsub("tot_netgen_", "net_generation_", .x) ,starts_with("tot_netgen_"))
+}
 print(glue::glue("{nrow(december_netgen)} generators have generation data where generation data equals December generation."))
 
 # create if all monthly generation values are 0, but annual net generation > 0, replace 0 with NA
@@ -430,8 +446,22 @@ december_and_overwritten <-
     gen_overwrite) %>% 
   left_join(eia_gen_generation %>% # merging all columns back in
               select(-c(starts_with("generation"), gen_data_source)),
-            by = c("plant_id", "generator_id", "prime_mover"))  %>%
-  coalesce_join_vars() 
+            by = c("plant_id", "generator_id", "prime_mover")) # %>%
+ #  coalesce_join_vars() 
+
+if (params$temporal_res == "monthly") {
+  
+  december_and_overwritten <-
+    december_and_overwritten %>%
+    filter(generation_ann_dec_equal == "yes") %>%
+    mutate(across(all_of(paste0("net_generation_", tolower(month.name), ".y")),
+           .fns = ~ get(sub("\\.y$", ".x", cur_column())))) %>%
+    rename_with(~ gsub("\\.y$", "", .), all_of(paste0("net_generation_", tolower(month.name), ".y"))) %>%
+    select(-ends_with(".x")) # %>%
+    # mutate(net_gen_compare = rowSums(select(., paste0("net_generation_", tolower(month.name))), na.rm = TRUE)) 
+    
+  
+}
 
 print(glue::glue("{length(check_dup_ids)} generators are in both december_netgen and gen_overwrite. We default to gen_overwrite."))
 print(glue::glue("{nrow(december_and_overwritten)} generator generation data are either overwritten from EIA-923 Generator and Fuel or from December generation."))
