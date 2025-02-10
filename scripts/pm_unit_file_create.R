@@ -24,7 +24,7 @@ library(readxl)
 
 # Define eGRID year parameter ----------------
 
-# define parameter year is no one is currently assigned using prompted user input
+# define parameter year if no one is currently assigned using prompted user input
 if (exists("params")) {
   if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
     print("eGRID year parameter is already defined.")
@@ -89,7 +89,7 @@ pm_direct_match <-
 unit_pm_emissions <-
   unit_file %>%
   # combine direct match pm2.5 and unit file data
-  left_join(pm_direct_match, by = join_by(unitid == oris_boiler_id, orispl == oris_facility_code)) %>% 
+  left_join(pm_direct_match, by = join_by(orispl == oris_facility_code, unitid == oris_boiler_id)) %>% 
   # modify dataset format and add pm2.5 source for those calculated with direct match
   mutate(pm25_source = if_else(is.na(pm25), NA, "EPA/NEI"), eia_pm_control_efficiency = as.numeric(NA), botfirty = if_else(botfirty == "", NA, botfirty))
 
@@ -129,13 +129,13 @@ pm_fuel_pmover <-
   inner_join(unit_pm_emissions, by = join_by(prmvr, fuelu1)) %>%
   # multiply individual heat inputs by emission factors to estimate pm2.5
   # define method used under source
-  mutate(pm25 = emission_factors * htian, pm25_source = "NEI avg EF - PM fuel type") %>%
+  mutate(pm25 = emission_factors * htian, pm25_source = "NEI avg EF - PM, fuel type") %>%
   ungroup() %>%
   select(orispl, unitid, prmvr, pm25, pm25_source)
   
 
 ## 4) Use emissions factors from AP-42 - "Estimated using an emission factor" ---------
-  
+
 # calculate pm2.5 emissions based on emission factors in AP-42 report
 pm_emission_factors <-
   unit_pm_emissions %>%
@@ -145,6 +145,7 @@ pm_emission_factors <-
   filter(!is.na(pm25)) %>%
   select(orispl, unitid, prmvr, pm25, pm25_source)
 
+
 # if there is a unit match with EIA-923, adjust pm2.5 by control efficiency
 pm_removal_efficiencies <-
   eia_923 %>%
@@ -152,7 +153,7 @@ pm_removal_efficiencies <-
   filter(!is.na(pm_removal_efficiency_rate_at_annual_operating_factor)) %>%
   group_by(plant_id) %>%
   # convert efficiency rate to numeric percentage
-  summarise(eia_pm_control_efficiency = as.numeric(sub("%", "", max(pm_removal_efficiency_rate_at_annual_operating_factor)))) %>% 
+  summarise(eia_pm_control_efficiency = max(as.numeric(sub("%", "", pm_removal_efficiency_rate_at_annual_operating_factor)))) %>%
   inner_join(pm_emission_factors, by = join_by(plant_id == orispl)) %>%
   rename(orispl = plant_id) %>%
   # adjust pm2.5 using control efficiency rate
