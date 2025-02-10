@@ -311,19 +311,22 @@ if (params$temporal_res == "annual") {
   hours <- data.frame("hours_ann" = 8760)}
 if (params$temporal_res == "monthly") { 
   hours <- 
-    data.frame("hours_ann" = 8760, 
-               "hours_january" = 744, 
-               "hours_february" = 672, 
-               "hours_march" = 744, 
-               "hours_april" = 720, 
-               "hours_may" = 744, 
-               "hours_june" = 720, 
-               "hours_july" = 744, 
-               "hours_august" = 744, 
+    data.frame("hours_ann"       = 8760, 
+               "hours_january"   = 744, 
+               "hours_february"  = 672, 
+               "hours_march"     = 744, 
+               "hours_april"     = 720, 
+               "hours_may"       = 744, 
+               "hours_june"      = 720, 
+               "hours_july"      = 744, 
+               "hours_august"    = 744, 
                "hours_september" = 720, 
-               "hours_october" = 744,
-               "hours_november" = 720, 
-               "hours_december" = 744)}
+               "hours_october"   = 744,
+               "hours_november"  = 720, 
+               "hours_december"  = 744)
+  if ((as.numeric(params$eGRID_year) %% 4 == 0 & as.numeric(params$eGRID_year) %% 100 != 0) | 
+      (as.numeric(params$eGRID_year) %% 400 == 0)) { 
+    hours$hours_february = 696}} # if it is a leap year, assign hours of 29 days to february
 
 plant_gen_2 <- 
   cbind(plant_gen, hours) %>% 
@@ -349,12 +352,12 @@ emissions_ch4_n2o <-
   eia_923$generation_and_fuel_combined %>% 
   filter(prime_mover != "FC") %>% 
   rename("tot_mmbtu" = total_fuel_consumption_mmbtu) %>% 
-  select(plant_id, all_of(temporal_res_eia_cols), fuel_type) %>%
+  select(plant_id, any_of(temporal_res_eia_cols), fuel_type) %>%
   left_join(ef_co2_ch4_n2o, by = c("fuel_type" = "eia_fuel_code")) %>%
-  mutate(across(.cols = all_of(temporal_res_eia_cols), # calculate CH4 mass by fuel type
+  mutate(across(.cols = any_of(temporal_res_eia_cols), # calculate CH4 mass by fuel type
                 .fns = ~ ch4_ef * .x, 
                 .names = "{str_replace(.col, 'tot_mmbtu', 'unadj_ch4_mass')}"),
-         across(.cols = all_of(temporal_res_eia_cols), # calculate N2O mass by fuel type
+         across(.cols = any_of(temporal_res_eia_cols), # calculate N2O mass by fuel type
                 .fns = ~ n2o_ef * .x, 
                 .names = "{str_replace(.col, 'tot_mmbtu', 'unadj_n2o_mass')}")) %>%
   group_by(plant_id) %>%
@@ -816,7 +819,7 @@ eia_923_biomass <-
   select(plant_id, "tot_mmbtu" = total_fuel_consumption_mmbtu, fuel_type, starts_with("tot_mmbtu")) %>%
   left_join(ef_co2_ch4_n2o, by = c("fuel_type" = "eia_fuel_code")) %>% 
   filter(fuel_type %in% biomass_fuel_adj[!is.na(biomass_fuel_adj)] & tot_mmbtu > 0) %>%
-  mutate(across(.cols = all_of(temporal_res_eia_cols), 
+  mutate(across(.cols = any_of(temporal_res_eia_cols), 
                 .fns = ~ co2_ef * .x, 
                 .names = "{str_replace(.col, 'tot_mmbtu', 'co2_biomass')}")) %>%
   group_by(plant_id) %>%
@@ -844,23 +847,23 @@ eia_923_lfg <-
   left_join(ef_co2_ch4_n2o, by = c("fuel_type" = "eia_fuel_code")) %>%
   group_by(plant_id) %>%
   summarize(heat_input_oz_season = sum(tot_mmbtu_may, tot_mmbtu_june, tot_mmbtu_july, tot_mmbtu_august, tot_mmbtu_september, na.rm = TRUE), 
-            across(.cols = all_of(temporal_res_eia_cols), 
+            across(.cols = any_of(temporal_res_eia_cols), 
                    .fns = ~ sum(.x, na.rm = TRUE)), 
             ch4_ef = paste_concat(ch4_ef, number = TRUE),
             n2o_ef = paste_concat(n2o_ef, number = TRUE)) %>%
   ungroup() %>% 
   mutate(
-    across(.cols = all_of(temporal_res_eia_cols), 
+    across(.cols = any_of(temporal_res_eia_cols), 
            .fns = ~ 0.08 * pmax(.x, 0), 
            .names = "{str_replace(.col, 'tot_mmbtu', 'nox_biomass')}"),
     nox_bio_oz = 0.08 * pmax(heat_input_oz_season, 0),
-    across(.cols = all_of(temporal_res_eia_cols), 
+    across(.cols = any_of(temporal_res_eia_cols), 
            .fns = ~ ch4_ef * .x, 
            .names = "{str_replace(.col, 'tot_mmbtu', 'ch4_biomass')}"),
-    across(.cols = all_of(temporal_res_eia_cols), 
+    across(.cols = any_of(temporal_res_eia_cols), 
            .fns = ~ n2o_ef * .x, 
            .names = "{str_replace(.col, 'tot_mmbtu', 'n2o_biomass')}"),
-    across(.cols = all_of(temporal_res_eia_cols), 
+    across(.cols = any_of(temporal_res_eia_cols), 
            .fns = ~ 0.0115 / 2000 * pmax(.x, 0), 
            .names = "{str_replace(.col, 'tot_mmbtu', 'so2_biomass')}"),
     biomass_adj_flag1 = "Yes") %>%
@@ -959,69 +962,69 @@ gen_by_fuel <-
   mutate(plant_id = if_else(!is.na(epa_plant_id), epa_plant_id, plant_id)) %>% 
   group_by(plant_id, fuel_type) %>% 
   summarize(# generation by plant and fuel type
-            across(.cols = all_of(temporal_res_gen_cols), 
+            across(.cols = any_of(temporal_res_gen_cols), 
                    .fns = ~ if_else(all(is.na(.x)), NA_real_, 
                                     sum(.x, na.rm = TRUE))), 
-            across(.cols = all_of(temporal_res_gen_cols), 
+            across(.cols = any_of(temporal_res_gen_cols), 
                    .fns = ~ if_else(.x < 0, 0, .x))) %>% 
   ungroup() %>% 
   group_by(plant_id) %>%
   mutate(# plant total generation
-         across(.cols = all_of(temporal_res_gen_cols),
+         across(.cols = any_of(temporal_res_gen_cols),
                 .fns = ~ if_else(all(is.na(.x)), NA_real_, sum(.x, na.rm = TRUE)), 
                 .names = "plant_{.col}"),
          # coal generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ if_else(is.na(.x), NA_real_, 
                                  sum(.x[which(fuel_type %in% coal_fuels)], na.rm = TRUE)), 
                 .names = "coal_{.col}"), 
          # oil generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ if_else(is.na(.x), NA_real_, 
                                  sum(.x[which(fuel_type %in% oil_fuels)], na.rm = TRUE)), 
                 .names = "oil_{.col}"), 
          # gas generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ if_else(is.na(.x), NA_real_, 
                                  sum(.x[which(fuel_type %in% gas_fuels)], na.rm = TRUE)), 
                 .names = "gas_{.col}"), 
          # nuclear generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ if_else(is.na(.x), NA_real_, 
                                  sum(.x[which(fuel_type == "NUC")], na.rm = TRUE)), 
                 .names = "nuclear_{.col}"), 
          # hydro generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ if_else(is.na(.x), NA_real_, 
                                  sum(.x[which(fuel_type == "WAT")], na.rm = TRUE)), 
                 .names = "hydro_{.col}"), 
          # biomass generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ if_else(is.na(.x), NA_real_, 
                                  sum(.x[which(fuel_type %in% biomass_fuels)], na.rm = TRUE)), 
                 .names = "biomass_{.col}"), 
          # wind generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ if_else(is.na(.x), NA_real_, 
                                  sum(.x[which(fuel_type == "WND")], na.rm = TRUE)), 
                 .names = "wind_{.col}"), 
          # solar generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ if_else(is.na(.x), NA_real_, 
                                  sum(.x[which(fuel_type == "SUN")], na.rm = TRUE)), 
                 .names = "solar_{.col}"), 
          # geothermal generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ if_else(is.na(.x), NA_real_, 
                                  sum(.x[which(fuel_type == "GEO")], na.rm = TRUE)), 
                 .names = "geothermal_{.col}"), 
          # other fossil fuel generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ if_else(is.na(.x), NA_real_, 
                                  sum(.x[which(fuel_type %in% other_ff)], na.rm = TRUE)), 
                 .names = "other_ff_{.col}"), 
          # other generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ if_else(is.na(.x), NA_real_, 
                                  sum(.x[which(fuel_type %in% other_fuels)], na.rm = TRUE)), 
                 .names = "other_{.col}")) %>% 
@@ -1035,7 +1038,7 @@ gen_by_fuel <-
 gen_by_fuel_2 <- 
   gen_by_fuel %>% 
   mutate(# non-renewable generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ get(paste0("coal_", cur_column())) + 
                          get(paste0("oil_", cur_column())) + 
                          get(paste0("gas_", cur_column())) + 
@@ -1043,7 +1046,7 @@ gen_by_fuel_2 <-
                          get(paste0("nuclear_", cur_column())), 
                 .names = "nonrenew_{.col}"),
          # renewable generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ get(paste0("biomass_", cur_column())) + 
                          get(paste0("wind_", cur_column())) + 
                          get(paste0("solar_", cur_column())) + 
@@ -1051,18 +1054,18 @@ gen_by_fuel_2 <-
                          get(paste0("hydro_", cur_column())), 
                 .names = "renew_{.col}"),
          # renewable non-hydro generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ get(paste0("biomass_", cur_column())) + 
                          get(paste0("wind_", cur_column())) + 
                          get(paste0("solar_", cur_column())) + 
                          get(paste0("geothermal_", cur_column())), 
                 .names = "renew_nonhydro_{.col}"),
          # non-renewable other generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ get(paste0("other_", cur_column())), 
                 .names = "nonrenew_other_{.col}"), 
          # combustion generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ get(paste0("coal_", cur_column())) + 
                          get(paste0("oil_", cur_column())) + 
                          get(paste0("gas_", cur_column())) + 
@@ -1070,7 +1073,7 @@ gen_by_fuel_2 <-
                          get(paste0("biomass_", cur_column())), 
                 .names = "combust_{.col}"),
          # non-combustion generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ get(paste0("nuclear_", cur_column())) + 
                   get(paste0("wind_", cur_column())) + 
                   get(paste0("solar_", cur_column())) + 
@@ -1078,7 +1081,7 @@ gen_by_fuel_2 <-
                   get(paste0("hydro_", cur_column())), 
                 .names = "noncombust_{.col}"),
          # non-combustion other generation
-         across(.cols = all_of(temporal_res_gen_cols), 
+         across(.cols = any_of(temporal_res_gen_cols), 
                 .fns = ~ get(paste0("other_", cur_column())), 
                 .names = "noncombust_other_{.col}")) %>% 
   select(-starts_with("netgen")) %>% 
@@ -1253,7 +1256,7 @@ eia_923_thermal_output <-
   group_by(plant_id) %>%
   summarize(#total_fuel_consumption_mmbtu = sum(total_fuel_consumption_mmbtu, na.rm = TRUE),
             #elec_fuel_consumption_mmbtu = sum(elec_fuel_consumption_mmbtu, na.rm = TRUE), 
-            across(.cols = all_of(temporal_res_gen_fuel), 
+            across(.cols = any_of(temporal_res_gen_fuel), 
                    .fns = ~ sum(.x, na.rm = TRUE))) %>% ungroup()
 
 chp_plants <- # identify CHP plants from EIA-860, EIA-923, EPA CHP database, and the previous eGRID year data
@@ -1280,7 +1283,7 @@ chp <-
   left_join(xwalk_oris_epa %>% filter(!epa_plant_id %in% chp_plants$plant_id), by = c("plant_id" = "eia_plant_id")) %>% 
   left_join(eia_923_thermal_output) %>%
   mutate( # calculate useful thermal output
-    across(.cols = c(all_of(temporal_res_gen_fuel), -contains("elec")), 
+    across(.cols = c(any_of(temporal_res_gen_fuel), -contains("elec")), 
            .fns = ~ 0.8 * (.x - get(str_replace_all(cur_column(), c("total" = "elec", "tot" = "elec")))), # 0.8 is the assumed efficiency factor from the combustion of the consumed fuel
            .names = "{str_replace_all(.col, c('tot_mmbtu' = 'useful_thermal_output', 
                                               'total_fuel_consumption_mmbtu' = 'useful_thermal_output'))}"), 
@@ -1396,9 +1399,9 @@ if (params$temporal_res == "monthly") {
 plant_file_20 <- 
   plant_file_19 %>% 
   mutate(# calculate NOx, SO2, and CO2 combustion output rate
-         across(.cols = c(paste0("nox", temporal_res_emission_cols),
-                          paste0("so2", temporal_res_emission_cols),
-                          paste0("co2", temporal_res_emission_cols)), 
+         across(.cols = any_of(paste0("nox", temporal_res_emission_cols),
+                               paste0("so2", temporal_res_emission_cols),
+                               paste0("co2", temporal_res_emission_cols)), 
                 .fns = ~ if_else(get(paste0("combust_netgen", str_sub(cur_column(), 9))) <= 0 | 
                                    is.na(get(paste0("combust_netgen", str_sub(cur_column(), 9)))), NA_real_, 
                                  2000 * .x / get(paste0("combust_netgen", str_sub(cur_column(), 9)))), 
@@ -1407,20 +1410,20 @@ plant_file_20 <-
          nox_oz_combust_out_rate = if_else(combust_netgen * (generation_oz / generation_ann) <= 0 | is.na(combust_netgen), 
                                                     NA_real_, 2000 * nox_oz_mass / (combust_netgen * (generation_oz / generation_ann))),
          # calculate CH4 and N2O combustion output rate
-         across(.cols = c(paste0("ch4", temporal_res_emission_cols),
-                          paste0("n2o", temporal_res_emission_cols)), 
+         across(.cols = any_of(paste0("ch4", temporal_res_emission_cols),
+                               paste0("n2o", temporal_res_emission_cols)), 
                 .fns = ~ if_else(get(paste0("combust_netgen", str_sub(cur_column(), 9))) <= 0 | 
                                    is.na(get(paste0("combust_netgen", str_sub(cur_column(), 9)))), NA_real_, 
                                  .x / get(paste0("combust_netgen", str_sub(cur_column(), 9)))), 
                 .names = "{str_replace(.col, 'mass', 'combust_out_rate')}"),
          # calculate CO2e combustion output rate
-         across(.cols = paste0("co2e", temporal_res_emission_cols), 
+         across(.cols = any_of(paste0("co2e", temporal_res_emission_cols)), 
                 .fns = ~ if_else(get(paste0("combust_netgen", str_sub(cur_column(), 10))) <= 0 | 
                                    is.na(get(paste0("combust_netgen", str_sub(cur_column(), 10)))), NA_real_, 
                                  2000 * .x / get(paste0("combust_netgen", str_sub(cur_column(), 10)))), 
                 .names = "{str_replace(.col, 'mass', 'combust_out_rate')}"),
          # assign NAs to Hg combustion output rate
-         across(.cols = paste0("hg", temporal_res_emission_cols), 
+         across(.cols = any_of(paste0("hg", temporal_res_emission_cols)), 
                 .fns = ~ NA_real_, 
                 .names = "{str_replace(.col, 'mass', 'combust_out_rate')}"))
 
@@ -1429,9 +1432,9 @@ plant_file_20 <-
 plant_file_21 <- 
   plant_file_20 %>% 
   mutate(# calculate NOx, SO2, and CO2 input rate
-         across(.cols = c(paste0("nox", temporal_res_emission_cols),
-                          paste0("so2", temporal_res_emission_cols),
-                          paste0("co2", temporal_res_emission_cols)), 
+         across(.cols = any_of(paste0("nox", temporal_res_emission_cols),
+                               paste0("so2", temporal_res_emission_cols),
+                               paste0("co2", temporal_res_emission_cols)), 
                 .fns = ~ if_else(get(paste0("heat_input", str_sub(cur_column(), 9))) <= 0 | 
                                    is.na(get(paste0("heat_input", str_sub(cur_column(), 9)))), NA_real_, 
                                  2000 * .x / get(paste0("heat_input", str_sub(cur_column(), 9)))), 
@@ -1440,20 +1443,20 @@ plant_file_21 <-
          nox_oz_input_rate = if_else(heat_input_oz <= 0 | is.na(heat_input_oz), NA_real_, 
                                            2000 * nox_oz_mass / heat_input_oz),
          # calculate CO2e input rate
-         across(.cols = paste0("co2e", temporal_res_emission_cols), 
+         across(.cols = any_of(paste0("co2e", temporal_res_emission_cols)), 
                 .fns = ~ if_else(get(paste0("heat_input", str_sub(cur_column(), 10))) <= 0 | 
                                    is.na(get(paste0("heat_input", str_sub(cur_column(), 10)))), NA_real_, 
                                  2000 * .x / get(paste0("heat_input", str_sub(cur_column(), 10)))), 
                 .names = "{str_replace(.col, 'mass', 'input_rate')}"),
          # calculate CH4 and N2O input rate
-         across(.cols = c(paste0("ch4", temporal_res_emission_cols),
-                          paste0("n2o", temporal_res_emission_cols)), 
+         across(.cols = any_of(paste0("ch4", temporal_res_emission_cols),
+                               paste0("n2o", temporal_res_emission_cols)), 
                 .fns = ~ if_else(get(paste0("heat_input", str_sub(cur_column(), 9))) <= 0 | 
                                    is.na(get(paste0("heat_input", str_sub(cur_column(), 9)))), NA_real_, 
                                  .x / get(paste0("heat_input", str_sub(cur_column(), 9)))), 
                 .names = "{str_replace(.col, 'mass', 'input_rate')}"),
          # assign NAs to Hg input rate
-         across(.cols = paste0("hg", temporal_res_emission_cols), 
+         across(.cols = any_of(paste0("hg", temporal_res_emission_cols)), 
                 .fns = ~ NA_real_, 
                 .names = "{str_replace(.col, 'mass', 'input_rate')}"))
 
@@ -1462,9 +1465,9 @@ plant_file_21 <-
 plant_file_22 <- 
   plant_file_21 %>% rename("generation" = generation_ann) %>% 
   mutate(# calculate NOx, SO2, and CO2 output rate
-         across(.cols = c(paste0("nox", temporal_res_emission_cols),
-                          paste0("so2", temporal_res_emission_cols),
-                          paste0("co2", temporal_res_emission_cols)), 
+         across(.cols = any_of(paste0("nox", temporal_res_emission_cols),
+                               paste0("so2", temporal_res_emission_cols),
+                               paste0("co2", temporal_res_emission_cols)), 
                 .fns = ~ if_else(get(paste0("generation", str_sub(cur_column(), 9))) <= 0 | 
                                    is.na(get(paste0("generation", str_sub(cur_column(), 9)))), NA_real_, 
                                  2000 * .x / get(paste0("generation", str_sub(cur_column(), 9)))), 
@@ -1473,20 +1476,20 @@ plant_file_22 <-
          nox_oz_output_rate = if_else(generation_oz <= 0 | is.na(generation_oz), NA_real_, 
                                            2000 * nox_oz_mass / generation_oz),
          # calculate CO2e output rate
-         across(.cols = paste0("co2e", temporal_res_emission_cols), 
+         across(.cols = any_of(paste0("co2e", temporal_res_emission_cols)), 
                 .fns = ~ if_else(get(paste0("generation", str_sub(cur_column(), 10))) <= 0 | 
                                    is.na(get(paste0("generation", str_sub(cur_column(), 10)))), NA_real_, 
                                  2000* .x / get(paste0("generation", str_sub(cur_column(), 10)))), 
                 .names = "{str_replace(.col, 'mass', 'output_rate')}"),
          # calculate CH4 and N2O output rate
-         across(.cols = c(paste0("ch4", temporal_res_emission_cols),
-                          paste0("n2o", temporal_res_emission_cols)), 
+         across(.cols = any_of(paste0("ch4", temporal_res_emission_cols),
+                               paste0("n2o", temporal_res_emission_cols)), 
                 .fns = ~ if_else(get(paste0("generation", str_sub(cur_column(), 9))) <= 0 | 
                                    is.na(get(paste0("generation", str_sub(cur_column(), 9)))), NA_real_, 
                                  .x / get(paste0("generation", str_sub(cur_column(), 9)))), 
                 .names = "{str_replace(.col, 'mass', 'output_rate')}"),
          # assign NAs to Hg input rate
-         across(.cols = paste0("hg", temporal_res_emission_cols), 
+         across(.cols = any_of(paste0("hg", temporal_res_emission_cols)), 
                 .fns = ~ NA_real_, 
                 .names = "{str_replace(.col, 'mass', 'output_rate')}")) %>% 
   rename("generation_ann" = generation)

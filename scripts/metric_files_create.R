@@ -42,7 +42,7 @@ if (exists("params")) {
 # Define files to convert ---------------------------------
 
 filenames_orig <- c("unit" = "unit_file",
-                   "gen" = "generator_file",
+                   "generator" = "generator_file",
                    "plant" = "plant_file",
                    "state" = "state_aggregation",
                    "ba" = "ba_aggregation",
