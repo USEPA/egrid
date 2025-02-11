@@ -45,6 +45,11 @@ manual_corrections <-
             sheet = "eia_clean", 
             col_types = c("text", "text", "text"))
 
+# Create month mapping from month name to number -----------------
+month_name_map <- # creating map to recode numeric monthly values to names
+  c(1:12) %>% 
+  purrr::set_names(tolower(month.name))
+
 # List file in EIA raw data folders ------------
 
 # file names are not always consistent from the EIA website
@@ -69,7 +74,7 @@ file_name_schedule_2_3_4_5_m_12 <- grep("2_3_4_5_M_12", eia_923_files, value = T
 
 sched_2_3_4_5_m_12_dfs <- 
   purrr::map2(sheets_923_1, # .x, defining sheets to iterate over
-              c(5,6,5,5),   # y, adding second argument to define the number of rows to skip (differs between files)
+              c(5,6,5,5),   # .y, adding second argument to define the number of rows to skip (differs between files)
              ~ read_excel(paste0(glue::glue("data/raw_data/923/{params$eGRID_year}/"), file_name_schedule_2_3_4_5_m_12), 
                           sheet = .x,
                           skip = .y,
@@ -78,11 +83,20 @@ sched_2_3_4_5_m_12_dfs <-
   purrr::map(., ~ .x %>% 
                rename_with(tolower) %>% 
                janitor::clean_names()) %>% # this lower cases and converts to snake_case
+  purrr::map(., ~ .x %>% 
+               pivot_longer(cols = contains(tolower(month.name)),
+                            names_to = c(".value", "month"),
+                            names_pattern = "^(.*)_(.*)$")) %>% 
+  purrr::map(., ~ .x %>% 
+               mutate(month = recode(month, !!!month_name_map))) %>% 
   setNames(., janitor::make_clean_names(str_replace_all(sheets_923_1, "Page \\d+ ", ""))) %>% # This assigns cleaned sheets names name values for list of dataframes. Storing df names without Page #s
-  purrr::map_at("puerto_rico", # modifing puert0_rico tab only
+  purrr::map_at("puerto_rico", # modifying puerto_rico tab only
                 ~ .x %>% 
                   rename("reserved" = "reserved_10", # fixing issue of two "Reserved" columns. Need to figure out better way in case they're not 10 and 17
-                         "balancing_authority_code" = "reserved_17"))
+                         "balancing_authority_code" = "reserved_17")) %>% 
+  purrr::map(., ~ .x %>% 
+               relocate(month) %>% 
+               relocate(year))
 
 ### Adding Puerto Rico data to EIA-923 Generation and Fuel --------
 
@@ -274,8 +288,7 @@ names_860_PR_op <-
     "County" = "County")
 
 names_860_PR_ret <-
-  c(
-    "Utility ID" = "Entity ID",
+  c("Utility ID" = "Entity ID",
     "Utility Name" = "Entity Name",
     "Plant Code" = "Plant ID",
     "Plant Name" = "Plant Name",
