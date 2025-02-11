@@ -314,7 +314,7 @@ eia_gen_genfuel_diff <-
          perc_diff_generation_ann = if_else(abs_diff_generation_ann == 0, 0, 
                                             abs_diff_generation_ann / tot_generation_ann_fuel), # calculating the percentage of the difference over the fuel levels in gen_fuel file
          perc_diff_generation_oz = if_else(abs_diff_generation_oz == 0, 0, 
-                                           abs_diff_generation_oz / tot_generation_oz_fuel),
+                                           abs_diff_generation_oz / tot_generation_oz_fuel), # calculating percent differences for monthly generation and generation ozone
          perc_diff_monthly_gen = if_else(abs_diff_monthly_generation_ann == 0, 0,
                                          abs_diff_monthly_generation_ann / tot_monthly_generation_ann_fuel),
          overwrite = if_else(perc_diff_generation_ann > 0.001, "overwrite", "EIA-923 Generator File"),
@@ -417,14 +417,20 @@ december_netgen <-
     gen_data_source = "EIA-923 Generator File") %>% 
   filter(generation_ann_dec_equal == "yes") %>%
   select(any_of(key_columns), generation_ann_dec_equal) %>%  # keeping only necessary columns
-  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) # creating unique idea to identify duplicates
+  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id))  # creating unique idea to identify duplicates
+
 
 if (params$temporal_res == "monthly") {
   december_netgen <-
     december_netgen %>%
-    mutate(across(all_of(paste0("tot_netgen_", tolower(month.name))),
-                  .fns = ~ . * prop,
-                  .names = "{gsub('tot_netgen_', 'net_generation_', col)}"))
+    # mutate(across(all_of(paste0("tot_netgen_", tolower(month.name))), # multiply total for each month by prop
+    #               .fns = ~ . * prop,
+    #               .names = "{gsub('tot_netgen_', 'net_generation_', col)}")) %>%
+   # mutate(gen_ann_compare = rowSums(select(.,starts_with("tot_netgen_")), na.rm = TRUE)) %>%
+    mutate(across(paste0("net_generation_", tolower(month.name)), # divide the amount of net generation over the year by 12 
+                  ~ net_generation_year_to_date / 12)) # %>% 
+    # mutate(gen_ann_compare = rowSums(select(.,paste0("net_generation_", tolower(month.name))), na.rm = TRUE)) %>% # create value to check differences
+    # mutate(view_diff = generation_ann - gen_ann_compare)
    #  rename_with(~gsub("tot_netgen_", "net_generation_", .x) ,starts_with("tot_netgen_"))
 }
 print(glue::glue("{nrow(december_netgen)} generators have generation data where generation data equals December generation."))
@@ -457,9 +463,9 @@ if (params$temporal_res == "monthly") {
     mutate(across(all_of(paste0("net_generation_", tolower(month.name), ".y")),
            .fns = ~ get(sub("\\.y$", ".x", cur_column())))) %>%
     rename_with(~ gsub("\\.y$", "", .), all_of(paste0("net_generation_", tolower(month.name), ".y"))) %>%
-    select(-ends_with(".x")) # %>%
+    select(-ends_with(".x")) %>%
+    select(-net_generation_year_to_date.y)# %>%
     # mutate(net_gen_compare = rowSums(select(., paste0("net_generation_", tolower(month.name))), na.rm = TRUE)) 
-    
   
 }
 
