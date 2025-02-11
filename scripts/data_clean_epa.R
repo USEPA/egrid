@@ -42,9 +42,18 @@ if (exists("params")) {
   params$temporal_res <- as.character(params$temporal_res) 
 }
 
+# Specify grouping columns based on temporal_res parameter
+temporal_res_cols_all <- 
+  list("annual"  = c("year"), 
+       "monthly" = c("year", "month"), 
+       "daily"   = c("year", "month", "day"), 
+       "hourly"  = c("year", "month", "day", "hour"))
+
+temporal_res_cols <- unlist(temporal_res_cols_all[params$temporal_res], use.names = FALSE)
+
 # Read raw EPA files -------
 
-epa_raw <- read_rds(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))
+epa_raw <- read_rds(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))
 
 # standardizing variables names to match eia data and removing retired and inactive plants
 
@@ -149,7 +158,7 @@ epa_final <- # removing unnecessary columns and final renames
   epa_r %>%
   select(starts_with("plant"),
          unit_id,
-         year,
+         all_of(temporal_res_cols),
          latitude,
          longitude,
          associated_stacks,
@@ -167,10 +176,10 @@ epa_final <- # removing unnecessary columns and final renames
          year_online) %>%
   mutate(across(ends_with("id"), ~ as.character(.x)))
 
-if (params$temporal_res == "annual") {
-  epa_final <-
-    epa_final %>%
-    select(-contains(month.name))}
+#if (params$temporal_res == "annual") {
+#  epa_final <-
+#    epa_final %>%
+#    select(-contains(month.name))}
 
 # Save clean EPA file ------------
 
@@ -188,11 +197,11 @@ if(!dir.exists(glue::glue("data/clean_data/epa/{params$eGRID_year}"))){
   print(glue::glue("Folder data/clean_data/epa/{params$eGRID_year} already exists."))
 }
 
-write_rds(epa_final, glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))
+write_rds(epa_final, glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean_{params$temporal_res}.RDS"))
 
 # check if file is successfully written to folder 
 if(file.exists(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))){
-  print(glue::glue("File epa_clean.RDS successfully written to folder data/clean_data/epa/{params$eGRID_year}"))
+  print(glue::glue("File epa_clean_{params$temporal_res}.RDS successfully written to folder data/clean_data/epa/{params$eGRID_year}"))
 } else {
-  print("File epa_clean.RDS failed to write to folder.")
+  print(glue::glue("File epa_clean_{params$temporal_res}.RDS failed to write to folder."))
 }

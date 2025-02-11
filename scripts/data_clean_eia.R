@@ -26,16 +26,20 @@ library(readxl)
 # user will be prompted to input eGRID year in the console if params does not exist
 
 if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+  if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
     print("eGRID year parameter is already defined.") 
   } else { # if params() is defined, but eGRID_year is not, define it here 
     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
     params$eGRID_year <- as.character(params$eGRID_year) 
+    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+    params$temporal_res <- as.character(params$temporal_res) 
   }
 } else { # if params() and eGRID_year are not defined, define them here
   params <- list()
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
+  params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+  params$temporal_res <- as.character(params$temporal_res) 
 }
 
 # Load manual corrections ----------
@@ -44,6 +48,11 @@ manual_corrections <-
   read_xlsx("data/static_tables/manual_corrections.xlsx", 
             sheet = "eia_clean", 
             col_types = c("text", "text", "text"))
+
+# Create month mapping from month name to number -----------------
+month_name_map <- # creating map to recode numeric monthly names to values
+  c(1:12) %>% 
+  purrr::set_names(tolower(month.name))
 
 # List file in EIA raw data folders ------------
 
@@ -69,7 +78,7 @@ file_name_schedule_2_3_4_5_m_12 <- grep("2_3_4_5_M_12", eia_923_files, value = T
 
 sched_2_3_4_5_m_12_dfs <- 
   purrr::map2(sheets_923_1, # .x, defining sheets to iterate over
-              c(5,6,5,5),   # y, adding second argument to define the number of rows to skip (differs between files)
+              c(5,6,5,5),   # .y, adding second argument to define the number of rows to skip (differs between files)
              ~ read_excel(paste0(glue::glue("data/raw_data/923/{params$eGRID_year}/"), file_name_schedule_2_3_4_5_m_12), 
                           sheet = .x,
                           skip = .y,
@@ -78,11 +87,20 @@ sched_2_3_4_5_m_12_dfs <-
   purrr::map(., ~ .x %>% 
                rename_with(tolower) %>% 
                janitor::clean_names()) %>% # this lower cases and converts to snake_case
+  purrr::map(., ~ .x %>% 
+               pivot_longer(cols = contains(tolower(month.name)),
+                            names_to = c(".value", "month"),
+                            names_pattern = "^(.*)_(.*)$")) %>% 
+  purrr::map(., ~ .x %>% 
+               mutate(month = as.numeric(recode(month, !!!month_name_map)))) %>% 
   setNames(., janitor::make_clean_names(str_replace_all(sheets_923_1, "Page \\d+ ", ""))) %>% # This assigns cleaned sheets names name values for list of dataframes. Storing df names without Page #s
-  purrr::map_at("puerto_rico", # modifing puert0_rico tab only
+  purrr::map_at("puerto_rico", # modifying puerto_rico tab only
                 ~ .x %>% 
                   rename("reserved" = "reserved_10", # fixing issue of two "Reserved" columns. Need to figure out better way in case they're not 10 and 17
-                         "balancing_authority_code" = "reserved_17"))
+                         "balancing_authority_code" = "reserved_17")) %>% 
+  purrr::map(., ~ .x %>% 
+               relocate(month) %>% 
+               relocate(year))
 
 ### Adding Puerto Rico data to EIA-923 Generation and Fuel --------
 
@@ -117,8 +135,7 @@ dfs_923 <- c(sched_2_3_4_5_m_12_dfs,
                 rename(any_of(rename_cols_923)) %>% # standardizing col names to match other files
                 mutate(across(ends_with("id"), ~ as.character(.x)),
                        across(contains(c("capacity", "generation", "netgen")), ~ as.numeric(.x)),
-                       across(starts_with(c("month", "year")), ~ as.character(.x)),
-                       across(ends_with(c("month", "year")))) %>% 
+                       across(starts_with(c("year")), ~ as.character(.x))) %>% 
                 filter(!if_all(everything(), is.na)))
 
 
@@ -274,8 +291,7 @@ names_860_PR_op <-
     "County" = "County")
 
 names_860_PR_ret <-
-  c(
-    "Utility ID" = "Entity ID",
+  c("Utility ID" = "Entity ID",
     "Utility Name" = "Entity Name",
     "Plant Code" = "Plant ID",
     "Plant Name" = "Plant Name",

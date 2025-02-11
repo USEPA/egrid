@@ -4,7 +4,7 @@
 ## 
 ## Purpose: 
 ## 
-## This file loads the EPA data set from an API and aggregates hourly data to annual data
+## This file loads the EPA data set from an API and aggregates data to specified temporal resolution.
 ## 
 ## Authors:  
 ##      Sean Bock, Abt Global
@@ -24,20 +24,33 @@ library(tidyr)
 
 # check if parameters for eGRID data year need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input eGRID year in the console if params does not exist
+# user will be prompted to input parameters in the console if params does not exist
 
 if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+  if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
     print("eGRID year parameter is already defined.") 
   } else { # if params() is defined, but eGRID_year is not, define it here 
     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
     params$eGRID_year <- as.character(params$eGRID_year) 
+    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+    params$temporal_res <- as.character(params$temporal_res) 
   }
 } else { # if params() and eGRID_year are not defined, define them here
   params <- list()
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
+  params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+  params$temporal_res <- as.character(params$temporal_res) 
 }
+
+# Specify grouping columns based on temporal_res parameter
+temporal_res_cols_all <- 
+  list("annual"  = c("year"), 
+       "monthly" = c("year", "month"), 
+       "daily"   = c("year", "month", "day"), 
+       "hourly"  = c("year", "month", "day", "hour"))
+
+temporal_res_cols <- unlist(temporal_res_cols_all[params$temporal_res], use.names = FALSE)
 
 # Check if folder to store raw data exists, if not - create it
 if (!dir.exists(glue::glue("data/raw_data/epa/{params$eGRID_year}"))) {
@@ -96,11 +109,20 @@ facility_df <-
 
 
 ## Get emissions data -------
+
+# specify different endpoints for Emissions data based on temporal_res parameter
+# this is done to reduce run time and memory for non-hourly aggregation resolutions
+temporal_res_api_endpoint <- 
+  c("annual"  = "Daily", 
+    "monthly" = "Daily", 
+    "daily"   = "Daily", 
+    "hourly"  = "Hourly")
+
 emissions_files <-
   bulk_files %>% 
   tidyr::unnest(cols = metadata) %>% 
   filter(dataType == "Emissions",
-         dataSubType == "Daily",
+         dataSubType == temporal_res_api_endpoint[params$temporal_res],
          year == params$eGRID_year,
          !is.na(quarter)) %>% # this identifies quarterly aggregations
   mutate(file_path = paste0(bucket_url_base,s3Path)) 
@@ -141,8 +163,9 @@ emissions_data_r <-
   rename_with(tolower) %>% # this protects NOx rates from getting split with clean_names()
   janitor::clean_names() %>% 
   mutate(year = as.character(year(date)), # extracting year from date
-         month = as.character(month(date)), # extracting month from date
-         month = recode(month, !!!month_name_map)) %>% # updating month to name
+         month = month(date), # extracting month from date
+         #day = as.character(day(date)), # extracting day from date
+         ) %>% 
   select(-date) %>%
   mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) %>% # SB 6/4/2024: Temporary fix for issue in API where there are a mix of pipes and commas in some character values
   group_by(pick(-c(all_of(cols_to_sum)))) %>% 
@@ -150,19 +173,20 @@ emissions_data_r <-
   ungroup() %>% 
   group_by(facility_id, unit_id, primary_fuel_type, unit_type) %>% 
   mutate(reporting_months = paste(month, collapse = ", "), # creating column with list of reporting months 
-         reporting_frequency = if_else(grepl("january|february|march|october|november|december", # filtering out non-ozone season reporting months, excluding april
+         reporting_frequency = if_else(grepl("1|2|3|10|11|12", # filtering out non-ozone season reporting months, excluding april
                                              reporting_months), "Q", "OS")) %>% # assigning reporting frequency
+  ungroup() %>% 
   group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% # group data by year
   mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions 
          across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
   ungroup() %>%
-  distinct() %>% # removing duplicate rows that aren't needed after ozone calculation
-  pivot_wider(id_cols = c(emissions_id_cols, year, reporting_months, reporting_frequency, paste0(cols_to_sum, "_annual"), paste0(cols_to_sum, "_ozone")), # pivot
-              names_from = "month",
-              values_from = all_of(cols_to_sum),
-              names_glue = "{.value}_{month}") %>%
-  rename_with(.cols = contains("_annual"), # removing annual suffix 
-              .fn = ~ str_remove(.x, "_annual")) 
+  distinct() # removing duplicate rows that aren't needed after ozone calculation 
+  #pivot_wider(id_cols = c(emissions_id_cols, year, reporting_months, reporting_frequency, paste0(cols_to_sum, "_annual"), paste0(cols_to_sum, "_ozone")), # pivot
+  #            names_from = "month",
+  #            values_from = all_of(cols_to_sum),
+  #            names_glue = "{.value}_{month}") %>%
+  #rename_with(.cols = contains("_annual"), # removing annual suffix 
+  #            .fn = ~ str_remove(.x, "_annual")) 
 
 ## Get MATS data --------------
 
@@ -173,7 +197,7 @@ mats_files <-
   filter(dataType == "Mercury and Air Toxics Emissions (MATS)", # only MATS data
          year == params$eGRID_year, # setting year
          dataSubType == "Hourly") %>% # Hourly data contains the quarterly aggregations
-  mutate(file_path = paste0(bucket_url_base,s3Path)) # creating file path for reading in data
+  mutate(file_path = paste0(bucket_url_base, s3Path)) # creating file path for reading in data
 
 # now iterating over each file path and binding into one dataframe.
 mats_data <- 
@@ -200,17 +224,18 @@ mats_data_r <-
   select(all_of(cols)) %>%
   mutate(hg_mass_lbs = as.numeric(hg_mass_lbs),
          year = as.character(year(date)),
-         month = as.character(month(date)),
-         month = recode(month, !!!month_name_map)) %>% 
+         month = month(date),
+         #day = as.character(day(date))
+         ) %>% 
   group_by(year, month, state, facility_name, facility_id, unit_id, primary_fuel_type, secondary_fuel_type, hg_controls) %>% 
   summarize(hg_mass_lbs = sum(hg_mass_lbs, na.rm = TRUE)) %>% # aggregate to the monthly level
   ungroup() %>%
-  distinct() %>%
-  pivot_wider(id_cols = c("state", "facility_name", "facility_id", "unit_id", "primary_fuel_type", "secondary_fuel_type"), # pivot
-              names_from = "month", 
-              values_from = "hg_mass_lbs",
-              names_glue = "{.value}_{month}") %>%
-  mutate(hg_mass_lbs = rowSums(select(.,starts_with("hg_mass_lbs_")), na.rm=TRUE)) # sum all months to create annual value
+  distinct() #%>%
+  #pivot_wider(id_cols = c("state", "facility_name", "facility_id", "unit_id", "primary_fuel_type", "secondary_fuel_type"), # pivot
+  #            names_from = "month", 
+  #            values_from = "hg_mass_lbs",
+  #            names_glue = "{.value}_{month}") %>%
+  #mutate(hg_mass_lbs = rowSums(select(.,starts_with("hg_mass_lbs_")), na.rm = TRUE)) # sum all months to create annual value
 
 
 ## Join facility, emissions, and MATS data --------
@@ -228,11 +253,12 @@ epa_data_combined <-
 print(glue::glue("Writing file epa_raw.RDS to folder data/raw_data/epa/{params$eGRID_year}."))
 
 readr::write_rds(epa_data_combined, 
-                 file = glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))
+                 file = glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))
 
 # check if file is successfully written to folder 
 if(file.exists(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))){
-  print(glue::glue("File epa_raw.RDS successfully written to folder data/raw_data/epa/{params$eGRID_year}"))
+  print(glue::glue("File epa_raw_{params$temporal_res}.RDS successfully written to folder data/raw_data/epa/{params$eGRID_year}"))
 } else {
-   print("File epa_raw.RDS failed to write to folder.")
+   print(glue::glue("File epa_raw_{params$temporal_res}.RDS failed to write to folder."))
 }
+
