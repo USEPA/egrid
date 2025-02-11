@@ -59,6 +59,7 @@ if (!dir.exists(glue::glue("data/raw_data/epa/{params$eGRID_year}"))) {
 
 # Load necessary functions
 source("scripts/functions/function_coalesce_join_vars.R")
+source("scripts/functions/function_cols_to_add.R")
 
 # Set your API key here
 api_key <- read_lines("api_keys/epa_api_key.txt")
@@ -94,6 +95,7 @@ facility_path <-
          dataType == "Facility") %>% 
   pull(s3Path)
 
+temporal_res_cols_to_add <- cols_to_add(params$temporal_res)
 
 facility_df <- 
   read_csv(paste0(bucket_url_base,facility_path)) %>% 
@@ -104,8 +106,9 @@ facility_df <-
     nameplate_capacity_char = (str_extract_all(associated_generators_nameplate_capacity_mwe, "(?<=\\()\\d+(\\.\\d+)?(?=\\))")), # extracting nameplate capacity values
     associated_generators = purrr::map_chr(generator_ids, ~ paste(.x, collapse = ", ")), # pasting together associated generators
     nameplate_capacity = purrr::map_dbl(nameplate_capacity_char, ~ sum(as.numeric(.x), na.rm = TRUE)),
-    year = as.character(year)) %>% # summing nameplate capacity from associated generators)
-  select(-"nameplate_capacity_char")
+    year = as.character(year)) %>% # summing nameplate capacity from associated generators
+  select(-"nameplate_capacity_char") %>% 
+  full_join(temporal_res_cols_to_add)
 
 
 ## Get emissions data -------
@@ -213,8 +216,7 @@ cols <- # specifying columns to keep
     "primary_fuel_type",
     "secondary_fuel_type",
     "hg_mass_lbs",
-    "hg_controls"
-  )
+    "hg_controls")
 
 # updating relevant columns to numeric and aggregating to month
 mats_data_r <- 
@@ -243,20 +245,20 @@ mats_data_r <-
 epa_data_combined <- 
   facility_df %>% 
   left_join(emissions_data_r,
-            by = c("facility_id", "unit_id", "primary_fuel_type")) %>% 
+            by = c(all_of(temporal_res_cols), "facility_id", "unit_id", "primary_fuel_type")) %>% 
   coalesce_join_vars() %>% 
   left_join(mats_data_r) %>% 
   arrange(facility_id, unit_id)
   
 ## Saving EPA data 
 
-print(glue::glue("Writing file epa_raw.RDS to folder data/raw_data/epa/{params$eGRID_year}."))
+print(glue::glue("Writing file epa_raw_{params$temporal_res}.RDS to folder data/raw_data/epa/{params$eGRID_year}."))
 
 readr::write_rds(epa_data_combined, 
                  file = glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))
 
 # check if file is successfully written to folder 
-if(file.exists(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))){
+if(file.exists(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))){
   print(glue::glue("File epa_raw_{params$temporal_res}.RDS successfully written to folder data/raw_data/epa/{params$eGRID_year}"))
 } else {
    print(glue::glue("File epa_raw_{params$temporal_res}.RDS failed to write to folder."))
