@@ -26,16 +26,20 @@ library(readxl)
 # user will be prompted to input eGRID year in the console if params does not exist
 
 if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+  if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
     print("eGRID year parameter is already defined.") 
   } else { # if params() is defined, but eGRID_year is not, define it here 
     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
     params$eGRID_year <- as.character(params$eGRID_year) 
+    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+    params$temporal_res <- as.character(params$temporal_res) 
   }
 } else { # if params() and eGRID_year are not defined, define them here
   params <- list()
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
+  params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+  params$temporal_res <- as.character(params$temporal_res) 
 }
 
 # Load manual corrections ----------
@@ -46,7 +50,7 @@ manual_corrections <-
             col_types = c("text", "text", "text"))
 
 # Create month mapping from month name to number -----------------
-month_name_map <- # creating map to recode numeric monthly values to names
+month_name_map <- # creating map to recode numeric monthly names to values
   c(1:12) %>% 
   purrr::set_names(tolower(month.name))
 
@@ -88,7 +92,7 @@ sched_2_3_4_5_m_12_dfs <-
                             names_to = c(".value", "month"),
                             names_pattern = "^(.*)_(.*)$")) %>% 
   purrr::map(., ~ .x %>% 
-               mutate(month = recode(month, !!!month_name_map))) %>% 
+               mutate(month = as.numeric(recode(month, !!!month_name_map)))) %>% 
   setNames(., janitor::make_clean_names(str_replace_all(sheets_923_1, "Page \\d+ ", ""))) %>% # This assigns cleaned sheets names name values for list of dataframes. Storing df names without Page #s
   purrr::map_at("puerto_rico", # modifying puerto_rico tab only
                 ~ .x %>% 
@@ -131,8 +135,7 @@ dfs_923 <- c(sched_2_3_4_5_m_12_dfs,
                 rename(any_of(rename_cols_923)) %>% # standardizing col names to match other files
                 mutate(across(ends_with("id"), ~ as.character(.x)),
                        across(contains(c("capacity", "generation", "netgen")), ~ as.numeric(.x)),
-                       across(starts_with(c("month", "year")), ~ as.character(.x)),
-                       across(ends_with(c("month", "year")))) %>% 
+                       across(starts_with(c("year")), ~ as.character(.x))) %>% 
                 filter(!if_all(everything(), is.na)))
 
 
