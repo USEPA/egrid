@@ -173,22 +173,23 @@ unit_pm_emissions_updated <-
   left_join(pm_removal_efficiencies, by = join_by(unitid, orispl, prmvr)) %>%
   mutate(pm25 = if_else(is.na(pm25_source), pm25_re, pm25), pm25_source = if_else(is.na(pm25_source), pm25_source_re, pm25_source)) %>%
   left_join(pm_emission_factors, by = join_by(unitid, orispl, prmvr)) %>%
-  mutate(pm25 = if_else(is.na(pm25_source), pm25_ef, pm25), pm25_source = if_else(is.na(pm25_source), pm25_source_ef, pm25_source))
+  mutate(pm25 = if_else(is.na(pm25_source), pm25_ef, pm25), pm25_source = if_else(is.na(pm25_source), pm25_source_ef, pm25_source)) %>%
+  select(-pm25_ef, -pm25_re, -pm25_source_ef, -pm25_source_re)
 
 
 # format final version of pm2.5 unit file ------------
 
 #adjust pm2.5 emissions for renewable fuel types and select desired columns
-unit_pm_emissions_formatted <-
-  unit_pm_emissions_updated %>%
-  # set pm2.5 emissions to NA for renewable fuel types
-  mutate(pm25an = if_else(fuelu1 %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, pm25), 
-         # set pm2.5 source type to NA for renewable fuel types
-         pm25src2 = if_else(pm25an >= 0, pm25_source, NA), 
-         # add data column with adjusted pm2.5 rate
-         pm25rt = pm25an * 2000 / htian) %>%
-  # select desired variables for final version
-  select(pstatabb, pname, orispl, unitid, prmvr, untopst, botfirty, fuelu1, hrsop, htian, pm25an, pm25rt, htiansrc, pm25src2, untyronl)
+# unit_pm_emissions_formatted <-
+#   unit_pm_emissions_updated %>%
+#   # set pm2.5 emissions to NA for renewable fuel types
+#   mutate(pm25an = if_else(fuelu1 %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, pm25), 
+#          # set pm2.5 source type to NA for renewable fuel types
+#          pm25src2 = if_else(pm25an >= 0, pm25_source, NA), 
+#          # add data column with adjusted pm2.5 rate
+#          pm25rt = pm25an * 2000 / htian) %>%
+#   # select desired variables for final version
+#   select(pstatabb, pname, orispl, unitid, prmvr, untopst, botfirty, fuelu1, hrsop, htian, pm25an, pm25rt, htiansrc, pm25src2, untyronl)
 
 
 # export PM2.5 unit file ---------
@@ -212,7 +213,7 @@ if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
 print(glue::glue("Saving PM2.5 unit file to folder data/outputs/{params$eGRID_year}"))
 
 # save file
-write_rds(unit_pm_emissions_formatted, glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))
+write_rds(unit_pm_emissions_updated, glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))
 
 # check if file is successfully written to folder 
 if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))){
