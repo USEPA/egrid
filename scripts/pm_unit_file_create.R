@@ -182,7 +182,7 @@ unit_pm_emissions_updated <-
 #adjust pm2.5 emissions for renewable fuel types and select desired columns
 # unit_pm_emissions_formatted <-
 #   unit_pm_emissions_updated %>%
-#   # set pm2.5 emissions to NA for renewable fuel types
+#   # set pm2.5 annual emissions to NA for renewable fuel types
 #   mutate(pm25an = if_else(fuelu1 %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, pm25), 
 #          # set pm2.5 source type to NA for renewable fuel types
 #          pm25src2 = if_else(pm25an >= 0, pm25_source, NA), 
