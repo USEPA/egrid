@@ -173,8 +173,7 @@ unit_pm_emissions_updated <-
   left_join(pm_removal_efficiencies, by = join_by(unitid, orispl, prmvr)) %>%
   mutate(pm25 = if_else(is.na(pm25_source), pm25_re, pm25), pm25_source = if_else(is.na(pm25_source), pm25_source_re, pm25_source)) %>%
   left_join(pm_emission_factors, by = join_by(unitid, orispl, prmvr)) %>%
-  mutate(pm25 = if_else(is.na(pm25_source), pm25_ef, pm25), pm25_source = if_else(is.na(pm25_source), pm25_source_ef, pm25_source)) %>%
-  select(-pm25_source_re, -pm25_source_ef, -pm25_re, -pm25_ef)
+  mutate(pm25 = if_else(is.na(pm25_source), pm25_ef, pm25), pm25_source = if_else(is.na(pm25_source), pm25_source_ef, pm25_source))
 
 
 # format final version of pm2.5 unit file ------------
@@ -194,8 +193,10 @@ unit_pm_emissions_formatted <-
 
 # export PM2.5 unit file ---------
 
+# define name of saved file
 save_file <- "pm_unit_file.RDS"
 
+# create save directories if they don't exist
 if(dir.exists("data/outputs")) {
   print("Folder outputs already exists.")
 } else {
@@ -210,6 +211,7 @@ if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
 
 print(glue::glue("Saving PM2.5 unit file to folder data/outputs/{params$eGRID_year}"))
 
+# save file
 write_rds(unit_pm_emissions_formatted, glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))
 
 # check if file is successfully written to folder 
