@@ -47,15 +47,15 @@ plant_file <- read_csv(glue::glue("data/outputs/{params$eGRID_year}/plant_file_2
 
 
 # Sum PM2.5 unit data by plant id ---------
-plant_agg <-
+plant_pm <-
   pm_unit_file %>%
   group_by(orispl) %>%
   summarise(pm25 = sum(pm25))
 
 # Add PM2.5 data to plant file ---------
-plant_emissions <-
+plant_pm_emissions <-
   plant_file %>%
-  inner_join(plant_agg, by = join_by(orispl)) %>%
+  inner_join(plant_pm, by = join_by(orispl)) %>%
   # set plant electric allocation factors to 1 if NaN 
   mutate(elcalloc = if_else(is.na(elcalloc), 1, elcalloc),
          # calculate annual pm2.5 emissions
@@ -67,3 +67,50 @@ plant_emissions <-
          #  rename unadjusted annual pm2.5 emissions
          unpm25 = pm25) %>%
   select(pstatabb, pname, orispl, srname, subrgn, plprmfl, namepcap, elcalloc, plhtian, plngenan, plpm25an, plpm25rta, plpm25ra, unhti, unpm25)
+
+
+# format final version of pm2.5 plant file ------------
+
+#adjust pm2.5 emissions for renewable fuel types and select desired columns
+# plant_pm_emissions_formatted <-
+#   plant_pm_emissions %>%
+#   # set pm2.5 annual emissions to NA for renewable fuel types
+#   mutate(plpm25an2 = if_else(plpm25an == 0 & plprmfl %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, plpm25an),
+#          # set pm2.5 output rate to 0 is annual net generation is less than 0
+#          plpm25rta2 = if_else(plngenan < 0, 0, plpm25rta),
+#          pm25src = "") %>%
+#   # select desired variables for final version
+#   select(pstatabb, pname, orispl, subrgn, srname, plprmfl, namepcap, elcalloc, plngenan, plhtian, plpm25an2, plpm25rta2, plpm25ra, pm25src, unhti, unpm25) %>%
+#   # order by plant state abbreviation and plant name
+#   arrange(pstatabb, pname)
+
+
+# export PM2.5 plant file ---------
+
+# define name of saved file
+save_file <- "pm_plant_file.RDS"
+
+# create save directories if they don't exist
+if(dir.exists("data/outputs")) {
+  print("Folder outputs already exists.")
+} else {
+  dir.create("data/outputs")
+}
+
+if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
+  print(glue::glue("Folder outputs/{params$eGRID_year} already exists."))
+} else {
+  dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
+}
+
+print(glue::glue("Saving PM2.5 unit file to folder data/outputs/{params$eGRID_year}"))
+
+# save file
+write_rds(plant_pm_emissions, glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))
+
+# check if file is successfully written to folder 
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))){
+  print(glue::glue("File {save_file} successfully written to folder data/outputs/{params$eGRID_year}"))
+} else {
+  print(glue::glue("File {save_file} failed to write to folder."))
+} 
