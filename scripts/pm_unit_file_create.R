@@ -167,11 +167,14 @@ pm_removal_efficiencies <-
 
 # update unit file with pm2.5 emission rates from each method - order specific
 unit_pm_emissions_updated <-
+  unit_pm_emissions %>%
   rows_patch(pm_fuel_pmover_firing, by = c("unitid", "orispl")) %>%
-  count(pm25_source) %>%
   rows_patch(pm_fuel_pmover, by = c("unitid", "orispl")) %>%
-  rows_patch(pm_removal_efficiencies, by = c("unitid", "orispl", "prmvr")) %>%
-  rows_patch(pm_emission_factors, by = c("unitid", "orispl", "prmvr"))
+  left_join(pm_removal_efficiencies, by = join_by(unitid, orispl, prmvr)) %>%
+  mutate(pm25 = if_else(is.na(pm25_source), pm25_re, pm25), pm25_source = if_else(is.na(pm25_source), pm25_source_re, pm25_source)) %>%
+  left_join(pm_emission_factors, by = join_by(unitid, orispl, prmvr)) %>%
+  mutate(pm25 = if_else(is.na(pm25_source), pm25_ef, pm25), pm25_source = if_else(is.na(pm25_source), pm25_source_ef, pm25_source)) %>%
+  select(-pm25_source_re, -pm25_source_ef, -pm25_re, -pm25_ef)
 
 
 # format final version of pm2.5 unit file ------------
