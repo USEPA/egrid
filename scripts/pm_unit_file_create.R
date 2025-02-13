@@ -191,16 +191,6 @@ unit_pm_emissions_formatted <-
   # select desired variables for final version
   select(pstatabb, pname, orispl, unitid, prmvr, untopst, botfirty, fuelu1, hrsop, htian, pm25an, pm25rt, htiansrc, pm25src2, untyronl)
 
-pm_unit_access <- read_csv("data/outputs/2023/pm_unit_file_access.csv", col_types = "ccccccccddddccc") %>%
-  janitor::clean_names()
-
-joined_comparison <-
-  unit_pm_emissions_formatted %>%
-  full_join(pm_unit_access, by = join_by(orispl, unitid, prmvr)) %>%
-  select(orispl, unitid, prmvr, pm25an.x, pm25an.y, pm25rt.x, pm25rt.y, pm25src2.x, pm25src2.y) %>%
-  mutate(pm25_diff = abs(pm25an.x - pm25an.y), pm25srcsame = pm25src2.x == pm25src2.y) %>%
-  filter(pm25_diff > 0.000001) #, pm25src2.x == "NEI avg EF - PM, fuel type, firing type") #%>%
-# count(pm25src2.x)
 
 # export PM2.5 unit file ---------
 
