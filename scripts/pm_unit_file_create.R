@@ -143,7 +143,8 @@ pm_emission_factors <-
   inner_join(pm_efs, by = join_by(botfirty, fuelu1, prmvr)) %>%
   mutate(pm25 = ef * htian / 2000, pm25_source = "Estimated using an emission factor") %>% 
   filter(!is.na(pm25)) %>%
-  select(orispl, unitid, prmvr, pm25, pm25_source)
+  rename(pm25_ef = pm25, pm25_source_ef = pm25_source) %>%
+  select(orispl, unitid, prmvr, pm25_ef, pm25_source_ef)
 
 
 # if there is a unit match with EIA-923, adjust pm2.5 by control efficiency
@@ -153,19 +154,21 @@ pm_removal_efficiencies <-
   filter(!is.na(pm_removal_efficiency_rate_at_annual_operating_factor)) %>%
   group_by(plant_id) %>%
   # convert efficiency rate to numeric percentage
-  summarise(eia_pm_control_efficiency = max(as.numeric(sub("%", "", pm_removal_efficiency_rate_at_annual_operating_factor)))) %>%
+  summarise(eia_pm_control_efficiency = max(as.numeric(sub("%", "", pm_removal_efficiency_rate_at_annual_operating_factor)) / 100)) %>%
   inner_join(pm_emission_factors, by = join_by(plant_id == orispl)) %>%
   rename(orispl = plant_id) %>%
   # adjust pm2.5 using control efficiency rate
-  mutate(pm25 = pm25 * (100 - eia_pm_control_efficiency))
+  mutate(pm25 = pm25_ef * (1 - eia_pm_control_efficiency), pm25_source = "Estimated using an emission factor") %>%
+  rename(pm25_re = pm25, pm25_source_re = pm25_source) %>%
+  select(orispl, unitid, prmvr, pm25_re, pm25_source_re)
 
 
 # Add pm2.5 emission estimates to unit data -------------
 
 # update unit file with pm2.5 emission rates from each method - order specific
 unit_pm_emissions_updated <-
-  unit_pm_emissions %>%
   rows_patch(pm_fuel_pmover_firing, by = c("unitid", "orispl")) %>%
+  count(pm25_source) %>%
   rows_patch(pm_fuel_pmover, by = c("unitid", "orispl")) %>%
   rows_patch(pm_removal_efficiencies, by = c("unitid", "orispl", "prmvr")) %>%
   rows_patch(pm_emission_factors, by = c("unitid", "orispl", "prmvr"))
@@ -184,6 +187,17 @@ unit_pm_emissions_formatted <-
          pm25rt = pm25an * 2000 / htian) %>%
   # select desired variables for final version
   select(pstatabb, pname, orispl, unitid, prmvr, untopst, botfirty, fuelu1, hrsop, htian, pm25an, pm25rt, htiansrc, pm25src2, untyronl)
+
+pm_unit_access <- read_csv("data/outputs/2023/pm_unit_file_access.csv", col_types = "ccccccccddddccc") %>%
+  janitor::clean_names()
+
+joined_comparison <-
+  unit_pm_emissions_formatted %>%
+  full_join(pm_unit_access, by = join_by(orispl, unitid, prmvr)) %>%
+  select(orispl, unitid, prmvr, pm25an.x, pm25an.y, pm25rt.x, pm25rt.y, pm25src2.x, pm25src2.y) %>%
+  mutate(pm25_diff = abs(pm25an.x - pm25an.y), pm25srcsame = pm25src2.x == pm25src2.y) %>%
+  filter(pm25_diff > 0.000001) #, pm25src2.x == "NEI avg EF - PM, fuel type, firing type") #%>%
+# count(pm25src2.x)
 
 # export PM2.5 unit file ---------
 
