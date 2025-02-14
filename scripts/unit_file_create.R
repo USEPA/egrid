@@ -377,7 +377,9 @@ missing_fuel_types <-
   epa_3 %>% 
   filter(is.na(epa_3$primary_fuel_type))
 
-print(glue::glue("{nrow(missing_fuel_types)} units having missing primary fuel types."))
+print(glue::glue("{nrow(missing_fuel_types %>% 
+                        select(plant_id, unit_id, prime_mover) %>% 
+                        distinct())} units having missing primary fuel types."))
 
 
 ### Add boiler firing type ------------
@@ -786,8 +788,12 @@ eia_923_boilers_grouped <-
            prime_mover,
            fuel_type) %>%
   mutate(# summing heat input by either monthly or annual values 
-         heat_input = sum(heat_input), 
-         total_fuel_consumption_quantity = sum(total_fuel_consumption_quantity)) %>% 
+         heat_input = if_else(all(is.na(heat_input)), 
+                              NA_real_, 
+                              sum(heat_input, na.rm = TRUE)), 
+         total_fuel_consumption_quantity = if_else(all(is.na(total_fuel_consumption_quantity)), 
+                                                   NA_real_, 
+                                                   sum(total_fuel_consumption_quantity, na.rm = TRUE))) %>% 
   ungroup() %>% 
   distinct()
 
@@ -795,7 +801,9 @@ eia_923_boilers_heat <-
   eia_923_boilers %>% 
   group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover, boiler_id) %>% 
   summarize(# summing heat input  
-            heat_input = sum(heat_input)) %>% 
+            heat_input = if_else(all(is.na(heat_input)), 
+                                 NA_real_, 
+                                 sum(heat_input, na.rm = TRUE))) %>% 
   ungroup()
 
 ## Determining primary fuel type for EIA-923 boilers based on type of unit with max fuel consumption 
@@ -1033,8 +1041,10 @@ all_units_2 <-
 
 units_missing_heat <- # creating separate dataframe of units with missing heat input to update
   all_units_2 %>% 
-  filter(is.na(heat_input)) %>% 
-  mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover))
+  group_by(plant_id, unit_id, prime_mover) %>% 
+  filter(all(is.na(heat_input))) %>% 
+  mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
+  ungroup()
 
 units_missing_heat_w_heat_oz <- # some units have positive ozone heat inputs (heat_input_oz) - identify them here
   units_missing_heat %>% 
@@ -1333,8 +1343,9 @@ all_units_4 <-
 #       paste0("heat_input_", tolower(month.name)))}
 
 avg_sulfur_content <- 
+  eia_923$boiler_fuel_data %>% 
   group_by(pick(all_of(temporal_res_cols)), plant_id, boiler_id, prime_mover, fuel_type, physical_unit_label) %>% 
-  summarize(across(c(starts_with(c("quantity", "mmbtu_")), "total_fuel_consumption_quantity"), ~ sum(.x, na.rm = TRUE)),
+  summarize(across(c("quantity_of_fuel_consumed", "mmbtu_per_unit", "total_fuel_consumption_quantity"), ~ sum(.x, na.rm = TRUE)),
             sulfur_content = max(sulfur_content)) %>% 
   ungroup() %>% 
   mutate(# calculating monthly boiler heat input, based on corresponding consumption and mmbtu_per_unit
