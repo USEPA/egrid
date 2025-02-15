@@ -42,7 +42,7 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/pm_unit_file.RDS")))
   stop("pm_unit_file.RDS does not exist. Run pm_unit_file_create.R to obtain.")}
 
 ## eGRID production model data - plant file
-plant_file <- read_csv(glue::glue("data/outputs/{params$eGRID_year}/plant_file_2021_access.csv"), col_types = "ccccccccccicddddddddccccccccccc") %>%
+plant_file <- read_csv(glue::glue("data/outputs/{params$eGRID_year}/plant_file_2021_access.csv"), col_types = c(YEAR = "c", ORISPL = "c", OPRCODE = "c", UTLSRVID = "c")) %>%
   janitor::clean_names()
 
 
@@ -50,7 +50,7 @@ plant_file <- read_csv(glue::glue("data/outputs/{params$eGRID_year}/plant_file_2
 plant_pm <-
   pm_unit_file %>%
   group_by(orispl) %>%
-  summarise(pm25 = sum(pm25))
+  summarise(pm25 = sum(pm25), na.rm = TRUE)
 
 # Add PM2.5 data to plant file ---------
 plant_pm_emissions <-
@@ -103,7 +103,7 @@ if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
   dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
 }
 
-print(glue::glue("Saving PM2.5 unit file to folder data/outputs/{params$eGRID_year}"))
+print(glue::glue("Saving PM2.5 plant file to folder data/outputs/{params$eGRID_year}"))
 
 # save file
 write_rds(plant_pm_emissions, glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))
