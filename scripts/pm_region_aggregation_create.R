@@ -60,3 +60,10 @@ subregion_pm_emissions <-
          rate = round(srpm25an * 2000 / srgenan, 4)) %>%
   select(subrgn, gen, pm25tons, rate)
 
+# Sum PM2.5 subregion data to US -------
+us_pm_emissions <-
+  subregion_pm_emissions %>%
+  summarise(gen = sum(gen, na.rm = TRUE), pm25tons = sum(pm25tons, na.rm = TRUE)) %>%
+  mutate(rate = round(pm25tons * 2000 / gen, 4))
+
+
