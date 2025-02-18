@@ -180,9 +180,18 @@ emissions_data_r <-
                                              reporting_months), "Q", "OS")) %>% # assigning reporting frequency
   ungroup() %>% 
   group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% # group data by year
-  mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions 
+  mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE)), # calculating annual emissions 
          across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
   ungroup() %>%
+  select(all_of(temporal_res_cols), 
+         facility_id, 
+         unit_id, 
+         primary_fuel_type, 
+         unit_type, 
+         program_code,
+         reporting_frequency, 
+         all_of(cols_to_sum),
+         contains("ozone")) %>% 
   distinct() # removing duplicate rows that aren't needed after ozone calculation 
   #pivot_wider(id_cols = c(emissions_id_cols, year, reporting_months, reporting_frequency, paste0(cols_to_sum, "_annual"), paste0(cols_to_sum, "_ozone")), # pivot
   #            names_from = "month",
@@ -229,7 +238,7 @@ mats_data_r <-
          month = month(date),
          #day = as.character(day(date))
          ) %>% 
-  group_by(year, month, state, facility_name, facility_id, unit_id, primary_fuel_type, secondary_fuel_type, hg_controls) %>% 
+  group_by(pick(all_of(temporal_res_cols)), state, facility_name, facility_id, unit_id, primary_fuel_type, secondary_fuel_type, hg_controls) %>% 
   summarize(hg_mass_lbs = sum(hg_mass_lbs, na.rm = TRUE)) %>% # aggregate to the monthly level
   ungroup() %>%
   distinct() #%>%
