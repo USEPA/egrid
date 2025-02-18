@@ -110,9 +110,7 @@ facility_df <-
     nameplate_capacity = purrr::map_dbl(nameplate_capacity_char, ~ sum(as.numeric(.x), na.rm = TRUE)),
     year = as.character(year)) %>% # summing nameplate capacity from associated generators
   select(-"nameplate_capacity_char") %>% 
-  full_join(temporal_res_cols_to_add) %>%
-  mutate(month = as.numeric(month))
-
+  full_join(temporal_res_cols_to_add)
 
 ## Get emissions data -------
 
@@ -272,6 +270,12 @@ mats_data_r <-
   distinct()
 
 ## Join facility, emissions, and MATS data --------
+
+if (params$temporal_res == "daily") {
+  facility_df <- 
+    facility_df %>%
+    mutate(month = as.numeric(month))
+}
 
 epa_data_combined <- 
   facility_df %>% 
