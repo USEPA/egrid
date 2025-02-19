@@ -1,10 +1,11 @@
 ## Purpose: 
 ## 
-## This file creates the PM2.5 plant file for eGRID. 
-## This file includes PM2.5 emission data, either calculated
-## or estimated for the plants of the specified eGRID year
+## This file creates the PM2.5 plant file for eGRID using the function
+## create_pm_plant_data(). This file includes PM2.5 emission data, either
+## calculated or estimated for the plants of the specified eGRID year.
+##  
 ## 
-## The method of PM2.5 calculations are listed within pm25_source
+## The method of PM2.5 calculations are listed within pm25_source.
 ##
 ## Additional notes
 ##
@@ -16,10 +17,10 @@
 library(dplyr)
 library(readr)
 library(readxl)
+library(stringr)
 
 
 # Define eGRID year parameter ----------------
-
 # define parameter year if no one is currently assigned using prompted user input
 if (exists("params")) {
   if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
@@ -34,63 +35,51 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
+
 # Load necessary data --------------------
 ## PM2.5 unit file
 if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/pm_unit_file.RDS"))) {
-  pm_unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/pm_unit_file.RDS"))
+  pm_unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/pm_unit_file.RDS")) #%>%
 } else {
   stop("pm_unit_file.RDS does not exist. Run pm_unit_file_create.R to obtain.")}
 
-## eGRID production model data - plant file
-plant_file <- read_csv(glue::glue("data/outputs/{params$eGRID_year}/plant_file_2021_access.csv"), col_types = c(YEAR = "c", ORISPL = "c", OPRCODE = "c", UTLSRVID = "c")) %>%
-  janitor::clean_names()
 
+# Run plant data creation script ---------
+source("scripts/functions/function_create_pm_plant_data.R")
+pm_plant_data <- create_pm_plant_data()
 
-# Sum PM2.5 unit data by plant id ---------
-plant_pm <-
+# Assign PM2.5 sources to plant file ---------
+# list pm sources to add to plant files
+pm_sources <- 
   pm_unit_file %>%
+  filter(!is.na(pm25src2) | pm25src2 != "") %>%
   group_by(orispl) %>%
-  summarise(pm25 = sum(pm25), na.rm = TRUE)
+  arrange(pm25src2) %>% # sort by PM2.5 source
+  summarize(pm25src = str_c(unique(pm25src2), collapse = "; "), .groups = "drop") # concatenate source strings
 
-# Add PM2.5 data to plant file ---------
-plant_pm_emissions <-
-  plant_file %>%
-  inner_join(plant_pm, by = join_by(orispl)) %>%
-  # set plant electric allocation factors to 1 if NaN 
-  mutate(elcalloc = if_else(is.na(elcalloc), 1, elcalloc),
-         # calculate annual pm2.5 emissions
-         plpm25an = pm25 * elcalloc,
-         # calculate total output emission rate
-         plpm25rta= plpm25an * 2000 / plngenan,
-         # calculate total input emission rate
-         plpm25ra = plpm25an * 2000 / plhtian,
-         #  rename unadjusted annual pm2.5 emissions
-         unpm25 = pm25) %>%
-  select(pstatabb, pname, orispl, srname, subrgn, plprmfl, namepcap, elcalloc, plhtian, plngenan, plpm25an, plpm25rta, plpm25ra, unhti, unpm25)
+# update sources in plant file
+pm_plant_sources <-
+  pm_plant_data %>%
+  left_join(pm_sources, by = join_by(orispl))
 
-
-# format final version of pm2.5 plant file ------------
-
-#adjust pm2.5 emissions for renewable fuel types and select desired columns
-# plant_pm_emissions_formatted <-
-#   plant_pm_emissions %>%
-#   # set pm2.5 annual emissions to NA for renewable fuel types
-#   mutate(plpm25an2 = if_else(plpm25an == 0 & plprmfl %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, plpm25an),
-#          # set pm2.5 output rate to 0 is annual net generation is less than 0
-#          plpm25rta2 = if_else(plngenan < 0, 0, plpm25rta),
-#          pm25src = "") %>%
-#   # select desired variables for final version
-#   select(pstatabb, pname, orispl, subrgn, srname, plprmfl, namepcap, elcalloc, plngenan, plhtian, plpm25an2, plpm25rta2, plpm25ra, pm25src, unhti, unpm25) %>%
-#   # order by plant state abbreviation and plant name
-#   arrange(pstatabb, pname)
+# Format final version of pm2.5 plant file ------------
+# adjust pm2.5 emissions for renewable fuel types and select desired columns
+pm_plant_formatted <-
+  pm_plant_sources %>%
+  # set pm2.5 annual emissions to NA for renewable fuel types
+  mutate(plpm25an2 = if_else(plpm25an == 0 & plprmfl %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, plpm25an),
+         # set pm2.5 output rate to 0 is annual net generation is less than 0
+         plpm25rta2 = if_else(plngenan < 0, 0, plpm25rta)) %>%
+  # select desired variables for final version
+  select(pstatabb, pname, orispl, subrgn, srname, plprmfl, namepcap, elcalloc, plngenan, plhtian, plpm25an2, plpm25rta2, plpm25ra, pm25src, unhti, unpm25) %>%
+  # order by plant state abbreviation and plant name
+  arrange(pstatabb, pname)
 
 
-# export PM2.5 plant file ---------
-
+# Export PM2.5 plant file ---------
 # define name of saved file
 save_file <- "pm_plant_file.RDS"
 
-# create save directories if they don't exist
 if(dir.exists("data/outputs")) {
   print("Folder outputs already exists.")
 } else {
@@ -106,7 +95,7 @@ if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
 print(glue::glue("Saving PM2.5 plant file to folder data/outputs/{params$eGRID_year}"))
 
 # save file
-write_rds(plant_pm_emissions, glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))
+write_rds(pm_plant_formatted, glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))
 
 # check if file is successfully written to folder 
 if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))){
