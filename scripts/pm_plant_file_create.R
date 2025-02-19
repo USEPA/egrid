@@ -62,6 +62,21 @@ pm_plant_sources <-
   pm_plant_data %>%
   left_join(pm_sources, by = join_by(orispl))
 
+
 # Format final version of pm2.5 plant file ------------
+# adjust pm2.5 emissions for renewable fuel types and select desired columns
+pm_plant_formatted <-
+  pm_plant_sources %>%
+  # set pm2.5 annual emissions to NA for renewable fuel types
+  mutate(plpm25an2 = if_else(plpm25an == 0 & plprmfl %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, plpm25an),
+         # set pm2.5 output rate to 0 is annual net generation is less than 0
+         plpm25rta2 = if_else(plngenan < 0, 0, plpm25rta)) %>%
+  # select desired variables for final version
+  select(pstatabb, pname, orispl, subrgn, srname, plprmfl, namepcap, elcalloc, plngenan, plhtian, plpm25an2, plpm25rta2, plpm25ra, pm25src, unhti, unpm25) %>%
+  # order by plant state abbreviation and plant name
+  arrange(pstatabb, pname)
+
+
+# Export PM2.5 plant file -----
 source("scripts/functions/function_save_output_data.R")
 save_output_data(pm_plant_formatted, "pm_plant_file.RDS")
