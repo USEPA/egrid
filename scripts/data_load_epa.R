@@ -32,7 +32,7 @@ if (exists("params")) {
   } else { # if params() is defined, but eGRID_year is not, define it here 
     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
     params$eGRID_year <- as.character(params$eGRID_year) 
-    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+    params$temporal_res <- readline(prompt = "Input temporal resolution (annual/monthly/daily/hourly): ")
     params$temporal_res <- as.character(params$temporal_res) 
   }
 } else { # if params() and eGRID_year are not defined, define them here
@@ -165,7 +165,7 @@ groupby_emissions_cols_all <-
 
 groupby_emissions_cols <- unlist(groupby_emissions_cols_all[params$temporal_res], use.names = FALSE)
 
-ozone_months <- c(5,6,7,8,9) # setting ozone months, which are May through September
+ozone_months <- c(5:9) # setting ozone months, which are May through September
 
 # clean data
 emissions_data_r <- 

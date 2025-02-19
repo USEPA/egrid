@@ -34,14 +34,14 @@ if (exists("params")) {
   } else { # if params() is defined, but eGRID_year is not, define it here 
     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
     params$eGRID_year <- as.character(params$eGRID_year) 
-    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+    params$temporal_res <- readline(prompt = "Input temporal resolution (annual/monthly/daily/hourly): ")
     params$temporal_res <- as.character(params$temporal_res) 
   }
 } else { # if params() and eGRID_year are not defined, define them here
   params <- list()
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
-  params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+  params$temporal_res <- readline(prompt = "Input temporal resolution (annual/monthly/daily/hourly): ")
   params$temporal_res <- as.character(params$temporal_res) 
 }
 
@@ -203,6 +203,10 @@ ozone_months_gen <-
                   "net_generation_august",
                   "net_generation_september")
 
+month_name_map <- # creating map to recode month names to numeric values
+  c(1:12) %>%
+  purrr::set_names(tolower(month.name))
+  
 eia_gen_generation <-
   eia_860_combined_r %>% 
   left_join(eia_923_gen_r_2 %>% 
@@ -582,12 +586,12 @@ final_vars <-
       "GENYRONL" = "operating_year",
       "GENYRRET" = "retirement_year")
 
-if (params$temporal_res == "monthly") {
-  final_vars <-
-    c(final_vars, 
-      paste0("generation_", tolower(month.name)),
-      paste0("capfac_", tolower(month.name)))
-}
+# if (params$temporal_res == "monthly") {
+#   final_vars <-
+#     c(final_vars, 
+#       paste0("generation_", tolower(month.name)),
+#       paste0("capfac_", tolower(month.name)))
+# }
 
 generators_formatted <-
   generators_edits %>%
@@ -613,11 +617,11 @@ if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
 
 print(glue::glue("Saving generator file to folder data/outputs/{params$eGRID_year}"))
 
-write_rds(generators_formatted, glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
+write_rds(generators_formatted, glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))
   
 
 # check if file is successfully written to folder 
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))){
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))){
   print(glue::glue("File generator_file.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
 } else {
    print("File generator_file.RDS failed to write to folder.")
