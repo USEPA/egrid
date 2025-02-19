@@ -768,11 +768,11 @@ prime_mover_corrections_2 <-
 eia_923_boilers <- 
   eia_923$boiler_fuel_data %>% 
   mutate(heat_input = quantity_of_fuel_consumed * mmbtu_per_unit) %>% # calculating heat input
-  group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover, boiler_id, fuel_type) %>% 
+  group_by(pick(all_of(temporal_res_cols)), plant_id, plant_state, prime_mover, boiler_id, fuel_type) %>% 
   summarize(heat_input = sum(heat_input, na.rm = TRUE),
             fuel_consum = sum(quantity_of_fuel_consumed, na.rm = TRUE)) %>% 
   ungroup() %>% 
-  select(all_of(temporal_res_cols), plant_id, prime_mover, boiler_id, fuel_type, fuel_consum, heat_input) %>% 
+  select(all_of(temporal_res_cols), plant_id, plant_state, prime_mover, boiler_id, fuel_type, fuel_consum, heat_input) %>% 
   left_join(prime_mover_corrections, by = c("plant_id", "boiler_id", "prime_mover")) %>% 
   mutate(prime_mover = if_else(!is.na(update), update, prime_mover)) %>% 
   rows_update(prime_mover_corrections_2, by = c("plant_id", "boiler_id"), unmatched = "ignore") %>% 
@@ -803,6 +803,7 @@ eia_923_boilers_grouped <-
   eia_923_boilers %>% 
   group_by(pick(all_of(temporal_res_cols)),
            plant_id,
+           plant_state,
            boiler_id, 
            prime_mover,
            fuel_type) %>%
@@ -818,7 +819,7 @@ eia_923_boilers_grouped <-
 
 eia_923_boilers_heat <- 
   eia_923_boilers %>% 
-  group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover, boiler_id) %>% 
+  group_by(pick(all_of(temporal_res_cols)), plant_id, plant_state, prime_mover, boiler_id) %>% 
   summarize(# summing heat input  
             heat_input = if_else(all(is.na(heat_input)), 
                                  NA_real_, 
@@ -858,8 +859,8 @@ eia_boilers_to_add <-
   filter(!plant_id %in% epa_6$plant_id, # removing boilers that are in plants in EPA
          !plant_id %in% epa_plants_to_delete$plant_id) %>% # removing plants that are in epa_plants_to_delete
   filter(id %in% eia_860_boil_gen_ids | id_pm %in% eia_860_combined_ids) %>%  # keeping only boilers that are in 860, under boiler or unit id
-  mutate(heat_input_source = "EIA Unit-level Data",
-         heat_input_oz_source = "EIA Unit-level Data") %>% 
+  mutate(heat_input_source = "EIA Unit-level Data") %>% #,
+         #heat_input_oz_source = "EIA Unit-level Data") %>% 
   left_join(primary_fuel_types_923_boilers) # adding primary fuel type as determined by fuel type of max heat input of boiler 
   
  print(glue::glue("{nrow(eia_923_boilers_heat) - nrow(eia_boilers_to_add)} EIA-923 boilers removed because:\n 
@@ -975,10 +976,6 @@ nuc_geo_gens_to_add <-
   group_by(pick(all_of(temporal_res_cols)), plant_id, generator_id, prime_mover) %>% 
   mutate(heat_input = sum(tot_mmbtu, na.rm = TRUE),
          #heat_input_oz = rowSums(pick(all_of(heat_923_oz_months)), na.rm = TRUE), 
-         #across(# renaming monthly heat input columns 
-         #       .cols = starts_with("tot_mmbtu"), 
-         #       .fns = ~ .x, 
-         #       .names = "{str_replace(.col, 'tot_mmbtu_', 'heat_input_')}"), 
          heat_input_source = "EIA Prime Mover-level Data") %>%  
          #heat_input_oz_source = "EIA Prime Mover-level Data") %>% 
   select(all_of(temporal_res_cols), 

@@ -24,9 +24,9 @@ library(readr)
 library(readxl)
 library(stringr)
 
-# check if parameters for eGRID data year need to be defined
+# check if parameters need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input eGRID year in the console if params does not exist
+# user will be prompted to input params in the console if necessary
 
 if (exists("params")) {
   if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
@@ -355,7 +355,7 @@ emissions_ch4_n2o <-
 plant_file <- 
   plant_gen_2 %>% 
   select(-plant_name) %>% # names differ between sources, so default to names in unit file
-  full_join(plant_unit_2, by = c(temporal_res_cols, "plant_id")) #%>% 
+  full_join(plant_unit_2) %>% 
   left_join(emissions_ch4_n2o) %>% # add in CH4 and N2O emission masses
   mutate(# calculate unadjusted CO2 equivalent 
          unadj_co2e_mass = # calculate unadjusted CO2 equivalent 
@@ -1008,7 +1008,7 @@ chp <-
     # 0.8 is the assumed efficiency factor from the combustion of the consumed fuel
     useful_thermal_output = 0.8 * (tot_mmbtu - elec_mmbtu), # calculate useful thermal output
     chp_flag = "Yes", 
-    plant_id = if_else(!is.na(epa_plant_id), epa_plant_id, plant_id)) #%>% # assign CHP flags to all plants in this object
+    plant_id = if_else(!is.na(epa_plant_id), epa_plant_id, plant_id)) %>% # assign CHP flags to all plants in this object
   select(all_of(temporal_res_cols), plant_id, contains("useful_thermal_output"), chp_flag) %>% 
   left_join(plant_file_15 %>% select(all_of(temporal_res_cols), plant_id, generation), by = c(temporal_res_cols, "plant_id")) %>% 
   mutate(# calculate power to heat ratio
@@ -1101,7 +1101,7 @@ plant_file_18 <-
 plant_file_19 <- 
   plant_file_18 %>% 
   mutate(# calculate NOx, SO2, CO2, and CO2e combustion output rate
-         across(.cols = c(all_of("nox_mass", "so2_mass", "co2_mass", "co2e_mass")), 
+         across(.cols = all_of(c("nox_mass", "so2_mass", "co2_mass", "co2e_mass")), 
                 .fns = ~ if_else(combust_netgen <= 0 | is.na(combust_netgen), 
                                  NA_real_, 
                                  2000 * .x / combust_netgen), 
@@ -1110,7 +1110,7 @@ plant_file_19 <-
          #nox_oz_combust_out_rate = if_else(combust_netgen * (generation_oz / generation_ann) <= 0 | is.na(combust_netgen), 
          #                                           NA_real_, 2000 * nox_oz_mass / (combust_netgen * (generation_oz / generation_ann))),
          # calculate CH4 and N2O combustion output rate
-         across(.cols = c(all_of("ch4_mass", "n2o_mass")),  
+         across(.cols = all_of(c("ch4_mass", "n2o_mass")),  
                 .fns = ~ if_else(combust_netgen <= 0 | is.na(combust_netgen), 
                                  NA_real_, 
                                  .x / combust_netgen), 
@@ -1120,88 +1120,61 @@ plant_file_19 <-
 
 ### Input emission rates ----------------------------------------
   
-plant_file_21 <- 
-  plant_file_20 %>% 
-  mutate(# calculate NOx, SO2, and CO2 input rate
-         across(.cols = any_of(paste0("nox", temporal_res_emission_cols),
-                               paste0("so2", temporal_res_emission_cols),
-                               paste0("co2", temporal_res_emission_cols)), 
-                .fns = ~ if_else(get(paste0("heat_input", str_sub(cur_column(), 9))) <= 0 | 
-                                   is.na(get(paste0("heat_input", str_sub(cur_column(), 9)))), NA_real_, 
-                                 2000 * .x / get(paste0("heat_input", str_sub(cur_column(), 9)))), 
+plant_file_20 <- 
+  plant_file_19 %>% 
+  mutate(# calculate NOx, SO2, CO2, and CO2e input rate
+         across(.cols = all_of(c("nox_mass", "so2_mass", "co2_mass", "co2e_mass")), 
+                .fns = ~ if_else(heat_input <= 0 | is.na(heat_input), 
+                                 NA_real_, 
+                                 2000 * .x / heat_input), 
                 .names = "{str_replace(.col, 'mass', 'input_rate')}"),
          # calculate NOx ozone input rate
-         nox_oz_input_rate = if_else(heat_input_oz <= 0 | is.na(heat_input_oz), NA_real_, 
-                                           2000 * nox_oz_mass / heat_input_oz),
-         # calculate CO2e input rate
-         across(.cols = any_of(paste0("co2e", temporal_res_emission_cols)), 
-                .fns = ~ if_else(get(paste0("heat_input", str_sub(cur_column(), 10))) <= 0 | 
-                                   is.na(get(paste0("heat_input", str_sub(cur_column(), 10)))), NA_real_, 
-                                 2000 * .x / get(paste0("heat_input", str_sub(cur_column(), 10)))), 
-                .names = "{str_replace(.col, 'mass', 'input_rate')}"),
+         #nox_oz_input_rate = if_else(heat_input_oz <= 0 | is.na(heat_input_oz), NA_real_, 
+          #                                 2000 * nox_oz_mass / heat_input_oz),
          # calculate CH4 and N2O input rate
-         across(.cols = any_of(paste0("ch4", temporal_res_emission_cols),
-                               paste0("n2o", temporal_res_emission_cols)), 
-                .fns = ~ if_else(get(paste0("heat_input", str_sub(cur_column(), 9))) <= 0 | 
-                                   is.na(get(paste0("heat_input", str_sub(cur_column(), 9)))), NA_real_, 
-                                 .x / get(paste0("heat_input", str_sub(cur_column(), 9)))), 
+         across(.cols = all_of(c("ch4_mass", "n2o_mass")), 
+                .fns = ~ if_else(heat_input <= 0 | is.na(heat_input), 
+                                 NA_real_, 
+                                 .x / heat_input), 
                 .names = "{str_replace(.col, 'mass', 'input_rate')}"),
-         # assign NAs to Hg input rate
-         across(.cols = any_of(paste0("hg", temporal_res_emission_cols)), 
-                .fns = ~ NA_real_, 
-                .names = "{str_replace(.col, 'mass', 'input_rate')}"))
+         # assign NAs to Hg combustion output rate
+         hg_input_rate = NA_real_)
 
 ### Output emission rates ----------------------------------------
 
-plant_file_22 <- 
-  plant_file_21 %>% rename("generation" = generation_ann) %>% 
-  mutate(# calculate NOx, SO2, and CO2 output rate
-         across(.cols = any_of(paste0("nox", temporal_res_emission_cols),
-                               paste0("so2", temporal_res_emission_cols),
-                               paste0("co2", temporal_res_emission_cols)), 
-                .fns = ~ if_else(get(paste0("generation", str_sub(cur_column(), 9))) <= 0 | 
-                                   is.na(get(paste0("generation", str_sub(cur_column(), 9)))), NA_real_, 
-                                 2000 * .x / get(paste0("generation", str_sub(cur_column(), 9)))), 
+plant_file_21 <- 
+  plant_file_20 %>% 
+  mutate(# calculate NOx, SO2, CO2, and CO2e output rate
+         across(.cols = all_of(c("nox_mass", "so2_mass", "co2_mass", "co2e_mass")), 
+                .fns = ~ if_else(generation <= 0 | is.na(generation), 
+                                 NA_real_, 
+                                 2000 * .x / generation), 
                 .names = "{str_replace(.col, 'mass', 'output_rate')}"),
          # calculate NOx ozone output rate
-         nox_oz_output_rate = if_else(generation_oz <= 0 | is.na(generation_oz), NA_real_, 
-                                           2000 * nox_oz_mass / generation_oz),
-         # calculate CO2e output rate
-         across(.cols = any_of(paste0("co2e", temporal_res_emission_cols)), 
-                .fns = ~ if_else(get(paste0("generation", str_sub(cur_column(), 10))) <= 0 | 
-                                   is.na(get(paste0("generation", str_sub(cur_column(), 10)))), NA_real_, 
-                                 2000* .x / get(paste0("generation", str_sub(cur_column(), 10)))), 
-                .names = "{str_replace(.col, 'mass', 'output_rate')}"),
+         #nox_oz_output_rate = if_else(generation_oz <= 0 | is.na(generation_oz), NA_real_, 
+        #                                   2000 * nox_oz_mass / generation_oz),
          # calculate CH4 and N2O output rate
-         across(.cols = any_of(paste0("ch4", temporal_res_emission_cols),
-                               paste0("n2o", temporal_res_emission_cols)), 
-                .fns = ~ if_else(get(paste0("generation", str_sub(cur_column(), 9))) <= 0 | 
-                                   is.na(get(paste0("generation", str_sub(cur_column(), 9)))), NA_real_, 
-                                 .x / get(paste0("generation", str_sub(cur_column(), 9)))), 
+         across(.cols = all_of(c("ch4_mass", "n2o_mass")), 
+                .fns = ~ if_else(generation <= 0 | is.na(generation), 
+                                 NA_real_, 
+                                 .x / generation), 
                 .names = "{str_replace(.col, 'mass', 'output_rate')}"),
-         # assign NAs to Hg input rate
-         across(.cols = any_of(paste0("hg", temporal_res_emission_cols)), 
-                .fns = ~ NA_real_, 
-                .names = "{str_replace(.col, 'mass', 'output_rate')}")) %>% 
-  rename("generation_ann" = generation)
+         # assign NAs to Hg combustion output rate
+         hg_output_rate = NA_real_) 
 
 # Calculate nonbaseload factor and generation ---------------------------------
 
 # we calculate a plant's nonbaseload factor based on their capacity factors
 # some fuel types are excluded from this 
-plant_file_23 <- 
-  plant_file_22 %>% 
-  mutate(across(.cols = starts_with("capfac"), 
-                .fns = ~ if_else(!primary_fuel_type %in% c("GEO", "MWH", "NUC", "PUR", "SUN", "WAT", "WND"), 
-                                 case_when(.x > 0 & .x < 0.2 ~ 1,
-                                           .x > 0.8 ~ 0,
-                                           .x == 0 ~ NA_real_,
-                                           TRUE ~ (-5/3 * .x) + 4/3),
+plant_file_22 <- 
+  plant_file_21 %>% 
+  mutate(nonbaseload = if_else(!primary_fuel_type %in% c("GEO", "MWH", "NUC", "PUR", "SUN", "WAT", "WND"), 
+                               case_when(capfac > 0 & capfac < 0.2 ~ 1,
+                                         capfac > 0.8 ~ 0,
+                                         capfac == 0 ~ NA_real_,
+                                         TRUE ~ (-5/3 * capfac) + 4/3),
                                NA_real_), 
-                .names = "{str_replace(.col, 'capfac', 'nonbaseload')}"), 
-         across(.cols = c(starts_with("generation"), -generation_oz),
-                .fns = ~ .x * get(str_replace_all(cur_column(), c("_ann" = "", "generation" = "nonbaseload"))),  # calculate nonbaseload generation for each plant and month
-                .names = "{str_replace_all(.col, c('_ann' = '', 'generation' = 'generation_nonbaseload'))}"))
+         generation_nonbaseload = nonbaseload * generation)
 
 # Update source columns ------------------------------
 
@@ -1220,12 +1193,12 @@ stopifnot(all(unit_source_heat_input$unadj_heat_input_source %in% check_source_l
 
 ### Update heat_input_oz_source ----------
 
-unit_source_heat_input_oz <- 
-  update_source(x = "heat_input_oz_source", unit_f = unit_file) %>% 
-  rename(unadj_heat_input_oz_source = heat_input_oz_source) # rename to match plant file
+#unit_source_heat_input_oz <- 
+#  update_source(x = "heat_input_oz_source", unit_f = unit_file) %>% 
+#  rename(unadj_heat_input_oz_source = heat_input_oz_source) # rename to match plant file
 
 # check if sources updated correctly, stop if not
-stopifnot(all(unit_source_heat_input_oz$unadj_heat_input_oz_source %in% check_source_list))
+#stopifnot(all(unit_source_heat_input_oz$unadj_heat_input_oz_source %in% check_source_list))
 
 
 ### Update nox_source ---------
@@ -1239,12 +1212,12 @@ stopifnot(all(unit_source_nox$unadj_nox_source %in% check_source_list))
 
 ### Update nox_oz_source --------
 
-unit_source_nox_oz <- 
-  update_source(x = "nox_oz_source", unit_f = unit_file) %>% 
-  rename(unadj_nox_oz_source = nox_oz_source) # rename to match plant file
+#unit_source_nox_oz <- 
+#  update_source(x = "nox_oz_source", unit_f = unit_file) %>% 
+#  rename(unadj_nox_oz_source = nox_oz_source) # rename to match plant file
 
 # check if sources updated correctly, stop if not
-stopifnot(all(unit_source_nox_oz$unadj_nox_oz_source %in% check_source_list))
+#stopifnot(all(unit_source_nox_oz$unadj_nox_oz_source %in% check_source_list))
 
 
 ### Update co2_source ---------
@@ -1268,22 +1241,22 @@ stopifnot(all(unit_source_so2$unadj_so2_source %in% check_source_list))
 
 ### Update plant file with source updates -------------
 
-plant_file_24 <- 
-  plant_file_23 %>% 
-  rows_update(unit_source_heat_input, by = c("plant_id"), unmatched = "ignore") %>% 
-  rows_update(unit_source_heat_input_oz, by = c("plant_id"), unmatched = "ignore") %>% 
-  rows_update(unit_source_nox, by = c("plant_id"), unmatched = "ignore") %>% 
-  rows_update(unit_source_nox_oz, by = c("plant_id"), unmatched = "ignore") %>% 
-  rows_update(unit_source_co2, by = c("plant_id"), unmatched = "ignore") %>% 
-  rows_update(unit_source_so2, by = c("plant_id"), unmatched = "ignore") %>% 
+plant_file_23 <- 
+  plant_file_22 %>% 
+  rows_update(unit_source_heat_input, by = c(temporal_res_cols, "plant_id"), unmatched = "ignore") %>% 
+  #rows_update(unit_source_heat_input_oz, by = c(temporal_res_cols, "plant_id"), unmatched = "ignore") %>% 
+  rows_update(unit_source_nox, by = c(temporal_res_cols, "plant_id"), unmatched = "ignore") %>% 
+  #rows_update(unit_source_nox_oz, by = c(temporal_res_cols, "plant_id"), unmatched = "ignore") %>% 
+  rows_update(unit_source_co2, by = c(temporal_res_cols, "plant_id"), unmatched = "ignore") %>% 
+  rows_update(unit_source_so2, by = c(temporal_res_cols, "plant_id"), unmatched = "ignore") %>% 
   mutate(unadj_ch4_source = if_else(!is.na(ch4_mass), "EIA", NA_character_), 
          unadj_n2o_source = if_else(!is.na(n2o_mass), "EIA", NA_character_))
 
 # Final modifications --------------------
 ### Round columns -------------------------
 
-plant_file_25 <- 
-  plant_file_24 %>% 
+plant_file_24 <- 
+  plant_file_23 %>% 
   mutate(capfac = round(capfac, 5), # capacity factor
          # heat input (unadjusted and adjusted)
          across(contains("combust_heat_input"), ~ round(.x, 3)), 
@@ -1324,7 +1297,7 @@ if (params$temporal_res == "monthly") {
     plant_nonmetric_monthly}
 
 plant_formatted <-
-  plant_file_25 %>%
+  plant_file_24 %>%
   arrange(plant_state, plant_name) %>% 
   mutate(seqplt = row_number(), 
          year = params$eGRID_year) %>% 
@@ -1349,12 +1322,12 @@ if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
 # write RDS file 
 print(glue::glue("Saving unit file to folder data/outputs/{params$eGRID_year}"))
 
-write_rds(plant_formatted, glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
+write_rds(plant_formatted, glue::glue("data/outputs/{params$eGRID_year}/plant_file_{params$temporal_res}.RDS"))
 
 # check if file is successfully written to folder 
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))){
-  print(glue::glue("File plant_file.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/plant_file_{params$temporal_res}.RDS"))){
+  print(glue::glue("File plant_file_{params$temporal_res}.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
 } else {
-   print("File plant_file.RDS failed to write to folder.")
+   print(glue::glue("File plant_file_{params$temporal_res}.RDS failed to write to folder."))
 } 
 

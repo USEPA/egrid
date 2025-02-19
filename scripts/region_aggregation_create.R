@@ -23,9 +23,9 @@ library(stringr)
 
 # Check for params() --------
 
-# check if parameters for eGRID data year need to be defined
+# check if parameters need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input eGRID year in the console if params does not exist
+# user will be prompted to input params in the console if necessary
 
 if (exists("params")) {
   if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
@@ -44,6 +44,14 @@ if (exists("params")) {
   params$temporal_res <- as.character(params$temporal_res) 
 }
 
+# Specify grouping columns based on temporal_res parameter
+temporal_res_cols_all <- 
+  list("annual"  = c("year"), 
+       "monthly" = c("year", "month"), 
+       "daily"   = c("year", "month", "day"), 
+       "hourly"  = c("year", "month", "day", "hour"))
+
+temporal_res_cols <- unlist(temporal_res_cols_all[params$temporal_res], use.names = FALSE)
 
 # Load aggregation function -------------
 
