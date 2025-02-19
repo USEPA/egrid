@@ -56,30 +56,5 @@ pm_unit_formatted <-
 
 
 # Export PM2.5 unit file ---------
-# define name of saved file
-save_file <- "pm_unit_file.RDS"
-
-# create save directories if they don't exist
-if(dir.exists("data/outputs")) {
-  print("Folder outputs already exists.")
-} else {
-  dir.create("data/outputs")
-}
-
-if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
-  print(glue::glue("Folder outputs/{params$eGRID_year} already exists."))
-} else {
-  dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
-}
-
-print(glue::glue("Saving PM2.5 unit file to folder data/outputs/{params$eGRID_year}"))
-
-# save file
-write_rds(pm_unit_formatted, glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))
-
-# check if file is successfully written to folder 
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/{save_file}"))){
-  print(glue::glue("File {save_file} successfully written to folder data/outputs/{params$eGRID_year}"))
-} else {
-  print(glue::glue("File {save_file} failed to write to folder."))
-} 
+source("scripts/functions/function_save_output_data.R")
+save_output_data(pm_unit_formatted, "pm_unit_file.RDS")
