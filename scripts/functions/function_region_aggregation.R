@@ -598,11 +598,9 @@ region_aggregation <- function(region, region_cols) {
     
     region_nonbaseload_resource_mix <- 
       region_nonbaseload_gen %>% 
-      left_join(region_agg %>% select(all_of(temporal_res_cols), {{ region_cols }}, contains("generation_nonbaseload"))) %>% 
+      left_join(region_agg %>% select(all_of(temporal_res_cols), {{ region_cols }}, region_generation_nonbaseload)) %>% 
       mutate(# calculate nonbaseload resource mix for each fuel type 
-             across(.cols = -any_of(c(temporal_res_cols,
-                                      {{ region_cols }}, 
-                                      "region_generation_nonbaseload")), 
+             across(.cols = c(contains("nonbaseload"), -"region_generation_nonbaseload"), 
                     .fns = ~ if_else(get(str_replace_all(cur_column(), c("_coal" = "", 
                                                                          "_oil" = "", 
                                                                          "_gas" = "", 
@@ -700,7 +698,7 @@ region_aggregation <- function(region, region_cols) {
       
     region_formatted <- 
       region_rounded %>% 
-      arrange(pick({{ region }})) %>% 
+      arrange(pick({{ region_cols }})) %>% 
       mutate(year = params$eGRID_year,
              across(.cols = starts_with("region_"), # replace region with specific region name
                     .fns = ~ .x, 
