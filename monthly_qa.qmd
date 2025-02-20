@@ -1,0 +1,27 @@
+---
+title: "monthly_qa"
+format: html
+editor: visual
+---
+
+## Monthly rates QA
+
+```{r}
+#| label: read-data
+#| echo: FALSE
+#| message: FALSE
+
+unit_annual <- 
+  read_rds()
+
+unit_monthly <- 
+  read_rds()
+
+plant_annual <- 
+  read_rds()
+
+plant_monthly <- 
+  read_rds()
+
+
+```
