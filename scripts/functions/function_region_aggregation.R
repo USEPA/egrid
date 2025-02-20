@@ -658,6 +658,7 @@ region_aggregation <- function(region, region_cols) {
       left_join(region_resource_mix) %>% # resource mix by fuel category
       left_join(region_nonbaseload_gen) %>% # nonbaseload generation by fuel category
       left_join(region_nonbaseload_resource_mix) %>% # nonbaseload resource mix by fuel category
+      drop_na(month) %>% # an NA month appears from this function, drop it here
       mutate(across(contains("Hg"), ~ replace_na(.x, "--")), # fill NAs in Hg with "--"
              across(where(is.numeric), ~ replace_na(.x, 0))) %>% # fill NAs with 0
       drop_na({{ region_cols }})
@@ -1163,7 +1164,7 @@ region_aggregation <- function(region, region_cols) {
     
     region_nonbaseload_resource_mix <- 
       region_nonbaseload_gen %>% 
-      left_join(region_agg %>% select(all_of(temporal_res_cols), contains("generation_nonbaseload"))) %>% 
+      left_join(region_agg %>% select(all_of(temporal_res_cols), region_generation_nonbaseload)) %>% 
       mutate(# calculate nonbaseload resource mix for each fuel type 
         across(.cols = -any_of(c(temporal_res_cols, 
                                  "region_generation_nonbaseload")), 
@@ -1214,16 +1215,17 @@ region_aggregation <- function(region, region_cols) {
     
     region_merged <- 
       region_agg %>% select(-contains("netgen")) %>% 
-      left_join(region_output_rates, by = c(temporal_res_cols)) %>% # output emission rates
-      left_join(region_input_rates, by = c(temporal_res_cols)) %>% # input emission rates
-      left_join(region_combustion_rates, by = c(temporal_res_cols)) %>% # combustion emission rates
-      left_join(region_fuel_rates, by = c(temporal_res_cols)) %>% # output and input emission rates by fuel type
-      left_join(region_fossil_rates, by = c(temporal_res_cols)) %>% # output and input emission rates for all fossil fuels
-      left_join(region_nonbaseload_rates, by = c(temporal_res_cols)) %>% # output emission rates for nonbaseload generation
-      left_join(region_gen_2, by = c(temporal_res_cols)) %>% # generation by fuel category
-      left_join(region_resource_mix, by = c(temporal_res_cols)) %>% # resource mix by fuel category
-      left_join(region_nonbaseload_gen, by = c(temporal_res_cols)) %>% # nonbaseload generation by fuel category
-      left_join(region_nonbaseload_resource_mix, by = c(temporal_res_cols)) %>% # nonbaseload resource mix by fuel category
+      left_join(region_output_rates) %>% # output emission rates
+      left_join(region_input_rates) %>% # input emission rates
+      left_join(region_combustion_rates) %>% # combustion emission rates
+      left_join(region_fuel_rates) %>% # output and input emission rates by fuel type
+      left_join(region_fossil_rates) %>% # output and input emission rates for all fossil fuels
+      left_join(region_nonbaseload_rates) %>% # output emission rates for nonbaseload generation
+      left_join(region_gen_2) %>% # generation by fuel category
+      left_join(region_resource_mix) %>% # resource mix by fuel category
+      left_join(region_nonbaseload_gen) %>% # nonbaseload generation by fuel category
+      left_join(region_nonbaseload_resource_mix) %>% # nonbaseload resource mix by fuel category
+      drop_na(month) %>% # an NA month appears from this function, drop it here
       mutate(across(contains("Hg"), ~ replace_na(.x, "--")), # fill NAs in Hg with "--"
              across(where(is.numeric), ~ replace_na(.x, 0))) # fill NAs with 0
     
@@ -1256,7 +1258,7 @@ region_aggregation <- function(region, region_cols) {
     
     ### Format to regional output -------
     if (params$temporal_res == "annual") { 
-      final_vars <- get(glue::glue("{region}_nonmetric"))}
+      final_vars <- get(glue::glue("{region}_nonmetric_annual"))}
     if (params$temporal_res == "monthly") { 
       final_vars <- get(glue::glue("{region}_nonmetric_monthly"))}
     
