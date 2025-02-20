@@ -20,7 +20,7 @@ metric_conversion <- function(which_file) {
   #' 
   #' @param which_file The shorthand name of original file 
   #'                   used for creation of metric counterpart -
-  #'                   Limited to ("unit","gen","plant","state",
+  #'                   Limited to ("unit","generator","plant","state",
   #'                   "ba","subregion","nerc","us","ggl")
   #' 
   #' @return A new .RDS file with metric structure
@@ -79,17 +79,17 @@ metric_conversion <- function(which_file) {
   filename <- filenames_orig[which_file]
   
   # assign ordered name vector for file type
-  assign("ordered_names", get(glue::glue("{which_file}_metric")))
+  assign("ordered_names", get(glue::glue("{which_file}_metric_{params$temporal_res}")))
   
   # Load original data and metric structure ------------------
   
   # original output data
-  orig_data <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/{filename}.RDS")) 
+  orig_data <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/{filename}_{params$temporal_res}.RDS")) 
   
   # metric file structure
   metric_struct <- read_excel("data/static_tables/metric_structure.xlsx",
-                                 # sheet index is same index in list of data files
-                                 sheet = which(filenames_orig == filename),
+                                 # sheet name depends on which_file and temporal_res parameter
+                                 sheet = glue::glue("{which_file}_{params$temporal_res}"),
                                  # keep column names to include NA fields
                                  col_names = TRUE) 
                   
@@ -148,6 +148,6 @@ metric_conversion <- function(which_file) {
   }
   
   # save folder to outputs file
-  print(glue::glue("Saving {filename}_metric.RDS to {save_dir}"))
-  write_rds(metric_data, glue::glue("{save_dir}/{filename}_metric.RDS"))
+  print(glue::glue("Saving {filename}_{params$temporal_res}_metric.RDS to {save_dir}"))
+  write_rds(metric_data, glue::glue("{save_dir}/{filename}_{params$temporal_res}_metric.RDS"))
 }
