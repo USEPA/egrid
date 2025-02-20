@@ -24,26 +24,32 @@ library(glue)
 library(readxl)
 library(tidyverse)
 
-# check if parameters for eGRID data year need to be defined
-# this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input eGRID year in the console if params does not exist
+# Load necessary functions
+source("scripts/functions/function_params_check.R")
 
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
-    params$temporal_res <- as.character(params$temporal_res) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
-  params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
-  params$temporal_res <- as.character(params$temporal_res) 
-}
+# Create and check parameters 
+params <- params_check()
+
+# # check if parameters for eGRID data year need to be defined
+# # this is only necessary when running the script outside of egrid_master.qmd
+# # user will be prompted to input eGRID year in the console if params does not exist
+# 
+# if (exists("params")) {
+#   if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+#     print("eGRID year parameter is already defined.") 
+#   } else { # if params() is defined, but eGRID_year is not, define it here 
+#     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+#     params$eGRID_year <- as.character(params$eGRID_year) 
+#     params$temporal_res <- readline(prompt = "Input temporal resolution (annual/monthly/daily/hourly): ")
+#     params$temporal_res <- as.character(params$temporal_res) 
+#   }
+# } else { # if params() and eGRID_year are not defined, define them here
+#   params <- list()
+#   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+#   params$eGRID_year <- as.character(params$eGRID_year)
+#   params$temporal_res <- readline(prompt = "Input temporal resolution (annual/monthly/daily/hourly): ")
+#   params$temporal_res <- as.character(params$temporal_res) 
+# }
 
 # Load in necessary 923 and 860 files ----------
 
@@ -203,6 +209,10 @@ ozone_months_gen <-
                   "net_generation_august",
                   "net_generation_september")
 
+month_name_map <- # creating map to recode month names to numeric values
+  c(1:12) %>%
+  purrr::set_names(tolower(month.name))
+  
 eia_gen_generation <-
   eia_860_combined_r %>% 
   left_join(eia_923_gen_r_2 %>% 
@@ -416,7 +426,7 @@ december_netgen <-
                             tot_generation_oz_fuel * prop, generation_oz),
     gen_data_source = "EIA-923 Generator File") %>% 
   filter(generation_ann_dec_equal == "yes") %>%
-  select(any_of(key_columns), generation_ann_dec_equal) %>%  # keeping only necessary columns
+  select(any_of(key_columns), generation_ann_dec_equal, net_generation_year_to_date) %>%  # keeping only necessary columns
   mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id))  # creating unique idea to identify duplicates
 
 
@@ -427,8 +437,10 @@ if (params$temporal_res == "monthly") {
     #               .fns = ~ . * prop,
     #               .names = "{gsub('tot_netgen_', 'net_generation_', col)}")) %>%
    # mutate(gen_ann_compare = rowSums(select(.,starts_with("tot_netgen_")), na.rm = TRUE)) %>%
-    mutate(across(paste0("net_generation_", tolower(month.name)), # divide the amount of net generation over the year by 12 
-                  ~ net_generation_year_to_date / 12)) # %>% 
+    # mutate(across(paste0("net_generation_", tolower(month.name)), # divide the amount of net generation over the year by 12 
+    #               ~ net_generation_year_to_date / 12)) # %>% 
+    mutate(across(paste0("tot_netgen_", tolower(month.name)), # divide the amount of net generation over the year by 12 
+                  ~ net_generation_year_to_date / 12))
     # mutate(gen_ann_compare = rowSums(select(.,paste0("net_generation_", tolower(month.name))), na.rm = TRUE)) %>% # create value to check differences
     # mutate(view_diff = generation_ann - gen_ann_compare)
    #  rename_with(~gsub("tot_netgen_", "net_generation_", .x) ,starts_with("tot_netgen_"))
@@ -503,11 +515,34 @@ if(nrow(generators_combined) > (nrow(gen_dist_no_dec_overwritten) + nrow(decembe
   print("The number of rows in generators_combined matches the sum of generators that are overwritten, generators that use December generation, and all other generators.")
 }
 
+
+# pivot longer and restructure 
+
+generators_combined <- generators_combined %>%
+pivot_longer(paste0("net_generation_", tolower(month.name)), # pivot longer
+             names_prefix = "net_generation_",
+             names_to = "month",
+             values_to = "generation") %>%
+mutate(month = recode(month, !!!month_name_map))
+  # 
+  # pivot_longer(paste0("capfac_", tolower(month.name)), # pivot longer
+  #              names_prefix = "capfac_",
+  #              #  names_to = "month",
+  #              values_to = "capfac")
+
+
 # Update capacity factor  -----------------------------------------------
 
 # create dataframe of number of hours in each year or month
 if (params$temporal_res == "annual") { 
-  hours <- data.frame("hours_ann" = 8760)}
+  hours <- data.frame("hours_ann" = 8760)
+  
+  # # keep only generation_ann 
+  # generators_combined <-
+  #   generators_combined %>%
+  #   select(-contains(tolower(month.name)))
+  
+  }
 if (params$temporal_res == "monthly") { 
   hours <- 
     data.frame("hours_ann"       = 8760, 
@@ -525,17 +560,19 @@ if (params$temporal_res == "monthly") {
                "hours_december"  = 744)
   if ((as.numeric(params$eGRID_year) %% 4 == 0 & as.numeric(params$eGRID_year) %% 100 != 0) | 
       (as.numeric(params$eGRID_year) %% 400 == 0)) { 
-    hours$hours_february = 696}} # if it is a leap year, assign hours of 29 days to february
+    hours$hours_february = 696}  # if it is a leap year, assign hours of 29 days to february
+  }
 
 generators_combined2 <- 
   cbind(generators_combined, hours) %>% 
-  rename_with(~ gsub("^net_", "",.), starts_with("net_generation_")) %>% # rename for easier selection
-  mutate(across(.cols = c(starts_with("generation"), -c(generation_year_to_date, ends_with("diff"), generation_oz, generation_ann_dec_equal)), 
-                .fns = ~ if_else(tot_nameplate_capacity != 0, # where nameplate capacity is not 0 
-                                 .x / (tot_nameplate_capacity * get(str_replace(cur_column(), "generation", "hours"))),
-                                 0), 
-                .names = "{str_replace_all(.col, c('generation' = 'capfac', '_ann' = ''))}")) %>% 
+  # rename_with(~ gsub("^net_", "",.), starts_with("net_generation_")) %>% # rename for easier selection
+  # mutate(across(.cols = c(starts_with("generation"), -c(generation_year_to_date, ends_with("diff"), generation_oz, generation_ann_dec_equal)), 
+  #               .fns = ~ if_else(tot_nameplate_capacity != 0, # where nameplate capacity is not 0 
+  #                                .x / (tot_nameplate_capacity * get(str_replace(cur_column(), "generation", "hours"))),
+  #                                0), 
+  #               .names = "{str_replace_all(.col, c('generation' = 'capfac'))}")) %>% 
   select(-starts_with("hours"))
+
 
 
 # Final modifications to generator file -----------
@@ -562,6 +599,7 @@ generators_edits <-
   rows_update(epa, by = c("plant_id"), unmatched = "ignore") %>% 
   rows_delete(epa_plants_to_delete, by = c("plant_id"), unmatched = "ignore")
 
+
 # creating named vector of final variable order and variable name included in generator file
 final_vars <-
     c("SEQGEN" = "seqgen",
@@ -575,7 +613,7 @@ final_vars <-
       "PRMVR" =  "prime_mover",
       "FUELG1" = "fuel_code",
       "NAMEPCAP" = "nameplate_capacity",
-      "CFACT" = "capfac",
+      "CFACT" = "capfac", # reanme to ann for easier pivot_longer
       "GENNTAN" = "generation_ann",
       "GENNTOZ" = "generation_oz",
       "GENERSRC" = "gen_data_source",
@@ -584,7 +622,7 @@ final_vars <-
 
 if (params$temporal_res == "monthly") {
   final_vars <-
-    c(final_vars, 
+    c(final_vars,
       paste0("generation_", tolower(month.name)),
       paste0("capfac_", tolower(month.name)))
 }
@@ -595,7 +633,7 @@ generators_formatted <-
   mutate(seqgen = row_number()) %>%
   select(as_tibble(final_vars)$value) %>% # keeping columns with tidy names since the rename is done in the final formatting script
   drop_na(plant_id, generator_id) %>%
-  mutate(across(c(starts_with("capfac"), starts_with("generation")), ~ round(.x, 3)))
+  mutate(across(c(starts_with("capfac"), starts_with("generation")), ~ round(.x, 3))) 
 
 # Export generator file -----------
 
@@ -613,11 +651,11 @@ if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
 
 print(glue::glue("Saving generator file to folder data/outputs/{params$eGRID_year}"))
 
-write_rds(generators_formatted, glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
+write_rds(generators_formatted, glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))
   
 
 # check if file is successfully written to folder 
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))){
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))){
   print(glue::glue("File generator_file.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
 } else {
    print("File generator_file.RDS failed to write to folder.")

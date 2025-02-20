@@ -22,46 +22,51 @@ library(dplyr)
 library(lubridate)
 library(tidyr)
 
-# check if parameters for eGRID data year need to be defined
-# this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input parameters in the console if params does not exist
+# # check if parameters for eGRID data year need to be defined
+# # this is only necessary when running the script outside of egrid_master.qmd
+# # user will be prompted to input parameters in the console if params does not exist
+# 
+# if (exists("params")) {
+#   if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+#     print("eGRID year parameter is already defined.") 
+#   } else { # if params() is defined, but eGRID_year is not, define it here 
+#     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+#     params$eGRID_year <- as.character(params$eGRID_year) 
+#     params$temporal_res <- readline(prompt = "Input temporal resolution (annual/monthly/daily/hourly): ")
+#     params$temporal_res <- as.character(params$temporal_res) 
+#   }
+# } else { # if params() and eGRID_year are not defined, define them here
+#   params <- list()
+#   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+#   params$eGRID_year <- as.character(params$eGRID_year)
+#   params$temporal_res <- readline(prompt = "Input temporal resolution (annual/monthly/daily/hourly): ")
+#   params$temporal_res <- as.character(params$temporal_res) 
+#   
+#   
+# }
+# 
+# # Specify grouping columns based on temporal_res parameter
+# temporal_res_cols_all <- 
+#   list("annual"  = c("year"), 
+#        "monthly" = c("year", "month"), 
+#        "daily"   = c("year", "month", "day"), 
+#        "hourly"  = c("year", "month", "day", "hour"))
+# 
+# temporal_res_cols <- unlist(temporal_res_cols_all[params$temporal_res], use.names = FALSE)
 
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
-    params$temporal_res <- as.character(params$temporal_res) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
-  params$temporal_res <- readline(prompt = "Input temporal resolution (annual/monthly/daily/hourly): ")
-  params$temporal_res <- as.character(params$temporal_res) 
-  
-  
-}
 
-# Specify grouping columns based on temporal_res parameter
-temporal_res_cols_all <- 
-  list("annual"  = c("year"), 
-       "monthly" = c("year", "month"), 
-       "daily"   = c("year", "month", "day"), 
-       "hourly"  = c("year", "month", "day", "hour"))
+# Load necessary functions
+source("scripts/functions/function_coalesce_join_vars.R")
+source("scripts/functions/function_cols_to_add.R")
+source("scripts/functions/function_params_check.R")
 
-temporal_res_cols <- unlist(temporal_res_cols_all[params$temporal_res], use.names = FALSE)
+# Create and check parameters 
+params <- params_check()
 
 # Check if folder to store raw data exists, if not - create it
 if (!dir.exists(glue::glue("data/raw_data/epa/{params$eGRID_year}"))) {
   dir.create(glue::glue("data/raw_data/epa/{params$eGRID_year}"), recursive = TRUE)
 }
-
-# Load necessary functions
-source("scripts/functions/function_coalesce_join_vars.R")
-source("scripts/functions/function_cols_to_add.R")
 
 # Set your API key here
 api_key <- read_lines("api_keys/epa_api_key.txt")
@@ -165,7 +170,7 @@ groupby_emissions_cols_all <-
 
 groupby_emissions_cols <- unlist(groupby_emissions_cols_all[params$temporal_res], use.names = FALSE)
 
-ozone_months <- c(5,6,7,8,9) # setting ozone months, which are May through September
+ozone_months <- c(5:9) # setting ozone months, which are May through September
 
 # clean data
 emissions_data_r <- 
@@ -280,7 +285,7 @@ if (params$temporal_res == "daily") {
 epa_data_combined <- 
   facility_df %>% 
   left_join(emissions_data_r,
-            by = c(all_of(temporal_res_cols), "facility_id", "unit_id", "primary_fuel_type")) %>% 
+            by = c(all_of(params$temporal_res_cols), "facility_id", "unit_id", "primary_fuel_type")) %>% 
   coalesce_join_vars() %>% 
   left_join(mats_data_r) %>% 
   arrange(facility_id, unit_id)

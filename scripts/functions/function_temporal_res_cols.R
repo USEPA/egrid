@@ -12,6 +12,31 @@
 ## -------------------------------
 
 
+
+temporal_res_cols <- function(temporal_res) {
+  
+  #' cols_to_add
+  #' 
+  #' Create vector that contains all of the temporal_res columns
+  #' needed for groupby 
+  #' 
+  #' @param temporal_res Temporal resolution of data run, likely will be the same as params$temporal_res
+  #' @return Dataframe of all date and time combinations 
+  
+  # Specify grouping columns based on temporal_res parameter
+  temporal_res_cols_all <- 
+    list("annual"  = c("year"), 
+         "monthly" = c("year", "month"), 
+         "daily"   = c("year", "month", "day"), 
+         "hourly"  = c("year", "month", "day", "hour"))
+  
+  # Save column names 
+  temporal_res_cols <- unlist(temporal_res_cols_all[temporal_res], use.names = FALSE)
+  
+  return(temporal_res_cols)
+}
+
+
 cols_to_add <- function(temporal_res) {
   
   #' cols_to_add
@@ -69,3 +94,4 @@ cols_to_add <- function(temporal_res) {
                           hour = rep(1:24, each = days)))}
   return(df)
 }
+
