@@ -7,21 +7,757 @@ editor: visual
 ## Monthly rates QA
 
 ```{r}
+#| label: load-libraries
+#| echo: false
+#| message: false
+
+library(dplyr)
+library(ggplot2)
+library(kableExtra)
+library(readr)
+
+```
+
+```{r}
 #| label: read-data
-#| echo: FALSE
-#| message: FALSE
+#| echo: false
+#| message: false
+
+# load in unit data, format, and merge
+unit_monthly <- 
+  read_rds("data/outputs/2023/unit_file_monthly.RDS")
+
+colnames(unit_monthly) <- paste0(colnames(unit_monthly), "_monthly")
+unit_monthly <- unit_monthly %>% 
+  rename("plant_id" = "plant_id_monthly",
+         "unit_id" = "unit_id_monthly", 
+         "prime_mover" = "prime_mover_monthly",
+         "year" = "year_monthly",
+         "month" = "month_monthly")
 
 unit_annual <- 
-  read_rds()
+  read_rds("data/outputs/2023/unit_file.RDS")
 
-unit_monthly <- 
-  read_rds()
+colnames(unit_annual) <- paste0(colnames(unit_annual), "_annual")
+unit_annual <- unit_annual %>% 
+  rename("plant_id" = "plant_id_annual",
+         "unit_id" = "unit_id_annual", 
+         "prime_mover" = "prime_mover_annual",  
+         "year" = "year_annual")
+
+# load in plant data, format, and merge
+plant_monthly <- 
+  read_rds("data/outputs/2023/plant_file_monthly.RDS")
+
+colnames(plant_monthly) <- paste0(colnames(plant_monthly), "_monthly")
+plant_monthly <- plant_monthly %>% 
+  rename("plant_id" = "plant_id_monthly",
+         "year" = "year_monthly",
+         "month" = "month_monthly")
 
 plant_annual <- 
-  read_rds()
+  read_rds("data/outputs/2023/plant_file.RDS")
 
-plant_monthly <- 
-  read_rds()
+colnames(plant_annual) <- paste0(colnames(plant_annual), "_annual")
+plant_annual <- plant_annual %>% 
+  rename("plant_id" = "plant_id_annual",
+         "year" = "year_annual")
+
+plant_merged <-
+  plant_monthly %>% 
+  left_join(plant_annual)
+
+# load in state data, format, and merge
+state_monthly <- 
+  read_rds("data/outputs/2023/state_aggregation_monthly.RDS")
+
+colnames(state_monthly) <- paste0(colnames(state_monthly), "_monthly")
+state_monthly <- state_monthly %>% 
+  rename("state" = "state_monthly",
+         "fips_state_code" = "fips_state_code_monthly",
+         "year" = "year_monthly",
+         "month" = "month_monthly")
+
+state_annual <- 
+  read_rds("data/outputs/2023/state_aggregation.RDS")
+
+colnames(state_annual) <- paste0(colnames(state_annual), "_annual")
+state_annual <- state_annual %>% 
+  rename("state" = "state_annual",
+         "fips_state_code" = "fips_state_code_annual",
+         "year" = "year_annual")
+
+state_merged <-
+  state_monthly %>% 
+  left_join(state_annual)
+
+# load in BA data, format, and merge
+ba_monthly <- 
+  read_rds("data/outputs/2023/ba_aggregation_monthly.RDS")
+
+colnames(ba_monthly) <- paste0(colnames(ba_monthly), "_monthly")
+ba_monthly <- ba_monthly %>% 
+  rename("ba_code" = "ba_code_monthly",
+         "ba_name" = "ba_name_monthly",
+         "year" = "year_monthly",
+         "month" = "month_monthly")
+
+ba_annual <- 
+  read_rds("data/outputs/2023/ba_aggregation.RDS")
+
+colnames(ba_annual) <- paste0(colnames(ba_annual), "_annual")
+ba_annual <- ba_annual %>% 
+  rename("ba_code" = "ba_code_annual",
+         "ba_name" = "ba_name_annual",
+         "year" = "year_annual")
+
+ba_merged <-
+  ba_monthly %>% 
+  left_join(ba_annual)
+
+# load in subregion data, format, and merge
+subregion_monthly <- 
+  read_rds("data/outputs/2023/subregion_aggregation_monthly.RDS") 
+
+colnames(subregion_monthly) <- paste0(colnames(subregion_monthly), "_monthly")
+subregion_monthly <- subregion_monthly %>% 
+  rename("subregion" = "subregion_monthly",
+         "subregion_name" = "subregion_name_monthly",
+         "year" = "year_monthly",
+         "month" = "month_monthly")
+
+subregion_annual <- 
+  read_rds("data/outputs/2023/subregion_aggregation.RDS") 
+
+colnames(subregion_annual) <- paste0(colnames(subregion_annual), "_annual")
+subregion_annual <- subregion_annual %>% 
+  rename("subregion" = "subregion_annual",
+         "subregion_name" = "subregion_name_annual",
+         "year" = "year_annual")
+
+subregion_merged <-
+  subregion_monthly %>% 
+  left_join(subregion_annual)
+
+# load in NERC data, format, and merge
+nerc_monthly <- 
+  read_rds("data/outputs/2023/nerc_aggregation_monthly.RDS")
+
+colnames(nerc_monthly) <- paste0(colnames(nerc_monthly), "_monthly")
+nerc_monthly <- nerc_monthly %>% 
+  rename("nerc" = "nerc_monthly",
+         "nerc_name" = "nerc_name_monthly",
+         "year" = "year_monthly",
+         "month" = "month_monthly")
+
+nerc_annual <- 
+  read_rds("data/outputs/2023/nerc_aggregation.RDS")
+
+colnames(nerc_annual) <- paste0(colnames(nerc_annual), "_annual")
+nerc_annual <- nerc_annual %>% 
+  rename("nerc" = "nerc_annual",
+         "nerc_name" = "nerc_name_annual",
+         "year" = "year_annual")
+
+nerc_merged <-
+  nerc_monthly %>% 
+  left_join(nerc_annual)
+
+# load in US data, format, and merge
+us_monthly <- 
+  read_rds("data/outputs/2023/us_aggregation_monthly.RDS")
+
+colnames(us_monthly) <- paste0(colnames(us_monthly), "_monthly")
+us_monthly <- us_monthly %>% 
+  rename("year" = "year_monthly",
+         "month" = "month_monthly")
+
+us_annual <- 
+  read_rds("data/outputs/2023/us_aggregation.RDS") %>% 
+  mutate(month = )
+
+colnames(us_annual) <- paste0(colnames(us_annual), "_annual")
+us_annual <- us_annual %>% 
+  rename("year" = "year_annual")
+
+us_merged <-
+  us_monthly %>% 
+  left_join(us_annual)
+```
+
+# Unit file comparison
+
+```{r}
+#| label: unit-comparison
+#| echo: false
+#| message: false
+
+epa <- 
+  read_rds("data/clean_data/epa/2023/epa_clean_annual.RDS") %>% 
+  select(plant_id, unit_id, reporting_frequency) %>% 
+  distinct()
+
+unit_monthly_sum <- 
+  unit_monthly %>% 
+  group_by(plant_id, unit_id, prime_mover) %>% 
+  summarize(heat_input_monthly = sum(heat_input_monthly, na.rm = TRUE), 
+            nox_mass_monthly = sum(nox_mass_monthly, na.rm = TRUE), 
+            so2_mass_monthly = sum(so2_mass_monthly, na.rm = TRUE), 
+            co2_mass_monthly = sum(co2_mass_monthly, na.rm = TRUE)) %>% 
+  ungroup()
+
+unit_total_monthly_sum <- 
+  unit_monthly_sum %>% 
+  summarize(heat_input = sum(heat_input_monthly, na.rm = TRUE), 
+            nox_mass = sum(nox_mass_monthly, na.rm = TRUE),
+            so2_mass = sum(so2_mass_monthly, na.rm = TRUE), 
+            co2_mass = sum(co2_mass_monthly, na.rm = TRUE)) %>% 
+  mutate(agg = "monthly") %>% 
+  pivot_longer()
+
+unit_total_annual_sum <- 
+  unit_annual %>% 
+  summarize(heat_input = sum(heat_input_annual, na.rm = TRUE), 
+            nox_mass = sum(nox_mass_annual, na.rm = TRUE), 
+            so2_mass = sum(so2_mass_annual, na.rm = TRUE), 
+            co2_mass = sum(co2_mass_annual, na.rm = TRUE)) %>% 
+  mutate(agg = "annual")
+
+unit_total_sum_comp <- 
+  rbind(unit_total_monthly_sum, 
+        unit_total_annual_sum) %>% 
+  relocate()
+
+check_unit_diff <- 
+  unit_annual %>% 
+  full_join(unit_monthly_sum, by = c("plant_id", "unit_id", "prime_mover")) %>% 
+  mutate(heat_input_diff = heat_input_annual - heat_input_monthly, 
+         nox_diff = nox_mass_annual - nox_mass_monthly,
+         so2_diff = so2_mass_annual - so2_mass_monthly, 
+         co2_diff = co2_mass_annual - co2_mass_monthly) %>% 
+  left_join(epa, by = c("plant_id", "unit_id"))
 
 
 ```
+
+::: panel-tabset
+## Heat input
+
+```{r}
+#| label: heat-input-unit-comp
+#| echo: false
+#| message: false
+
+
+
+```
+
+## NOx mass
+
+```{r}
+#| label: nox-unit-comp
+#| echo: false
+#| message: false
+
+
+
+```
+
+## SO2 mass
+
+```{r}
+#| label: so2-unit-comp
+#| echo: false
+#| message: false
+
+
+
+```
+
+## CO2 mass
+
+```{r}
+#| label: co2-unit-comp
+#| echo: false
+#| message: false
+
+
+
+```
+:::
+
+# Subregion file comparison
+
+::: panel-tabset
+### AKGD
+
+```{r}
+
+```
+
+### AKMS
+
+```{r}
+
+```
+
+### AZNM
+
+```{r}
+
+```
+
+### CAMX
+
+```{r}
+
+```
+
+### ERCT
+
+```{r}
+
+```
+
+### FRCC
+
+```{r}
+
+```
+
+### HIMS
+
+```{r}
+
+```
+
+### HIOA
+
+```{r}
+
+```
+
+### MROE
+
+```{r}
+
+```
+
+### MROW
+
+```{r}
+
+```
+
+### NEWE
+
+```{r}
+
+```
+
+### NWPP
+
+```{r}
+
+```
+
+### NYCW
+
+```{r}
+
+```
+
+### NYLI
+
+```{r}
+
+```
+
+### NYUP
+
+```{r}
+
+```
+
+### PRMS
+
+```{r}
+
+```
+
+### RFCE
+
+```{r}
+
+```
+
+### RFCM
+
+```{r}
+
+```
+
+### RFCW
+
+```{r}
+
+```
+
+### RMPA
+
+```{r}
+
+```
+
+### SPNO
+
+```{r}
+
+```
+
+### SPSO
+
+```{r}
+
+```
+
+### SRMV
+
+```{r}
+
+```
+
+### SRSO
+
+```{r}
+
+```
+
+### SRTV
+
+```{r}
+
+```
+
+### SRVC
+
+```{r}
+
+```
+:::
+
+## State resource mix
+
+::: panel-tabset
+### AK
+
+```{r}
+
+```
+
+### AL
+
+```{r}
+
+```
+
+### AR
+
+```{r}
+
+```
+
+### AZ
+
+```{r}
+
+```
+
+### CA
+
+```{r}
+
+```
+
+### CO
+
+```{r}
+
+```
+
+### CT
+
+```{r}
+
+```
+
+### DC
+
+```{r}
+
+```
+
+### DE
+
+```{r}
+
+```
+
+### FL
+
+```{r}
+
+```
+
+### GA
+
+```{r}
+
+```
+
+### HI
+
+```{r}
+
+```
+
+### IA
+
+```{r}
+
+```
+
+### ID
+
+```{r}
+
+```
+
+### IL
+
+```{r}
+
+```
+
+### IN
+
+```{r}
+
+```
+
+### KS
+
+```{r}
+
+```
+
+### KY
+
+```{r}
+
+```
+
+### LA
+
+```{r}
+
+```
+
+### MA
+
+```{r}
+
+```
+
+### MD
+
+```{r}
+
+```
+
+### ME
+
+```{r}
+
+```
+
+### MI
+
+```{r}
+
+```
+
+### MN
+
+```{r}
+
+```
+
+### MO
+
+```{r}
+
+```
+
+### MS
+
+```{r}
+
+```
+
+### MT
+
+```{r}
+
+```
+
+### NC
+
+```{r}
+
+```
+
+### ND
+
+```{r}
+
+```
+
+### NE
+
+```{r}
+
+```
+
+### NH
+
+```{r}
+
+```
+
+### NJ
+
+```{r}
+
+```
+
+### NM
+
+```{r}
+
+```
+
+### NV
+
+```{r}
+
+```
+
+### NY
+
+```{r}
+
+```
+
+### OH
+
+```{r}
+
+```
+
+### OK
+
+```{r}
+
+```
+
+### OR
+
+```{r}
+
+```
+
+### PA
+
+```{r}
+
+```
+
+### PR
+
+```{r}
+
+```
+
+### RI
+
+```{r}
+
+```
+
+### SC
+
+```{r}
+
+```
+
+### SD
+
+```{r}
+
+```
+
+### TN
+
+```{r}
+
+```
+
+### TX
+
+```{r}
+
+```
+
+### UT
+
+```{r}
+
+```
+
+### VA
+
+```{r}
+
+```
+
+### VT
+
+```{r}
+
+```
+
+### WA
+
+```{r}
+
+```
+
+### WI
+
+```{r}
+
+```
+
+### WV
+
+```{r}
+
+```
+
+### WY
+
+```{r}
+
+```
+:::
