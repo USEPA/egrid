@@ -37,7 +37,7 @@ if (exists("params")) {
 # Load necessary data --------------------
 ## PM2.5 plant file
 if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/pm_plant_file.RDS"))) {
-  pm_plant_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/pm_plant_file.RDS")) #%>%
+  pm_plant_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/pm_plant_file.RDS"))
 } else {
   stop("pm_plant_file.RDS does not exist. Run pm_plant_file_create.R to obtain.")}
 
@@ -50,12 +50,12 @@ pm_plant_data <- create_pm_plant_data()
 # Sum PM2.5 plant data by subregion ---------
 pm_subregion_emissions <-
   pm_plant_data %>%
-  group_by(subrgn) %>%
-  summarise(srgenan = sum(plngenan, na.rm = TRUE), srpm25an = sum(plpm25an, na.rm = TRUE)) %>%
+  group_by(egrid_subregion) %>%
+  summarise(srgenan = sum(generation_ann, na.rm = TRUE), srpm25an = sum(plpm25an, na.rm = TRUE)) %>%
   mutate(gen = round(srgenan, 0),
          pm25tons = round(srpm25an, 2),
          rate = round(srpm25an * 2000 / srgenan, 4)) %>%
-  select(subrgn, gen, pm25tons, rate)
+  select(egrid_subregion, gen, pm25tons, rate)
 
 
 # Sum PM2.5 subregion data to US -------
@@ -68,9 +68,9 @@ pm_us_emissions <-
 # Sum PM2.5 plant data by state ---------
 pm_state_emissions <-
   pm_plant_file %>%
-  group_by(pstatabb) %>%
-  summarise(stgenan = sum(plngenan, na.rm = TRUE), stpm25an = sum(plpm25an2, na.rm = TRUE), stpm25rta = stpm25an * 2000 / stgenan) %>%
-  select(pstatabb, stgenan, stpm25an, stpm25rta)
+  group_by(plant_state) %>%
+  summarise(stgenan = sum(generation_ann, na.rm = TRUE), stpm25an = sum(plpm25an2, na.rm = TRUE), stpm25rta = stpm25an * 2000 / stgenan) %>%
+  select(plant_state, stgenan, stpm25an, stpm25rta)
 
 
 # Save aggregated data ----------

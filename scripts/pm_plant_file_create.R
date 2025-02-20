@@ -53,14 +53,14 @@ pm_plant_data <- create_pm_plant_data()
 pm_sources <- 
   pm_unit_file %>%
   filter(!is.na(pm25src2) | pm25src2 != "") %>%
-  group_by(orispl) %>%
+  group_by(plant_id) %>%
   arrange(pm25src2) %>% # sort by PM2.5 source
   summarize(pm25src = str_c(unique(pm25src2), collapse = "; "), .groups = "drop") # concatenate source strings
 
 # update sources in plant file
 pm_plant_sources <-
   pm_plant_data %>%
-  left_join(pm_sources, by = join_by(orispl))
+  left_join(pm_sources, by = join_by(plant_id))
 
 
 # Format final version of pm2.5 plant file ------------
@@ -68,13 +68,13 @@ pm_plant_sources <-
 pm_plant_formatted <-
   pm_plant_sources %>%
   # set pm2.5 annual emissions to NA for renewable fuel types
-  mutate(plpm25an2 = if_else(plpm25an == 0 & plprmfl %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, plpm25an),
+  mutate(plpm25an2 = if_else(plpm25an == 0 & primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, plpm25an),
          # set pm2.5 output rate to 0 is annual net generation is less than 0
-         plpm25rta2 = if_else(plngenan < 0, 0, plpm25rta)) %>%
+         plpm25rta2 = if_else(generation_ann < 0, 0, plpm25rta)) %>%
   # select desired variables for final version
-  select(pstatabb, pname, orispl, subrgn, srname, plprmfl, namepcap, elcalloc, plngenan, plhtian, plpm25an2, plpm25rta2, plpm25ra, pm25src, unhti, unpm25) %>%
+  select(plant_state, plant_name, plant_id, egrid_subregion, egrid_subregion_name, primary_fuel_type, nameplate_capacity, elec_allocation, generation_ann, heat_input, plpm25an2, plpm25rta2, plpm25ra, pm25src, unadj_combust_heat_input, unpm25) %>%
   # order by plant state abbreviation and plant name
-  arrange(pstatabb, pname)
+  arrange(plant_state, plant_name)
 
 
 # Export PM2.5 plant file -----
