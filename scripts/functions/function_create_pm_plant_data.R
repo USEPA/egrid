@@ -49,7 +49,7 @@ create_pm_plant_data <- function(){
   # Add PM2.5 data to plant file ---------
   pm_plant_emissions <-
     plant_file %>%
-    inner_join(pm_plant, by = join_by(plant_id)) %>%
+    left_join(pm_plant, by = join_by(plant_id)) %>%
     # set plant electric allocation factors to 1 if NaN 
     mutate(elec_allocation = if_else(is.na(elec_allocation), 1, elec_allocation),
            # calculate annual pm2.5 emissions
