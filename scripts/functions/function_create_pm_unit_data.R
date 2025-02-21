@@ -117,7 +117,7 @@ create_pm_unit_data <- function(){
     group_by(prime_mover, primary_fuel_type, pm25_source) %>%
     # calculate emission factor
     summarise(sum_heat_input = sum(heat_input, na.rm = TRUE), sum_pm25 = sum(pm25, na.rm = TRUE)) %>%
-    mutate(emission_factors = sum_pm25 / sum_heat_input) %>% 
+    mutate(sum_heat_input = if_else(sum_heat_input == 0, NA, sum_heat_input), emission_factors = sum_pm25 / sum_heat_input) %>%
     inner_join(pm_unit_emissions, by = join_by(prime_mover, primary_fuel_type)) %>%
     # multiply individual heat inputs by emission factors to estimate pm2.5
     # define method used under source
@@ -137,7 +137,6 @@ create_pm_unit_data <- function(){
     rename(pm25_ef = pm25, pm25_source_ef = pm25_source) %>%
     select(plant_id, unit_id, prime_mover, pm25_ef, pm25_source_ef)
 
-  
   # if there is a unit match with EIA-923, adjust pm2.5 by control efficiency
   pm_removal_efficiencies <-
     eia_923 %>%
