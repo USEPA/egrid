@@ -38,17 +38,27 @@ if (exists("params")) {
 }
 
 # Run unit data creation script ---------
-source("scripts/functions/function_create_pm_unit_data.R")
-pm_unit_data <- create_pm_unit_data()
+## 1) Direct Match - "NEI/EIA" --------------
+# calculate pm2.5 data using direct unit match from EIA to NEI
+## 2) Match by fuel type, unit firing type, and prime mover - "NEI avg EF - PM, fuel type, firing type" ----------
+# calculate pm2.5 emissions using matching of fuel type, prime mover, and firing type
+## 3) Match by fuel type and prime mover - "NEI avg EF - PM, fuel type" ----------
+# calculate pm2.5 emissions using matching of prime mover and fuel type
+## 4) Use emissions factors from AP-42 - "Estimated using an emissions factor" ---------
+# calculate pm2.5 emissions based on emission factors in AP-42 report
+#if there is a unit match with EIA-923, adjust pm2.5 by control efficiency
+
+source("scripts/functions/function_create_pm_nh3_voc_unit_data.R")
+pm_unit_data <- create_pm_nh3_voc_unit_data("pm25")
 
 # Format final version of pm2.5 unit file ------------
 #adjust pm2.5 emissions for renewable fuel types and select desired columns
 pm_unit_formatted <-
   pm_unit_data %>%
   # set pm2.5 annual emissions to NA for renewable fuel types
-  mutate(pm25_ann = if_else(primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, pm25),
+  mutate(pm25_ann = if_else(primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, emission),
          # set pm2.5 source type to NA for renewable fuel types
-         pm25_source = if_else(pm25_ann >= 0, pm25_source, NA_character_),
+         pm25_source = if_else(pm25_ann >= 0, emission_source, NA_character_),
          # add data column with adjusted pm2.5 rate
          pm25_rate = pm25_ann * 2000 / heat_input) %>%
   # select desired variables for final version
