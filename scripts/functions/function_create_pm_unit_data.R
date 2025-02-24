@@ -85,7 +85,7 @@ create_pm_unit_data <- function(){
     # combine direct match pm2.5 and unit file data
     left_join(pm_direct_match, by = join_by(plant_id == oris_facility_code, unit_id == oris_boiler_id)) %>% 
     # modify dataset format and add pm2.5 source for those calculated with direct match
-    mutate(pm25_source = if_else(is.na(pm25), NA, "EPA/NEI"), eia_pm_control_efficiency = as.numeric(NA), botfirty = if_else(botfirty == "", NA, botfirty))
+    mutate(pm25_source = if_else(is.na(pm25), NA_character_, "EPA/NEI"), eia_pm_control_efficiency = NA_real_, botfirty = if_else(botfirty == "", NA_character_, botfirty))
   
   
   ## 2) Match by fuel type, unit firing type, and prime mover - "NEI avg EF - PM, fuel type, firing type" ----------
@@ -117,7 +117,7 @@ create_pm_unit_data <- function(){
     group_by(prime_mover, primary_fuel_type, pm25_source) %>%
     # calculate emissions factor
     summarise(sum_heat_input = sum(heat_input, na.rm = TRUE), sum_pm25 = sum(pm25, na.rm = TRUE)) %>%
-    mutate(sum_heat_input = if_else(sum_heat_input == 0, NA, sum_heat_input), emission_factors = sum_pm25 / sum_heat_input) %>%
+    mutate(sum_heat_input = if_else(sum_heat_input == 0, NA_real_, sum_heat_input), emission_factors = sum_pm25 / sum_heat_input) %>%
     inner_join(pm_unit_emissions, by = join_by(prime_mover, primary_fuel_type)) %>%
     # multiply individual heat inputs by emission factors to estimate pm2.5
     # define method used under source

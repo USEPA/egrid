@@ -68,7 +68,7 @@ pm_plant_sources <-
 pm_plant_formatted <-
   pm_plant_sources %>%
   # set pm2.5 annual emissions to NA for renewable fuel types
-  mutate(pm25_ann = if_else(pm25_ann == 0 & primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, pm25_ann),
+  mutate(pm25_ann = if_else(pm25_ann == 0 & primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, pm25_ann),
          # set pm2.5 output rate to 0 if annual net generation is less than 0
          pm25_output_rate = if_else(generation_ann < 0, 0, pm25_output_rate)) %>%
   # select desired variables for final version

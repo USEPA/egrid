@@ -46,9 +46,9 @@ pm_unit_data <- create_pm_unit_data()
 pm_unit_formatted <-
   pm_unit_data %>%
   # set pm2.5 annual emissions to NA for renewable fuel types
-  mutate(pm25_ann = if_else(primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, pm25),
+  mutate(pm25_ann = if_else(primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, pm25),
          # set pm2.5 source type to NA for renewable fuel types
-         pm25_source = if_else(pm25_ann >= 0, pm25_source, NA),
+         pm25_source = if_else(pm25_ann >= 0, pm25_source, NA_character_),
          # add data column with adjusted pm2.5 rate
          pm25_rate = pm25_ann * 2000 / heat_input) %>%
   # select desired variables for final version
