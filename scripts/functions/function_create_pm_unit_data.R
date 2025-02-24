@@ -92,11 +92,11 @@ create_pm_unit_data <- function(){
   # calculate pm2.5 emissions using matching of fuel type, prime mover, and firing type
   pm_fuel_pmover_firing <-
     pm_unit_emissions %>%
-    # filter to those that have a match with NEI
+    # filter to those with NEI match
     filter(pm25_source == "EPA/NEI") %>% 
     # group by prime mover, firing, fuel type
     group_by(prime_mover, botfirty, primary_fuel_type, pm25_source) %>% 
-    # calculate emission factor
+    # calculate emissions factor
     summarise(sum_heat_input = sum(heat_input, na.rm = TRUE), sum_pm25 = sum(pm25, na.rm = TRUE)) %>%
     mutate(emission_factors = sum_pm25 / sum_heat_input) %>% 
     inner_join(pm_unit_emissions, by = join_by(prime_mover, botfirty, primary_fuel_type)) %>%
@@ -111,11 +111,11 @@ create_pm_unit_data <- function(){
   # calculate pm2.5 emissions using matching of prime mover and fuel type
   pm_fuel_pmover <-
     pm_unit_emissions %>%
-    # filter to those that have a match with NEI
+    # filter to those with NEI match
     filter(pm25_source == "EPA/NEI") %>% 
     # group by prime mover, fuel type
     group_by(prime_mover, primary_fuel_type, pm25_source) %>%
-    # calculate emission factor
+    # calculate emissions factor
     summarise(sum_heat_input = sum(heat_input, na.rm = TRUE), sum_pm25 = sum(pm25, na.rm = TRUE)) %>%
     mutate(sum_heat_input = if_else(sum_heat_input == 0, NA, sum_heat_input), emission_factors = sum_pm25 / sum_heat_input) %>%
     inner_join(pm_unit_emissions, by = join_by(prime_mover, primary_fuel_type)) %>%
@@ -126,13 +126,13 @@ create_pm_unit_data <- function(){
     select(plant_id, unit_id, prime_mover, pm25, pm25_source)
   
   
-  ## 4) Use emissions factors from AP-42 - "Estimated using an emission factor" ---------
+  ## 4) Use emissions factors from AP-42 - "Estimated using an emissions factor" ---------
   # calculate pm2.5 emissions based on emission factors in AP-42 report
-  pm_emission_factors <-
+  pm_emissions_factors <-
     pm_unit_emissions %>%
     # use emissions factors specific to fuel, firing type, and prime mover to calculate pm2.5
     inner_join(pm_efs, by = join_by(botfirty, primary_fuel_type == fuelu1, prime_mover == prmvr)) %>%
-    mutate(pm25 = ef * heat_input / 2000, pm25_source = "Estimated using an emission factor") %>% 
+    mutate(pm25 = ef * heat_input / 2000, pm25_source = "Estimated using an emissions factor") %>% 
     filter(!is.na(pm25)) %>%
     rename(pm25_ef = pm25, pm25_source_ef = pm25_source) %>%
     select(plant_id, unit_id, prime_mover, pm25_ef, pm25_source_ef)
@@ -145,10 +145,10 @@ create_pm_unit_data <- function(){
     group_by(plant_id) %>%
     # convert efficiency rate to numeric percentage
     summarise(eia_pm_control_efficiency = max(as.numeric(sub("%", "", pm_removal_efficiency_rate_at_annual_operating_factor)) / 100)) %>%
-    inner_join(pm_emission_factors, by = join_by(plant_id == plant_id)) %>%
+    inner_join(pm_emissions_factors, by = join_by(plant_id == plant_id)) %>%
     rename(plant_id = plant_id) %>%
     # adjust pm2.5 using control efficiency rate
-    mutate(pm25 = pm25_ef * (1 - eia_pm_control_efficiency), pm25_source = "Estimated using an emission factor") %>%
+    mutate(pm25 = pm25_ef * (1 - eia_pm_control_efficiency), pm25_source = "Estimated using an emissions factor") %>%
     rename(pm25_re = pm25, pm25_source_re = pm25_source) %>%
     select(plant_id, unit_id, prime_mover, pm25_re, pm25_source_re)
 
@@ -161,7 +161,7 @@ create_pm_unit_data <- function(){
     rows_patch(pm_fuel_pmover, by = c("unit_id", "plant_id", "prime_mover")) %>%
     left_join(pm_removal_efficiencies, by = join_by(unit_id, plant_id, prime_mover)) %>%
     mutate(pm25 = if_else(is.na(pm25_source), pm25_re, pm25), pm25_source = if_else(is.na(pm25_source), pm25_source_re, pm25_source)) %>%
-    left_join(pm_emission_factors, by = join_by(unit_id, plant_id, prime_mover)) %>%
+    left_join(pm_emissions_factors, by = join_by(unit_id, plant_id, prime_mover)) %>%
     mutate(pm25 = if_else(is.na(pm25_source), pm25_ef, pm25), pm25_source = if_else(is.na(pm25_source), pm25_source_ef, pm25_source)) %>%
     select(-pm25_ef, -pm25_re, -pm25_source_ef, -pm25_source_re)
   
