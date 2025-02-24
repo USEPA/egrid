@@ -53,14 +53,14 @@ create_pm_plant_data <- function(){
     # set plant electric allocation factors to 1 if NaN 
     mutate(elec_allocation = if_else(is.na(elec_allocation), 1, elec_allocation),
            # calculate annual pm2.5 emissions
-           plpm25an = pm25 * elec_allocation,
+           pm25_ann = pm25 * elec_allocation,
            # calculate total output emission rate
-           plpm25rta= plpm25an * 2000 / generation_ann,
+           pm25_output_rate = pm25_ann * 2000 / generation_ann,
            # calculate total input emission rate
-           plpm25ra = plpm25an * 2000 / heat_input,
+           pm25_input_rate = pm25_ann * 2000 / heat_input,
            #  rename unadjusted annual pm2.5 emissions
-           unpm25 = pm25) %>%
-    select(plant_state, plant_name, plant_id, egrid_subregion_name, egrid_subregion, primary_fuel_type, nameplate_capacity, elec_allocation, heat_input, generation_ann, plpm25an, plpm25rta, plpm25ra, unadj_combust_heat_input, unpm25)
+           unadj_pm25 = pm25) %>%
+    select(plant_state, plant_name, plant_id, egrid_subregion_name, egrid_subregion, primary_fuel_type, nameplate_capacity, elec_allocation, heat_input, generation_ann, pm25_ann, pm25_output_rate, pm25_input_rate, unadj_combust_heat_input, unadj_pm25)
   
   return(pm_plant_emissions)
 }

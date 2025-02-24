@@ -51,26 +51,26 @@ pm_plant_data <- create_pm_plant_data()
 pm_subregion_emissions <-
   pm_plant_data %>%
   group_by(egrid_subregion) %>%
-  summarise(srgenan = sum(generation_ann, na.rm = TRUE), srpm25an = sum(plpm25an, na.rm = TRUE)) %>%
-  mutate(gen = round(srgenan, 0),
-         pm25tons = round(srpm25an, 2),
-         rate = round(srpm25an * 2000 / srgenan, 4)) %>%
-  select(egrid_subregion, gen, pm25tons, rate)
+  summarise(generation_ann_sum = sum(generation_ann, na.rm = TRUE), pm25_ann_sum = sum(pm25_ann, na.rm = TRUE)) %>%
+  mutate(generation_ann = round(generation_ann_sum, 0),
+         pm25_tons = round(pm25_ann_sum, 2),
+         pm25_rate = round(pm25_ann_sum * 2000 / generation_ann_sum, 4)) %>%
+  select(egrid_subregion, generation_ann, pm25_tons, pm25_rate)
 
 
 # Sum PM2.5 subregion data to US -------
 pm_us_emissions <-
   pm_subregion_emissions %>%
-  summarise(gen = sum(gen, na.rm = TRUE), pm25tons = sum(pm25tons, na.rm = TRUE)) %>%
-  mutate(rate = round(pm25tons * 2000 / gen, 4))
+  summarise(generation_ann = sum(generation_ann, na.rm = TRUE), pm25_tons = sum(pm25_tons, na.rm = TRUE)) %>%
+  mutate(pm25_rate = round(pm25_tons * 2000 / generation_ann, 4))
 
 
 # Sum PM2.5 plant data by state ---------
 pm_state_emissions <-
   pm_plant_file %>%
   group_by(plant_state) %>%
-  summarise(stgenan = sum(generation_ann, na.rm = TRUE), stpm25an = sum(plpm25an2, na.rm = TRUE), stpm25rta = stpm25an * 2000 / stgenan) %>%
-  select(plant_state, stgenan, stpm25an, stpm25rta)
+  summarise(generation_ann = sum(generation_ann, na.rm = TRUE), pm25_ann = sum(pm25_ann, na.rm = TRUE), pm25_output_rate = pm25_ann * 2000 / generation_ann) %>%
+  select(plant_state, generation_ann, pm25_ann, pm25_output_rate)
 
 
 # Save aggregated data ----------

@@ -52,10 +52,10 @@ pm_plant_data <- create_pm_plant_data()
 # list pm sources to add to plant files
 pm_sources <- 
   pm_unit_file %>%
-  filter(!is.na(pm25src2) | pm25src2 != "") %>%
+  filter(!is.na(pm25_source) | pm25_source != "") %>%
   group_by(plant_id) %>%
-  arrange(pm25src2) %>% # sort by PM2.5 source
-  summarize(pm25src = str_c(unique(pm25src2), collapse = "; "), .groups = "drop") # concatenate source strings
+  arrange(pm25_source) %>% # sort by PM2.5 source
+  summarize(pm25_source = str_c(unique(pm25_source), collapse = "; "), .groups = "drop") # concatenate source strings
 
 # update sources in plant file
 pm_plant_sources <-
@@ -68,11 +68,11 @@ pm_plant_sources <-
 pm_plant_formatted <-
   pm_plant_sources %>%
   # set pm2.5 annual emissions to NA for renewable fuel types
-  mutate(plpm25an2 = if_else(plpm25an == 0 & primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, plpm25an),
-         # set pm2.5 output rate to 0 is annual net generation is less than 0
-         plpm25rta2 = if_else(generation_ann < 0, 0, plpm25rta)) %>%
+  mutate(pm25_ann = if_else(pm25_ann == 0 & primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA, pm25_ann),
+         # set pm2.5 output rate to 0 if annual net generation is less than 0
+         pm25_output_rate = if_else(generation_ann < 0, 0, pm25_output_rate)) %>%
   # select desired variables for final version
-  select(plant_state, plant_name, plant_id, egrid_subregion, egrid_subregion_name, primary_fuel_type, nameplate_capacity, elec_allocation, generation_ann, heat_input, plpm25an2, plpm25rta2, plpm25ra, pm25src, unadj_combust_heat_input, unpm25) %>%
+  select(plant_state, plant_name, plant_id, egrid_subregion, egrid_subregion_name, primary_fuel_type, nameplate_capacity, elec_allocation, generation_ann, heat_input, pm25_ann, pm25_output_rate, pm25_input_rate, pm25_source, unadj_combust_heat_input, unadj_pm25) %>%
   # order by plant state abbreviation and plant name
   arrange(plant_state, plant_name)
 
