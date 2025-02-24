@@ -5,9 +5,9 @@
 ## Purpose: 
 ## 
 ## This function creates the first iteration of the emission unit
-## file for pm2.5, nh3, and voc that is used to compute plant 
+## data for pm2.5, nh3, and voc that is used to compute plant 
 ## aggregated values. The output is not the final version used in 
-## the unit file and is formatted in pm_unit_file_create.
+## the unit files and are formatted in pm_nh3_voc_unit_file_create.
 ## 
 ## The method of emission calculations are listed within emission_source.
 ##

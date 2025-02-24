@@ -1,0 +1,176 @@
+﻿PRMVR,FUELU1,BOTFIRTY,EF,EF numerator,EF denominator,Source
+ST,AB,NA,0.242857143,LB,MMBTU,Based on SLW
+ST,SLW,NA,0.242857143,LB,MMBTU,"AP-42, Table 2.2-1, divided by 7 MMBtu/ton"
+ST,AB,STOKER,0.242857143,LB,MMBTU,Based on SLW
+ST,MSW,OTHER BOILER,0.225,LB,MMBTU,"Webfire Municipal Incineration, Single Chamber, converted using 4500 btu/lb (conversion factor from AP-42)"
+ST,MSW,NA,0.225,LB,MMBTU,"Webfire Municipal Incineration, Single Chamber, converted using 4500 btu/lb (conversion factor from AP-42)"
+IC,LFG,NA,0.11372549,LB,MMBTU,Based on NG
+IC,OBG,NA,0.11372549,LB,MMBTU,Based on NG
+IC,NG,NA,0.11372549,LB,MMBTU,Webfire for natural gas reciprocating engines (divided by 1020 Btu/scf)
+IC,OBL,NA,0.017,LB,MMBTU,Based on WDS
+ST,WDS,NA,0.017,LB,MMBTU,"AP-42, Table 1.6-3"
+ST,WDL,NA,0.017,LB,MMBTU,Based on WDS
+ST,OBS,NA,0.017,LB,MMBTU,Based on WDS
+OT,WDS,NA,0.017,LB,MMBTU,"AP-42, Table 1.6-3"
+GT,OBL,NA,0.017,LB,MMBTU,Based on WDS
+ST,WDS,WALL,0.017,LB,MMBTU,"AP-42, Table 1.6-3"
+ST,WDS,OTHER BOILER,0.017,LB,MMBTU,"AP-42, Table 1.6-3"
+ST,WDS,TANGENTIAL,0.017,LB,MMBTU,"AP-42, Table 1.6-3"
+ST,WDS,FLUIDIZED,0.017,LB,MMBTU,"AP-42, Table 1.6-3"
+ST,WDS,STOKER,0.017,LB,MMBTU,"AP-42, Table 1.6-3"
+ST,NG,TURBO,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,LFG,NA,0.005392157,LB,MMBTU,Based on NG
+ST,OBG,NA,0.005392157,LB,MMBTU,Based on NG
+ST,LFG,WALL,0.005392157,LB,MMBTU,Based on NG
+ST,OG,IGC,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,OG,NA,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,BFG,NA,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,OG,CYCLONE,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,NG,FLUIDIZED,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,NG,WALL,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,NG,VERTICAL,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,NG,NA,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,NG,CELL,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,NG,DUCTBURNER,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,NG,STOKER,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,NG,TANGENTIAL,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+CA,LFG,NA,0.005392157,LB,MMBTU,Based on NG
+ST,PRG,TANGENTIAL,0.005392157,LB,MMBTU,Based on NG
+ST,PRG,WALL,0.005392157,LB,MMBTU,Based on NG
+ST,OG,WALL,0.005392157,LB,MMBTU,Based on NG
+ST,PRG,PROCESS,0.005392157,LB,MMBTU,Based on NG
+ST,OG,OTHER BOILER,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,PRG,OTHER BOILER,0.005392157,LB,MMBTU,Based on NG
+ST,OG,TANGENTIAL,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,PRG,NA,0.005392157,LB,MMBTU,Based on NG
+ST,BFG,TANGENTIAL,0.005392157,LB,MMBTU,Based on NG
+ST,NG,OTHER BOILER,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,NG,CYCLONE,0.005392157,LB,MMBTU,Webfire for natural gas boilers (divided by 1020 Btu/scf)
+ST,WO,NA,0.005066667,LB,MMBTU,Based on RFO
+GT,WO,NA,0.005066667,LB,MMBTU,Based on RFO
+ST,RFO,TANGENTIAL,0.005066667,LB,MMBTU,"AP-42, 1.3-3, adjusted by 150 MMBtu/E3GAL"
+ST,RFO,WALL,0.005066667,LB,MMBTU,"AP-42, 1.3-3, adjusted by 150 MMBtu/E3GAL"
+ST,RFO,NA,0.005066667,LB,MMBTU,"AP-42, 1.3-3, adjusted by 150 MMBtu/E3GAL"
+ST,WO,WALL,0.005066667,LB,MMBTU,Based on RFO
+CT,WO,NA,0.005066667,LB,MMBTU,Based on RFO
+CA,RFO,NA,0.005066667,LB,MMBTU,"AP-42, 1.3-3, adjusted by 150 MMBtu/E3GAL"
+IC,RFO,NA,0.005066667,LB,MMBTU,"AP-42, 1.3-3, adjusted by 150 MMBtu/E3GAL"
+CT,RFO,NA,0.005066667,LB,MMBTU,"AP-42, 1.3-3, adjusted by 150 MMBtu/E3GAL"
+ST,LIG,CYCLONE,0.004375,LB,MMBTU,"AP-42, Table 1.7-1, adjusted by multiplying by 0.0625"
+ST,RC,CYCLONE,0.004230769,LB,MMBTU,Based on BIT
+ST,BIT,CYCLONE,0.004230769,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,LIG,TANGENTIAL,0.0025,LB,MMBTU,"AP-42, Table 1.7-1, adjusted by multiplying by 0.0625"
+ST,LIG,WALL,0.0025,LB,MMBTU,"AP-42, Table 1.7-1, adjusted by multiplying by 0.0625"
+ST,SUB,TANGENTIAL,0.002307692,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,RC,TANGENTIAL,0.002307692,LB,MMBTU,Based on BIT
+ST,BIT,WALL,0.002307692,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,RC,WALL,0.002307692,LB,MMBTU,Based on BIT
+ST,SGC,IGC,0.002307692,LB,MMBTU,Based on BIT
+ST,SUB,WALL,0.002307692,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,BIT,TANGENTIAL,0.002307692,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+CS,NG,NA,0.0021,LB,MMBTU,Webfire for natural gas turbines
+CA,NG,DUCTBURNER,0.0021,LB,MMBTU,Webfire for natural gas turbines
+CT,OG,CC,0.0021,LB,MMBTU,Based on NG
+CT,NG,CC,0.0021,LB,MMBTU,Webfire for natural gas turbines
+CT,NG,DUCTBURNER,0.0021,LB,MMBTU,Webfire for natural gas turbines
+OT,BFG,NA,0.0021,LB,MMBTU,Based on NG
+CT,NG,NA,0.0021,LB,MMBTU,Webfire for natural gas turbines
+CA,OG,NA,0.0021,LB,MMBTU,Based on NG
+CA,OG,DUCTBURNER,0.0021,LB,MMBTU,Based on NG
+GT,OG,CT,0.0021,LB,MMBTU,Based on NG
+CT,OBG,NA,0.0021,LB,MMBTU,Based on NG
+GT,LFG,NA,0.0021,LB,MMBTU,Based on NG
+GT,OBG,NA,0.0021,LB,MMBTU,Based on NG
+CT,LFG,NA,0.0021,LB,MMBTU,Based on NG
+OT,OBG,NA,0.0021,LB,MMBTU,Based on NG
+CA,OBG,NA,0.0021,LB,MMBTU,Based on NG
+GT,NG,TANGENTIAL,0.0021,LB,MMBTU,Webfire for natural gas turbines
+CA,OG,WALL,0.0021,LB,MMBTU,Based on NG
+GT,OG,NA,0.0021,LB,MMBTU,Based on NG
+CC,OTH,NA,0.0021,LB,MMBTU,Based on NG
+GT,PG,NA,0.0021,LB,MMBTU,Based on ng
+GT,PRG,NA,0.0021,LB,MMBTU,Based on NG
+GT,NG,NA,0.0021,LB,MMBTU,Webfire for natural gas turbines
+CT,PRG,CC,0.0021,LB,MMBTU,Based on NG
+CA,NG,OTHER BOILER,0.0021,LB,MMBTU,Webfire for natural gas turbines
+CT,OG,NA,0.0021,LB,MMBTU,Based on NG
+CC,NG,NA,0.0021,LB,MMBTU,Webfire for natural gas turbines
+GT,NG,CT,0.0021,LB,MMBTU,Webfire for natural gas turbines
+OT,PRG,NA,0.0021,LB,MMBTU,Based on NG
+CA,NG,NA,0.0021,LB,MMBTU,Webfire for natural gas turbines
+ST,OTH,NA,0.0021,LB,MMBTU,Based on NG
+OT,OTH,NA,0.0021,LB,MMBTU,Based on NG
+OT,OG,NA,0.0021,LB,MMBTU,Based on NG
+OT,NG,NA,0.0021,LB,MMBTU,Webfire for natural gas turbines
+OT,COG,NA,0.0021,LB,MMBTU,Webfire for natural gas turbines
+ST,PC,NA,0.001923077,LB,MMBTU,Based on BIT
+ST,SUB,CYCLONE,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,SUB,CELL,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,SUB,FLUIDIZED,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,SUB,NA,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,RC,NA,0.001923077,LB,MMBTU,Based on BIT
+ST,PC,WALL,0.001923077,LB,MMBTU,Based on BIT
+ST,RC,TURBO,0.001923077,LB,MMBTU,Based on BIT
+ST,RC,FLUIDIZED,0.001923077,LB,MMBTU,Based on BIT
+ST,RC,CELL,0.001923077,LB,MMBTU,Based on BIT
+ST,SUB,VERTICAL/ARCH,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,BIT,TURBO,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,BIT,VERTICAL,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,BIT,STOKER,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,TDF,NA,0.001923077,LB,MMBTU,Based on BIT
+ST,WC,NA,0.001923077,LB,MMBTU,Based on BIT
+ST,TDF,STOKER,0.001923077,LB,MMBTU,Based on BIT
+ST,SUB,STOKER,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,TDF,FLUIDIZED,0.001923077,LB,MMBTU,Based on BIT
+ST,BIT,OTHER BOILER,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+OT,PC,NA,0.001923077,LB,MMBTU,Based on BIT
+ST,BIT,NA,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,BIT,CELL,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,BIT,FLUIDIZED,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,WC,FLUIDIZED,0.001923077,LB,MMBTU,Based on BIT
+ST,SUB,TURBO,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,BIT,VERTICAL/ARCH,0.001923077,LB,MMBTU,"AP-42, Table 1.1-19 (Divided by 26 MMBtu/ton)"
+ST,PC,FLUIDIZED,0.001923077,LB,MMBTU,Based on BIT
+ST,LIG,FLUIDIZED,0.001875,LB,MMBTU,"AP-42, Table 1.7-1, adjusted by multiplying by 0.0625"
+ST,LIG,NA,0.001875,LB,MMBTU,"AP-42, Table 1.7-1, adjusted by multiplying by 0.0625"
+ST,DFO,OTHER BOILER,0.001428571,LB,MMBTU,Webfire for distillate boilers (divided by 140 MMBtu/E3GAL)
+ST,DFO,TANGENTIAL,0.001428571,LB,MMBTU,Webfire for distillate boilers (divided by 140 MMBtu/E3GAL)
+NA,DFO,WALL,0.001428571,LB,MMBTU,Webfire for distillate boilers (divided by 140 MMBtu/E3GAL)
+CA,DFO,NA,0.001428571,LB,MMBTU,Webfire for distillate boilers (divided by 140 MMBtu/E3GAL)
+ST,DFO,NA,0.001428571,LB,MMBTU,Webfire for distillate boilers (divided by 140 MMBtu/E3GAL)
+IC,DFO,NA,0.00041,LB,MMBTU,Webfire for distillate turbines
+GT,DFO,CT,0.00041,LB,MMBTU,Webfire for distillate turbines
+GT,DFO,NA,0.00041,LB,MMBTU,Webfire for distillate turbines
+CT,DFO,NA,0.00041,LB,MMBTU,Webfire for distillate turbines
+CT,DFO,CC,0.00041,LB,MMBTU,Webfire for distillate turbines
+GT,KER,NA,0.000395357,LB,MMBTU,"Based on DFO EF multiplied by ratio 135,000 Btu/gal to 140,000 Btu gal"
+GT,JF,NA,0.000395357,LB,MMBTU,Based on KER
+GT,KER,CT,0.000395357,LB,MMBTU,"Based on DFO EF multiplied by ratio 135,000 Btu/gal to 140,000 Btu gal"
+GT,JF,CT,0.000395357,LB,MMBTU,Based on KER
+ST,SUN,NA,0,LB,MMBTU,
+WS,WND,NA,0,LB,MMBTU,
+BT,GEO,NA,0,LB,MMBTU,
+WT,WND,NA,0,LB,MMBTU,
+ST,GEO,NA,0,LB,MMBTU,
+CE,NG,OTHER TURBINE,0,LB,MMBTU,
+CE,NG,NA,0,LB,MMBTU,
+ST,PUR,NA,0,LB,MMBTU,
+CP,SUN,NA,0,LB,MMBTU,
+FC,LFG,NA,0,LB,MMBTU,
+FW,MWH,NA,0,LB,MMBTU,
+FC,NG,NA,0,LB,MMBTU,No emissions from fuel cells
+ST,NUC,NA,0,LB,MMBTU,
+PV,SUN,NA,0,LB,MMBTU,
+PS,WAT,NA,0,LB,MMBTU,
+OT,WH,NA,0,LB,MMBTU,
+BA,MWH,NA,0,LB,MMBTU,
+FC,OBG,NA,0,LB,MMBTU,
+HY,WAT,NA,0,LB,MMBTU,
+ST,WH,NA,0,LB,MMBTU,
+OT,SUN,NA,0,LB,MMBTU,
+ST,BLQ,NA,,,,
+ST,BLQ,WALL,,,,
+ST,BLQ,TANGENTIAL,,,,
+ST,BLQ,OTHER BOILER,,,,
+ST,BLQ,CYCLONE,,,,
+ST,BLQ,FLUIDIZED,,,,
