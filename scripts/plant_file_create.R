@@ -640,7 +640,8 @@ fuel_dups <-
                    "primary_fuel_type" = "fuel_type")) %>% 
   distinct() %>% 
   group_by(plant_id) %>% 
-  filter(total_fuel_consumption_mmbtu == max(total_fuel_consumption_mmbtu, na.rm = TRUE))
+  filter(total_fuel_consumption_mmbtu == max(total_fuel_consumption_mmbtu, na.rm = TRUE)) %>% 
+  ungroup()
 
 # drop dups from fuel_by_plant for easier joining later
 fuel_by_plant_2 <- 
@@ -753,7 +754,8 @@ eia_923_combust <-
   mutate(combust_flag = case_when(sum_combustion == 0 ~ 0,
                                   sum_combustion != count_combustion ~ 0.5,
                                   TRUE ~ 1)) %>% 
-  select(-sum_combustion, -count_combustion)
+  select(-sum_combustion, -count_combustion) %>% 
+  ungroup()
 
 plant_file_12 <- 
   plant_file_11 %>% 
@@ -800,11 +802,11 @@ eia_923_biomass <-
 plant_file_14 <- 
   plant_file_13 %>% 
   left_join(eia_923_biomass, by = c(temporal_res_cols, "plant_id"))  %>%
-  mutate(nox_mass = unadj_nox_mass - nox_biomass,
-         so2_mass = unadj_so2_mass - so2_biomass,
-         co2_mass = unadj_co2_mass - co2_biomass, 
-         ch4_mass = unadj_ch4_mass - ch4_biomass,
-         n2o_mass = unadj_n2o_mass - n2o_biomass,
+  mutate(nox_mass = if_else(is.na(nox_biomass), unadj_nox_mass, unadj_nox_mass - nox_biomass),
+         so2_mass = if_else(is.na(so2_biomass), unadj_so2_mass, unadj_so2_mass - so2_biomass),
+         co2_mass = if_else(is.na(co2_biomass), unadj_co2_mass, unadj_co2_mass - co2_biomass), 
+         ch4_mass = if_else(is.na(ch4_biomass), unadj_ch4_mass, unadj_ch4_mass - ch4_biomass),
+         n2o_mass = if_else(is.na(n2o_biomass), unadj_n2o_mass, unadj_n2o_mass - n2o_biomass),
          hg_mass = unadj_hg_mass,
          # assign the minimum between biomass and unadjusted values
          nox_biomass = pmin(nox_biomass, unadj_nox_mass), 

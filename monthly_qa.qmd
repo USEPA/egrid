@@ -1,10 +1,9 @@
 ---
-title: "monthly_qa"
+title: "Monthly Production Model QA"
 format: html
 editor: visual
+table-of-contents: true
 ---
-
-## Monthly rates QA
 
 ```{r}
 #| label: load-libraries
@@ -15,11 +14,13 @@ library(dplyr)
 library(ggplot2)
 library(kableExtra)
 library(readr)
+library(tidyr)
+library(patchwork)
 
 ```
 
 ```{r}
-#| label: read-data
+#| label: read-format-data
 #| echo: false
 #| message: false
 
@@ -33,170 +34,140 @@ unit_monthly <- unit_monthly %>%
          "unit_id" = "unit_id_monthly", 
          "prime_mover" = "prime_mover_monthly",
          "year" = "year_monthly",
-         "month" = "month_monthly")
+         "month" = "month_monthly") %>% 
+  mutate(month = as.character(month))
 
 unit_annual <- 
-  read_rds("data/outputs/2023/unit_file.RDS")
+  read_rds("data/outputs/2023/unit_file_annual.RDS")
 
 colnames(unit_annual) <- paste0(colnames(unit_annual), "_annual")
 unit_annual <- unit_annual %>% 
   rename("plant_id" = "plant_id_annual",
          "unit_id" = "unit_id_annual", 
          "prime_mover" = "prime_mover_annual",  
-         "year" = "year_annual")
+         "year" = "year_annual") %>% 
+  mutate(month = "annual")
 
 # load in plant data, format, and merge
 plant_monthly <- 
-  read_rds("data/outputs/2023/plant_file_monthly.RDS")
-
-colnames(plant_monthly) <- paste0(colnames(plant_monthly), "_monthly")
-plant_monthly <- plant_monthly %>% 
-  rename("plant_id" = "plant_id_monthly",
-         "year" = "year_monthly",
-         "month" = "month_monthly")
+  read_rds("data/outputs/2023/plant_file_monthly.RDS") %>% 
+  mutate(month = as.character(month))
 
 plant_annual <- 
-  read_rds("data/outputs/2023/plant_file.RDS")
-
-colnames(plant_annual) <- paste0(colnames(plant_annual), "_annual")
-plant_annual <- plant_annual %>% 
-  rename("plant_id" = "plant_id_annual",
-         "year" = "year_annual")
+  read_rds("data/outputs/2023/plant_file.RDS") %>% 
+  mutate(month = "annual")
 
 plant_merged <-
   plant_monthly %>% 
-  left_join(plant_annual)
+  full_join(plant_annual)
+
+plant_merged$month <- factor(plant_merged$month, 
+                             levels = c("1", "2", "3", "4", "5", "6", 
+                                        "7", "8", "9", "10", "11", "12", "annual"))
 
 # load in state data, format, and merge
 state_monthly <- 
-  read_rds("data/outputs/2023/state_aggregation_monthly.RDS")
-
-colnames(state_monthly) <- paste0(colnames(state_monthly), "_monthly")
-state_monthly <- state_monthly %>% 
-  rename("state" = "state_monthly",
-         "fips_state_code" = "fips_state_code_monthly",
-         "year" = "year_monthly",
-         "month" = "month_monthly")
+  read_rds("data/outputs/2023/state_aggregation_monthly.RDS") %>% 
+  mutate(month = as.character(month))
 
 state_annual <- 
-  read_rds("data/outputs/2023/state_aggregation.RDS")
-
-colnames(state_annual) <- paste0(colnames(state_annual), "_annual")
-state_annual <- state_annual %>% 
-  rename("state" = "state_annual",
-         "fips_state_code" = "fips_state_code_annual",
-         "year" = "year_annual")
+  read_rds("data/outputs/2023/state_aggregation.RDS") %>% 
+  mutate(month = "annual")
 
 state_merged <-
   state_monthly %>% 
-  left_join(state_annual)
+  full_join(state_annual)
+
+state_merged$month <- factor(state_merged$month, 
+                             levels = c("1", "2", "3", "4", "5", "6", 
+                                        "7", "8", "9", "10", "11", "12", "annual"))
 
 # load in BA data, format, and merge
 ba_monthly <- 
-  read_rds("data/outputs/2023/ba_aggregation_monthly.RDS")
-
-colnames(ba_monthly) <- paste0(colnames(ba_monthly), "_monthly")
-ba_monthly <- ba_monthly %>% 
-  rename("ba_code" = "ba_code_monthly",
-         "ba_name" = "ba_name_monthly",
-         "year" = "year_monthly",
-         "month" = "month_monthly")
+  read_rds("data/outputs/2023/ba_aggregation_monthly.RDS") %>% 
+  mutate(month = as.character(month))
 
 ba_annual <- 
-  read_rds("data/outputs/2023/ba_aggregation.RDS")
-
-colnames(ba_annual) <- paste0(colnames(ba_annual), "_annual")
-ba_annual <- ba_annual %>% 
-  rename("ba_code" = "ba_code_annual",
-         "ba_name" = "ba_name_annual",
-         "year" = "year_annual")
+  read_rds("data/outputs/2023/ba_aggregation.RDS") %>% 
+  mutate(month = "annual")
 
 ba_merged <-
   ba_monthly %>% 
-  left_join(ba_annual)
+  full_join(ba_annual)
+
+ba_merged$month <- factor(ba_merged$month, 
+                             levels = c("1", "2", "3", "4", "5", "6", 
+                                        "7", "8", "9", "10", "11", "12", "annual"))
 
 # load in subregion data, format, and merge
 subregion_monthly <- 
-  read_rds("data/outputs/2023/subregion_aggregation_monthly.RDS") 
-
-colnames(subregion_monthly) <- paste0(colnames(subregion_monthly), "_monthly")
-subregion_monthly <- subregion_monthly %>% 
-  rename("subregion" = "subregion_monthly",
-         "subregion_name" = "subregion_name_monthly",
-         "year" = "year_monthly",
-         "month" = "month_monthly")
+  read_rds("data/outputs/2023/subregion_aggregation_monthly.RDS") %>% 
+  mutate(month = as.character(month))
 
 subregion_annual <- 
-  read_rds("data/outputs/2023/subregion_aggregation.RDS") 
-
-colnames(subregion_annual) <- paste0(colnames(subregion_annual), "_annual")
-subregion_annual <- subregion_annual %>% 
-  rename("subregion" = "subregion_annual",
-         "subregion_name" = "subregion_name_annual",
-         "year" = "year_annual")
+  read_rds("data/outputs/2023/subregion_aggregation.RDS") %>% 
+  mutate(month = "annual")
 
 subregion_merged <-
   subregion_monthly %>% 
-  left_join(subregion_annual)
+  full_join(subregion_annual)
+
+subregion_merged$month <- factor(subregion_merged$month, 
+                             levels = c("1", "2", "3", "4", "5", "6", 
+                                        "7", "8", "9", "10", "11", "12", "annual"))
 
 # load in NERC data, format, and merge
 nerc_monthly <- 
-  read_rds("data/outputs/2023/nerc_aggregation_monthly.RDS")
-
-colnames(nerc_monthly) <- paste0(colnames(nerc_monthly), "_monthly")
-nerc_monthly <- nerc_monthly %>% 
-  rename("nerc" = "nerc_monthly",
-         "nerc_name" = "nerc_name_monthly",
-         "year" = "year_monthly",
-         "month" = "month_monthly")
+  read_rds("data/outputs/2023/nerc_aggregation_monthly.RDS") %>% 
+  mutate(month = as.character(month))
 
 nerc_annual <- 
-  read_rds("data/outputs/2023/nerc_aggregation.RDS")
-
-colnames(nerc_annual) <- paste0(colnames(nerc_annual), "_annual")
-nerc_annual <- nerc_annual %>% 
-  rename("nerc" = "nerc_annual",
-         "nerc_name" = "nerc_name_annual",
-         "year" = "year_annual")
+  read_rds("data/outputs/2023/nerc_aggregation.RDS") %>% 
+  mutate(month = "annual")
 
 nerc_merged <-
   nerc_monthly %>% 
-  left_join(nerc_annual)
+  full_join(nerc_annual)
+
+nerc_merged$month <- factor(nerc_merged$month, 
+                             levels = c("1", "2", "3", "4", "5", "6", 
+                                        "7", "8", "9", "10", "11", "12", "annual"))
 
 # load in US data, format, and merge
 us_monthly <- 
-  read_rds("data/outputs/2023/us_aggregation_monthly.RDS")
-
-colnames(us_monthly) <- paste0(colnames(us_monthly), "_monthly")
-us_monthly <- us_monthly %>% 
-  rename("year" = "year_monthly",
-         "month" = "month_monthly")
+  read_rds("data/outputs/2023/us_aggregation_monthly.RDS") %>% 
+  mutate(month = as.character(month))
 
 us_annual <- 
   read_rds("data/outputs/2023/us_aggregation.RDS") %>% 
-  mutate(month = )
-
-colnames(us_annual) <- paste0(colnames(us_annual), "_annual")
-us_annual <- us_annual %>% 
-  rename("year" = "year_annual")
+  mutate(month = "annual")
 
 us_merged <-
   us_monthly %>% 
-  left_join(us_annual)
+  full_join(us_annual)
+
+us_merged$month <- factor(us_merged$month, 
+                             levels = c("1", "2", "3", "4", "5", "6", 
+                                        "7", "8", "9", "10", "11", "12", "annual"))
+
 ```
 
-# Unit file comparison
+## Unit file comparison
+
+The differences between the totals of heat input and emission masses of the monthly and annual unit files are shown here. In the tabset below, we list what units have a difference greater than 0.01 for heat input and emission masses. We also note which units are ozone reporters, since the methodology for filling non-ozone months is different between annual (non-ozone distributed) and monthly (non-ozone filled via EIA and summed to annual) versions for heat input and annual NOx mass.
 
 ```{r}
 #| label: unit-comparison
 #| echo: false
 #| message: false
 
+# read in EPA data to identify OS reporters
 epa <- 
   read_rds("data/clean_data/epa/2023/epa_clean_annual.RDS") %>% 
   select(plant_id, unit_id, reporting_frequency) %>% 
   distinct()
 
+# sum monthly version to annual values
 unit_monthly_sum <- 
   unit_monthly %>% 
   group_by(plant_id, unit_id, prime_mover) %>% 
@@ -206,47 +177,104 @@ unit_monthly_sum <-
             co2_mass_monthly = sum(co2_mass_monthly, na.rm = TRUE)) %>% 
   ungroup()
 
+# total monthly version 
 unit_total_monthly_sum <- 
   unit_monthly_sum %>% 
   summarize(heat_input = sum(heat_input_monthly, na.rm = TRUE), 
             nox_mass = sum(nox_mass_monthly, na.rm = TRUE),
             so2_mass = sum(so2_mass_monthly, na.rm = TRUE), 
             co2_mass = sum(co2_mass_monthly, na.rm = TRUE)) %>% 
-  mutate(agg = "monthly") %>% 
-  pivot_longer()
+  mutate(agg = "monthly") 
 
+# total annual version to totals
 unit_total_annual_sum <- 
   unit_annual %>% 
   summarize(heat_input = sum(heat_input_annual, na.rm = TRUE), 
             nox_mass = sum(nox_mass_annual, na.rm = TRUE), 
             so2_mass = sum(so2_mass_annual, na.rm = TRUE), 
             co2_mass = sum(co2_mass_annual, na.rm = TRUE)) %>% 
-  mutate(agg = "annual")
+  mutate(agg = "annual") 
 
+# calculate difference of total values
 unit_total_sum_comp <- 
   rbind(unit_total_monthly_sum, 
         unit_total_annual_sum) %>% 
-  relocate()
+  relocate(agg) %>% 
+  pivot_longer(-c(agg), names_to = "column", values_to = "value") %>% 
+  arrange(column) %>% 
+  group_by(column) %>% 
+  mutate(difference = value - lag(value)) 
 
+# produce tale of differences of total values
+knitr::kable(unit_total_sum_comp,
+             digits = 0, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(unit_total_sum_comp)), 
+             caption = "Unit file totals comparison") 
+
+# calculate differences at the unit level
 check_unit_diff <- 
   unit_annual %>% 
   full_join(unit_monthly_sum, by = c("plant_id", "unit_id", "prime_mover")) %>% 
-  mutate(heat_input_diff = heat_input_annual - heat_input_monthly, 
-         nox_diff = nox_mass_annual - nox_mass_monthly,
-         so2_diff = so2_mass_annual - so2_mass_monthly, 
-         co2_diff = co2_mass_annual - co2_mass_monthly) %>% 
-  left_join(epa, by = c("plant_id", "unit_id"))
-
-
+  mutate(heat_input_diff = abs(heat_input_annual - heat_input_monthly), 
+         heat_input_pct_diff = abs(heat_input_diff / heat_input_monthly) * 100,
+         nox_diff = abs(nox_mass_annual - nox_mass_monthly),
+         nox_pct_diff = abs(nox_diff / nox_mass_monthly) * 100,
+         so2_diff = abs(so2_mass_annual - so2_mass_monthly), 
+         so2_pct_diff = abs(so2_diff / so2_mass_monthly) * 100,
+         co2_diff = abs(co2_mass_annual - co2_mass_monthly),
+         co2_pct_diff = abs(co2_diff / co2_mass_monthly) * 100) %>% 
+  left_join(epa, by = c("plant_id", "unit_id")) %>% 
+  select(plant_id, unit_id, prime_mover, 
+         heat_input_diff, 
+         heat_input_pct_diff,
+         nox_diff,
+         nox_pct_diff,
+         so2_diff,
+         so2_pct_diff, 
+         co2_diff,
+         co2_pct_diff, 
+         reporting_frequency)
 ```
 
 ::: panel-tabset
 ## Heat input
 
+Notes:
+
+-   Plant 52152 Unit ID 6RB heat input is manually corrected in the annual version. We will need to implement this change at the monthly level.
+
+-   All other differences are attributable to the difference in ozone season methodology.
+
 ```{r}
 #| label: heat-input-unit-comp
 #| echo: false
 #| message: false
+
+unit_heat_input_check <- 
+  check_unit_diff %>% 
+  select(plant_id, 
+         unit_id, 
+         prime_mover, 
+         heat_input_diff,
+         heat_input_pct_diff,
+         reporting_frequency) %>% 
+   filter(heat_input_diff > 0.01) %>% 
+   arrange(-heat_input_diff)
+
+print(glue::glue("Heat Input Differences > 0.01: {nrow(unit_heat_input_check)}"))
+
+knitr::kable(unit_heat_input_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unit ID", 
+                           "Prime Mover",
+                           "Heat Input Diff",
+                           "Percent Diff",
+                           "Reporting Frequency"), 
+             caption = "Unit file heat input comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
 
 
 
@@ -254,93 +282,1989 @@ check_unit_diff <-
 
 ## NOx mass
 
+Notes:
+
+-   Plant 52152 Unit ID 6RB NOx mass is manually corrected in the annual version. We will need to implement this change at the monthly level.
+
+-   A few NOx mass differences are attributable to differences in ozone season methodology.
+
 ```{r}
 #| label: nox-unit-comp
 #| echo: false
 #| message: false
 
+unit_nox_check <- 
+  check_unit_diff %>% 
+  select(plant_id, 
+         unit_id, 
+         prime_mover, 
+         nox_diff,
+         nox_pct_diff,
+         reporting_frequency) %>% 
+   filter(nox_diff > 0.01) %>% 
+   arrange(-nox_diff)
 
+print(glue::glue("NOx mass differences > 0.01: {nrow(unit_nox_check)}"))
+
+knitr::kable(unit_nox_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unit ID", 
+                           "Prime Mover",
+                           "Annual NOx Diff",
+                           "Percent Diff",
+                           "Reporting Frequency"), 
+             caption = "Unit file NOx mass comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
 
 ```
 
 ## SO2 mass
+
+Notes:
+
+-   Plant 52152 Unit ID 6RB SO2 mass is manually corrected in the annual version. We will need to implement this change at the monthly level.
+
+-   Some differences are due to differences across sulfur content since annual is an average of all monthly sulfur contents, but we use monthly level sulfur contents for the monthly version. 
 
 ```{r}
 #| label: so2-unit-comp
 #| echo: false
 #| message: false
 
+unit_so2_check <- 
+  check_unit_diff %>% 
+  select(plant_id, 
+         unit_id, 
+         prime_mover, 
+         so2_diff,
+         so2_pct_diff) %>% 
+  filter(so2_diff > 0.01) %>% 
+  arrange(-so2_diff)
 
+print(glue::glue("SO2 mass differences > 0.01: {nrow(unit_so2_check)}"))
+
+knitr::kable(unit_so2_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unit ID", 
+                           "Prime Mover",
+                           "Annual SO2 Diff",
+                           "Percent Diff"), 
+             caption = "Unit file SO2 mass comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
 
 ```
 
 ## CO2 mass
+
+Notes:
+
+-   Plant 52152 Unit ID 6RB CO2 mass is manually corrected in the annual version. We will need to implement this change at the monthly level.
 
 ```{r}
 #| label: co2-unit-comp
 #| echo: false
 #| message: false
 
+unit_co2_check <- 
+  check_unit_diff %>% 
+  select(plant_id, 
+         unit_id, 
+         prime_mover, 
+         co2_diff,
+         co2_pct_diff) %>% 
+  filter(co2_diff > 0.01) %>% 
+  arrange(-co2_diff)
 
+print(glue::glue("CO2 mass differences > 0.01: {nrow(unit_co2_check)}"))
+
+knitr::kable(unit_co2_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unit ID", 
+                           "Prime Mover",
+                           "Annual CO2 Diff",
+                           "Percent Diff"), 
+             caption = "Unit file CO2 mass comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
 
 ```
 :::
 
-# Subregion file comparison
+## Subregion file comparison
 
 ::: panel-tabset
+### Summary
+
+This tabset shows the output and input rates for each subregion. An average line is shown across the months. 
+
 ### AKGD
 
 ```{r}
+#| label: subregion-akgd
+#| echo: false
+#| message: false
+#| fig-height: 4
+
+subregion_akgd <- 
+  subregion_merged %>% 
+  filter(subregion == "AKGD")
+
+# output rates
+plot_nox_output_rate <- 
+  subregion_akgd %>% 
+  ggplot(aes(x = month, y = subregion_nox_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Output Rate") + 
+  xlab("Time period") + 
+  ylab("NOx output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akgd$subregion_nox_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_akgd$subregion_nox_output_rate)/12)
+
+plot_so2_output_rate <- 
+  subregion_akgd %>% 
+  ggplot(aes(x = month, y = subregion_so2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("SO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akgd$subregion_so2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_akgd$subregion_so2_output_rate)/12)
+
+plot_co2_output_rate <- 
+  subregion_akgd %>% 
+  ggplot(aes(x = month, y = subregion_co2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akgd$subregion_co2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_akgd$subregion_co2_output_rate)/12)
+
+plot_ch4_output_rate <- 
+  subregion_akgd %>% 
+  ggplot(aes(x = month, y = subregion_ch4_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Output Rate") +
+  xlab("Time period") + 
+  ylab("CH4 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akgd$subregion_ch4_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_output_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akgd$subregion_ch4_output_rate)/12)
+
+plot_n2o_output_rate <- 
+  subregion_akgd %>% 
+  ggplot(aes(x = month, y = subregion_n2o_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Output Rate") +
+  xlab("Time period") + 
+  ylab("N2O output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akgd$subregion_n2o_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_akgd$subregion_n2o_output_rate)/12)
+
+plot_co2e_output_rate <- 
+  subregion_akgd %>% 
+  ggplot(aes(x = month, y = subregion_co2e_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2e output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akgd$subregion_co2e_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_akgd$subregion_co2e_output_rate)/12)
+
+# input rates
+plot_nox_input_rate <- 
+  subregion_akgd %>% 
+  ggplot(aes(x = month, y = subregion_nox_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Input Rate") + 
+  xlab("Time period") + 
+  ylab("NOx input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akgd$subregion_nox_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akgd$subregion_nox_input_rate)/12)
+
+plot_so2_input_rate <- 
+  subregion_akgd %>% 
+  ggplot(aes(x = month, y = subregion_so2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("SO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akgd$subregion_so2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akgd$subregion_so2_input_rate)/12)
+
+plot_co2_input_rate <- 
+  subregion_akgd %>% 
+  ggplot(aes(x = month, y = subregion_co2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akgd$subregion_co2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akgd$subregion_co2_input_rate)/12)
+
+plot_ch4_input_rate <- 
+  subregion_akgd %>% 
+  ggplot(aes(x = month, y = subregion_ch4_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Input Rate") +
+  xlab("Time period") + 
+  ylab("CH4 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akgd$subregion_ch4_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akgd$subregion_ch4_input_rate)/12)
+
+plot_n2o_input_rate <- 
+  subregion_akgd %>% 
+  ggplot(aes(x = month, y = subregion_n2o_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Input Rate") +
+  xlab("Time period") + 
+  ylab("N2O input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akgd$subregion_n2o_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akgd$subregion_n2o_input_rate)/12)
+
+plot_co2e_input_rate <- 
+  subregion_akgd %>% 
+  ggplot(aes(x = month, y = subregion_co2e_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2e input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akgd$subregion_co2e_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akgd$subregion_co2e_input_rate)/12)
+
+plotly::ggplotly(plot_nox_output_rate) 
+plotly::ggplotly(plot_so2_output_rate)  
+plotly::ggplotly(plot_co2_output_rate)
+plotly::ggplotly(plot_ch4_output_rate)
+plotly::ggplotly(plot_n2o_output_rate)
+plotly::ggplotly(plot_co2e_output_rate)
+
+plotly::ggplotly(plot_nox_input_rate) 
+plotly::ggplotly(plot_so2_input_rate)  
+plotly::ggplotly(plot_co2_input_rate)
+plotly::ggplotly(plot_ch4_input_rate)
+plotly::ggplotly(plot_n2o_input_rate)
+plotly::ggplotly(plot_co2e_input_rate)
 
 ```
 
 ### AKMS
 
 ```{r}
+#| label: subregion-akms
+#| echo: false
+#| message: false
+#| fig-height: 4
 
+subregion_akms <- 
+  subregion_merged %>% 
+  filter(subregion == "AKMS")
+
+# output rates
+plot_nox_output_rate <- 
+  subregion_akms %>% 
+  ggplot(aes(x = month, y = subregion_nox_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Output Rate") + 
+  xlab("Time period") + 
+  ylab("NOx output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akms$subregion_nox_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_akms$subregion_nox_output_rate)/12)
+
+plot_so2_output_rate <- 
+  subregion_akms %>% 
+  ggplot(aes(x = month, y = subregion_so2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("SO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akms$subregion_so2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_akms$subregion_so2_output_rate)/12)
+
+plot_co2_output_rate <- 
+  subregion_akms %>% 
+  ggplot(aes(x = month, y = subregion_co2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akms$subregion_co2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_akms$subregion_co2_output_rate)/12)
+
+plot_ch4_output_rate <- 
+  subregion_akms %>% 
+  ggplot(aes(x = month, y = subregion_ch4_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Output Rate") +
+  xlab("Time period") + 
+  ylab("CH4 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akms$subregion_ch4_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_output_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akms$subregion_ch4_output_rate)/12)
+
+plot_n2o_output_rate <- 
+  subregion_akms %>% 
+  ggplot(aes(x = month, y = subregion_n2o_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Output Rate") +
+  xlab("Time period") + 
+  ylab("N2O output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akms$subregion_n2o_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_akms$subregion_n2o_output_rate)/12)
+
+plot_co2e_output_rate <- 
+  subregion_akms %>% 
+  ggplot(aes(x = month, y = subregion_co2e_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2e output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akms$subregion_co2e_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_akms$subregion_co2e_output_rate)/12)
+
+# input rates
+plot_nox_input_rate <- 
+  subregion_akms %>% 
+  ggplot(aes(x = month, y = subregion_nox_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Input Rate") + 
+  xlab("Time period") + 
+  ylab("NOx input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akms$subregion_nox_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akms$subregion_nox_input_rate)/12)
+
+plot_so2_input_rate <- 
+  subregion_akms %>% 
+  ggplot(aes(x = month, y = subregion_so2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("SO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akms$subregion_so2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akms$subregion_so2_input_rate)/12)
+
+plot_co2_input_rate <- 
+  subregion_akms %>% 
+  ggplot(aes(x = month, y = subregion_co2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akms$subregion_co2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akms$subregion_co2_input_rate)/12)
+
+plot_ch4_input_rate <- 
+  subregion_akms %>% 
+  ggplot(aes(x = month, y = subregion_ch4_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Input Rate") +
+  xlab("Time period") + 
+  ylab("CH4 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akms$subregion_ch4_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akms$subregion_ch4_input_rate)/12)
+
+plot_n2o_input_rate <- 
+  subregion_akms %>% 
+  ggplot(aes(x = month, y = subregion_n2o_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Input Rate") +
+  xlab("Time period") + 
+  ylab("N2O input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akms$subregion_n2o_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akms$subregion_n2o_input_rate)/12)
+
+plot_co2e_input_rate <- 
+  subregion_akms %>% 
+  ggplot(aes(x = month, y = subregion_co2e_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2e input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_akms$subregion_co2e_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_akms$subregion_co2e_input_rate)/12)
+
+plotly::ggplotly(plot_nox_output_rate) 
+plotly::ggplotly(plot_so2_output_rate)  
+plotly::ggplotly(plot_co2_output_rate)
+plotly::ggplotly(plot_ch4_output_rate)
+plotly::ggplotly(plot_n2o_output_rate)
+plotly::ggplotly(plot_co2e_output_rate)
+
+plotly::ggplotly(plot_nox_input_rate) 
+plotly::ggplotly(plot_so2_input_rate)  
+plotly::ggplotly(plot_co2_input_rate)
+plotly::ggplotly(plot_ch4_input_rate)
+plotly::ggplotly(plot_n2o_input_rate)
+plotly::ggplotly(plot_co2e_input_rate)
 ```
 
 ### AZNM
 
 ```{r}
+#| label: subregion-aznm
+#| echo: false
+#| message: false
+#| fig-height: 4
 
+subregion_aznm <- 
+  subregion_merged %>% 
+  filter(subregion == "AZNM")
+
+# output rates
+plot_nox_output_rate <- 
+  subregion_aznm %>% 
+  ggplot(aes(x = month, y = subregion_nox_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Output Rate") + 
+  xlab("Time period") + 
+  ylab("NOx output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_aznm$subregion_nox_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_aznm$subregion_nox_output_rate)/12)
+
+plot_so2_output_rate <- 
+  subregion_aznm %>% 
+  ggplot(aes(x = month, y = subregion_so2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("SO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_aznm$subregion_so2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_aznm$subregion_so2_output_rate)/12)
+
+plot_co2_output_rate <- 
+  subregion_aznm %>% 
+  ggplot(aes(x = month, y = subregion_co2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_aznm$subregion_co2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_aznm$subregion_co2_output_rate)/12)
+
+plot_ch4_output_rate <- 
+  subregion_aznm %>% 
+  ggplot(aes(x = month, y = subregion_ch4_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Output Rate") +
+  xlab("Time period") + 
+  ylab("CH4 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_aznm$subregion_ch4_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_output_rate)), label = "AVG", 
+                nudge_y =mean(subregion_aznm$subregion_ch4_output_rate)/12)
+
+plot_n2o_output_rate <- 
+  subregion_aznm %>% 
+  ggplot(aes(x = month, y = subregion_n2o_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Output Rate") +
+  xlab("Time period") + 
+  ylab("N2O output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_aznm$subregion_n2o_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_aznm$subregion_n2o_output_rate)/12)
+
+plot_co2e_output_rate <- 
+  subregion_aznm %>% 
+  ggplot(aes(x = month, y = subregion_co2e_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2e output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_aznm$subregion_co2e_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_aznm$subregion_co2e_output_rate)/12)
+
+# input rates
+plot_nox_input_rate <- 
+  subregion_aznm %>% 
+  ggplot(aes(x = month, y = subregion_nox_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Input Rate") + 
+  xlab("Time period") + 
+  ylab("NOx input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_aznm$subregion_nox_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_aznm$subregion_nox_input_rate)/12)
+
+plot_so2_input_rate <- 
+  subregion_aznm %>% 
+  ggplot(aes(x = month, y = subregion_so2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("SO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_aznm$subregion_so2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_aznm$subregion_so2_input_rate)/12)
+
+plot_co2_input_rate <- 
+  subregion_aznm %>% 
+  ggplot(aes(x = month, y = subregion_co2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_aznm$subregion_co2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_aznm$subregion_co2_input_rate)/12)
+
+plot_ch4_input_rate <- 
+  subregion_aznm %>% 
+  ggplot(aes(x = month, y = subregion_ch4_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Input Rate") +
+  xlab("Time period") + 
+  ylab("CH4 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_aznm$subregion_ch4_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_aznm$subregion_ch4_input_rate)/12)
+
+plot_n2o_input_rate <- 
+  subregion_aznm %>% 
+  ggplot(aes(x = month, y = subregion_n2o_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Input Rate") +
+  xlab("Time period") + 
+  ylab("N2O input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_aznm$subregion_n2o_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_aznm$subregion_n2o_input_rate)/12)
+
+plot_co2e_input_rate <- 
+  subregion_aznm %>% 
+  ggplot(aes(x = month, y = subregion_co2e_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2e input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_aznm$subregion_co2e_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_aznm$subregion_co2e_input_rate)/12)
+
+plotly::ggplotly(plot_nox_output_rate) 
+plotly::ggplotly(plot_so2_output_rate)  
+plotly::ggplotly(plot_co2_output_rate)
+plotly::ggplotly(plot_ch4_output_rate)
+plotly::ggplotly(plot_n2o_output_rate)
+plotly::ggplotly(plot_co2e_output_rate)
+
+plotly::ggplotly(plot_nox_input_rate) 
+plotly::ggplotly(plot_so2_input_rate)  
+plotly::ggplotly(plot_co2_input_rate)
+plotly::ggplotly(plot_ch4_input_rate)
+plotly::ggplotly(plot_n2o_input_rate)
+plotly::ggplotly(plot_co2e_input_rate)
 ```
 
 ### CAMX
 
 ```{r}
+#| label: subregion-camx
+#| echo: false
+#| message: false
+#| fig-height: 4
 
-```
+subregion_camx <- 
+  subregion_merged %>% 
+  filter(subregion == "CAMX")
 
-### ERCT
+# output rates
+plot_nox_output_rate <- 
+  subregion_camx %>% 
+  ggplot(aes(x = month, y = subregion_nox_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Output Rate") + 
+  xlab("Time period") + 
+  ylab("NOx output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_camx$subregion_nox_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_camx$subregion_nox_output_rate)/12)
 
-```{r}
+plot_so2_output_rate <- 
+  subregion_camx %>% 
+  ggplot(aes(x = month, y = subregion_so2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("SO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_camx$subregion_so2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_camx$subregion_so2_output_rate)/12)
 
+plot_co2_output_rate <- 
+  subregion_camx %>% 
+  ggplot(aes(x = month, y = subregion_co2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_camx$subregion_co2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_camx$subregion_co2_output_rate)/12)
+
+plot_ch4_output_rate <- 
+  subregion_camx %>% 
+  ggplot(aes(x = month, y = subregion_ch4_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Output Rate") +
+  xlab("Time period") + 
+  ylab("CH4 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_camx$subregion_ch4_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_output_rate)), label = "AVG", 
+                nudge_y =mean(subregion_camx$subregion_ch4_output_rate)/12)
+
+plot_n2o_output_rate <- 
+  subregion_camx %>% 
+  ggplot(aes(x = month, y = subregion_n2o_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Output Rate") +
+  xlab("Time period") + 
+  ylab("N2O output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_camx$subregion_n2o_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_camx$subregion_n2o_output_rate)/12)
+
+plot_co2e_output_rate <- 
+  subregion_camx %>% 
+  ggplot(aes(x = month, y = subregion_co2e_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2e output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_camx$subregion_co2e_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_camx$subregion_co2e_output_rate)/12)
+
+# input rates
+plot_nox_input_rate <- 
+  subregion_camx %>% 
+  ggplot(aes(x = month, y = subregion_nox_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Input Rate") + 
+  xlab("Time period") + 
+  ylab("NOx input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_camx$subregion_nox_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_camx$subregion_nox_input_rate)/12)
+
+plot_so2_input_rate <- 
+  subregion_camx %>% 
+  ggplot(aes(x = month, y = subregion_so2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("SO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_camx$subregion_so2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_camx$subregion_so2_input_rate)/12)
+
+plot_co2_input_rate <- 
+  subregion_camx %>% 
+  ggplot(aes(x = month, y = subregion_co2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_camx$subregion_co2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_camx$subregion_co2_input_rate)/12)
+
+plot_ch4_input_rate <- 
+  subregion_camx %>% 
+  ggplot(aes(x = month, y = subregion_ch4_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Input Rate") +
+  xlab("Time period") + 
+  ylab("CH4 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_camx$subregion_ch4_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_camx$subregion_ch4_input_rate)/12)
+
+plot_n2o_input_rate <- 
+  subregion_camx %>% 
+  ggplot(aes(x = month, y = subregion_n2o_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Input Rate") +
+  xlab("Time period") + 
+  ylab("N2O input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_camx$subregion_n2o_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_camx$subregion_n2o_input_rate)/12)
+
+plot_co2e_input_rate <- 
+  subregion_camx %>% 
+  ggplot(aes(x = month, y = subregion_co2e_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2e input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_camx$subregion_co2e_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_camx$subregion_co2e_input_rate)/12)
+
+plotly::ggplotly(plot_nox_output_rate) 
+plotly::ggplotly(plot_so2_output_rate)  
+plotly::ggplotly(plot_co2_output_rate)
+plotly::ggplotly(plot_ch4_output_rate)
+plotly::ggplotly(plot_n2o_output_rate)
+plotly::ggplotly(plot_co2e_output_rate)
+
+plotly::ggplotly(plot_nox_input_rate) 
+plotly::ggplotly(plot_so2_input_rate)  
+plotly::ggplotly(plot_co2_input_rate)
+plotly::ggplotly(plot_ch4_input_rate)
+plotly::ggplotly(plot_n2o_input_rate)
+plotly::ggplotly(plot_co2e_input_rate)
 ```
 
 ### FRCC
 
 ```{r}
+#| label: subregion-frcc
+#| echo: false
+#| message: false
+#| fig-height: 4
 
+subregion_frcc <- 
+  subregion_merged %>% 
+  filter(subregion == "FRCC")
+
+# output rates
+plot_nox_output_rate <- 
+  subregion_frcc %>% 
+  ggplot(aes(x = month, y = subregion_nox_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Output Rate") + 
+  xlab("Time period") + 
+  ylab("NOx output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_frcc$subregion_nox_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_frcc$subregion_nox_output_rate)/12)
+
+plot_so2_output_rate <- 
+  subregion_frcc %>% 
+  ggplot(aes(x = month, y = subregion_so2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("SO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_frcc$subregion_so2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_frcc$subregion_so2_output_rate)/12)
+
+plot_co2_output_rate <- 
+  subregion_frcc %>% 
+  ggplot(aes(x = month, y = subregion_co2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_frcc$subregion_co2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_frcc$subregion_co2_output_rate)/12)
+
+plot_ch4_output_rate <- 
+  subregion_frcc %>% 
+  ggplot(aes(x = month, y = subregion_ch4_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Output Rate") +
+  xlab("Time period") + 
+  ylab("CH4 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_frcc$subregion_ch4_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_output_rate)), label = "AVG", 
+                nudge_y =mean(subregion_frcc$subregion_ch4_output_rate)/12)
+
+plot_n2o_output_rate <- 
+  subregion_frcc %>% 
+  ggplot(aes(x = month, y = subregion_n2o_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Output Rate") +
+  xlab("Time period") + 
+  ylab("N2O output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_frcc$subregion_n2o_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_frcc$subregion_n2o_output_rate)/12)
+
+plot_co2e_output_rate <- 
+  subregion_frcc %>% 
+  ggplot(aes(x = month, y = subregion_co2e_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2e output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_frcc$subregion_co2e_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_frcc$subregion_co2e_output_rate)/12)
+
+# input rates
+plot_nox_input_rate <- 
+  subregion_frcc %>% 
+  ggplot(aes(x = month, y = subregion_nox_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Input Rate") + 
+  xlab("Time period") + 
+  ylab("NOx input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_frcc$subregion_nox_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_frcc$subregion_nox_input_rate)/12)
+
+plot_so2_input_rate <- 
+  subregion_frcc %>% 
+  ggplot(aes(x = month, y = subregion_so2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("SO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_frcc$subregion_so2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_frcc$subregion_so2_input_rate)/12)
+
+plot_co2_input_rate <- 
+  subregion_frcc %>% 
+  ggplot(aes(x = month, y = subregion_co2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_frcc$subregion_co2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_frcc$subregion_co2_input_rate)/12)
+
+plot_ch4_input_rate <- 
+  subregion_frcc %>% 
+  ggplot(aes(x = month, y = subregion_ch4_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Input Rate") +
+  xlab("Time period") + 
+  ylab("CH4 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_frcc$subregion_ch4_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_frcc$subregion_ch4_input_rate)/12)
+
+plot_n2o_input_rate <- 
+  subregion_frcc %>% 
+  ggplot(aes(x = month, y = subregion_n2o_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Input Rate") +
+  xlab("Time period") + 
+  ylab("N2O input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_frcc$subregion_n2o_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_frcc$subregion_n2o_input_rate)/12)
+
+plot_co2e_input_rate <- 
+  subregion_frcc %>% 
+  ggplot(aes(x = month, y = subregion_co2e_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2e input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_frcc$subregion_co2e_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_frcc$subregion_co2e_input_rate)/12)
+
+plotly::ggplotly(plot_nox_output_rate) 
+plotly::ggplotly(plot_so2_output_rate)  
+plotly::ggplotly(plot_co2_output_rate)
+plotly::ggplotly(plot_ch4_output_rate)
+plotly::ggplotly(plot_n2o_output_rate)
+plotly::ggplotly(plot_co2e_output_rate)
+
+plotly::ggplotly(plot_nox_input_rate) 
+plotly::ggplotly(plot_so2_input_rate)  
+plotly::ggplotly(plot_co2_input_rate)
+plotly::ggplotly(plot_ch4_input_rate)
+plotly::ggplotly(plot_n2o_input_rate)
+plotly::ggplotly(plot_co2e_input_rate)
 ```
 
 ### HIMS
 
 ```{r}
+#| label: subregion-hims
+#| echo: false
+#| message: false
+#| fig-height: 4
 
+subregion_hims <- 
+  subregion_merged %>% 
+  filter(subregion == "HIMS")
+
+# output rates
+plot_nox_output_rate <- 
+  subregion_hims %>% 
+  ggplot(aes(x = month, y = subregion_nox_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Output Rate") + 
+  xlab("Time period") + 
+  ylab("NOx output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hims$subregion_nox_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_hims$subregion_nox_output_rate)/12)
+
+plot_so2_output_rate <- 
+  subregion_hims %>% 
+  ggplot(aes(x = month, y = subregion_so2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("SO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hims$subregion_so2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_hims$subregion_so2_output_rate)/12)
+
+plot_co2_output_rate <- 
+  subregion_hims %>% 
+  ggplot(aes(x = month, y = subregion_co2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hims$subregion_co2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_hims$subregion_co2_output_rate)/12)
+
+plot_ch4_output_rate <- 
+  subregion_hims %>% 
+  ggplot(aes(x = month, y = subregion_ch4_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Output Rate") +
+  xlab("Time period") + 
+  ylab("CH4 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hims$subregion_ch4_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_output_rate)), label = "AVG", 
+                nudge_y =mean(subregion_hims$subregion_ch4_output_rate)/12)
+
+plot_n2o_output_rate <- 
+  subregion_hims %>% 
+  ggplot(aes(x = month, y = subregion_n2o_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Output Rate") +
+  xlab("Time period") + 
+  ylab("N2O output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hims$subregion_n2o_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_hims$subregion_n2o_output_rate)/12)
+
+plot_co2e_output_rate <- 
+  subregion_hims %>% 
+  ggplot(aes(x = month, y = subregion_co2e_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2e output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hims$subregion_co2e_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_hims$subregion_co2e_output_rate)/12)
+
+# input rates
+plot_nox_input_rate <- 
+  subregion_hims %>% 
+  ggplot(aes(x = month, y = subregion_nox_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Input Rate") + 
+  xlab("Time period") + 
+  ylab("NOx input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hims$subregion_nox_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_hims$subregion_nox_input_rate)/12)
+
+plot_so2_input_rate <- 
+  subregion_hims %>% 
+  ggplot(aes(x = month, y = subregion_so2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("SO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hims$subregion_so2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_hims$subregion_so2_input_rate)/12)
+
+plot_co2_input_rate <- 
+  subregion_hims %>% 
+  ggplot(aes(x = month, y = subregion_co2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hims$subregion_co2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_hims$subregion_co2_input_rate)/12)
+
+plot_ch4_input_rate <- 
+  subregion_hims %>% 
+  ggplot(aes(x = month, y = subregion_ch4_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Input Rate") +
+  xlab("Time period") + 
+  ylab("CH4 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hims$subregion_ch4_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_hims$subregion_ch4_input_rate)/12)
+
+plot_n2o_input_rate <- 
+  subregion_hims %>% 
+  ggplot(aes(x = month, y = subregion_n2o_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Input Rate") +
+  xlab("Time period") + 
+  ylab("N2O input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hims$subregion_n2o_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_hims$subregion_n2o_input_rate)/12)
+
+plot_co2e_input_rate <- 
+  subregion_hims %>% 
+  ggplot(aes(x = month, y = subregion_co2e_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2e input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hims$subregion_co2e_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_hims$subregion_co2e_input_rate)/12)
+
+plotly::ggplotly(plot_nox_output_rate) 
+plotly::ggplotly(plot_so2_output_rate)  
+plotly::ggplotly(plot_co2_output_rate)
+plotly::ggplotly(plot_ch4_output_rate)
+plotly::ggplotly(plot_n2o_output_rate)
+plotly::ggplotly(plot_co2e_output_rate)
+
+plotly::ggplotly(plot_nox_input_rate) 
+plotly::ggplotly(plot_so2_input_rate)  
+plotly::ggplotly(plot_co2_input_rate)
+plotly::ggplotly(plot_ch4_input_rate)
+plotly::ggplotly(plot_n2o_input_rate)
+plotly::ggplotly(plot_co2e_input_rate)
 ```
 
 ### HIOA
 
 ```{r}
+#| label: subregion-hioa
+#| echo: false
+#| message: false
+#| fig-height: 4
 
+subregion_hioa <- 
+  subregion_merged %>% 
+  filter(subregion == "HIOA")
+
+# output rates
+plot_nox_output_rate <- 
+  subregion_hioa %>% 
+  ggplot(aes(x = month, y = subregion_nox_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Output Rate") + 
+  xlab("Time period") + 
+  ylab("NOx output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hioa$subregion_nox_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_hioa$subregion_nox_output_rate)/12)
+
+plot_so2_output_rate <- 
+  subregion_hioa %>% 
+  ggplot(aes(x = month, y = subregion_so2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("SO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hioa$subregion_so2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_hioa$subregion_so2_output_rate)/12)
+
+plot_co2_output_rate <- 
+  subregion_hioa %>% 
+  ggplot(aes(x = month, y = subregion_co2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hioa$subregion_co2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_hioa$subregion_co2_output_rate)/12)
+
+plot_ch4_output_rate <- 
+  subregion_hioa %>% 
+  ggplot(aes(x = month, y = subregion_ch4_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Output Rate") +
+  xlab("Time period") + 
+  ylab("CH4 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hioa$subregion_ch4_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_output_rate)), label = "AVG", 
+                nudge_y =mean(subregion_hioa$subregion_ch4_output_rate)/12)
+
+plot_n2o_output_rate <- 
+  subregion_hioa %>% 
+  ggplot(aes(x = month, y = subregion_n2o_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Output Rate") +
+  xlab("Time period") + 
+  ylab("N2O output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hioa$subregion_n2o_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_hioa$subregion_n2o_output_rate)/12)
+
+plot_co2e_output_rate <- 
+  subregion_hioa %>% 
+  ggplot(aes(x = month, y = subregion_co2e_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2e output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hioa$subregion_co2e_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_hioa$subregion_co2e_output_rate)/12)
+
+# input rates
+plot_nox_input_rate <- 
+  subregion_hioa %>% 
+  ggplot(aes(x = month, y = subregion_nox_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Input Rate") + 
+  xlab("Time period") + 
+  ylab("NOx input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hioa$subregion_nox_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_hioa$subregion_nox_input_rate)/12)
+
+plot_so2_input_rate <- 
+  subregion_hioa %>% 
+  ggplot(aes(x = month, y = subregion_so2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("SO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hioa$subregion_so2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_hioa$subregion_so2_input_rate)/12)
+
+plot_co2_input_rate <- 
+  subregion_hioa %>% 
+  ggplot(aes(x = month, y = subregion_co2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hioa$subregion_co2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_hioa$subregion_co2_input_rate)/12)
+
+plot_ch4_input_rate <- 
+  subregion_hioa %>% 
+  ggplot(aes(x = month, y = subregion_ch4_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Input Rate") +
+  xlab("Time period") + 
+  ylab("CH4 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hioa$subregion_ch4_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_hioa$subregion_ch4_input_rate)/12)
+
+plot_n2o_input_rate <- 
+  subregion_hioa %>% 
+  ggplot(aes(x = month, y = subregion_n2o_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Input Rate") +
+  xlab("Time period") + 
+  ylab("N2O input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hioa$subregion_n2o_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_input_rate)), label = "AVG", 
+                nudge_y = mean(subregion_hioa$subregion_n2o_input_rate)/12)
+
+plot_co2e_input_rate <- 
+  subregion_hioa %>% 
+  ggplot(aes(x = month, y = subregion_co2e_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2e input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_hioa$subregion_co2e_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_hioa$subregion_co2e_input_rate)/12)
+
+plotly::ggplotly(plot_nox_output_rate) 
+plotly::ggplotly(plot_so2_output_rate)  
+plotly::ggplotly(plot_co2_output_rate)
+plotly::ggplotly(plot_ch4_output_rate)
+plotly::ggplotly(plot_n2o_output_rate)
+plotly::ggplotly(plot_co2e_output_rate)
+
+plotly::ggplotly(plot_nox_input_rate) 
+plotly::ggplotly(plot_so2_input_rate)  
+plotly::ggplotly(plot_co2_input_rate)
+plotly::ggplotly(plot_ch4_input_rate)
+plotly::ggplotly(plot_n2o_input_rate)
+plotly::ggplotly(plot_co2e_input_rate)
 ```
 
 ### MROE
 
 ```{r}
+#| label: subregion-mroe
+#| echo: false
+#| message: false
+#| fig-height: 4
 
+subregion_mroe <- 
+  subregion_merged %>% 
+  filter(subregion == "MROE")
+
+# output rates
+plot_nox_output_rate <- 
+  subregion_mroe %>% 
+  ggplot(aes(x = month, y = subregion_nox_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Output Rate") + 
+  xlab("Time period") + 
+  ylab("NOx output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_mroe$subregion_nox_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_mroe$subregion_nox_output_rate)/12)
+
+plot_so2_output_rate <- 
+  subregion_mroe %>% 
+  ggplot(aes(x = month, y = subregion_so2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("SO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_mroe$subregion_so2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_mroe$subregion_so2_output_rate)/12)
+
+plot_co2_output_rate <- 
+  subregion_mroe %>% 
+  ggplot(aes(x = month, y = subregion_co2_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_mroe$subregion_co2_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_mroe$subregion_co2_output_rate)/12)
+
+plot_ch4_output_rate <- 
+  subregion_mroe %>% 
+  ggplot(aes(x = month, y = subregion_ch4_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Output Rate") +
+  xlab("Time period") + 
+  ylab("CH4 output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_mroe$subregion_ch4_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_output_rate)), label = "AVG", 
+                nudge_y =mean(subregion_mroe$subregion_ch4_output_rate)/12)
+
+plot_n2o_output_rate <- 
+  subregion_mroe %>% 
+  ggplot(aes(x = month, y = subregion_n2o_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Output Rate") +
+  xlab("Time period") + 
+  ylab("N2O output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_mroe$subregion_n2o_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_mroe$subregion_n2o_output_rate)/12)
+
+plot_co2e_output_rate <- 
+  subregion_mroe %>% 
+  ggplot(aes(x = month, y = subregion_co2e_output_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Output Rate") +
+  xlab("Time period") + 
+  ylab("CO2e output rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_mroe$subregion_co2e_output_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_output_rate)), label = "AVG", 
+                nudge_y = mean(subregion_mroe$subregion_co2e_output_rate)/12)
+
+# input rates
+plot_nox_input_rate <- 
+  subregion_mroe %>% 
+  ggplot(aes(x = month, y = subregion_nox_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("NOx Input Rate") + 
+  xlab("Time period") + 
+  ylab("NOx input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_mroe$subregion_nox_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_nox_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_mroe$subregion_nox_input_rate)/12)
+
+plot_so2_input_rate <- 
+  subregion_mroe %>% 
+  ggplot(aes(x = month, y = subregion_so2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("SO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("SO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_mroe$subregion_so2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_so2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_mroe$subregion_so2_input_rate)/12)
+
+plot_co2_input_rate <- 
+  subregion_mroe %>% 
+  ggplot(aes(x = month, y = subregion_co2_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2 Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_mroe$subregion_co2_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_mroe$subregion_co2_input_rate)/12)
+
+plot_ch4_input_rate <- 
+  subregion_mroe %>% 
+  ggplot(aes(x = month, y = subregion_ch4_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CH4 Input Rate") +
+  xlab("Time period") + 
+  ylab("CH4 input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_mroe$subregion_ch4_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_ch4_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_mroe$subregion_ch4_input_rate)/12)
+
+plot_n2o_input_rate <- 
+  subregion_mroe %>% 
+  ggplot(aes(x = month, y = subregion_n2o_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("N2O Input Rate") +
+  xlab("Time period") + 
+  ylab("N2O input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_mroe$subregion_n2o_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_n2o_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_mroe$subregion_n2o_input_rate)/12)
+
+plot_co2e_input_rate <- 
+  subregion_mroe %>% 
+  ggplot(aes(x = month, y = subregion_co2e_input_rate, fill = month)) +
+  geom_bar(stat = "identity") + 
+  ggtitle("CO2e Input Rate") +
+  xlab("Time period") + 
+  ylab("CO2e input rate") + 
+  scale_fill_manual(values = c("deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "deepskyblue3", "deepskyblue3", "deepskyblue3", "deepskyblue3", 
+                               "firebrick3")) + 
+  theme(legend.position = "none") + 
+  geom_hline(yintercept = mean(subregion_mroe$subregion_co2e_input_rate, na.rm = TRUE), 
+             linetype = "dashed", show.legend = TRUE) + 
+  geom_text(aes(x = 1, y = mean(subregion_co2e_input_rate)), label = "AVG", 
+                nudge_y =mean(subregion_mroe$subregion_co2e_input_rate)/12)
+
+plotly::ggplotly(plot_nox_output_rate) 
+plotly::ggplotly(plot_so2_output_rate)  
+plotly::ggplotly(plot_co2_output_rate)
+plotly::ggplotly(plot_ch4_output_rate)
+plotly::ggplotly(plot_n2o_output_rate)
+plotly::ggplotly(plot_co2e_output_rate)
+
+plotly::ggplotly(plot_nox_input_rate) 
+plotly::ggplotly(plot_so2_input_rate)  
+plotly::ggplotly(plot_co2_input_rate)
+plotly::ggplotly(plot_ch4_input_rate)
+plotly::ggplotly(plot_n2o_input_rate)
+plotly::ggplotly(plot_co2e_input_rate)
 ```
 
 ### MROW
@@ -446,7 +2370,7 @@ check_unit_diff <-
 ```
 :::
 
-## State resource mix
+## State file comparison
 
 ::: panel-tabset
 ### AK

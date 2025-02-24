@@ -17,3 +17,4 @@ data/static_tables/qa/
 *.Rprofile
 data/static_tables/Thumbs.db
 README_files/
+monthly_qa_files/
