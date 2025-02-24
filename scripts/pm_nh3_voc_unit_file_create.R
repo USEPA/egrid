@@ -5,8 +5,8 @@
 ## Purpose: 
 ## 
 ## This file creates the PM2.5, NH3, and VOC unit files for eGRID 
-## using the function create_pm_unit_data(). This file includes 
-## PM2.5 emission data, either calculated or estimated for the 
+## using the function create_pm_nh3_voc_unit_data(). This file includes 
+## emission data, either calculated or estimated for the 
 ## units of the specified eGRID year.
 ##
 ## The method of emission calculations are listed within emission_source.
