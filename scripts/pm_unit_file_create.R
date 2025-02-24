@@ -38,17 +38,13 @@ if (exists("params")) {
 }
 
 # Run unit data creation script ---------
-## 1) Direct Match - "NEI/EIA" --------------
-# calculate pm2.5 data using direct unit match from EIA to NEI
-## 2) Match by fuel type, unit firing type, and prime mover - "NEI avg EF - PM, fuel type, firing type" ----------
-# calculate pm2.5 emissions using matching of fuel type, prime mover, and firing type
-## 3) Match by fuel type and prime mover - "NEI avg EF - PM, fuel type" ----------
-# calculate pm2.5 emissions using matching of prime mover and fuel type
-## 4) Use emissions factors from AP-42 - "Estimated using an emissions factor" ---------
-# calculate pm2.5 emissions based on emission factors in AP-42 report
-#if there is a unit match with EIA-923, adjust pm2.5 by control efficiency
-
 source("scripts/functions/function_create_pm_nh3_voc_unit_data.R")
+
+# Emissions are estimated by the following methods and order:
+    # 1) Direct Match - calculate emissions data using direct unit match from EIA to NEI ("NEI/EIA")
+    # 2) Match by fuel type, unit firing type, and prime mover - calculate emissions using matching of fuel type, prime mover, and firing type ("NEI avg EF - PM, fuel type, firing type")
+    # 3) Match by fuel type and prime mover - calculate emissions using matching of prime mover and fuel type ("NEI avg EF - PM, fuel type")
+    # 4) Use emissions factors from AP-42 - calculate pm2.5 emissions based on emission factors in AP-42 report. If there is a unit match with EIA-923, adjust pm2.5 by control efficiency ("Estimated using an emissions factor")
 pm_unit_data <- create_pm_nh3_voc_unit_data("pm25")
 
 # Format final version of pm2.5 unit file ------------
