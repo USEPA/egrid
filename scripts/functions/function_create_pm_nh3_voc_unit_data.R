@@ -31,7 +31,7 @@ create_pm_nh3_voc_unit_data <- function(emission_type){
   #'         
   #' @examples 
   #' # Create PM2.5 unit data
-  #' pm25_unit_data <- create_pm25_nh3_voc_unit_data("pm25")
+  #' pm_unit_data <- create_pm_nh3_voc_unit_data("pm25")
   
   
   # Require Libraries ---------
