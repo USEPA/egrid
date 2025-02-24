@@ -24,32 +24,39 @@ detach("package:renv", unload=TRUE)
 
 # Define parameters -------------------------
 
-#check if parameters for eGRID data year need to be defined
-#this is only necessary when running the script outside of egrid_master.qmd
-#user will be prompted to input eGRID year in the console if params does not exist
+# check if parameters need to be defined
+# this is only necessary when running the script outside of egrid_master.qmd
+# user will be prompted to input params in the console if necessary
 
 if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.")
-  } else { # if params() is defined, but eGRID_year is not, define it here
-    params$eGRID_year <- as.character(readline(prompt = "Input eGRID_year: "))
+  if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+    print("eGRID year parameter is already defined.") 
+  } else { # if params() is defined, but eGRID_year or temporal_res is not, define them here 
+    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+    params$eGRID_year <- as.character(params$eGRID_year) 
+    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+    params$temporal_res <- as.character(params$temporal_res) 
   }
-} else { # if params() and eGRID_year are not defined, define them here
+} else { # if params() and eGRID_year and temporal_res are not defined, define them here
   params <- list()
-  params$eGRID_year <- as.character(readline(prompt = "Input eGRID_year: "))
+  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+  params$eGRID_year <- as.character(params$eGRID_year)
+  params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
+  params$temporal_res <- as.character(params$temporal_res) 
 }
+
 
 # Define files to convert ---------------------------------
 
 filenames_orig <- c("unit" = "unit_file",
-                   "generator" = "generator_file",
-                   "plant" = "plant_file",
-                   "state" = "state_aggregation",
-                   "ba" = "ba_aggregation",
-                   "subregion" = "subregion_aggregation",
-                   "nerc" = "nerc_aggregation",
-                   "us" = "us_aggregation",
-                   "ggl" = "grid_gross_loss")
+                    "generator" = "generator_file",
+                    "plant" = "plant_file",
+                    "state" = "state_aggregation",
+                    "ba" = "ba_aggregation",
+                    "subregion" = "subregion_aggregation",
+                    "nerc" = "nerc_aggregation",
+                    "us" = "us_aggregation",
+                    "ggl" = "grid_gross_loss")
 
 # Load ordered variable names and conversion factors ---------
 
