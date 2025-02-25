@@ -41,10 +41,12 @@ if (exists("params")) {
 format_unit <- function(unit_emissions, emission_type) {
   unit_formatted <-
     unit_emissions %>%
+    # replace emission with emission type in column names
+    rename_with(~gsub("emission", emission_type, .)) %>%
     # set  annual emissions to NA for renewable fuel types
-    mutate("{emission_type}_ann" := if_else(primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, emission),
+    mutate("{emission_type}_ann" := if_else(primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, get(emission_type)),
            # set emission source type to NA for renewable fuel types
-           "{emission_type}_source" := if_else(get(paste0(emission_type, "_ann")) >= 0, emission_source, NA_character_),
+           "{emission_type}_source" := if_else(get(paste0(emission_type, "_ann")) >= 0, get(paste0(emission_type, "_source")), NA_character_),
            # add data column with adjusted emission rate
            "{emission_type}_rate" := get(paste0(emission_type, "_ann")) * 2000 / heat_input) %>%
     # select desired variables for final version
