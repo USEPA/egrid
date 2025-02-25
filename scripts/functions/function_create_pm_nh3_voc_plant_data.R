@@ -1,7 +1,7 @@
 ## Purpose: 
 ## 
 ## This function creates the first iteration of the emission plant
-## data for pm2.5, nh3, and voc that is used to compute regional 
+## data for PM2.5, NH3, and VOC that are used to compute regional 
 ## aggregated values. The output is not the final version used in 
 ## the plant files and are formatted in pm_nh3_voc_plant_file_create.
 ## 
