@@ -1,10 +1,8 @@
 ## Purpose: 
 ## 
-## This file creates a function to create PM2.5, NH3, and VOC state, US, and subregion 
-## files for eGRID. This file includes PM2.5 emission data, either 
-## calculated or estimated for the plants of the specified eGRID year
+## This function creates and saves PM2.5, NH3, and VOC state, US, and subregion 
+## files for eGRID.
 ## 
-## The method of emission calculations are listed within emission_source
 ##
 ## Additional notes
 ##
@@ -12,11 +10,12 @@
 ##
 ## -------------------------------
 
-pm_nh3_voc_regional_aggregation <- function(emission_type) {
+pm_nh3_voc_region_aggregation <- function(emission_type) {
   
   #' pm_nh3_voc_regional_aggregation
   #' 
-  #' Function to create pm2.5, nh3, or voc plant file data by aggregating unit data
+  #' Function to create pm2.5, nh3, or voc state, subregion, and US aggregated
+  #' data from the plant data
   #' 
   #' @param emission_type Emission type to be calculated - either
   #'                      "pm25", "nh3", or "voc"
