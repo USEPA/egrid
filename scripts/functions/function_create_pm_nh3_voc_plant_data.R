@@ -58,9 +58,9 @@ create_pm_nh3_voc_plant_data <- function(emission_type){
            # calculate annual emissions
            emission_ann = emission * elec_allocation,
            # calculate total output emission rate
-           emission_output_rate = emission_ann * 2000 / generation_ann,
+           emission_output_rate = if_else(generation_ann != 0, emission_ann * 2000 / generation_ann, NA_real_),
            # calculate total input emission rate
-           emission_input_rate = emission_ann * 2000 / heat_input,
+           emission_input_rate = if_else(heat_input != 0, emission_ann * 2000 / heat_input, NA_real_),
            #  rename unadjusted annual pm2.5 emissions
            unadj_emission = emission) %>%
     select(plant_state, plant_name, plant_id, egrid_subregion_name, egrid_subregion, primary_fuel_type, nameplate_capacity, elec_allocation, heat_input, generation_ann, emission_ann, emission_output_rate, emission_input_rate, unadj_combust_heat_input, unadj_emission)

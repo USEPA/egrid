@@ -99,7 +99,7 @@ create_pm_nh3_voc_unit_data <- function(emission_type){
     group_by(prime_mover, botfirty, primary_fuel_type, emission_source) %>% 
     # calculate emissions factor
     summarise(sum_heat_input = sum(heat_input, na.rm = TRUE), sum_emission = sum(emission, na.rm = TRUE)) %>%
-    mutate(emission_factors = sum_emission / sum_heat_input) %>% 
+    mutate(emission_factors = if_else(sum_heat_input != 0, sum_emission / sum_heat_input, NA_real_)) %>% 
     inner_join(unit_emissions, by = join_by(prime_mover, botfirty, primary_fuel_type)) %>%
     # multiply individual heat inputs by emission factors to estimate emission
     # define method used under source
@@ -118,7 +118,7 @@ create_pm_nh3_voc_unit_data <- function(emission_type){
     group_by(prime_mover, primary_fuel_type, emission_source) %>%
     # calculate emissions factor
     summarise(sum_heat_input = sum(heat_input, na.rm = TRUE), sum_emission = sum(emission, na.rm = TRUE)) %>%
-    mutate(sum_heat_input = if_else(sum_heat_input == 0, NA_real_, sum_heat_input), emission_factors = sum_emission / sum_heat_input) %>%
+    mutate(emission_factors = if_else(sum_heat_input != 0, sum_emission / sum_heat_input, NA_real_)) %>%
     inner_join(unit_emissions, by = join_by(prime_mover, primary_fuel_type)) %>%
     # multiply individual heat inputs by emission factors to estimate emission
     # define method used under source
