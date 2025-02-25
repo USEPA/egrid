@@ -13,9 +13,9 @@
 ##
 ## -------------------------------
 
-create_pm_nh3_voc_plant_data <- function(emission_type){
+pm_nh3_voc_plant_data <- function(emission_type){
   
-  #' create_pm_nh3_voc_plant_data
+  #' pm_nh3_voc_plant_data
   #' 
   #' Function to create pm2.5, nh3, or voc plant file data by aggregating unit data
   #' 
@@ -26,7 +26,7 @@ create_pm_nh3_voc_plant_data <- function(emission_type){
   #'         
   #' @examples 
   #' # Create PM2.5 plant data
-  #' pm_plant_data <- create_pm_nh3_voc_plant_data()
+  #' pm_plant_data <- pm_nh3_voc_plant_data()
   
   
   # Require Libraries ---------
@@ -39,8 +39,8 @@ create_pm_nh3_voc_plant_data <- function(emission_type){
   plant_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
 
   # Run unit data creation script ---------
-  source("scripts/functions/function_create_pm_nh3_voc_unit_data.R")
-  unit_data <- create_pm_nh3_voc_unit_data(emission_type)
+  source("scripts/functions/function_pm_nh3_voc_unit_data.R")
+  unit_data <- pm_nh3_voc_unit_data(emission_type)
 
   # Sum PM2.5 unit data by plant id ---------
   plant_sum <-

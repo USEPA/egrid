@@ -18,9 +18,9 @@
 ## -------------------------------
 
 
-create_pm_nh3_voc_unit_data <- function(emission_type){
+pm_nh3_voc_unit_data <- function(emission_type){
   
-  #' create_pm_nh3_voc_unit_data
+  #' pm_nh3_voc_unit_data
   #' 
   #' Function to create pm2.5, nh3, or voc unit file data using a sequence of methods
   #' 
@@ -31,7 +31,7 @@ create_pm_nh3_voc_unit_data <- function(emission_type){
   #'         
   #' @examples 
   #' # Create PM2.5 unit data
-  #' pm_unit_data <- create_pm_nh3_voc_unit_data("pm25")
+  #' pm_unit_data <- pm_nh3_voc_unit_data("pm25")
   
   
   # Require Libraries ---------

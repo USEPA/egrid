@@ -1,7 +1,7 @@
 ## Purpose: 
 ## 
 ## This file creates the PM2.5, NH3, and VOC plant files for eGRID 
-## using the function create_pm_nh3_voc_plant_data(). This file includes 
+## using the function pm_nh3_voc_plant_data(). This file includes 
 ## emission data, either calculated or estimated for the 
 ## units of the specified eGRID year.
 ##
@@ -44,8 +44,8 @@ format_plant <- function(emission_type) {
     stop(glue::glue("{emission_type}_unit_file.RDS does not exist. Run pm_nh3_voc_unit_file_create.R to obtain."))}
   
   # Run plant data creation script ---------
-  source("scripts/functions/function_create_pm_nh3_voc_plant_data.R")
-  plant_data <- create_pm_nh3_voc_plant_data(emission_type)
+  source("scripts/functions/function_pm_nh3_voc_plant_data.R")
+  plant_data <- pm_nh3_voc_plant_data(emission_type)
   
   ## Assign emission sources to plant file -------
   # define source variable name
