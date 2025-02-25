@@ -5,7 +5,7 @@
 ## Purpose: 
 ## 
 ## This function creates the first iteration of the emission unit
-## data for pm2.5, nh3, and voc that is used to compute plant 
+## data for PM2.5, NH3, and VOC that is used to compute plant 
 ## aggregated values. The output is not the final version used in 
 ## the unit files and are formatted in pm_nh3_voc_unit_file_create.
 ## 
@@ -39,7 +39,6 @@ create_pm_nh3_voc_unit_data <- function(emission_type){
   require(readr)
   require(readxl)
   
-  emission_type <- "pm25"
   # Load necessary data --------------------
   ## EIA-923 - for Schedule C Air Emissions Control information
   if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) {
@@ -163,7 +162,8 @@ create_pm_nh3_voc_unit_data <- function(emission_type){
       rows_patch(fuel_pmover_firing, by = c("unit_id", "plant_id", "prime_mover")) %>%
       rows_patch(fuel_pmover, by = c("unit_id", "plant_id", "prime_mover")) %>%
       left_join(removal_efficiencies, by = join_by(unit_id, plant_id, prime_mover)) %>%
-      mutate(emission = if_else(is.na(emission_source), emission_re, emission), emission_source = if_else(is.na(emission_source), emission_source_re, emission_source))
+      mutate(emission = if_else(is.na(emission_source), emission_re, emission), emission_source = if_else(is.na(emission_source), emission_source_re, emission_source)) %>%
+      select(-emission_re, -emission_source_re)
   } else {
     # does not include removal efficiences for other pollutants
     unit_emissions_updated <-
@@ -177,7 +177,7 @@ create_pm_nh3_voc_unit_data <- function(emission_type){
     unit_emissions_updated %>%
     left_join(emissions_factors, by = join_by(unit_id, plant_id, prime_mover)) %>%
     mutate(emission = if_else(is.na(emission_source), emission_ef, emission), emission_source = if_else(is.na(emission_source), emission_source_ef, emission_source)) %>%
-    select(-emission_ef, -emission_re, -emission_source_ef, -emission_source_re)
+    select(-emission_ef, -emission_source_ef)
   
   return(unit_emissions_final)
 }
