@@ -35,7 +35,18 @@ if (exists("params")) {
 }
 
 # Create function to format plant files ---------------
-format_plant <- function(plant_data, unit_file, emission_type) {
+format_plant <- function(emission_type) {
+  
+  # load unit file
+  if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/{emission_type}_unit_file.RDS"))) {
+    unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/{emission_type}_unit_file.RDS")) #%>%
+  } else {
+    stop(glue::glue("{emission_type}_unit_file.RDS does not exist. Run pm_nh3_voc_unit_file_create.R to obtain."))}
+  
+  # Run plant data creation script ---------
+  source("scripts/functions/function_create_pm_nh3_voc_plant_data.R")
+  plant_data <- create_pm_nh3_voc_plant_data(emission_type)
+  
   ## Assign emission sources to plant file -------
   # define source variable name
   source_var <- paste0(emission_type, "_source")
@@ -70,35 +81,13 @@ format_plant <- function(plant_data, unit_file, emission_type) {
   return(plant_formatted)
 }
 
-# Load unit files --------------------
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/pm_unit_file.RDS"))) {
-  pm_unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/pm_unit_file.RDS")) #%>%
-} else {
-  stop("pm_unit_file.RDS does not exist. Run pm_nh3_voc_unit_file_create.R to obtain.")}
-
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/nh3_unit_file.RDS"))) {
-  nh3_unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/nh3_unit_file.RDS")) #%>%
-} else {
-  stop("nh3_unit_file.RDS does not exist. Run pm_nh3_voc_unit_file_create.R to obtain.")}
-
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/voc_unit_file.RDS"))) {
-  voc_unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/voc_unit_file.RDS")) #%>%
-} else {
-  stop("voc_unit_file.RDS does not exist. Run pm_nh3_voc_unit_file_create.R to obtain.")}
-
-# Run plant data creation script ---------
-source("scripts/functions/function_create_pm_nh3_voc_plant_data.R")
-pm_plant_data <- create_pm_nh3_voc_plant_data("pm25")
-nh3_plant_data <- create_pm_nh3_voc_plant_data("nh3")
-voc_plant_data <- create_pm_nh3_voc_plant_data("voc")
-
 # Format final version of PM2.5, NH3, and VOC plant files ------------
-pm_plant_formatted <- format_plant(pm_plant_data, pm_unit_file, "pm25")
-nh3_plant_formatted <- format_plant(nh3_plant_data, nh3_unit_file, "nh3")
-voc_plant_formatted <- format_plant(voc_plant_data, voc_unit_file, "voc")
+pm_plant_formatted <- format_plant("pm25")
+nh3_plant_formatted <- format_plant("nh3")
+voc_plant_formatted <- format_plant("voc")
 
 # Export plant files -----
 source("scripts/functions/function_save_output_data.R")
-save_output_data(pm_plant_formatted, "pm_plant_file.RDS")
+save_output_data(pm_plant_formatted, "pm25_plant_file.RDS")
 save_output_data(nh3_plant_formatted, "nh3_plant_file.RDS")
 save_output_data(voc_plant_formatted, "voc_plant_file.RDS")
