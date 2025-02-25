@@ -39,7 +39,7 @@ create_pm_nh3_voc_unit_data <- function(emission_type){
   require(readr)
   require(readxl)
   
-  
+  emission_type <- "pm25"
   # Load necessary data --------------------
   ## EIA-923 - for Schedule C Air Emissions Control information
   if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) {
@@ -139,33 +139,45 @@ create_pm_nh3_voc_unit_data <- function(emission_type){
     rename(emission_ef = emission, emission_source_ef = emission_source) %>%
     select(plant_id, unit_id, prime_mover, emission_ef, emission_source_ef)
   
-  # if there is a unit match with EIA-923, adjust emission by control efficiency
-  removal_efficiencies <-
-    eia_923 %>%
-    # select plants with removal efficiency rates
-    filter(!is.na(pm_removal_efficiency_rate_at_annual_operating_factor)) %>%
-    group_by(plant_id) %>%
-    # convert efficiency rate to numeric percentage
-    summarise(eia_control_efficiency = max(as.numeric(sub("%", "", pm_removal_efficiency_rate_at_annual_operating_factor)) / 100)) %>%
-    inner_join(emissions_factors, by = join_by(plant_id == plant_id)) %>%
-    rename(plant_id = plant_id) %>%
-    # adjust emission using control efficiency rate
-    mutate(emission = emission_ef * (1 - eia_control_efficiency), emission_source = "Estimated using an emissions factor") %>%
-    rename(emission_re = emission, emission_source_re = emission_source) %>%
-    select(plant_id, unit_id, prime_mover, emission_re, emission_source_re)
+  # if there is a unit match with EIA-923, adjust emission by control efficiency (only for PM2.5 data)
+  if(emission_type == "pm25") {
+    removal_efficiencies <-
+      eia_923 %>%
+      # select plants with removal efficiency rates
+      filter(!is.na(pm_removal_efficiency_rate_at_annual_operating_factor)) %>%
+      group_by(plant_id) %>%
+      # convert efficiency rate to numeric percentage
+      summarise(eia_control_efficiency = max(as.numeric(sub("%", "", pm_removal_efficiency_rate_at_annual_operating_factor)) / 100)) %>%
+      inner_join(emissions_factors, by = join_by(plant_id == plant_id)) %>%
+      # adjust emission using control efficiency rate
+      mutate(emission = emission_ef * (1 - eia_control_efficiency), emission_source = "Estimated using an emissions factor") %>%
+      rename(emission_re = emission, emission_source_re = emission_source) %>%
+      select(plant_id, unit_id, prime_mover, emission_re, emission_source_re)
+    
+    # Add emission estimates to unit data -------------
+    # update unit file with emission emission rates from each method - order specific
+    
+    # includes removal efficiencies for PM2.5
+    unit_emissions_updated <-
+      unit_emissions %>%
+      rows_patch(fuel_pmover_firing, by = c("unit_id", "plant_id", "prime_mover")) %>%
+      rows_patch(fuel_pmover, by = c("unit_id", "plant_id", "prime_mover")) %>%
+      left_join(removal_efficiencies, by = join_by(unit_id, plant_id, prime_mover)) %>%
+      mutate(emission = if_else(is.na(emission_source), emission_re, emission), emission_source = if_else(is.na(emission_source), emission_source_re, emission_source))
+  } else {
+    # does not include removal efficiences for other pollutants
+    unit_emissions_updated <-
+      unit_emissions %>%
+      rows_patch(fuel_pmover_firing, by = c("unit_id", "plant_id", "prime_mover")) %>%
+      rows_patch(fuel_pmover, by = c("unit_id", "plant_id", "prime_mover"))
+  }
   
-  
-  # Add emission emission estimates to unit data -------------
-  # update unit file with emission emission rates from each method - order specific
-  unit_emissions_updated <-
-    unit_emissions %>%
-    rows_patch(fuel_pmover_firing, by = c("unit_id", "plant_id", "prime_mover")) %>%
-    rows_patch(fuel_pmover, by = c("unit_id", "plant_id", "prime_mover")) %>%
-    left_join(removal_efficiencies, by = join_by(unit_id, plant_id, prime_mover)) %>%
-    mutate(emission = if_else(is.na(emission_source), emission_re, emission), emission_source = if_else(is.na(emission_source), emission_source_re, emission_source)) %>%
+  # update unit file with remaining emission rates
+  unit_emissions_final <-
+    unit_emissions_updated %>%
     left_join(emissions_factors, by = join_by(unit_id, plant_id, prime_mover)) %>%
     mutate(emission = if_else(is.na(emission_source), emission_ef, emission), emission_source = if_else(is.na(emission_source), emission_source_ef, emission_source)) %>%
     select(-emission_ef, -emission_re, -emission_source_ef, -emission_source_re)
   
-  return(unit_emissions_updated)
+  return(unit_emissions_final)
 }
