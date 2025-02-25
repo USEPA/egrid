@@ -216,7 +216,8 @@ if (params$temporal_res == "annual") {
     eia_gen_generation %>%
     group_by(year, plant_id, generator_id, combined_heat_and_power_plant) %>%
     mutate(generation_oz = sum(net_generation[month %in% ozone_months], na.rm = TRUE)) %>% # calculate ozone over the year
-    ungroup()
+    ungroup() # %>%
+    # mutate(year = if_else(is.na(year), params$eGRID_year, year))# adding in year values to groupby
     
 }
 
@@ -231,7 +232,8 @@ eia_gen_generation <-
                                                                                                # might need to remove or condition 2.20.25
                                    NA_character_,
                                    "EIA-923 Generator File")) %>%
-  ungroup() 
+  ungroup() # %>%
+  # mutate(year = if_else(is.na(year), params$eGRID_year, year)) # adding in year values to groupby
 
 # for annual data, need to remove duplicate rows created by 12 months
 if (params$temporal_res == "annual") {
@@ -315,17 +317,21 @@ eia_gen_fuel_generation_sum <-
 
 gen_distributed <- 
   eia_gen_generation %>% 
-  group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover) %>% # group_by temporal_res_cols
-  # groupby distinct year 
-  summarize(tot_generation = sum(generation, na.rm = TRUE), # summing generation at plant/pm level (added unique() 2.20.25 avoid over coutning)
-            tot_generation_oz = sum(generation_oz, na.rm = TRUE)) %>% # change this to only do generation_oz for monthly/annual
+  mutate(year = if_else(is.na(year), params$eGRID_year, year)) %>% # adding in year values to groupby 
+  group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover) %>% # group_by temporal_res_cols 
+  # groupby distinct year
+  # group_by(plant_id, prime_mover) %>%
+  # mutate(tot_generation = sum(generation, na.rm = TRUE), # summing generation at plant/pm level (1)
+  #           tot_generation_oz = sum(generation_oz, na.rm = TRUE)) %>% # change this to only do generation_oz for monthly/annual (1)
+  summarize(tot_generation = sum(generation, na.rm = TRUE), # summing generation at plant/pm level (2)
+            tot_generation_oz = sum(generation_oz, na.rm = TRUE)) %>% # change this to only do generation_oz for monthly/annual (2)
   ungroup() %>%
   left_join(eia_gen_fuel_generation_sum) %>% # joining with gen fuel file to compare totals
   mutate(generation_diff = tot_generation_fuel - tot_generation, # calculating difference between gen and gen fuel file
          generation_oz_diff = tot_generation_oz_fuel - tot_generation_oz
          ) %>% 
-  select(plant_id, prime_mover, generation_diff, generation_oz_diff) %>% # (annual ver.)
-  right_join(eia_gen_generation) %>% # joining back in other columns
+  select(plant_id, prime_mover, generation_diff, generation_oz_diff) %>% # (annual ver.) (2)
+  right_join(eia_gen_generation) %>% # joining back in other columns (2)
   filter(is.na(gen_data_source)) %>% # filtering to only generators with missing source
   group_by(plant_id, prime_mover) %>%
   mutate(tot_nameplate_capacity = sum(nameplate_capacity),
@@ -335,9 +341,9 @@ gen_distributed <-
   ungroup() %>% 
   mutate(generation = generation_diff * prop, # multiplying differences by proportion value
          generation_oz = generation_oz_diff * prop,
-         # gen_data_source = if_else(!is.na(generation_oz), "Distributed from EIA-923 Generation and Fuel", NA)) %>% # if no calculated generation, leave source as NA
          gen_data_source = if_else(!is.na(generation), "Distributed from EIA-923 Generation and Fuel", NA)) %>% # if no calculated generation, leave source as NA 
   # (changed from !is.na(generation_oz) to !is.na(generation) since daily has no generation_oz)
+        #  gen_data_source = "Distributed from EIA-923 Generation and Fuel") %>%
   bind_rows(eia_gen_generation %>% 
               filter(!is.na(gen_data_source))) # adding back 923 Generation source rows
 
@@ -352,44 +358,29 @@ print(glue::glue("{nrow(gen_distributed) - (nrow(eia_gen_generation) - nrow(miss
 
 ### Determine differences between EIA-923 Generator File and EIA-923 Generation and Fuel file, and identify and distribute large cases --------- 
 
-cols_to_keep <-
+cols_to_keep <- # could remove this, only used for one life of code 2.25.25
     c("plant_id",
       "prime_mover",
       "overwrite")
 
 eia_gen_genfuel_diff <- 
   gen_distributed %>% 
-  group_by(plant_id, prime_mover) %>% 
+  # group_by(plant_id, prime_mover) %>% # (1)
+  group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover) %>% # (2) added groupby temporal_res_cols
   summarize(tot_generation_gen = sum(generation, na.rm = TRUE), # summing generation to plant/pm level to compare to gen_fuel file
             tot_generation_oz_gen = sum(generation_oz, na.rm = TRUE)) %>%
-            # across(starts_with("net_generation"), ~ sum(., na.rm = TRUE), .names = "tot_{col}")) %>% # (monthly wide ver.)
   ungroup() %>%
-  # select(-tot_net_generation_year_to_date) %>% # remove unnecessary column (monthly ver.)
   left_join(eia_gen_fuel_generation_sum, by = c("plant_id", "prime_mover")) %>% # joining with gen_fuel file
-  # mutate(tot_monthly_generation_ann_fuel = rowSums(select(., paste0("tot_netgen_", tolower(month.name))), na.rm = TRUE),
-  #        tot_monthly_generation_ann_gen = rowSums(select(., paste0("tot_net_generation_", tolower(month.name))), na.rm = TRUE)) %>%
   mutate(abs_diff_generation = abs(tot_generation_fuel - tot_generation_gen), # calculating absolute differences between generation values
          abs_diff_generation_oz = abs(tot_generation_oz_fuel - tot_generation_oz_gen),
-         # abs_diff_monthly_generation_ann = abs(tot_monthly_generation_fuel - tot_monthly_generation_gen),
-         # across(c(starts_with("tot_net_generation"),),
-         #        .fns = ~ . - get(sub("net_generation", "netgen", cur_column())),
-         #        .names = "{gsub('tot_','abs_diff_', col)}"),
          perc_diff_generation = if_else(abs_diff_generation == 0, 0, 
                                             abs_diff_generation / tot_generation_fuel), # calculating the percentage of the difference over the fuel levels in gen_fuel file
-         perc_diff_generation_oz = if_else(abs_diff_generation_oz == 0, 0, 
+         perc_diff_generation_oz = if_else(abs_diff_generation_oz == 0, 0,
                                            abs_diff_generation_oz / tot_generation_oz_fuel), # calculating percent differences for monthly generation and generation ozone
-         # perc_diff_monthly_gen = if_else(abs_diff_monthly_generation == 0, 0,
-         #                                 abs_diff_monthly_generation / tot_monthly_generation_fuel),
-         overwrite = if_else(perc_diff_generation > 0.001, "overwrite", "EIA-923 Generator File"),
-         overwrite = if_else(perc_diff_generation_oz > 0.001, "overwrite", "EIA-923 Generator File")) %>%
-         # overwrite = if_else(perc_diff_monthly_gen > 0.001, "overwrite", "EIA-923 Generator File")) %>% 
-  filter(tot_generation_fuel != 0) %>% # (annual)
-  # filter(tot_generation_fuel != 0 | tot_monthly_generation_fuel != 0) %>%
-  # select(all_of(cols_to_keep)) %>%
-  select(all_of(cols_to_keep), starts_with("tot"), starts_with("abs"), starts_with("perc")) %>%
-  #select(all_of(cols_to_keep), all_of(contains("generation"))) %>%
-#  select(-all_of(cols_to_remove)) %>%
-  distinct()
+         overwrite = if_else(perc_diff_generation > 0.001, "overwrite", "EIA-923 Generator File"), # (1) flag to overwrite for generation if difference is greater than .1% 
+         overwrite = if_else(perc_diff_generation_oz > 0.001, "overwrite", "EIA-923 Generator File")) %>% # (2) flag to overwrite for generation_oz 
+  filter(tot_generation_fuel != 0) %>% 
+  select(all_of(cols_to_keep), starts_with("tot"), starts_with("abs"), starts_with("perc"))
 
 ## Where overwrite == overwrite, we distribute the the generation figures in the EIA-923 Gen and Fuel file and 
 ## create a DF of generators that have large differences between EIA-923 Generator file and EIA-923 Generation and Fuel file 
