@@ -1,6 +1,6 @@
 ## -------------------------------
 ##
-## PM unit file create
+## PM NH3 VOC unit file create
 ## 
 ## Purpose: 
 ## 
@@ -22,7 +22,6 @@ library(dplyr)
 library(readr)
 library(readxl)
 
-
 # Define eGRID year parameter ----------------
 # define parameter year if no one is currently assigned using prompted user input
 if (exists("params")) {
@@ -38,6 +37,22 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
+# Create function to format unit files ---------------
+format_unit <- function(unit_emissions, emission_type) {
+  unit_formatted <-
+    unit_emissions %>%
+    # set  annual emissions to NA for renewable fuel types
+    mutate("{emission_type}_ann" := if_else(primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, emission),
+           # set emission source type to NA for renewable fuel types
+           "{emission_type}_source" := if_else(get(paste0(emission_type, "_ann")) >= 0, emission_source, NA_character_),
+           # add data column with adjusted emission rate
+           "{emission_type}_rate" := get(paste0(emission_type, "_ann")) * 2000 / heat_input) %>%
+    # select desired variables for final version
+    select(plant_state, plant_name, plant_id, unit_id, prime_mover, operating_status, botfirty, primary_fuel_type, operating_hours, heat_input, paste0(emission_type, "_ann"), paste0(emission_type, "_rate"), heat_input_source, paste0(emission_type, "_source"), year_online)
+  
+  return(unit_formatted)
+}
+
 # Produce PM2.5, NH3, and VOC unit data using function ---------
 
 # Emissions are estimated by the following methods and order:
@@ -51,46 +66,11 @@ pm_unit_data <- create_pm_nh3_voc_unit_data("pm25")
 nh3_unit_data <- create_pm_nh3_voc_unit_data("nh3")
 voc_unit_data <- create_pm_nh3_voc_unit_data("voc") 
 
-# Format final version of PM2.5 unit file ------------
-#adjust PM2.5 emissions for renewable fuel types and select desired columns
-pm_unit_formatted <-
-  pm_unit_data %>%
-  # set PM2.5 annual emissions to NA for renewable fuel types
-  mutate(pm25_ann = if_else(primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, emission),
-         # set PM2.5 source type to NA for renewable fuel types
-         pm25_source = if_else(pm25_ann >= 0, emission_source, NA_character_),
-         # add data column with adjusted PM2.5 rate
-         pm25_rate = pm25_ann * 2000 / heat_input) %>%
-  # select desired variables for final version
-  select(plant_state, plant_name, plant_id, unit_id, prime_mover, operating_status, botfirty, primary_fuel_type, operating_hours, heat_input, pm25_ann, pm25_rate, heat_input_source, pm25_source, year_online)
-
-# Format final version of NH3 unit file ------------
-#adjust NH3 emissions for renewable fuel types and select desired columns
-nh3_unit_formatted <-
-  nh3_unit_data %>%
-  # set NH3 annual emissions to NA for renewable fuel types
-  mutate(nh3_ann = if_else(primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, emission),
-         # set NH3 source type to NA for renewable fuel types
-         nh3_source = if_else(nh3_ann >= 0, emission_source, NA_character_),
-         # add data column with adjusted NH3 rate
-         nh3_rate = nh3_ann * 2000 / heat_input) %>%
-  # select desired variables for final version
-  select(plant_state, plant_name, plant_id, unit_id, prime_mover, operating_status, botfirty, primary_fuel_type, operating_hours, heat_input, nh3_ann, nh3_rate, heat_input_source, nh3_source, year_online)
-
-# Format final version of VOC unit file ------------
-#adjust VOC emissions for renewable fuel types and select desired columns
-voc_unit_formatted <-
-  voc_unit_data %>%
-  # set VOC annual emissions to NA for renewable fuel types
-  mutate(voc_ann = if_else(primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, emission),
-         # set VOC source type to NA for renewable fuel types
-         voc_source = if_else(voc_ann >= 0, emission_source, NA_character_),
-         # add data column with adjusted VOC rate
-         voc_rate = voc_ann * 2000 / heat_input) %>%
-  # select desired variables for final version
-  select(plant_state, plant_name, plant_id, unit_id, prime_mover, operating_status, botfirty, primary_fuel_type, operating_hours, heat_input, voc_ann, voc_rate, heat_input_source, voc_source, year_online)
-
-
+# Format final version of PM2.5, NH3, and VOC unit files ------------
+pm_unit_formatted <- format_unit(pm_unit_data, "pm25")
+nh3_unit_formatted <- format_unit(nh3_unit_data, "nh3")
+voc_unit_formatted <- format_unit(voc_unit_data, "voc")
+  
 # Export emission unit files ---------
 source("scripts/functions/function_save_output_data.R")
 save_output_data(pm_unit_formatted, "pm_unit_file.RDS")
