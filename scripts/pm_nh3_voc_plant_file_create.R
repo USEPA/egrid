@@ -44,7 +44,8 @@ format_plant <- function(plant_data, unit_file, emission_type) {
     filter(!is.na(get(source_var)) | get(source_var) != "") %>%
     group_by(plant_id) %>%
     arrange(get(source_var)) %>% # sort by PM2.5 source
-    summarize("{emission_type}_source" := str_c(unique(get(source_var)), collapse = "; "), .groups = "drop") # concatenate source strings
+    summarize("{emission_type}_source" := str_c(unique(get(source_var)), collapse = "; "), .groups = "drop") %>% # concatenate source strings
+    ungroup()
   
   # update sources in plant file
   plant_sources <-

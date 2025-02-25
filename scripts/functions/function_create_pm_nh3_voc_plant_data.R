@@ -38,7 +38,6 @@ create_pm_nh3_voc_plant_data <- function(emission_type){
   ## eGRID production model data - plant file
   plant_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
 
-emission_type <-"voc"
   # Run unit data creation script ---------
   source("scripts/functions/function_create_pm_nh3_voc_unit_data.R")
   unit_data <- create_pm_nh3_voc_unit_data(emission_type)
@@ -47,7 +46,8 @@ emission_type <-"voc"
   plant_sum <-
     unit_data %>%
     group_by(plant_id) %>%
-    summarise(emission = sum(emission, na.rm = TRUE))
+    summarise(emission = sum(emission, na.rm = TRUE)) %>%
+    ungroup()
 
   # Add PM2.5 data to plant file ---------
   plant_emissions <-
@@ -55,7 +55,7 @@ emission_type <-"voc"
     left_join(plant_sum, by = join_by(plant_id)) %>%
     # set plant electric allocation factors to 1 if NaN 
     mutate(elec_allocation = if_else(is.na(elec_allocation), 1, elec_allocation),
-           # calculate annual pm2.5 emissions
+           # calculate annual emissions
            emission_ann = emission * elec_allocation,
            # calculate total output emission rate
            emission_output_rate = emission_ann * 2000 / generation_ann,
