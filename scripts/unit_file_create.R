@@ -31,7 +31,7 @@ source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_params_check.R")
 
 # Define paramters if necessary and check for valid params()
-params_check()
+params <- params_check()
 
 # Specify grouping columns based on temporal_res parameter
 temporal_res_cols <- temporal_res_cols(params$temporal_res)
@@ -1519,7 +1519,7 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
          unit_id, 
          botfirty,
          primary_fuel_type,
-         prop) %>%
+         prop) %>% 
   rows_update(prop_manual_corrections, by = c("plant_id", "unit_id"), unmatched = "ignore") %>% # manually update some proportions due to wrong assignment of 1 instead of 0
   rows_update(og_fuel_types_update %>% select(plant_id, unit_id, primary_fuel_type), # convert to OG fuel type to match EIA-923 data
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
