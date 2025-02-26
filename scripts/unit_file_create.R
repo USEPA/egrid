@@ -25,30 +25,13 @@ library(readr)
 library(readxl)
 library(stringr)
 
-# check if parameters need to be defined
-# this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input params in the console if necessary
-
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
-    params$temporal_res <- as.character(params$temporal_res) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
-  params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
-  params$temporal_res <- as.character(params$temporal_res) 
-}
-
 # Load functions -------------
 
 source("scripts/functions/function_temporal_res_cols.R")
+source("scripts/functions/function_params_check.R")
+
+# Define paramters if necessary and check for valid params()
+params_check()
 
 # Specify grouping columns based on temporal_res parameter
 temporal_res_cols <- temporal_res_cols(params$temporal_res)
@@ -748,11 +731,15 @@ prime_mover_corrections_2 <-
 eia_923_boilers <- 
   eia_923$boiler_fuel_data %>% 
   mutate(heat_input = quantity_of_fuel_consumed * mmbtu_per_unit) %>% # calculating heat input
-  group_by(pick(all_of(temporal_res_cols)), plant_id, plant_state, prime_mover, boiler_id, fuel_type) %>% 
-  summarize(heat_input = sum(heat_input, na.rm = TRUE),
-            fuel_consum = sum(quantity_of_fuel_consumed, na.rm = TRUE)) %>% 
-  ungroup() %>% 
-  select(all_of(temporal_res_cols), plant_id, plant_state, prime_mover, boiler_id, fuel_type, fuel_consum, heat_input) %>% 
+  select(all_of(temporal_res_cols), 
+         plant_id, 
+         plant_name, 
+         plant_state, 
+         prime_mover, 
+         boiler_id, 
+         fuel_type, 
+         "fuel_consum" = quantity_of_fuel_consumed, 
+         heat_input) %>% 
   left_join(prime_mover_corrections, by = c("plant_id", "boiler_id", "prime_mover")) %>% 
   mutate(prime_mover = if_else(!is.na(update), update, prime_mover)) %>% 
   rows_update(prime_mover_corrections_2, by = c("plant_id", "boiler_id"), unmatched = "ignore") %>% 
@@ -783,7 +770,6 @@ eia_923_boilers_grouped <-
   eia_923_boilers %>% 
   group_by(pick(all_of(temporal_res_cols)),
            plant_id,
-           plant_state,
            boiler_id, 
            prime_mover,
            fuel_type) %>%
@@ -799,7 +785,12 @@ eia_923_boilers_grouped <-
 
 eia_923_boilers_heat <- 
   eia_923_boilers %>% 
-  group_by(pick(all_of(temporal_res_cols)), plant_id, plant_state, prime_mover, boiler_id) %>% 
+  group_by(pick(all_of(temporal_res_cols)), 
+           plant_id, 
+           plant_name, 
+           plant_state, 
+           prime_mover, 
+           boiler_id) %>% 
   summarize(# summing heat input  
             heat_input = if_else(all(is.na(heat_input)), 
                                  NA_real_, 

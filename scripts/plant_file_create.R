@@ -740,7 +740,7 @@ update_coal <-
   filter(primary_fuel_category == "COAL")
 
 plant_file_11 <- 
-  plant_file_9 %>% 
+  plant_file_10 %>% 
   mutate(coal_flag = if_else(plant_id %in% update_coal$plant_id, "Yes", NA_character_))
 
 ### Create combustion flag --------------------
@@ -824,7 +824,7 @@ plant_file_14 <-
          co2e_mass = if_else(!is.na(co2e_biomass), pmax(unadj_co2e_mass - co2e_biomass, 0), unadj_co2e_mass),
          co2e_biomass = pmin(co2e_biomass, unadj_co2e_mass))
 
-# Sum generation by fuel type and plant ID ------------------
+# Generation by fuel type  ------------------
 
 # use generator file to summarize generation by fuel type 
 gen_by_fuel <- 
@@ -973,7 +973,7 @@ plant_file_15 <-
 
 # Useful thermal output is the fuel consumption in a plant that contributes to non-electricity activities
 # Electricity allocation is a ratio of emissions that are attributed to electricity
-# Power to heat ratio is is the ratio of heat value of electricity genreation to the facility's useful thermal output
+# Power to heat ratio is is the ratio of heat value of electricity generation to the facility's useful thermal output
 
 # sum total fuel consumption and electric fuel consumption to the plant level
 eia_923_thermal_output <- 
@@ -1068,10 +1068,10 @@ plant_chp <-
          # check if CHP emission masses are greater than unadjusted values, and assign unadjusted values if TRUE
          chp_nox = if_else(chp_nox > unadj_nox_mass | chp_nox < 0, unadj_nox_mass, chp_nox),
          #chp_nox_oz = if_else(chp_nox_oz > unadj_nox_oz_mass | chp_nox_oz < 0, unadj_nox_oz_mass, chp_nox_oz),
-         chp_so2 = if_else(chp_so2 > unadj_so2_mass| chp_so2 < 0, unadj_so2_mass, chp_so2),
-         chp_co2 = if_else(chp_co2 > unadj_co2_mass| chp_co2 < 0, unadj_co2_mass, chp_co2),
-         chp_ch4 = if_else(chp_ch4 > unadj_ch4_mass| chp_ch4 < 0, unadj_ch4_mass, chp_ch4),
-         chp_n2o = if_else(chp_n2o > unadj_n2o_mass| chp_n2o < 0, unadj_n2o_mass, chp_n2o), 
+         chp_so2 = if_else(chp_so2 > unadj_so2_mass | chp_so2 < 0, unadj_so2_mass, chp_so2),
+         chp_co2 = if_else(chp_co2 > unadj_co2_mass | chp_co2 < 0, unadj_co2_mass, chp_co2),
+         chp_ch4 = if_else(chp_ch4 > unadj_ch4_mass | chp_ch4 < 0, unadj_ch4_mass, chp_ch4),
+         chp_n2o = if_else(chp_n2o > unadj_n2o_mass | chp_n2o < 0, unadj_n2o_mass, chp_n2o), 
          chp_co2e = if_else(chp_co2e > unadj_co2e_mass | chp_co2e < 0, unadj_co2e_mass, chp_co2e)) %>% 
   select(-contains("bio_adj"))
 
