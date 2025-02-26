@@ -1,11 +1,11 @@
 ## -------------------------------
 ##
-## PM NH3 VOC unit file create
+## Unit file create PM NH3 VOC
 ## 
 ## Purpose: 
 ## 
 ## This file creates the PM2.5, NH3, and VOC unit files for eGRID 
-## using the function pm_nh3_voc_unit_data(). This file includes 
+## using the function unit_data_pm_nh3_voc(). This file includes 
 ## emission data, either calculated or estimated for the 
 ## units of the specified eGRID year.
 ##
@@ -63,10 +63,10 @@ format_unit <- function(unit_emissions, emission_type) {
     # 3) Match by fuel type and prime mover - calculate emissions using matching of prime mover and fuel type ("NEI avg EF - PM, fuel type")
     # 4) Use emissions factors from AP-42 - calculate pm2.5 emissions based on emission factors in AP-42 report. If there is a unit match with EIA-923, adjust pm2.5 by control efficiency ("Estimated using an emissions factor")
 
-source("scripts/functions/function_pm_nh3_voc_unit_data.R")
-pm_unit_data <- pm_nh3_voc_unit_data("pm25")
-nh3_unit_data <- pm_nh3_voc_unit_data("nh3")
-voc_unit_data <- pm_nh3_voc_unit_data("voc") 
+source("scripts/functions/function_unit_data_pm_nh3_voc.R")
+pm_unit_data <- unit_data_pm_nh3_voc("pm25")
+nh3_unit_data <- unit_data_pm_nh3_voc("nh3")
+voc_unit_data <- unit_data_pm_nh3_voc("voc") 
 
 # Format final version of PM2.5, NH3, and VOC unit files ------------
 pm_unit_formatted <- format_unit(pm_unit_data, "pm25")

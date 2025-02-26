@@ -1,13 +1,13 @@
 ## -------------------------------
 ##
-## Create PM unit data
+## Unit data PM NH3 VOC function
 ## 
 ## Purpose: 
 ## 
 ## This function creates the first iteration of the emission unit
 ## data for PM2.5, NH3, and VOC that is used to compute plant 
 ## aggregated values. The output is not the final version used in 
-## the unit files and are formatted in pm_nh3_voc_unit_file_create.
+## the unit files and are formatted in unit_file_create_pm_nh3_voc.
 ## 
 ## The method of emission calculations are listed within emission_source.
 ##
@@ -18,9 +18,9 @@
 ## -------------------------------
 
 
-pm_nh3_voc_unit_data <- function(emission_type){
+unit_data_pm_nh3_voc <- function(emission_type){
   
-  #' pm_nh3_voc_unit_data
+  #' unit_data_pm_nh3_voc
   #' 
   #' Function to create pm2.5, nh3, or voc unit file data using a sequence of methods
   #' 
@@ -31,7 +31,7 @@ pm_nh3_voc_unit_data <- function(emission_type){
   #'         
   #' @examples 
   #' # Create PM2.5 unit data
-  #' pm_unit_data <- pm_nh3_voc_unit_data("pm25")
+  #' pm_unit_data <- unit_data_pm_nh3_voc("pm25")
   
   
   # Require Libraries ---------

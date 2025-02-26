@@ -1,7 +1,11 @@
+## -------------------------------
+##
+## Region aggregation create PM NH3 VOC
+##
 ## Purpose: 
 ## 
 ## This file creates PM2.5, NH3, and VOC state, US, and subregion 
-## files for eGRID using the function pm_nh3_voc_region_aggregation. 
+## files for eGRID using the function region_aggregation_pm_nh3_voc. 
 ## 
 ##
 ## Additional notes
@@ -31,7 +35,7 @@ if (exists("params")) {
 }
 
 # Run aggregation data function to produce and save files --------
-source("scripts/functions/function_pm_nh3_voc_region_aggregation.R")
-pm_nh3_voc_region_aggregation("pm25")
-pm_nh3_voc_region_aggregation("nh3")
-pm_nh3_voc_region_aggregation("voc")
+source("scripts/functions/function_region_aggregation_pm_nh3_voc.R")
+region_aggregation_pm_nh3_voc("pm25")
+region_aggregation_pm_nh3_voc("nh3")
+region_aggregation_pm_nh3_voc("voc")
