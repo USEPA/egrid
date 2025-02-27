@@ -828,10 +828,10 @@ ann_gen_by_fuel <-
   group_by(plant_id, fuel_type) %>% 
   summarize(ann_gen = if_else(all(is.na(net_generation_megawatthours)), NA_real_, 
                               sum(net_generation_megawatthours, na.rm = TRUE)), 
-            ann_gen = if_else(ann_gen < 0, 0, ann_gen)) %>% 
+            non_negative_tot_gen = if_else(ann_gen < 0, 0, ann_gen)) %>% # calculate sum of generation excluding negative values for the resource mix calculation
   ungroup() %>% 
   group_by(plant_id) %>%
-  mutate(plant_ann_gen = if_else(all(is.na(ann_gen)), NA_real_, sum(ann_gen, na.rm = TRUE)),
+  mutate(plant_ann_gen = if_else(all(is.na(ann_gen)) , NA_real_, sum(non_negative_tot_gen, na.rm = TRUE)),
          ann_gen_coal = if_else(is.na(ann_gen), NA_real_, 
                                 sum(ann_gen[which(fuel_type %in% coal_fuels)], na.rm = TRUE)),
          ann_gen_oil = if_else(is.na(ann_gen), NA_real_, 
@@ -855,7 +855,7 @@ ann_gen_by_fuel <-
          ann_gen_other = if_else(is.na(ann_gen), NA_real_, 
                                   sum(ann_gen[which(fuel_type %in% other_fuels)], na.rm = TRUE))) %>%
   ungroup() %>% 
-  select(-fuel_type, -ann_gen) %>% 
+  select(-fuel_type, -ann_gen, -non_negative_tot_gen) %>% 
   distinct() 
 
 ## Calculate resource mix generation by fuel type and % resource mix by fuel type ------------
