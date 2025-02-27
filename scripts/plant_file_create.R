@@ -822,7 +822,7 @@ plant_file_15 <-
 # use generator file to summarize generation by fuel type 
 ann_gen_by_fuel <- 
   eia_923$generation_and_fuel_combined %>% 
-  left_join(xwalk_oris_epa %>% filter(!epa_plant_id %in% eia_923$generation_and_fuel_combined$plant_id), 
+  left_join(xwalk_oris_epa, 
             by = c("plant_id" = "eia_plant_id")) %>% 
   mutate(plant_id = if_else(!is.na(epa_plant_id), epa_plant_id, plant_id)) %>% 
   group_by(plant_id, fuel_type) %>% 
@@ -873,28 +873,63 @@ ann_gen_by_fuel_2 <-
 
 ann_gen_by_fuel_3 <- 
   ann_gen_by_fuel_2 %>% 
-  mutate(perc_ann_gen_coal = if_else(plant_ann_gen != 0, ann_gen_coal / plant_ann_gen, NA_real_), 
-         perc_ann_gen_oil = if_else(plant_ann_gen != 0, ann_gen_oil / plant_ann_gen, NA_real_),
-         perc_ann_gen_gas = if_else(plant_ann_gen != 0, ann_gen_gas / plant_ann_gen, NA_real_), 
-         perc_ann_gen_nuclear = if_else(plant_ann_gen != 0, ann_gen_nuclear / plant_ann_gen, NA_real_), 
-         perc_ann_gen_hydro = if_else(plant_ann_gen != 0, ann_gen_hydro / plant_ann_gen, NA_real_), 
-         perc_ann_gen_biomass = if_else(plant_ann_gen != 0, ann_gen_biomass / plant_ann_gen, NA_real_), 
-         perc_ann_gen_wind = if_else(plant_ann_gen != 0, ann_gen_wind / plant_ann_gen, NA_real_), 
-         perc_ann_gen_solar = if_else(plant_ann_gen != 0, ann_gen_solar / plant_ann_gen, NA_real_), 
-         perc_ann_gen_geothermal = if_else(plant_ann_gen != 0, ann_gen_geothermal / plant_ann_gen, NA_real_), 
-         perc_ann_gen_solar = if_else(plant_ann_gen != 0, ann_gen_solar / plant_ann_gen, NA_real_), 
-         perc_ann_gen_other_ff = if_else(plant_ann_gen != 0, ann_gen_other_ff / plant_ann_gen, NA_real_), 
-         perc_ann_gen_other = if_else(plant_ann_gen != 0, ann_gen_other / plant_ann_gen, NA_real_), 
-         perc_ann_gen_non_renew = if_else(plant_ann_gen != 0, ann_gen_non_renew / plant_ann_gen, NA_real_), 
-         perc_ann_gen_renew = if_else(plant_ann_gen != 0, ann_gen_renew / plant_ann_gen, NA_real_), 
-         perc_ann_gen_renew_nonhydro = if_else(plant_ann_gen != 0, ann_gen_renew_nonhydro / plant_ann_gen, NA_real_), 
-         perc_ann_gen_non_renew_other = if_else(plant_ann_gen != 0, ann_gen_non_renew_other / plant_ann_gen, NA_real_),
-         perc_ann_gen_combust = if_else(plant_ann_gen != 0, ann_gen_combust / plant_ann_gen, NA_real_), 
-         perc_ann_gen_non_combust = if_else(plant_ann_gen != 0, ann_gen_non_combust / plant_ann_gen, NA_real_), 
-         perc_ann_gen_non_combust_other = if_else(plant_ann_gen != 0, ann_gen_non_combust_other / plant_ann_gen, NA_real_)) %>% 
-  select(-plant_ann_gen) %>% 
+  mutate(perc_ann_gen_coal = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                       ann_gen_coal < 0 ~ 0, 
+                                       TRUE ~ ann_gen_coal / plant_ann_gen), 
+         perc_ann_gen_oil = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                       ann_gen_oil < 0 ~ 0, 
+                                       TRUE ~ ann_gen_oil / plant_ann_gen),
+         perc_ann_gen_gas = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                       ann_gen_gas < 0 ~ 0, 
+                                       TRUE ~ ann_gen_gas / plant_ann_gen),
+         perc_ann_gen_nuclear = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                          ann_gen_nuclear < 0 ~ 0, 
+                                          TRUE ~ ann_gen_nuclear / plant_ann_gen),
+         perc_ann_gen_hydro = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                        ann_gen_hydro < 0 ~ 0, 
+                                        TRUE ~ ann_gen_hydro / plant_ann_gen),
+         perc_ann_gen_biomass = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                          ann_gen_biomass < 0 ~ 0, 
+                                          TRUE ~ ann_gen_biomass / plant_ann_gen),
+         perc_ann_gen_wind = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                       ann_gen_wind < 0 ~ 0, 
+                                       TRUE ~ ann_gen_wind / plant_ann_gen),
+         perc_ann_gen_solar = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                        ann_gen_solar < 0 ~ 0, 
+                                        TRUE ~ ann_gen_solar / plant_ann_gen),
+         perc_ann_gen_geothermal = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                             ann_gen_geothermal < 0 ~ 0, 
+                                             TRUE ~ ann_gen_geothermal / plant_ann_gen),
+         perc_ann_gen_other_ff = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                           ann_gen_other_ff < 0 ~ 0, 
+                                           TRUE ~ ann_gen_other_ff / plant_ann_gen),
+         perc_ann_gen_other = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                        ann_gen_other < 0 ~ 0, 
+                                        TRUE ~ ann_gen_other / plant_ann_gen),
+         perc_ann_gen_non_renew = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                            ann_gen_non_renew < 0 ~ 0, 
+                                            TRUE ~ ann_gen_non_renew / plant_ann_gen),
+         perc_ann_gen_renew = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                        ann_gen_renew < 0 ~ 0, 
+                                        TRUE ~ ann_gen_renew / plant_ann_gen),
+         perc_ann_gen_renew_nonhydro = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                                 ann_gen_renew_nonhydro < 0 ~ 0, 
+                                                 TRUE ~ ann_gen_renew_nonhydro / plant_ann_gen),
+         perc_ann_gen_non_renew_other = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                                  ann_gen_non_renew_other < 0 ~ 0, 
+                                                  TRUE ~ ann_gen_non_renew_other / plant_ann_gen),
+         perc_ann_gen_combust = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                          ann_gen_combust < 0 ~ 0, 
+                                          TRUE ~ ann_gen_combust / plant_ann_gen),
+         perc_ann_gen_non_combust = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                              ann_gen_non_combust < 0 ~ 0, 
+                                              TRUE ~ ann_gen_non_combust / plant_ann_gen),
+         perc_ann_gen_non_combust_other = case_when(plant_ann_gen == 0 ~ NA_real_,
+                                                    ann_gen_non_combust_other < 0 ~ 0, 
+                                                    TRUE ~ ann_gen_non_combust_other / plant_ann_gen)) %>% 
+  #select(-plant_ann_gen) %>% 
   mutate(across(contains("perc"), 
-                ~ if_else(. < 0, 0, .)))
+                ~ if_else(.x < 0, 0, .x)))
   
 
 # checks for negative generation values
