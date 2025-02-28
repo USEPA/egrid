@@ -25,36 +25,16 @@ library(readr)
 library(readxl)
 library(stringr)
 
-# check if parameters need to be defined
-# this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input params in the console if necessary
+# Load functions -------------
 
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
-    params$temporal_res <- as.character(params$temporal_res) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
-  params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
-  params$temporal_res <- as.character(params$temporal_res) 
-}
+source("scripts/functions/function_temporal_res_cols.R")
+source("scripts/functions/function_params_check.R")
 
+# Define paramters if necessary and check for valid params()
+params <- params_check()
 
 # Specify grouping columns based on temporal_res parameter
-temporal_res_cols_all <- 
-  list("annual"  = c("year"), 
-       "monthly" = c("year", "month"), 
-       "daily"   = c("year", "month", "day"), 
-       "hourly"  = c("year", "month", "day", "hour"))
-
-temporal_res_cols <- unlist(temporal_res_cols_all[params$temporal_res], use.names = FALSE)
+temporal_res_cols <- temporal_res_cols(params$temporal_res)
 
 # Load necessary data ------
 
@@ -228,10 +208,6 @@ coal_fuels <- fuel_type_category[["coal_fuels"]]
 coal_fuels <- coal_fuels[!is.na(coal_fuels)]
 
 combustion_fuels <- fuel_type_category[["combustion_fuels"]]
-
-# Load functions -------------
-
-source("scripts/functions/function_cols_to_add.R")
 
 # Modifying EPA data ---------
 
@@ -755,16 +731,32 @@ prime_mover_corrections_2 <-
 eia_923_boilers <- 
   eia_923$boiler_fuel_data %>% 
   mutate(heat_input = quantity_of_fuel_consumed * mmbtu_per_unit) %>% # calculating heat input
-  group_by(pick(all_of(temporal_res_cols)), plant_id, plant_state, prime_mover, boiler_id, fuel_type) %>% 
-  summarize(heat_input = sum(heat_input, na.rm = TRUE),
-            fuel_consum = sum(quantity_of_fuel_consumed, na.rm = TRUE)) %>% 
-  ungroup() %>% 
-  select(all_of(temporal_res_cols), plant_id, plant_state, prime_mover, boiler_id, fuel_type, fuel_consum, heat_input) %>% 
+  select(all_of(temporal_res_cols), 
+         plant_id, 
+         plant_name, 
+         plant_state, 
+         prime_mover, 
+         boiler_id, 
+         fuel_type, 
+         "fuel_consum" = quantity_of_fuel_consumed, 
+         heat_input, 
+         respondent_frequency) %>% 
   left_join(prime_mover_corrections, by = c("plant_id", "boiler_id", "prime_mover")) %>% 
   mutate(prime_mover = if_else(!is.na(update), update, prime_mover)) %>% 
   rows_update(prime_mover_corrections_2, by = c("plant_id", "boiler_id"), unmatched = "ignore") %>% 
   select(-update) %>% 
   distinct()
+
+# identify annual reporters and make current heat input and fuel consumption NA 
+# these values will be filled by EIA-923 Gen and Fuel later
+# this is done because annual reporters have their total generation and fuel consumption listed in December
+if (params$temporal_res == "monthly") { 
+  eia_923_boilers <- 
+    eia_923_boilers %>% 
+    mutate(heat_input = case_when(respondent_frequency == "A" ~ NA_real_, 
+                                  TRUE ~ heat_input), 
+           fuel_consum = case_when(respondent_frequency == "A" ~ NA_real_, 
+                                   TRUE ~ fuel_consum))}
 
 # calculate ozone heat input if temporal_res is annual
 # if (params$temporal_res == "annual") { 
@@ -790,7 +782,6 @@ eia_923_boilers_grouped <-
   eia_923_boilers %>% 
   group_by(pick(all_of(temporal_res_cols)),
            plant_id,
-           plant_state,
            boiler_id, 
            prime_mover,
            fuel_type) %>%
@@ -806,7 +797,12 @@ eia_923_boilers_grouped <-
 
 eia_923_boilers_heat <- 
   eia_923_boilers %>% 
-  group_by(pick(all_of(temporal_res_cols)), plant_id, plant_state, prime_mover, boiler_id) %>% 
+  group_by(pick(all_of(temporal_res_cols)), 
+           plant_id, 
+           plant_name, 
+           plant_state, 
+           prime_mover, 
+           boiler_id) %>% 
   summarize(# summing heat input  
             heat_input = if_else(all(is.na(heat_input)), 
                                  NA_real_, 
@@ -1049,18 +1045,18 @@ units_missing_heat_by_unit <- # creating separate dataframe of units with missin
   mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
   ungroup()
 
-units_missing_heat_ozone <- 
-  all_units_2 %>% 
-  filter(reporting_frequency == "OS", is.na(heat_input)) %>% 
-  mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) 
+#units_missing_heat_ozone <- 
+#  all_units_2 %>% 
+#  filter(reporting_frequency == "OS", is.na(heat_input)) %>% 
+#  mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) 
 
 units_missing_heat <- 
   rbind(units_missing_heat_by_unit, 
         units_missing_heat_ozone)
 
-units_missing_heat_w_heat_oz <- # some units have positive ozone heat inputs (heat_input_oz) - identify them here
-  units_missing_heat %>% 
-  filter(!is.na(heat_input_oz)) %>% pull(id)
+#units_missing_heat_w_heat_oz <- # some units have positive ozone heat inputs (heat_input_oz) - identify them here
+#  units_missing_heat %>% 
+#  filter(!is.na(heat_input_oz)) %>% pull(id)
 
 print(glue::glue("{nrow(units_missing_heat %>% 
                         select(plant_id, unit_id, prime_mover) %>% 
@@ -1116,8 +1112,8 @@ units_heat_updated_pm_data <- # dataframe with units having heat input updated b
              by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"),
              unmatched = "ignore") %>% # ignore rows in distributed_heat_input that aren't in units_missing_heat
   filter(!is.na(heat_input)) %>% 
-  mutate(heat_input_source = "EIA Prime Mover-level Data", 
-         heat_input_oz_source = if_else(id %in% units_missing_heat_w_heat_oz, heat_input_oz_source, "EIA Prime Mover-level Data")) # only update source for NA ozone heat input values
+  mutate(heat_input_source = "EIA Prime Mover-level Data") #, 
+         #heat_input_oz_source = if_else(id %in% units_missing_heat_w_heat_oz, heat_input_oz_source, "EIA Prime Mover-level Data")) # only update source for NA ozone heat input values
 
 print(glue::glue("{nrow(units_heat_updated_pm_data)} units updated with EIA Prime Mover-level Data. {(nrow(units_missing_heat) - nrow(units_heat_updated_pm_data))} with missing heat input remain."))
 
@@ -1143,10 +1139,10 @@ eia_923_boiler_update_heat <-
 units_heat_updated_boiler_matches <- 
   units_missing_heat_2 %>% 
   rows_patch(eia_923_boiler_update_heat, 
-             by = c(all_of(temporal_res_cols), "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
+             by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
   filter(!is.na(heat_input)) %>% 
-  mutate(heat_input_source = "EIA Unit-level Data", 
-         heat_input_oz_source = if_else(!is.na(heat_input_oz_source), heat_input_oz_source, "EIA Unit-level Data")) %>% 
+  mutate(heat_input_source = "EIA Unit-level Data") %>% #,
+         #heat_input_oz_source = if_else(!is.na(heat_input_oz_source), heat_input_oz_source, "EIA Unit-level Data")) %>% 
   select(all_of(temporal_res_cols), 
          plant_id, 
          unit_id, 
@@ -1345,19 +1341,21 @@ all_units_4 <-
   
 ### Determine default sulfur content -------
 
+# for the monthly version, we use monthly reported sulfur contents 
+# for the annual version, we calculate sulfur content using a weighted average across all months 
+
+######### 3/3/2025 start here #########
 avg_sulfur_content <- 
   eia_923$boiler_fuel_data %>% 
-  group_by(pick(all_of(temporal_res_cols)), plant_id, boiler_id, prime_mover, fuel_type, physical_unit_label) %>% 
-  summarize(across(c("quantity_of_fuel_consumed", "mmbtu_per_unit", "total_fuel_consumption_quantity"), ~ sum(.x, na.rm = TRUE)),
-            sulfur_content = max(sulfur_content)) %>% 
-  ungroup() %>% 
   mutate(# calculating monthly boiler heat input, based on corresponding consumption and mmbtu_per_unit
-         heat_input = quantity_of_fuel_consumed * mmbtu_per_unit) %>% 
+    heat_input = quantity_of_fuel_consumed * mmbtu_per_unit) %>% 
   group_by(pick(all_of(temporal_res_cols)), plant_id, boiler_id, prime_mover, fuel_type, physical_unit_label) %>% 
-  summarize(avg_sulfur_content = if_else(sum(quantity_of_fuel_consumed, na.rm = TRUE) > 0, 
+  summarize(across(c("quantity_of_fuel_consumed", "mmbtu_per_unit", "heat_input"), ~ sum(.x, na.rm = TRUE)),
+            sulfur_content = max(sulfur_content, na.rm = TRUE),
+            avg_sulfur_content = if_else(sum(quantity_of_fuel_consumed, na.rm = TRUE) > 0, 
                                          sum(quantity_of_fuel_consumed * sulfur_content, na.rm = TRUE)/sum(quantity_of_fuel_consumed, na.rm = TRUE), 
                                          sum(quantity_of_fuel_consumed * sulfur_content, na.rm = TRUE)/1),
-            heat_input = heat_input, 
+            heat_input = sum(heat_input, na.rm = TRUE),  
             fuel_consum = sum(quantity_of_fuel_consumed, na.rm = TRUE)) %>% 
   ungroup() %>% 
   mutate(fuel_type = if_else(fuel_type %in% c("MSN", "MSB"), "MSW", fuel_type)) %>% 
@@ -1452,12 +1450,15 @@ so2_pr <- # calculate average sulfur content and removal rate for coal types by 
                         with_ties = FALSE) %>% ungroup(), 
             by = c("plant_id", "boiler_id")) %>% 
   mutate(botfirty = NA_character_) %>% # create a botfirty column, and fill in with data from all_units_4
-  rows_update(all_units_4 %>% select(all_of(temporal_res_cols), plant_id, boiler_id = unit_id, botfirty, prime_mover), 
+  rows_update(all_units_4 %>% 
+                select(all_of(temporal_res_cols), plant_id, boiler_id = unit_id, botfirty, prime_mover, "fuel_type" = primary_fuel_type) %>% 
+                distinct(), 
               by = c(temporal_res_cols, "plant_id", "boiler_id", "prime_mover"), 
               unmatched = "ignore") %>% 
   filter(fuel_type %in% pr_coal_plants$primary_fuel_type, 
          prime_mover %in% pr_coal_plants$prime_mover, 
-         botfirty == "FLUIDIZED") %>% # check each year if botfirty needs to change
+         botfirty == "FLUIDIZED", 
+         avg_sulfur_content > 0) %>% # check each year if botfirty needs to change
   group_by(fuel_type, prime_mover, botfirty) %>% 
   summarize(avg_sulfur_content = mean(avg_sulfur_content, na.rm = TRUE), 
             so2_removal_efficiency_rate_at_annual_operating_factor = mean(so2_removal_efficiency_rate_at_annual_operating_factor, na.rm = TRUE)) %>% 
@@ -1476,6 +1477,10 @@ estimated_so2_emissions_content_pr <- # estimate SO2 mass for PR coal plants
   left_join(dist_props) %>% 
   mutate(fuel_consum = prop * quantity, 
          heat_input = prop * tot_mmbtu) %>%
+  group_by(pick(all_of(temporal_res_cols)), plant_id, generator_id, prime_mover, primary_fuel_type) %>% 
+  summarize(fuel_consum = sum(fuel_consum, na.rm = TRUE), 
+            heat_input = sum(heat_input, na.rm = TRUE)) %>% 
+  ungroup() %>% 
   left_join(so2_pr, by = c("primary_fuel_type" = "fuel_type", "prime_mover")) %>% 
   left_join(emission_factors_all %>%
               select(prime_mover, botfirty, so2_ef, so2_flag, unit_flag, primary_fuel_type),
@@ -1484,10 +1489,7 @@ estimated_so2_emissions_content_pr <- # estimate SO2 mass for PR coal plants
                             (so2_ef * avg_sulfur_content * fuel_consum * (1 - so2_removal_efficiency_rate_at_annual_operating_factor)) / 2000,
                             (so2_ef * avg_sulfur_content * heat_input * (1 - so2_removal_efficiency_rate_at_annual_operating_factor)) / 2000), 
          so2_source = "Estimated using emissions factor and plant-specific sulfur content") %>% 
-  select(all_of(temporal_res_cols), plant_id, unit_id = generator_id, prime_mover, so2_mass, so2_source) %>% 
-  group_by(pick(all_of(temporal_res_cols)), plant_id, unit_id, prime_mover, so2_source) %>% 
-  summarize(so2_mass = sum(so2_mass, na.rm = TRUE)) %>% 
-  ungroup()
+  select(all_of(temporal_res_cols), plant_id, unit_id = generator_id, prime_mover, so2_mass, so2_source) 
 
 ### Join sulfur emissions to all units df  --------
 
@@ -1533,7 +1535,7 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
          unit_id, 
          botfirty,
          primary_fuel_type,
-         prop) %>%
+         prop) %>% 
   rows_update(prop_manual_corrections, by = c("plant_id", "unit_id"), unmatched = "ignore") %>% # manually update some proportions due to wrong assignment of 1 instead of 0
   rows_update(og_fuel_types_update %>% select(plant_id, unit_id, primary_fuel_type), # convert to OG fuel type to match EIA-923 data
               by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
@@ -2053,7 +2055,6 @@ all_units_11 <-
   mutate(capd_flag = if_else(paste0(plant_id, "_", unit_id, "_", prime_mover) %in% epa_units, "Yes", NA_character_)) %>% 
   rows_update(update_pr_epa_flag, by = c("plant_id", "unit_id"))
 
-
 ## Implement changes in main unit file ------
 
 # plant ID and plant name manual corrections 
@@ -2116,7 +2117,7 @@ if (params$temporal_res == "annual") {
 # creating named vector of final variable order and variable name included in unit file
 # load names from name_matches.R
 if (params$temporal_res == "annual") {
-  final_vars <- unit_nonmetric}
+  final_vars <- unit_nonmetric_annual}
 if (params$temporal_res == "monthly") {
   final_vars <- unit_nonmetric_monthly}
 
