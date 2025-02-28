@@ -24,26 +24,14 @@ library(readr)
 library(readxl)
 library(stringr)
 
-# check if parameters need to be defined
-# this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input params in the console if necessary
+### Load necessary functions --------------------
 
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
-    params$temporal_res <- as.character(params$temporal_res) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
-  params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
-  params$temporal_res <- as.character(params$temporal_res) 
-}
+source("scripts/functions/function_params_check.R")
+source("scripts/functions/function_paste_concat.R")
+source("scripts/functions/function_update_source.R")
+
+# check if parameters need to be defined
+params <- check_params()
 
 # Specify grouping columns based on temporal_res parameter
 temporal_res_cols_all <- 
@@ -90,11 +78,6 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/unit_file_{params$te
   unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file_{params$temporal_res}.RDS"))
 } else { 
    stop(glue::glue("unit_file_{params$temporal_res}.RDS does not exist. Run unit_file_create.R to obtain."))}
-
-### Load necessary functions --------------------
-
-source("scripts/functions/function_paste_concat.R")
-source("scripts/functions/function_update_source.R")
 
 ### Load crosswalks and static tables ----------------------
 
@@ -829,18 +812,18 @@ plant_file_14 <-
 # use generator file to summarize generation by fuel type 
 gen_by_fuel <- 
   eia_923$generation_and_fuel_combined %>% 
-  left_join(xwalk_oris_epa %>% filter(!epa_plant_id %in% eia_923$generation_and_fuel_combined$plant_id), 
+  left_join(xwalk_oris_epa, 
             by = c("plant_id" = "eia_plant_id")) %>% 
   mutate(plant_id = if_else(!is.na(epa_plant_id), epa_plant_id, plant_id)) %>% 
   group_by(pick(all_of(temporal_res_cols)), plant_id, fuel_type) %>% 
   summarize(# generation by plant and fuel type
             netgen = if_else(all(is.na(netgen)), 0, 
                               sum(netgen, na.rm = TRUE)), 
-            netgen = if_else(netgen < 0, 0, netgen)) %>% 
+            non_negative_netgen = if_else(netgen < 0, 0, netgen)) %>% 
   ungroup() %>% 
   group_by(pick(all_of(temporal_res_cols)), plant_id) %>%
   mutate(# plant total generation
-         plant_netgen = if_else(all(is.na(netgen)), NA_real_, sum(netgen, na.rm = TRUE)),
+         plant_netgen = if_else(all(is.na(netgen)), NA_real_, sum(non_negative_netgen, na.rm = TRUE)),
          # coal generation
          coal_netgen = if_else(is.na(netgen), NA_real_, 
                                sum(netgen[which(fuel_type %in% coal_fuels)], na.rm = TRUE)),
@@ -900,33 +883,66 @@ gen_by_fuel_2 <-
 
 gen_by_fuel_3 <- # calculate resource mix across each fuel type
   gen_by_fuel_2 %>% 
-  mutate(# coal percentage of resource mix
-    coal_perc_gen = if_else(plant_netgen != 0, coal_netgen / plant_netgen, NA_real_), 
-    oil_perc_gen = if_else(plant_netgen != 0, oil_netgen / plant_netgen, NA_real_),
-    gas_perc_gen = if_else(plant_netgen != 0, gas_netgen / plant_netgen, NA_real_), 
-    nuclear_perc_gen = if_else(plant_netgen != 0, nuclear_netgen / plant_netgen, NA_real_), 
-    hydro_perc_gen = if_else(plant_netgen != 0, hydro_netgen / plant_netgen, NA_real_), 
-    biomass_perc_gen = if_else(plant_netgen != 0, biomass_netgen / plant_netgen, NA_real_), 
-    wind_perc_gen = if_else(plant_netgen != 0, wind_netgen / plant_netgen, NA_real_), 
-    solar_perc_gen = if_else(plant_netgen != 0, solar_netgen / plant_netgen, NA_real_), 
-    geothermal_perc_gen = if_else(plant_netgen != 0, geothermal_netgen / plant_netgen, NA_real_), 
-    solar_perc_gen = if_else(plant_netgen != 0, solar_netgen / plant_netgen, NA_real_), 
-    other_ff_perc_gen = if_else(plant_netgen != 0, other_ff_netgen / plant_netgen, NA_real_), 
-    other_perc_gen = if_else(plant_netgen != 0, other_netgen / plant_netgen, NA_real_), 
-    nonrenew_perc_gen = if_else(plant_netgen != 0, nonrenew_netgen / plant_netgen, NA_real_), 
-    renew_perc_gen = if_else(plant_netgen != 0, renew_netgen / plant_netgen, NA_real_), 
-    renew_nonhydro_perc_gen = if_else(plant_netgen != 0, renew_nonhydro_netgen / plant_netgen, NA_real_), 
-    nonrenew_other_perc_gen = if_else(plant_netgen != 0, nonrenew_other_netgen / plant_netgen, NA_real_),
-    combust_perc_gen = if_else(plant_netgen != 0, combust_netgen / plant_netgen, NA_real_), 
-    noncombust_perc_gen = if_else(plant_netgen != 0, noncombust_netgen / plant_netgen, NA_real_), 
-    noncombust_other_perc_gen = if_else(plant_netgen != 0, noncombust_other_netgen / plant_netgen, NA_real_)) %>% 
+  mutate(
+    coal_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                              coal_netgen < 0 ~ 0, 
+                              TRUE ~ coal_netgen / plant_netgen), 
+    oil_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                             oil_netgen < 0 ~ 0, 
+                             TRUE ~ oil_netgen / plant_netgen), 
+    gas_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                             gas_netgen < 0 ~ 0, 
+                             TRUE ~ gas_netgen / plant_netgen), 
+    nuclear_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                                 nuclear_netgen < 0 ~ 0, 
+                                 TRUE ~ nuclear_netgen / plant_netgen), 
+    hydro_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                               hydro_netgen < 0 ~ 0, 
+                               TRUE ~ hydro_netgen / plant_netgen), 
+    biomass_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                                 biomass_netgen < 0 ~ 0, 
+                                 TRUE ~ biomass_netgen / plant_netgen), 
+    wind_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                              wind_netgen < 0 ~ 0, 
+                              TRUE ~ wind_netgen / plant_netgen),
+    solar_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                               solar_netgen < 0 ~ 0, 
+                               TRUE ~ solar_netgen / plant_netgen),
+    geothermal_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                                    geothermal_netgen < 0 ~ 0, 
+                                    TRUE ~ geothermal_netgen / plant_netgen),
+    other_ff_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                                  other_ff_netgen < 0 ~ 0, 
+                                  TRUE ~ other_ff_netgen / plant_netgen),
+    other_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                               other_netgen < 0 ~ 0, 
+                               TRUE ~ other_netgen / plant_netgen),
+    nonrenew_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                                  nonrenew_netgen < 0 ~ 0, 
+                                  TRUE ~ nonrenew_netgen / plant_netgen),
+    renew_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                               renew_netgen < 0 ~ 0, 
+                               TRUE ~ renew_netgen / plant_netgen),
+    renew_nonhydro_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                                        renew_nonhydro_netgen < 0 ~ 0, 
+                                        TRUE ~ renew_nonhydro_netgen / plant_netgen),
+    nonrenew_other_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                                        nonrenew_other_netgen < 0 ~ 0, 
+                                        TRUE ~ nonrenew_other_netgen / plant_netgen),
+    combust_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                                 combust_netgen < 0 ~ 0, 
+                                 TRUE ~ combust_netgen / plant_netgen),
+    noncombust_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                                    noncombust_netgen < 0 ~ 0, 
+                                    TRUE ~ noncombust_netgen / plant_netgen),
+    noncombust_other_perc_gen = case_when(plant_netgen == 0 ~ NA_real_,
+                                          noncombust_other_netgen < 0 ~ 0, 
+                                          TRUE ~ noncombust_other_netgen / plant_netgen)) %>% 
   select(-contains("plant_netgen")) %>% 
   mutate(across(contains("perc"), 
                 ~ if_else(.x < 0, 0, .x)))
 
-# checks for negative generation values
-stopifnot(sum(isTRUE(as.matrix(gen_by_fuel) < 0), na.rm = TRUE) == 0)
-
+# update plant file with generation values
 plant_file_15 <- 
   plant_file_14 %>% 
   left_join(gen_by_fuel_3, by = c(temporal_res_cols, "plant_id")) %>% 
@@ -1293,7 +1309,7 @@ plant_file_24 <-
 # creating named vector of final variable order and variable name included in plant file
 if (params$temporal_res == "annual") {
   final_vars <-
-    plant_nonmetric}
+    plant_nonmetric_annual}
 if (params$temporal_res == "monthly") { 
   final_vars <- 
     plant_nonmetric_monthly}

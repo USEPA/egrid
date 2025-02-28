@@ -739,12 +739,24 @@ eia_923_boilers <-
          boiler_id, 
          fuel_type, 
          "fuel_consum" = quantity_of_fuel_consumed, 
-         heat_input) %>% 
+         heat_input, 
+         respondent_frequency) %>% 
   left_join(prime_mover_corrections, by = c("plant_id", "boiler_id", "prime_mover")) %>% 
   mutate(prime_mover = if_else(!is.na(update), update, prime_mover)) %>% 
   rows_update(prime_mover_corrections_2, by = c("plant_id", "boiler_id"), unmatched = "ignore") %>% 
   select(-update) %>% 
   distinct()
+
+# identify annual reporters and make current heat input and fuel consumption NA 
+# these values will be filled by EIA-923 Gen and Fuel later
+# this is done because annual reporters have their total generation and fuel consumption listed in December
+if (params$temporal_res == "monthly") { 
+  eia_923_boilers <- 
+    eia_923_boilers %>% 
+    mutate(heat_input = case_when(respondent_frequency == "A" ~ NA_real_, 
+                                  TRUE ~ heat_input), 
+           fuel_consum = case_when(respondent_frequency == "A" ~ NA_real_, 
+                                   TRUE ~ fuel_consum))}
 
 # calculate ozone heat input if temporal_res is annual
 # if (params$temporal_res == "annual") { 
@@ -1127,7 +1139,7 @@ eia_923_boiler_update_heat <-
 units_heat_updated_boiler_matches <- 
   units_missing_heat_2 %>% 
   rows_patch(eia_923_boiler_update_heat, 
-             by = c(all_of(temporal_res_cols), "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
+             by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
   filter(!is.na(heat_input)) %>% 
   mutate(heat_input_source = "EIA Unit-level Data", 
          heat_input_oz_source = if_else(!is.na(heat_input_oz_source), heat_input_oz_source, "EIA Unit-level Data")) %>% 
@@ -1436,7 +1448,9 @@ so2_pr <- # calculate average sulfur content and removal rate for coal types by 
                         with_ties = FALSE) %>% ungroup(), 
             by = c("plant_id", "boiler_id")) %>% 
   mutate(botfirty = NA_character_) %>% # create a botfirty column, and fill in with data from all_units_4
-  rows_update(all_units_4 %>% select(all_of(temporal_res_cols), plant_id, boiler_id = unit_id, botfirty, prime_mover), 
+  rows_update(all_units_4 %>% 
+                select(all_of(temporal_res_cols), plant_id, boiler_id = unit_id, botfirty, prime_mover, "fuel_type" = primary_fuel_type) %>% 
+                distinct(), 
               by = c(temporal_res_cols, "plant_id", "boiler_id", "prime_mover"), 
               unmatched = "ignore") %>% 
   filter(fuel_type %in% pr_coal_plants$primary_fuel_type, 
@@ -2039,7 +2053,6 @@ all_units_11 <-
   mutate(capd_flag = if_else(paste0(plant_id, "_", unit_id, "_", prime_mover) %in% epa_units, "Yes", NA_character_)) %>% 
   rows_update(update_pr_epa_flag, by = c("plant_id", "unit_id"))
 
-
 ## Implement changes in main unit file ------
 
 # plant ID and plant name manual corrections 
@@ -2102,7 +2115,7 @@ if (params$temporal_res == "annual") {
 # creating named vector of final variable order and variable name included in unit file
 # load names from name_matches.R
 if (params$temporal_res == "annual") {
-  final_vars <- unit_nonmetric}
+  final_vars <- unit_nonmetric_annual}
 if (params$temporal_res == "monthly") {
   final_vars <- unit_nonmetric_monthly}
 

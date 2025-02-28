@@ -216,14 +216,6 @@ cols <- # columns for grouping and for selecting
     "secondary_fuel_type",
     "hg_controls")
 
-groupby_mats_cols_all <-
-  list("annual"  = c(cols, "year"), 
-       "monthly" = c(cols, "month"),
-       "daily"   = c(cols, "day"),
-       "hourly"  = c(cols, "hour"))
-
-groupby_mats_cols <- unlist(groupby_mats_cols_all[params$temporal_res], use.names = FALSE)
-
 # updating relevant columns to numeric and aggregating to month
 mats_data_r <- 
   mats_data %>% 
@@ -237,7 +229,7 @@ mats_data_r <-
          day = as.character(day(date))
          ) %>%
   select(-date) %>% # remove date for easier group/summation
-  group_by(pick(all_of(groupby_mats_cols))) %>% # group by depending on temporal_res
+  group_by(pick(all_of(c(temporal_res_cols, cols)))) %>% # group by depending on temporal_res
   summarize(hg_mass_lbs = sum(hg_mass_lbs, na.rm = TRUE)) %>% # aggregate to the monthly level
   ungroup() %>%
   distinct()
@@ -252,8 +244,8 @@ if (params$temporal_res == "daily") {
 
 epa_data_combined <- 
   facility_df %>% 
-  left_join(emissions_data_r,
-            by = c(all_of(params$temporal_res_cols), "facility_id", "unit_id", "primary_fuel_type")) %>% 
+  left_join(emissions_data_r, 
+            by = c(temporal_res_cols, "facility_id", "unit_id", "primary_fuel_type")) %>% 
   coalesce_join_vars() %>% 
   left_join(mats_data_r) %>% 
   arrange(facility_id, unit_id)
