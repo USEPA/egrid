@@ -1045,18 +1045,18 @@ units_missing_heat_by_unit <- # creating separate dataframe of units with missin
   mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
   ungroup()
 
-units_missing_heat_ozone <- 
-  all_units_2 %>% 
-  filter(reporting_frequency == "OS", is.na(heat_input)) %>% 
-  mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) 
+#units_missing_heat_ozone <- 
+#  all_units_2 %>% 
+#  filter(reporting_frequency == "OS", is.na(heat_input)) %>% 
+#  mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) 
 
 units_missing_heat <- 
   rbind(units_missing_heat_by_unit, 
         units_missing_heat_ozone)
 
-units_missing_heat_w_heat_oz <- # some units have positive ozone heat inputs (heat_input_oz) - identify them here
-  units_missing_heat %>% 
-  filter(!is.na(heat_input_oz)) %>% pull(id)
+#units_missing_heat_w_heat_oz <- # some units have positive ozone heat inputs (heat_input_oz) - identify them here
+#  units_missing_heat %>% 
+#  filter(!is.na(heat_input_oz)) %>% pull(id)
 
 print(glue::glue("{nrow(units_missing_heat %>% 
                         select(plant_id, unit_id, prime_mover) %>% 
@@ -1112,8 +1112,8 @@ units_heat_updated_pm_data <- # dataframe with units having heat input updated b
              by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"),
              unmatched = "ignore") %>% # ignore rows in distributed_heat_input that aren't in units_missing_heat
   filter(!is.na(heat_input)) %>% 
-  mutate(heat_input_source = "EIA Prime Mover-level Data", 
-         heat_input_oz_source = if_else(id %in% units_missing_heat_w_heat_oz, heat_input_oz_source, "EIA Prime Mover-level Data")) # only update source for NA ozone heat input values
+  mutate(heat_input_source = "EIA Prime Mover-level Data") #, 
+         #heat_input_oz_source = if_else(id %in% units_missing_heat_w_heat_oz, heat_input_oz_source, "EIA Prime Mover-level Data")) # only update source for NA ozone heat input values
 
 print(glue::glue("{nrow(units_heat_updated_pm_data)} units updated with EIA Prime Mover-level Data. {(nrow(units_missing_heat) - nrow(units_heat_updated_pm_data))} with missing heat input remain."))
 
@@ -1141,8 +1141,8 @@ units_heat_updated_boiler_matches <-
   rows_patch(eia_923_boiler_update_heat, 
              by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
   filter(!is.na(heat_input)) %>% 
-  mutate(heat_input_source = "EIA Unit-level Data", 
-         heat_input_oz_source = if_else(!is.na(heat_input_oz_source), heat_input_oz_source, "EIA Unit-level Data")) %>% 
+  mutate(heat_input_source = "EIA Unit-level Data") %>% #,
+         #heat_input_oz_source = if_else(!is.na(heat_input_oz_source), heat_input_oz_source, "EIA Unit-level Data")) %>% 
   select(all_of(temporal_res_cols), 
          plant_id, 
          unit_id, 
@@ -1343,6 +1343,8 @@ all_units_4 <-
 
 # for the monthly version, we use monthly reported sulfur contents 
 # for the annual version, we calculate sulfur content using a weighted average across all months 
+
+######### 3/3/2025 start here #########
 avg_sulfur_content <- 
   eia_923$boiler_fuel_data %>% 
   mutate(# calculating monthly boiler heat input, based on corresponding consumption and mmbtu_per_unit

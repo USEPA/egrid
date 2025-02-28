@@ -127,9 +127,9 @@ epa_r <-
       plant_id %in% plant_id_corrections$plant_id ~ plant_id_corrections$update, 
       TRUE ~ plant_id), 
     heat_input_source = if_else(is.na(heat_input_mmbtu), NA_character_, "EPA/CAPD"), # creating source variables based on emissions data
-    heat_input_oz_source = if_else(is.na(heat_input_mmbtu_ozone), NA_character_, "EPA/CAPD"),
+    #heat_input_oz_source = if_else(is.na(heat_input_mmbtu_ozone), NA_character_, "EPA/CAPD"),
     nox_source = if_else(is.na(nox_mass_short_tons), NA_character_, "EPA/CAPD"),
-    nox_oz_source = if_else(is.na(nox_mass_short_tons_ozone), NA_character_, "EPA/CAPD"),
+    #nox_oz_source = if_else(is.na(nox_mass_short_tons_ozone), NA_character_, "EPA/CAPD"),
     so2_source = if_else(is.na(so2_mass_short_tons), NA_character_, "EPA/CAPD"),
     co2_source = if_else(is.na(co2_mass_short_tons), NA_character_, "EPA/CAPD"),
     hg_source = if_else(is.na(hg_mass_lbs), NA_character_, "EPA/CAPD"), # Mercury mass field needs to come from separate bulk api (SB 3/28/2024)
