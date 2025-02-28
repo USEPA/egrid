@@ -11,6 +11,10 @@
 ##
 ## The method of emission calculations are listed within emission_source.
 ##
+## NOTE: Emissions data used in these calculations are from a version of  
+## EPA's NEI that is not publicly available.
+##
+##
 ## Additional notes
 ##
 ##      Emma Russell, Abt Global

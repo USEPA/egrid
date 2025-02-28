@@ -6,6 +6,9 @@
 ## 
 ## This function creates and saves PM2.5, NH3, and VOC state, US, and subregion 
 ## files for eGRID.
+##
+## NOTE: Emissions data used in these calculations are from a version of  
+## EPA's NEI that is not publicly available.
 ## 
 ##
 ## Additional notes
