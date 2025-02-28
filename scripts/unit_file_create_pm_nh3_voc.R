@@ -48,9 +48,10 @@ format_unit <- function(unit_emissions, emission_type) {
            # set emission source type to NA for renewable fuel types
            "{emission_type}_source" := if_else(get(paste0(emission_type, "_ann")) >= 0, get(paste0(emission_type, "_source")), NA_character_),
            # add data column with adjusted emission rate
-           "{emission_type}_rate" := if_else(heat_input != 0, get(paste0(emission_type, "_ann")) * 2000 / heat_input, NA_real_)) %>%
+           "{emission_type}_rate" := if_else(heat_input != 0, get(paste0(emission_type, "_ann")) * 2000 / heat_input, NA_real_),
+           year = params$eGRID_year) %>%
     # select desired variables for final version
-    select(plant_state, plant_name, plant_id, unit_id, prime_mover, operating_status, botfirty, primary_fuel_type, operating_hours, heat_input, paste0(emission_type, "_ann"), paste0(emission_type, "_rate"), heat_input_source, paste0(emission_type, "_source"), year_online)
+    select(year, plant_state, plant_name, plant_id, unit_id, prime_mover, operating_status, botfirty, primary_fuel_type, operating_hours, heat_input, paste0(emission_type, "_ann"), paste0(emission_type, "_rate"), heat_input_source, paste0(emission_type, "_source"), year_online)
   
   return(unit_formatted)
 }
@@ -75,7 +76,7 @@ voc_unit_formatted <- format_unit(voc_unit_data, "voc")
   
 # Export emission unit files ---------
 source("scripts/functions/function_save_output_data.R")
-save_output_data(pm_unit_formatted, "pm25_unit_file.RDS")
-save_output_data(nh3_unit_formatted, "nh3_unit_file.RDS")
-save_output_data(voc_unit_formatted, "voc_unit_file.RDS")
+save_output_data(pm_unit_formatted, "unit_file_pm25.RDS")
+save_output_data(nh3_unit_formatted, "unit_file_nh3.RDS")
+save_output_data(voc_unit_formatted, "unit_file_voc.RDS")
 
