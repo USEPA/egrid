@@ -166,6 +166,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
       group_by(plant_id) %>%
       # convert efficiency rate to numeric percentage
       summarise(eia_control_efficiency = max(as.numeric(sub("%", "", pm_removal_efficiency_rate_at_annual_operating_factor)) / 100)) %>%
+      filter(eia_control_efficiency <= 1) %>%
       inner_join(emissions_factors, by = join_by(plant_id == plant_id)) %>%
       # adjust emission using control efficiency rate
       mutate(emission = emission_ef * (1 - eia_control_efficiency), emission_source = "Estimated using an emissions factor") %>%
