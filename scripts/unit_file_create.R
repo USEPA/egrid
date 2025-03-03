@@ -1070,12 +1070,14 @@ print(glue::glue("{nrow(units_missing_heat %>%
 # calculating ratio from generator file based on nameplate capacity to distribute heat
 
 gen_file <- # load generator file
-  read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS")) 
+  read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS")) 
 
 dist_props <- # determining distributional proportions to distribute heat inputs
   gen_file %>% 
-  select(plant_id, generator_id, prime_mover, nameplate_capacity, generation_ann) %>%
-  filter(generation_ann != 0) %>% 
+  group_by(plant_id, generator_id, prime_mover, nameplate_capacity) %>% 
+  summarize(generation = sum(generation, na.rm = TRUE)) %>% 
+  distinct() %>% 
+  filter(generation != 0) %>% 
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_namecap = sum(nameplate_capacity)) %>%
   ungroup() %>% 
