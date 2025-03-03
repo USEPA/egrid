@@ -247,8 +247,10 @@ unit_qa <- function(emission_type, year) {
   
   # Identify all unique plant and unit IDs that have differences ------------
   
+  # grab check files in QA filder
+  check_files <- grep("check", dir(save_dir), value = TRUE)
   # ignore datasets with total value differences
-  files <- grep("total", dir(save_dir), invert = TRUE, value = TRUE)
+  files <- grep("total", check_files, invert = TRUE, value = TRUE)
   
   # combine checked files
   plant_unit_diffs <- 
