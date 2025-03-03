@@ -44,11 +44,9 @@ unit_data_pm_nh3_voc <- function(emission_type){
   require(readxl)
   
   # Load necessary data --------------------
-  ## EIA-923 - for Schedule C Air Emissions Control information
-  if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) {
-    eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))$air_emissions_control_info
-  } else {
-    stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+  ## EIA-923 - for Schedule C Air Emissions Control information (2021-2022)
+  eia_923 <- read_csv(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), col_types = "ccccccccddddcccdccddcdc") %>%
+    janitor::clean_names()
   
   ## NEI emission data
   if(file.exists(glue::glue("data/raw_data/nei/{params$eGRID_year}/nei_{emission_type}_emissions_raw.csv"))) { 
@@ -66,8 +64,25 @@ unit_data_pm_nh3_voc <- function(emission_type){
     janitor::clean_names()
   
   ## eGRID production model data - unit file
-  unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
+  unit_file_raw <- read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
+                          sheet = paste0("UNT", substr(params$eGRID_year, 3, 4)),
+                          skip = 1,
+                          col_names = TRUE) %>%
+    rename(CAPDFLAG = CAMDFLAG) # rename CAMD flag to updated name
   
+  # Prepare unit data for evaluation --------------
+  # Load abbreviated name to snake_case matches
+  load("data/static_tables/name_matches.Rdata")
+  # Select names present in unit file column names
+  unit_new_names <- unit_nonmetric[names(unit_nonmetric) %in% colnames(unit_file_raw)]
+  
+  ## rename data columns to prepare for computation
+  unit_file <- 
+    unit_file_raw %>%
+    # rename columns based on name matches
+    rename(!!!setNames(lapply(names(unit_new_names), sym), unit_new_names)) %>%
+    # convert year and plant_id data to characters
+    mutate(year = as.character(year), plant_id = as.character(plant_id))
   
   # Calculate PM data -------------
   ## 1) Direct Match - "NEI/EIA" --------------

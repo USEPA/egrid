@@ -119,7 +119,7 @@ gen_metric <-
 # Plant -----------------------
 
 plant_nonmetric <-
-  c("SEQUNT" = "seqplt",
+  c("SEQPLT" = "seqplt",
     "YEAR" = "year",
     "PSTATABB" = "plant_state",
     "PNAME" = "plant_name",
@@ -274,7 +274,7 @@ plant_nonmetric <-
 # Plant metric --------------------
 
 plant_metric <-
-  c("SEQUNT" = "seqplt",
+  c("SEQPLT" = "seqplt",
     "YEAR" = "year",
     "PSTATABB" = "plant_state",
     "PNAME" = "plant_name",
