@@ -1018,6 +1018,7 @@ all_units <- # binding all units together, and adding a source column to track r
             (eia_860_generators_to_add_3 %>% mutate(source = "860_generators", id = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% 
                rename("unit_id" = generator_id)),
             (biomass_units_to_add %>% mutate(source = "plant_file", id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
+                                               cross_join(temporal_res_cols_to_add) %>% 
                ##### CHECK update to epa_7 when ozone calculations are fixed
                filter(!id %in% epa_6$id, 
                       !id %in% eia_boilers_to_add$id, 
@@ -1051,8 +1052,8 @@ units_missing_heat_by_unit <- # creating separate dataframe of units with missin
 #  mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) 
 
 units_missing_heat <- 
-  rbind(units_missing_heat_by_unit, 
-        units_missing_heat_ozone)
+  rbind(units_missing_heat_by_unit)#, 
+        #units_missing_heat_ozone)
 
 #units_missing_heat_w_heat_oz <- # some units have positive ozone heat inputs (heat_input_oz) - identify them here
 #  units_missing_heat %>% 
