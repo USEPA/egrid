@@ -83,7 +83,7 @@ format_plant <- function(emission_type) {
            "{emission_type}_output_rate" := if_else(generation_ann < 0, 0, get(paste0(emission_type, "_output_rate"))),
            year = params$eGRID_year) %>%
     # select desired variables for final version
-    select(year, plant_state, plant_name, plant_id, egrid_subregion, egrid_subregion_name, primary_fuel_type, nameplate_capacity, elec_allocation, generation_ann, heat_input, paste0(emission_type, "_ann"), paste0(emission_type, "_output_rate"), paste0(emission_type, "_input_rate"), paste0(emission_type, "_source"), unadj_combust_heat_input, paste0("unadj_", emission_type)) %>%
+    select(year, plant_state, plant_name, plant_id, egrid_subregion, egrid_subregion_name, primary_fuel_type, nameplate_capacity, elec_allocation, generation_ann, combust_heat_input, paste0(emission_type, "_ann"), paste0(emission_type, "_output_rate"), paste0(emission_type, "_input_rate"), paste0(emission_type, "_source"), unadj_combust_heat_input, paste0("unadj_", emission_type)) %>%
     # order by plant state abbreviation and plant name
     arrange(plant_state, plant_name)
   

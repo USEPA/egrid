@@ -80,17 +80,15 @@ plant_data_pm_nh3_voc <- function(emission_type){
   plant_emissions <-
     plant_file %>%
     left_join(plant_sum, by = join_by(plant_id)) %>%
-    # set plant electric allocation factors to 1 if NaN 
-    mutate(elec_allocation = if_else(is.na(elec_allocation), 1, elec_allocation),
-           # calculate annual emissions
-           emission_ann = emission * elec_allocation,
+    # multiply emissions by electric allocation if available (not NA) 
+    mutate(emission_ann = if_else(is.na(elec_allocation), emission, emission * elec_allocation),
            # calculate total output emission rate
            emission_output_rate = if_else(generation_ann != 0, emission_ann * 2000 / generation_ann, NA_real_),
            # calculate total input emission rate
-           emission_input_rate = if_else(heat_input != 0, emission_ann * 2000 / heat_input, NA_real_),
+           emission_input_rate = if_else(combust_heat_input != 0, emission_ann * 2000 / combust_heat_input, NA_real_),
            #  rename unadjusted annual pm2.5 emissions
            unadj_emission = emission) %>%
-    select(plant_state, plant_name, plant_id, egrid_subregion_name, egrid_subregion, primary_fuel_type, nameplate_capacity, elec_allocation, heat_input, generation_ann, emission_ann, emission_output_rate, emission_input_rate, unadj_combust_heat_input, unadj_emission)
+    select(plant_state, plant_name, plant_id, egrid_subregion_name, egrid_subregion, primary_fuel_type, nameplate_capacity, elec_allocation, combust_heat_input, generation_ann, emission_ann, emission_output_rate, emission_input_rate, unadj_combust_heat_input, unadj_emission)
   
   return(plant_emissions)
 }
