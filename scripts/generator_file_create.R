@@ -291,37 +291,38 @@ print(glue::glue("{nrow(eia_gen_generation) - nrow(missing_gen_data)} generators
 #   mutate(generation_oz = sum(netgen[month %in% ozone_months], na.rm = TRUE)) %>%
 #   ungroup()
 
-if (params$temporal_res == "annual") {
-eia_gen_fuel_generation_sum <- 
-  eia_gen_fuel_generation_sum %>%
-  # eia_923_gen_fuel %>% 
-  # mutate(generation_oz = rowSums(pick(all_of(ozone_months_gen_fuel)), na.rm = TRUE)) %>% # summing generation across ozone months
-  # group_by(year, month, plant_id, prime_mover) %>% # added groupby year and month 2.20.25, can potentially do temporal res cols here
-  # group_by(year, 
-  #          plant_id, 
-  #          prime_mover, 
-  #          combined_heat_and_power_plant, 
-  #          fuel_type) %>% # added fuel_type groupby here 2.21.25
-  # mutate(generation_oz = sum(netgen[month %in% ozone_months], na.rm = TRUE)) %>%
-  # ungroup() %>%
-  select(-c(month,
-            netgen,
-            contains("consumption"),
-            quantity,
-            elec_quantity,
-            mmbtuper_unit,
-            tot_mmbtu,
-            elec_mmbtu)) %>%
-  distinct() %>% # removes doubling of totals
-  group_by(pick(all_of(temporal_res_cols)), 
-           plant_id, 
-           prime_mover) %>% # group_by temporal_res_cols
-  summarize(tot_generation_oz_fuel = sum(generation_oz, na.rm = TRUE), # ozone months total 
-            tot_generation_fuel = sum(net_generation_megawatthours, na.rm = TRUE)) %>% # net_generation_megawatthours for annual data
-                                                                                       # netgen for monthly data
-  ungroup()
-  
-} else {
+# if (params$temporal_res == "annual") {
+# eia_gen_fuel_generation_sum <- 
+#   # eia_gen_fuel_generation_sum %>%
+#   eia_923_gen_fuel %>%
+#   # mutate(generation_oz = rowSums(pick(all_of(ozone_months_gen_fuel)), na.rm = TRUE)) %>% # summing generation across ozone months
+#   # group_by(year, month, plant_id, prime_mover) %>% # added groupby year and month 2.20.25, can potentially do temporal res cols here
+#   # group_by(year, 
+#   #          plant_id, 
+#   #          prime_mover, 
+#   #          combined_heat_and_power_plant, 
+#   #          fuel_type) %>% # added fuel_type groupby here 2.21.25
+#   # mutate(generation_oz = sum(netgen[month %in% ozone_months], na.rm = TRUE)) %>%
+#   # ungroup() %>%
+#   select(-c(month,
+#             netgen,
+#             contains("consumption"),
+#             quantity,
+#             elec_quantity,
+#             mmbtuper_unit,
+#             tot_mmbtu,
+#             elec_mmbtu)) %>%
+#   distinct() %>% # removes doubling of totals
+#   group_by(pick(all_of(temporal_res_cols)), 
+#            plant_id, 
+#            prime_mover) %>% # group_by temporal_res_cols
+#   summarize(
+#             #tot_generation_oz_fuel = sum(generation_oz, na.rm = TRUE), # ozone months total 
+#             tot_generation_fuel = sum(net_generation_megawatthours, na.rm = TRUE)) %>% # net_generation_megawatthours for annual data
+#                                                                                        # netgen for monthly data
+#   ungroup()
+#   
+# } else {
   #2.21.25 need to fix this to be good for monthly
   eia_gen_fuel_generation_sum <-
    #  eia_gen_fuel_generation_sum %>% 
@@ -344,7 +345,7 @@ eia_gen_fuel_generation_sum <-
     ungroup() %>%
     select(-combined_heat_and_power_plant) # might be giving double/duplication
   
-}
+# }
 
 
 
@@ -421,7 +422,10 @@ gen_distributed <-
   #                       NA_real_)) %>%
   # ungroup() %>%
   right_join(gen_distributed_props) %>%
-  mutate(generation = generation_diff * (prop/12), # multiplying differences by proportion value
+  # mutate(generation = if (params$temporal_res == "annual") # might need to do case_when for daily/hourly
+  #                             generation_diff * prop else 
+  #                             generation_diff * (prop / 12), # multiplying differences by proportion value
+  mutate(generation = generation_diff * (prop / 12),
          # generation_oz = generation_oz_diff * prop,
          gen_data_source = if_else(!is.na(generation), "Distributed from EIA-923 Generation and Fuel", NA)) %>% # if no calculated generation, leave source as NA 
   # (changed from !is.na(generation_oz) to !is.na(generation) since daily has no generation_oz)
@@ -459,7 +463,7 @@ eia_gen_genfuel_diff <-
   mutate(abs_diff_generation = abs(tot_generation_fuel - tot_generation_gen), # calculating absolute differences between generation values
          # abs_diff_generation_oz = abs(tot_generation_oz_fuel - tot_generation_oz_gen), # calculating the percentage of the difference over the fuel levels in gen_fuel file
          perc_diff_generation = if_else(abs_diff_generation == 0, 0, 
-                                            abs_diff_generation / tot_generation_fuel), 
+                                        abs_diff_generation / tot_generation_fuel), 
          # perc_diff_generation_oz = if_else(abs_diff_generation_oz == 0, 0,
          #                                   abs_diff_generation_oz / tot_generation_oz_fuel), # calculating percent differences for monthly generation and generation ozone
          overwrite = if_else(perc_diff_generation > 0.001, "overwrite", "EIA-923 Generator File")) %>% # , # (1) flag to overwrite for generation if difference is greater than .1% 
@@ -575,7 +579,10 @@ december_gen <-
   # ie case when AM, M, A? 
   
   mutate(
-    generation = tot_generation_fuel * (prop / 12), # distribute using same method instead of dividing by 12?
+    # generation = if (params$temporal_res == "annual") # might need to do case_when for daily/hourly
+    #              net_generation_year_to_date  else 
+    #              tot_generation_fuel * (prop / 12), 
+     generation = tot_generation_fuel * (prop / 12), # distribute using same method instead of dividing by 12?
     # generation = net_generation_year_to_date / 12, # divide generation by 12 months
     # generation_oz = tot_generation_oz_fuel * prop,
     gen_data_source = "EIA-923 Generator File") %>%
@@ -648,12 +655,22 @@ if(nrow(generators_combined) > (nrow(gen_dist_no_dec_overwritten) + nrow(decembe
   print("The number of rows in generators_combined matches the sum of generators that are overwritten, generators that use December generation, and all other generators.")
 }
 
+if (params$temporal_res == "annual") {
+  generators_combined <-
+    generators_combined %>%
+    group_by(year, plant_id, prime_mover) %>%
+    mutate(generation = sum(generation, na.rm = TRUE)) %>%
+    ungroup() %>%
+    select(-month) %>%
+    distinct() #??? 
+}
+
 # Update capacity factor  -----------------------------------------------
 hours <- capfac_hours(params$temporal_res, params$eGRID_year)
 
 generators_combined2 <-
   generators_combined %>%
-  left_join(hours, by = "month") %>%
+  left_join(hours, by = temporal_res_cols) %>%
   mutate(capfac = if_else(nameplate_capacity != 0, 
                           generation / (nameplate_capacity * hours), 
                           0)) %>%
@@ -689,7 +706,6 @@ generators_edits <-
 final_vars <-
     c("SEQGEN" = "seqgen",
       "YEAR" = "year",
-      "MONTH" = "month", # added for monthly data
       "PSTATABB" = "plant_state",
       "PNAME" = "plant_name",
       "ORISPL" = "plant_id",
@@ -706,14 +722,21 @@ final_vars <-
       "GENYRONL" = "operating_year",
       "GENYRRET" = "retirement_year")
 
+if (params$temporal_res == "monthly") {
+  final_vars <-
+    c(final_vars, 
+    "MONTH" = "month") # added for monthly data
+}
+
 
 generators_formatted <-
   generators_edits %>%
-  arrange(plant_state, plant_name, fuel_code) %>% 
+  arrange(plant_state, plant_name, fuel_code) %>%
   mutate(seqgen = row_number()) %>%
   select(as_tibble(final_vars)$value) %>% # keeping columns with tidy names since the rename is done in the final formatting script
   drop_na(plant_id, generator_id) %>%
-  mutate(across(c(starts_with("capfac"), starts_with("generation")), ~ round(.x, 3))) 
+  mutate(across(c(starts_with("capfac"), starts_with("generation")), ~ round(.x, 3)))
+
 
 # Export generator file -----------
 
