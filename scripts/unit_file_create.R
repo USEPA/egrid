@@ -749,13 +749,34 @@ eia_923_boilers <-
 
 # identify annual reporters and make current heat input and fuel consumption NA 
 # these values will be filled by EIA-923 Gen and Fuel later
-# this is done because annual reporters have their total generation and fuel consumption listed in December
+
+gen_file <- # load generator file
+  read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS")) 
+
 if (params$temporal_res == "monthly") { 
+  check_gen_units <- 
+    gen_file %>% 
+    mutate(id = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% 
+    pull(id)
+  
+  dec_gen <- # some boilers are not in the generator file so identify reported December generation as the annual generation value
+    eia_923_boilers %>% 
+    mutate(id = paste0(plant_id, "_", boiler_id, "_", prime_mover)) %>% 
+    filter(respondent_frequency == "A",
+           !id %in% check_gen_units,
+           month == 12) %>% 
+    select(plant_id, prime_mover, boiler_id, fuel_type, heat_input, fuel_consum)
+  
   eia_923_boilers <- 
     eia_923_boilers %>% 
-    mutate(heat_input = case_when(respondent_frequency == "A" ~ NA_real_, 
+    rows_patch(dec_gen, by = c("plant_id", "prime_mover", "boiler_id", "fuel_type"), 
+               unmatched = "ignore") %>% 
+    mutate(id = paste0(plant_id, "_", boiler_id, "_", prime_mover),
+           heat_input = case_when(respondent_frequency == "A" & id %in% check_gen_units ~ NA_real_, 
+                                  respondent_frequency == "A" & !id %in% check_gen_units ~ heat_input / 12,
                                   TRUE ~ heat_input), 
-           fuel_consum = case_when(respondent_frequency == "A" ~ NA_real_, 
+           fuel_consum = case_when(respondent_frequency == "A"& id %in% check_gen_units ~ NA_real_,
+                                   respondent_frequency == "A" & !id %in% check_gen_units ~ fuel_consum / 12,
                                    TRUE ~ fuel_consum))}
 
 # calculate ozone heat input if temporal_res is annual
@@ -1017,7 +1038,7 @@ all_units <- # binding all units together, and adding a source column to track r
                rename("id" = id_pm) %>% rename("unit_id" = boiler_id)),
             (eia_860_generators_to_add_3 %>% mutate(source = "860_generators", id = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% 
                rename("unit_id" = generator_id)),
-            (biomass_units_to_add %>% mutate(source = "plant_file", id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
+            (biomass_units_to_add %>% mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
                                                cross_join(temporal_res_cols_to_add) %>% 
                ##### CHECK update to epa_7 when ozone calculations are fixed
                filter(!id %in% epa_6$id, 
@@ -1068,9 +1089,6 @@ print(glue::glue("{nrow(units_missing_heat %>%
 
 # We calculate a distributional proportion to distribute heat to generators based on nameplate capacity using 923 gen and fuel and generator file.
 # calculating ratio from generator file based on nameplate capacity to distribute heat
-
-gen_file <- # load generator file
-  read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS")) 
 
 dist_props <- # determining distributional proportions to distribute heat inputs
   gen_file %>% 

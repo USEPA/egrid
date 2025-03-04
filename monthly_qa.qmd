@@ -95,91 +95,6 @@ plant_merged$month <- factor(plant_merged$month,
                              levels = c("1", "2", "3", "4", "5", "6", 
                                         "7", "8", "9", "10", "11", "12", "annual"))
 
-# load in state data, format, and merge
-state_monthly <- 
-  read_rds("data/outputs/2023/state_aggregation_monthly.RDS") %>% 
-  mutate(month = as.character(month))
-
-state_annual <- 
-  read_rds("data/outputs/2023/state_aggregation.RDS") %>% 
-  mutate(month = "annual")
-
-state_merged <-
-  state_monthly %>% 
-  full_join(state_annual)
-
-state_merged$month <- factor(state_merged$month, 
-                             levels = c("1", "2", "3", "4", "5", "6", 
-                                        "7", "8", "9", "10", "11", "12", "annual"))
-
-# load in BA data, format, and merge
-ba_monthly <- 
-  read_rds("data/outputs/2023/ba_aggregation_monthly.RDS") %>% 
-  mutate(month = as.character(month))
-
-ba_annual <- 
-  read_rds("data/outputs/2023/ba_aggregation.RDS") %>% 
-  mutate(month = "annual")
-
-ba_merged <-
-  ba_monthly %>% 
-  full_join(ba_annual)
-
-ba_merged$month <- factor(ba_merged$month, 
-                             levels = c("1", "2", "3", "4", "5", "6", 
-                                        "7", "8", "9", "10", "11", "12", "annual"))
-
-# load in subregion data, format, and merge
-subregion_monthly <- 
-  read_rds("data/outputs/2023/subregion_aggregation_monthly.RDS") %>% 
-  mutate(month = as.character(month))
-
-subregion_annual <- 
-  read_rds("data/outputs/2023/subregion_aggregation.RDS") %>% 
-  mutate(month = "annual")
-
-subregion_merged <-
-  subregion_monthly %>% 
-  full_join(subregion_annual)
-
-subregion_merged$month <- factor(subregion_merged$month, 
-                             levels = c("1", "2", "3", "4", "5", "6", 
-                                        "7", "8", "9", "10", "11", "12", "annual"))
-
-# load in NERC data, format, and merge
-nerc_monthly <- 
-  read_rds("data/outputs/2023/nerc_aggregation_monthly.RDS") %>% 
-  mutate(month = as.character(month))
-
-nerc_annual <- 
-  read_rds("data/outputs/2023/nerc_aggregation.RDS") %>% 
-  mutate(month = "annual")
-
-nerc_merged <-
-  nerc_monthly %>% 
-  full_join(nerc_annual)
-
-nerc_merged$month <- factor(nerc_merged$month, 
-                             levels = c("1", "2", "3", "4", "5", "6", 
-                                        "7", "8", "9", "10", "11", "12", "annual"))
-
-# load in US data, format, and merge
-us_monthly <- 
-  read_rds("data/outputs/2023/us_aggregation_monthly.RDS") %>% 
-  mutate(month = as.character(month))
-
-us_annual <- 
-  read_rds("data/outputs/2023/us_aggregation.RDS") %>% 
-  mutate(month = "annual")
-
-us_merged <-
-  us_monthly %>% 
-  full_join(us_annual)
-
-us_merged$month <- factor(us_merged$month, 
-                             levels = c("1", "2", "3", "4", "5", "6", 
-                                        "7", "8", "9", "10", "11", "12", "annual"))
-
 ```
 
 ## Unit file comparison
@@ -354,6 +269,8 @@ Notes:
 -   Some differences are attributable to differences in EIA Annual reporters, this needs to be addressed. 
 
 -   Some differences are attributable to differences in ozone methodology.
+
+-   Plant 54950 missing matching NOx EF factor for DFO, CT unit. 
 
 ```{r}
 #| label: nox-unit-table
