@@ -217,7 +217,8 @@ eia_gen_generation <- eia_860_combined_r %>%
 eia_gen_generation_nas <- eia_gen_generation %>% # where there are NAs for temporal_res_cols, add filler data values
                           # select(-c(contains("generation"), gen_data_source)) %>%
                           filter(is.na(year)) %>%
-                          select(-all_of(temporal_res_cols)) %>% 
+                          # select(-all_of(temporal_res_cols)) %>% 
+                          select(-c(year, month)) %>% # removing both month and year
                           crossing(temporal_cols_to_add)
 
 eia_gen_generation <- eia_gen_generation %>% 
@@ -257,11 +258,23 @@ eia_gen_generation <-
 # check how many generators are missing generation values
 missing_gen_data <- 
   eia_gen_generation %>% 
-  filter(is.na(gen_data_source)) # might need to update this since now have monthly to account for, groupby generator_id?
+  filter(is.na(gen_data_source)) %>% # might need to update this since now have monthly to account for, groupby generator_id?
+  group_by(year, month, plant_id, prime_mover, generator_id, gen_data_source) %>% 
+  summarize(generation = sum(generation, na.rm = TRUE)) %>%
+  ungroup()
 
-print(glue::glue("{nrow(eia_gen_generation) - nrow(missing_gen_data)} generators updated with generation values from direct matches to EIA-923 Generator File data.
+filled_gen_data <-
+  eia_gen_generation %>%
+  filter(gen_data_source == "EIA-923 Generator File") %>%
+  group_by(year, month, plant_id, prime_mover, generator_id, gen_data_source) %>%
+  summarize(generation = sum(generation, na.rm = TRUE)) %>%
+  ungroup()
+
+# print(glue::glue("{nrow(eia_gen_generation) - nrow(missing_gen_data)} generators updated with generation values from direct matches to EIA-923 Generator File data.
+#                  {nrow(missing_gen_data)} generators without generation values remain."))
+
+print(glue::glue("{nrow(filled_gen_data)} generators updated with generation values from direct matches to EIA-923 Generator File data.
                  {nrow(missing_gen_data)} generators without generation values remain."))
-
 
 ## Distribute generation to plants not in EIA-923 Generator file -------
 
@@ -380,7 +393,14 @@ gen_distributed_props <-
                         nameplate_capacity / tot_nameplate_capacity,
                         NA_real_)) %>%
   ungroup() %>%
-  select(plant_id, prime_mover, generator_id, nameplate_capacity, tot_nameplate_capacity, generation, generation_diff, prop)
+  select(plant_id, 
+         prime_mover, 
+         generator_id, 
+         # nameplate_capacity, 
+         # tot_nameplate_capacity, 
+         # generation, 
+         generation_diff, 
+         prop)
   
 # distribute generation using calculated proportions
 gen_distributed <- 
@@ -414,7 +434,7 @@ gen_distributed <-
   #                       nameplate_capacity / tot_nameplate_capacity,
   #                       NA_real_)) %>%
   # ungroup() %>%
-  right_join(gen_distributed_props) %>%
+  right_join(gen_distributed_props, by = c("plant_id", "generator_id", "prime_mover")) %>%
   # mutate(generation = if (params$temporal_res == "annual") # might need to do case_when for daily/hourly
   #                             generation_diff * prop else 
   #                             generation_diff * (prop / 12), # multiplying differences by proportion value
