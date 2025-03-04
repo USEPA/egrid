@@ -759,24 +759,24 @@ if (params$temporal_res == "monthly") {
     mutate(id = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% 
     pull(id)
   
-  dec_gen <- # some boilers are not in the generator file so identify reported December generation as the annual generation value
-    eia_923_boilers %>% 
-    mutate(id = paste0(plant_id, "_", boiler_id, "_", prime_mover)) %>% 
-    filter(respondent_frequency == "A",
-           !id %in% check_gen_units,
-           month == 12) %>% 
-    select(plant_id, prime_mover, boiler_id, fuel_type, heat_input, fuel_consum)
+  # dec_gen <- # some boilers are not in the generator file so identify reported December generation as the annual generation value
+  #   eia_923_boilers %>% 
+  #   mutate(id = paste0(plant_id, "_", boiler_id, "_", prime_mover)) %>% 
+  #   filter(respondent_frequency == "A",
+  #          !id %in% check_gen_units,
+  #          month == 12) %>% 
+  #   select(plant_id, prime_mover, boiler_id, fuel_type, heat_input, fuel_consum)
   
   eia_923_boilers <- 
     eia_923_boilers %>% 
-    rows_patch(dec_gen, by = c("plant_id", "prime_mover", "boiler_id", "fuel_type"), 
-               unmatched = "ignore") %>% 
+    #rows_patch(dec_gen, by = c("plant_id", "prime_mover", "boiler_id", "fuel_type"), 
+    #           unmatched = "ignore") %>% 
     mutate(id = paste0(plant_id, "_", boiler_id, "_", prime_mover),
            heat_input = case_when(respondent_frequency == "A" & id %in% check_gen_units ~ NA_real_, 
-                                  respondent_frequency == "A" & !id %in% check_gen_units ~ heat_input / 12,
+                                  #respondent_frequency == "A" & !id %in% check_gen_units ~ heat_input / 12,
                                   TRUE ~ heat_input), 
            fuel_consum = case_when(respondent_frequency == "A"& id %in% check_gen_units ~ NA_real_,
-                                   respondent_frequency == "A" & !id %in% check_gen_units ~ fuel_consum / 12,
+                                   #respondent_frequency == "A" & !id %in% check_gen_units ~ fuel_consum / 12,
                                    TRUE ~ fuel_consum))}
 
 # calculate ozone heat input if temporal_res is annual
@@ -1365,7 +1365,6 @@ all_units_4 <-
 # for the monthly version, we use monthly reported sulfur contents 
 # for the annual version, we calculate sulfur content using a weighted average across all months 
 
-######### 3/3/2025 start here #########
 avg_sulfur_content <- 
   eia_923$boiler_fuel_data %>% 
   mutate(# calculating monthly boiler heat input, based on corresponding consumption and mmbtu_per_unit
