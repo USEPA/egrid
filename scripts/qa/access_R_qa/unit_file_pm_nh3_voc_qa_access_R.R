@@ -187,25 +187,60 @@ unit_qa <- function(emission_type, year) {
   save_diffs(check_total_heat_input)
   
   ## Annual emissions -----
+  
+  # count differences in NA annual emission values
+  check_emissions_na <-
+    unit_comparison %>%
+    summarize(na_count_r = sum(is.na(get(paste0(emission_type, "_ann_r")))), na_count_access = sum(is.na((get(paste0(emission_type, "_ann_access")))))) %>%
+    mutate(diff_na_count = na_count_r - na_count_access) %>%
+    filter(abs(diff_na_count) > 1)
+
+  # look at values of those NA discrepancies
+  check_emissions_na_values <-
+    unit_comparison %>%
+    filter(is.na(get(paste0(emission_type, "_ann_r"))) & !is.na(get(paste0(emission_type, "_ann_access"))) |
+             !is.na(get(paste0(emission_type, "_ann_r"))) & is.na(get(paste0(emission_type, "_ann_access"))))
+  
+  check_na_sources <-
+    check_emissions_na_values %>%
+    count(get(paste0(emission_type, "_source_r")))
+    
+  # calculate difference in emissions and rates for those with NA in one dataset
+  check_emissions_na_sum <-
+    check_emissions_na_values %>%
+    summarize(na_ann_sum = sum(get(paste0(emission_type, "_ann_r")), na.rm = TRUE),
+              na_rate_sum = sum(get(paste0(emission_type, "_rate_r")), na.rm = TRUE))
+  
+  # compare annual emission values
   check_emissions_ann <- 
     unit_comparison %>% 
     filter(mapply(identical, get(paste0(emission_type, "_ann_r")), get(paste0(emission_type, "_ann_access"))) == FALSE) %>% 
     mutate("diff_{emission_type}_ann" := abs(get(paste0(emission_type, "_ann_r")) - get(paste0(emission_type, "_ann_access")))) %>% 
-    filter(get(paste0("diff_", emission_type, "_ann")) > 1E-5) %>%
+    filter(get(paste0("diff_", emission_type, "_ann")) > 1E-5 | is.na(get(paste0(emission_type, "_ann_r"))) & !is.na(get(paste0(emission_type, "_ann_access"))) | 
+             !is.na(get(paste0(emission_type, "_ann_r"))) & is.na(get(paste0(emission_type, "_ann_access")))) %>%
     select(plant_id_r, unit_id_r, primary_fuel_type_r, primary_fuel_type_access, 
            prime_mover_r, heat_input_r, heat_input_access,
            paste0(emission_type, "_ann_r"), paste0(emission_type, "_ann_access"), paste0("diff_", emission_type, "_ann"), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
   save_diffs(check_emissions_ann)
   
+  # calculate sum of annual emissions differences
   check_total_emissions_ann <- 
     unit_comparison %>% 
     summarize("sum_{emission_type}_ann_r" := sum(get(paste0(emission_type, "_ann_r")), na.rm = TRUE), 
               "sum_{emission_type}_ann_access" := sum(get(paste0(emission_type, "_ann_access")), na.rm = TRUE)) %>% 
     mutate("diff_{emission_type}_ann" := abs(get(paste0("sum_", emission_type, "_ann_r")) - get(paste0("sum_", emission_type, "_ann_access")))) %>%
-    filter(get(paste0("diff_", emission_type, "_ann")) > 0)
+    filter(get(paste0("diff_", emission_type, "_ann")) > 0) 
   save_diffs(check_total_emissions_ann)
   
+  # compare total emission difference to sum of NA differences
+  # if equal, the discrepancy are due to these differences
+  print(c(check_total_emissions_ann[[paste0("diff_", emission_type, "_ann")]],
+        check_emissions_na_sum$na_ann_sum,
+        abs(check_total_emissions_ann[[paste0("diff_", emission_type, "_ann")]] - check_emissions_na_sum$na_ann_sum)))
+  
   ## Emissions Rate ------
+  
+  # compare emission rates
   check_emissions_rate <- 
     unit_comparison %>% 
     filter(mapply(identical, get(paste0(emission_type, "_rate_r")), get(paste0(emission_type, "_rate_access"))) == FALSE) %>% 
@@ -216,6 +251,7 @@ unit_qa <- function(emission_type, year) {
            paste0(emission_type, "_rate_r"), paste0(emission_type, "_rate_access"), paste0("diff_", emission_type, "_rate"), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
   save_diffs(check_emissions_rate)
   
+  # compare sum of emissions rates
   check_total_emissions_rate <- 
     unit_comparison %>% 
     summarize("sum_{emission_type}_rate_r" := sum(get(paste0(emission_type, "_rate_r")), na.rm = TRUE), 
@@ -223,6 +259,12 @@ unit_qa <- function(emission_type, year) {
     mutate("diff_{emission_type}_rate" := abs(get(paste0("sum_", emission_type, "_rate_r")) - get(paste0("sum_", emission_type, "_rate_access")))) %>%
     filter(get(paste0("diff_", emission_type, "_rate")) > 0)
   save_diffs(check_total_emissions_rate)
+  
+  # compare total emission difference to sum of NA differences
+  # if equal, the discrepancy are due to these differences
+  print(c(check_total_emissions_rate[[paste0("diff_", emission_type, "_rate")]],
+          check_emissions_na_sum$na_rate_sum,
+          abs(check_total_emissions_rate[[paste0("diff_", emission_type, "_rate")]] - check_emissions_na_sum$na_rate_sum)))
   
   ## Heat input source ------
   check_heat_input_source <- 
