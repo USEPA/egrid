@@ -27,20 +27,15 @@ library(stringr)
 ### Load necessary functions --------------------
 
 source("scripts/functions/function_params_check.R")
+source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_paste_concat.R")
 source("scripts/functions/function_update_source.R")
 
 # check if parameters need to be defined
-params <- check_params()
+params <- params_check()
 
 # Specify grouping columns based on temporal_res parameter
-temporal_res_cols_all <- 
-  list("annual"  = c("year"), 
-       "monthly" = c("year", "month"), 
-       "daily"   = c("year", "month", "day"), 
-       "hourly"  = c("year", "month", "day", "hour"))
-
-temporal_res_cols <- unlist(temporal_res_cols_all[params$temporal_res], use.names = FALSE)
+temporal_res_cols <- temporal_res_cols(params$temporal_res)
 
 # Load necessary data ----------
 
@@ -807,7 +802,7 @@ plant_file_14 <-
          co2e_mass = if_else(!is.na(co2e_biomass), pmax(unadj_co2e_mass - co2e_biomass, 0), unadj_co2e_mass),
          co2e_biomass = pmin(co2e_biomass, unadj_co2e_mass))
 
-# Generation by fuel type  ------------------
+# Calculate generation by fuel type  ------------------
 
 # use generator file to summarize generation by fuel type 
 gen_by_fuel <- 
@@ -858,7 +853,7 @@ gen_by_fuel <-
          other_netgen = if_else(is.na(netgen), NA_real_, 
                                sum(netgen[which(fuel_type %in% other_fuels)], na.rm = TRUE))) %>% 
   ungroup() %>% 
-  select(-fuel_type, -netgen) %>% 
+  select(-fuel_type, -netgen, -non_negative_netgen) %>% 
   distinct() 
 
 ## Calculate resource mix generation by fuel type and % resource mix by fuel type ------------
