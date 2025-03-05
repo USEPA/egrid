@@ -96,7 +96,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
            eis_facility_id, eis_unit_id, agency_unit_id) %>%
     group_by(oris_facility_code, oris_boiler_id) %>%
     # calculate the sum of pm emissions for each facility ID and boiler ID combination
-    summarise(emission = sum(emission, na.rm = TRUE)) %>%
+    summarise(emission = if_else(all(is.na(emission)), NA_real_, sum(emission, na.rm = TRUE))) %>%
     ungroup()
   
   # create unit file with emission emission data
@@ -117,7 +117,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
     # group by prime mover, firing, fuel type
     group_by(prime_mover, botfirty, primary_fuel_type, emission_source) %>% 
     # calculate emissions factor
-    summarise(sum_heat_input = sum(heat_input, na.rm = TRUE), sum_emission = sum(emission, na.rm = TRUE)) %>%
+    summarise(sum_heat_input = if_else(all(is.na(heat_input)), NA_real_, sum(heat_input, na.rm = TRUE)), sum_emission = if_else(all(is.na(emission)), NA_real_, sum(emission, na.rm = TRUE))) %>%
     mutate(emission_factors = if_else(sum_heat_input != 0, sum_emission / sum_heat_input, NA_real_)) %>% 
     inner_join(unit_emissions, by = join_by(prime_mover, botfirty, primary_fuel_type)) %>%
     # multiply individual heat inputs by emission factors to estimate emission
@@ -136,7 +136,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
     # group by prime mover, fuel type
     group_by(prime_mover, primary_fuel_type, emission_source) %>%
     # calculate emissions factor
-    summarise(sum_heat_input = sum(heat_input, na.rm = TRUE), sum_emission = sum(emission, na.rm = TRUE)) %>%
+    summarise(sum_heat_input = if_else(all(is.na(heat_input)), NA_real_, sum(heat_input, na.rm = TRUE)), sum_emission = if_else(all(is.na(emission)), NA_real_, sum(emission, na.rm = TRUE))) %>%
     mutate(emission_factors = if_else(sum_heat_input != 0, sum_emission / sum_heat_input, NA_real_)) %>%
     inner_join(unit_emissions, by = join_by(prime_mover, primary_fuel_type)) %>%
     # multiply individual heat inputs by emission factors to estimate emission
