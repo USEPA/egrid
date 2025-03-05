@@ -193,7 +193,8 @@ unit_qa <- function(emission_type, year) {
     unit_comparison %>%
     summarize(na_count_r = sum(is.na(get(paste0(emission_type, "_ann_r")))), na_count_access = sum(is.na((get(paste0(emission_type, "_ann_access")))))) %>%
     mutate(diff_na_count = na_count_r - na_count_access) %>%
-    filter(abs(diff_na_count) > 1)
+    filter(abs(diff_na_count) > 1) %>%
+    print()
 
   # look at values of those NA discrepancies
   check_emissions_na_values <-
@@ -203,13 +204,15 @@ unit_qa <- function(emission_type, year) {
   
   check_na_sources <-
     check_emissions_na_values %>%
-    count(get(paste0(emission_type, "_source_r")))
+    count(get(paste0(emission_type, "_source_r"))) %>%
+    print()
     
   # calculate difference in emissions and rates for those with NA in one dataset
   check_emissions_na_sum <-
     check_emissions_na_values %>%
     summarize(na_ann_sum = sum(get(paste0(emission_type, "_ann_r")), na.rm = TRUE),
-              na_rate_sum = sum(get(paste0(emission_type, "_rate_r")), na.rm = TRUE))
+              na_rate_sum = sum(get(paste0(emission_type, "_rate_r")), na.rm = TRUE)) %>%
+    print()
   
   # compare annual emission values
   check_emissions_ann <- 
@@ -245,7 +248,8 @@ unit_qa <- function(emission_type, year) {
     unit_comparison %>% 
     filter(mapply(identical, get(paste0(emission_type, "_rate_r")), get(paste0(emission_type, "_rate_access"))) == FALSE) %>% 
     mutate("diff_{emission_type}_rate" := abs(get(paste0(emission_type, "_rate_r")) - get(paste0(emission_type, "_rate_access")))) %>% 
-    filter(get(paste0("diff_", emission_type, "_rate")) > 1E-5) %>%
+    filter(get(paste0("diff_", emission_type, "_rate")) > 1E-5 | is.na(get(paste0(emission_type, "_rate_r"))) & !is.na(get(paste0(emission_type, "_rate_access"))) | 
+             !is.na(get(paste0(emission_type, "_rate_r"))) & is.na(get(paste0(emission_type, "_rate_access")))) %>%
     select(plant_id_r, unit_id_r, primary_fuel_type_r, primary_fuel_type_access, 
            prime_mover_r, heat_input_r, heat_input_access,
            paste0(emission_type, "_rate_r"), paste0(emission_type, "_rate_access"), paste0("diff_", emission_type, "_rate"), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
