@@ -21,35 +21,16 @@ library(janitor)
 library(purrr)
 library(readr)
 
-# check if parameters for eGRID data year need to be defined
-# this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input eGRID year in the console if params does not exist
+# Load functions
 
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
-    params$temporal_res <- as.character(params$temporal_res) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
-  params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
-  params$temporal_res <- as.character(params$temporal_res) 
-}
+source("scripts/functions/function_params_check.R")
+source("scripts/functions/function_temporal_res_cols.R")
+
+# check params
+params <- params_check()
 
 # Specify grouping columns based on temporal_res parameter
-temporal_res_cols_all <- 
-  list("annual"  = c("year"), 
-       "monthly" = c("year", "month"), 
-       "daily"   = c("year", "month", "day"), 
-       "hourly"  = c("year", "month", "day", "hour"))
-
-temporal_res_cols <- unlist(temporal_res_cols_all[params$temporal_res], use.names = FALSE)
+temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
 
 # Read raw EPA files -------
 
@@ -175,11 +156,6 @@ epa_final <- # removing unnecessary columns and final renames
          -contains("rate"),
          year_online) %>%
   mutate(across(ends_with("id"), ~ as.character(.x)))
-
-#if (params$temporal_res == "annual") {
-#  epa_final <-
-#    epa_final %>%
-#    select(-contains(month.name))}
 
 # Save clean EPA file ------------
 

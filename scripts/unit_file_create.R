@@ -34,12 +34,46 @@ source("scripts/functions/function_params_check.R")
 params <- params_check()
 
 # Specify grouping columns based on temporal_res parameter
-temporal_res_cols <- temporal_res_cols(params$temporal_res)
+temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
 
 # Load necessary data ------
 
 ## EPA ------
-epa_vars_to_keep <- 
+if(params$temporal_res == "annual") { 
+  epa_vars_to_keep <- 
+    c("plant_state",
+      "plant_name",
+      "plant_id",
+      "unit_id",
+      "operating_status",
+      "reporting_frequency",
+      "program_code",
+      "primary_fuel_type",
+      "nameplate_capacity",
+      "unit_type" = "unit_type_abb",
+      "operating_hours" = "operating_time_count",
+      "heat_input" = "heat_input_mmbtu",
+      "heat_input_oz" = "heat_input_mmbtu_ozone",
+      "nox_mass" = "nox_mass_short_tons",
+      "nox_oz_mass" = "nox_mass_short_tons_ozone",
+      "so2_mass" = "so2_mass_short_tons",
+      "so2_mass_oz" = "so2_mass_short_tons_ozone",
+      "co2_mass" = "co2_mass_short_tons",
+      "hg_mass" = "hg_mass_lbs",
+      "heat_input_source",
+      "heat_input_oz_source",
+      "nox_source",
+      "nox_oz_source",
+      "so2_source",
+      "co2_source",
+      "hg_source",
+      "so2_controls",
+      "nox_controls",
+      "hg_controls",
+      "year_online"
+    ) 
+} else {
+  epa_vars_to_keep <- 
   c("plant_state",
     "plant_name",
     "plant_id",
@@ -52,11 +86,8 @@ epa_vars_to_keep <-
     "unit_type" = "unit_type_abb",
     "operating_hours" = "operating_time_count",
     "heat_input" = "heat_input_mmbtu",
-    "heat_input_oz" = "heat_input_mmbtu_ozone",
     "nox_mass" = "nox_mass_short_tons",
-    "nox_oz_mass" = "nox_mass_short_tons_ozone",
     "so2_mass" = "so2_mass_short_tons",
-    "so2_mass_oz" = "so2_mass_short_tons_ozone",
     "co2_mass" = "co2_mass_short_tons",
     "hg_mass" = "hg_mass_lbs",
     "heat_input_source",
@@ -70,7 +101,7 @@ epa_vars_to_keep <-
     "nox_controls",
     "hg_controls",
     "year_online"
-  ) 
+  )}
 
 if(file.exists(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean_{params$temporal_res}.RDS"))) { 
   epa <- 
@@ -92,6 +123,20 @@ if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean
   eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 } else { 
    stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+
+## Generator file -------
+#### CHECK update this when the generator file is ready #######
+gen_file <- # load generator file
+  #read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS")) 
+  read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS")) %>% 
+  rename(generation = generation_ann)
+
+## Monthly unit file (if running annual version) ------------
+if(params$temporal_res == "annual") { 
+  if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/unit_file_monthly.RDS"))) { 
+    unit_monthly <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file_monthly.RDS"))}
+  else {print(glue::glue("unit_file_monthly.RDS does not exist. Need to obtain unit_file_monthly.RDS by running eGRID with params$temporal_res = monthly."))}
+}
 
 ## Crosswalks and static tables ---------
 # for each crosswalk or static table, we specify the column types (ex: character or numeric) to avoid misread values
@@ -424,6 +469,31 @@ epa_6 <-
   rows_delete(epa_null_heat_input, by = c("plant_id"), unmatched = "ignore") %>%  # delete plants with null heat input
   mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover))
 
+## Calculate non-ozone heat input and NOx mass using monthly version for OS reporters -------------
+
+if(params$temporal_res == "annual") { 
+  # identify OS reporters 
+  epa_oz_reporters <- # getting list of units that include ozone season reporters. Note that some plants include both OS only and OS and Annual reporters.
+    epa_6 %>% 
+    filter(reporting_frequency == "OS") %>% 
+    pull(id)
+  
+  unit_non_ozone <- 
+    unit_monthly %>% 
+    mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
+    filter(!month %in% c(5:9), 
+           id %in% epa_oz_reporters) %>% 
+    group_by(plant_id, unit_id, prime_mover) %>% 
+    summarize(heat_input_nonoz = sum(heat_input, na.rm = TRUE), 
+              nox_nonoz_mass = sum(nox_mass, na.rm = TRUE)) 
+    
+  epa_6 <- 
+    epa_6 %>% 
+    left_join(unit_non_ozone, by = c("plant_id", "unit_id", "prime_mover")) %>% 
+    mutate(nox_mass = if_else(!is.na(nox_nonoz_mass), nox_oz_mass + nox_nonoz_mass, nox_mass),
+           heat_input = if_else(!is.na(heat_input_nonoz), heat_input_oz + heat_input_nonoz, heat_input))
+    }
+
 
 ## Gap fill EPA ozone season reporters with EIA data ----------
 
@@ -449,26 +519,6 @@ epa_6 <-
 # heat_923_nonoz_months <- paste0("tot_mmbtu_", tolower(month.name)[c(1:4,10:12)]) # creating vector of monthly heat columns for 923 gen and fuel
 # consum_923_nonoz_months <- paste0("quantity","_", tolower(month.name)[c(1:4,10:12)]) # creating vector of monthly consumption
 # consum_923_oz_months <- paste0("quantity","_", tolower(month.name)[5:9])
-
-# identify which columns to include based on the temporal_res parameter 
-# if (params$temporal_res == "annual") { 
-#   temporal_res_eia_cols <- 
-#     c("heat_input_923_nonoz", 
-#       "heat_input_923_oz", 
-#       "heat_input_923_ann", 
-#       "fuel_consum_923_nonoz", 
-#       "fuel_consum_923_oz", 
-#       "fuel_consum_923_ann")}
-# if (params$temporal_res == "monthly") { 
-#   temporal_res_eia_cols <- 
-#     c("heat_input_923_nonoz", 
-#       "heat_input_923_oz", 
-#       "heat_input_923_ann", 
-#       "fuel_consum_923_nonoz", 
-#       "fuel_consum_923_oz", 
-#       "fuel_consum_923_ann", 
-#       paste0("heat_input_923_", tolower(month.name)),
-#       paste0("fuel_consum_923_", tolower(month.name)))}
 
 eia_fuel_consum_pm <- # summing fuel and consum to PM level
   eia_923$generation_and_fuel_combined %>%
@@ -748,11 +798,7 @@ eia_923_boilers <-
   distinct()
 
 # identify annual reporters and make current heat input and fuel consumption NA 
-# these values will be filled by EIA-923 Gen and Fuel later
-
-gen_file <- # load generator file
-  read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS")) 
-
+# these values will be filled by EIA-923 Gen and Fuel later distributed across months
 if (params$temporal_res == "monthly") { 
   check_gen_units <- 
     gen_file %>% 
@@ -772,10 +818,10 @@ if (params$temporal_res == "monthly") {
     #rows_patch(dec_gen, by = c("plant_id", "prime_mover", "boiler_id", "fuel_type"), 
     #           unmatched = "ignore") %>% 
     mutate(id = paste0(plant_id, "_", boiler_id, "_", prime_mover),
-           heat_input = case_when(respondent_frequency == "A" & id %in% check_gen_units ~ NA_real_, 
+           heat_input = case_when(respondent_frequency %in% c("A", "AM") & id %in% check_gen_units ~ NA_real_, 
                                   #respondent_frequency == "A" & !id %in% check_gen_units ~ heat_input / 12,
                                   TRUE ~ heat_input), 
-           fuel_consum = case_when(respondent_frequency == "A"& id %in% check_gen_units ~ NA_real_,
+           fuel_consum = case_when(respondent_frequency %in% c("A", "AM") & id %in% check_gen_units ~ NA_real_,
                                    #respondent_frequency == "A" & !id %in% check_gen_units ~ fuel_consum / 12,
                                    TRUE ~ fuel_consum))}
 
@@ -859,7 +905,6 @@ eia_boilers_to_add <-
   eia_923_boilers_heat %>% 
   mutate(id = paste0(plant_id, "_", boiler_id), 
          id_pm = paste0(plant_id, "_", boiler_id, "_", prime_mover)) %>%
-  ##### CHECK update to epa_7 when ozone calculations are fixed #######
   filter(!plant_id %in% epa_6$plant_id, # removing boilers that are in plants in EPA
          !plant_id %in% epa_plants_to_delete$plant_id) %>% # removing plants that are in epa_plants_to_delete
   filter(id %in% eia_860_boil_gen_ids | id_pm %in% eia_860_combined_ids) %>%  # keeping only boilers that are in 860, under boiler or unit id
@@ -896,7 +941,6 @@ eia_860_gens_to_remove <-
 # identify EIA renewable units from plants in EPA. These will be excluded when filtering out EPA plants below
 renewable_ids <- 
   eia_860$combined %>% 
-  ##### CHECK update to epa_7 when ozone calculations are fixed ######
   filter(plant_id %in% epa_6$plant_id, # only plants in EPA
          energy_source_1 %in% c("SUN", "WAT", "WND")) %>% # identifying renewable sources
   mutate(id = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>%
@@ -906,7 +950,6 @@ eia_860_generators_to_add <-
   eia_860$combined %>% 
   mutate(id = paste0(plant_id, "_", generator_id),
          id_pm = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% 
-  ##### CHECK update to epa_7 when ozone calculations are fixed ######
   filter(!(plant_id %in% epa_6$plant_id & !id_pm %in% renewable_ids), # removing generators from plants in EPA, unless it is a renewable generator
          !id %in% eia_860_gens_to_remove, 
          !plant_id %in% epa_plants_to_delete$plant_id) %>%  
@@ -1060,21 +1103,21 @@ all_units_2 <-
 
 # identify units missing heat input values 
 
-units_missing_heat_by_unit <- # creating separate dataframe of units with missing heat input to update
+units_missing_heat_unit <- # creating separate dataframe of units with missing heat input to update
   all_units_2 %>% 
   group_by(plant_id, unit_id, prime_mover) %>% 
   filter(all(is.na(heat_input))) %>% 
   mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
   ungroup()
 
-#units_missing_heat_ozone <- 
-#  all_units_2 %>% 
-#  filter(reporting_frequency == "OS", is.na(heat_input)) %>% 
-#  mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) 
+units_missing_heat_ozone <- # identify ozone units that are missing heat input
+  all_units_2 %>% 
+  filter(reporting_frequency == "OS", is.na(heat_input)) %>% 
+  mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) 
 
 units_missing_heat <- 
-  rbind(units_missing_heat_by_unit)#, 
-        #units_missing_heat_ozone)
+  rbind(units_missing_heat_unit, 
+        units_missing_heat_ozone)
 
 #units_missing_heat_w_heat_oz <- # some units have positive ozone heat inputs (heat_input_oz) - identify them here
 #  units_missing_heat %>% 
@@ -1097,7 +1140,7 @@ dist_props <- # determining distributional proportions to distribute heat inputs
   distinct() %>% 
   filter(generation != 0) %>% 
   group_by(plant_id, prime_mover) %>% 
-  mutate(sum_namecap = sum(nameplate_capacity)) %>%
+  mutate(sum_namecap = sum(nameplate_capacity, na.rm = TRUE)) %>%
   ungroup() %>% 
   mutate(prop = if_else(sum_namecap != 0, nameplate_capacity / sum_namecap, NA_real_)) %>% 
   select(plant_id, prime_mover, generator_id, prop) 
@@ -1105,8 +1148,8 @@ dist_props <- # determining distributional proportions to distribute heat inputs
 # identify which columns to include from EIA 923 data based on the temporal_res parameter 
 if (params$temporal_res == "annual") { 
   temporal_res_heat_923_cols <- 
-    c("heat_input_923")#, 
-      #"heat_input_923_oz")
+    c("heat_input_923", 
+      "heat_input_923_oz")
 } else { 
   temporal_res_heat_923_cols <- 
     c("heat_input_923")}
@@ -1196,7 +1239,7 @@ boiler_dist_props <-  # determining distributional proportions for EIA-923 boile
   group_by(pick(all_of(temporal_res_cols)), 
            plant_id, 
            prime_mover) %>% 
-  mutate(sum_totfuel = sum(fuel_consum),
+  mutate(sum_totfuel = sum(fuel_consum, na.rm = TRUE),
          prop = if_else(sum_totfuel != 0, fuel_consum / sum_totfuel, NA_real_)) %>% 
   select(all_of(temporal_res_cols), plant_id, prime_mover, boiler_id, prop) %>% 
   ungroup() %>% 
@@ -1204,21 +1247,16 @@ boiler_dist_props <-  # determining distributional proportions for EIA-923 boile
 
 heat_differences <- # calculating prime mover-level heat differences between units included in unit file and EIA-923 Gen & Fuel file
   all_units_2 %>% 
-  rows_update(units_heat_updated_pm_data, by = c(all_of(temporal_res_cols), "plant_id", "unit_id")) %>% 
-  rows_update(units_heat_updated_boiler_matches, by = c(all_of(temporal_res_cols), "plant_id", "unit_id")) %>% 
+  rows_update(units_heat_updated_pm_data, by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover")) %>% 
+  rows_update(units_heat_updated_boiler_matches, by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover")) %>% 
   group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover) %>% 
   summarize(heat_input = sum(heat_input, na.rm = TRUE)) %>% 
   left_join(eia_fuel_consum_pm) %>% 
-  #rename(heat_input_ann = heat_input) %>% 
   mutate(heat_input_diff = heat_input - heat_input_923) %>% 
-    #across(.cols = c("heat_input_ann", any_of(temporal_res_heat_cols)), 
-    #            .fns = ~ get(str_replace(cur_column(), "heat_input_", "heat_input_923_")) - .x, 
-    #            .names = "{.col}_diff")) %>% 
   filter(heat_input_diff > 0) %>% # keeping only differences where 923 values are greater than boiler values
   select(all_of(temporal_res_cols), plant_id, prime_mover, ends_with("diff")) %>% 
   ungroup()
 
-##### CHECK no units updated here - is there an issue here? ###########
 units_heat_updated_boiler_distributed <- # distributing heat input via proportion to units that do not yet have heat input values
   units_missing_heat_3 %>% 
   select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, starts_with("heat_input")) %>%
@@ -1905,15 +1943,17 @@ all_units_8 <-
 #### Check ozone season NOx ----------
 # IF NOx ozone emissions > annual NOx emissions, make the NOx ozone emissions equal the annual NOx emissions
 
-all_units_9 <- 
-  all_units_8 %>%
-  mutate(nox_oz_mass = case_when(nox_oz_mass > nox_mass ~ nox_mass,
-                                 TRUE ~ nox_oz_mass))
+if(params$temporal_res == "annual") {
+  all_units_8 <- 
+    all_units_8 %>%
+    mutate(nox_oz_mass = case_when(nox_oz_mass > nox_mass ~ nox_mass,
+                                   TRUE ~ nox_oz_mass))}
+
 
 ## Geothermal Emissions --------
 
 geo_emissions <- 
-  all_units_9 %>%
+  all_units_8 %>%
   filter(primary_fuel_type == "GEO") %>% 
   left_join(nrel_geo_type %>% filter(table_flag == "new"), 
             by = "plant_id") %>% 
@@ -1940,8 +1980,8 @@ geo_emissions <-
 
 # update all_units with geothermal emissions 
 
-all_units_10 <- 
-  all_units_9 %>% 
+all_units_9 <- 
+  all_units_8 %>% 
   rows_patch(geo_emissions, by = c(temporal_res_cols, "plant_id", "unit_id"))
 
 # Final modifications -----  
@@ -1949,7 +1989,7 @@ all_units_10 <-
 ## Add stack height ----------
 
 stack_info <- 
-  all_units_10 %>% 
+  all_units_9 %>% 
   left_join(eia_860$boiler_stack_flue %>% select(plant_id, # match boiler ID to stack flue ID
                                                  boiler_id, 
                                                  stack_flue_id), 
@@ -1970,7 +2010,7 @@ stack_info <-
 ## Clean up source flags --------
 
 clean_source_flags <- 
-  all_units_10 %>% 
+  all_units_9 %>% 
   mutate(nox_source = replace(nox_source, is.na(nox_mass), NA_character_), # replacing NA emission masses with NA sources
          so2_source = replace(so2_source, is.na(so2_mass), NA_character_), 
          co2_source = replace(co2_source, is.na(co2_mass), NA_character_), 
@@ -1981,7 +2021,7 @@ clean_source_flags <-
 # Check for duplicate plant names and default to EPA names
 
 check_plant_names <- 
-  all_units_10 %>% select(plant_id, plant_name, source) %>% 
+  all_units_9 %>% select(plant_id, plant_name, source) %>% 
   group_by(plant_id, plant_name) %>% 
   distinct() %>% ungroup() %>% 
   group_by(plant_id) %>% 
@@ -1994,7 +2034,7 @@ check_plant_names <-
 # Update FC prime mover to null CO2 emissions 
 
 update_fc_data <- 
-  all_units_10 %>% select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, co2_mass, co2_source) %>% 
+  all_units_9 %>% select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, co2_mass, co2_source) %>% 
   filter((prime_mover == "FC") & ((!is.na(co2_mass)) | (!is.na(co2_source)))) %>%  # only update necessary rows 
   mutate(co2_mass = NA_character_, 
          co2_source = NA_character_, 
@@ -2013,7 +2053,7 @@ update_fc_data <-
 
 delete_retired_units <- 
   eia_860$boiler_info_design_parameters %>% 
-  left_join(all_units_10 %>% select(plant_id, unit_id, operating_status), 
+  left_join(all_units_9 %>% select(plant_id, unit_id, operating_status), 
             by = c("plant_id", "boiler_id" = "unit_id")) %>% 
   filter(boiler_status == "RE" & 
            (as.numeric(retirement_year) < as.numeric(params$eGRID_year) | is.na(retirement_year)) &
@@ -2036,7 +2076,7 @@ eia_units_to_delete <-
 # Update operating status via EIA-860 Boiler Info and Design Parameters for boilers and EIA-860 Generator file for EIA generators
 
 update_status_generators <- # operating status for generators updated via EIA-860 
-  all_units_10 %>% select(plant_id, unit_id, operating_status, source) %>% 
+  all_units_9 %>% select(plant_id, unit_id, operating_status, source) %>% 
   filter(source == "860_generators", is.na(operating_status)) %>% # only update status for those that are NA
   rows_patch(eia_860$combined %>% select(plant_id, "operating_status" = status, "unit_id" = generator_id), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
@@ -2045,7 +2085,7 @@ update_status_generators <- # operating status for generators updated via EIA-86
   
   
 update_status_boilers <- # operating status for boilers updated via EIA-860 Boiler Info and Design Parameters
-  all_units_10 %>% select(plant_id, unit_id, operating_status, source) %>% 
+  all_units_9 %>% select(plant_id, unit_id, operating_status, source) %>% 
   filter(source == "923_boilers", is.na(operating_status)) %>% # only update status for those that are NA
   rows_patch(eia_860$boiler_info_design_parameters %>% select(plant_id, "unit_id" = boiler_id, "operating_status" = boiler_status), 
              by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
@@ -2070,8 +2110,8 @@ update_pr_epa_flag <-
   filter(capd_flag == "Yes")
 
 # create CAPD flag 
-all_units_11 <- 
-  all_units_10 %>%  
+all_units_10 <- 
+  all_units_9 %>%  
   mutate(capd_flag = if_else(paste0(plant_id, "_", unit_id, "_", prime_mover) %in% epa_units, "Yes", NA_character_)) %>% 
   rows_update(update_pr_epa_flag, by = c("plant_id", "unit_id"))
 
@@ -2087,8 +2127,8 @@ plant_name_corrections <-
   select(plant_id, plant_name_update = update)
   
 
-all_units_12 <- 
-  all_units_11 %>% # update to most recent unit file data frame
+all_units_11 <- 
+  all_units_10 %>% # update to most recent unit file data frame
   left_join(stack_info, by = c("plant_id", "unit_id", "prime_mover")) %>% 
   left_join(plant_id_corrections, by = c("plant_id")) %>% 
   mutate(plant_id = if_else(!is.na(plant_id_update), plant_id_update, plant_id)) %>% 
@@ -2125,8 +2165,8 @@ if (params$temporal_res == "annual") {
            so2_mass = as.numeric(so2_mass), 
            co2_mass = as.numeric(co2_mass))
   
-  all_units_12 <- 
-    all_units_12 %>% 
+  all_units_11 <- 
+    all_units_11 %>% 
     rows_update(heat_emissions_corrections, 
                 by = c("plant_id", "unit_id"), unmatched = "ignore")}
 
@@ -2142,7 +2182,7 @@ if (params$temporal_res == "monthly") {
   final_vars <- unit_nonmetric_monthly}
 
 units_formatted <-
-  all_units_12 %>%
+  all_units_11 %>%
   arrange(plant_state, plant_name) %>% 
   mutate(sequnt = row_number(), 
          year = params$eGRID_year) %>% 

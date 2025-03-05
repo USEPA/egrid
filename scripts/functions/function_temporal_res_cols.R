@@ -13,9 +13,9 @@
 
 
 
-temporal_res_cols <- function(temporal_res) {
+create_temporal_res_cols <- function(temporal_res) {
   
-  #' cols_to_add
+  #' create_temporal_res_cols
   #' 
   #' Create vector that contains all of the temporal_res columns
   #' needed for groupby 
