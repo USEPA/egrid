@@ -197,11 +197,39 @@ year <- "2021"
   save_diffs(check_total_heat_input)
   
   ## Annual emissions -----
+  
+  # count differences in NA annual emission values
+  check_emissions_na <-
+    plant_comparison %>%
+    summarize(na_count_r = sum(is.na(get(paste0(emission_type, "_ann_r")))), na_count_access = sum(is.na((get(paste0(emission_type, "_ann_access")))))) %>%
+    mutate(diff_na_count = na_count_r - na_count_access) %>%
+    filter(abs(diff_na_count) > 0) %>%
+    print()
+  
+  # look at values of those NA discrepancies
+  check_emissions_na_values <-
+    plant_comparison %>%
+    filter(is.na(get(paste0(emission_type, "_ann_r"))) & !is.na(get(paste0(emission_type, "_ann_access"))) |
+             !is.na(get(paste0(emission_type, "_ann_r"))) & is.na(get(paste0(emission_type, "_ann_access"))))
+  
+  check_na_sources <-
+    check_emissions_na_values %>%
+    count(get(paste0(emission_type, "_source_r"))) %>%
+    print()
+    
+  # calculate difference in emissions and rates for those with NA in one dataset
+  check_emissions_na_sum <-
+    check_emissions_na_values %>%
+    summarize(na_ann_sum = sum(get(paste0(emission_type, "_ann_r")), na.rm = TRUE)) %>%
+    print()
+  
+  # calculate difference in emissions and rates for those with NA in one dataset
   check_emissions_ann <- 
     plant_comparison %>% 
     filter(mapply(identical, get(paste0(emission_type, "_ann_r")), get(paste0(emission_type, "_ann_access"))) == FALSE) %>% 
     mutate("diff_{emission_type}_ann" := abs(get(paste0(emission_type, "_ann_r")) - get(paste0(emission_type, "_ann_access")))) %>% 
-    filter(get(paste0("diff_", emission_type, "_ann")) > 1E-5) %>%
+    filter(get(paste0("diff_", emission_type, "_ann")) > 1E-5 | is.na(get(paste0(emission_type, "_ann_r"))) & !is.na(get(paste0(emission_type, "_ann_access"))) | 
+             !is.na(get(paste0(emission_type, "_ann_r"))) & is.na(get(paste0(emission_type, "_ann_access")))) %>%
     select(plant_id_r, primary_fuel_type_r, primary_fuel_type_access, 
           combust_heat_input_r, combust_heat_input_access,
            paste0(emission_type, "_ann_r"), paste0(emission_type, "_ann_access"), paste0("diff_", emission_type, "_ann"), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
@@ -215,12 +243,46 @@ year <- "2021"
     filter(get(paste0("diff_", emission_type, "_ann")) > 0)
   save_diffs(check_total_emissions_ann)
   
+  # compare total emission difference to sum of NA differences
+  # if equal, the discrepancy are due to these differences
+  print(c(check_total_emissions_ann[[paste0("diff_", emission_type, "_ann")]],
+          check_emissions_na_sum$na_ann_sum,
+          check_total_emissions_ann[[paste0("diff_", emission_type, "_ann")]] - check_emissions_na_sum$na_ann_sum))
+  
   ## Emissions output rate ------
+  
+  # count differences in NA output rate values
+  check_output_rate_na <-
+    plant_comparison %>%
+    summarize(na_count_r = sum(is.na(get(paste0(emission_type, "_output_rate_r")))), na_count_access = sum(is.na((get(paste0(emission_type, "_output_rate_access")))))) %>%
+    mutate(diff_na_count = na_count_r - na_count_access) %>%
+    filter(abs(diff_na_count) > 0) %>%
+    print()
+  
+  # look at values of those NA discrepancies
+  check_output_rate_na_values <-
+    plant_comparison %>%
+    filter(is.na(get(paste0(emission_type, "_output_rate_r"))) & !is.na(get(paste0(emission_type, "_output_rate_access"))) |
+             !is.na(get(paste0(emission_type, "_output_rate_r"))) & is.na(get(paste0(emission_type, "_output_rate_access"))))
+  
+  check_output_rate_na_sources <-
+    check_output_rate_na_values %>%
+    count(get(paste0(emission_type, "_source_r"))) %>%
+    print()
+
+  
+  # calculate difference for those with NA in one dataset
+  check_output_rate_na_sum <-
+    check_emissions_na_values %>%
+    summarize(na_output_rate_sum = sum(get(paste0(emission_type, "_output_rate_r")), na.rm = TRUE)) %>%
+    print()
+  
   check_emissions_output_rate <- 
     plant_comparison %>% 
     filter(mapply(identical, get(paste0(emission_type, "_output_rate_r")), get(paste0(emission_type, "_output_rate_access"))) == FALSE) %>% 
     mutate("diff_{emission_type}_output_rate" := abs(get(paste0(emission_type, "_output_rate_r")) - get(paste0(emission_type, "_output_rate_access")))) %>% 
-    filter(get(paste0("diff_", emission_type, "_output_rate")) > 1E-5) %>%
+    filter(get(paste0("diff_", emission_type, "_output_rate")) > 1E-5 | is.na(get(paste0(emission_type, "_ann_r"))) & !is.na(get(paste0(emission_type, "_ann_access"))) | 
+             !is.na(get(paste0(emission_type, "_ann_r"))) & is.na(get(paste0(emission_type, "_ann_access")))) %>%
     select(plant_id_r, primary_fuel_type_r, primary_fuel_type_access, 
            combust_heat_input_r, combust_heat_input_access,
            paste0(emission_type, "_output_rate_r"), paste0(emission_type, "_output_rate_access"), paste0("diff_", emission_type, "_output_rate"), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
@@ -234,12 +296,45 @@ year <- "2021"
     filter(get(paste0("diff_", emission_type, "_output_rate")) > 0)
   save_diffs(check_total_emissions_output_rate)
   
+  # compare total emission difference to sum of NA differences
+  # if equal, the discrepancy are due to these differences
+  print(c(check_total_emissions_output_rate[[paste0("diff_", emission_type, "_output_rate")]],
+          check_output_rate_na_sum$na_output_rate_sum,
+          check_total_emissions_output_rate[[paste0("diff_", emission_type, "_output_rate")]] - check_output_rate_na_sum$na_output_rate_sum))
+  
   ## Emissions input rate -------
+  
+  # count differences in NA input rate values
+  check_input_rate_na <-
+    plant_comparison %>%
+    summarize(na_count_r = sum(is.na(get(paste0(emission_type, "_input_rate_r")))), na_count_access = sum(is.na((get(paste0(emission_type, "_input_rate_access")))))) %>%
+    mutate(diff_na_count = na_count_r - na_count_access) %>%
+    filter(abs(diff_na_count) > 0) %>%
+    print()
+  
+  # look at values of those NA discrepancies
+  check_input_rate_na_values <-
+    plant_comparison %>%
+    filter(is.na(get(paste0(emission_type, "_input_rate_r"))) & !is.na(get(paste0(emission_type, "_input_rate_access"))) |
+             !is.na(get(paste0(emission_type, "_input_rate_r"))) & is.na(get(paste0(emission_type, "_input_rate_access"))))
+  
+  check_input_rate_na_sources <-
+    check_input_rate_na_values %>%
+    count(get(paste0(emission_type, "_source_r"))) %>%
+    print()
+  
+  # calculate difference for those with NA in one dataset
+  check_input_rate_na_sum <-
+    check_emissions_na_values %>%
+    summarize(na_input_rate_sum = sum(get(paste0(emission_type, "_input_rate_r")), na.rm = TRUE)) %>%
+    print()
+  
   check_emissions_input_rate <- 
     plant_comparison %>% 
     filter(mapply(identical, get(paste0(emission_type, "_input_rate_r")), get(paste0(emission_type, "_input_rate_access"))) == FALSE) %>% 
     mutate("diff_{emission_type}_input_rate" := abs(get(paste0(emission_type, "_input_rate_r")) - get(paste0(emission_type, "_input_rate_access")))) %>% 
-    filter(get(paste0("diff_", emission_type, "_input_rate")) > 1E-5) %>%
+    filter(get(paste0("diff_", emission_type, "_input_rate")) > 1E-5 | is.na(get(paste0(emission_type, "_ann_r"))) & !is.na(get(paste0(emission_type, "_ann_access"))) | 
+             !is.na(get(paste0(emission_type, "_ann_r"))) & is.na(get(paste0(emission_type, "_ann_access")))) %>%
     select(plant_id_r, primary_fuel_type_r, primary_fuel_type_access, 
            combust_heat_input_r, combust_heat_input_access,
            paste0(emission_type, "_input_rate_r"), paste0(emission_type, "_input_rate_access"), paste0("diff_", emission_type, "_input_rate"), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
@@ -253,16 +348,73 @@ year <- "2021"
     filter(get(paste0("diff_", emission_type, "_input_rate")) > 0)
   save_diffs(check_total_emissions_input_rate)
   
+  # compare total emission difference to sum of NA differences
+  # if equal, the discrepancy are due to these differences
+  print(c(check_total_emissions_input_rate[[paste0("diff_", emission_type, "_input_rate")]],
+          check_input_rate_na_sum$na_input_rate_sum,
+          check_total_emissions_input_rate[[paste0("diff_", emission_type, "_input_rate")]] - check_input_rate_na_sum$na_input_rate_sum))
+  
   ## Emissions source -------
   check_emissions_source <- 
     plant_comparison %>% 
     filter(mapply(identical, get(paste0(emission_type, "_source_r")), get(paste0(emission_type, "_source_access"))) == FALSE) %>%
+    filter(!str_detect(get(paste0(emission_type, "_source_r")), ";") & get(paste0(emission_type, "_source_access")) != "EPA/NEI; Estimated using an emission source") %>%
     select(plant_id_r, paste0(emission_type, "_ann_r"), paste0(emission_type, "_ann_access"), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
   save_diffs(check_emissions_source)
   
   ## Unadjusted combustion heat input -----
   
   ## Unadjusted emissions -----
+  
+  check_emissions_unadj_na <-
+    plant_comparison %>%
+    summarize(na_count_r = sum(is.na(get(paste0("unadj_", emission_type, "_r")))), na_count_access = sum(is.na((get(paste0("unadj_", emission_type, "_access")))))) %>%
+    mutate(diff_na_count = na_count_r - na_count_access) %>%
+    filter(abs(diff_na_count) > 0) %>%
+    print()
+  
+  # look at values of those NA discrepancies
+  check_emissions_unadj_na_values <-
+    plant_comparison %>%
+    filter(is.na(get(paste0("unadj_", emission_type, "_r"))) & !is.na(get(paste0("unadj_", emission_type, "_access"))) |
+             !is.na(get(paste0("unadj_", emission_type, "_r"))) & is.na(get(paste0("unadj_", emission_type, "_access")))) #%>%
+    # filter(!is.na(get(paste0(emission_type, "_source_r"))))
+    # filter(get(paste0("unadj_", emission_type, "_r")) > 0)
+  
+  check_unadj_na_sources <-
+    check_emissions_unadj_na_values %>%
+    count(get(paste0(emission_type, "_source_r"))) %>%
+    print()
+  
+  # calculate difference in emissions and rates for those with NA in one dataset
+  check_emissions_unadj_na_sum <-
+    check_emissions_unadj_na_values %>%
+    summarize(na_unadj_sum = sum(get(paste0("unadj_", emission_type, "_r")), na.rm = TRUE)) %>%
+    print()
+  
+  check_emissions_unadj <- 
+    plant_comparison %>% 
+    filter(mapply(identical, get(paste0("unadj_", emission_type, "_r")), get(paste0("unadj_", emission_type, "_access"))) == FALSE) %>% 
+    mutate("diff_unadj_{emission_type}" := abs(get(paste0("unadj_", emission_type, "_r")) - get(paste0("unadj_", emission_type, "_access")))) %>% 
+    filter(get(paste0("diff_unadj_", emission_type)) > 1E-5 | is.na(get(paste0("unadj_", emission_type, "_r"))) & !is.na(get(paste0("unadj_", emission_type, "_access")))) %>%
+    select(plant_id_r, primary_fuel_type_r, primary_fuel_type_access, 
+           combust_heat_input_r, combust_heat_input_access,
+           paste0("unadj_", emission_type, "_r"), paste0("unadj_", emission_type, "_access"), paste0("diff_unadj_", emission_type), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
+  save_diffs(check_emissions_unadj)
+  
+  check_total_emissions_unadj <- 
+    plant_comparison %>% 
+    summarize("sum_unadj_{emission_type}_r" := sum(get(paste0("unadj_", emission_type, "_r")), na.rm = TRUE), 
+              "sum_unadj_{emission_type}_access" := sum(get(paste0("unadj_", emission_type, "_access")), na.rm = TRUE)) %>% 
+    mutate("diff_unadj_{emission_type}" := abs(get(paste0("sum_unadj_", emission_type, "_r")) - get(paste0("sum_unadj_", emission_type, "_access")))) %>%
+    filter(get(paste0("diff_unadj_", emission_type)) > 0)
+  save_diffs(check_total_emissions_ann)
+
+  # compare total emission difference to sum of NA differences
+  # if equal, the discrepancy are due to these differences
+  print(c(check_total_emissions_unadj[[paste0("diff_unadj_", emission_type)]],
+          check_emissions_unadj_na_sum$na_unadj_sum,
+          abs(check_total_emissions_unadj[[paste0("diff_unadj_", emission_type)]] - check_emissions_unadj_na_sum$na_unadj_sum)))
   
   # Identify all unique plant and unit IDs that have differences ------------
   
