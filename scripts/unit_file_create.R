@@ -786,6 +786,10 @@ eia_923_boilers <-
          "fuel_consum" = quantity_of_fuel_consumed, 
          heat_input, 
          respondent_frequency) %>% 
+  group_by(pick(all_of(temporal_res_cols)), plant_id, plant_name, plant_state, prime_mover, boiler_id, fuel_type, respondent_frequency) %>% 
+  summarize(heat_input = sum(heat_input, na.rm = TRUE), 
+            fuel_consum = sum(fuel_consum, na.rm = TRUE)) %>% 
+  ungroup() %>% 
   left_join(prime_mover_corrections, by = c("plant_id", "boiler_id", "prime_mover")) %>% 
   mutate(prime_mover = if_else(!is.na(update), update, prime_mover)) %>% 
   rows_update(prime_mover_corrections_2, by = c("plant_id", "boiler_id"), unmatched = "ignore") %>% 
@@ -813,32 +817,32 @@ if (params$temporal_res == "monthly") {
     #rows_patch(dec_gen, by = c("plant_id", "prime_mover", "boiler_id", "fuel_type"), 
     #           unmatched = "ignore") %>% 
     mutate(id = paste0(plant_id, "_", boiler_id, "_", prime_mover),
-           heat_input = case_when(respondent_frequency %in% c("A", "AM") & id %in% check_gen_units ~ NA_real_, 
+           heat_input = case_when(respondent_frequency  == "A" & id %in% check_gen_units ~ NA_real_, 
                                   #respondent_frequency == "A" & !id %in% check_gen_units ~ heat_input / 12,
                                   TRUE ~ heat_input), 
-           fuel_consum = case_when(respondent_frequency %in% c("A", "AM") & id %in% check_gen_units ~ NA_real_,
+           fuel_consum = case_when(respondent_frequency == "A" & id %in% check_gen_units ~ NA_real_,
                                    #respondent_frequency == "A" & !id %in% check_gen_units ~ fuel_consum / 12,
                                    TRUE ~ fuel_consum))}
 
 # calculate ozone heat input if temporal_res is annual
-# if (params$temporal_res == "annual") { 
-#   heat_input_oz_boilers <- 
-#     eia_923$boiler_fuel_data %>% 
-#     filter(month %in% c(5:9)) %>% 
-#     mutate(heat_input_oz = quantity_of_fuel_consumed * mmbtu_per_unit) %>% 
-#     group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover, boiler_id, fuel_type) %>% 
-#     mutate(heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>%
-#     ungroup() %>% 
-#     select(all_of(temporal_res_cols), plant_id, prime_mover, boiler_id, fuel_type, heat_input_oz) %>% 
-#     left_join(prime_mover_corrections, by = c("plant_id", "boiler_id", "prime_mover")) %>% 
-#     mutate(prime_mover = if_else(!is.na(update), update, prime_mover)) %>% 
-#     rows_update(prime_mover_corrections_2, by = c("plant_id", "boiler_id"), unmatched = "ignore") %>% 
-#     select(-update) %>% 
-#     distinct()
-# 
-# eia_923_boilers <- 
-#   eia_923_boilers %>% 
-#   full_join(heat_input_oz_boilers, by = c(temporal_res_cols, "plant_id", "prime_mover", "boiler_id", "fuel_type"))}
+if (params$temporal_res == "annual") {
+  heat_input_oz_boilers <-
+    eia_923$boiler_fuel_data %>%
+    filter(month %in% c(5:9)) %>%
+    mutate(heat_input_oz = quantity_of_fuel_consumed * mmbtu_per_unit) %>%
+    group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover, boiler_id, fuel_type) %>%
+    mutate(heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>%
+    ungroup() %>%
+    select(all_of(temporal_res_cols), plant_id, prime_mover, boiler_id, fuel_type, heat_input_oz) %>%
+    left_join(prime_mover_corrections, by = c("plant_id", "boiler_id", "prime_mover")) %>%
+    mutate(prime_mover = if_else(!is.na(update), update, prime_mover)) %>%
+    rows_update(prime_mover_corrections_2, by = c("plant_id", "boiler_id"), unmatched = "ignore") %>%
+    select(-update) %>%
+    distinct()
+
+  eia_923_boilers <-
+    eia_923_boilers %>%
+    full_join(heat_input_oz_boilers, by = c(temporal_res_cols, "plant_id", "prime_mover", "boiler_id", "fuel_type"))}
 
 eia_923_boilers_grouped <- 
   eia_923_boilers %>% 
@@ -903,10 +907,14 @@ eia_boilers_to_add <-
   filter(!plant_id %in% epa_6$plant_id, # removing boilers that are in plants in EPA
          !plant_id %in% epa_plants_to_delete$plant_id) %>% # removing plants that are in epa_plants_to_delete
   filter(id %in% eia_860_boil_gen_ids | id_pm %in% eia_860_combined_ids) %>%  # keeping only boilers that are in 860, under boiler or unit id
-  mutate(heat_input_source = "EIA Unit-level Data") %>% #,
-         #heat_input_oz_source = "EIA Unit-level Data") %>% 
+  mutate(heat_input_source = "EIA Unit-level Data") %>% 
   left_join(primary_fuel_types_923_boilers) # adding primary fuel type as determined by fuel type of max heat input of boiler 
   
+if(params$temporal_res == "annual") { 
+  eia_boilers_to_add <- 
+    eia_boilers_to_add %>% 
+    mutate(heat_input_oz_source = "EIA Unit-level Data")}
+
  print(glue::glue("{nrow(eia_923_boilers_heat) - nrow(eia_boilers_to_add)} EIA-923 boilers removed because:\n 
                   1) plant_id is already in EPA, or\n
                   2) boiler does not match plant/boiler in EIA-860 files (EIA-860 Boiler Generator, EIA-860 Combined)"))
@@ -1017,7 +1025,6 @@ nuc_geo_gens_to_add <-
             by = c("plant_id", "generator_id" = "nuclear_unit_id", "prime_mover")) %>% 
   group_by(pick(all_of(temporal_res_cols)), plant_id, generator_id, prime_mover) %>% 
   mutate(heat_input = sum(tot_mmbtu, na.rm = TRUE),
-         #heat_input_oz = rowSums(pick(all_of(heat_923_oz_months)), na.rm = TRUE), 
          heat_input_source = "EIA Prime Mover-level Data") %>%  
          #heat_input_oz_source = "EIA Prime Mover-level Data") %>% 
   select(all_of(temporal_res_cols), 
@@ -1031,6 +1038,33 @@ nuc_geo_gens_to_add <-
          heat_input, 
          heat_input_source) %>% 
   distinct()
+
+if(params$temporal_res == "annual") { 
+  nuc_geo_gens_to_add_oz <- 
+  eia_860$combined %>% 
+    filter(plant_id %in% epa$plant_id,
+           energy_source_1 %in% c("NUC", "GEO")) %>% 
+    left_join(eia_923$generation_and_fuel_combined %>% select(all_of(temporal_res_cols), month, plant_id, nuclear_unit_id, prime_mover, tot_mmbtu),
+              by = c("plant_id", "generator_id" = "nuclear_unit_id", "prime_mover")) %>% 
+    filter(month %in% c(5:9)) %>% 
+    group_by(pick(all_of(temporal_res_cols)), plant_id, generator_id, prime_mover) %>% 
+    mutate(heat_input_oz = sum(tot_mmbtu, na.rm = TRUE),
+           heat_input_oz_source = "EIA Prime Mover-level Data") %>%  
+    select(all_of(temporal_res_cols), 
+           plant_id,
+           plant_name, 
+           plant_state,
+           generator_id,
+           prime_mover,
+           primary_fuel_type = energy_source_1,
+           operating_status = status,
+           heat_input_oz, 
+           heat_input_oz_source) %>% 
+    distinct()
+  
+  nuc_geo_gens_to_add <- 
+    nuc_geo_gens_to_add %>% 
+    full_join(nuc_geo_gens_to_add_oz)}
 
 eia_860_generators_to_add_3 <-
   eia_860_generators_to_add_2 %>%
@@ -1198,19 +1232,33 @@ eia_923_boiler_update_heat <-
   distinct() %>% 
   drop_na(heat_input)
 
+if(params$temporal_res == "annual") { 
+  eia_923_boiler_update_heat <- 
+    eia_923_boilers %>%  
+    select(all_of(temporal_res_cols), plant_id, unit_id = boiler_id, prime_mover, fuel_consum, heat_input, heat_input_oz) %>% 
+    group_by(pick(all_of(temporal_res_cols)), plant_id, unit_id, prime_mover) %>% 
+    slice_max(fuel_consum, n = 1, with_ties = FALSE) %>% 
+    select(-fuel_consum) %>% 
+    distinct() %>% 
+    drop_na(heat_input)}
+
 units_heat_updated_boiler_matches <- 
   units_missing_heat_2 %>% 
   rows_patch(eia_923_boiler_update_heat, 
              by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
   filter(!is.na(heat_input)) %>% 
-  mutate(heat_input_source = "EIA Unit-level Data") %>% #,
-         #heat_input_oz_source = if_else(!is.na(heat_input_oz_source), heat_input_oz_source, "EIA Unit-level Data")) %>% 
+  mutate(heat_input_source = "EIA Unit-level Data") %>% 
   select(all_of(temporal_res_cols), 
          plant_id, 
          unit_id, 
          prime_mover,
          starts_with("heat_input")) %>% 
   ungroup()
+
+if(params$temporal_res == "annual") { 
+  units_heat_updated_boiler_matches <- 
+    units_heat_updated_boiler_matches %>% 
+    mutate(heat_input_oz_source = if_else(!is.na(heat_input_oz_source), heat_input_oz_source, "EIA Unit-level Data"))}
   
 units_missing_heat_3 <- 
   units_missing_heat_2 %>% 

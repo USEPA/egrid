@@ -1281,18 +1281,299 @@ knitr::kable(plant_gas_netgen_check,
 
 ### Nuclear generation
 
+```{r}
+#| label: nuclear-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_nuclear_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         nuclear_netgen_annual, 
+         nuclear_netgen_monthly,
+         nuclear_netgen_diff,
+         nuclear_netgen_pct_diff) %>% 
+   filter(nuclear_netgen_diff > 1) %>% 
+   arrange(-nuclear_netgen_pct_diff)
+
+print(glue::glue("Nuclear Net Gen Differences > 1: {nrow(plant_nuclear_netgen_check)}"))
+```
+
+```{r}
+#| label: nuclear-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_nuclear_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Nuclear Gen Annual", 
+                           "Nuclear Gen Monthly", 
+                           "Nuclear Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file nuclear generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
 ### Hydro generation
+
+```{r}
+#| label: hydro-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_hydro_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         hydro_netgen_annual, 
+         hydro_netgen_monthly,
+         hydro_netgen_diff,
+         hydro_netgen_pct_diff) %>% 
+   filter(hydro_netgen_diff > 1) %>% 
+   arrange(-hydro_netgen_pct_diff)
+
+print(glue::glue("Hydro Net Gen Differences > 1: {nrow(plant_hydro_netgen_check)}"))
+```
+
+```{r}
+#| label: hydro-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_hydro_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Hydro Gen Annual", 
+                           "Hydro Gen Monthly", 
+                           "Hydro Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file hydro generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
 
 ### Biomass generation
 
+```{r}
+#| label: biomass-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_biomass_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         biomass_netgen_annual, 
+         biomass_netgen_monthly,
+         biomass_netgen_diff,
+         biomass_netgen_pct_diff) %>% 
+   filter(biomass_netgen_diff > 1) %>% 
+   arrange(-biomass_netgen_pct_diff)
+
+print(glue::glue("Biomass Net Gen Differences > 1: {nrow(plant_biomass_netgen_check)}"))
+```
+
+```{r}
+#| label: biomass-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_biomass_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Biomass Gen Annual", 
+                           "Biomass Gen Monthly", 
+                           "Biomass Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file biomass generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
 ### Wind generation
+
+```{r}
+#| label: wind-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_wind_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         wind_netgen_annual, 
+         wind_netgen_monthly,
+         wind_netgen_diff,
+         wind_netgen_pct_diff) %>% 
+   filter(wind_netgen_diff > 1) %>% 
+   arrange(-wind_netgen_pct_diff)
+
+print(glue::glue("Wind Net Gen Differences > 1: {nrow(plant_wind_netgen_check)}"))
+```
+
+```{r}
+#| label: wind-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_wind_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Wind Gen Annual", 
+                           "Wind Gen Monthly", 
+                           "Wind Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file wind generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
 
 ### Solar generation
 
+```{r}
+#| label: solar-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_solar_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         solar_netgen_annual, 
+         solar_netgen_monthly,
+         solar_netgen_diff,
+         solar_netgen_pct_diff) %>% 
+   filter(solar_netgen_diff > 1) %>% 
+   arrange(-solar_netgen_pct_diff)
+
+print(glue::glue("Solar Net Gen Differences > 1: {nrow(plant_solar_netgen_check)}"))
+```
+
+```{r}
+#| label: solar-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_solar_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Solar Gen Annual", 
+                           "Solar Gen Monthly", 
+                           "Solar Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file solar generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
 ### Geothermal generation
+
+```{r}
+#| label: geothermal-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_geothermal_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         geothermal_netgen_annual, 
+         geothermal_netgen_monthly,
+         geothermal_netgen_diff,
+         geothermal_netgen_pct_diff) %>% 
+   filter(geothermal_netgen_diff > 1) %>% 
+   arrange(-geothermal_netgen_pct_diff)
+
+print(glue::glue("Geothermal Net Gen Differences > 1: {nrow(plant_geothermal_netgen_check)}"))
+```
+
+```{r}
+#| label: geothermal-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_geothermal_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Geothermal Gen Annual", 
+                           "Geothermal Gen Monthly", 
+                           "Geothermal Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file geothermal generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
 
 ### Other fossil fuels
 
+```{r}
+#| label: other-ff-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_other_ff_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         other_ff_netgen_annual, 
+         other_ff_netgen_monthly,
+         other_ff_netgen_diff,
+         other_ff_netgen_pct_diff) %>% 
+   filter(other_ff_netgen_diff > 1) %>% 
+   arrange(-other_ff_netgen_pct_diff)
+
+print(glue::glue("Other Fossil Net Gen Differences > 1: {nrow(plant_other_ff_netgen_check)}"))
+```
+
+```{r}
+#| label: other-ff-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_other_ff_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Other Fossil Gen Annual", 
+                           "Other Fossil Gen Monthly", 
+                           "Other Fossil Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file other fossil generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
 ### Other generation
+
+```{r}
+#| label: other-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_other_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         other_netgen_annual, 
+         other_netgen_monthly,
+         other_netgen_diff,
+         other_netgen_pct_diff) %>% 
+   filter(other_netgen_diff > 1) %>% 
+   arrange(-other_netgen_pct_diff)
+
+print(glue::glue("Other Net Gen Differences > 1: {nrow(plant_other_netgen_check)}"))
+```
+
+```{r}
+#| label: other-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_other_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Other Gen Annual", 
+                           "Other Gen Monthly", 
+                           "Other Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file other generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
 :::
 

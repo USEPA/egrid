@@ -329,7 +329,7 @@ plant_nonmetric_annual <-
     "UNHTISRC"  = "unadj_heat_input_source", 
     "UNHOZSRC"  = "unadj_heat_input_oz_source", 
     "BIONOX"    = "nox_biomass", 
-    "BIONOXOZ"  = "nox_bio_oz", 
+    "BIONOXOZ"  = "nox_oz_biomass", 
     "BIOSO2"    = "so2_biomass", 
     "BIOCO2"    = "co2_biomass", 
     "BIOCH4"    = "ch4_biomass", 
