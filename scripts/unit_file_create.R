@@ -39,41 +39,7 @@ temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
 # Load necessary data ------
 
 ## EPA ------
-if(params$temporal_res == "annual") { 
-  epa_vars_to_keep <- 
-    c("plant_state",
-      "plant_name",
-      "plant_id",
-      "unit_id",
-      "operating_status",
-      "reporting_frequency",
-      "program_code",
-      "primary_fuel_type",
-      "nameplate_capacity",
-      "unit_type" = "unit_type_abb",
-      "operating_hours" = "operating_time_count",
-      "heat_input" = "heat_input_mmbtu",
-      "heat_input_oz" = "heat_input_mmbtu_ozone",
-      "nox_mass" = "nox_mass_short_tons",
-      "nox_oz_mass" = "nox_mass_short_tons_ozone",
-      "so2_mass" = "so2_mass_short_tons",
-      "so2_mass_oz" = "so2_mass_short_tons_ozone",
-      "co2_mass" = "co2_mass_short_tons",
-      "hg_mass" = "hg_mass_lbs",
-      "heat_input_source",
-      "heat_input_oz_source",
-      "nox_source",
-      "nox_oz_source",
-      "so2_source",
-      "co2_source",
-      "hg_source",
-      "so2_controls",
-      "nox_controls",
-      "hg_controls",
-      "year_online"
-    ) 
-} else {
-  epa_vars_to_keep <- 
+epa_vars_to_keep <- 
   c("plant_state",
     "plant_name",
     "plant_id",
@@ -86,8 +52,11 @@ if(params$temporal_res == "annual") {
     "unit_type" = "unit_type_abb",
     "operating_hours" = "operating_time_count",
     "heat_input" = "heat_input_mmbtu",
+    "heat_input_oz" = "heat_input_mmbtu_ozone",
     "nox_mass" = "nox_mass_short_tons",
+    "nox_oz_mass" = "nox_mass_short_tons_ozone",
     "so2_mass" = "so2_mass_short_tons",
+    "so2_mass_oz" = "so2_mass_short_tons_ozone",
     "co2_mass" = "co2_mass_short_tons",
     "hg_mass" = "hg_mass_lbs",
     "heat_input_source",
@@ -101,7 +70,7 @@ if(params$temporal_res == "annual") {
     "nox_controls",
     "hg_controls",
     "year_online"
-  )}
+  ) 
 
 if(file.exists(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean_{params$temporal_res}.RDS"))) { 
   epa <- 
@@ -534,9 +503,22 @@ eia_fuel_consum_pm <- # summing fuel and consum to PM level
             #fuel_consum_923_oz = sum(unit_consum_oz, na.rm = TRUE),
             #fuel_consum_923_ann = sum(total_fuel_consumption_quantity, na.rm = TRUE), # consumption in quantity is referred to as "fuel consumption"
             heat_input_923 = sum(tot_mmbtu, na.rm = TRUE), # sum and rename monthly heat input columns   
-            fuel_consum_923 = sum(quantity, na.rm = TRUE) # sum and rename monthly fuel consumption columns
+            fuel_consum_923 = sum(quantity, na.rm = TRUE)  # sum and rename monthly fuel consumption columns
             ) %>% ungroup() %>% 
   select(all_of(temporal_res_cols), plant_id, prime_mover, heat_input_923, fuel_consum_923)
+
+if(params$temporal_res == "annual") { 
+  eia_923_ozone <- 
+    eia_923$generation_and_fuel_combined %>% 
+    filter(month %in% c(5:9)) %>% 
+    group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover) %>% 
+    summarize(heat_input_oz_923 = sum(tot_mmbtu, na.rm = TRUE), 
+              fuel_consum_oz_923 = sum(quantity, na.rm = TRUE)) %>% 
+    select(all_of(temporal_res_cols), plant_id, prime_mover, heat_input_oz_923, fuel_consum_oz_923)
+  
+  eia_fuel_consum_pm <- 
+    eia_fuel_consum_pm %>% 
+    full_join(eia_923_ozone, by = c(temporal_res_cols, "plant_id", "prime_mover"))}
 
 eia_fuel_consum_fuel_type <- # summing fuel and consum to PM and fuel_type level
   eia_923$generation_and_fuel_combined %>%
@@ -555,6 +537,19 @@ eia_fuel_consum_fuel_type <- # summing fuel and consum to PM and fuel_type level
             fuel_consum_923 = sum(quantity, na.rm = TRUE) # sum and rename monthly fuel consumption columns
             ) %>% ungroup() %>% 
   select(all_of(temporal_res_cols), plant_id, prime_mover, fuel_type, heat_input_923, fuel_consum_923)
+
+if(params$temporal_res == "annual") { 
+  eia_923_ozone <- 
+    eia_923$generation_and_fuel_combined %>% 
+    filter(month %in% c(5:9)) %>% 
+    group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover, fuel_type) %>% 
+    summarize(heat_input_oz_923 = sum(tot_mmbtu, na.rm = TRUE), 
+              fuel_consum_oz_923 = sum(quantity, na.rm = TRUE)) %>% 
+    select(all_of(temporal_res_cols), plant_id, prime_mover, fuel_type, heat_input_oz_923, fuel_consum_oz_923)
+  
+  eia_fuel_consum_fuel_type <- 
+    eia_fuel_consum_fuel_type %>% 
+    full_join(eia_923_ozone, by = c(temporal_res_cols, "plant_id", "prime_mover", "fuel_type"))}
 
 # distributing heat input from only ozone reporting plants to non-ozone months
 # epa_oz_reporters_dist <- 
@@ -1075,7 +1070,6 @@ primary_fuel_corrections <-
   select(plant_id, unit_id, prime_mover, primary_fuel_type = update)
 
 all_units <- # binding all units together, and adding a source column to track row origins
-  ##### CHECK update to epa_7 when ozone calculations are fixed
   bind_rows((epa_6 %>% mutate(source = "EPA", id = paste0(plant_id, "_", unit_id, "_", prime_mover))),
             (eia_boilers_to_add %>% select(-id) %>% mutate(source = "923_boilers") %>% 
                rename("id" = id_pm) %>% rename("unit_id" = boiler_id)),
@@ -1083,7 +1077,6 @@ all_units <- # binding all units together, and adding a source column to track r
                rename("unit_id" = generator_id)),
             (biomass_units_to_add %>% mutate(id = paste0(plant_id, "_", unit_id, "_", prime_mover)) %>% 
                                                cross_join(temporal_res_cols_to_add) %>% 
-               ##### CHECK update to epa_7 when ozone calculations are fixed
                filter(!id %in% epa_6$id, 
                       !id %in% eia_boilers_to_add$id, 
                       !id %in% eia_860_generators_to_add_3$id))) %>% 
@@ -1119,9 +1112,10 @@ units_missing_heat <-
   rbind(units_missing_heat_unit, 
         units_missing_heat_ozone)
 
-#units_missing_heat_w_heat_oz <- # some units have positive ozone heat inputs (heat_input_oz) - identify them here
-#  units_missing_heat %>% 
-#  filter(!is.na(heat_input_oz)) %>% pull(id)
+if(params$temporal_res == "annual") { 
+  units_missing_heat_w_heat_oz <- # some units have positive ozone heat inputs (heat_input_oz) - identify them here
+    units_missing_heat %>% 
+    filter(!is.na(heat_input_oz)) %>% pull(id)}
 
 print(glue::glue("{nrow(units_missing_heat %>% 
                         select(plant_id, unit_id, prime_mover) %>% 
@@ -1149,7 +1143,7 @@ dist_props <- # determining distributional proportions to distribute heat inputs
 if (params$temporal_res == "annual") { 
   temporal_res_heat_923_cols <- 
     c("heat_input_923", 
-      "heat_input_923_oz")
+      "heat_input_oz_923")
 } else { 
   temporal_res_heat_923_cols <- 
     c("heat_input_923")}
@@ -1176,9 +1170,13 @@ units_heat_updated_pm_data <- # dataframe with units having heat input updated b
              by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"),
              unmatched = "ignore") %>% # ignore rows in distributed_heat_input that aren't in units_missing_heat
   filter(!is.na(heat_input)) %>% 
-  mutate(heat_input_source = "EIA Prime Mover-level Data") #, 
-         #heat_input_oz_source = if_else(id %in% units_missing_heat_w_heat_oz, heat_input_oz_source, "EIA Prime Mover-level Data")) # only update source for NA ozone heat input values
+  mutate(heat_input_source = "EIA Prime Mover-level Data") 
 
+if(params$temporal_res == "annual") { 
+  units_heat_updated_pm_data <- 
+    units_heat_updated_pm_data %>% 
+    mutate(heat_input_oz_source = if_else(id %in% units_missing_heat_w_heat_oz, heat_input_oz_source, "EIA Prime Mover-level Data"))} # only update source for NA ozone heat input values)}
+         
 print(glue::glue("{nrow(units_heat_updated_pm_data)} units updated with EIA Prime Mover-level Data. {(nrow(units_missing_heat) - nrow(units_heat_updated_pm_data))} with missing heat input remain."))
 
 units_missing_heat_2 <- # creating updated dataframe with remaining missing heat inputs
@@ -1257,25 +1255,65 @@ heat_differences <- # calculating prime mover-level heat differences between uni
   select(all_of(temporal_res_cols), plant_id, prime_mover, ends_with("diff")) %>% 
   ungroup()
 
+if(params$temporal_res == "annual") { 
+  heat_differences_oz <- 
+    all_units_2 %>% 
+    rows_update(units_heat_updated_pm_data, by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover")) %>% 
+    rows_update(units_heat_updated_boiler_matches, by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover")) %>% 
+    group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover) %>% 
+    summarize(heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% 
+    left_join(eia_fuel_consum_pm) %>% 
+    mutate(heat_oz_diff = heat_input_oz - heat_input_oz_923) %>% 
+    filter(heat_oz_diff > 0) %>% # keeping only differences where 923 values are greater than boiler values
+    select(all_of(temporal_res_cols), plant_id, prime_mover, ends_with("diff")) %>% 
+    ungroup()
+  
+  heat_differences <- 
+    heat_differences %>% 
+    full_join(heat_differences_oz, by = c(temporal_res_cols, "plant_id", "prime_mover"))
+    }
+
 units_heat_updated_boiler_distributed <- # distributing heat input via proportion to units that do not yet have heat input values
   units_missing_heat_3 %>% 
   select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, starts_with("heat_input")) %>%
   inner_join(boiler_dist_props, # now joining missing heat units with boiler dist group to keep boilers where we have a distributional proportion
-            by = c(all_of(temporal_res_cols), "plant_id", "unit_id" = "boiler_id", "prime_mover")) %>% 
+            by = c(temporal_res_cols, "plant_id", "unit_id" = "boiler_id", "prime_mover")) %>% 
   filter(!is.na(prop)) %>%
   left_join(heat_differences) %>%
   filter(!is.na(heat_input_diff)) %>% 
   mutate(heat_input = heat_input_diff * prop,
-         #heat_input_oz = if_else(!is.na(heat_input_oz), heat_input_oz, heat_oz_diff * prop), # keep ozone heat inputs that already exist
          heat_input_source = "EIA Prime Mover-level Data") %>% 
-         #heat_input_oz_source = if_else(!is.na(heat_input_oz_source), heat_input_oz_source, "EIA Prime Mover-level Data")) %>%
 select(all_of(temporal_res_cols),
        plant_id, 
        unit_id, 
        prime_mover,
-       starts_with("heat_input"),
-       ends_with("source"),
+       heat_input,
+       heat_input_source,
        -contains("diff"))
+
+if(params$temporal_res == "annual") { 
+  units_heat_updated_boiler_distributed_oz <- 
+    units_missing_heat_3 %>% 
+    select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, starts_with("heat_input")) %>%
+    inner_join(boiler_dist_props, # now joining missing heat units with boiler dist group to keep boilers where we have a distributional proportion
+               by = c(temporal_res_cols, "plant_id", "unit_id" = "boiler_id", "prime_mover")) %>% 
+    filter(!is.na(prop)) %>%
+    left_join(heat_differences) %>%
+    filter(!is.na(heat_oz_diff)) %>% 
+    mutate(heat_input_oz = if_else(!is.na(heat_input_oz), heat_input_oz, heat_oz_diff * prop),
+           heat_input_oz_source = if_else(!is.na(heat_input_oz_source), heat_input_oz_source, "EIA Prime Mover-level Data")) %>% 
+    select(all_of(temporal_res_cols),
+           plant_id, 
+           unit_id, 
+           prime_mover,
+           heat_input_oz,
+           heat_input_oz_source,
+           -contains("diff"))
+  
+  units_heat_updated_boiler_distributed <- 
+    units_heat_updated_boiler_distributed %>% 
+    full_join(units_heat_updated_boiler_distributed_oz, by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"))
+}
 
 units_missing_heat_4 <- # identify units still missing heat input
   units_missing_heat_3 %>% 
@@ -1605,6 +1643,37 @@ units_estimated_fuel <- # df that will be used to calculate SO2 and NOx emission
          fuel_consum = fuel_consum_923 * prop) %>% 
   select(-c(contains("923")), -c(contains("nonoz"))) 
 
+if(params$temporal_res == "annual") { 
+  units_estimated_fuel_oz <- # df that will be used to calculate SO2 and NOx emissions with distributed heat input and fuel consumption
+    all_units_5 %>% 
+    group_by(pick(all_of(temporal_res_cols)), plant_id, plant_state, prime_mover, primary_fuel_type) %>% 
+    mutate(total_heat_input = sum(heat_input, na.rm = TRUE)) %>% 
+    ungroup() %>% 
+    filter(!is.na(heat_input)) %>%   
+    mutate(prop = if_else(total_heat_input != 0, heat_input / total_heat_input, 0)) %>% # handle divide by 0 by assigning prop of 0 to zero total_heat_input values
+    select(all_of(temporal_res_cols),
+           plant_id, 
+           plant_state,
+           prime_mover, 
+           unit_id, 
+           botfirty,
+           primary_fuel_type,
+           prop) %>% 
+    rows_update(prop_manual_corrections, by = c("plant_id", "unit_id"), unmatched = "ignore") %>% # manually update some proportions due to wrong assignment of 1 instead of 0
+    rows_update(og_fuel_types_update %>% select(plant_id, unit_id, primary_fuel_type), # convert to OG fuel type to match EIA-923 data
+                by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+    left_join(eia_fuel_consum_fuel_type_2,
+              by = c(temporal_res_cols, "plant_id", "prime_mover", "primary_fuel_type" = "fuel_type")) %>%
+    rows_update(og_fuel_types_update %>% select(plant_id, unit_id, "primary_fuel_type" = fuel_code), # convert fuel type back to more specific gas to calculate emissions
+                by = c("plant_id", "unit_id"), unmatched = "ignore") %>% 
+    mutate(heat_input_oz = heat_input_oz_923 * prop,
+           fuel_consum_oz = fuel_consum_oz_923 * prop) %>% 
+    select(-c(contains("923")), -c(contains("nonoz")))
+  
+  units_estimated_fuel <- 
+    units_estimated_fuel %>% 
+    full_join(units_estimated_fuel_oz)}
+
 # calculating sulfur content for coal fuel types by state
 default_sulfur_content_coal <- 
   eia_923$boiler_fuel_data %>% 
@@ -1792,33 +1861,53 @@ all_units_7 <-
 
 ### NOx emissions - rate -------
 
-nox_emissions_ann <- 
-  all_units_7 %>% select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, heat_input) %>% 
-  inner_join(nox_rates_ann) %>% 
-  mutate(# calculate NOx emissions for each unit and time period
-         nox_mass = nox_rate_ann * heat_input / 2000, 
-         nox_source = "Estimated based on unit-level NOx emission rates") %>%
-  select(-nox_rate_ann, -contains("heat_input")) %>% 
-  filter(!is.na(nox_mass))
+if(params$temporal_res != "annual") {
+  
+  # calculate NOx emissions using annual emissions rate for non-ozone months
+  nox_emissions_ann <- 
+    all_units_7 %>% select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, heat_input) %>% 
+    filter(!month %in% c(5:9)) %>% 
+    inner_join(nox_rates_ann) %>% 
+    mutate(# calculate NOx emissions for each unit and time period
+      nox_mass = nox_rate_ann * heat_input / 2000, 
+      nox_source = "Estimated based on unit-level NOx emission rates") %>%
+    select(-nox_rate_ann, -contains("heat_input")) %>% 
+    filter(!is.na(nox_mass))
+  
+  # calculate NOx emissions using ozone emissions rate for ozone months
+  nox_emissions_oz <-
+    all_units_7 %>% select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, heat_input) %>%
+    filter(month %in% c(5:9)) %>% 
+    inner_join(nox_rates_oz) %>%
+    mutate(nox_mass = (nox_rate_oz * heat_input) / 2000,
+           nox_source = "Estimated based on unit-level NOx ozone season emission rates") %>%
+    select(-nox_rate_oz) %>%
+    filter(!is.na(nox_mass))
+  
+} else {
+  nox_emissions_ann <- 
+    all_units_7 %>% select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, heat_input) %>% 
+    inner_join(nox_rates_ann) %>% 
+    mutate(# calculate NOx emissions for each unit and time period
+      nox_mass = nox_rate_ann * heat_input / 2000, 
+      nox_source = "Estimated based on unit-level NOx emission rates") %>%
+    select(-nox_rate_ann, -contains("heat_input")) %>% 
+    filter(!is.na(nox_mass))
+  
+  nox_emissions_oz <-
+    all_units_7 %>% select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, heat_input_oz) %>%
+    inner_join(nox_rates_oz) %>%
+    mutate(nox_oz_mass = (nox_rate_oz * heat_input_oz) / 2000,
+           nox_oz_source = "Estimated based on unit-level NOx ozone season emission rates") %>%
+    select(-nox_rate_oz) %>%
+    filter(!is.na(nox_oz_mass))}
 
-# if (params$temporal_res == "annual") {
-#   nox_emissions_oz <- 
-#     all_units_7 %>% select(plant_id, unit_id, prime_mover, heat_input_oz) %>% 
-#     inner_join(nox_rates_oz) %>% 
-#     mutate(nox_oz_mass = (nox_rate_oz * heat_input_oz) / 2000,
-#            nox_oz_source = "Estimated based on unit-level NOx ozone season emission rates") %>%
-#     select(-nox_rate_oz) %>% 
-#     filter(!is.na(nox_oz_mass)) 
-  # 
-  # nox_emission_rates <- 
-  #   all_units_7 %>% 
-  #   rows_patch(nox_emissions_oz, 
-  #              by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore")}
-
-nox_emissions_rates <- # update all_units DF
+nox_emissions_rates <-
   all_units_7 %>%
-  rows_patch(nox_emissions_ann,
-            by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") 
+  rows_patch(nox_emissions_ann, 
+             by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
+  rows_patch(nox_emissions_oz,
+             by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore")
 
 ### NOx emissions - emissions factor -----
 
@@ -1857,25 +1946,25 @@ nox_emissions_factor <-
 
 #### estimating NOx ozone emissions with EF --------
 
-# if (params$temporal_res == "annual") {
-#   nox_oz_emissions_factor <- 
-#     units_estimated_fuel %>% 
-#     left_join(emission_factors_nox_pu %>%
-#                 select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
-#               by = c("prime_mover",
-#                      "botfirty",
-#                      "primary_fuel_type")) %>%
-#     group_by(plant_id, unit_id, prime_mover) %>%
-#     mutate(nox_oz_mass = (fuel_consum_oz * nox_ef) / 2000,
-#            nox_oz_source = "Estimated using emissions factor") %>% 
-#     ungroup() %>% 
-#     filter(nox_oz_mass >= 0 & !is.na(heat_input)) %>% 
-#     select(plant_id,
-#            unit_id,
-#            prime_mover,
-#            nox_oz_mass, 
-#            nox_oz_source)}
-
+if (params$temporal_res == "annual") {
+  nox_oz_emissions_factor <-
+    units_estimated_fuel %>%
+    left_join(emission_factors_nox_pu %>%
+                select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom),
+              by = c("prime_mover",
+                     "botfirty",
+                     "primary_fuel_type")) %>%
+    group_by(plant_id, unit_id, prime_mover) %>%
+    mutate(nox_oz_mass = (fuel_consum_oz * nox_ef) / 2000,
+           nox_oz_source = "Estimated using emissions factor") %>%
+    ungroup() %>%
+    filter(nox_oz_mass >= 0 & !is.na(heat_input)) %>%
+    select(all_of(temporal_res_cols),
+           plant_id,
+           unit_id,
+           prime_mover,
+           nox_oz_mass,
+           nox_oz_source)}
 
 #### estimating NOx annual emissions with heat input --------
 
@@ -1910,25 +1999,26 @@ nox_emissions_heat_input <-
 
 #### estimating NOx ozone emissions with heat input --------
 
-# if (params$temporal_res == "annual") {
-#   nox_oz_emissions_heat_input <- 
-#     nox_emissions_rates %>%
-#     left_join(emission_factors_nox_hi %>% 
-#                 select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom), 
-#               by = c("prime_mover",
-#                      "botfirty",
-#                      "primary_fuel_type")) %>%
-#     select(plant_id, unit_id, primary_fuel_type, prime_mover, heat_input_oz, heat_input, nox_ef, nox_ef_num, nox_ef_denom) %>%
-#     group_by(unit_id, plant_id, primary_fuel_type, nox_ef, nox_ef_num, nox_ef_denom) %>%
-#     mutate(nox_oz_mass = (heat_input_oz * nox_ef) / 2000,
-#            nox_oz_source = "Estimated using emissions factor") %>%
-#     ungroup() %>%
-#     filter(nox_oz_mass >= 0 & !is.na(heat_input)) %>% 
-#     select(plant_id,
-#            unit_id,
-#            prime_mover,
-#            nox_oz_mass,
-#            nox_oz_source)}
+if (params$temporal_res == "annual") {
+  nox_oz_emissions_heat_input <-
+    nox_emissions_rates %>%
+    left_join(emission_factors_nox_hi %>%
+                select(prime_mover, primary_fuel_type, botfirty, nox_ef, nox_ef_num, nox_ef_denom),
+              by = c("prime_mover",
+                     "botfirty",
+                     "primary_fuel_type")) %>%
+    select(all_of(temporal_res_cols), plant_id, unit_id, primary_fuel_type, prime_mover, heat_input_oz, heat_input, nox_ef, nox_ef_num, nox_ef_denom) %>%
+    group_by(unit_id, plant_id, primary_fuel_type, nox_ef, nox_ef_num, nox_ef_denom) %>%
+    mutate(nox_oz_mass = (heat_input_oz * nox_ef) / 2000,
+           nox_oz_source = "Estimated using emissions factor") %>%
+    ungroup() %>%
+    filter(nox_oz_mass >= 0 & !is.na(heat_input)) %>%
+    select(all_of(temporal_res_cols),
+           plant_id,
+           unit_id,
+           prime_mover,
+           nox_oz_mass,
+           nox_oz_source)}
 
 #### Updating units with estimating NOx --------
 
@@ -1938,6 +2028,14 @@ all_units_8 <-
              by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>%
   rows_patch(nox_emissions_heat_input,
              by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") 
+
+if(params$temporal_res == "annual") { 
+  all_units_8 <- 
+    all_units_8 %>% 
+    rows_patch(nox_oz_emissions_factor, 
+               by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>%  
+    rows_patch(nox_oz_emissions_heat_input,
+               by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") }
 
 
 #### Check ozone season NOx ----------

@@ -17,8 +17,6 @@
 library(dplyr)
 library(readxl)
 library(stringr)
-library(janitor)
-library(purrr)
 library(readr)
 
 # Load functions
@@ -108,9 +106,7 @@ epa_r <-
       plant_id %in% plant_id_corrections$plant_id ~ plant_id_corrections$update, 
       TRUE ~ plant_id), 
     heat_input_source = if_else(is.na(heat_input_mmbtu), NA_character_, "EPA/CAPD"), # creating source variables based on emissions data
-    #heat_input_oz_source = if_else(is.na(heat_input_mmbtu_ozone), NA_character_, "EPA/CAPD"),
     nox_source = if_else(is.na(nox_mass_short_tons), NA_character_, "EPA/CAPD"),
-    #nox_oz_source = if_else(is.na(nox_mass_short_tons_ozone), NA_character_, "EPA/CAPD"),
     so2_source = if_else(is.na(so2_mass_short_tons), NA_character_, "EPA/CAPD"),
     co2_source = if_else(is.na(co2_mass_short_tons), NA_character_, "EPA/CAPD"),
     hg_source = if_else(is.na(hg_mass_lbs), NA_character_, "EPA/CAPD"), # Mercury mass field needs to come from separate bulk api (SB 3/28/2024)
@@ -130,6 +126,12 @@ epa_r <-
   mutate(so2_controls = if_else(!is.na(so2_control_abbreviation), so2_control_abbreviation, so2_controls)) %>% 
   select(-so2_control_abbreviation) %>% 
   rows_update(epa_nox_controls, by = c("plant_id", "unit_id"), unmatched = "ignore")
+
+if(params$temporal_res == "annual") { 
+  epa_r <- 
+    epa_r %>% 
+    mutate(heat_input_oz_source = if_else(is.na(heat_input_mmbtu_ozone), NA_character_, "EPA/CAPD"),
+           nox_oz_source = if_else(is.na(nox_mass_short_tons_ozone), NA_character_, "EPA/CAPD"))}
  
 print(glue::glue("{nrow(epa_raw) - nrow(epa_r)} rows removed because units have status of future, retired, long-term cold storage, or the plant ID is > 80,000."))
 
