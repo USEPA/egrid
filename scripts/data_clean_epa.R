@@ -24,7 +24,7 @@ library(readr)
 source("scripts/functions/function_params_check.R")
 source("scripts/functions/function_temporal_res_cols.R")
 
-# check params
+# check if parameters for eGRID data year need to be defined
 params <- params_check()
 
 # Specify grouping columns based on temporal_res parameter
