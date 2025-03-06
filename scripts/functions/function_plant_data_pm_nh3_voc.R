@@ -44,7 +44,6 @@ plant_data_pm_nh3_voc <- function(emission_type){
 
   # Load necessary data --------------------
   ## eGRID production model data - plant file
-  # plant_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
   plant_file_raw <- read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
                               sheet = paste0("PLNT", substr(params$eGRID_year, 3, 4)),
                               skip = 1,
@@ -69,25 +68,25 @@ plant_data_pm_nh3_voc <- function(emission_type){
   source("scripts/functions/function_unit_data_pm_nh3_voc.R")
   unit_data <- unit_data_pm_nh3_voc(emission_type)
 
-  # Sum PM2.5 unit data by plant id ---------
+  # Sum emission unit data by plant id ---------
   plant_sum <-
     unit_data %>%
     group_by(plant_id) %>%
-    summarise(emission = sum(emission, na.rm = TRUE)) %>%
+    summarise(emission_plant = if_else(all(is.na(emission)), NA_real_, sum(emission, na.rm = TRUE))) %>%
     ungroup()
 
-  # Add PM2.5 data to plant file ---------
+  # Add emission data to plant file ---------
   plant_emissions <-
     plant_file %>%
     left_join(plant_sum, by = join_by(plant_id)) %>%
     # multiply emissions by electric allocation if available (not NA) 
-    mutate(emission_ann = if_else(is.na(elec_allocation), emission, emission * elec_allocation),
+    mutate(emission_ann = emission_plant * if_else(is.na(elec_allocation), 1, elec_allocation),
            # calculate total output emission rate
            emission_output_rate = if_else(generation_ann != 0, emission_ann * 2000 / generation_ann, NA_real_),
            # calculate total input emission rate
            emission_input_rate = if_else(combust_heat_input != 0, emission_ann * 2000 / combust_heat_input, NA_real_),
            #  rename unadjusted annual pm2.5 emissions
-           unadj_emission = emission) %>%
+           unadj_emission = emission_plant) %>%
     select(plant_state, plant_name, plant_id, egrid_subregion_name, egrid_subregion, primary_fuel_type, nameplate_capacity, elec_allocation, combust_heat_input, generation_ann, emission_ann, emission_output_rate, emission_input_rate, unadj_combust_heat_input, unadj_emission)
   
   return(plant_emissions)
