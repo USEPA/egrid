@@ -35,7 +35,7 @@ source("scripts/functions/function_update_source.R")
 params <- params_check()
 
 # Specify grouping columns based on temporal_res parameter
-temporal_res_cols <- temporal_res_cols(params$temporal_res)
+temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
 
 # Load necessary data ----------
 
@@ -64,7 +64,10 @@ if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean
 
 # load generator file
 if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))) { 
-  generator_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))
+  #generator_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))
+  ##### CHECK update when generator file is ready #########
+  generator_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS")) %>% 
+    rename(generation = generation_ann)
 } else { 
    stop(glue::glue("generator_file_{params$temporal_res}.RDS does not exist. Run generator_file_create.R to obtain."))}
 
@@ -223,12 +226,9 @@ plant_unit <-
             # unadjusted heat input
             unadj_heat_input = if_else(all(is.na(heat_input)), NA_real_, sum(heat_input, na.rm = TRUE)), # units: MMBtu
             unadj_heat_input_source = paste_concat(heat_input_source),
-            #unadj_heat_input_oz_source = paste_concat(heat_input_oz_source),
-            # unadjusted NOx and NOx ozone mass
+            # unadjusted NOx mass
             unadj_nox_mass = if_else(all(is.na(nox_mass)), NA_real_, sum(nox_mass, na.rm = TRUE)), # units: tons
-            #unadj_nox_oz_mass = if_else(all(is.na(nox_oz_mass)), NA_real_, sum(nox_oz_mass, na.rm = TRUE)), # units: tons
             unadj_nox_source = paste_concat(nox_source),
-            #unadj_nox_oz_source = paste_concat(nox_oz_source),
             # unadjusted SO2 mass
             unadj_so2_mass = if_else(all(is.na(so2_mass)), NA_real_, sum(so2_mass, na.rm = TRUE)), # units: tons
             unadj_so2_source = paste_concat(so2_source),
@@ -240,6 +240,20 @@ plant_unit <-
   mutate(unadj_hg_mass = NA_real_, 
          unadj_hg_source = "--") %>% 
   ungroup()
+
+if(params$temporal_res == "annual") { 
+  plant_unit_oz <- # if annual version, calculate ozone values
+    unit_file %>% 
+    group_by(pick(all_of(temporal_res_cols)), plant_id, plant_state, plant_name) %>%
+    summarize(unadj_heat_input_oz = if_else(all(is.na(heat_input_oz)), NA_real_, sum(heat_input_oz, na.rm = TRUE)), # units: MMBtu
+              unadj_heat_input_oz_source = paste_concat(heat_input_oz_source),
+              unadj_nox_oz_mass = if_else(all(is.na(nox_oz_mass)), NA_real_, sum(nox_oz_mass, na.rm = TRUE)), # units: tons
+              unadj_nox_oz_source = paste_concat(nox_oz_source)) %>% 
+    ungroup()
+  
+  plant_unit <- 
+    plant_unit %>% 
+    full_join(plant_unit_oz)}
 
 # Aggregate generator file to plant level----------------------------
 
@@ -256,14 +270,26 @@ plant_gen <-
                                  NA_real_, sum(generation, na.rm = TRUE))) %>% # units: MWh 
   ungroup()
 
+if(params$temporal_res == "annual") { 
+  plant_gen_oz <- 
+    generator_file %>% 
+    filter(!is.na(plant_id)) %>% 
+    group_by(pick(all_of(temporal_res_cols)), plant_id, plant_state, plant_name) %>% 
+    summarize(generation_oz = if_else(all(is.na(generation_oz)), 
+                                      NA_real_, sum(generation_oz, na.rm = TRUE))) %>% 
+    ungroup()
+  
+  plant_gen <- 
+    plant_gen %>% 
+    full_join(plant_gen_oz)}
+
 # Combustion heat input ---------------------------------------
 # calculate heat input from combustion fuels
 
 unit_heat_input <- 
   unit_file %>% 
   group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover, primary_fuel_type) %>%
-  summarize(unadj_heat_input = sum(heat_input, na.rm = TRUE)) %>% #,
-            #unadj_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% 
+  summarize(unadj_heat_input = sum(heat_input, na.rm = TRUE)) %>% 
   ungroup()
 
 combust_heat_input <- 
@@ -272,9 +298,29 @@ combust_heat_input <-
          prime_mover != "FC") %>%
   group_by(pick(all_of(temporal_res_cols)), plant_id) %>% 
   summarize(# unadjusted combustion heat input 
-            unadj_combust_heat_input = sum(unadj_heat_input, na.rm = TRUE)) %>% #, # sum heat input for combustion fuels
-            #unadj_combust_heat_input_oz = sum(unadj_heat_input_oz, na.rm = TRUE)) %>% 
+            unadj_combust_heat_input = sum(unadj_heat_input, na.rm = TRUE)) %>% # sum heat input for combustion fuels
   ungroup()
+
+if(params$temporal_res == "annual") { # if annual temporal_res, calculate ozone values
+  unit_heat_input_oz <- 
+    unit_file %>% 
+    group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover, primary_fuel_type) %>%
+    summarize(unadj_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% 
+    ungroup()
+  
+  combust_heat_input_oz <- 
+    unit_heat_input_oz %>% 
+    filter(primary_fuel_type %in% fuel_type_categories[["combustion_fuels"]], 
+           prime_mover != "FC") %>%
+    group_by(pick(all_of(temporal_res_cols)), plant_id) %>% 
+    summarize(# unadjusted combustion heat input 
+              unadj_combust_heat_input_oz = sum(unadj_heat_input_oz, na.rm = TRUE)) %>% 
+    ungroup()
+  
+  combust_heat_input <- 
+    combust_heat_input %>% 
+    full_join(combust_heat_input_oz)
+  }
 
 # join with aggregated unit file
 plant_unit_2 <- 
@@ -286,8 +332,8 @@ plant_unit_2 <-
 # create dataframe of number of hours in each year or month
 if (params$temporal_res == "annual") { 
   hours <- data.frame(year = params$eGRID_year,
-                      hours = 8760)}
-if (params$temporal_res == "monthly") { 
+                      hours = 8760)
+} else if (params$temporal_res == "monthly") { 
   hours <- 
     data.frame(year = params$eGRID_year,
                month = c(1:12), 
