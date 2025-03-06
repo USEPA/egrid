@@ -13,15 +13,15 @@
 ##
 ## -------------------------------
 
-params_check <- function() {
+check_params <- function() {
   
-  #' params_check
+  #' check_params
   #' 
   #' Create list params that contains eGRID_year and temporal_res
   #' and check that the input variables match acceptable responses.
   #' 
   #' @return list params
-  #' Example: params <- params_check()
+  #' Example: params <- check_params()
   
   # check if parameters for eGRID data year need to be defined
   # this is only necessary when running the script outside of egrid_master.qmd
@@ -51,7 +51,7 @@ params_check <- function() {
   
   if(!(params$eGRID_year %in% eGRID_year_inputs)) {
     print("The input for params$eGRID_year is not one of the valid responses. Please input a year within the range of 1996-2023.")
-    return(params_check()) # restart function for new inputs
+    return(check_params()) # restart function for new inputs
   }
   
   # valid temporal_res inputs
@@ -59,7 +59,7 @@ params_check <- function() {
   
   if (!(params$temporal_res %in% temporal_res_inputs)) {
     print("The input for params$temporal_res is not one of the valid responses. Please input either annual, monthly, daily, or hourly.")
-    return(params_check()) # restart function for new inputs
+    return(check_params()) # restart function for new inputs
   }
   
   return(params)

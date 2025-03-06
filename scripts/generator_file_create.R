@@ -25,12 +25,12 @@ library(readxl)
 library(tidyverse)
 
 # Load necessary functions
-source("scripts/functions/function_params_check.R")
+source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_coalesce_join_vars.R")
 
 # Create and check parameters 
-params <- params_check()
+params <- check_params()
 
 # Set up temporal_res_cols
 temporal_res_cols <- temporal_res_cols(params$temporal_res)
