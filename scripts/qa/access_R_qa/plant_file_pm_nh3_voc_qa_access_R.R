@@ -24,12 +24,9 @@ library(dplyr)
 library(readr)
 library(readxl)
 library(stringr)
-
-emission_type <- "pm25"
-year <- "2021"
   
 # Create QA function -----
-# plant_qa <- function(emission_type, year) {
+plant_qa <- function(emission_type, year) {
   print(paste(toupper(emission_type), "PLANT QA IN PROGRESS"))
   
   # Define eGRID year -----
@@ -197,7 +194,6 @@ year <- "2021"
   save_diffs(check_total_heat_input)
   
   ## Annual emissions -----
-  
   # count differences in NA annual emission values
   check_emissions_na <-
     plant_comparison %>%
@@ -250,7 +246,6 @@ year <- "2021"
           check_total_emissions_ann[[paste0("diff_", emission_type, "_ann")]] - check_emissions_na_sum$na_ann_sum))
   
   ## Emissions output rate ------
-  
   # count differences in NA output rate values
   check_output_rate_na <-
     plant_comparison %>%
@@ -269,7 +264,6 @@ year <- "2021"
     check_output_rate_na_values %>%
     count(get(paste0(emission_type, "_source_r"))) %>%
     print()
-
   
   # calculate difference for those with NA in one dataset
   check_output_rate_na_sum <-
@@ -303,7 +297,6 @@ year <- "2021"
           check_total_emissions_output_rate[[paste0("diff_", emission_type, "_output_rate")]] - check_output_rate_na_sum$na_output_rate_sum))
   
   ## Emissions input rate -------
-  
   # count differences in NA input rate values
   check_input_rate_na <-
     plant_comparison %>%
@@ -363,9 +356,23 @@ year <- "2021"
   save_diffs(check_emissions_source)
   
   ## Unadjusted combustion heat input -----
+  check_unadj_heat_input <- 
+    plant_comparison %>% 
+    filter(mapply(identical, unadj_combust_heat_input_r, unadj_heat_input_access) == FALSE) %>% 
+    mutate(diff_heat_input = unadj_combust_heat_input_r - unadj_heat_input_access) %>% 
+    filter(abs(diff_heat_input) > 1 | is.na(diff_heat_input)) %>% 
+    select(plant_id_r, unadj_combust_heat_input_r, unadj_heat_input_access, diff_heat_input)
+  save_diffs(check_unadj_heat_input)
+  
+  check_total_unadj_heat_input <- 
+    plant_comparison %>% 
+    summarize(sum_heat_input_r = sum(unadj_combust_heat_input_r, na.rm = TRUE), 
+              sum_heat_input_access = sum(unadj_heat_input_access, na.rm = TRUE)) %>% 
+    mutate(diff_heat_input = abs(sum_heat_input_r - sum_heat_input_access)) %>%
+    filter(diff_heat_input > 0)
+  save_diffs(check_total_unadj_heat_input)
   
   ## Unadjusted emissions -----
-  
   check_emissions_unadj_na <-
     plant_comparison %>%
     summarize(na_count_r = sum(is.na(get(paste0("unadj_", emission_type, "_r")))), na_count_access = sum(is.na((get(paste0("unadj_", emission_type, "_access")))))) %>%
@@ -377,9 +384,7 @@ year <- "2021"
   check_emissions_unadj_na_values <-
     plant_comparison %>%
     filter(is.na(get(paste0("unadj_", emission_type, "_r"))) & !is.na(get(paste0("unadj_", emission_type, "_access"))) |
-             !is.na(get(paste0("unadj_", emission_type, "_r"))) & is.na(get(paste0("unadj_", emission_type, "_access")))) #%>%
-    # filter(!is.na(get(paste0(emission_type, "_source_r"))))
-    # filter(get(paste0("unadj_", emission_type, "_r")) > 0)
+             !is.na(get(paste0("unadj_", emission_type, "_r"))) & is.na(get(paste0("unadj_", emission_type, "_access"))))
   
   check_unadj_na_sources <-
     check_emissions_unadj_na_values %>%
@@ -396,7 +401,7 @@ year <- "2021"
     plant_comparison %>% 
     filter(mapply(identical, get(paste0("unadj_", emission_type, "_r")), get(paste0("unadj_", emission_type, "_access"))) == FALSE) %>% 
     mutate("diff_unadj_{emission_type}" := abs(get(paste0("unadj_", emission_type, "_r")) - get(paste0("unadj_", emission_type, "_access")))) %>% 
-    filter(get(paste0("diff_unadj_", emission_type)) > 1E-5 | is.na(get(paste0("unadj_", emission_type, "_r"))) & !is.na(get(paste0("unadj_", emission_type, "_access")))) %>%
+    filter(get(paste0("diff_unadj_", emission_type)) > 1E-5| is.na(get(paste0("unadj_", emission_type, "_r"))) & !is.na(get(paste0("unadj_", emission_type, "_access"))) | !is.na(get(paste0("unadj_", emission_type, "_r"))) & is.na(get(paste0("unadj_", emission_type, "_access")))) %>%
     select(plant_id_r, primary_fuel_type_r, primary_fuel_type_access, 
            combust_heat_input_r, combust_heat_input_access,
            paste0("unadj_", emission_type, "_r"), paste0("unadj_", emission_type, "_access"), paste0("diff_unadj_", emission_type), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
@@ -418,23 +423,23 @@ year <- "2021"
   
   # Identify all unique plant and unit IDs that have differences ------------
   
-  # grab check files in QA filder
-  check_files <- grep("check", dir(save_dir), value = TRUE)
-  # ignore datasets with total value differences
-  files <- grep("total", check_files, invert = TRUE, value = TRUE)
-  
-  # combine checked files
-  plant_unit_diffs <- 
-    purrr::map_df(paste0(save_dir, files), 
-                  ~read_csv(.x, col_types = cols(.default = col_character()))) %>% 
-    select(plant_id_r, unit_id_r, prime_mover_r) %>% 
-    distinct() %>% 
-    mutate(source_diff = "plant_file")
-  
-  write_csv(plant_unit_diffs, paste0(save_dir, "plant_unit_difference_ids.csv"))
-  
-  print(paste(toupper(emission_type), "PLANT QA COMPLETE"))
-# }
+# grab check files in QA filder
+check_files <- grep("check", dir(save_dir), value = TRUE)
+# ignore datasets with total value differences
+files <- grep("total", check_files, invert = TRUE, value = TRUE)
+
+# combine checked files
+plant_unit_diffs <-
+  purrr::map_df(paste0(save_dir, files),
+                ~read_csv(.x, col_types = cols(.default = col_character()))) %>%
+  select(plant_id_r) %>%
+  distinct() %>%
+  mutate(source_diff = "plant_file")
+
+write_csv(plant_unit_diffs, paste0(save_dir, "plant_difference_ids.csv"))
+
+print(paste(toupper(emission_type), "PLANT QA COMPLETE"))
+}
 
 # Run function for emission types -----
 plant_qa("pm25", "2021")
