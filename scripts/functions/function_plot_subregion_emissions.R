@@ -97,7 +97,8 @@ plot_subregion_emissions <- function(emission_type,
           axis.text.x = element_text(angle = 48, vjust = 1.3, hjust=1, color = "#595959", size = 7.8),
           axis.text.y = element_text(color = "#595959", size = 7.8),
           axis.title.y = element_text(color = "#595959", size = 9, vjust = 1.3),
-          plot.margin=grid::unit(c(0.2,3.75,-3.6,6), "mm")) +
+          plot.title = element_text(hjust = 0.5, vjust = -85), 
+          plot.margin=grid::unit(c(-5, 3.75 ,1, 6), "mm")) +
     scale_y_continuous(limits = c(0, yaxis_max), breaks = seq(ylabel_min, ylabel_max, ylabel_int),  labels = label_comma())
   
   return(plot)

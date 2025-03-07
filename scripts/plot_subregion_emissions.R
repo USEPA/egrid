@@ -41,7 +41,7 @@ source("scripts/functions/function_plot_subregion_emissions.R")
 save_dir <- "data/static_tables/formatting/"
 
 save_fig <- function(plot_name) {
-  ggsave(paste0(save_dir, deparse(substitute(plot_name)), ".png"), plot = plot_name, width = 8.5, height = 2.89, units = "in")
+  ggsave(paste0(save_dir, deparse(substitute(plot_name)), ".png"), plot = plot_name, width = 8.5, height = 3.2, units = "in")
 }
 
 # Plot PM2.5 -----
@@ -62,8 +62,8 @@ save_fig(pm25_annual_generation)
 pm25_emissions <- plot_subregion_emissions(emission_type = "pm25",
                               ydata = "pm25_tons",
                               fill_color = "#FF0000",
-                              ylabel = expression("PM"[2.5] ~ " Emissions (short tons)"),
-                              annotate_label = expression(bold("PM"[2.5] ~ " Emissions")),
+                              ylabel = expression("PM"[2.5] ~ "Emissions (short tons)"),
+                              annotate_label = expression(bold("PM"[2.5] ~ "Emissions")),
                               ylabel_min = 0,
                               ylabel_max = 8E4,
                               ylabel_int = 1E4,
@@ -75,8 +75,8 @@ save_fig(pm25_emissions)
 pm25_rate <- plot_subregion_emissions(emission_type = "pm25",
                          ydata = "pm25_rate",
                          fill_color = "#70AD47",
-                         ylabel = expression("PM"[2.5] ~ " Emission Rates (lb/MWh)"),
-                         annotate_label = expression(bold("PM"[2.5] ~ " Emission Rates")),
+                         ylabel = expression("PM"[2.5] ~ "Emission Rates (lb/MWh)"),
+                         annotate_label = expression(bold("PM"[2.5] ~ "Emission Rates")),
                          ylabel_min = 0,
                          ylabel_max = 1.0,
                          ylabel_int = 0.1,
@@ -102,8 +102,8 @@ save_fig(nh3_annual_generation)
 nh3_emissions <- plot_subregion_emissions(emission_type = "nh3",
                            ydata = "nh3_tons",
                            fill_color = "#70AD47",
-                           ylabel = expression("NH"[3] ~ " Emissions (short tons)"),
-                           annotate_label = expression(bold("NH"[3] ~ " Emissions")),
+                           ylabel = expression("NH"[3] ~ "Emissions (short tons)"),
+                           annotate_label = expression(bold("NH"[3] ~ "Emissions")),
                            ylabel_min = 0,
                            ylabel_max = 1E4,
                            ylabel_int = 1E3,
@@ -115,8 +115,8 @@ save_fig(nh3_emissions)
 nh3_rate <- plot_subregion_emissions(emission_type = "nh3",
                       ydata = "nh3_rate",
                       fill_color = "#FF0000",
-                      ylabel = expression("NH"[3] ~ " Emission Rates (lb/MWh)"),
-                      annotate_label = expression(bold("NH"[3] ~ " Emission Rates")),
+                      ylabel = expression("NH"[3] ~ "Emission Rates (lb/MWh)"),
+                      annotate_label = expression(bold("NH"[3] ~ "Emission Rates")),
                       ylabel_min = 0,
                       ylabel_max = 0.3,
                       ylabel_int = 0.05,
@@ -128,7 +128,7 @@ save_fig(nh3_rate)
 ## Annual Generation ------
 voc_annual_generation <- plot_subregion_emissions(emission_type = "voc",
                                   ydata = "subregion_generation_ann",
-                                  fill_color = "#5B9BD5",
+                                  fill_color = "#4472C4",
                                   ylabel = "Annual Generation (MWh)",
                                   annotate_label = "Generation",
                                   ylabel_min = 0,
