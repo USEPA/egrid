@@ -40,8 +40,6 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
-# emission_type <- "pm25"
-
 # Create QA function -----
 unit_qa <- function(emission_type) {
   print(paste(toupper(emission_type), "UNIT QA IN PROGRESS"))
@@ -110,7 +108,7 @@ unit_qa <- function(emission_type) {
   unit_new_names <- c(unit_nonmetric[names(unit_nonmetric) %in% colnames(unit_access_raw)], additional_names)
   
   # define numeric column names
-  numeric_cols <- c("operating_hours", "heat_input", paste0(emission_type, "_ann"), paste0(emission_type, "_rate"))
+  numeric_cols <- c("operating_hours", "heat_input", paste0(emission_type, "_ann"), paste0(emission_type, "_rate"), "year_online")
   # update unit column names
   unit_access_renamed <-
     unit_access_raw %>%
