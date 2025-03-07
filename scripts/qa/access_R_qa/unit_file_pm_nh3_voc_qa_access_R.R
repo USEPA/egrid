@@ -25,13 +25,26 @@ library(readr)
 library(readxl)
 library(stringr)
 
-# Create QA function -----
-unit_qa <- function(emission_type, year) {
-  print(paste(toupper(emission_type), "UNIT QA IN PROGRESS"))
-  
-  # Define eGRID year -----
+# Define eGRID year parameter ----------------
+# define parameter year if no one is currently assigned using prompted user input
+if (exists("params")) {
+  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+    print("eGRID year parameter is already defined.")
+  } else { # if params() is defined, but eGRID_year is not, define it here
+    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+    params$eGRID_year <- as.character(params$eGRID_year)
+  }
+} else { # if params() and eGRID_year are not defined, define them here
   params <- list()
-  params$eGRID_year <- year
+  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+  params$eGRID_year <- as.character(params$eGRID_year)
+}
+
+# emission_type <- "pm25"
+
+# Create QA function -----
+unit_qa <- function(emission_type) {
+  print(paste(toupper(emission_type), "UNIT QA IN PROGRESS"))
   
   # Create save directory for QA outputs -----
   
@@ -65,15 +78,25 @@ unit_qa <- function(emission_type, year) {
   # Import Access unit data and match formatting of R ------
   ## Load unit data -------
   if(emission_type == "pm25") {
-    emission_abbrev <- substr(emission_type, 1, 2)
+    if (params$eGRID_year == "2021") {
+      emission_abbrev <- "pm"
+    } else {
+    emission_abbrev <- "pm2.5"
+    }
   } else {
     emission_abbrev <- emission_type
   }
-  
-  unit_access_raw <- read_excel(glue::glue("data/raw_data/eGRID{params$eGRID_year}_{emission_type}emissions.xlsx"), 
-                                sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Unit-level Data"),
-                                skip = 1,
-                                col_names = TRUE)
+  if(params$eGRID_year == "2021") {
+    unit_access_raw <- read_excel(glue::glue("data/raw_data/eGRID{params$eGRID_year}_{emission_type}emissions.xlsx"), 
+                                  sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Unit-level Data"),
+                                  skip = 1,
+                                  col_names = TRUE)
+  } else {
+    unit_access_raw <- read_excel(glue::glue("data/raw_data/eGRID{params$eGRID_year}_pmnh3vocemissions.xlsx"), 
+                                  sheet = paste(params$eGRID_year, toupper(emission_abbrev)),
+                                  skip = 1,
+                                  col_names = TRUE)
+  }
   
   ## Define updated column names ---------
   # Load abbreviated name to snake_case matches
@@ -86,16 +109,19 @@ unit_qa <- function(emission_type, year) {
   # select name matches present in unit data
   unit_new_names <- c(unit_nonmetric[names(unit_nonmetric) %in% colnames(unit_access_raw)], additional_names)
   
+  # define numeric column names
+  numeric_cols <- c("operating_hours", "heat_input", paste0(emission_type, "_ann"), paste0(emission_type, "_rate"))
   # update unit column names
-  unit_access <-
+  unit_access_renamed <-
     unit_access_raw %>%
-    rename(!!!setNames(lapply(names(unit_new_names), sym), unit_new_names)) %>%
-    mutate(year = as.character(year), 
-           plant_id = as.character(plant_id), 
-           !!paste0(emission_type, "_source") := if_else(get(paste0(emission_type, "_source")) == "Estimated using an emission factor", "Estimated using an emissions factor", get(paste0(emission_type, "_source"))))
+    rename(!!!setNames(lapply(names(unit_new_names), sym), unit_new_names)) 
   
-  # add "_access" after each variable to easily identify dataset 
-  colnames(unit_access) <- paste0(colnames(unit_access), "_access")
+  unit_access <-
+    unit_access_renamed %>%
+    mutate(across(numeric_cols[sapply(unit_access_renamed[numeric_cols], is.character)], ~ parse_number(.)),
+           across(!any_of(numeric_cols), ~ as.character(.)),
+           !!paste0(emission_type, "_source") := if_else(get(paste0(emission_type, "_source")) == "Estimated using an emission factor", "Estimated using an emissions factor", get(paste0(emission_type, "_source"))),
+           across(everything(), ~ ., .names = "{.col}_access"))
   
   # replace any "NA" strings with an NA
   unit_access[unit_access == "NA"] <- NA_character_ 
@@ -312,6 +338,6 @@ unit_qa <- function(emission_type, year) {
 }
 
 # Run function for emission types -----
-unit_qa("pm25", "2021")
-unit_qa("nh3", "2021")
-unit_qa("voc", "2021")
+unit_qa("pm25")
+unit_qa("nh3")
+unit_qa("voc")

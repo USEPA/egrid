@@ -44,9 +44,17 @@ unit_data_pm_nh3_voc <- function(emission_type){
   require(readxl)
   
   # Load necessary data --------------------
-  ## EIA-923 - for Schedule C Air Emissions Control information (2021-2022)
-  eia_923 <- read_csv(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), col_types = "ccccccccddddcccdccddcdc") %>%
-    janitor::clean_names()
+  if(params$eGRID_year == "2021") {
+    ## EIA-923 - for Schedule C Air Emissions Control information (2021)
+    eia_923 <- read_csv(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), col_types = "ccccccccddddcccdccddcdc") %>%
+      janitor::clean_names()
+  } else {
+    ## EIA-923 - for Schedule C Air Emissions Control information (2022+)
+    if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) {
+      eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))$air_emissions_control_info
+    } else {
+      stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+  }
   
   ## NEI emission data
   if(file.exists(glue::glue("data/raw_data/nei/{params$eGRID_year}/nei_{emission_type}_emissions_raw.csv"))) { 
@@ -69,6 +77,9 @@ unit_data_pm_nh3_voc <- function(emission_type){
                           skip = 1,
                           col_names = TRUE) %>%
     rename(CAPDFLAG = CAMDFLAG) # rename CAMD flag to updated name
+  
+  # replace any "NA" strings with an NA
+  unit_file_raw[unit_file_raw == "NA"] <- NA_character_ 
   
   # Prepare unit data for evaluation --------------
   # Load abbreviated name to snake_case matches
