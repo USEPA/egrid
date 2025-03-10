@@ -228,7 +228,7 @@ combustion_fuels <- fuel_type_category[["combustion_fuels"]]
 # fill reporting_frequency across temporal_res
 # some units have an NA reporting frequency because they may not report data for each month
 # specifically for ozone reporters (reporting frequency == OS), we want to fill non-ozone months with data and we need the correct reporting_frequency filled 
-if (params$temporal_res != "annual") { 
+if(params$temporal_res != "annual") { 
   fill_reporting_frequency <- 
     epa %>% 
     arrange(plant_id, unit_id, reporting_frequency) %>%
@@ -798,7 +798,7 @@ eia_923_boilers <-
 
 # identify annual reporters and make current heat input and fuel consumption NA 
 # these values will be filled by EIA-923 Gen and Fuel later distributed across months
-if (params$temporal_res == "monthly") { 
+if(params$temporal_res == "monthly") { 
   check_gen_units <- 
     gen_file %>% 
     mutate(id = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% 
@@ -812,20 +812,33 @@ if (params$temporal_res == "monthly") {
   #          month == 12) %>% 
   #   select(plant_id, prime_mover, boiler_id, fuel_type, heat_input, fuel_consum)
   
+  am_annual_responders <- 
+    eia_923_boilers %>% 
+    filter(respondent_frequency == "AM") %>% 
+    group_by(plant_id, boiler_id, prime_mover, fuel_type) %>% 
+    mutate(tot_heat_input = sum(heat_input, na.rm = TRUE),
+           id = paste0(plant_id, "_", boiler_id, "_", prime_mover)) %>% 
+    filter(tot_heat_input == heat_input, # check where December heat input equals annual heat input for AM responders
+           month == 12, 
+           heat_input != 0) %>% 
+    pull(id)
+
   eia_923_boilers <- 
     eia_923_boilers %>% 
     #rows_patch(dec_gen, by = c("plant_id", "prime_mover", "boiler_id", "fuel_type"), 
     #           unmatched = "ignore") %>% 
     mutate(id = paste0(plant_id, "_", boiler_id, "_", prime_mover),
            heat_input = case_when(respondent_frequency  == "A" & id %in% check_gen_units ~ NA_real_, 
+                                  id %in% am_annual_responders & id %in% check_gen_units ~ NA_real_,
                                   #respondent_frequency == "A" & !id %in% check_gen_units ~ heat_input / 12,
                                   TRUE ~ heat_input), 
            fuel_consum = case_when(respondent_frequency == "A" & id %in% check_gen_units ~ NA_real_,
+                                   id %in% am_annual_responders & id %in% check_gen_units ~ NA_real_, 
                                    #respondent_frequency == "A" & !id %in% check_gen_units ~ fuel_consum / 12,
                                    TRUE ~ fuel_consum))}
 
 # calculate ozone heat input if temporal_res is annual
-if (params$temporal_res == "annual") {
+if(params$temporal_res == "annual") {
   heat_input_oz_boilers <-
     eia_923$boiler_fuel_data %>%
     filter(month %in% c(5:9)) %>%
@@ -1174,7 +1187,7 @@ dist_props <- # determining distributional proportions to distribute heat inputs
   select(plant_id, prime_mover, generator_id, prop) 
 
 # identify which columns to include from EIA 923 data based on the temporal_res parameter 
-if (params$temporal_res == "annual") { 
+if(params$temporal_res == "annual") { 
   temporal_res_heat_923_cols <- 
     c("heat_input_923", 
       "heat_input_oz_923")
@@ -1994,7 +2007,7 @@ nox_emissions_factor <-
 
 #### estimating NOx ozone emissions with EF --------
 
-if (params$temporal_res == "annual") {
+if(params$temporal_res == "annual") {
   nox_oz_emissions_factor <-
     units_estimated_fuel %>%
     left_join(emission_factors_nox_pu %>%
@@ -2047,7 +2060,7 @@ nox_emissions_heat_input <-
 
 #### estimating NOx ozone emissions with heat input --------
 
-if (params$temporal_res == "annual") {
+if(params$temporal_res == "annual") {
   nox_oz_emissions_heat_input <-
     nox_emissions_rates %>%
     left_join(emission_factors_nox_hi %>%
@@ -2298,7 +2311,7 @@ all_units_11 <-
          across(contains("_mass"), ~ round(.x, 3))) 
 
 # emissions and heat input manual corrections for annual version
-if (params$temporal_res == "annual") { 
+if(params$temporal_res == "annual") { 
   heat_emissions_corrections <- 
     manual_corrections %>% filter(plant_id == "52152") %>% 
     pivot_wider(id_cols = c("plant_id", "unit_id", "prime_mover"), 
@@ -2322,9 +2335,9 @@ if (params$temporal_res == "annual") {
 
 # creating named vector of final variable order and variable name included in unit file
 # load names from name_matches.R
-if (params$temporal_res == "annual") {
+if(params$temporal_res == "annual") {
   final_vars <- unit_nonmetric_annual}
-if (params$temporal_res == "monthly") {
+if(params$temporal_res == "monthly") {
   final_vars <- unit_nonmetric_monthly}
 
 units_formatted <-

@@ -21,23 +21,17 @@ library(readr)
 library(readxl)
 library(stringr)
 
-# Check for params() --------
+# Load necessary functions -----------------------
 
 source("scripts/functions/function_params_check.R")
+source("scripts/functions/function_temporal_res_cols.R")
+source("scripts/functions/function_region_aggregation.R")
+
+# Check for params() --------
 params <- params_check()
 
-# Specify grouping columns based on temporal_res parameter
-temporal_res_cols_all <- 
-  list("annual"  = c("year"), 
-       "monthly" = c("year", "month"), 
-       "daily"   = c("year", "month", "day"), 
-       "hourly"  = c("year", "month", "day", "hour"))
-
-temporal_res_cols <- unlist(temporal_res_cols_all[params$temporal_res], use.names = FALSE)
-
-# Load aggregation function -------------
-
-source("scripts/functions/function_region_aggregation.R")
+# Create temporal_res_cols --------------------
+temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
 
 # Load ordered names and abbreviations -------------
 load("data/static_tables/name_matches.Rdata")

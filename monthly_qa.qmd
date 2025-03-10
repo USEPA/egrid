@@ -121,7 +121,10 @@ eia_923 <-
 annual_reporters <-
   eia_923$boiler_fuel_data %>% 
   select(plant_id, boiler_id, prime_mover, respondent_frequency) %>% 
-  distinct()
+  distinct() %>% 
+  group_by(plant_id, boiler_id, prime_mover) %>% 
+  summarize(respondent_frequency = paste(respondent_frequency, collapse = ", ")) %>% 
+  ungroup()
 
 # sum monthly version to annual values
 unit_monthly_sum <- 
