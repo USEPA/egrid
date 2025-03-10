@@ -100,7 +100,7 @@ gen_file <- # load generator file
   read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS")) %>% 
   rename(generation = generation_ann)
 
-## Monthly unit file (if running annual version) ------------
+## Monthly unit file (if running annual temporal_res version) ------------
 if(params$temporal_res == "annual") { 
   if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/unit_file_monthly.RDS"))) { 
     unit_monthly <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file_monthly.RDS"))}

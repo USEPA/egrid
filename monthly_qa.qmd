@@ -216,9 +216,11 @@ Notes:
 
 -   Plant 52152 Unit ID 6RB heat input is manually corrected in the annual version. We will need to implement this change at the monthly level.
 
--   Some differences are attributable to differences in EIA Annual reporters, this needs to be addressed. 
+-   Some differences are attributable to differences in EIA Annual reporters, this needs to be addressed.
 
 -   Some differences are attributable to differences in ozone methodology.
+
+-   Some differences are from EIA-923 Boilers where we updated the EIA Boiler file to sum boilers (and ignore NAs, which updated some heat input to be positive values here and not filled during the NA heat input steps). 
 
 ```{r}
 #| label: heat-input-unit-table
