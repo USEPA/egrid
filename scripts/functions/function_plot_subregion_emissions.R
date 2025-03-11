@@ -74,7 +74,8 @@ plot_subregion_emissions <- function(emission_type,
              width = 0.35, 
              linewidth = 0.23) +
     labs( x = "", 
-          y = ylabel) +
+          y = ylabel,
+          title = params$eGRID_year) +
     annotate("rect", 
              xmin = 21.35, 
              xmax = 27.1, 
@@ -98,7 +99,7 @@ plot_subregion_emissions <- function(emission_type,
           axis.text.y = element_text(color = "#595959", size = 7.8),
           axis.title.y = element_text(color = "#595959", size = 9, vjust = 1.3),
           plot.title = element_text(hjust = 0.5, vjust = -85), 
-          plot.margin=grid::unit(c(-5, 3.75 ,1, 6), "mm")) +
+          plot.margin=grid::unit(c(-5, 3.75 ,0, 6), "mm")) +
     scale_y_continuous(limits = c(0, yaxis_max), breaks = seq(ylabel_min, ylabel_max, ylabel_int),  labels = label_comma())
   
   return(plot)

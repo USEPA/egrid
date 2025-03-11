@@ -34,7 +34,7 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
-# Set function source
+# Set function source -----
 source("scripts/functions/function_plot_subregion_emissions.R")
 
 # Set save directory and save function --------
@@ -78,9 +78,9 @@ pm25_rate <- plot_subregion_emissions(emission_type = "pm25",
                          ylabel = expression("PM"[2.5] ~ "Emission Rates (lb/MWh)"),
                          annotate_label = expression(bold("PM"[2.5] ~ "Emission Rates")),
                          ylabel_min = 0,
-                         ylabel_max = 1.0,
-                         ylabel_int = 0.1,
-                         yaxis_max = 1.065)
+                         ylabel_max = 1.2,
+                         ylabel_int = 0.2,
+                         yaxis_max = 1.265)
 pm25_rate
 save_fig(pm25_rate)
 
@@ -88,7 +88,7 @@ save_fig(pm25_rate)
 ## Annual Generation ------
 nh3_annual_generation <- plot_subregion_emissions(emission_type = "nh3",
                                    ydata = "subregion_generation_ann",
-                                   fill_color = "#5B9BD5",
+                                   fill_color =  "#4472C4",
                                    ylabel = "Annual Generation (MWh)",
                                    annotate_label = "Generation",
                                    ylabel_min = 0,
