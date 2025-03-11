@@ -24,14 +24,26 @@ library(dplyr)
 library(readr)
 library(readxl)
 library(stringr)
+
+
+# Define eGRID year parameter ----------------
+# define parameter year if no one is currently assigned using prompted user input
+if (exists("params")) {
+  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+    print("eGRID year parameter is already defined.")
+  } else { # if params() is defined, but eGRID_year is not, define it here
+    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+    params$eGRID_year <- as.character(params$eGRID_year)
+  }
+} else { # if params() and eGRID_year are not defined, define them here
+  params <- list()
+  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+  params$eGRID_year <- as.character(params$eGRID_year)
+}
   
 # Create QA function -----
-plant_qa <- function(emission_type, year) {
+plant_qa <- function(emission_type) {
   print(paste(toupper(emission_type), "PLANT QA IN PROGRESS"))
-  
-  # Define eGRID year -----
-  params <- list()
-  params$eGRID_year <- year
   
   # Create save directory for QA outputs -----
   
@@ -318,6 +330,6 @@ print(paste(toupper(emission_type), "PLANT QA COMPLETE"))
 }
 
 # Run function for emission types -----
-plant_qa("pm25", "2021")
-plant_qa("nh3", "2021")
-plant_qa("voc", "2021")
+plant_qa("pm25")
+plant_qa("nh3")
+plant_qa("voc")

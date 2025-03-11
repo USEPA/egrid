@@ -24,14 +24,25 @@ library(dplyr)
 library(readr)
 library(readxl)
 library(stringr)
-  
-# Create QA function -----
-subregion_qa <- function(emission_type, year) {
-  print(paste(toupper(emission_type), "SUBREGION QA IN PROGRESS"))
-  
-  # Define eGRID year -----
+
+# Define eGRID year parameter ----------------
+# define parameter year if no one is currently assigned using prompted user input
+if (exists("params")) {
+  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
+    print("eGRID year parameter is already defined.")
+  } else { # if params() is defined, but eGRID_year is not, define it here
+    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+    params$eGRID_year <- as.character(params$eGRID_year)
+  }
+} else { # if params() and eGRID_year are not defined, define them here
   params <- list()
-  params$eGRID_year <- year
+  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
+  params$eGRID_year <- as.character(params$eGRID_year)
+}
+
+# Create QA function -----
+subregion_qa <- function(emission_type) {
+  print(paste(toupper(emission_type), "SUBREGION QA IN PROGRESS"))
   
   # Create save directory for QA outputs -----
   
@@ -200,6 +211,6 @@ print(paste(toupper(emission_type), "SUBREGION QA COMPLETE"))
 }
 
 # Run function for emission types -----
-subregion_qa("pm25", "2021")
-subregion_qa("nh3", "2021")
-subregion_qa("voc", "2021")
+subregion_qa("pm25")
+subregion_qa("nh3")
+subregion_qa("voc")
