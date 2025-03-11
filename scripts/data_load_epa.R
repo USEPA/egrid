@@ -110,6 +110,7 @@ emissions_files <-
 emissions_data <- 
   purrr::map_df(emissions_files$file_path, ~ read_csv(.x))
 
+# data columns to aggregate and sum after grouping by 
 cols_to_sum <- 
   c("operating_time_count",
     "sum_of_the_operating_time",
@@ -123,100 +124,106 @@ cols_to_sum <-
     "nox_rate_lbs_mmbtu",
     "heat_input_mmbtu")
 
-# emissions_id_cols <- # columns for grouping and for selecting
-#   c("facility_id", 
-#     "unit_id", 
-#     "primary_fuel_type", 
-#     "unit_type")
-
 ozone_months <- c(5:9) # setting ozone months, which are May through September
 
-# aggregate emissions data to necessary temporal res
-if (params$temporal_res == "annual"){
+# process and clean emissions data for all temporal_res conditions
+emissions_data_r <-
+  emissions_data %>%
+  rename_with(tolower) %>% # this protects NOx rates from getting split with clean_names()
+  janitor::clean_names() %>% 
+  mutate(year = as.character(year(date)), # extracting year from date
+         month = month(date), # extracting month from date (needed for ozone)
+         day = day(date) # extracting day from date
+       ) %>%
+  select(-date) %>%
+  mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) # SB 6/4/2024: Temporary fix for issue in API where there are a mix of pipes and commas in some character values
+
+# conditional group_by columns vector for reporting_frequency
+if (params$temporal_res %in% c("annual", "monthly", "daily")) {
+  cols_not_to_group <- c(cols_to_sum, "day")
+} else if (params$temporal_res == "hourly") {
+  cols_not_to_group <- c(cols_to_sum, "day", "hour")
+} 
+
+# calculate reporting frequency and categorize ozone reporters
+# ozone reporters = reporters with values in ozone months
+# if (params$temporal_res %in% c("annual", "monthly")) {
   
+  # identify ozone reporters and aggregate data to monthly level
   emissions_data_r <- 
-    emissions_data %>% 
-    rename_with(tolower) %>% # this protects NOx rates from getting split with clean_names()
-    janitor::clean_names() %>% 
-    mutate(year = as.character(year(date)), # extracting year from date
-           # month = month(date) # extracting month from date (needed for ozone)
-    ) %>% 
-    select(-date) %>%
-    mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) %>% # SB 6/4/2024: Temporary fix for issue in API where there are a mix of pipes and commas in some character values
-    # group_by(pick(-c(all_of(cols_to_sum), all_of(paste0(cols_to_sum, "_ozone")), month, reporting_months, reporting_frequency))) %>%
-    # distinct() %>% # remove duplicates from month and days 
-    group_by(pick(-c(all_of(cols_to_sum)))) %>%
-    mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # want to keep ozone calculations
-    ungroup() %>%
-    # select(-month) %>% # deselect month and distinct to only leave annual
-    distinct() # unique values per year
-    
-  } else if (params$temporal_res == "monthly") {
-    
-    emissions_data_r <- 
-      emissions_data %>% 
-      rename_with(tolower) %>% # this protects NOx rates from getting split with clean_names()
-      janitor::clean_names() %>% 
-      mutate(year = as.character(year(date)), # extracting year from date
-             month = month(date) # extracting month from date
-      ) %>% 
-      select(-date) %>%
-      mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) %>% # SB 6/4/2024: Temporary fix for issue in API where there are a mix of pipes and commas in some character values
-      group_by(pick(-c(all_of(cols_to_sum)))) %>% # group_by columns depend on params$temporal_res
-      summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first 
-      ungroup() %>%
-      distinct() # remove duplicates from days
+    emissions_data_r %>%
+    # group_by(pick(-c(all_of(cols_to_sum), day))) %>% # group_by columns depend on params$temporal_res
+    # group_by(pick(-all_of(cols_not_to_group))) %>%
+    # mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # aggregating emissions to monthly values first 
+    # summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # original
+    # ungroup() %>%
+    group_by(year, facility_id, unit_id, primary_fuel_type, unit_type) %>% 
+    mutate(reporting_months = paste(unique(month), collapse = ", "), # creating column with list of reporting months
+           reporting_frequency = if_else(grepl("1|2|3|10|11|12", # filtering out non-ozone season reporting months, excluding april
+                                               reporting_months), "Q", "OS")) %>% # assigning reporting frequency
+    ungroup()  
   
-  } else if (params$temporal_res == "daily") {
-  
-    emissions_data_r <- 
-      emissions_data %>% 
-      rename_with(tolower) %>% # this protects NOx rates from getting split with clean_names()
-      janitor::clean_names() %>% 
-      mutate(year = as.character(year(date)), # extracting year from date
-             month = month(date), # extracting month from date
-             day = as.character(day(date))# extracting day from date
-             ) %>% 
-      select(-date) %>%
-      mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) # fix for issue in API where there are a mix of pipes and commas in some character values
-
-}
-
-# if (params$temporal_res == "annual" | params$temporal_res == "monthly") {
+# } else {
 #   
 #   emissions_data_r <- 
 #     emissions_data_r %>%
-#     group_by(pick(-c(all_of(cols_to_sum), day))) %>% # group_by columns depend on params$temporal_res
-#     summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first 
+#     group_by(pick(-c(all_of(cols_to_sum)))) %>% # group_by columns depend on params$temporal_res
+#     summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% 
 #     ungroup() %>%
-#     group_by(facility_id, unit_id, primary_fuel_type, unit_type, year) %>% # added year here 2.13.25
+#     group_by(year, facility_id, unit_id, primary_fuel_type, unit_type) %>% 
 #     mutate(reporting_months = paste(month, collapse = ", "), # creating column with list of reporting months
-# 
 #            reporting_frequency = if_else(grepl("1|2|3|10|11|12", # filtering out non-ozone season reporting months, excluding april
 #                                                reporting_months), "Q", "OS")) %>% # assigning reporting frequency
-#     ungroup() %>%
-#     group_by(pick(all_of(c(emissions_id_cols, temporal_res_cols)))) %>%
-#     mutate(across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>%
-#     ungroup()
-#     
-# } else {
-#   
-#   emissions_data_r <-
-#     emissions_data_r %>%
-#     group_by(pick(-c(all_of(cols_to_sum)))) %>% # group_by columns depend on params$temporal_res
-#     summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first 
-#     ungroup()
+#     ungroup()  
 # }
 
-# for annual, sum to annual 
-# if (params$temporal_res == "annual") {
-#   emissions_data_r <-
+  # conditional groupby columns, separated for easier comprehension
+  emissions_groupby_cols <-
+    emissions_data_r %>%
+    select(-c(cols_to_sum, reporting_months, reporting_frequency, year, month, day)) %>% # sum by columns outside of cols_to_sum & new vars 
+    colnames()
+  
+  emissions_select_cols <- c(emissions_groupby_cols, cols_to_sum, temporal_res_cols) # used to drop columns based on temporal_res (i.e. annual = drop "month", "day")
+  emissions_groupby_cols <- c(emissions_groupby_cols, temporal_res_cols) # only sum to the specified temporal_res (i.e. annual = "year")
+
+# for annual, sum to annual and sum ozone months
+if (params$temporal_res == "annual") {
+  emissions_data_r <-
+    emissions_data_r %>%
+    group_by(pick(-c(all_of(cols_to_sum), day, reporting_months, reporting_frequency))) %>% # group_by month & year
+    reframe(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE)),
+              reporting_months = reporting_months,
+              reporting_frequency = reporting_frequency) %>% # aggregating emissions to monthly values first for ozone months
+    ungroup() %>%
+    distinct() %>% # reframe and not keep day
+    group_by(pick(all_of(emissions_groupby_cols))) %>%
+    #group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% # group_by year (correct 3.7.25)
+   # group_by(pick(-all_of(cols_to_sum), -c(month,day reporting_months, reporting_frequency))) %>% # group_by year
+    mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}"), # calculating annual emissions
+           across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
+    # select(-c(month,day)) %>% # removing month so distinct() will aggregate to unit level
+    # select(-all_of(cols_to_sum), reporting_months, reporting_frequency) %>%
+    # rename_with(.cols = contains("_annual"), # removing annual suffix
+    #             .fn = ~ str_remove(.x, "_annual")) %>%
+    ungroup() %>%
+    select(emissions_select_cols) %>%
+    distinct() # removing duplicate rows that aren't needed after ozone calculation
+} else {  # for other resolutions, only sum to temporal resolution
+  
+  emissions_data_r <-
+    emissions_data_r %>%
+    group_by(pick(all_of(emissions_groupby_cols))) %>%
+    mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}")) %>%
+    ungroup() %>%
+    select(emissions_select_cols) %>% # will only keep temporal_res columns specified by params$temporal_res
+    distinct()
+}
+  
+# if (params$temporal_res == "monthly") {
+#   emissions_data_r <- # during sum to month, not an easy way to conditionalize select and distinct
 #     emissions_data_r %>%
-#     group_by(pick(-c(all_of(cols_to_sum), all_of(paste0(cols_to_sum, "_ozone")), month, reporting_months, reporting_frequency))) %>%
-#     mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # want to keep ozone calculations
-#     ungroup() %>%
-#     select(-month) %>% # deselect month and distinct to only leave annual
-#     distinct() # unique values per year
+#     select(-day) %>%
+#     distinct()
 # }
 
 
