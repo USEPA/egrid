@@ -287,7 +287,7 @@ state_fuel_type_emission_rate <-
 write_csv(state_fuel_type_emission_rate %>% rename(any_of(state_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/state_table/state_fuel_type_emission_rate.csv"))
 
-datatypes$state_fuel_type_emission_rate <- sapply(state_fuel_tpe_emission_rate %>% rename(any_of(state_nonmetric)), class)
+datatypes$state_fuel_type_emission_rate <- sapply(state_fuel_type_emission_rate %>% rename(any_of(state_nonmetric)), class)
 
 # state fuel type generation
 state_fuel_type_gen <- 
@@ -730,6 +730,8 @@ nerc_emission_rate <-
 write_csv(nerc_emission_rate %>% rename(any_of(nerc_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/nerc_table/nerc_emission_rate.csv"))
 
+datatypes$nerc_emission_rate <- sapply(nerc_emission_rate %>% rename(any_of(nerc_nonmetric)), class)
+
 # NERC nonbaseload emission rate
 nerc_nonbaseload_emission_rate <- 
   nerc_table %>% 
@@ -746,6 +748,8 @@ nerc_nonbaseload_emission_rate <-
            contains("nonbaseload")) 
 write_csv(nerc_emission_rate %>% rename(any_of(nerc_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/nerc_table/nerc_nonbaseload_emission_rate.csv"))
+
+datatypes$nerc_nonbaseload_emission_rate <- sapply(nerc_nonbaseload_emission_rate %>% rename(any_of(nerc_nonmetric)), class)
 
 # NERC fuel type emission rates 
 nerc_fuel_type_emission_rate <- 
@@ -764,6 +768,8 @@ nerc_fuel_type_emission_rate <-
 write_csv(nerc_fuel_type_emission_rate %>% rename(any_of(nerc_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/nerc_table/nerc_fuel_type_emission_rate.csv"))
 
+datatypes$nerc_fuel_type_emission_rate <- sapply(nerc_fuel_type_emission_rate %>% rename(any_of(nerc_nonmetric)), class)
+
 # NERC fuel type generation
 nerc_fuel_type_gen <- 
   nerc_table %>% 
@@ -774,6 +780,8 @@ nerc_fuel_type_gen <-
 write_csv(nerc_fuel_type_gen %>% rename(any_of(nerc_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/nerc_table/nerc_fuel_type_gen.csv"))
 
+datatypes$nerc_fuel_type_gen <- sapply(nerc_fuel_type_gen %>% rename(any_of(nerc_nonmetric)), class)
+
 # NERC resource mix 
 nerc_resource_mix <- 
   nerc_table %>% 
@@ -782,6 +790,8 @@ nerc_resource_mix <-
          contains("resource_mix"), -contains("nonbaseload")) 
 write_csv(nerc_resource_mix %>% rename(any_of(nerc_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/nerc_table/nerc_resource_mix.csv"))
+
+datatypes$nerc_resource_mix <- sapply(nerc_resource_mix %>% rename(any_of(nerc_nonmetric)), class)
 
 # NERC nonbaseload generation 
 nerc_nonbaseload_generation <- 
@@ -792,6 +802,8 @@ nerc_nonbaseload_generation <-
 write_csv(nerc_nonbaseload_generation %>% rename(any_of(nerc_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/nerc_table/nerc_nonbaseload_generation.csv"))
 
+datatypes$nerc_nonbaseload_generation <- sapply(nerc_nonbaseload_generation %>% rename(any_of(nerc_nonmetric)), class)
+
 # NERC nonbaseload resource mix
 nerc_nonbaseload_resource_mix <- 
   nerc_table %>% 
@@ -801,6 +813,7 @@ nerc_nonbaseload_resource_mix <-
 write_csv(nerc_nonbaseload_resource_mix %>% rename(any_of(nerc_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/nerc_table/nerc_nonbaseload_resource_mix.csv"))
 
+datatypes$nerc_nonbaseload_resource_mix <- sapply(nerc_nonbaseload_resource_mix %>% rename(any_of(nerc_nonmetric)), class)
 
 ### Create final NERC file -----------
 
@@ -811,6 +824,8 @@ nerc_table_final <-
          nerc_name) 
 write_csv(nerc_table_final %>% rename(any_of(nerc_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/nerc_table/nerc_table.csv"))
+
+datatypes$nerc_table <- sapply(nerc_table_final %>% rename(any_of(nerc_nonmetric)), class)
 
 # US file ------------------------
 
@@ -833,6 +848,8 @@ us_adjusted_values <-
 write_csv(us_adjusted_values %>% rename(any_of(us_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/us_table/us_adjusted_values.csv"))
 
+datatypes$us_adjusted_values <- sapply(us_adjusted_values %>% rename(any_of(us_nonmetric)), class)
+
 # US emission rates (includes combustion output, input, and output rates)
 us_emission_rate <- 
   us_file %>% 
@@ -847,6 +864,8 @@ us_emission_rate <-
          -contains(c("coal", "oil", "gas", "fossil", "nonbaseload"))) # under new monthly code we will not need this line
 write_csv(us_emission_rate %>% rename(any_of(us_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/us_table/us_emission_rate.csv"))
+
+datatypes$us_emission_rate <- sapply(us_emission_rate %>% rename(any_of(us_nonmetric)), class)
 
 # US nonbaseload emission rate
 us_nonbaseload_emission_rate <- 
@@ -863,6 +882,8 @@ us_nonbaseload_emission_rate <-
 write_csv(us_emission_rate %>% rename(any_of(us_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/us_table/us_nonbaseload_emission_rate.csv"))
 
+datatypes$us_nonbaseload_emission_rate <- sapply(us_nonbaseload_emission_rate %>% rename(any_of(us_nonmetric)), class)
+
 # US fuel type emission rates 
 us_fuel_type_emission_rate <- 
   us_file %>% 
@@ -878,6 +899,8 @@ us_fuel_type_emission_rate <-
 write_csv(us_fuel_type_emission_rate %>% rename(any_of(us_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/us_table/us_fuel_type_emission_rate.csv"))
 
+datatypes$us_fuel_type_emission_rate <- sapply(us_fuel_type_emission_rate %>% rename(any_of(us_nonmetric)), class)
+
 # US fuel type generation
 us_fuel_type_gen <- 
   us_file %>% 
@@ -886,12 +909,16 @@ us_fuel_type_gen <-
 write_csv(us_fuel_type_gen %>% rename(any_of(us_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/us_table/us_fuel_type_gen.csv"))
 
+datatypes$us_fuel_type_gen <- sapply(us_fuel_type_gen %>% rename(any_of(us_nonmetric)), class)
+
 # US resource mix 
 us_resource_mix <- 
   us_file %>% 
   select(contains("resource_mix"), -contains("nonbaseload")) 
 write_csv(us_resource_mix %>% rename(any_of(us_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/us_table/us_resource_mix.csv"))
+
+datatypes$us_resource_mix <- sapply(us_resource_mix %>% rename(any_of(us_nonmetric)), class)
 
 # US nonbaseload generation 
 us_nonbaseload_generation <- 
@@ -900,12 +927,16 @@ us_nonbaseload_generation <-
 write_csv(us_nonbaseload_generation %>% rename(any_of(us_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/us_table/us_nonbaseload_generation.csv"))
 
+datatypes$us_nonbaseload_generation <- sapply(us_nonbaseload_generation %>% rename(any_of(us_nonmetric)), class)
+
 # US nonbaseload resource mix
 us_nonbaseload_resource_mix <- 
   us_file %>% 
   select(contains("nonbaseload_resource_mix")) 
 write_csv(us_nonbaseload_resource_mix %>% rename(any_of(us_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/us_table/us_nonbaseload_resource_mix.csv"))
+
+datatypes$us_nonbaseload_resource_mix <- sapply(us_nonbaseload_resource_mix %>% rename(any_of(us_nonmetric)), class)
 
 ### Create final US file -----------
 
@@ -914,6 +945,8 @@ us_table_final <-
   select(us_nameplate_capacity) 
 write_csv(us_table_final %>% rename(any_of(us_nonmetric)), 
           glue::glue("data/api/{params$eGRID_year}/us_table/us_table.csv"))
+
+datatypes$us_table <- sapply(us_table_final %>% rename(any_of(us_nonmetric)), class)
 
 # Export final plant table ----------------------
 
