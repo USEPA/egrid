@@ -58,6 +58,30 @@ unit_annual <- unit_annual %>%
          "year" = "year_annual") %>% 
   mutate(month = "annual")
 
+# load in generator data, format, and merge
+generator_monthly <- 
+  read_rds("data/outputs/2023/generator_file_monthly.RDS")
+
+colnames(generator_monthly) <- paste0(colnames(generator_monthly), "_monthly")
+generator_monthly <- generator_monthly %>% 
+  rename("plant_id" = "plant_id_monthly",
+         "generator_id" = "generator_id_monthly", 
+         "prime_mover" = "prime_mover_monthly",
+         "year" = "year_monthly",
+         "month" = "month_monthly") %>% 
+  mutate(month = as.character(month))
+
+generator_annual <- 
+  read_rds("data/outputs/2023/generator_file.RDS")
+
+colnames(generator_annual) <- paste0(colnames(generator_annual), "_annual")
+generator_annual <- generator_annual %>% 
+  rename("plant_id" = "plant_id_annual",
+         "generator_id" = "generator_id_annual", 
+         "prime_mover" = "prime_mover_annual",  
+         "year" = "year_annual") %>% 
+  mutate(month = "annual")
+
 # load in plant data, format, and merge
 plant_monthly <- 
   read_rds("data/outputs/2023/plant_file_monthly.RDS") %>% 
