@@ -26,13 +26,13 @@ library(stringr)
 
 ### Load necessary functions --------------------
 
-source("scripts/functions/function_params_check.R")
+source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_paste_concat.R")
 source("scripts/functions/function_update_source.R")
 
 # check if parameters need to be defined
-params <- params_check()
+params <- check_params()
 
 # Specify grouping columns based on temporal_res parameter
 temporal_res_cols <- create_temporal_res_cols(params$temporal_res)

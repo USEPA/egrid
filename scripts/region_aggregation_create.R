@@ -23,12 +23,12 @@ library(stringr)
 
 # Load necessary functions -----------------------
 
-source("scripts/functions/function_params_check.R")
+source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_region_aggregation.R")
 
 # Check for params() --------
-params <- params_check()
+params <- check_params()
 
 # Create temporal_res_cols --------------------
 temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
