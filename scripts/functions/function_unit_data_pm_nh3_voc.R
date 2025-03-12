@@ -46,33 +46,33 @@ unit_data_pm_nh3_voc <- function(emission_type){
   # Load necessary data --------------------
   if(params$eGRID_year == "2021") {
     ## EIA-923 - for Schedule C Air Emissions Control information (2021)
-    eia_923 <- read_csv(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), col_types = "ccccccccddddcccdccddcdc") %>%
+    eia_923 <- read_csv(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), col_types = "ccccccccddddcccdccddcdc") %>%
       janitor::clean_names()
   } else {
     ## EIA-923 - for Schedule C Air Emissions Control information (2022+)
-    if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) {
-      eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))$air_emissions_control_info
+    if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) {
+      eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))$air_emissions_control_info
     } else {
       stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
   }
   
   ## NEI emission data
-  if(file.exists(glue::glue("data/raw_data/nei/{params$eGRID_year}/nei_{emission_type}_emissions_raw.csv"))) { 
-    raw_nei <- read_csv(glue::glue("data/raw_data/nei/{params$eGRID_year}/nei_{emission_type}_emissions_raw.csv"), col_types = "cccccccccccccccccdcc") %>%
+  if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"))) { 
+    raw_nei <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"), col_types = "cccccccccccccccccdcc") %>%
       janitor::clean_names()
   } else { 
-    stop(glue::glue("nei_{emission_type}_emissions_raw.csv does not exist."))}
+    stop(glue::glue("nei_{emission_type}_emissions.csv does not exist."))}
   
   ## NEI-EIA crosswalk matching NEI and EIA unit ids
-  nei_eia_xwalk <- read_csv("data/static_tables/xwalk_nei_eia.csv", col_types = "cccccccccccccccccccc") %>%
+  nei_eia_xwalk <- read_csv("data/2b_pm_nh3_voc/static_tables/xwalk_nei_eia.csv", col_types = "cccccccccccccccccccc") %>%
     janitor::clean_names()
   
   ## Particulate matter emission factors from EPA AP-42 dataset
-  efs <- read_csv(glue::glue("data/static_tables/emission_factors_{emission_type}.csv"), col_types = "cccdccc") %>%
+  efs <- read_csv(glue::glue("data/2b_pm_nh3_voc/static_tables/emission_factors_{emission_type}.csv"), col_types = "cccdccc") %>%
     janitor::clean_names()
   
   ## eGRID production model data - unit file
-  unit_file_raw <- read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
+  unit_file_raw <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
                           sheet = paste0("UNT", substr(params$eGRID_year, 3, 4)),
                           skip = 1,
                           col_names = TRUE) %>%
@@ -83,7 +83,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
   
   # Prepare unit data for evaluation --------------
   # Load abbreviated name to snake_case matches
-  load("data/static_tables/name_matches.Rdata")
+  load("data/1_production_model/static_tables/name_matches.Rdata")
   # Select names present in unit file column names
   unit_new_names <- unit_nonmetric[names(unit_nonmetric) %in% colnames(unit_file_raw)]
   

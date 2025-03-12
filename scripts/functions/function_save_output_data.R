@@ -14,7 +14,7 @@
 ##
 ## -------------------------------
 
-save_output_data <- function(data, filename){
+save_output_data <- function(data, output_folder, filename){
   
   #' save_output_data
   #' 
@@ -22,37 +22,38 @@ save_output_data <- function(data, filename){
   #' create directories when necessary
   #' 
   #' @param data Dataset variable name to save
+  #' @param output_folder String name of output folder to save to
   #' @param filename String name of new file being saved
   #' 
-  #' @return Saves the RDS dataset in outputs/{params$eGRID_year}
+  #' @return Saves the RDS dataset in {output_folder}/outputs/{params$eGRID_year}
   #'         directory
   #'         
   #' @examples 
   #' # Save PM2.5 plant file
-  #' save_output_data(pm_plant_formatted, "pm_plant_file.RDS")
+  #' save_output_data(pm_plant_formatted, "1_production_model", "pm_plant_file.RDS")
 
   
   # create save directories if they don't exist
-  if(dir.exists("data/outputs")) {
-    print("Folder outputs already exists.")
+  if(dir.exists(glue::glue("data/{output_folder}/outputs"))) {
+    print(glue::glue("Folder {output_folder}/outputs already exists."))
   } else {
-    dir.create("data/outputs")
+    dir.create(glue::glue("data/{output_folder}/outputs"))
   }
   
-  if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
-    print(glue::glue("Folder outputs/{params$eGRID_year} already exists."))
+  if(dir.exists(glue::glue("data/{output_folder}/outputs/{params$eGRID_year}"))) {
+    print(glue::glue("Folder {output_folder}/outputs/{params$eGRID_year} already exists."))
   } else {
-    dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
+    dir.create(glue::glue("data/{output_folder}/outputs/{params$eGRID_year}"))
   }
   
-  print(glue::glue("Saving {filename} to folder data/outputs/{params$eGRID_year}"))
+  print(glue::glue("Saving {filename} to folder data/{output_folder}/outputs/{params$eGRID_year}"))
   
   # save file
-  write_rds(data, glue::glue("data/outputs/{params$eGRID_year}/{filename}"))
+  write_rds(data, glue::glue("data/{output_folder}/outputs/{params$eGRID_year}/{filename}"))
   
   # check if file is successfully written to folder
-  if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/{filename}"))){
-    print(glue::glue("File {filename} successfully written to folder data/outputs/{params$eGRID_year}"))
+  if(file.exists(glue::glue("data/{output_folder}/outputs/{params$eGRID_year}/{filename}"))){
+    print(glue::glue("File {filename} successfully written to folder data/{output_folder}/outputs/{params$eGRID_year}"))
   } else {
     print(glue::glue("File {filename} failed to write to folder."))
   }

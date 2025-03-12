@@ -44,7 +44,7 @@ plant_data_pm_nh3_voc <- function(emission_type){
 
   # Load necessary data --------------------
   ## eGRID production model data - plant file
-  plant_file_raw <- read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
+  plant_file_raw <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
                               sheet = paste0("PLNT", substr(params$eGRID_year, 3, 4)),
                               skip = 1,
                               col_names = TRUE) %>%
@@ -52,7 +52,7 @@ plant_data_pm_nh3_voc <- function(emission_type){
   
   # Prepare plant data for evaluation --------------
   # Load abbreviated name to snake_case matches
-  load("data/static_tables/name_matches.Rdata")
+  load("data/1_production_model/static_tables/name_matches.Rdata")
   # Select names present in unit file column names
   plant_new_names <- plant_nonmetric[names(plant_nonmetric) %in% colnames(plant_file_raw)]
   

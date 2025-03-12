@@ -85,7 +85,7 @@ unit_qa <- function(emission_type) {
     emission_abbrev <- emission_type
   }
   if(params$eGRID_year == "2021") {
-    unit_access_raw <- read_excel(glue::glue("data/raw_data/eGRID{params$eGRID_year}_{emission_type}emissions.xlsx"), 
+    unit_access_raw <- read_excel(glue::glue("data/raw_data/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
                                   sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Unit-level Data"),
                                   skip = 1,
                                   col_names = TRUE)

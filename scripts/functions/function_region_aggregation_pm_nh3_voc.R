@@ -39,8 +39,8 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
   require(readxl)
   
   # Load plant data --------------------
-  if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/plant_file_{emission_type}.RDS"))) {
-    plant_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file_{emission_type}.RDS"))
+  if(file.exists(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/plant_file_{emission_type}.RDS"))) {
+    plant_file <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/plant_file_{emission_type}.RDS"))
   } else {
     stop("plant_file_{emission_type}.RDS does not exist. Run plant_file_create_ pm_nh3_voc.R to obtain.")}
   
@@ -81,7 +81,8 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
   
   # Save aggregated data ----------
   source("scripts/functions/function_save_output_data.R")
-  save_output_data(subregion_emissions, glue::glue("subregion_aggregation_{emission_type}.RDS"))
-  save_output_data(us_emissions, glue::glue("us_aggregation_{emission_type}.RDS"))
-  save_output_data(state_emissions, glue::glue("state_aggregation_{emission_type}.RDS"))
+  output_folder <- "2b_pm_nh3_voc"
+  save_output_data(subregion_emissions, output_folder, glue::glue("subregion_aggregation_{emission_type}.RDS"))
+  save_output_data(us_emissions, output_folder, glue::glue("us_aggregation_{emission_type}.RDS"))
+  save_output_data(state_emissions, output_folder, glue::glue("state_aggregation_{emission_type}.RDS"))
 }
