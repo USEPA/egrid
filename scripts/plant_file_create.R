@@ -927,13 +927,9 @@ ann_gen_by_fuel_3 <-
          perc_ann_gen_non_combust_other = case_when(plant_ann_gen == 0 ~ NA_real_,
                                                     ann_gen_non_combust_other < 0 ~ 0, 
                                                     TRUE ~ ann_gen_non_combust_other / plant_ann_gen)) %>% 
-  #select(-plant_ann_gen) %>% 
+  select(-plant_ann_gen) %>% 
   mutate(across(contains("perc"), 
                 ~ if_else(.x < 0, 0, .x)))
-  
-
-# checks for negative generation values
-stopifnot(sum(isTRUE(as.matrix(ann_gen_by_fuel) < 0), na.rm = TRUE) == 0)
 
 plant_file_16 <- 
   plant_file_15 %>% 
