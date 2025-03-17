@@ -28,10 +28,10 @@ library(stringr)
 # Load functions -------------
 
 source("scripts/functions/function_temporal_res_cols.R")
-source("scripts/functions/function_params_check.R")
+source("scripts/functions/function_check_params.R")
 
 # Define paramters if necessary and check for valid params()
-params <- params_check()
+params <- check_params()
 
 # Specify grouping columns based on temporal_res parameter
 temporal_res_cols <- create_temporal_res_cols(params$temporal_res)

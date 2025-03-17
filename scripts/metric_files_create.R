@@ -22,29 +22,15 @@ library(readxl)
 library(renv)
 detach("package:renv", unload=TRUE)
 
+# Load necessary functions -----------------------
+
+source("scripts/functions/function_metric_conversion.R")
+source("scripts/functions/function_check_params.R")
+
 # Define parameters -------------------------
-
 # check if parameters need to be defined
-# this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input params in the console if necessary
 
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params) & "temporal_res" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
-  } else { # if params() is defined, but eGRID_year or temporal_res is not, define them here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-    params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
-    params$temporal_res <- as.character(params$temporal_res) 
-  }
-} else { # if params() and eGRID_year and temporal_res are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
-  params$temporal_res <- readline(prompt = "Input temporal resolution (annual or monthly): ")
-  params$temporal_res <- as.character(params$temporal_res) 
-}
-
+params <- check_params()
 
 # Define files to convert ---------------------------------
 
@@ -68,8 +54,6 @@ convert_rates <- read_csv(file.path("data/static_tables/conversion_factors.csv")
                           col_names=TRUE, col_types="ccn")
 
 # Run metric conversion function for filenames  ----------------------
-
-source("scripts/functions/function_metric_conversion.R")
 
 for (file in names(filenames_orig)) {
   metric_conversion(file)
