@@ -136,81 +136,41 @@ emissions_data_r <-
          day = day(date) # extracting day from date
        ) %>%
   select(-date) %>%
-  mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) # SB 6/4/2024: Temporary fix for issue in API where there are a mix of pipes and commas in some character values
-
-# conditional group_by columns vector for reporting_frequency
-if (params$temporal_res %in% c("annual", "monthly", "daily")) {
-  cols_not_to_group <- c(cols_to_sum, "day")
-} else if (params$temporal_res == "hourly") {
-  cols_not_to_group <- c(cols_to_sum, "day", "hour")
-} 
-
-# calculate reporting frequency and categorize ozone reporters
-# ozone reporters = reporters with values in ozone months
-# if (params$temporal_res %in% c("annual", "monthly")) {
-  
-  # identify ozone reporters and aggregate data to monthly level
-  emissions_data_r <- 
-    emissions_data_r %>%
-    # group_by(pick(-c(all_of(cols_to_sum), day))) %>% # group_by columns depend on params$temporal_res
-    # group_by(pick(-all_of(cols_not_to_group))) %>%
-    # mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # aggregating emissions to monthly values first 
-    # summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # original
-    # ungroup() %>%
-    group_by(year, facility_id, unit_id, primary_fuel_type, unit_type) %>% 
-    mutate(reporting_months = paste(unique(month), collapse = ", "), # creating column with list of reporting months
-           reporting_frequency = if_else(grepl("1|2|3|10|11|12", # filtering out non-ozone season reporting months, excluding april
+  mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) %>% # SB 6/4/2024: Temporary fix for issue in API where there are a mix of pipes and commas in some character values
+  group_by(year, facility_id, unit_id, primary_fuel_type, unit_type) %>% # group by year, identify ozone reporters and aggregate data to monthly level
+  mutate(reporting_months = paste(unique(month), collapse = ", "), # creating column with list of reporting months
+         reporting_frequency = if_else(grepl("1|2|3|10|11|12", # filtering out non-ozone season reporting months, excluding april
                                                reporting_months), "Q", "OS")) %>% # assigning reporting frequency
-    ungroup()  
+  ungroup()  
   
-# } else {
-#   
-#   emissions_data_r <- 
-#     emissions_data_r %>%
-#     group_by(pick(-c(all_of(cols_to_sum)))) %>% # group_by columns depend on params$temporal_res
-#     summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% 
-#     ungroup() %>%
-#     group_by(year, facility_id, unit_id, primary_fuel_type, unit_type) %>% 
-#     mutate(reporting_months = paste(month, collapse = ", "), # creating column with list of reporting months
-#            reporting_frequency = if_else(grepl("1|2|3|10|11|12", # filtering out non-ozone season reporting months, excluding april
-#                                                reporting_months), "Q", "OS")) %>% # assigning reporting frequency
-#     ungroup()  
-# }
-
-  # conditional groupby columns, separated for easier comprehension
-  emissions_groupby_cols <-
-    emissions_data_r %>%
-    select(-c(cols_to_sum, reporting_months, reporting_frequency, year, month, day)) %>% # sum by columns outside of cols_to_sum & new vars 
-    colnames()
+# conditional groupby columns, separated for easier comprehension
+emissions_groupby_cols <-
+  emissions_data_r %>%
+  select(-c(cols_to_sum, reporting_months, reporting_frequency, year, month, day)) %>% # sum by columns outside of cols_to_sum & new vars 
+  colnames()
   
-  emissions_select_cols <- c(emissions_groupby_cols, cols_to_sum, temporal_res_cols) # used to drop columns based on temporal_res (i.e. annual = drop "month", "day")
-  emissions_groupby_cols <- c(emissions_groupby_cols, temporal_res_cols) # only sum to the specified temporal_res (i.e. annual = "year")
+emissions_select_cols <- c(emissions_groupby_cols, cols_to_sum, temporal_res_cols) # used to drop columns based on temporal_res (i.e. annual = drop "month", "day")
+emissions_groupby_cols <- c(emissions_groupby_cols, temporal_res_cols) # only sum to the specified temporal_res (i.e. annual = "year")
 
 # for annual, sum to annual and sum ozone months
 if (params$temporal_res == "annual") {
-  emissions_data_r <-
+  emissions_data_r_2 <-
     emissions_data_r %>%
     group_by(pick(-c(all_of(cols_to_sum), day, reporting_months, reporting_frequency))) %>% # group_by month & year
     reframe(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE)),
-              reporting_months = reporting_months,
-              reporting_frequency = reporting_frequency) %>% # aggregating emissions to monthly values first for ozone months
+            reporting_months = reporting_months,
+            reporting_frequency = reporting_frequency) %>% # aggregating emissions to monthly values first for ozone months
     ungroup() %>%
     distinct() %>% # reframe and not keep day
     group_by(pick(all_of(emissions_groupby_cols))) %>%
-    #group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% # group_by year (correct 3.7.25)
-   # group_by(pick(-all_of(cols_to_sum), -c(month,day reporting_months, reporting_frequency))) %>% # group_by year
     mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}"), # calculating annual emissions
            across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
-    # select(-c(month,day)) %>% # removing month so distinct() will aggregate to unit level
-    # select(-all_of(cols_to_sum), reporting_months, reporting_frequency) %>%
-    # rename_with(.cols = contains("_annual"), # removing annual suffix
-    #             .fn = ~ str_remove(.x, "_annual")) %>%
+
     ungroup() %>%
     select(emissions_select_cols) %>%
     distinct() # removing duplicate rows that aren't needed after ozone calculation
-} else {  # for other resolutions, only sum to temporal resolution
-  
-  emissions_data_r <-
+} else {  # for monthly, daily, and hourly temporal resolutions, only sum to temporal resolution
+  emissions_data_r_2 <-
     emissions_data_r %>%
     group_by(pick(all_of(emissions_groupby_cols))) %>%
     mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}")) %>%
@@ -218,14 +178,6 @@ if (params$temporal_res == "annual") {
     select(emissions_select_cols) %>% # will only keep temporal_res columns specified by params$temporal_res
     distinct()
 }
-  
-# if (params$temporal_res == "monthly") {
-#   emissions_data_r <- # during sum to month, not an easy way to conditionalize select and distinct
-#     emissions_data_r %>%
-#     select(-day) %>%
-#     distinct()
-# }
-
 
 ## Get MATS data --------------
 
@@ -280,7 +232,7 @@ if (params$temporal_res == "daily") {
 
 epa_data_combined <- 
   facility_df %>% 
-  left_join(emissions_data_r, 
+  left_join(emissions_data_r_2, 
             by = c(temporal_res_cols, "facility_id", "unit_id", "primary_fuel_type")) %>% 
   coalesce_join_vars() %>% 
   left_join(mats_data_r) %>% 

@@ -33,7 +33,7 @@ source("scripts/functions/function_coalesce_join_vars.R")
 params <- check_params()
 
 # Set up temporal_res_cols
-temporal_res_cols <- temporal_res_cols(params$temporal_res)
+temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
 
 # Create dataframe for better and more accurate joins
 # temporal_cols_to_add <- cols_to_add(params$temporal_res) 
@@ -297,39 +297,8 @@ print(glue::glue("{nrow(filled_gen_data)} generators updated with generation val
 #   mutate(generation_oz = sum(netgen[month %in% ozone_months], na.rm = TRUE)) %>%
 #   ungroup()
 
-# if (params$temporal_res == "annual") {
-# eia_gen_fuel_generation_sum <- 
-#   # eia_gen_fuel_generation_sum %>%
-#   eia_923_gen_fuel %>%
-#   # mutate(generation_oz = rowSums(pick(all_of(ozone_months_gen_fuel)), na.rm = TRUE)) %>% # summing generation across ozone months
-#   # group_by(year, month, plant_id, prime_mover) %>% # added groupby year and month 2.20.25, can potentially do temporal res cols here
-#   # group_by(year, 
-#   #          plant_id, 
-#   #          prime_mover, 
-#   #          combined_heat_and_power_plant, 
-#   #          fuel_type) %>% # added fuel_type groupby here 2.21.25
-#   # mutate(generation_oz = sum(netgen[month %in% ozone_months], na.rm = TRUE)) %>%
-#   # ungroup() %>%
-#   select(-c(month,
-#             netgen,
-#             contains("consumption"),
-#             quantity,
-#             elec_quantity,
-#             mmbtuper_unit,
-#             tot_mmbtu,
-#             elec_mmbtu)) %>%
-#   distinct() %>% # removes doubling of totals
-#   group_by(pick(all_of(temporal_res_cols)), 
-#            plant_id, 
-#            prime_mover) %>% # group_by temporal_res_cols
-#   summarize(
-#             #tot_generation_oz_fuel = sum(generation_oz, na.rm = TRUE), # ozone months total 
-#             tot_generation_fuel = sum(net_generation_megawatthours, na.rm = TRUE)) %>% # net_generation_megawatthours for annual data
-#                                                                                        # netgen for monthly data
-#   ungroup()
-#   
-# } else {
-  #2.21.25 need to fix this to be good for monthly
+
+
   eia_gen_fuel_generation_sum <-
    #  eia_gen_fuel_generation_sum %>% 
     eia_923_gen_fuel %>% # replace while ozone month is temp not in use
@@ -341,18 +310,19 @@ print(glue::glue("{nrow(filled_gen_data)} generators updated with generation val
               elec_mmbtu)) %>%
     group_by(year, # group_by temporal_res_cols
              plant_id, 
-             prime_mover,
+             prime_mover
              # combined_heat_and_power_plant,
-             respondent_frequency # keep respondent_frequency for calculating generation, actually might get dropped later and not necessary
+             # respondent_frequency # keep respondent_frequency for calculating generation, actually might get dropped later and not necessary
              ) %>% 
     mutate(
               #tot_generation_oz_fuel = sum(generation_oz, na.rm = TRUE), # ozone months total 
               tot_generation_fuel = sum(netgen, na.rm = TRUE)) %>%
     ungroup() %>%
-    select(-combined_heat_and_power_plant) # might be giving double/duplication
+    # select(-combined_heat_and_power_plant) # might be giving double/duplication
+    # select(-c(combined_heat_and_power_plant, net_generation_megawatthours, netgen)) %>% # might be giving double/duplication
+    select(plant_id, prime_mover, tot_generation_fuel) %>%
+    distinct() # fix to remove duplication
   
-# }
-
 
 
 # if (params$temporal_res == "annual") {
@@ -381,14 +351,22 @@ gen_distributed_props <-
   select(plant_id, prime_mover, generation_diff, tot_generation, tot_generation_fuel
          # generation_oz_diff
   ) %>% # (annual ver.) (2)
-  right_join(eia_gen_generation) %>% # joining back in other columns (2)
+  # right_join(eia_gen_generation) %>% # joining back in other columns (1) 
+  right_join(eia_gen_generation %>% 
+               select(plant_id, 
+                      prime_mover, 
+                      generator_id, 
+                      nameplate_capacity, 
+                      gen_data_source) %>% 
+               distinct()) %>% # joining back in other columns (2)
   filter(is.na(gen_data_source)) %>% # filtering to only generators with missing source
-  group_by(year, plant_id, prime_mover, generator_id) %>%  # added generator_id here 2.28.25, extra group_by to avoid duplicated
-  mutate(tot_nameplate_capacity = unique(nameplate_capacity)) %>%
-  ungroup() %>%
-  group_by(year, plant_id, prime_mover) %>%
+  # group_by(year, plant_id, prime_mover, generator_id) %>%  # added generator_id here 2.28.25, extra group_by to avoid duplicated
+  # mutate(tot_nameplate_capacity = unique(nameplate_capacity)) %>%
+  # ungroup() %>%
+  # group_by(year, plant_id, prime_mover) %>% (1)
+  group_by(plant_id, prime_mover) %>%
   distinct(generator_id, .keep_all = TRUE) %>%
-  mutate(tot_nameplate_capacity = sum(tot_nameplate_capacity),
+  mutate(tot_nameplate_capacity = sum(nameplate_capacity),
          prop = if_else(tot_nameplate_capacity != 0, # creating proportion based on nameplate_capacity used to distribute generation across generators
                         nameplate_capacity / tot_nameplate_capacity,
                         NA_real_)) %>%
@@ -424,7 +402,7 @@ gen_distributed <-
   #        # generation_oz_diff
   #        ) %>% # (annual ver.) (2)
   # right_join(eia_gen_generation) %>% # joining back in other columns (2)
-  # filter(is.na(gen_data_source)) %>% # filtering to only generators with missing source
+  filter(is.na(gen_data_source)) %>% # filtering to only generators with missing source
   # group_by(year, plant_id, prime_mover, generator_id) %>%  # added generator_id here 2.28.25, extra group_by to avoid duplicated
   # mutate(tot_nameplate_capacity = unique(nameplate_capacity)) %>%
   # ungroup() %>%
@@ -473,10 +451,12 @@ print(glue::glue("{nrow(filled_gen_data_2)} generators updated with generation v
 cols_to_keep <- # could remove this, only used for one life of code 2.25.25
     c("plant_id",
       "prime_mover",
-      "overwrite",
-      temporal_res_cols)
+      "overwrite")# ,
+      # "year",
+      # "month")
+      # temporal_res_cols)
 
-eia_gen_genfuel_diff <- 
+eia_gen_genfuel_diff <- # having duplication problen
   gen_distributed %>% 
   # group_by(plant_id, prime_mover) %>% # (1)
   group_by(year, plant_id, prime_mover) %>% # (2) added groupby temporal_res_cols
@@ -484,7 +464,8 @@ eia_gen_genfuel_diff <-
             # tot_generation_oz_gen = sum(generation_oz, na.rm = TRUE)
             ) %>%
   ungroup() %>%
-  left_join(eia_gen_fuel_generation_sum, by = c("plant_id", "prime_mover", "year")) %>% # joining with gen_fuel file (2.28.25 added temporal res cols)
+  left_join(eia_gen_fuel_generation_sum,
+            by = c("plant_id", "prime_mover")) %>% # joining with gen_fuel file (3.14.25 removed year)
   mutate(abs_diff_generation = abs(tot_generation_fuel - tot_generation_gen), # calculating absolute differences between generation values
          # abs_diff_generation_oz = abs(tot_generation_oz_fuel - tot_generation_oz_gen), # calculating the percentage of the difference over the fuel levels in gen_fuel file
          perc_diff_generation = if_else(abs_diff_generation == 0, 0, 
@@ -494,7 +475,8 @@ eia_gen_genfuel_diff <-
          overwrite = if_else(perc_diff_generation > 0.001, "overwrite", "EIA-923 Generator File")) %>% # , # (1) flag to overwrite for generation if difference is greater than .1% 
          # overwrite = if_else(perc_diff_generation_oz > 0.001, "overwrite", "EIA-923 Generator File")) %>% # (2) flag to overwrite for generation_oz 
   filter(tot_generation_fuel != 0) %>% 
-  select(all_of(cols_to_keep), starts_with("tot"), starts_with("abs"), starts_with("perc"))
+  select(all_of(cols_to_keep), starts_with("tot"), starts_with("abs"), starts_with("perc")) %>%
+  distinct() # keep only one entry per unique plant_id + prime_mover
 
 ## Where overwrite == overwrite, we distribute the the generation figures in the EIA-923 Gen and Fuel file and 
 ## create a DF of generators that have large differences between EIA-923 Generator file and EIA-923 Generation and Fuel file 
@@ -519,30 +501,31 @@ eia_gen_genfuel_diff <-
   
 gen_overwrite <- 
   eia_gen_genfuel_diff %>% 
-  select(-temporal_res_cols) %>% # deselect temporal res cols that will interfere with joining
+  # select(-temporal_res_cols) %>% # deselect temporal res cols that will interfere with joining
   left_join(eia_860_combined %>% # join with EIA-860 data, only keeping necessary columns
             select(plant_id, generator_id, prime_mover, nameplate_capacity)) %>% 
-  distinct() %>%
-  group_by(plant_id, prime_mover, generator_id) %>% 
-  mutate(tot_nameplate_capacity = unique(nameplate_capacity)) %>%
-  ungroup() %>%
+  # distinct() %>% # leave only the unique rows (3.14.25 don't need this since added distinct above)
+  # group_by(plant_id, prime_mover, generator_id) %>% 
+  # mutate(tot_nameplate_capacity = unique(nameplate_capacity)) %>% # 
+  # ungroup() %>%
   group_by(plant_id, prime_mover) %>%
   mutate(tot_nameplate_capacity = sum(nameplate_capacity),
          prop = if_else(tot_nameplate_capacity != 0, # creating proportion based on nameplate_capacity used to distribute generation across generators
-                        nameplate_capacity / tot_nameplate_capacity, 
-                        NA_real_)) %>% 
-  ungroup() %>% 
-  right_join(eia_gen_genfuel_diff) %>% # join back other columns
+                        nameplate_capacity / tot_nameplate_capacity,
+                        NA_real_)) %>%
+  ungroup() %>%
+  cross_join(temporal_cols_to_add) %>% # add back in temporal_cols for data accuracy 
+  # right_join(eia_gen_genfuel_diff) %>% # join back other columns
   filter(overwrite == "overwrite") %>% 
   mutate(generation = tot_generation_fuel * (prop / 12),
-         # generation_oz = tot_generation_oz_fuel * prop,
-         # across(paste0("tot_netgen_", tolower(month.name)),
-         #        .fns = ~ . * prop,
-         #        .names = "{gsub('tot_', '', col)}"),
-         gen_data_source = "Data from EIA-923 Generator File overwritten with distributed data from EIA-923 Generation and Fuel") %>% 
-  select(any_of(key_columns), overwrite) %>%  # reducing columns for clarity and to facilitate QA
+  #        # generation_oz = tot_generation_oz_fuel * prop,
+  #        # across(paste0("tot_netgen_", tolower(month.name)),
+  #        #        .fns = ~ . * prop,
+  #        #        .names = "{gsub('tot_', '', col)}"),
+         gen_data_source = "Data from EIA-923 Generator File overwritten with distributed data from EIA-923 Generation and Fuel") %>%
+  select(any_of(key_columns), month, overwrite) %>%  # reducing columns for clarity and to facilitate QA (3.14.25 added month)
   mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) # creating unique id to identify duplicates
- 
+
 # gen_overwrite_test <-
 #   gen_overwrite %>%
 #   group_by(year, plant_id, prime_mover, generator_id) %>%
@@ -568,6 +551,7 @@ respondent_frequency <- # select out columns for respondent_frequency
 december_gen_ids <- 
   gen_distributed %>%
   left_join(respondent_frequency, by = c("plant_id", "generator_id")) %>% # ideally after this join - either filter by A, M, AM or use case when in mutate code
+  filter(respondent_frequency %in% c("A", "AM")) %>% # only calculate if annual reporter 
   group_by(year, plant_id, prime_mover) %>% # add groupby here 
   filter(month == 12) %>% # filter for only December months
   # proposed change: generation_ann_dec_equal to december_gen_flag?
@@ -582,23 +566,30 @@ december_gen_ids <-
          respondent_frequency) %>%
   unique()
 
+# eia_join_data <-
+#   eia_gen_fuel_generation_sum %>%
+#   select(year, plant_id, prime_mover, tot_generation_fuel) %>%
+#   distinct()
+
 # need to handle this for both monthly and annual, maybe make ozone calculations after? ? ? not sure 
 december_gen <-
   gen_distributed %>%
   # mutate(generation_ann_dec_equal = if_else(net_generation_december != 0 & # (2) identifying cases where annual generation = december generation
   #                                           net_generation_december == net_generation_year_to_date,
-  #                                           "yes", "no")) %>% 
+  #                                           "yes", "no")) %>%
   left_join(december_gen_ids) %>%
-  left_join(eia_gen_fuel_generation_sum,  # pulling in EIA gen fuel data
-            by = c("plant_id", "prime_mover", "year", "month")) %>%
+  # left_join(eia_gen_fuel_generation_sum,  # pulling in EIA gen fuel data
+  #           by = c("plant_id", "prime_mover", "year", "month")) %>%
+  left_join(eia_gen_fuel_generation_sum) %>%
   # coalesce_join_vars() %>%
   group_by(plant_id, prime_mover) %>%
   mutate(tot_nameplate_capacity = sum(nameplate_capacity, na.rm = TRUE),
-         prop = if_else(tot_nameplate_capacity != 0, # creating proportion based on nameplate_capacity used to distribute generation across generators
+         prop = if_else(tot_nameplate_capacity != 0, # creating proportion again for new rows 
                         nameplate_capacity / tot_nameplate_capacity,
                         NA_real_)) %>%
   ungroup() %>%
-  filter(generation_ann_dec_equal == "yes" & grepl("A", respondent_frequency)) %>%
+  # filter(generation_ann_dec_equal == "yes" & grepl("A", respondent_frequency)) %>%
+  filter(generation_ann_dec_equal == "yes") %>%
   # filter for December generators and where respondent_Frequency is an annual reporter
   
   mutate(
@@ -611,7 +602,8 @@ december_gen <-
     gen_data_source = "EIA-923 Generator File") %>% # create a new gen data source? - i.e. distributed through EIA-923
  #  mutate(generation = net_generation_year_to_date / 12)
   select(any_of(key_columns), 
-         all_of(temporal_res_cols),
+         year,
+         month,
          generation_ann_dec_equal, 
          net_generation_year_to_date) %>%  # keeping only necessary columns
   mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id))# creating unique idea to identify duplicates
@@ -639,7 +631,7 @@ december_and_overwritten <-
     gen_overwrite) %>% 
   left_join(eia_gen_generation %>% # merging all columns back in
             select(-c(contains("generation"), gen_data_source)),
-            by = c("plant_id", "generator_id", "prime_mover", temporal_res_cols)) # %>%
+            by = c("plant_id", "generator_id", "prime_mover", "year", "month")) # %>%
  # distinct(id_pm, .keep_all = TRUE)
 
 # test <- gen_overwrite %>% # view outputs to compare with development version, remove if not needed anymore 
@@ -783,9 +775,9 @@ write_rds(generators_formatted, glue::glue("data/outputs/{params$eGRID_year}/gen
 
 # check if file is successfully written to folder 
 if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))){
-  print(glue::glue("File generator_file.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
+  print(glue::glue("File generator_file_[params$temporal_res}.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
 } else {
-   print("File generator_file.RDS failed to write to folder.")
+   print(glue::glue("File generator_file_{params$temporal_res}.RDS failed to write to folder."))
 }  
 
   
