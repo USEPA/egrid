@@ -436,6 +436,10 @@ knitr::kable(unit_co2_check,
 
 ## Plant file comparison
 
+The differences between the totals of heat input, emission masses, and generation of the monthly and annual unit files are shown here. The monthly version is aggregated to the annual resolution to compare.
+
+In the tabset below, we list what units have a difference greater than 1 for heat input, emission masses, and generation. 
+
 ```{r}
 #| label: plant-comparison
 #| echo: false
