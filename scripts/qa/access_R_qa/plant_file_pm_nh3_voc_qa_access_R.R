@@ -47,26 +47,26 @@ plant_qa <- function(emission_type) {
   
   # Create save directory for QA outputs -----
   
-  if(dir.exists("data/outputs/qa")) {
+  if(dir.exists("data/2b_pm_nh3_voc/outputs/qa")) {
     print("Folder qa already exists.")
   }else{
-    dir.create("data/outputs/qa")
+    dir.create("data/2b_pm_nh3_voc/outputs/qa")
   }
   
-  if(dir.exists(glue::glue("data/outputs/qa/plant_file_{emission_type}_differences"))) {
-    print(glue::glue("Folder plant_file_{emission_type}_differences already exists."))
+  if(dir.exists(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}"))) {
+    print(glue::glue("Folder qa/{params$eGRID_year} already exists."))
   }else{
-    dir.create(glue::glue("data/outputs/qa/plant_file_{emission_type}_differences"))
+    dir.create(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}"))
   }
   
-  if(dir.exists(glue::glue("data/outputs/qa/plant_file_{emission_type}_differences/{params$eGRID_year}"))) {
-    print(glue::glue("Folder plant_file_{emission_type}_differences/{params$eGRID_year} already exists."))
+  if(dir.exists(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}/plant_file_{emission_type}_differences"))) {
+    print(glue::glue("Folder qa/{params$eGRID_year}/plant_file_{emission_type}_differences already exists."))
   }else{
-    dir.create(glue::glue("data/outputs/qa/plant_file_{emission_type}_differences/{params$eGRID_year}"))
+    dir.create(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}/plant_file_{emission_type}_differences"))
   }
   
   # set directory for saving files 
-  save_dir <- glue::glue("data/outputs/qa/plant_file_{emission_type}_differences/{params$eGRID_year}/")
+  save_dir <- glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}/plant_file_{emission_type}_differences/")
   
   ## Create function to save file differences -----
   save_diffs <- function(datacheck) {
@@ -82,14 +82,14 @@ plant_qa <- function(emission_type) {
     emission_abbrev <- emission_type
   }
   
-  plant_access_raw <- read_excel(glue::glue("data/raw_data/eGRID{params$eGRID_year}_{emission_type}emissions.xlsx"), 
+  plant_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
                                 sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Plant-level Data"),
                                 skip = 1,
                                 col_names = TRUE)
   
   ## Define updated column names ---------
   # Load abbreviated name to snake_case matches
-  load("data/static_tables/name_matches.Rdata")
+  load("data/1_production_model/static_tables/name_matches.Rdata")
   
   # add additional column names present in plant data
   additional_names <- setNames(c(paste0(emission_type, "_ann"), paste0(emission_type, "_output_rate"), paste0(emission_type, "_input_rate"), paste0(emission_type, "_source"), paste0("unadj_", emission_type)),
@@ -113,7 +113,7 @@ plant_qa <- function(emission_type) {
   plant_access[plant_access == "NA"] <- NA_character_ 
   
   # Import R plant data ---------
-  plant_r <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file_{emission_type}.RDS"))
+  plant_r <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/plant_file_{emission_type}.RDS"))
   
   # add "_r" after each variable to easily identify dataset 
   colnames(plant_r) <- paste0(colnames(plant_r), "_r")
@@ -311,7 +311,7 @@ plant_qa <- function(emission_type) {
 
   # Identify all unique plant and unit IDs that have differences ------------
 
-# grab check files in QA filder
+# grab check files in QA folder
 check_files <- grep("check", dir(save_dir), value = TRUE)
 # ignore datasets with total value differences
 files <- grep("total", check_files, invert = TRUE, value = TRUE)

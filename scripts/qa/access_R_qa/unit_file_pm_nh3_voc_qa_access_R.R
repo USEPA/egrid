@@ -46,26 +46,26 @@ unit_qa <- function(emission_type) {
   
   # Create save directory for QA outputs -----
   
-  if(dir.exists("data/outputs/qa")) {
+  if(dir.exists("data/2b_pm_nh3_voc/outputs/qa")) {
     print("Folder qa already exists.")
   }else{
-    dir.create("data/outputs/qa")
+    dir.create("data/2b_pm_nh3_voc/outputs/qa")
   }
   
-  if(dir.exists(glue::glue("data/outputs/qa/unit_file_{emission_type}_differences"))) {
-    print(glue::glue("Folder unit_file_{emission_type}_differences already exists."))
+  if(dir.exists(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}"))) {
+    print(glue::glue("Folder qa/{params$eGRID_year} already exists."))
   }else{
-    dir.create(glue::glue("data/outputs/qa/unit_file_{emission_type}_differences"))
+    dir.create(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}"))
   }
   
-  if(dir.exists(glue::glue("data/outputs/qa/unit_file_{emission_type}_differences/{params$eGRID_year}"))) {
-    print(glue::glue("Folder unit_file_{emission_type}_differences/{params$eGRID_year} already exists."))
+  if(dir.exists(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}/unit_file_{emission_type}_differences"))) {
+    print(glue::glue("Folder qa/{params$eGRID_year}/unit_file_{emission_type}_differences already exists."))
   }else{
-    dir.create(glue::glue("data/outputs/qa/unit_file_{emission_type}_differences/{params$eGRID_year}"))
+    dir.create(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}/unit_file_{emission_type}_differences"))
   }
   
   # set directory for saving files 
-  save_dir <- glue::glue("data/outputs/qa/unit_file_{emission_type}_differences/{params$eGRID_year}/")
+  save_dir <- glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}/unit_file_{emission_type}_differences/")
   
   ## Create function to save file differences -----
   save_diffs <- function(datacheck) {
@@ -85,7 +85,7 @@ unit_qa <- function(emission_type) {
     emission_abbrev <- emission_type
   }
   if(params$eGRID_year == "2021") {
-    unit_access_raw <- read_excel(glue::glue("data/raw_data/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
+    unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
                                   sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Unit-level Data"),
                                   skip = 1,
                                   col_names = TRUE)
@@ -98,7 +98,7 @@ unit_qa <- function(emission_type) {
   
   ## Define updated column names ---------
   # Load abbreviated name to snake_case matches
-  load("data/static_tables/name_matches.Rdata")
+  load("data/1_production_model/static_tables/name_matches.Rdata")
   
   # add additional column names present in unit data
   additional_names <- setNames(c(paste0(emission_type, "_ann"), paste0(emission_type, "_rate"), paste0(emission_type, "_source")),
@@ -125,7 +125,7 @@ unit_qa <- function(emission_type) {
   unit_access[unit_access == "NA"] <- NA_character_ 
   
   # Import R unit data ---------
-  unit_r <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file_{emission_type}.RDS"))
+  unit_r <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_{emission_type}.RDS"))
   
   # add "_r" after each variable to easily identify dataset 
   colnames(unit_r) <- paste0(colnames(unit_r), "_r")
