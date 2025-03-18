@@ -28,7 +28,7 @@ params$eGRID_year <- "2023"
 source("scripts/name_matching.R")
 
 # Create output directories ----------------
-create_dirs <- c("data/api", 
+create_dirs <- c("data/2c_api", 
                  glue::glue("data/2c_api/{params$eGRID_year}"),
                  glue::glue("data/2c_api/{params$eGRID_year}/plant_table"), 
                  glue::glue("data/2c_api/{params$eGRID_year}/state_table"), 
@@ -47,7 +47,9 @@ datatypes <- list()
 plant_file <- 
   read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS")) %>% 
   mutate(year = as.integer(year), # convert datatypes to final API datatypes
-         plant_id = as.integer(plant_id))
+         plant_id = as.integer(plant_id), 
+         utility_id = as.integer(utility_id), 
+         system_owner_id = as.integer(system_owner_id))
 
 ### Create plant lookup tables ----------------
 
