@@ -121,11 +121,20 @@ us_merged$month <- factor(us_merged$month,
 
 ## Subregion file comparison
 
+We compare the annual and monthly versions in three different ways: 
+
+1. Total US level sums for heat input, generation, and emission mass values. 
+
+2. Total subregion level sums for heat input, generation, and emission mass values. 
+
+3. Output and input emission rates for each subregion. We show both the monthly and annual rates as well as an average monthly rate. 
+
 ```{r}
 #| label: subregion-avg
 #| echo: false
 #| message: false 
 
+# calculate subregion monthly averages
 subregion_avg <- 
   subregion_merged %>% 
   filter(month != "annual") %>% 
@@ -142,7 +151,276 @@ subregion_avg <-
             ch4_in_mean = mean(subregion_ch4_input_rate, na.rm = TRUE), 
             n2o_in_mean = mean(subregion_n2o_input_rate, na.rm = TRUE), 
             co2e_in_mean = mean(subregion_co2e_input_rate, na.rm = TRUE))
+
+# sum monthly version to annual values
+subregion_monthly_sum <- 
+  subregion_monthly %>% 
+  group_by(subregion) %>% 
+  summarize(subregion_combust_heat_input_monthly = 
+              sum(subregion_combust_heat_input, na.rm = TRUE), 
+            subregion_heat_input_monthly = sum(subregion_heat_input, na.rm = TRUE), 
+            subregion_generation_monthly = sum(subregion_generation, na.rm = TRUE),
+            subregion_nox_mass_monthly = sum(subregion_nox_mass, na.rm = TRUE), 
+            subregion_so2_mass_monthly = sum(subregion_so2_mass, na.rm = TRUE), 
+            subregion_co2_mass_monthly = sum(subregion_co2_mass, na.rm = TRUE), 
+            subregion_ch4_mass_monthly = sum(subregion_ch4_mass, na.rm = TRUE), 
+            subregion_n2o_mass_monthly = sum(subregion_n2o_mass, na.rm = TRUE), 
+            subregion_co2e_mass_monthly = sum(subregion_co2e_mass, na.rm = TRUE)) %>% 
+  ungroup()
+
+# total monthly version 
+subregion_total_monthly_sum <- 
+  subregion_monthly %>% 
+  summarize(subregion_combust_heat_input = 
+              sum(subregion_combust_heat_input, na.rm = TRUE), 
+            subregion_heat_input = sum(subregion_heat_input, na.rm = TRUE), 
+            subregion_generation = sum(subregion_generation, na.rm = TRUE),
+            subregion_nox_mass = sum(subregion_nox_mass, na.rm = TRUE), 
+            subregion_so2_mass = sum(subregion_so2_mass, na.rm = TRUE), 
+            subregion_co2_mass = sum(subregion_co2_mass, na.rm = TRUE), 
+            subregion_ch4_mass = sum(subregion_ch4_mass, na.rm = TRUE), 
+            subregion_n2o_mass = sum(subregion_n2o_mass, na.rm = TRUE), 
+            subregion_co2e_mass = sum(subregion_co2e_mass, na.rm = TRUE)) %>%  
+  mutate(agg = "monthly") 
+
+# total annual version to totals
+subregion_total_annual_sum <- 
+  subregion_annual %>% 
+  summarize(subregion_combust_heat_input = 
+              sum(subregion_combust_heat_input, na.rm = TRUE), 
+            subregion_heat_input = sum(subregion_heat_input, na.rm = TRUE), 
+            subregion_generation = sum(subregion_generation_ann, na.rm = TRUE),
+            subregion_nox_mass = sum(subregion_nox_mass, na.rm = TRUE), 
+            subregion_so2_mass = sum(subregion_so2_mass, na.rm = TRUE), 
+            subregion_co2_mass = sum(subregion_co2_mass, na.rm = TRUE), 
+            subregion_ch4_mass = sum(subregion_ch4_mass, na.rm = TRUE), 
+            subregion_n2o_mass = sum(subregion_n2o_mass, na.rm = TRUE), 
+            subregion_co2e_mass = sum(subregion_co2e_mass, na.rm = TRUE)) %>% 
+  mutate(agg = "annual") 
+
+# calculate difference of total values
+subregion_total_sum_comp <- 
+  rbind(subregion_total_monthly_sum, 
+        subregion_total_annual_sum) %>% 
+  relocate(agg) %>% 
+  pivot_longer(-c(agg), names_to = "column", values_to = "value") %>% 
+  arrange(column) %>% 
+  group_by(column) %>% 
+  mutate(difference = value - lag(value)) 
+
+# produce tale of differences of total values
+knitr::kable(subregion_total_sum_comp,
+             digits = 0, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(subregion_total_sum_comp)), 
+             caption = "Subregion file totals comparison") 
 ```
+
+::: panel-tabset
+### Summary 
+
+This tabset shows comparisons between the monthly and annual versions for heat input, emission masses, and generation values. 
+
+### Combustion heat input
+
+```{r}
+#| label: subregion-combust-heat-input
+#| echo: false
+#| message: false
+
+subregion_combust_heat_input <- 
+  subregion_annual %>% 
+  select(subregion, 
+         "subregion_combust_heat_input_annual" = subregion_combust_heat_input) %>% 
+  full_join(subregion_monthly_sum %>% 
+              select(subregion, subregion_combust_heat_input_monthly)) %>% 
+  mutate(difference = subregion_combust_heat_input_annual -
+           subregion_combust_heat_input_monthly)
+
+knitr::kable(subregion_combust_heat_input, 
+             digits = 0, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(subregion_combust_heat_input)))
+```
+
+### Heat input
+
+```{r}
+#| label: subregion-heat-input
+#| echo: false
+#| message: false
+
+subregion_heat_input <- 
+  subregion_annual %>% 
+  select(subregion, 
+         "subregion_heat_input_annual" = subregion_heat_input) %>% 
+  full_join(subregion_monthly_sum %>% 
+              select(subregion, subregion_heat_input_monthly)) %>% 
+  mutate(difference = subregion_heat_input_annual -
+           subregion_heat_input_monthly)
+
+knitr::kable(subregion_heat_input, 
+             digits = 0, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(subregion_heat_input)))
+```
+
+### Generation
+
+```{r}
+#| label: subregion-generation
+#| echo: false
+#| message: false
+
+subregion_generation <- 
+  subregion_annual %>% 
+  select(subregion, 
+         "subregion_generation_annual" = subregion_generation_ann) %>% 
+  full_join(subregion_monthly_sum %>% 
+              select(subregion, subregion_generation_monthly)) %>% 
+  mutate(difference = subregion_generation_annual -
+           subregion_generation_monthly)
+
+knitr::kable(subregion_generation, 
+             digits = 0, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(subregion_generation)))
+```
+
+### NOx mass
+
+-   Differences in NOx mass may be due to the monthly version removing landfill gas NOx adjustments. Now the only biomass adjustment made in the plant file is CO2. 
+
+```{r}
+#| label: subregion-nox-mass
+#| echo: false
+#| message: false
+
+subregion_nox_mass <- 
+  subregion_annual %>% 
+  select(subregion, 
+         "subregion_nox_mass_annual" = subregion_nox_mass) %>% 
+  full_join(subregion_monthly_sum %>% 
+              select(subregion, subregion_nox_mass_monthly)) %>% 
+  mutate(difference = subregion_nox_mass_annual -
+           subregion_nox_mass_monthly)
+
+knitr::kable(subregion_nox_mass, 
+             digits = 0, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(subregion_nox_mass)))
+```
+
+### SO2 mass
+
+```{r}
+#| label: subregion-so2-mass
+#| echo: false
+#| message: false
+
+subregion_so2_mass <- 
+  subregion_annual %>% 
+  select(subregion, 
+         "subregion_so2_mass_annual" = subregion_so2_mass) %>% 
+  full_join(subregion_monthly_sum %>% 
+              select(subregion, subregion_so2_mass_monthly)) %>% 
+  mutate(difference = subregion_so2_mass_annual -
+           subregion_so2_mass_monthly)
+
+knitr::kable(subregion_so2_mass, 
+             digits = 0, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(subregion_so2_mass)))
+```
+
+### CO2 mass
+
+```{r}
+#| label: subregion-co2-mass
+#| echo: false
+#| message: false
+
+subregion_co2_mass <- 
+  subregion_annual %>% 
+  select(subregion, 
+         "subregion_co2_mass_annual" = subregion_co2_mass) %>% 
+  full_join(subregion_monthly_sum %>% 
+              select(subregion, subregion_co2_mass_monthly)) %>% 
+  mutate(difference = subregion_co2_mass_annual -
+           subregion_co2_mass_monthly)
+
+knitr::kable(subregion_co2_mass, 
+             digits = 0, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(subregion_co2_mass)))
+```
+
+### CH4 mass
+
+```{r}
+#| label: subregion-ch4-mass
+#| echo: false
+#| message: false
+
+subregion_ch4_mass <- 
+  subregion_annual %>% 
+  select(subregion, 
+         "subregion_ch4_mass_annual" = subregion_ch4_mass) %>% 
+  full_join(subregion_monthly_sum %>% 
+              select(subregion, subregion_ch4_mass_monthly)) %>% 
+  mutate(difference = subregion_ch4_mass_annual -
+           subregion_ch4_mass_monthly)
+
+knitr::kable(subregion_ch4_mass, 
+             digits = 0, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(subregion_ch4_mass)))
+```
+
+### N2O mass
+
+```{r}
+#| label: subregion-n2o-mass
+#| echo: false
+#| message: false
+
+subregion_n2o_mass <- 
+  subregion_annual %>% 
+  select(subregion, 
+         "subregion_n2o_mass_annual" = subregion_n2o_mass) %>% 
+  full_join(subregion_monthly_sum %>% 
+              select(subregion, subregion_n2o_mass_monthly)) %>% 
+  mutate(difference = subregion_n2o_mass_annual -
+           subregion_n2o_mass_monthly)
+
+knitr::kable(subregion_n2o_mass, 
+             digits = 0, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(subregion_n2o_mass)))
+```
+
+### CO2e mass
+
+```{r}
+#| label: subregion-co2e-mass
+#| echo: false
+#| message: false
+
+subregion_co2e_mass <- 
+  subregion_annual %>% 
+  select(subregion, 
+         "subregion_co2e_mass_annual" = subregion_co2e_mass) %>% 
+  full_join(subregion_monthly_sum %>% 
+              select(subregion, subregion_co2e_mass_monthly)) %>% 
+  mutate(difference = subregion_co2e_mass_annual -
+           subregion_co2e_mass_monthly)
+
+knitr::kable(subregion_co2e_mass, 
+             digits = 0, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(subregion_co2e_mass)))
+```
+:::
 
 ::: panel-tabset
 ### Summary
