@@ -45,13 +45,28 @@ unit_data_pm_nh3_voc <- function(emission_type){
   
   # Load necessary data --------------------
   if(params$eGRID_year == "2021") {
-    ## EIA-923 - for Schedule C Air Emissions Control information (2021)
-    eia_923 <- read_csv(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), col_types = "ccccccccddddcccdccddcdc") %>%
-      janitor::clean_names()
+    if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"))) {
+      ## EIA-923 - for Schedule C Air Emissions Control information (2021)
+      eia_923 <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), col_types = "ccccccccddddcccdccddcdc") %>%
+        janitor::clean_names()
+    } else {
+      stop("eia_923_9c_airemissions.csv does not exist.")}
+  } else if(params$eGRID_year == "2022") {
+    ## EIA-923 - for Schedule C Air Emissions Control information (2022)
+    if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923.xlsx"))) {
+      eia_923 <- read_excel(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923.xlsx"),
+                            sheet = "8C Air Emissions Control Info",
+                            skip = 4,
+                            col_name = TRUE,
+                           col_types = c("text", "text", "text", "text", "text", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "numeric", "numeric", "text", "numeric", "numeric", "numeric", "numeric", "numeric"),
+                           na = ".") %>%
+        janitor::clean_names()
+    } else {
+      stop("eia_923.RDS does not exist.")}
   } else {
-    ## EIA-923 - for Schedule C Air Emissions Control information (2022+)
+    ## EIA-923 - for Schedule C Air Emissions Control information (2023+)
     if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) {
-      eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))$air_emissions_control_info
+      eia_923 <- read_rds(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_clean.RDS"))$air_emissions_control_info
     } else {
       stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
   }
@@ -76,7 +91,8 @@ unit_data_pm_nh3_voc <- function(emission_type){
                           sheet = paste0("UNT", substr(params$eGRID_year, 3, 4)),
                           skip = 1,
                           col_names = TRUE) %>%
-    rename(CAPDFLAG = CAMDFLAG) # rename CAMD flag to updated name
+    rename(CAPDFLAG = CAMDFLAG) %>% # rename CAMD flag to updated name
+  rename_with(~ ifelse(. == paste0("SEQUNT", substr(params$eGRID_year, 3, 4)), "SEQUNT", .)) # rename SEQUNT if necessary
   
   # replace any "NA" strings with an NA
   unit_file_raw[unit_file_raw == "NA"] <- NA_character_ 
@@ -170,6 +186,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
   
   # if there is a unit match with EIA-923, adjust emission by control efficiency (only for PM2.5 data)
   if(emission_type == "pm25") {
+  # if(emission_type %in% c("pm25", "nh3", "voc")) {
     removal_efficiencies <-
       eia_923 %>%
       # select plants with removal efficiency rates

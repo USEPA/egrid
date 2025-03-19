@@ -89,8 +89,8 @@ unit_qa <- function(emission_type) {
                                   sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Unit-level Data"),
                                   skip = 1,
                                   col_names = TRUE)
-  } else {
-    unit_access_raw <- read_excel(glue::glue("data/raw_data/eGRID{params$eGRID_year}_pmnh3vocemissions.xlsx"), 
+  } else if(params$eGRID_year == "2022") {
+    unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_pmnh3vocemissions.xlsx"), 
                                   sheet = paste(params$eGRID_year, toupper(emission_abbrev)),
                                   skip = 1,
                                   col_names = TRUE)
