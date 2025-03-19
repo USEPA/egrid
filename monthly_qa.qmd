@@ -469,31 +469,20 @@ annual_reporters <-
 generator_monthly_sum <- 
   generator_monthly %>% 
   group_by(year, plant_id, generator_id, prime_mover) %>% 
-  summarize(generation_monthly = sum(generation_monthly, na.rm = TRUE) #, 
-            # nox_mass_monthly = sum(nox_mass_monthly, na.rm = TRUE), 
-            # so2_mass_monthly = sum(so2_mass_monthly, na.rm = TRUE), 
-            # co2_mass_monthly = sum(co2_mass_monthly, na.rm = TRUE)
-            ) %>% 
+  summarize(generation_monthly = sum(generation_monthly, na.rm = TRUE)) %>% 
   ungroup()
 
 # total monthly version 
 generator_total_monthly_sum <- 
   generator_monthly_sum %>% 
-  summarize(generation = sum(generation_monthly, na.rm = TRUE) # , 
-            # nox_mass = sum(nox_mass_monthly, na.rm = TRUE),
-            # so2_mass = sum(so2_mass_monthly, na.rm = TRUE), 
-            # co2_mass = sum(co2_mass_monthly, na.rm = TRUE)
+  summarize(generation = sum(generation_monthly, na.rm = TRUE)
             ) %>% 
   mutate(agg = "monthly") 
 
 # total annual version to totals
 generator_total_annual_sum <- 
   generator_annual %>% 
-  summarize(generation = sum(generation_annual, na.rm = TRUE) # , 
-            # nox_mass = sum(nox_mass_annual, na.rm = TRUE), 
-            # so2_mass = sum(so2_mass_annual, na.rm = TRUE), 
-            # co2_mass = sum(co2_mass_annual, na.rm = TRUE)
-            ) %>% 
+  summarize(generation = sum(generation_annual, na.rm = TRUE)) %>% 
   mutate(agg = "annual") 
 
 # calculate difference of total values
@@ -518,16 +507,7 @@ check_generation_diff <-
   generator_annual %>% 
   full_join(generator_monthly_sum, by = c("plant_id", "generator_id", "prime_mover")) %>% 
   mutate(generation_diff = abs(generation_annual - generation_monthly), 
-         generation_pct_diff = abs(generation_diff / generation_monthly) * 100 #,
-         # nox_diff = abs(nox_mass_annual - nox_mass_monthly),
-         # nox_pct_diff = abs(nox_diff / nox_mass_monthly) * 100,
-         # so2_diff = abs(so2_mass_annual - so2_mass_monthly), 
-         # so2_pct_diff = abs(so2_diff / so2_mass_monthly) * 100,
-         # co2_diff = abs(co2_mass_annual - co2_mass_monthly),
-         # co2_pct_diff = abs(co2_diff / co2_mass_monthly) * 100
-         ) # %>% 
- #  left_join(epa, by = c("plant_id", "generator_id")) %>% 
-  # left_join(annual_reporters, by = c("plant_id", "unit_id" = "boiler_id", "prime_mover"))
+         generation_pct_diff = abs(generation_diff / generation_monthly) * 100) 
 ```
 
 ::: panel-tabset
@@ -540,9 +520,14 @@ check_generation_diff <-
 
 generator_generation_check <- 
   check_generation_diff %>% 
+  left_join(generator_monthly %>% 
+              select(plant_id, generator_id, prime_mover, gen_data_source_monthly) %>%
+              distinct()) %>%
   select(plant_id, 
          generator_id, 
          prime_mover, 
+         gen_data_source_annual,
+         gen_data_source_monthly,
          generation_annual,
          generation_monthly,
          generation_diff,
@@ -650,6 +635,8 @@ check_plant_diff <-
 #| label: unadj-heat-input-plant-comp
 #| echo: false
 #| message: false
+
+options(scipen = 999)
 
 plant_unadj_heat_input_check <- 
   check_plant_diff %>% 
