@@ -96,6 +96,13 @@ if(file.exists(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS
 } else { 
   stop("epa_clean.RDS does not exist. Run data_load_epa.R and data_clean_epa.R to obtain.")}
 
+# load in name matches for shorthand to snake_case
+if(file.exists("data/static_tables/name_matches.RData")) {
+  base::load("data/static_tables/name_matches.RData")
+} else { 
+  source("scripts/name_matching.R")
+  base::load("data/static_scripts/name_matches.RData")
+}
 
 # Create lookup table for generator IDs with leading zeroes ------------
 # some IDs in EIA-923 do not have leading zeroes, but should match to generators in EIA-860 that have leading zeroes
@@ -719,31 +726,10 @@ generators_edits <-
 
 
 # creating named vector of final variable order and variable name included in generator file
-final_vars <-
-    c("SEQGEN" = "seqgen",
-      "YEAR" = "year",
-      "PSTATABB" = "plant_state",
-      "PNAME" = "plant_name",
-      "ORISPL" = "plant_id",
-      "GENID" = "generator_id",
-      "NUMBLR" = "n_boilers",
-      "GENSTAT" = "status",
-      "PRMVR" =  "prime_mover",
-      "FUELG1" = "fuel_code",
-      "NAMEPCAP" = "nameplate_capacity",
-      "CFACT" = "capfac", 
-      "GENNTAN" = "generation", # rename GENNTAN? 
-      # "GENNTOZ" = "generation_oz",
-      "GENERSRC" = "gen_data_source",
-      "GENYRONL" = "operating_year",
-      "GENYRRET" = "retirement_year")
-
-if (params$temporal_res == "monthly") { # add monthly column
-  final_vars <-
-    c(final_vars, 
-    "MONTH" = "month") # added for monthly data
-}
-
+if(params$temporal_res == "annual") {
+  final_vars <- generator_nonmetric_annual}
+if(params$temporal_res == "monthly") {
+  final_vars <- generator_nonmetric_monthly}
 
 generators_formatted <-
   generators_edits %>%
