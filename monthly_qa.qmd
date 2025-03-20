@@ -126,7 +126,7 @@ plant_merged$month <- factor(plant_merged$month,
 
 The differences between the totals of heat input and emission masses of the monthly and annual unit files are shown here. The monthly version is aggregated to the annual resolution to compare.
 
-In the tabset below, we list what units have a difference greater than 0.01 for heat input and emission masses. We also note which units are ozone reporters, since the methodology for filling non-ozone months is different between annual (non-ozone distributed) and monthly (non-ozone filled via EIA and summed to annual) versions for heat input and annual NOx mass.
+In the tabset below, we list what units have a difference greater than 0.01 for heat input and emission masses. We note which units are ozone reporters, since the methodology for filling non-ozone months is different between annual (non-ozone distributed) and monthly (non-ozone filled via EIA and summed to annual) versions for heat input and annual NOx mass. We also note the respondent frequency of units in EIA, since Annual reporters under the monthly version have heat input filled from EIA-923 Generation and Fuel. 
 
 ```{r}
 #| label: unit-comparison
