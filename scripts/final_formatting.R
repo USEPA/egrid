@@ -391,7 +391,7 @@ gen_rows <- nrow(gen_file) + 2
 ## column names and descriptions
 gen_labels <- c(seqgen_label,
                 "YEAR"      = "Data Year",
-                "PSTATEABB" = "Plant state abbreviation", 
+                "PSTATABB"  = "Plant state abbreviation", 
                 "PNAME"     = "Plant name",
                 "ORISPL"    = "DOE/EIA ORIS plant or facility code",
                 "GENID"     = "Generator ID",
