@@ -437,6 +437,111 @@ knitr::kable(unit_co2_check,
 ```
 :::
 
+
+## Generator file comparison
+
+The differences between the totals of generation of the monthly and annual unit files are shown here. The monthly version is aggregated to the annual resolution to compare.
+
+In the tabset below, we list what units have a difference greater than 0.01 for generation. We also note which units are ozone reporters, since the methodology for filling non-ozone months is different between annual (non-ozone distributed) and monthly (non-ozone filled via EIA and summed to annual) versions for heat input and annual NOx mass. [flag to correct for generator file information]
+
+```{r}
+#| label: generator-comparison
+#| echo: false
+#| message: false
+
+# read in EPA data to identify OS reporters
+# epa <- 
+#   read_rds("data/clean_data/epa/2023/epa_clean_annual.RDS") %>% 
+#   select(plant_id, unit_id, reporting_frequency) %>% 
+#   distinct()
+
+# read in EIA data to identify Annual reporters (which may not represent monthly version well)
+eia_923 <- 
+  read_rds("data/clean_data/eia/2023/eia_923_clean.RDS") 
+
+annual_reporters <-
+  eia_923$boiler_fuel_data %>% 
+  select(plant_id, boiler_id, prime_mover, respondent_frequency) %>% 
+  distinct() %>% 
+  group_by(plant_id, boiler_id, prime_mover) %>% 
+  summarize(respondent_frequency = paste(respondent_frequency, collapse = ", ")) %>% 
+  ungroup()
+
+# sum monthly version to annual values
+generator_monthly_sum <- 
+  generator_monthly %>% 
+  group_by(year, plant_id, generator_id, prime_mover) %>% 
+  summarize(generation_monthly = sum(generation_monthly, na.rm = TRUE)) %>% 
+  ungroup()
+
+# total monthly version 
+generator_total_monthly_sum <- 
+  generator_monthly_sum %>% 
+  summarize(generation = sum(generation_monthly, na.rm = TRUE)
+            ) %>% 
+  mutate(agg = "monthly") 
+
+# total annual version to totals
+generator_total_annual_sum <- 
+  generator_annual %>% 
+  summarize(generation = sum(generation_annual, na.rm = TRUE)) %>% 
+  mutate(agg = "annual") 
+
+# calculate difference of total values
+generator_total_sum_comp <- 
+  rbind(generator_total_monthly_sum, 
+        generator_total_annual_sum) %>% 
+  relocate(agg) %>% 
+  pivot_longer(-c(agg), names_to = "column", values_to = "value") %>% 
+  arrange(column) %>% 
+  group_by(column) %>% 
+  mutate(difference = value - lag(value)) 
+
+# produce tale of differences of total values
+knitr::kable(generator_total_sum_comp,
+             digits = 0, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(generator_total_sum_comp)), 
+             caption = "Generator file totals comparison") 
+
+# calculate differences at the unit level
+check_generation_diff <- 
+  generator_annual %>% 
+  full_join(generator_monthly_sum, by = c("plant_id", "generator_id", "prime_mover")) %>% 
+  mutate(generation_diff = abs(generation_annual - generation_monthly), 
+         generation_pct_diff = abs(generation_diff / generation_monthly) * 100) 
+```
+
+::: panel-tabset
+### Generation
+
+```{r}
+#| label: generation-generator-comp
+#| echo: false
+#| message: false
+
+generator_generation_check <- 
+  check_generation_diff %>% 
+  left_join(generator_monthly %>% 
+              select(plant_id, generator_id, prime_mover, gen_data_source_monthly) %>%
+              distinct()) %>%
+  select(plant_id, 
+         generator_id, 
+         prime_mover, 
+         gen_data_source_annual,
+         gen_data_source_monthly,
+         generation_annual,
+         generation_monthly,
+         generation_diff,
+         generation_pct_diff) %>% # ,
+         # reporting_frequency,
+         # respondent_frequency) %>% 
+   filter(generation_diff > 0.01) %>% 
+   arrange(-generation_pct_diff)
+
+print(glue::glue("Generation Differences > 0.01: {nrow(generator_generation_check)}"))
+```
+
 ## Plant file comparison
 
 The differences between the totals of heat input, emission masses, and generation of the monthly and annual unit files are shown here. The monthly version is aggregated to the annual resolution to compare.
@@ -536,6 +641,8 @@ check_plant_diff <-
 #| label: unadj-heat-input-plant-comp
 #| echo: false
 #| message: false
+
+options(scipen = 999)
 
 plant_unadj_heat_input_check <- 
   check_plant_diff %>% 
@@ -1612,122 +1719,3 @@ knitr::kable(plant_other_netgen_check,
 ```
 
 :::
-
-## Generator file comparison
-
-The differences between the totals of generation of the monthly and annual unit files are shown here. The monthly version is aggregated to the annual resolution to compare.
-
-In the tabset below, we list what units have a difference greater than 0.01 for generation. We also note which units are ozone reporters, since the methodology for filling non-ozone months is different between annual (non-ozone distributed) and monthly (non-ozone filled via EIA and summed to annual) versions for heat input and annual NOx mass. [flag to correct for generator file information]
-
-```{r}
-#| label: generator-comparison
-#| echo: false
-#| message: false
-
-# read in EPA data to identify OS reporters
-# epa <- 
-#   read_rds("data/clean_data/epa/2023/epa_clean_annual.RDS") %>% 
-#   select(plant_id, unit_id, reporting_frequency) %>% 
-#   distinct()
-
-# read in EIA data to identify Annual reporters (which may not represent monthly version well)
-eia_923 <- 
-  read_rds("data/clean_data/eia/2023/eia_923_clean.RDS") 
-
-annual_reporters <-
-  eia_923$boiler_fuel_data %>% 
-  select(plant_id, boiler_id, prime_mover, respondent_frequency) %>% 
-  distinct() %>% 
-  group_by(plant_id, boiler_id, prime_mover) %>% 
-  summarize(respondent_frequency = paste(respondent_frequency, collapse = ", ")) %>% 
-  ungroup()
-
-# sum monthly version to annual values
-generator_monthly_sum <- 
-  generator_monthly %>% 
-  group_by(year, plant_id, generator_id, prime_mover) %>% 
-  summarize(generation_monthly = sum(generation_monthly, na.rm = TRUE) #, 
-            # nox_mass_monthly = sum(nox_mass_monthly, na.rm = TRUE), 
-            # so2_mass_monthly = sum(so2_mass_monthly, na.rm = TRUE), 
-            # co2_mass_monthly = sum(co2_mass_monthly, na.rm = TRUE)
-            ) %>% 
-  ungroup()
-
-# total monthly version 
-generator_total_monthly_sum <- 
-  generator_monthly_sum %>% 
-  summarize(generation = sum(generation_monthly, na.rm = TRUE) # , 
-            # nox_mass = sum(nox_mass_monthly, na.rm = TRUE),
-            # so2_mass = sum(so2_mass_monthly, na.rm = TRUE), 
-            # co2_mass = sum(co2_mass_monthly, na.rm = TRUE)
-            ) %>% 
-  mutate(agg = "monthly") 
-
-# total annual version to totals
-generator_total_annual_sum <- 
-  generator_annual %>% 
-  summarize(generation = sum(generation_annual, na.rm = TRUE) # , 
-            # nox_mass = sum(nox_mass_annual, na.rm = TRUE), 
-            # so2_mass = sum(so2_mass_annual, na.rm = TRUE), 
-            # co2_mass = sum(co2_mass_annual, na.rm = TRUE)
-            ) %>% 
-  mutate(agg = "annual") 
-
-# calculate difference of total values
-generator_total_sum_comp <- 
-  rbind(generator_total_monthly_sum, 
-        generator_total_annual_sum) %>% 
-  relocate(agg) %>% 
-  pivot_longer(-c(agg), names_to = "column", values_to = "value") %>% 
-  arrange(column) %>% 
-  group_by(column) %>% 
-  mutate(difference = value - lag(value)) 
-
-# produce tale of differences of total values
-knitr::kable(generator_total_sum_comp,
-             digits = 0, 
-             format.args = list(big.mark = ","), 
-             col.names = gsub("[_]", " ", names(generator_total_sum_comp)), 
-             caption = "Generator file totals comparison") 
-
-# calculate differences at the unit level
-check_generation_diff <- 
-  generator_annual %>% 
-  full_join(generator_monthly_sum, by = c("plant_id", "generator_id", "prime_mover")) %>% 
-  mutate(generation_diff = abs(generation_annual - generation_monthly), 
-         generation_pct_diff = abs(generation_diff / generation_monthly) * 100 #,
-         # nox_diff = abs(nox_mass_annual - nox_mass_monthly),
-         # nox_pct_diff = abs(nox_diff / nox_mass_monthly) * 100,
-         # so2_diff = abs(so2_mass_annual - so2_mass_monthly), 
-         # so2_pct_diff = abs(so2_diff / so2_mass_monthly) * 100,
-         # co2_diff = abs(co2_mass_annual - co2_mass_monthly),
-         # co2_pct_diff = abs(co2_diff / co2_mass_monthly) * 100
-         ) # %>% 
- #  left_join(epa, by = c("plant_id", "generator_id")) %>% 
-  # left_join(annual_reporters, by = c("plant_id", "unit_id" = "boiler_id", "prime_mover"))
-```
-
-::: panel-tabset
-### Generation
-
-```{r}
-#| label: generation-generator-comp
-#| echo: false
-#| message: false
-
-generator_generation_check <- 
-  check_generation_diff %>% 
-  select(plant_id, 
-         generator_id, 
-         prime_mover, 
-         generation_annual,
-         generation_monthly,
-         generation_diff,
-         generation_pct_diff) %>% # ,
-         # reporting_frequency,
-         # respondent_frequency) %>% 
-   filter(generation_diff > 0.01) %>% 
-   arrange(-generation_pct_diff)
-
-print(glue::glue("Generation Differences > 0.01: {nrow(generator_generation_check)}"))
-```
