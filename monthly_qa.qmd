@@ -302,6 +302,8 @@ Notes:
 
 -   Plant 54950 missing matching NOx EF factor for DFO, CT unit. 
 
+-   Some differences are due to the monthly version using ozone NOx rates for ozone season months, and annual NOx rates for all other months. 
+
 ```{r}
 #| label: nox-unit-table
 #| echo: false

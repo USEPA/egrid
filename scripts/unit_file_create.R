@@ -1236,24 +1236,24 @@ units_missing_heat_2 <- # creating updated dataframe with remaining missing heat
 
 ### Match units EIA-923 boiler file on plant and boiler id -------
 
-eia_923_boiler_update_heat <- 
-  eia_923_boilers %>%  
-  select(all_of(temporal_res_cols), plant_id, unit_id = boiler_id, prime_mover, fuel_consum, heat_input) %>% 
-  group_by(pick(all_of(temporal_res_cols)), plant_id, unit_id, prime_mover) %>% 
-  slice_max(fuel_consum, n = 1, with_ties = FALSE) %>% 
-  select(-fuel_consum) %>% 
-  distinct() %>% 
-  drop_na(heat_input)
-
 if(params$temporal_res == "annual") { 
-  eia_923_boiler_update_heat <- 
+  eia_923_boiler_update_heat <- # include ozone heat input for annual version
     eia_923_boilers %>%  
     select(all_of(temporal_res_cols), plant_id, unit_id = boiler_id, prime_mover, fuel_consum, heat_input, heat_input_oz) %>% 
     group_by(pick(all_of(temporal_res_cols)), plant_id, unit_id, prime_mover) %>% 
     slice_max(fuel_consum, n = 1, with_ties = FALSE) %>% 
     select(-fuel_consum) %>% 
     distinct() %>% 
-    drop_na(heat_input)}
+    drop_na(heat_input)
+} else { 
+    eia_923_boiler_update_heat <- 
+      eia_923_boilers %>%  
+      select(all_of(temporal_res_cols), plant_id, unit_id = boiler_id, prime_mover, fuel_type, fuel_consum, heat_input) %>% 
+      group_by(pick(all_of(temporal_res_cols)), plant_id, unit_id, prime_mover, fuel_type) %>% 
+      slice_max(fuel_consum, n = 1, with_ties = FALSE) #%>% 
+      select(-fuel_consum) %>% 
+      distinct() %>% 
+      drop_na(heat_input)} 
 
 units_heat_updated_boiler_matches <- 
   units_missing_heat_2 %>% 
