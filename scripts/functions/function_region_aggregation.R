@@ -381,6 +381,7 @@ region_aggregation <- function(region, region_cols) {
                     .fns = ~ if_else(region_generation_ann != 0, 
                                      . / region_generation_ann, NA_real_), # convert to percentage 
                     .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
+      mutate(across(contains("resource_mix"), ~ if_else(.x < 0, 0, .x))) %>% 
       select({{ region_cols }}, contains("resource_mix"))
     
     
