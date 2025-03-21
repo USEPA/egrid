@@ -541,6 +541,7 @@ generator_generation_check <-
 
 print(glue::glue("Generation Differences > 0.01: {nrow(generator_generation_check)}"))
 ```
+::: 
 
 ## Plant file comparison
 

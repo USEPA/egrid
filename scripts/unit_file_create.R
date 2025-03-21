@@ -2336,9 +2336,9 @@ if(params$temporal_res == "annual") {
 # creating named vector of final variable order and variable name included in unit file
 # load names from name_matches.R
 if(params$temporal_res == "annual") {
-  final_vars <- unit_nonmetric_annual}
-if(params$temporal_res == "monthly") {
-  final_vars <- unit_nonmetric_monthly}
+  final_vars <- unit_nonmetric_annual
+} else if(params$temporal_res == "monthly") {
+   final_vars <- unit_nonmetric_monthly}
 
 units_formatted <-
   all_units_11 %>%
