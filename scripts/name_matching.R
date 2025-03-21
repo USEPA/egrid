@@ -156,7 +156,7 @@ generator_nonmetric_annual <-
     "FUELG1"   = "fuel_code",
     "NAMEPCAP" = "nameplate_capacity",
     "CFACT"    = "capfact",
-    "GENNTAN"  = "generation_ann",
+    "GENNTAN"  = "generation",
     "GENNTOZ"  = "generation_oz",
     "GENERSRC" = "gen_data_source",
     "GENYRONL" = "operating_year",
