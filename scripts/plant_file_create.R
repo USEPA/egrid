@@ -65,9 +65,6 @@ if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean
 # load generator file
 if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))) { 
   generator_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))
-  ##### CHECK update when generator file is ready (annual version) #########
-  #generator_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS")) %>% 
-  #  rename(generation = generation_ann)
 } else { 
    stop(glue::glue("generator_file_{params$temporal_res}.RDS does not exist. Run generator_file_create.R to obtain."))}
 
