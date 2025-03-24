@@ -538,9 +538,8 @@ december_gen <-
   generation_df %>%
   left_join(december_gen_ids) %>%
   filter(generation_ann_dec_equal == "yes") %>%
-  
   mutate(
-     # generation = tot_generation_fuel * prop, # distribute using same method of distribution instead of dividing by 12
+    # generation = tot_generation_fuel * prop, # distribute using same method of distribution instead of dividing by 12
     generation = net_generation_year_to_date / 12, # divide generation by 12 months
     gen_data_source = "Distributed from EIA-923 Generator File") %>% # flag: created new generation data source - i.e. distributed through EIA-923
    # gen_data_source = "EIA-923 Generator File") %>% # - i.e. distributed through EIA-923
@@ -550,7 +549,7 @@ december_gen <-
          year,
          month,
          gen_data_source,
-         contains("generation")) %>%  # keeping only necessary columns
+         generation) %>%  # keeping only necessary columns
   mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) # creating unique idea to identify duplicates
 
 
@@ -568,8 +567,8 @@ december_and_overwritten <-
   #   december_gen %>% filter(!(id_pm %in% check_dup_ids)), # if generator is in both december_netgen and gen_overwrite, default to gen_overwrite
   #   gen_overwrite2) %>% 
   bind_rows(
-    gen_overwrite2 %>% filter(!(id_pm %in% check_dup_ids)), # if generator is in both december_netgen and gen_overwrite, default to gen_overwrite
-    december_gen) %>%
+    gen_overwrite2 %>% filter(!(id_pm %in% check_dup_ids)), # if generator is in both december_netgen and gen_overwrite, default to december_gen 
+    december_gen) %>% # prevents errors in final dataframe
   left_join(eia_gen_generation %>% # merging all columns back in
             select(-c(contains("generation"), gen_data_source)),
             by = c("plant_id", "generator_id", "prime_mover", "year", "month")) # %>%
@@ -610,16 +609,33 @@ if(nrow(generators_combined) > (nrow(gen_dist_no_dec_overwritten) + nrow(decembe
 if (params$temporal_res == "annual") {
   ozone_months <- c(5:9)
   
+  # december_gen_oz <-
+  #   generators_combined %>%
+  #   left_join(december_gen_ids) %>%
+  #   left_join(eia_gen_fuel_generation_sum) %>%
+  #   left_join(gen_distributed_props) %>%
+  #   # filter(generation_ann_dec_equal == "yes") %>%
+  #   mutate(generation_oz = if_else(generation_ann_dec_equal == "yes",
+  #                                  tot_generation_fuel * prop,
+  #                                  generation_oz)) %>%
+  #   select(-c(generation_ann_dec_equal, 
+  #             respondent_frequency,
+  #             tot_generation_fuel,
+  #             prop))
+  # 
   generators_combined <-
     generators_combined %>%
-    group_by(year, plant_id, generator_id, prime_mover) %>%
-    mutate(generation_oz = sum(generation[month %in% ozone_months], na.rm = TRUE),
-        generation = sum(generation, na.rm = TRUE)
+    # group_by(year, plant_id, generator_id, prime_mover) %>%
+    group_by(pick(-c(month, generation))) %>%  # group by everything except month and generation
+    summarize(generation_oz = sum(generation[month %in% ozone_months], na.rm = TRUE),
+              generation = sum(generation, na.rm = TRUE)
            # generation_oz = unique(genertion_oz)
            ) %>%
-    ungroup() %>%
-    select(-month) %>%
-    distinct() 
+    ungroup() # %>%
+    # select(-month) %>%
+    # distinct() 
+  
+
 }
 
 # Update capacity factor  -----------------------------------------------
