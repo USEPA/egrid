@@ -92,8 +92,8 @@ datatypes$plant_subregion <- sapply(plant_subregion %>% rename(any_of(plant_nonm
 # county lookup table
 plant_county <- 
   plant_file %>% 
-  select(fips_state_code, fips_county_code, county) %>% distinct() %>% 
-  filter(!is.na(fips_county_code)) # exclude NA FIPS county codes
+  select(fips_state_code, fips_county_code, county) %>% distinct() #%>% 
+  #filter(!is.na(fips_county_code)) # exclude NA FIPS county codes # need to address NAs, maybe exclude this lookup table for now? 
 write_csv(plant_county %>% rename(any_of(plant_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/plant_table/plant_county_lookup.csv"))
 
