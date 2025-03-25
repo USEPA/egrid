@@ -264,10 +264,10 @@ secondary_fuel <-
 egrid_plant_2 <- # merge secondary fuel into plant file
   egrid_plant %>% 
   left_join(secondary_fuel, by = c("YEAR", "ORISPL")) %>% 
-  rename("PLPRMFL1" = PLPRMFL, 
+  rename("PLPRMFL_OLD" = PLPRMFL, # rename primary fuel columns
          "PLPRMFL" = PLPRMFL2) %>% 
   relocate(SECFUEL, .after = "FUEL") %>% 
-  relocate(PLPRMFL, .after = "PLPRMFL1")
+  relocate(PLPRMFL, .after = "PLPRMFL_OLD")
 
 ### State file --------------------
 
