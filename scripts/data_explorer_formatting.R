@@ -51,17 +51,17 @@ file_paths <-
     "data/static_tables/historical_egrid/egrid2019_data.xlsx",
     "data/static_tables/historical_egrid/egrid2020_data.xlsx",
     "data/static_tables/historical_egrid/egrid2021_data.xlsx",
-    "data/static_tables/historical_egrid/egrid2022_data.xlsx") # add to this list every year 
+    "data/static_tables/historical_egrid/egrid2022_data.xlsx") # add previous data year to this list every year 
 
 urls <- ### Note: check for updates or changes each data year ###
   c("https://www.epa.gov/sites/default/files/2020-03/egrid2018_data_v2.xlsx", 
     "https://www.epa.gov/sites/default/files/2021-02/egrid2019_data.xlsx", 
     "https://www.epa.gov/system/files/documents/2022-09/eGRID2020_Data_v2.xlsx", 
     "https://www.epa.gov/system/files/documents/2023-01/eGRID2021_data.xlsx",
-    "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx") # add to this list every year 
+    "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx") # add previous data year to this list every year 
 
-for(i in 1:length(urls)) { 
-  if(!file.exists(file_paths[i])) { 
+for(i in 1:length(urls)) { # download files online if they have not already been downloaded. 
+  if(file.exists(file_paths[i])) { 
     download.file(url = urls[i], 
                   destfile = file_paths[i], 
                   mode = "wb")
@@ -71,7 +71,7 @@ for(i in 1:length(urls)) {
 
 # Load historical eGRID years --------------------------
 
-for(year in c(2018:2022)) { 
+for(year in c(2018:2022)) { ### Note: check for updates or changes each data year ### Add previous data year here
   name_plant <- glue::glue("egrid_{as.character(year)}_plant")
   name_state <- glue::glue("egrid_{as.character(year)}_state")
   name_ba <- glue::glue("egrid_{as.character(year)}_ba")
@@ -266,8 +266,21 @@ egrid_plant_2 <- # merge secondary fuel into plant file
   left_join(secondary_fuel, by = c("YEAR", "ORISPL")) %>% 
   rename("PLPRMFL_OLD" = PLPRMFL, # rename primary fuel columns
          "PLPRMFL" = PLPRMFL2) %>% 
+  # re-order new columns to location in 2023 data
   relocate(SECFUEL, .after = "FUEL") %>% 
-  relocate(PLPRMFL, .after = "PLPRMFL_OLD")
+  relocate(PLPRMFL, .after = "PLPRMFL_OLD") %>% 
+  relocate(CAMDFLAG, .after = "LON") %>% 
+  relocate(CAPDFLAG, .after = "CAMDFLAG") %>% 
+  relocate(PLNGENNB, .after = "PLNGENOZ") %>% 
+  relocate(PLC2ECRT, .after = "PLN2OCRT") %>% 
+  relocate(UNCO2E, .after = "UNN2O") %>% 
+  relocate(UNC2ESRC, .after = "UNN2OSRC") %>% 
+  relocate(BIOCO2E, .after = "BION2O") %>% 
+  relocate(CHPCO2E, .after = "CHPN2O") %>% 
+  relocate(PLGENATO, .after = "PLGENATR") %>% 
+  relocate(PLGENACO, .after = "PLGENACN") %>% 
+  relocate(PLTOPR, .after = "PLTRPR") %>% 
+  relocate(PLCOPR, .after = "PLCNPR")
 
 ### State file --------------------
 
