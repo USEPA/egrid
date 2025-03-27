@@ -146,11 +146,11 @@ emissions_data_r <-
 # conditional groupby columns, separated for easier comprehension
 emissions_groupby_cols <-
   emissions_data_r %>%
-  select(-c(cols_to_sum, reporting_months, reporting_frequency, year, month, day)) %>% # sum by columns outside of cols_to_sum & new vars 
+  select(-c(all_of(cols_to_sum), reporting_months, reporting_frequency, year, month, day)) %>% # sum by columns outside of cols_to_sum & new vars 
   colnames()
   
-emissions_select_cols <- c(emissions_groupby_cols, cols_to_sum, temporal_res_cols) # used to drop columns based on temporal_res (i.e. annual = drop "month", "day")
-emissions_groupby_cols <- c(emissions_groupby_cols, temporal_res_cols) # only sum to the specified temporal_res (i.e. annual = "year")
+emissions_select_cols <- c(temporal_res_cols, emissions_groupby_cols, cols_to_sum, "reporting_months", "reporting_frequency") # used to drop columns based on temporal_res (i.e. annual = drop "month", "day")
+emissions_groupby_cols <- c(temporal_res_cols, emissions_groupby_cols) # only sum to the specified temporal_res (i.e. annual = "year")
 
 # for annual, sum to annual and sum ozone months
 if (params$temporal_res == "annual") {
@@ -165,9 +165,8 @@ if (params$temporal_res == "annual") {
     group_by(pick(all_of(emissions_groupby_cols))) %>%
     mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}"), # calculating annual emissions
            across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
-
     ungroup() %>%
-    select(emissions_select_cols) %>%
+    select(all_of(emissions_select_cols), contains("ozone")) %>%
     distinct() # removing duplicate rows that aren't needed after ozone calculation
 } else {  # for monthly, daily, and hourly temporal resolutions, only sum to temporal resolution
   emissions_data_r_2 <-
@@ -175,7 +174,7 @@ if (params$temporal_res == "annual") {
     group_by(pick(all_of(emissions_groupby_cols))) %>%
     mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}")) %>%
     ungroup() %>%
-    select(emissions_select_cols) %>% # will only keep temporal_res columns specified by params$temporal_res
+    select(all_of(emissions_select_cols)) %>% # will only keep temporal_res columns specified by params$temporal_res
     distinct()
 }
 
