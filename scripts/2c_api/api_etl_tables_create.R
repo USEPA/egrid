@@ -90,19 +90,19 @@ write_csv(plant_subregion %>% rename(any_of(plant_nonmetric)),
 datatypes$plant_subregion <- sapply(plant_subregion %>% rename(any_of(plant_nonmetric)), class)
 
 # county lookup table
-plant_county <- 
-  plant_file %>% 
-  select(fips_state_code, fips_county_code, county) %>% distinct() #%>% 
-  #filter(!is.na(fips_county_code)) # exclude NA FIPS county codes # need to address NAs, maybe exclude this lookup table for now? 
-write_csv(plant_county %>% rename(any_of(plant_nonmetric)), 
-          glue::glue("data/2c_api/{params$eGRID_year}/plant_table/plant_county_lookup.csv"))
-
-plant_county_na_fips <- 
-  plant_file %>% 
-  select(fips_state_code, fips_county_code, county) %>% distinct() %>% 
-  filter(is.na(fips_county_code))
-
-datatypes$plant_county <- sapply(plant_county %>% rename(any_of(plant_nonmetric)), class)
+# plant_county <- 
+#   plant_file %>% 
+#   select(fips_state_code, fips_county_code, county) %>% distinct() #%>% 
+#   #filter(!is.na(fips_county_code)) # exclude NA FIPS county codes # need to address NAs, maybe exclude this lookup table for now? 
+# write_csv(plant_county %>% rename(any_of(plant_nonmetric)), 
+#           glue::glue("data/2c_api/{params$eGRID_year}/plant_table/plant_county_lookup.csv"))
+# 
+# plant_county_na_fips <- 
+#   plant_file %>% 
+#   select(fips_state_code, fips_county_code, county) %>% distinct() %>% 
+#   filter(is.na(fips_county_code))
+# 
+# datatypes$plant_county <- sapply(plant_county %>% rename(any_of(plant_nonmetric)), class)
 
 # state lookup table
 plant_state <- 
@@ -121,6 +121,9 @@ plant_unadjusted_emissions <-
   select(year, 
          plant_state,
          plant_id,
+         plant_name, 
+         egrid_subregion, 
+         ba_code,
          primary_fuel_type, 
          starts_with("unadj_nox"), 
          unadj_so2_mass, 
@@ -141,6 +144,9 @@ plant_total_emissions <-
   select(year,
          plant_state,
          plant_id,
+         plant_name, 
+         egrid_subregion, 
+         ba_code,
          primary_fuel_type, 
          starts_with("nox"), -contains("bio"), -contains("rate"), 
          so2_mass, 
@@ -160,7 +166,7 @@ plant_output_emission_rate <-
   select(year, 
          plant_state, 
          plant_id, 
-         primary_fuel_type, 
+         plant_name, 
          contains("out_emission_rate"), -contains("combust")) 
 write_csv(plant_output_emission_rate %>% rename(any_of(plant_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/plant_table/plant_output_emission_rate.csv"))
@@ -173,7 +179,7 @@ plant_input_emission_rate <-
   select(year, 
          plant_state, 
          plant_id, 
-         primary_fuel_type, 
+         plant_name, 
          contains("in_emission_rate")) 
 write_csv(plant_input_emission_rate %>% rename(any_of(plant_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/plant_table/plant_input_emission_rate.csv"))
@@ -186,6 +192,7 @@ plant_generation <-
   select(year, 
          plant_state, 
          plant_id, 
+         plant_name, 
          primary_fuel_type,
          generation_ann,
          contains("ann_gen"), # this will become netgen when monthly code is used
@@ -201,6 +208,7 @@ plant_nonbaseload_generation <-
   select(year, 
          plant_state, 
          plant_id, 
+         plant_name, 
          primary_fuel_type,
          generation_nonbaseload)
 write_csv(plant_nonbaseload_generation %>% rename(any_of(plant_nonmetric)), 
@@ -250,10 +258,8 @@ plant_table <-
          num_units, 
          num_generators, 
          primary_fuel_type, 
-         #secondary_fuel_type, # this needs to be included in plant file, it is not right now
          primary_fuel_category, 
-         nameplate_capacity, 
-         capfac) 
+         nameplate_capacity) 
 
 # State file ------------------------
 
@@ -289,7 +295,6 @@ state_total_emissions <-
   state_table %>% 
   select(year,
          state_id,
-         fips_state_code,
          starts_with("state_nox"), 
          state_so2_mass, 
          state_co2_mass, 
@@ -308,7 +313,6 @@ state_output_emission_rate <-
   state_table %>% 
   select(year, 
          state_id, 
-         fips_state_code, 
          contains("output_rate"), 
          -contains("nonbaseload")) # under new monthly code we will not need this line
 write_csv(state_output_emission_rate %>% rename(any_of(state_nonmetric)), 
@@ -321,7 +325,6 @@ state_input_emission_rate <-
   state_table %>% 
   select(year, 
          state_id, 
-         fips_state_code, 
          contains("input_rate"), 
          -contains("nonbaseload")) # under new monthly code we will not need this line
 write_csv(state_input_emission_rate %>% rename(any_of(state_nonmetric)), 
@@ -333,8 +336,8 @@ datatypes$state_output_emission_rate <- sapply(state_output_emission_rate %>% re
 # state nonbaseload emission rate
 state_nonbaseload_emission_rate <- 
   state_table %>% 
-  select(state_id,
-         fips_state_code, 
+  select(year,
+         state_id,
          starts_with(c("state_nox", 
                        "state_so2", 
                        "state_co2", 
@@ -349,31 +352,11 @@ write_csv(state_nonbaseload_emission_rate %>% rename(any_of(state_nonmetric)),
 
 datatypes$state_nonbaseload_emission_rate <- sapply(state_nonbaseload_emission_rate %>% rename(any_of(state_nonmetric)), class)
 
-# state fuel type emission rates 
-# state_fuel_type_emission_rate <- 
-#   state_table %>% 
-#   select(state_id,
-#          fips_state_code, 
-#          starts_with(c("state_nox", 
-#                        "state_so2", 
-#                        "state_co2", 
-#                        "state_ch4", 
-#                        "state_n2o", 
-#                        "state_co2e", 
-#                        "state_hg")) &  
-#          contains("rate") & 
-#          contains(c("coal", "oil", "gas", "fossil"))) 
-# write_csv(state_fuel_type_emission_rate %>% rename(any_of(state_nonmetric)), 
-#           glue::glue("data/2c_api/{params$eGRID_year}/state_table/state_fuel_type_emission_rate.csv"))
-# 
-# datatypes$state_fuel_type_emission_rate <- sapply(state_fuel_type_emission_rate %>% rename(any_of(state_nonmetric)), class)
-
 # state fuel type generation
 state_generation <- 
   state_table %>% 
   select(year,
          state_id,
-         fips_state_code, 
          state_generation_ann,
          contains("ann_gen"),
          -contains("perc")) 
@@ -385,8 +368,8 @@ datatypes$state_generation <- sapply(state_generation %>% rename(any_of(state_no
 # state resource mix 
 state_resource_mix <- 
   state_table %>% 
-  select(state_id,
-         fips_state_code, 
+  select(year,
+         state_id,
          contains("resource_mix"), -contains("nonbaseload")) 
 write_csv(state_resource_mix %>% rename(any_of(state_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/state_table/state_resource_mix.csv"))
@@ -396,8 +379,8 @@ datatypes$state_resource_mix <- sapply(state_resource_mix %>% rename(any_of(stat
 # state nonbaseload generation 
 state_nonbaseload_generation <- 
   state_table %>% 
-  select(state_id, 
-         fips_state_code,
+  select(year,
+         state_id, 
          state_generation_nonbaseload,
          contains("nonbaseload_gen_")) 
 write_csv(state_nonbaseload_generation %>% rename(any_of(state_nonmetric)), 
@@ -408,8 +391,8 @@ datatypes$state_nonbaseload_generation <- sapply(state_nonbaseload_generation %>
 # state nonbaseload resource mix
 state_nonbaseload_resource_mix <- 
   state_table %>% 
-  select(state_id, 
-         fips_state_code,
+  select(year,
+         state_id, 
          contains("nonbaseload_resource_mix")) 
 write_csv(state_nonbaseload_resource_mix %>% rename(any_of(state_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/state_table/state_nonbaseload_resource_mix.csv"))
@@ -418,15 +401,14 @@ datatypes$state_nonbaseload_resource_mix <- sapply(state_nonbaseload_resource_mi
 
 ### Create final state file -----------
 
-state_table_final <- 
-  state_table %>% 
-  select(state_id,
-         state, 
-         fips_state_code) 
-write_csv(state_table_final %>% rename(any_of(state_nonmetric)), 
-          glue::glue("data/2c_api/{params$eGRID_year}/state_table/state_table.csv"))
-
-datatypes$state_table <- sapply(state_table_final %>% rename(any_of(state_nonmetric)), class)
+# state_table_final <- 
+#   state_table %>% 
+#   select(year, 
+#          state_id) 
+# write_csv(state_table_final %>% rename(any_of(state_nonmetric)), 
+#           glue::glue("data/2c_api/{params$eGRID_year}/state_table/state_table.csv"))
+# 
+# datatypes$state_table <- sapply(state_table_final %>% rename(any_of(state_nonmetric)), class)
 
 # Balancing authority file ------------------------
 
@@ -442,7 +424,7 @@ ba_id_lookup <-
 
 datatypes$ba_id_lookup <- sapply(ba_id_lookup %>% rename(any_of(ba_nonmetric)), class)
 
-# update plant table with state ID and remove fips_state_code
+# update plant table with BA ID and remove ba_code
 plant_table_3 <- 
   plant_table_2 %>% 
   left_join(ba_id_lookup, by = c("ba_code")) %>% 
@@ -458,8 +440,8 @@ ba_table <-
 # ba adjusted values 
 ba_adjusted_values <- 
   ba_table %>% 
-  select(ba_id,
-         ba_code,
+  select(year,
+         ba_id,
          starts_with("ba_generation"), 
          starts_with("ba_nox"), 
          ba_so2_mass, 
@@ -477,8 +459,8 @@ datatypes$ba_adjusted_values <- sapply(ba_adjusted_values %>% rename(any_of(ba_n
 # BA emission rates (includes combustion output, input, and output rates)
 ba_emission_rate <- 
   ba_table %>% 
-  select(ba_id,
-         ba_code, 
+  select(year,
+         ba_id,
          starts_with(c("ba_nox", 
                        "ba_so2", 
                        "ba_co2", 
@@ -496,8 +478,8 @@ datatypes$ba_emission_rate <- sapply(ba_emission_rate %>% rename(any_of(ba_nonme
 # BA nonbaseload emission rate
 ba_nonbaseload_emission_rate <- 
   ba_table %>% 
-  select(ba_id,
-         ba_code, 
+  select(year, 
+         ba_id,
          starts_with(c("ba_nox", 
                        "ba_so2", 
                        "ba_co2", 
@@ -515,8 +497,8 @@ datatypes$ba_nonbaseload_emission_rate <- sapply(ba_nonbaseload_emission_rate %>
 # BA fuel type emission rates 
 ba_fuel_type_emission_rate <- 
   ba_table %>% 
-  select(ba_id,
-         ba_code, 
+  select(year,
+         ba_id,
          starts_with(c("ba_nox", 
                        "ba_so2", 
                        "ba_co2", 
@@ -534,8 +516,8 @@ datatypes$ba_fuel_type_emission_rate <- sapply(ba_fuel_type_emission_rate %>% re
 # BA fuel type generation
 ba_fuel_type_gen <- 
   ba_table %>% 
-  select(ba_id, 
-         ba_code, 
+  select(year, 
+         ba_id, 
          contains("ann_gen"),
          -contains("perc")) 
 write_csv(ba_fuel_type_gen %>% rename(any_of(ba_nonmetric)), 
@@ -546,8 +528,8 @@ datatypes$ba_fuel_type_gen <- sapply(ba_fuel_type_gen %>% rename(any_of(ba_nonme
 # BA resource mix 
 ba_resource_mix <- 
   ba_table %>% 
-  select(ba_id, 
-         ba_code, 
+  select(year, 
+         ba_id, 
          contains("resource_mix"), -contains("nonbaseload"))
 write_csv(ba_resource_mix %>% rename(any_of(ba_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/ba_table/ba_resource_mix.csv"))
@@ -557,8 +539,8 @@ datatypes$ba_resource_mix <- sapply(ba_resource_mix %>% rename(any_of(ba_nonmetr
 # BA nonbaseload generation 
 ba_nonbaseload_generation <- 
   ba_table %>% 
-  select(ba_id, 
-         ba_code, 
+  select(year, 
+         ba_id, 
          contains("nonbaseload_gen_")) 
 write_csv(ba_nonbaseload_generation %>% rename(any_of(ba_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/ba_table/ba_nonbaseload_generation.csv"))
@@ -568,8 +550,8 @@ datatypes$ba_nonbaseload_generation <- sapply(ba_nonbaseload_generation %>% rena
 # BA nonbaseload resource mix
 ba_nonbaseload_resource_mix <- 
   ba_table %>% 
-  select(ba_id, 
-         ba_code, 
+  select(year, 
+         ba_id, 
          contains("nonbaseload_resource_mix")) 
 write_csv(ba_nonbaseload_resource_mix %>% rename(any_of(ba_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/ba_table/ba_nonbaseload_resource_mix.csv"))
@@ -578,15 +560,14 @@ datatypes$ba_nonbaseload_resource_mix <- sapply(ba_nonbaseload_resource_mix %>% 
 
 ### Create final BA file -----------
 
-ba_table_final <- 
-  ba_table %>% 
-  select(ba_id,
-         ba_code, 
-         ba_name) 
-write_csv(ba_table_final %>% rename(any_of(ba_nonmetric)), 
-          glue::glue("data/2c_api/{params$eGRID_year}/ba_table/ba_table.csv"))
-
-datatypes$ba_table <- sapply(ba_table_final %>% rename(any_of(ba_nonmetric)), class)
+# ba_table_final <- 
+#   ba_table %>% 
+#   select(year, 
+#          ba_id) 
+# write_csv(ba_table_final %>% rename(any_of(ba_nonmetric)), 
+#           glue::glue("data/2c_api/{params$eGRID_year}/ba_table/ba_table.csv"))
+# 
+# datatypes$ba_table <- sapply(ba_table_final %>% rename(any_of(ba_nonmetric)), class)
 
 # Subregion file ------------------------
 
@@ -618,8 +599,8 @@ subregion_table <-
 # subregion adjusted values 
 subregion_adjusted_values <- 
   subregion_table %>% 
-  select(subregion_id,
-         subregion,
+  select(year, 
+         subregion_id,
          starts_with("subregion_generation"), 
          starts_with("subregion_nox"), 
          subregion_so2_mass, 
@@ -637,8 +618,8 @@ datatypes$subregion_adjusted_values <- sapply(subregion_adjusted_values %>% rena
 # subregion emission rates (includes combustion output, input, and output rates)
 subregion_emission_rate <- 
   subregion_table %>% 
-  select(subregion_id, 
-         subregion, 
+  select(year, 
+         subregion_id, 
          starts_with(c("subregion_nox", 
                        "subregion_so2", 
                        "subregion_co2", 
@@ -656,8 +637,8 @@ datatypes$subregion_emission_rate <- sapply(subregion_emission_rate %>% rename(a
 # subregion nonbaseload emission rate
 subregion_nonbaseload_emission_rate <- 
   subregion_table %>% 
-  select(subregion_id,
-         subregion, 
+  select(year, 
+         subregion_id,
          starts_with(c("subregion_nox", 
                        "subregion_so2", 
                        "subregion_co2", 
@@ -675,8 +656,8 @@ datatypes$subregion_nonbaseload_emission_rate <- sapply(subregion_nonbaseload_em
 # subregion fuel type emission rates 
 subregion_fuel_type_emission_rate <- 
   subregion_table %>% 
-  select(subregion_id,
-         subregion, 
+  select(year, 
+         subregion_id,
          starts_with(c("subregion_nox", 
                        "subregion_so2", 
                        "subregion_co2", 
@@ -694,8 +675,8 @@ datatypes$subregion_fuel_type_emission_rate <- sapply(subregion_fuel_type_emissi
 # subregion fuel type generation
 subregion_fuel_type_gen <- 
   subregion_table %>% 
-  select(subregion_id,
-         subregion, 
+  select(year, 
+         subregion_id,
          contains("ann_gen"),
          -contains("perc"))  
 write_csv(subregion_fuel_type_gen %>% rename(any_of(subregion_nonmetric)), 
@@ -706,8 +687,8 @@ datatypes$subregion_fuel_type_gen <- sapply(subregion_fuel_type_gen %>% rename(a
 # subregion resource mix 
 subregion_resource_mix <- 
   subregion_table %>% 
-  select(subregion_id,
-         subregion, 
+  select(year, 
+         subregion_id,
          contains("resource_mix"), -contains("nonbaseload")) 
 write_csv(subregion_resource_mix %>%  rename(any_of(subregion_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/subregion_table/subregion_resource_mix.csv"))
@@ -717,8 +698,8 @@ datatypes$subregion_resource_mix <- sapply(subregion_resource_mix %>% rename(any
 # subregion nonbaseload generation 
 subregion_nonbaseload_generation <- 
   subregion_table %>% 
-  select(subregion_id,
-         subregion, 
+  select(year, 
+         subregion_id,
          contains("nonbaseload_gen_"))  
 write_csv(subregion_nonbaseload_generation %>% rename(any_of(subregion_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/subregion_table/subregion_nonbaseload_generation.csv"))
@@ -728,8 +709,8 @@ datatypes$subregion_nonbaseload_generation <- sapply(subregion_nonbaseload_gener
 # subregion nonbaseload resource mix 
 subregion_nonbaseload_resource_mix <- 
   subregion_table %>% 
-  select(subregion_id,
-         subregion, 
+  select(year, 
+         subregion_id,
          contains("nonbaseload_resource_mix"))  
 write_csv(subregion_nonbaseload_resource_mix %>% rename(any_of(subregion_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/subregion_table/subregion_nonbaseload_resource_mix.csv"))
@@ -739,15 +720,14 @@ datatypes$subregion_nonbaseload_resource_mix <- sapply(subregion_nonbaseload_res
 
 ### Create final subregion file -----------
 
-subregion_table_final <- 
-  subregion_table %>% 
-  select(subregion_id,
-         subregion, 
-         subregion_name) 
-write_csv(subregion_table_final %>% rename(any_of(subregion_nonmetric)), 
-          glue::glue("data/2c_api/{params$eGRID_year}/subregion_table/subregion_table.csv"))
-
-datatypes$subregion_table <- sapply(subregion_table_final %>% rename(any_of(subregion_nonmetric)), class)
+# subregion_table_final <- 
+#   subregion_table %>% 
+#   select(year, 
+#          subregion_id) 
+# write_csv(subregion_table_final %>% rename(any_of(subregion_nonmetric)), 
+#           glue::glue("data/2c_api/{params$eGRID_year}/subregion_table/subregion_table.csv"))
+# 
+# datatypes$subregion_table <- sapply(subregion_table_final %>% rename(any_of(subregion_nonmetric)), class)
 
 # NERC file ------------------------
 
@@ -779,8 +759,8 @@ nerc_table <-
 # NERC adjusted values 
 nerc_adjusted_values <- 
   nerc_table %>% 
-  select(nerc_id,
-         nerc,
+  select(year, 
+         nerc_id,
          starts_with("nerc_generation"), 
          starts_with("nerc_nox"), 
          nerc_so2_mass, 
@@ -798,8 +778,8 @@ datatypes$nerc_adjusted_values <- sapply(nerc_adjusted_values %>% rename(any_of(
 # NERC emission rates (includes combustion output, input, and output rates)
 nerc_emission_rate <- 
   nerc_table %>% 
-  select(nerc_id,
-         nerc, 
+  select(year,
+         nerc_id,
          starts_with(c("nerc_nox", 
                        "nerc_so2", 
                        "nerc_co2", 
@@ -817,8 +797,8 @@ datatypes$nerc_emission_rate <- sapply(nerc_emission_rate %>% rename(any_of(nerc
 # NERC nonbaseload emission rate
 nerc_nonbaseload_emission_rate <- 
   nerc_table %>% 
-  select(nerc_id,
-         nerc, 
+  select(year, 
+         nerc_id,
          starts_with(c("nerc_nox", 
                        "nerc_so2", 
                        "nerc_co2", 
@@ -836,8 +816,8 @@ datatypes$nerc_nonbaseload_emission_rate <- sapply(nerc_nonbaseload_emission_rat
 # NERC fuel type emission rates 
 nerc_fuel_type_emission_rate <- 
   nerc_table %>% 
-  select(nerc_id,
-         nerc,
+  select(year, 
+         nerc_id,
          starts_with(c("nerc_nox", 
                        "nerc_so2", 
                        "nerc_co2", 
@@ -855,8 +835,8 @@ datatypes$nerc_fuel_type_emission_rate <- sapply(nerc_fuel_type_emission_rate %>
 # NERC fuel type generation
 nerc_fuel_type_gen <- 
   nerc_table %>% 
-  select(nerc_id,
-         nerc,
+  select(year, 
+         nerc_id,
          contains("ann_gen"),
          -contains("perc"))  
 write_csv(nerc_fuel_type_gen %>% rename(any_of(nerc_nonmetric)), 
@@ -867,8 +847,8 @@ datatypes$nerc_fuel_type_gen <- sapply(nerc_fuel_type_gen %>% rename(any_of(nerc
 # NERC resource mix 
 nerc_resource_mix <- 
   nerc_table %>% 
-  select(nerc_id,
-         nerc,
+  select(year, 
+         nerc_id,
          contains("resource_mix"), -contains("nonbaseload")) 
 write_csv(nerc_resource_mix %>% rename(any_of(nerc_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/nerc_table/nerc_resource_mix.csv"))
@@ -878,8 +858,8 @@ datatypes$nerc_resource_mix <- sapply(nerc_resource_mix %>% rename(any_of(nerc_n
 # NERC nonbaseload generation 
 nerc_nonbaseload_generation <- 
   nerc_table %>% 
-  select(nerc_id,
-         nerc,
+  select(year, 
+         nerc_id,
          contains("nonbaseload_gen_"))  
 write_csv(nerc_nonbaseload_generation %>% rename(any_of(nerc_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/nerc_table/nerc_nonbaseload_generation.csv"))
@@ -889,8 +869,8 @@ datatypes$nerc_nonbaseload_generation <- sapply(nerc_nonbaseload_generation %>% 
 # NERC nonbaseload resource mix
 nerc_nonbaseload_resource_mix <- 
   nerc_table %>% 
-  select(nerc_id,
-         nerc,
+  select(year, 
+         nerc_id,
          contains("nonbaseload_resource"))  
 write_csv(nerc_nonbaseload_resource_mix %>% rename(any_of(nerc_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/nerc_table/nerc_nonbaseload_resource_mix.csv"))
@@ -899,15 +879,14 @@ datatypes$nerc_nonbaseload_resource_mix <- sapply(nerc_nonbaseload_resource_mix 
 
 ### Create final NERC file -----------
 
-nerc_table_final <- 
-  nerc_table %>% 
-  select(nerc_id,
-         nerc, 
-         nerc_name) 
-write_csv(nerc_table_final %>% rename(any_of(nerc_nonmetric)), 
-          glue::glue("data/2c_api/{params$eGRID_year}/nerc_table/nerc_table.csv"))
-
-datatypes$nerc_table <- sapply(nerc_table_final %>% rename(any_of(nerc_nonmetric)), class)
+# nerc_table_final <- 
+#   nerc_table %>% 
+#   select(year, 
+#          nerc_id) 
+# write_csv(nerc_table_final %>% rename(any_of(nerc_nonmetric)), 
+#           glue::glue("data/2c_api/{params$eGRID_year}/nerc_table/nerc_table.csv"))
+# 
+# datatypes$nerc_table <- sapply(nerc_table_final %>% rename(any_of(nerc_nonmetric)), class)
 
 # US file ------------------------
 
@@ -918,7 +897,8 @@ us_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/us_aggregation.
 # US adjusted values 
 us_adjusted_values <- 
   us_file %>% 
-  select(starts_with("us_generation"), 
+  select(year, 
+         starts_with("us_generation"), 
          starts_with("us_nox"), 
          us_so2_mass, 
          us_co2_mass, 
@@ -935,7 +915,8 @@ datatypes$us_adjusted_values <- sapply(us_adjusted_values %>% rename(any_of(us_n
 # US emission rates (includes combustion output, input, and output rates)
 us_emission_rate <- 
   us_file %>% 
-  select(starts_with(c("us_nox", 
+  select(year, 
+         starts_with(c("us_nox", 
                        "us_so2", 
                        "us_co2", 
                        "us_ch4", 
@@ -952,7 +933,8 @@ datatypes$us_emission_rate <- sapply(us_emission_rate %>% rename(any_of(us_nonme
 # US nonbaseload emission rate
 us_nonbaseload_emission_rate <- 
   us_file %>% 
-  select(starts_with(c("us_nox", 
+  select(year, 
+         starts_with(c("us_nox", 
                        "us_so2", 
                        "us_co2", 
                        "us_ch4", 
@@ -969,7 +951,8 @@ datatypes$us_nonbaseload_emission_rate <- sapply(us_nonbaseload_emission_rate %>
 # US fuel type emission rates 
 us_fuel_type_emission_rate <- 
   us_file %>% 
-  select(starts_with(c("us_nox", 
+  select(year, 
+         starts_with(c("us_nox", 
                        "us_so2", 
                        "us_co2", 
                        "us_ch4", 
@@ -986,7 +969,8 @@ datatypes$us_fuel_type_emission_rate <- sapply(us_fuel_type_emission_rate %>% re
 # US fuel type generation
 us_fuel_type_gen <- 
   us_file %>% 
-  select(contains("ann_gen"),
+  select(year, 
+         contains("ann_gen"),
          -contains("perc"))  
 write_csv(us_fuel_type_gen %>% rename(any_of(us_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/us_table/us_fuel_type_gen.csv"))
@@ -996,7 +980,8 @@ datatypes$us_fuel_type_gen <- sapply(us_fuel_type_gen %>% rename(any_of(us_nonme
 # US resource mix 
 us_resource_mix <- 
   us_file %>% 
-  select(contains("resource_mix"), -contains("nonbaseload")) 
+  select(year, 
+         contains("resource_mix"), -contains("nonbaseload")) 
 write_csv(us_resource_mix %>% rename(any_of(us_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/us_table/us_resource_mix.csv"))
 
@@ -1005,7 +990,8 @@ datatypes$us_resource_mix <- sapply(us_resource_mix %>% rename(any_of(us_nonmetr
 # US nonbaseload generation 
 us_nonbaseload_generation <- 
   us_file %>% 
-  select(contains("nonbaseload_gen_")) 
+  select(year, 
+         contains("nonbaseload_gen_")) 
 write_csv(us_nonbaseload_generation %>% rename(any_of(us_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/us_table/us_nonbaseload_generation.csv"))
 
@@ -1014,7 +1000,8 @@ datatypes$us_nonbaseload_generation <- sapply(us_nonbaseload_generation %>% rena
 # US nonbaseload resource mix
 us_nonbaseload_resource_mix <- 
   us_file %>% 
-  select(contains("nonbaseload_resource_mix")) 
+  select(year, 
+         contains("nonbaseload_resource_mix")) 
 write_csv(us_nonbaseload_resource_mix %>% rename(any_of(us_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/us_table/us_nonbaseload_resource_mix.csv"))
 
@@ -1022,18 +1009,18 @@ datatypes$us_nonbaseload_resource_mix <- sapply(us_nonbaseload_resource_mix %>% 
 
 ### Create final US file -----------
 
-us_table_final <- 
-  us_file %>% 
-  select(us_nameplate_capacity) 
-write_csv(us_table_final %>% rename(any_of(us_nonmetric)), 
-          glue::glue("data/2c_api/{params$eGRID_year}/us_table/us_table.csv"))
-
-datatypes$us_table <- sapply(us_table_final %>% rename(any_of(us_nonmetric)), class)
+# us_table_final <- 
+#   us_file %>% 
+#   select(year) 
+# write_csv(us_table_final %>% rename(any_of(us_nonmetric)), 
+#           glue::glue("data/2c_api/{params$eGRID_year}/us_table/us_table.csv"))
+# 
+# datatypes$us_table <- sapply(us_table_final %>% rename(any_of(us_nonmetric)), class)
 
 # Export final plant table ----------------------
 
 datatypes$plant_table <- sapply(plant_table_5 %>% rename(any_of(plant_nonmetric)), class)
 
-write_csv(plant_table_5 %>% rename(any_of(plant_nonmetric)), 
+write_csv(plant_table_5 %>% select(-nerc_id) %>% rename(any_of(plant_nonmetric)), 
           glue::glue("data/2c_api/{params$eGRID_year}/plant_table/plant_table.csv"))
 
