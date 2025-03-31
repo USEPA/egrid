@@ -61,7 +61,7 @@ urls <- ### Note: check for updates or changes each data year ###
     "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx") # add previous data year to this list every year 
 
 for(i in 1:length(urls)) { # download files online if they have not already been downloaded. 
-  if(file.exists(file_paths[i])) { 
+  if(!file.exists(file_paths[i])) { 
     download.file(url = urls[i], 
                   destfile = file_paths[i], 
                   mode = "wb")
@@ -157,7 +157,20 @@ resource_mix_cols <-
     "THPR" = NA_character_,	
     "CYPR" = NA_character_,	
     "CNPR" = NA_character_,
-    "COPR" = NA_character_)
+    "COPR" = NA_character_, 
+    
+    # nonbaseload resource mix 
+    "NBCLPR" = NA_character_, 
+    "NBOLPR" = NA_character_, 
+    "NBGSPR" = NA_character_, 
+    "NBNCPR" = NA_character_, 
+    "NBHYPR" = NA_character_, 
+    "NBBMPR" = NA_character_, 
+    "NBWIPR" = NA_character_, 
+    "NBSOPR" = NA_character_, 
+    "NBGTPR" = NA_character_, 
+    "NBOFPR" = NA_character_, 
+    "NBOPPR" = NA_character_)
 
 fuel_type_map <-
   c("AB"  = "Agricultural byproduct",
@@ -198,26 +211,34 @@ fuel_type_map <-
     "WO"  = "Waste oil")
 
 egrid_plant <- 
-  bind_rows(egrid_2018_plant %>% 
+  bind_rows(# 2018 
+            egrid_2018_plant %>% 
               mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)) %>% 
               select(-contains("seqplt")), 
+            # 2019
             egrid_2019_plant %>% 
               mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
                                                .fns = ~ .x * 100)) %>% 
               select(-contains("seqplt")), 
+            # 2020 
             egrid_2020_plant %>% 
               mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)) %>% 
               select(-contains("seqplt")),
+            # 2021
             egrid_2021_plant %>% 
               mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)) %>% 
+              rename("CAPDFLAG" = CAMDFLAG) %>% # rename cols
               select(-contains("seqplt")),
+            # 2022
             egrid_2022_plant %>% 
               mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)) %>% 
+              rename("CAPDFLAG" = CAMDFLAG) %>% # rename cols
               select(-contains("seqplt")),
+            # 2023
             egrid_2023_plant %>% 
               mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)) %>% 
@@ -240,13 +261,13 @@ secondary_fuel_category <- # map fuel category to secondary fuel type
     "OTHF"       = "Unknown")
 
 plant_resource_mix_cols <- 
-  resource_mix_cols 
-names(plant_resource_mix_cols) <- paste0("PL", names(resource_mix_cols))
+  resource_mix_cols[1:18] # do not include nonbaseload columns
+names(plant_resource_mix_cols) <- paste0("PL", names(resource_mix_cols[1:18]))
 
 secondary_fuel <- 
   egrid_plant %>% 
   select(YEAR, ORISPL, PLPRMFL, FUEL, names(plant_resource_mix_cols)) %>% 
-  tidyr::pivot_longer(cols = paste0("PL", names(resource_mix_cols)), 
+  tidyr::pivot_longer(cols = paste0("PL", names(resource_mix_cols[1:18])), 
                names_to = "resource_mix_fuel", 
                values_to = "resource_mix") %>% 
   mutate(resource_mix_fuel = recode(resource_mix_fuel, !!!plant_resource_mix_cols)) %>% 
@@ -269,8 +290,7 @@ egrid_plant_2 <- # merge secondary fuel into plant file
   # re-order new columns to location in 2023 data
   relocate(SECFUEL, .after = "FUEL") %>% 
   relocate(PLPRMFL, .after = "PLPRMFL_OLD") %>% 
-  relocate(CAMDFLAG, .after = "LON") %>% 
-  relocate(CAPDFLAG, .after = "CAMDFLAG") %>% 
+  relocate(CAPDFLAG, .after = "LON") %>% 
   relocate(PLNGENNB, .after = "PLNGENOZ") %>% 
   relocate(PLC2ECRT, .after = "PLN2OCRT") %>% 
   relocate(UNCO2E, .after = "UNN2O") %>% 
