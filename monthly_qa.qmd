@@ -524,7 +524,7 @@ generator_generation_check <-
   check_generation_diff %>% 
   left_join(generator_monthly %>% 
               select(plant_id, generator_id, prime_mover, gen_data_source_monthly) %>%
-              distinct()) %>%
+              distinct(paste0(plant_id, "_", generator_id, "_", prime_mover), .keep_all = TRUE)) %>%
   select(plant_id, 
          generator_id, 
          prime_mover, 
