@@ -46,8 +46,12 @@ filenames_orig <- c("unit" = "unit_file",
 
 # Load ordered variable names and conversion factors ---------
 
-# ordered names and abbreviations
-load("data/static_tables/name_matches.Rdata")
+# ordered names 
+if(file.exists("data/static_tables/name_matches.RData")) {
+  base::load("data/static_tables/name_matches.RData")
+} else { 
+  source("scripts/name_matching.R")
+  base::load("data/static_scripts/name_matches.RData")}
 
 # conversion factors
 convert_rates <- read_csv(file.path("data/static_tables/conversion_factors.csv"),
