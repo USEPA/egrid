@@ -535,21 +535,30 @@ print(glue::glue("{length(unique(december_gen$id_pm))} generators have generatio
 # These are used to reduce clutter in dfs before they are combined in final structure below. 
   
 gen_overwrite <-
-  generation_diff %>%
-  left_join(eia_860_combined_r %>%
-              select(plant_id, generator_id, prime_mover, nameplate_capacity) %>%
-              cross_join(temporal_cols_to_add)) %>%
+  generation_df %>%
+  left_join(generation_diff) %>%
+  # left_join(eia_860_combined_r %>%
+  #             select(plant_id, generator_id, prime_mover, nameplate_capacity) %>%
+  #             cross_join(temporal_cols_to_add)) %>%
   left_join(gen_distributed_props) %>%
-  filter(overwrite == "overwrite") %>%
+  group_by(year, plant_id, prime_mover) %>%
+  filter(any(overwrite == "overwrite")) %>% # prevents data deletion of non-overwrite months in the same generator
+  ungroup() %>%
   mutate(
          # generation = tot_generation_fuel * (prop / 12),
-         # generation = tot_generation_fuel * prop, 
-         generation = if_else(tot_generation_fuel == 0 & !is.na(tot_generation), # flag: where there is difference if missing data in Generation and Fuel data
-                              tot_generation,
+         # generation = tot_generation_fuel * prop,
+         generation = if_else(overwrite != "overwrite" | tot_generation_fuel == 0 & !is.na(tot_generation), # flag: where there is difference if missing data in Generation and Fuel data
+                              tot_generation * prop,
                               tot_generation_fuel * prop),
-         gen_data_source = if_else(tot_generation_fuel == 0,
+         # test_generation = case_when(overwrite != "overwrite" ~ generation,
+         #                        tot_generation_fuel == 0 & !is.na(tot_generation) ~ tot_generation * prop,
+         #                        TRUE ~ tot_generation_fuel * prop), # flag: where there is difference if missing data in Generation and Fuel data
+         gen_data_source = if_else(overwrite != "overwrite",
                                    "EIA-923 Generator File",
                                    "Data from EIA-923 Generator File overwritten with distributed data from EIA-923 Generation and Fuel"))
+         # gen_data_source = if_else(tot_generation_fuel == 0,
+         #                           "EIA-923 Generator File",
+         #                           "Data from EIA-923 Generator File overwritten with distributed data from EIA-923 Generation and Fuel"))
 
 # if (params$temporal_res == "annual") {
 #   gen_overwrite <-
@@ -559,17 +568,21 @@ gen_overwrite <-
   
 gen_overwrite2 <- 
   gen_overwrite %>%
-  select(-c(contains("tot"), contains("diff"), prop, nameplate_capacity)) %>%  # reducing columns for clarity and to facilitate QA
-  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) # %>% # creating unique id to identify duplicates
-  # filter(!(id_pm %in% unique(december_gen$id_pm))) # remove any generators that are December generators
+  # select(-c(contains("tot"), contains("diff"), prop, nameplate_capacity)) %>%  # reducing columns for clarity and to facilitate QA
+  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>% # creating unique id to identify duplicates
+  filter(!(id_pm %in% unique(december_gen$id_pm))) # remove any generators that are December generators
 
 print(glue::glue("{length(unique(gen_overwrite2$id_pm))} generators have generation data overwritten from EIA-923 Generator file with distributed data from EIA-923 Generation and Fuel due to percent difference >0.1% between data sources."))
 
 
 # Form generator file structure ------------
-check_dup_ids <-  
-  december_gen %>% 
-  filter(id_pm %in% gen_overwrite2$id_pm) %>% 
+# check_dup_ids <-  
+#   december_gen %>% 
+#   filter(id_pm %in% gen_overwrite2$id_pm) %>% 
+#   pull(id_pm)
+check_dup_ids <-
+  gen_overwrite2%>%
+  filter(id_pm %in% december_gen$id_pm) %>%
   pull(id_pm)
 
 # combine set of special cases
