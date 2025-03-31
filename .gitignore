@@ -13,7 +13,6 @@ brand
 qa_all.html
 qa_all_files
 qa_annual_comparison_files
-data/static_tables/qa/
 *.Rprofile
 data/static_tables/Thumbs.db
 README_files/
@@ -21,3 +20,4 @@ monthly_qa_files/
 monthly_qa_cache/
 monthly_qa_region_agg_files/
 data/2c_api/
+data/static_tables/historical_egrid/
