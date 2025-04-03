@@ -44,7 +44,7 @@ api_url_base <- "https://api.epa.gov/easey"
 # S3 bucket url base + s3Path (in get request) = the full path to the files
 bucket_url_base <- 'https://api.epa.gov/easey/bulk-files/'
 
-# CAMD Administrative Services API url to bulk data files endpoint
+# CAMPD Administrative Services API url to bulk data files endpoint
 services_url <- paste0(api_url_base,"/camd-services/bulk-files?API_KEY=", api_key)
 
 # executing get request
@@ -126,11 +126,11 @@ cols_to_sum <-
 
 ozone_months <- c(5:9) # setting ozone months, which are May through September
 
-# process and clean emissions data for all temporal_res conditions
+# # process and clean emissions data for all temporal_res conditions
 emissions_data_r <-
   emissions_data %>%
   rename_with(tolower) %>% # this protects NOx rates from getting split with clean_names()
-  janitor::clean_names() %>% 
+  janitor::clean_names() %>%
   mutate(year = as.character(year(date)), # extracting year from date
          month = month(date), # extracting month from date (needed for ozone)
          day = day(date) # extracting day from date
@@ -141,14 +141,14 @@ emissions_data_r <-
   mutate(reporting_months = paste(unique(month), collapse = ", "), # creating column with list of reporting months
          reporting_frequency = if_else(grepl("1|2|3|10|11|12", # filtering out non-ozone season reporting months, excluding april
                                                reporting_months), "Q", "OS")) %>% # assigning reporting frequency
-  ungroup()  
-  
+  ungroup()
+
 # conditional groupby columns, separated for easier comprehension
 emissions_groupby_cols <-
   emissions_data_r %>%
-  select(-c(all_of(cols_to_sum), reporting_months, reporting_frequency, year, month, day)) %>% # sum by columns outside of cols_to_sum & new vars 
+  select(-c(all_of(cols_to_sum), reporting_months, reporting_frequency, year, month, day)) %>% # sum by columns outside of cols_to_sum & new vars
   colnames()
-  
+
 emissions_select_cols <- c(temporal_res_cols, emissions_groupby_cols, cols_to_sum, "reporting_months", "reporting_frequency") # used to drop columns based on temporal_res (i.e. annual = drop "month", "day")
 emissions_groupby_cols <- c(temporal_res_cols, emissions_groupby_cols) # only sum to the specified temporal_res (i.e. annual = "year")
 
@@ -157,18 +157,18 @@ if (params$temporal_res == "annual") {
   emissions_data_r_2 <-
     emissions_data_r %>%
     group_by(pick(-c(all_of(cols_to_sum), day, reporting_months, reporting_frequency))) %>% # group_by month & year
-    reframe(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE)),
-            reporting_months = reporting_months,
-            reporting_frequency = reporting_frequency) %>% # aggregating emissions to monthly values first for ozone months
+    summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE)),
+              reporting_months = unique(reporting_months),
+              reporting_frequency = unique(reporting_frequency)) %>% # aggregating emissions to monthly values first for ozone months
     ungroup() %>%
-    distinct() %>% # reframe and not keep day
+    #distinct() %>% # reframe and not keep day
     group_by(pick(all_of(emissions_groupby_cols))) %>%
-    mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}"), # calculating annual emissions
-           across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
+    mutate(across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone"), # now calculating ozone month emissions
+           across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}")) %>% # calculating annual emissions 
     ungroup() %>%
     select(all_of(emissions_select_cols), contains("ozone")) %>%
     distinct() # removing duplicate rows that aren't needed after ozone calculation
-} else {  # for monthly, daily, and hourly temporal resolutions, only sum to temporal resolution
+ } else {  # for monthly, daily, and hourly temporal resolutions, only sum to temporal resolution
   emissions_data_r_2 <-
     emissions_data_r %>%
     group_by(pick(all_of(emissions_groupby_cols))) %>%

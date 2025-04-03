@@ -1130,9 +1130,14 @@ all_units_2 <-
 if(params$temporal_res == "monthly") { # some ozone reporters include April but is often reported as 0
   all_units_2 <- 
     all_units_2 %>% 
-    mutate(across(.cols = c("heat_input", "nox_mass", "so2_mass", "co2_mass"), 
+    mutate(across(.cols = c("heat_input", "nox_mass", "so2_mass", "co2_mass"),  
                   .fns = ~ if_else(reporting_frequency == "OS" & month == 4 & .x == 0, 
-                                   NA_real_, .x)))} # set as NA to fill during next step
+                                   NA_real_, .x)),
+           across(.cols = c("heat_input_source", "nox_source", "so2_source", "co2_source"), 
+                  .fns = ~ if_else(reporting_frequency == "OS" & month == 4 & 
+                                   is.na(get(str_replace_all(cur_column(), c("heat_input_source" = "heat_input", 
+                                                                             "source" = "mass")))), 
+                                   NA_character_, .x)))} # set as NA to fill during next step
 
 # identify units missing heat input values 
 
