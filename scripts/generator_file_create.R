@@ -460,6 +460,7 @@ gen_overwrite <-
          # generation = tot_generation_fuel * (prop / 12),
          # generation = tot_generation_fuel * prop,
          generation = if_else(overwrite != "overwrite" | tot_generation_fuel == 0 & !is.na(tot_generation), # flag: where there is difference if missing data in Generation and Fuel data
+          # generation = if_else(overwrite != "overwrite" | tot_generation_fuel < tot_generation,
                               tot_generation * prop,
                               tot_generation_fuel * prop),
          # test_generation = case_when(overwrite != "overwrite" ~ generation,
@@ -474,9 +475,9 @@ gen_overwrite <-
   
 gen_overwrite2 <- 
   gen_overwrite %>%
-  # select(-c(contains("tot"), contains("diff"), prop, nameplate_capacity)) %>%  # reducing columns for clarity and to facilitate QA
-  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>% # creating unique id to identify duplicates
-  filter(!(id_pm %in% unique(december_gen$id_pm))) # remove any generators that are December generators
+  select(plant_id, prime_mover, generator_id, year, month, gen_data_source, generation) %>%  # reducing columns for clarity and to facilitate QA
+  mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) # %>% # creating unique id to identify duplicates
+  # filter(!(id_pm %in% unique(december_gen$id_pm))) # remove any generators that are December generators
 
 print(glue::glue("{length(unique(gen_overwrite2$id_pm))} generators have generation data overwritten from EIA-923 Generator file with distributed data from EIA-923 Generation and Fuel due to percent difference >0.1% between data sources."))
 
@@ -517,6 +518,7 @@ generators_combined <-
 # check if the number of rows when combining gen_distributed and december_and_overwritten is correct
 gen_dist_no_dec_overwritten <- 
   generation_df %>% 
+  select(-net_generation_year_to_date) %>%
   mutate(id_pm = paste0(plant_id, "_", prime_mover, "_", generator_id)) %>%
   filter(!(id_pm %in% december_and_overwritten$id_pm))
 
@@ -543,13 +545,14 @@ if (params$temporal_res == "annual") {
     generators_combined %>%
     # group_by(year, plant_id, generator_id, prime_mover) %>%
     group_by(pick(-c(month, generation, gen_data_source))) %>%  # group by everything except month and generation
-    summarize(generation_oz = sum(generation[month %in% ozone_months], na.rm = TRUE),
-              generation = sum(generation, na.rm = TRUE)
+    mutate(generation_oz = sum(generation[month %in% ozone_months], na.rm = TRUE),
+           generation = sum(generation, na.rm = TRUE),
+           gen_data_source = paste(unique(gen_data_source), collapse = ", ")
            # generation_oz = unique(genertion_oz)
            ) %>%
-    ungroup() # %>%
-    # select(-month) %>%
-    # distinct() 
+    ungroup() %>%
+    select(-month) %>%
+    distinct(plant_id, generator_id, prime_mover, .keep_all = TRUE) 
 
 }
 
