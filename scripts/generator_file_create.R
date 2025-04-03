@@ -172,12 +172,15 @@ eia_923_gen_r <-
 
 eia_923_gen_dups <- # check for duplicates in EIA-923 Generator File
   eia_923_gen_r %>% 
-  group_by(plant_id, generator_id) %>% 
+  select(-c(month, net_generation)) %>% 
+  distinct() %>% # detect non-month duplicates
+  group_by(year, plant_id, generator_id) %>% 
   mutate(n = n(),
          id = paste0(plant_id, "_", generator_id)) %>% 
   filter(n > 1, 
          combined_heat_and_power_plant == "Y") %>%  # default to generators with "Y" CHP plant flag
-  ungroup()
+  ungroup() %>%
+  left_join(eia_923_gen_r) # add back in generation data
   
 eia_923_gen_r_2 <- 
   eia_923_gen_r %>% 
@@ -219,7 +222,7 @@ eia_gen_generation <- eia_860_combined_r %>%
                                 by = c("plant_id", "generator_id", "year", "month")) %>%
                       group_by(year, month, plant_id, generator_id, combined_heat_and_power_plant) %>% # group_by month (to keep necessary data for December gen and ozone calculations)
                       mutate(generation = sum(net_generation, na.rm = TRUE), # sum to month
-                             gen_data_source = if_else(is.na(net_generation_year_to_date), # label data source (double check whether to use OR condition)
+                             gen_data_source = if_else(is.na(net_generation), # label data source (double check whether to use OR condition)
                                                        NA_character_,
                                                        "EIA-923 Generator File")) %>%
                       ungroup() %>%
@@ -254,15 +257,15 @@ print(glue::glue("{nrow(filled_gen_data)} generators updated with generation val
 
 ### Generation from EIA-923 Generation and Fuel file at the plant/prime mover level ---------
 # 1. EIA-923 Generation and Fuel: Calculate generation at plant and prime mover level 
-  eia_gen_fuel_generation_sum <-
-    eia_923_gen_fuel %>% 
-    group_by(year, # group_by to year
-             plant_id, 
-             prime_mover,
-             month
-             ) %>% 
-    summarize(tot_generation_fuel = sum(netgen, na.rm = TRUE)) %>% # label summed generation with "fuel" for Generation and Fuel file
-    ungroup()
+eia_gen_fuel_generation_sum <-
+  eia_923_gen_fuel %>% 
+  group_by(year, # group_by to year
+           plant_id, 
+           prime_mover,
+           month
+           ) %>% 
+  summarize(tot_generation_fuel = sum(netgen, na.rm = TRUE)) %>% # label summed generation with "fuel" for Generation and Fuel file
+  ungroup()
 
 # 2. EIA-923 Generator Data: Calculate generation at plant and prime mover level 
 eia_gen_generation_sum <-
@@ -319,7 +322,7 @@ gen_distributed <-
   mutate(
          # generation = generation_diff * (prop / 12),
          generation = generation_diff * prop,
-         gen_data_source = if_else(!is.na(generation), "Distributed from EIA-923 Generation and Fuel", NA)) # if no calculated generation, leave source as NA 
+         gen_data_source = if_else(!is.na(generation), "Distributed from EIA-923 Generation and Fuel", NA_character_)) # if no calculated generation, leave source as NA 
 
 generation_df <- # flag: changed variable name, generation_df contains all plants, generators, and related data
   gen_distributed %>%
@@ -552,7 +555,8 @@ if (params$temporal_res == "annual") {
            ) %>%
     ungroup() %>%
     select(-month) %>%
-    distinct(plant_id, generator_id, prime_mover, .keep_all = TRUE) 
+    distinct(plant_id, generator_id, prime_mover, .keep_all = TRUE) %>%
+    mutate(gen_data_source = if_else(gen_data_source == "NA", NA_character_, gen_data_source))
 
 }
 
