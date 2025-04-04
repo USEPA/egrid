@@ -95,6 +95,14 @@ xwalk_balancing_authority <-
   select(subregion = subrgn, ba_code = balancing_authority_code) %>%
   glimpse()
 
+# 1204 (access has 1160)
+xwalk_subregion_transmission <-
+  read_csv("data/1_production_model/static_tables/xwalk_subregion_transmission.csv",
+           col_types = "cccc") %>%
+  janitor::clean_names() %>%
+  rename(ba_code = balancing_authority_code, transmission = transmission_or_distribution_system_owner_id, subregion = subrgn) %>%
+  glimpse()
+
 # Old Power Profiler  -------
 ### Create zipcode dataset -----------
 
@@ -369,7 +377,7 @@ zipcount <-
 
 zipsubregion6 <-
   zip_subregion_6 %>%
-  count(subregion) %>%
+  count(subregion, name = "n.6") %>%
   print(n = 27)
 
 zipsubregioncomp <-
@@ -382,48 +390,64 @@ zipsubregioncomp <-
 ################## HAVE CLEANED UP TO HERE #####################
 
 # NERC Region / BA / Transmission ID -----
-#38: CURRENT PROJECT
 
-# test <-
-#   zip_subregion_6 %>%
-#   inner_join(eia_861_sales_ult_cust, by = join_by("eiaid" == "utility_id")) %>%
-#   glimpse()
-# 
-# test2 <-
-#   test %>%
-#   inner_join(eia_861_utility_data_with_count, by = join_by("eiaid" == "utility_id")) %>%
-#   glimpse()
-
-# xwalk_balancing_authority_2 <-
-#   xwalk_balancing_authority %>%
-#   inner_join(test2, by = join_by("subregion" == "nerc_region.y", "ba_code" == "ba_code.x")) %>%
-#   glimpse()
-  
   #/////////////////////////////#
-  # currently there is no transission id in the ba authority
-  # need to finish number 38
-  
-# 1204 (access has 1160)
-xwalk_subregion_transmission <-
-  read_csv("data/1_production_model/static_tables/xwalk_subregion_transmission.csv",
-           col_types = "cccc") %>%
-  janitor::clean_names() %>%
-  rename(ba_code = balancing_authority_code, transmission = transmission_or_distribution_system_owner_id, subregion = subrgn) %>%
-  rename_with(~ paste(., "_transmission", sep = "")) %>%
+
+#38: 
+
+# this updates the transmission crosswalk first 
+
+join1 <-
+  zip_subregion_6 %>%
+  inner_join(eia_861_sales_ult_cust, by = c("eiaid" = "utility_number")) %>%
   glimpse()
 
-zip_subregion_7 <-
-  zip_subregion_6 %>%
-  left_join(eia_861_sales_ult_cust, by = c("eiaid" = "utility_id_eia_sales")) %>%
-  # glimpse()
-  left_join(eia_861_utility_data_with_count, by = c("eiaid" = "utility_id_eia_count")) %>%
-  # glimpse()
-  left_join(xwalk_subregion_transmission, by = c("nerc_region_eia_count" = "nerc_region_transmission", "ba_code_eia_sales" = "ba_code_transmission", "eiaid" = "transmission_transmission")) %>%
-    # glimpse()
-  mutate(method = if_else(is.na(subregion) & !is.na(subregion_transmission) | subregion == "" & !is.na(subregion_transmission), "nerc region/ba/transmission ID", method),
-         subregion = coalesce(subregion, subregion = subregion_transmission)) %>%
-  select(-contains(".")) %>%
+join2 <-
+  eia_861_utility_data_with_count %>%
+  inner_join(join1, by = c("utility_number" = "eiaid")) %>%
   glimpse()
+
+join3 <-
+  xwalk_subregion_transmission %>%
+  left_join(join2, by = c("nerc_region", "ba_code", "transmission" = "utility_number")) %>%
+  select(nerc_region, ba_code, transmission, subregion = subregion.y) %>%
+  distinct() %>%
+  glimpse()
+
+subregion_count <-
+  join3 %>%
+  count(subregion_transmission, name = "subregion_count") %>%
+  print()
+
+zip_subregion_7_test <-
+  zip_subregion_6 %>%
+  left_join(join3 %>%
+              select(transmission, subregion), by = c("eiaid" = "transmission")) %>%
+  mutate(method = if_else(is.na(subregion.x) & !is.na(subregion.y), "nerc region/ba/transmission ID", method),
+         subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
+  select(-contains(".")) %>%
+  distinct() %>%
+  glimpse()
+
+# zip_subregion_7 <-
+#   zip_subregion_6 %>%
+#   left_join(eia_861_sales_ult_cust %>%
+#               select(utility_number,
+#                      ba_code), 
+#             by = c("eiaid" = "utility_number")) %>%
+#   # glimpse()
+#   left_join(eia_861_utility_data_with_count %>%
+#               select(utility_number,
+#                      nerc_region), 
+#             by = c("eiaid" = "utility_number")) %>%
+#   # glimpse()
+#   left_join(xwalk_subregion_transmission, 
+#             by = c("nerc_region", "ba_code", "eiaid" = "transmission")) %>%
+#     # glimpse()
+#   mutate(method = if_else(is.na(subregion.x) & !is.na(subregion.y), "nerc region/ba/transmission ID", method),
+#          subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
+#   select(-contains("."), -ba_code, -nerc_region) %>%
+#   glimpse()
   
 #R (access)
 zipcount <- # ba 38981 (29702), nerc region 3004 (2861), nerc/ba/. 8629 (4455), old profiler 2852 (2782), plant file transm 42530 (22541), plant file utility 7762 (2616)
@@ -431,6 +455,20 @@ zipcount <- # ba 38981 (29702), nerc region 3004 (2861), nerc/ba/. 8629 (4455), 
   count(method) %>%
   print()
 
+zipsubregion7 <-
+  zip_subregion_7 %>%
+  count(subregion, name = "n.7") %>%
+  print(n = 27)
+
+zipsubregioncomp <-
+  zipsubregion7 %>%
+  full_join(zipsubregion6, by = "subregion") %>%
+  glimpse() %>%
+  # filter(n.6 != n.7) %>%
+  print(n = 27)
+
+
+#MROW - 4148
 #39:
 
 #40:
