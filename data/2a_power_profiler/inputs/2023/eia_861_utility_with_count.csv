@@ -1,0 +1,1716 @@
+﻿Data Year,Utility Number,Utility Name,State,Ownership Type,NERC Region,TRE,FRCC,MRO,NPCC,RFC,SERC,SPP,WECC,CAISO,ERCOT,PJM,NYISO,Field19,MISO,ISONE,Other,Count of ISORTO,Generation,Transmission,Buying Transmission,Distribution,Buying Distribution,Wholesale Marketing,Retail Marketing,Bundled,Alt Fuel Vehicle,Alt Fuel Vehicle 2
+2023,55,City of Aberdeen - (MS),MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,84,A & N Electric Coop,VA,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,N,,Y,,,,,Y,Y
+2023,108,Adams-Columbia Electric Coop,WI,Cooperative,MRO,,,Y,,N,,,,,,,,,Y,,,1,,,Y,Y,Y,,,,,
+2023,113,"Agway Energy Services, LLC",NY,Retail Power Marketer,NPCC,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,,
+2023,123,City of Adel- (GA),GA,Municipal,SERC,Y,,,,,Y,,,,,,,,,,,0,,,Y,Y,,,Y,Y,,
+2023,155,Agralite Electric Coop,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,Y,Y,N,,,,Y,Y
+2023,162,Aiken Electric Coop Inc,SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,176,Ajo Improvement Co,AZ,Investor Owned,WECC,,,,,,,,Y,,,,,,,,,0,,,,,,,,Y,N,
+2023,189,PowerSouth Energy Cooperative,AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,Y,Y,Y,,,Y,,N,Y,Y
+2023,195,Alabama Power Co,AL,Investor Owned,SERC,,,,,,Y,,,,,,,,,,,0,Y,Y,Y,Y,,Y,Y,Y,Y,Y
+2023,207,Alameda Municipal Power,CA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,,1,,,,Y,,,N,,Y,Y
+2023,213,Alaska Electric Light & Power Co.,AK,Investor Owned,AK,,,,,,,,,,,,,,,,,0,Y,Y,,Y,,,,,Y,Y
+2023,219,Alaska Power and Telephone Co,AK,Investor Owned,AK,,,,,,,,,,,,,,,,,0,Y,Y,,Y,,Y,Y,,Y,Y
+2023,221,"Alaska Village Elec Coop, Inc",AK,Cooperative,AK,,,,,,,,,,,,,,,,Y,1,Y,,,Y,,,,,,
+2023,230,Albany Utility Board,GA,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,232,City of Albemarle - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,N,,Y,,,,,,
+2023,240,Albemarle Electric Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,241,Albertville Municipal Utilities Board,AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,261,AGC Division of APGI Inc,PA,Investor Owned,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,,Y,Y,,Y,,Y,N,
+2023,276,Alcorn County Elec Power Assn,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,295,City of Alexandria - (MN),MN,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,,Y,Y,Y,,Y,Y,,
+2023,296,"Alfalfa Electric Coop, Inc",OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,298,City of Alexandria - (LA),LA,Municipal,SERC,,,,,,Y,N,,,,,,N,Y,,,1,Y,Y,Y,Y,,,,Y,Y,Y
+2023,305,Alger-Delta Coop Electric Assn,MI,Cooperative,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,307,Algoma Utility Comm,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,332,Allegheny Electric Coop Inc,PA,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,Y,Y,,,,,,,
+2023,343,AEP Generating Company,OH,Investor Owned,RFC,,,,,Y,,,,,,,,,,,,0,Y,,,,,Y,,,Y,Y
+2023,392,Alpena Power Co,MI,Investor Owned,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,407,Altamaha Electric Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,416,City of Altus - (OK),OK,Municipal,MRO,,,Y,,,,N,,,,,,Y,,,,1,,N,,Y,,,N,N,,
+2023,471,Amana Society Service Co,IA,Investor Owned,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,,Y,,,,Y,,
+2023,540,BP Energy Company,TX,Retail Power Marketer,TRE,N,,,,,,,,,Y,,,,,,,1,,,,,,Y,Y,,,
+2023,554,City of Ames - (IA),IA,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,Y,,N,,,Y,Y
+2023,562,Amicalola Electric Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,571,City of Amory,MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,577,City of Alcoa Utilities,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,590,City of Anaheim - (CA),CA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,,1,N,Y,Y,Y,,Y,Y,Y,Y,Y
+2023,604,City of Andalusia,AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,636,City of Anderson - (IN),IN,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,N,,
+2023,659,American Transmission Co,WI,Transmission,,,,Y,,Y,,,,,,,,,Y,,,1,,Y,,,,,,,Y,Y
+2023,689,Connexus Energy,MN,Cooperative,MRO,,,Y,,,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,690,City of Bardstown - (KY),KY,Municipal,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,,N,,,,
+2023,691,City of Anoka,MN,Municipal,MRO,,,Y,,,,,,,,,,,Y,,N,1,,,,Y,,,,,N,N
+2023,712,Arkansas River Power Authority,CO,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,,
+2023,719,Town of Apex- (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,727,Appalachian Electric Coop,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,733,Appalachian Power Co,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,Y,Y,Y,N,Y,,,Y,Y
+2023,750,Arab Electric Coop Inc,AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,796,Arizona Electric Pwr Coop Inc,AZ,Cooperative,WECC,,,,,,,,Y,N,,,,,,,Y,1,Y,Y,Y,,,Y,,,N,N
+2023,798,Arizona Power Authority,AZ,State,WECC,,,,,,,,Y,,,,,,,,Y,1,,,N,,,Y,,,,
+2023,803,Arizona Public Service Co,AZ,Investor Owned,WECC,,,,,,,,Y,,,,,,,,,0,Y,Y,,Y,Y,Y,,,Y,Y
+2023,807,Arkansas Electric Coop Corp,AR,Cooperative,SPP,,,,,,,Y,,,,,,Y,Y,,,2,Y,Y,Y,,,Y,,,N,
+2023,814,Entergy Arkansas LLC,AR,Investor Owned,SERC,,,,,,Y,,,,,,,,Y,,,1,Y,Y,Y,Y,Y,,,,Y,Y
+2023,817,Arkansas Valley Elec Coop Corp,AR,Cooperative,SERC,,,,,N,N,Y,,,,,,N,N,,Y,1,,,,Y,,,,,N,
+2023,924,"Associated Electric Coop, Inc",MO,Transmission,SERC,,,,,,Y,,,,,,,,,,Y,1,Y,Y,Y,,,Y,,,,
+2023,944,City of Athens - (AL),AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,947,Athens Utility Board,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,963,Atlantic City Electric Co,NJ,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,Y,Y,N,Y,N,N,Y,Y
+2023,970,Homefield Energy,TX,Retail Power Marketer,RFC,,,,,Y,,,,,,Y,,,Y,,,2,,,,,,Y,Y,,,
+2023,994,City of Auburn - (IN),IN,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,,Y,,,,,,
+2023,1009,City of Austin - (MN),MN,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,N,N,,Y,N,,Y,Y,,
+2023,1015,Austin Energy,TX,Municipal,TRE,Y,,,,,,,,,Y,,,,,,,1,Y,Y,N,Y,,Y,Y,,Y,Y
+2023,1050,City of Azusa,CA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,,1,,Y,,Y,,Y,N,Y,Y,Y
+2023,1149,Baldwin County El Member Corp,AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,1167,Baltimore Gas & Electric Co,MD,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,,Y,,,,,Y,Y
+2023,1169,Bailey County Elec Coop Assn,TX,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,1175,"Bandera Electric Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,Y,,Y,,,,,Y,Y
+2023,1179,Versant Power,ME,Investor Owned,NPCC,,,,Y,,,,,,,,,,,Y,,1,N,Y,,Y,,,,,Y,Y
+2023,1196,Village of Baraga - (MI),MI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,1251,Barron Electric Coop,WI,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,1273,"Bartlett Electric Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,,
+2023,1283,Bartholomew County Rural E M C,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,1300,City of Bartow - (FL),FL,Municipal,FRCC,N,Y,,,,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,1307,Basin Electric Power Coop,ND,Cooperative,SPP,,,Y,,,,Y,Y,,,,,Y,Y,,,2,Y,Y,Y,Y,,Y,,N,Y,Y
+2023,1325,City of Batavia - (IL),IL,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,N,,Y,,,,,,Y
+2023,1366,City of Bay City - (MI),MI,Municipal,RFC,,,,,Y,,,,,,N,,,Y,,,1,Y,,Y,Y,,N,,,,
+2023,1456,Town of Bedford - (VA),VA,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,,Y,Y,,,,,N,
+2023,1458,"Beauregard Electric Coop, Inc",LA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,N,,N,
+2023,1529,"Beltrami Electric Coop, Inc",MN,Cooperative,MRO,,,Y,,,,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,1572,Badger Power Marketing Authority,WI,Wholesale Power Marketer,RFC,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,1578,Benton County,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,1579,PUD No 1 of Benton County,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,,Y,Y,Y,Y,Y,Y,Y,Y,Y
+2023,1581,City of Benton - (AR),AR,Municipal,SERC,,,,,,Y,,,,,,,,Y,,N,1,,,,Y,,,,,N,
+2023,1582,City of Benton - (KY),KY,Municipal,SERC,,,,,Y,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,1586,City of Bentonville - (AR),AR,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,,N,N,Y,,,,,N,
+2023,1591,"Big Country Electric Coop, Inc",TX,Cooperative,TRE,Y,,,,,,Y,,N,Y,,,Y,,,Y,3,,N,,Y,,,,,N,N
+2023,1611,"Messer Energy Services, Inc.",NJ,Retail Power Marketer,RFC,,,,Y,Y,Y,,,,,Y,Y,,Y,Y,,4,,,,,,,Y,,,
+2023,1613,Berkeley Electric Coop Inc,SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,1625,Benton Rural Electric Assn,WA,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,Y,,Y,,,,,,
+2023,1640,City of Bessemer Utilities,AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,1692,Big Rivers Electric Corp,KY,Cooperative,SERC,N,,,,N,Y,,,,,,,,Y,,,1,Y,Y,Y,,,Y,,,,
+2023,1708,Big Sandy Rural Elec Coop Corp,KY,Cooperative,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,1723,"Big Bend Electric Coop, Inc",WA,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,N,
+2023,1738,Bonneville Power Administration,OR,Federal,WECC,,,,,,,,Y,,,,,,,,Y,1,,Y,Y,N,,Y,,,Y,Y
+2023,1763,"Black River Electric Coop, Inc - (SC)",SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,1764,Black Diamond Power Co,WV,Investor Owned,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,1769,"Black Hills Electric Coop, Inc",SD,Cooperative,WECC,,,,,,,N,Y,,,,,Y,,,,1,,N,Y,Y,,,,,,
+2023,1775,Black River Electric Coop - (MO),MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,N,
+2023,1776,City of Black River Falls,WI,Municipal,MISO,,,Y,,,,,,,,,,,Y,,,1,Y,,,Y,,,,,Y,Y
+2023,1780,Black Warrior Elec Member Corp,AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,N,Y,,,,,,
+2023,1857,Block Island Utility District,RI,Political Subdivision,NPCC,,,,Y,,,,,,,,,,,Y,N,1,Y,N,,Y,,,,,N,
+2023,1884,BENCO Electric Cooperative,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,1886,Blue Grass Energy Coop Corp,KY,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,Y,Y
+2023,1889,Blue Ridge Elec Member Corp - (NC),NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,N,,Y,,,,,Y,Y
+2023,1890,Blue Ridge Electric Coop Inc - (SC),SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,1891,Blue Ridge Mountain EMC - (GA),GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,1892,"Bluebonnet Electric Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,Y,Y,Y,,,,,Y,Y
+2023,1896,City of Bluffton - (IN),IN,Municipal,RFC,,,,,Y,,,,,,Y,,,,,N,1,N,,,Y,,,,Y,N,
+2023,1936,Bolivar Energy Authority,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,1997,City of Boscobel - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,2001,Boone Electric Coop,MO,Cooperative,SERC,,,,,,Y,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,2008,City of Boulder City - (NV),NV,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,Y,Y,Y
+2023,2010,City of Bountiful,UT,Municipal,WECC,,,,,,,,Y,,,,,,,,,0,Y,,,Y,,,,,,
+2023,2049,"Bowie-Cass Electric Coop, Inc",TX,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,Y,,Y,Y,,Y,,,
+2023,2054,City of Bowling Green - (OH),OH,Municipal,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,,,,Y,N,N
+2023,2056,City of Bowling Green - (KY),KY,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,2089,Bozrah Light & Power Company,CT,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,,Y,,,,,Y,Y
+2023,2144,Town of Braintree - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,Y,Y,Y,,N,N,N,Y,Y
+2023,2152,Powerex Corporation,CN,Wholesale Power Marketer,WECC,,,,,,,,,,,,,,,,,0,,,Y,,,Y,,,,
+2023,2172,Brazos Electric Power Coop Inc,TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,Y,Y,Y,,,,,,,
+2023,2194,City of Brenham - (TX),TX,Municipal,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,Y,Y
+2023,2212,"Broad River Electric Coop, Inc",SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,N,,,Y,,,,,,
+2023,2247,City of Bristol - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,2248,Bristol Virginia Utilities,VA,Municipal,SERC,,,,,N,Y,,,,,,,,,,,0,,,,Y,,,,Y,N,N
+2023,2273,Brodhead Water & Lighting Comm,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,2285,City of Brookings - (SD),SD,Municipal,MRO,,,Y,,,,,,,,,,Y,N,,,1,,,,Y,,,,,,
+2023,2394,Burke-Divide Electric Coop Inc,ND,Cooperative,MRO,,,Y,,,,N,,,,,,Y,,,N,1,,Y,,Y,,,,,Y,Y
+2023,2409,Brownsville Public Utilities Board,TX,Municipal,TRE,Y,,,,,,,,,Y,,,,,,,1,Y,Y,Y,Y,,Y,,Y,,
+2023,2411,City of Brownsville,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,2442,City of Bryan - (TX),TX,Municipal,TRE,Y,,,,,,,,,Y,,,,,,,1,Y,Y,Y,Y,,Y,,,,
+2023,2481,Cargill Power Markets LLC,MN,Wholesale Power Marketer,MRO,,,,,,,,,,,,,,,,Y,1,,,Y,,Y,Y,N,,,
+2023,2487,City of Buford,GA,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,Y,,
+2023,2502,"Buckeye Rural Elec Coop, Inc",OH,Cooperative,RFC,N,,,,Y,,,,,,Y,,,,,,1,,,N,Y,N,,,,N,
+2023,2507,City of Burbank Water and Power,CA,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,Y,Y,Y,Y
+2023,2548,City of Burlington Electric - (VT),VT,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,2643,Butler Public Power District - (NE),NE,Political Subdivision,MRO,,,,,,,N,,,,,,Y,,,,1,,N,,Y,,,,,,
+2023,2651,Butler Rural Electric Coop Inc - (OH),OH,Cooperative,RFC,,,,,Y,,,,,,Y,,,N,,,1,,,,Y,,,,,Y,Y
+2023,2652,Butler County Rural Elec Coop - (IA),IA,Cooperative,MRO,,,Y,,,,,,,,,,Y,,,N,1,,,,Y,,,,,,
+2023,2678,C & L Electric Coop Corp,AR,Cooperative,SPP,,,,,,N,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,2774,CMS Electric Coop Inc,KS,Cooperative,SPP,,,,,,,Y,,,,,,,,,Y,1,,,,Y,,,,,N,
+2023,2812,City of Calhoun - (GA),GA,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,N,,,Y,,,Y,Y,,
+2023,2830,Calpine Power America LLC,TX,Retail Power Marketer,TRE,N,,,,,,,,Y,Y,,,,,Y,,3,,,Y,,Y,,Y,,,
+2023,2849,Central Electric Power Assn - (MS),MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,2857,Calpine Energy Services LP,TX,Wholesale Power Marketer,,N,N,N,N,N,N,N,N,,,,,,,,,0,,,Y,,,Y,,,,
+2023,2903,Canoochee Electric Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,2911,"Canadian Valley Elec Coop, Inc",OK,Cooperative,SPP,,,,,,,N,,,,,,,,,,0,,,,Y,,,,,,
+2023,2960,"Caney Fork Electric Coop, Inc",TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,2985,"Capital Electric Coop, Inc",ND,Cooperative,MRO,,,N,,,,Y,,,,,,N,,,Y,1,,N,,Y,,,,,Y,Y
+2023,3046,Duke Energy Progress - (NC),NC,Investor Owned,SERC,N,,,,,Y,,,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,3075,Carroll County - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,3081,Carroll Electric Member Corp - (GA),GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,3093,Carroll Electric Coop Corp - (AR),AR,Cooperative,SPP,,,,,,,Y,,,,,,Y,Y,,,2,,N,,Y,,,,,Y,Y
+2023,3107,Carteret-Craven El Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,Y,Y,Y,,,,N,,
+2023,3108,City of Cartersville - (GA),GA,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,3113,City of Carthage - (MO),MO,Municipal,SPP,,,Y,,,,Y,,,,,,Y,N,,,1,Y,,Y,Y,,,,,N,
+2023,3203,Cedar Falls Utilities,IA,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,3205,Cedar-Knox Public Power Dist,NE,Political Subdivision,MRO,,,Y,,,,,,,,,,Y,,,,1,,,,Y,,,,,Y,Y
+2023,3208,Cedarburg Light & Water Comm,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,3216,City of Celina - (OH),OH,Municipal,RFC,N,,,,Y,,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,3222,Central Alabama Electric Coop,AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,3226,"Central Rural Electric Cooperative, Inc",OK,Cooperative,,,,,,,N,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,3236,"Central Electric Coop, Inc - (SD)",SD,Cooperative,MRO,,,,,Y,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,3240,Central Electric Coop Inc - (OR),OR,Cooperative,,,,,,,,,Y,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,3242,Central Electric Power Coop - (MO),MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,N,Y,,,,,,,,
+2023,3245,"Central Florida Elec Coop, Inc",FL,Cooperative,FRCC,,Y,,,,,,,,,,,,,,Y,1,,N,,Y,,,,,,
+2023,3248,Central Georgia El Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,3249,Central Hudson Gas & Elec Corp,NY,Investor Owned,NPCC,,,,Y,,,,,,,,Y,,,,,1,Y,Y,,Y,,Y,,Y,Y,Y
+2023,3250,Central Electric Membership Corp. - (NC),NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,3255,California Dept. of Water Resources,CA,State,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,Y,N,,,Y,,Y,Y,Y
+2023,3258,Central Iowa Power Cooperative,IA,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,,,,,,,
+2023,3264,Central Lincoln People's Ut Dt,OR,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,3265,Cleco Power LLC,LA,Investor Owned,SPP,,,,,,,Y,,,,,,,Y,,,1,Y,Y,Y,Y,,Y,Y,,N,
+2023,3266,Central Maine Power Co,ME,Investor Owned,NPCC,,,,Y,,,,,,,,,,,Y,,1,,Y,Y,Y,,,,,Y,Y
+2023,3268,Central Missouri Elec Coop Inc,MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,3271,Central Nebraska Pub P&I Dist,NE,Political Subdivision,MRO,,,Y,,,,,,,,,,Y,,,,1,Y,Y,,,,,,,,
+2023,3273,"Central New Mexico El Coop, Inc",NM,Cooperative,WECC,,,,,,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,3278,AEP Texas Central Company,OK,Investor Owned,TRE,Y,,,,,,,,,Y,,,,,,,1,N,Y,Y,Y,,N,,,Y,Y
+2023,3279,"Central Power Elec Coop, Inc",ND,Cooperative,MRO,,,Y,,,,N,,,,,,Y,Y,,N,2,,Y,Y,N,,,,,,
+2023,3282,"Central Texas Elec Coop, Inc",TX,Cooperative,,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,,
+2023,3287,"Central Valley Elec Coop, Inc",NM,Cooperative,SPP,,,,,,,Y,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,3291,Central Virginia Electric Coop,VA,Cooperative,SERC,,,,,N,Y,,,,,Y,,,,,,1,N,,,Y,,,,,Y,Y
+2023,3295,City of Centralia - (WA),WA,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,N,Y,Y,,N,N,,,
+2023,3329,Borough of Chambersburg,PA,Municipal,RFC,N,,,,Y,,,,,,Y,,,,,,1,Y,,,Y,,,,,,
+2023,3355,City of Chanute,KS,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,N,Y,Y,,,,,,
+2023,3400,City of Chaska - (MN),MN,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,3408,City of Chattanooga - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,3413,PUD No 1 of Chelan County,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,Y,Y,Y,Y
+2023,3426,Cherokee Electric Coop - (AL),AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,N,,,Y,,,,,,
+2023,3436,Cherryland Electric Coop Inc,MI,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,3461,Cheyenne Light Fuel & Power,SD,Investor Owned,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,3470,Cherokee County Elec Coop Assn - (TX),TX,Cooperative,TRE,Y,,,,,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,3475,City of Chickamauga,GA,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,3477,City of Chicopee - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,3478,Cimarron Electric Coop,OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,N,N
+2023,3502,"Choctawhatche Elec Coop, Inc",FL,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,3503,"Choptank Electric Cooperative, Inc",MD,Cooperative,RFC,,,,,N,,,,,,Y,,,,,,1,,,,Y,N,,Y,,Y,Y
+2023,3519,Central Minnesota Municipal Power Agency,MN,Political Subdivision,MRO,,,Y,,,,,,,,,,,Y,,,1,,Y,Y,,,Y,,N,N,N
+2023,3522,Chugach Electric Assn Inc,AK,Cooperative,AK,,,,,,,,,,,,,,,,Y,1,Y,Y,,Y,,,,,Y,Y
+2023,3527,Choctaw Electric Coop Inc,OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,N,
+2023,3542,Duke Energy Ohio Inc,OH,Investor Owned,RFC,N,,,N,Y,,,,,,Y,,,N,,,1,N,Y,Y,Y,,Y,,Y,Y,Y
+2023,3597,Citizens Electric Co - (PA),PA,Investor Owned,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,3600,Citizens Electric Corporation - (MO),MO,Cooperative,SERC,,,,,N,Y,,,,,,,,Y,,,1,,N,Y,Y,N,,,,,
+2023,3601,Boston Energy Trading and Marketing LLC,MA,Wholesale Power Marketer,,,,,,N,,,,Y,Y,Y,,,Y,Y,,5,,,,,,Y,,,,
+2023,3641,"Claiborne Electric Coop, Inc",LA,Cooperative,SERC,,,,,,,Y,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,3644,PUD No 1 of Clallam County,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,N,,,,Y,Y
+2023,3647,City of Claremore,OK,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,Y,,
+2023,3660,PUD No 1 of Clark County - (WA),WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,N,,Y,,,,,Y,Y
+2023,3687,Clark Energy Coop Inc - (KY),KY,Cooperative,SERC,,,,,,Y,,,,,N,,,,,Y,1,,,,Y,,,,,,
+2023,3704,City of Clarksville - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,3705,Clarksville Connected Utilities,AR,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,3712,Clay County Electric Coop Corp - (AR),AR,Cooperative,SERC,,,,,,Y,,,,,,,Y,Y,,,2,,,,Y,,,,,,
+2023,3755,Cleveland Electric Illum Co,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,N,,,1,N,N,N,Y,,Y,N,,Y,Y
+2023,3757,"Clay Electric Cooperative, Inc - (FL)",FL,Cooperative,FRCC,,Y,,,,,,,,,,,,,,Y,1,,N,,Y,,,,,Y,Y
+2023,3758,City of Cleveland - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,3762,City of Cleveland - (OH),OH,Municipal,RFC,Y,,,,Y,,,,,,Y,,,N,N,,1,Y,,Y,Y,,,,,Y,Y
+2023,3812,City of Clinton - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,3824,Clyde Light & Power,OH,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,N,Y,Y,,,,,,
+2023,3828,Cloverland Electric Co-op,MI,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,,Y,Y,,,,,,
+2023,3841,Coast Electric Power Assn - (MS),MS,Cooperative,SERC,,,,,,Y,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,3843,Coastal Electric Member Corp - (GA),GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,3855,Columbia Power System - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,3892,City of Coffeyville - (KS),KS,Municipal,SPP,,,Y,,,,N,,,,,,Y,,,,1,Y,Y,Y,Y,,,,,,
+2023,3915,Coldwater Board of Public Util,MI,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,N,N,,Y,,,,,N,N
+2023,3916,Cobb Electric Membership Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,N,,Y,Y,,Y,,,Y,Y
+2023,3931,Coles-Moultrie Electric Coop,IL,Cooperative,SERC,,,,,N,Y,,,,,,,,Y,,,1,,,,Y,,,,,N,N
+2023,3939,City of College Park - (GA),GA,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,Y,Y,Y,N,N
+2023,3940,City of College Station - (TX),TX,Municipal,TRE,Y,,,,,,,,,Y,,,,,,,1,,Y,,Y,,,,Y,N,N
+2023,3989,City of Colorado Springs - (CO),CO,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,N,Y,Y,Y
+2023,3991,CMS Energy Resource Management,MI,Retail Power Marketer,RFC,,,,,,,,,,,,,,Y,,,1,,,,,,Y,Y,,,
+2023,4003,City of Colton - (CA),CA,Municipal,WECC,,,,,,,Y,Y,Y,,,,,,,,1,Y,Y,Y,Y,,Y,Y,Y,Y,Y
+2023,4041,"Columbia Rural Elec Assn, Inc",WA,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,4045,City of Columbia - (MO),MO,Municipal,SERC,,,,,N,Y,,,,,,,,Y,,,1,Y,Y,Y,Y,,,,Y,Y,Y
+2023,4063,Co-Mo Electric Coop Inc,MO,Cooperative,SERC,,,Y,,,N,,,,,,,,,,Y,1,,,,Y,N,,,,,
+2023,4065,City of Columbus - (OH),OH,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,N,,Y,Y,,Y,,,Y,Y
+2023,4068,City of Columbus - (MS),MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,4073,City of Columbus - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,4100,Just Energy Solutions Inc.,CA,Retail Power Marketer,WECC,,,,,,,,,,,,,,,,,0,,,,,,,Y,,,
+2023,4110,Commonwealth Edison Co,IL,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,Y,Y,,,,Y,Y,Y
+2023,4146,Concho Valley Elec Coop Inc,TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,Y,,Y,,,,,N,
+2023,4150,City of Concord - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,N,,Y,Y,Y,,,,Y,Y
+2023,4153,"Concordia Electric Coop, Inc",LA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,N,Y,Y,,,,,,
+2023,4160,Callaway Electric Cooperative,MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,4166,"CECG Maine, LLC",MD,Wholesale Power Marketer,RFC,,,,,Y,,,,,,,,,,,,0,,,,,,Y,Y,,,
+2023,4176,Connecticut Light & Power Co,CT,Investor Owned,NPCC,,,,Y,,,,,,,,,,,Y,,1,,Y,Y,Y,,Y,Y,,Y,Y
+2023,4180,Connecticut Mun Elec Engy Coop,CT,Municipal Mktg Authority,NPCC,,,,Y,,,,,,,,,,,Y,,1,N,Y,Y,Y,Y,Y,Y,,N,
+2023,4226,Consolidated Edison Co-NY Inc,NY,Investor Owned,NPCC,,,N,Y,,,,,,,,Y,,,,,1,Y,Y,Y,Y,,Y,,N,Y,Y
+2023,4237,Consolidated Electric Coop,MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,4247,Consolidated Water Power Co,WI,Investor Owned,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,,,Y,,,,,,
+2023,4254,Consumers Energy Co - (MI),MI,Investor Owned,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,N,Y,Y,,,,Y,Y,Y
+2023,4262,Cooke County Elec Coop Assn,TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,N,
+2023,4265,Continental Divide El Coop Inc,NM,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,N,,Y,,,,,,
+2023,4280,Conway Corporation,AR,Municipal,SERC,,,,,,Y,N,,,,,,,,,Y,1,Y,,,Y,,,,Y,Y,Y
+2023,4294,City of Cookeville - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,4295,Comanche County Elec Coop Assn,TX,Cooperative,TRE,Y,,,,,,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,4296,"Cookson Hills Elec Coop, Inc",OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,Y,2,,,,Y,,,,N,Y,Y
+2023,4317,"Coos-Curry Electric Coop, Inc",OR,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,4327,Coosa Valley Electric Coop Inc,AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,4356,Colorado River Comm of Nevada,NV,State,WECC,,,,,,,,Y,,,,,,,,Y,1,,Y,Y,N,Y,Y,Y,,,
+2023,4362,Corn Belt Energy Corporation,IL,Cooperative,RFC,,,,N,Y,,,,,,,,,Y,,,1,,Y,,Y,,,,N,Y,Y
+2023,4363,Corn Belt Power Coop,IA,Cooperative,MRO,,,Y,,,,,,,,,,Y,,,N,1,Y,Y,Y,,,Y,,,Y,Y
+2023,4373,Cornhusker Public Power Dist,NE,Political Subdivision,MRO,,,,,,,N,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,4390,City of Corona - (CA),CA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,,1,,,Y,Y,,Y,Y,Y,Y,Y
+2023,4401,"Cotton Electric Coop, Inc",OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,Y,Y
+2023,4410,"Shell Energy North America (US), L.P.",TX,Retail Power Marketer,TRE,N,,,,,,,N,,N,N,N,,,,,0,,Y,,,,Y,Y,,N,
+2023,4430,"Covington Electric Coop, Inc",AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,4432,Coweta-Fayette El Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,Y
+2023,4433,City of Covington - (GA),GA,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,N,Y,Y
+2023,4437,City of Covington - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,4442,PUD No 1 of Cowlitz County,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,,,Y,,,,,,Y
+2023,4508,"Crawfordsville Elec, Lgt & Pwr",IN,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,N,Y,,Y,,,,,Y,Y
+2023,4509,Craighead Electric Coop Corp,AR,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,4524,"Crawford Electric Coop, Inc",MO,Cooperative,SERC,,,,,,Y,,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,4538,Crisp County Power Comm,GA,Political Subdivision,SERC,N,,,,,Y,,,,,,,,,,,0,Y,,,Y,,,Y,,,
+2023,4577,Crow Wing Cooperative Power & Light Comp,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,4604,City of Crystal Falls,MI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,Y,,N,Y,N,,,,,
+2023,4607,City of Cuba City,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,4617,Cullman Power Board,AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,4618,"Cullman Electric Coop, Inc",AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,4622,"Cumberland Valley Electric, Inc.",KY,Cooperative,SERC,,,,,,Y,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,4624,Cumberland Elec Member Corp,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,4671,Custer Public Power District,NE,Political Subdivision,MRO,,,,,,,Y,,,,,,Y,,,,1,,N,,Y,,,,,Y,Y
+2023,4675,Cuivre River Electric Coop Inc,MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,N,
+2023,4683,City of Cuyahoga Falls - (OH),OH,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,4715,Dahlberg Light & Power Co,WI,Investor Owned,MRO,,,Y,,,,,,,,,,,Y,,,1,N,N,,Y,N,,,,N,
+2023,4716,Dairyland Power Coop,WI,Cooperative,MRO,,,Y,N,,,,,,,,,,Y,,,1,Y,Y,Y,,,Y,,,Y,Y
+2023,4717,Dakota Valley Elec Coop Inc,ND,Cooperative,MRO,,,Y,,,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,4720,Dakota Energy Coop Inc,SD,Cooperative,SPP,,,N,,,,Y,,,,,,N,,,Y,1,,,,Y,,,,,,
+2023,4743,"Consumers Power, Inc",OR,Cooperative,WECC,,,,,,,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,4744,Dalton Utilities,GA,Municipal,SERC,,,,,,Y,,,,N,,,,,,Y,1,Y,Y,,Y,,,,Y,Y,Y
+2023,4794,City of Danville - (VA),VA,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,,,,,Y,,
+2023,4848,Daviess Martin County R E M C,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,4911,Dawson Power District,NE,Political Subdivision,MRO,,,Y,,,,N,,,,,,Y,,,,1,,Y,,Y,,,,,Y,Y
+2023,4920,City of Dayton - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,4922,Dayton Power & Light Co,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,N,Y,Y,Y,,Y,,,Y,Y
+2023,4939,"Deaf Smith Electric Coop, Inc",TX,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,N,,Y,,,N,,,
+2023,4958,Decatur Utilities,AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,4960,Decatur County Rural E M C,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,4975,Deep East Texas Elec Coop Inc,TX,Cooperative,TRE,Y,,,,,Y,Y,,,N,,,Y,N,,,1,,Y,,Y,,,,,,
+2023,5027,Delmarva Power,DE,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,Y,Y,N,Y,,N,Y,Y
+2023,5063,City of Denton - (TX),TX,Municipal,TRE,Y,,,,,,,,,Y,,,,,,,1,Y,Y,,Y,,Y,,Y,Y,Y
+2023,5070,Delaware Electric Cooperative,DE,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,,,Y,,,,,,
+2023,5078,"Denton County Elec Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,Y,Y
+2023,5086,Delta Montrose Electric Assn,CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,,,Y,,,,,Y,Y
+2023,5109,DTE Electric Company,MI,Investor Owned,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,,Y,Y,,Y,Y,Y,Y,Y
+2023,5148,City of Dickson,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,5175,Dixie Electric Power Assn - (MS),MS,Cooperative,SERC,,,,,,Y,,,,N,,,,Y,,N,1,,,,Y,,,,,,
+2023,5202,Dixie Electric Membership Corp - (LA),LA,Cooperative,SERC,,,,,,Y,,,,,,,N,Y,,,1,,,,Y,,,,,N,
+2023,5204,Dixie Electric Coop - (AL),AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,5309,City of Dothan - (AL),AL,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,N,,Y,,,,Y,Y,Y
+2023,5325,City of Douglas,GA,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,N,,Y,Y,,,,,Y,Y
+2023,5326,PUD No 1 of Douglas County,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,N,,,,,,,N,
+2023,5335,City of Dover - (DE),DE,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,,,Y,,,,,N,N
+2023,5336,City of Dover - (OH),OH,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,N,Y,Y,,,,Y,N,
+2023,5394,Dubois Rural Electric Coop Inc,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,5399,Duck River Elec Member Corp,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,5416,"Duke Energy Carolinas, LLC",NC,Investor Owned,SERC,,,,,,Y,,,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,5417,Dunn County Electric Coop,WI,Cooperative,MRO,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,N,
+2023,5470,ConocoPhillips Company,TX,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,N,,Y,,,Y,Y,,,
+2023,5480,Town of Danvers,MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,,Y,,Y,,Y,Y,Y
+2023,5487,Duquesne Light Co,PA,Investor Owned,RFC,,,,,Y,,,,,,,,,,,,0,,Y,,Y,,,Y,,Y,Y
+2023,5509,City of Dyersburg,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,5535,Egyptian Electric Coop Assn,IL,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,5551,City of Eagle River - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,5552,"East River Elec Pwr Coop, Inc",SD,Cooperative,MRO,,,Y,,,,,,,,,,Y,,,N,1,,Y,Y,,,,,,Y,Y
+2023,5574,East Central Energy,MN,Cooperative,MRO,,,Y,,,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,5578,East Mississippi Elec Pwr Assn,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,5580,"East Kentucky Power Coop, Inc",KY,Cooperative,SERC,,,,,N,Y,,,,,Y,,,,,N,1,Y,Y,Y,,,Y,,N,Y,Y
+2023,5582,City of East Point - (GA),GA,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,Y,,Y,,
+2023,5585,Eastern Illinois Elec Coop,IL,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,5588,East-Central Iowa Rural Elec Coop,IA,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,N,
+2023,5598,East Central Oklahoma Elec Coop Inc,OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,N,1,,,,Y,,,,,,
+2023,5605,Eastern Iowa Light & Power Coop,IA,Cooperative,MRO,N,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,N,N
+2023,5609,Eastern Maine Electric Coop,ME,Cooperative,NPCC,N,,,Y,,,,,,,,,,,,Y,1,,Y,Y,Y,,,Y,,,
+2023,5625,Easton Utilities Comm,MD,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,,,Y,,,,Y,Y,Y
+2023,5644,"Edisto Electric Coop, Inc",SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,5656,Edgecombe-Martin County E M C,NC,Cooperative,SERC,,,,,,Y,,,,,Y,,,,,,1,,Y,,Y,,,,,,
+2023,5661,City of Edmond - (OK),OK,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,5701,El Paso Electric Co,TX,Investor Owned,WECC,N,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,5703,Empire Natural Gas Corporation,NY,Retail Power Marketer,RFC,,,,N,Y,,,,,,,Y,,,,,1,,,,,,,Y,,,
+2023,5729,Electrical Dist No8 Maricopa,AZ,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,,,Y,,Y,,,,,
+2023,5760,City of Elizabeth City - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,Y,N,Y,,,,,Y,Y
+2023,5763,City of Elizabethton - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,5773,City of Elk River,MN,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,Y,,,N,N,Y,Y
+2023,5780,Elkhorn Rural Public Pwr Dist,NE,Political Subdivision,SPP,N,,N,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,5832,Elmhurst Mutual Power & Light Co,WA,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,Y,Y,,,N,,N,
+2023,5860,Empire District Electric Co,MO,Investor Owned,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,5862,"Empire Electric Assn, Inc",CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,,,Y,,,,,,
+2023,5880,"Energy Coop of New York, Inc",NY,Retail Power Marketer,NPCC,,,,Y,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,5905,Excelsior Electric Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,5929,"Fairfield Electric Coop, Inc",SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,N,,,
+2023,5930,Village of Fairport - (NY),NY,Municipal,NPCC,,,,Y,,,,,,,,Y,,,,,1,,,,Y,,,,,Y,Y
+2023,5961,Town of Erwin - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,5969,City of Escondido - (CA),CA,Municipal,WECC,,,,,,,,Y,,,,,,,,,0,Y,,,,,,,,Y,Y
+2023,6008,City of Etowah,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,6022,City of Eugene - (OR),OR,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,6043,City of Evansville,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,6149,City of Ellensburg - (WA),WA,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,N,,Y,Y,,,,Y,N,
+2023,6169,Fall River Rural Elec Coop Inc,ID,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,,Y,,,,,N,N
+2023,6181,"Farmers Electric Coop, Inc - (MO)",MO,Cooperative,SERC,N,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,N
+2023,6182,"Farmers Electric Coop, Inc - (TX)",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,,
+2023,6183,"Fayette Electric Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,,
+2023,6194,Farmers Rural Electric Coop Corp - (KY),KY,Cooperative,RFC,,,,,Y,Y,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,6198,"Farmers Electric Coop, Inc - (NM)",NM,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,6204,City of Farmington - (NM),NM,Municipal,WECC,,,,,,,,Y,,,,,,,,,0,Y,Y,Y,Y,,Y,,,Y,Y
+2023,6205,City of Farmington - (MO),MO,Municipal,SERC,,,,,Y,,,,,,,,,Y,,,1,Y,,Y,Y,,,,Y,,
+2023,6207,Farmington River Power Company,CT,Investor Owned,NPCC,,,,Y,,,,,,,,,,,,,0,Y,,,,,,,,N,
+2023,6234,City of Fayetteville,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,6235,Fayetteville Public Works Commission,NC,Municipal,SERC,,,,,,Y,,,N,,,,N,,,Y,1,Y,,Y,Y,,,,,Y,Y
+2023,6258,Federated Rural Electric Assn,MN,Cooperative,MRO,,,Y,,,,,,,,,,,,,,0,Y,,,Y,,,,,Y,Y
+2023,6342,First Electric Coop Corp,AR,Cooperative,SERC,,,,,,Y,,,,,,,N,Y,,,1,,,,Y,,,,,Y,Y
+2023,6369,Fishers Island Utility Co Inc,NY,Investor Owned,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,,Y,,,,,,
+2023,6374,Fitchburg Gas & Elec Light Co,NH,Investor Owned,NPCC,,,,Y,,,,,,,,,,,Y,,1,N,Y,Y,Y,,Y,,Y,Y,Y
+2023,6389,Energy Harbor Generation LLC,OH,Wholesale Power Marketer,RFC,,,,,Y,,,,,,,,,,,,0,Y,,Y,,,,,,,
+2023,6395,Flathead Electric Coop Inc,MT,Cooperative,WECC,,,,,,,N,Y,,,,,,,,Y,1,Y,,Y,Y,,,,,,
+2023,6411,Flint Electric Membership Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,6422,City of Florence - (AL),AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,6424,Florence Utility Comm,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,6427,City of Floresville,TX,Municipal,TRE,Y,,,,,,,,,,,,,,,,0,,,Y,,,,N,,,
+2023,6442,Fleming-Mason Energy Coop Inc,KY,Cooperative,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,6443,"Florida Keys El Coop Assn, Inc",FL,Cooperative,FRCC,,Y,,,,,,,,,,,,,,,0,N,Y,,,,,,,,
+2023,6452,Florida Power & Light Co,FL,Investor Owned,"FRCC, SERC",,Y,,,,Y,,,,,Y,,,Y,,,2,Y,Y,Y,Y,,Y,,,Y,Y
+2023,6455,"Duke Energy Florida, LLC",FL,Investor Owned,FRCC,,Y,,,,N,,,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,6457,Florida Public Utilities Co,FL,Investor Owned,FRCC,,Y,,,,Y,,,,,,,,,,,0,,N,Y,Y,,,,,,
+2023,6458,Energy Harbor Corp.,OH,Retail Power Marketer,RFC,N,,,,Y,,,,,,,,,,,,0,,,,,,Y,Y,,,
+2023,6491,Foley Board of Utilities,AL,Municipal,,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,N,N,Y
+2023,6567,Florida Municipal Power Agency,FL,Municipal,SERC,,Y,,,,Y,,,,,,,,,,Y,1,Y,,Y,,,Y,,,,
+2023,6582,City of Forest Grove,OR,Municipal,WECC,,,N,,,,,Y,,,,,,,,Y,1,,,Y,Y,,,,,Y,Y
+2023,6604,City of Fort Collins - (CO),CO,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,Y,Y,Y
+2023,6608,Fort Loudoun Electric Coop,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,6610,City of Fort Morgan,CO,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,,
+2023,6612,Fort Payne Improvement Authority,AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,6616,Fort Pierce Utilities Authority,FL,Municipal,SERC,N,N,,,,Y,,,,,,,,,,Y,1,N,Y,,Y,,,,,Y,Y
+2023,6638,City of Fountain,CO,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,,,Y,Y,,,,Y,,
+2023,6640,Four County Elec Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,N,
+2023,6641,4-County Electric Power Assn,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,6707,City of Frankfort - (IN),IN,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,,,N,Y,,,,,N,
+2023,6708,City of Frankfort - (KY),KY,Municipal,SERC,,,,,N,Y,,,,,,,,,,Y,1,,N,,Y,,Y,,N,,
+2023,6709,Easley Combined Utility System,SC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,Y,,,Y,,,,Y,,
+2023,6716,PUD No 1 of Franklin County,WA,Political Subdivision,WECC,,,,,,,,,,,,,,,,,0,N,,Y,Y,Y,Y,Y,,,
+2023,6717,Franklin Electric Coop - (AL),AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,6718,City of Franklin - (KY),KY,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,6775,Village of Freeport - (NY),NY,Municipal,NPCC,,,,Y,,,,,,,,Y,,,,,1,Y,,Y,Y,,,,,Y,Y
+2023,6779,City of Fremont - (NE),NE,Municipal,MRO,,,Y,,,,,,,,,,Y,,,,1,Y,N,,Y,,,,Y,Y,Y
+2023,6782,Freeborn Mower Electric Cooperative,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,6784,French Broad Elec Member Corp,NC,Cooperative,SERC,,,,,,N,,,,,,,,,,,0,Y,Y,,Y,,,,,Y,
+2023,6840,City of Fulton - (KY),KY,Municipal,SERC,,,,,Y,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,6894,City of Gaffney - (SC),SC,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,Y,,Y,Y,,,,Y,,
+2023,6909,Gainesville Regional Utilities,FL,Municipal,FRCC,,Y,,,,,,,,,,,,,,Y,1,Y,Y,,Y,,Y,,N,,
+2023,6923,City of Gallatin - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,6941,City of Garden City,KS,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,N,,,Y,,,,Y,,
+2023,6957,"Garkane Energy Coop, Inc",UT,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,,,Y,,,,,N,
+2023,6958,City of Garland - (TX),TX,Municipal,TRE,Y,,,,,,,,,Y,,,,,,,1,Y,Y,Y,Y,,Y,Y,Y,Y,Y
+2023,7004,"Buckeye Power, Inc",OH,Cooperative,RFC,,,,,Y,,,,,,Y,N,,,,N,1,Y,,Y,,,Y,,,N,
+2023,7024,Gascosage Electric Coop,MO,Cooperative,SERC,,,,,,,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,7027,City of Gastonia - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,7090,GreyStone Power Corporation,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,7096,City of Geneva- (IL),IL,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,,Y,Y,,Y,,,Y,Y
+2023,7129,City of Georgetown - (TX),TX,Municipal,,Y,,,,,,,,,Y,,,,,,,1,,N,Y,Y,,,Y,Y,N,N
+2023,7140,Georgia Power Co,GA,Investor Owned,SERC,,,,,,Y,,,,,,,,,,Y,1,Y,Y,Y,Y,,,,,Y,Y
+2023,7174,Gibson Electric Members Corp,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,7197,Georgia Transmission Corp,GA,Transmission,SERC,,,,,,Y,,,,,,,,,,Y,1,,Y,Y,,,,,,N,N
+2023,7222,City of Gillette - (WY),WY,Municipal,WECC,,,,,,,,Y,,,,,,,,,0,Y,N,,Y,,,,,,
+2023,7264,"Glades Electric Coop, Inc",FL,Cooperative,FRCC,,Y,,,,,,,,,,,,,,Y,1,N,Y,Y,Y,,N,N,,N,
+2023,7265,City of Gladstone,MI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,7270,City of Glasgow - (KY),KY,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,7279,"NextEra Energy Services, LLC",TX,Retail Power Marketer,TRE,Y,,,,,,,,N,N,Y,Y,,Y,Y,,4,,,,,,,N,Y,,
+2023,7294,City of Glendale - (CA),CA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,Y,Y,Y,,Y,Y,Y,Y,Y
+2023,7349,"Golden Spread Electric Cooperative, Inc",TX,Cooperative,SPP,Y,,,,,,Y,,,Y,,,Y,,,,2,Y,Y,Y,,Y,Y,,,,
+2023,7353,Golden Valley Elec Assn Inc,AK,Cooperative,AK,,,,,,,,,,,,,,,N,Y,1,Y,Y,Y,Y,,,,,Y,Y
+2023,7450,Grady Electric Membership Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,N,,,Y,,,
+2023,7483,City of Grand Haven - (MI),MI,Municipal,RFC,,,,,Y,,,,,,N,,,Y,,,1,N,Y,,Y,,,,,Y,Y
+2023,7490,Grand River Dam Authority,OK,State,SPP,,,Y,,,,N,,,,,,Y,,,,1,Y,Y,Y,Y,N,Y,,,Y,Y
+2023,7548,PUD No 1 of Grays Harbor County,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,Y,Y,,,
+2023,7554,Green Mountain Energy Company,TX,Retail Power Marketer,TRE,N,,,,,,,,,Y,Y,Y,,,Y,,4,,,,,,N,Y,,,
+2023,7558,Grayson Rural Electric Coop Corp,KY,Cooperative,ECAR,,,,,Y,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,7559,"Grayson-Collin Elec Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,,,,,,,,0,,Y,,Y,,,,Y,N,
+2023,7561,"Greenbelt Electric Coop, Inc",TX,Cooperative,SPP,,,,,,,Y,,,,,,N,,,,0,,,,Y,,,,,,
+2023,7563,Grand Valley Power,CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,,
+2023,7570,Great River Energy,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,,,Y,,,Y,Y
+2023,7601,Green Mountain Power Corp,VT,Investor Owned,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,Y,Y,Y,Y,Y,Y,,Y,Y
+2023,7625,City of Greeneville - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,7627,City of Greenfield - (IN),IN,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,7634,City of Greenville - (TX),TX,Municipal,TRE,Y,,,,,,,,,Y,,,,,,,1,Y,N,N,N,,N,,N,,
+2023,7639,Greenville Utilities Comm,NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,Y,,Y,,,,,Y,Y
+2023,7646,Greenwood CPW,SC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,N,Y,,,,Y,,
+2023,7651,Greenwood Utilities Comm,MS,Municipal,SERC,,,,,,Y,,,,,,,,Y,,,1,N,N,,Y,,,,Y,,
+2023,7654,Greer Commission of Public Wks,SC,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,,Y,,,,Y,Y
+2023,7679,City of Griffin - (GA),GA,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,7716,Groton Dept of Utilities - (CT),CT,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,N,,Y,,,,Y,Y,Y
+2023,7751,Guadalupe Blanco River Authority,TX,State,TRE,Y,,,,,,,,,Y,,,,,,,1,Y,,,,,,,,,
+2023,7752,Guadalupe Valley Elec Coop Inc,TX,Cooperative,TRE,Y,,,,,,,,,,,,,,,,0,,Y,Y,Y,N,,Y,,Y,Y
+2023,7785,"Gulf Coast Electric Coop, Inc",FL,Cooperative,SERC,,,,,,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,7827,Guntersville Electric Board,AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,7887,Habersham Electric Membership Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,7891,Guernsey-Muskingum El Coop Inc,OH,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,7908,Hagerstown Light Department,MD,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,N,,,,,
+2023,7977,City of Hamilton - (OH),OH,Municipal,RFC,,,,,Y,,,,,,Y,,,N,,,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,7979,Hamilton County Elec Coop Assn,TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,N,
+2023,8000,NineStar Connect,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,N,N,N
+2023,8034,Hancock-Wood Electric Coop Inc,OH,Cooperative,RFC,,,,N,Y,,,,,,Y,,,,,,1,,,N,Y,,,,,Y,Y
+2023,8055,City of Hannibal - (MO),MO,Municipal,SERC,,,,,N,Y,,,,,,,,Y,,,1,,N,Y,Y,,,,Y,,
+2023,8147,City of Harriman - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,8179,Harrison County Rural E M C,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,N,N
+2023,8198,City of Harrisonburg - (VA),VA,Municipal,SERC,,,,,,Y,,,,,Y,,,,,,1,Y,N,,Y,,,,,,
+2023,8210,Hart Electric Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,8212,Hartford Electric,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,8226,City of Hartselle,AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,8245,City of Hastings - (NE),NE,Municipal,MRO,,,Y,,,,,,,,,,Y,,,,1,Y,N,Y,Y,,Y,,Y,N,N
+2023,8287,Hawaii Electric Light Co Inc,HI,Investor Owned,HI,,,,,,,,Y,,,,,,,,,0,Y,Y,,Y,,,,,Y,Y
+2023,8319,Heartland Power Coop,IA,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,8333,Haywood Electric Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,8447,Hendricks County Rural E M C,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,8449,Henderson City Utility Comm,KY,Municipal,SERC,,,,,N,Y,,,,,,,,Y,,,1,N,Y,Y,Y,,Y,,,,
+2023,8548,City of Hickman,KY,Municipal,SERC,,,,,Y,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,8566,High Plains Power Inc,WY,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,,
+2023,8570,Highline Electric Assn,CO,Cooperative,WECC,,,Y,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,,
+2023,8571,Town of High Point,NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,8620,"HILCO Electric Cooperative, Inc.",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,,
+2023,8699,Inland Power & Light Company,WA,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,N,,Y,Y,,,,Y,Y
+2023,8723,City of Holland,,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,N,Y,Y,,,,,Y,Y
+2023,8748,City of Holly Springs,MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,8761,Holmes-Wayne Electric Coop Inc,OH,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,N,
+2023,8764,"Holston Electric Coop, Inc",TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,8773,"Holy Cross Electric Assn, Inc",CO,Cooperative,WECC,,,,,,,Y,N,,,,,,,,Y,1,Y,Y,Y,Y,,,,,Y,Y
+2023,8774,City of Holyoke - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,Y,Y,Y,,Y,,Y,,
+2023,8786,Horry Electric Coop Inc,SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,8795,City of Homestead - (FL),FL,Municipal,FRCC,,Y,,,,Y,,,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,N,
+2023,8840,City of Hope - (AR),AR,Municipal,SPP,Y,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,8846,City of Hopkinsville,KY,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,8883,Houlton Water Company,ME,Municipal,NPCC,,,,Y,,,,,,,,,,,,N,0,,,,Y,,,,,,
+2023,8884,Terrebonne Parish Consol Gov't,LA,Municipal,SPP,,,,,,,Y,,,,,,Y,Y,,,2,N,,Y,Y,,,,Y,,
+2023,8898,Houston County Elec Coop Inc,TX,Cooperative,TRE,Y,,N,,,,Y,,,Y,,,Y,N,,,2,,Y,,Y,,,Y,,,
+2023,8901,CenterPoint Energy,TX,Investor Owned,TRE,Y,,,,,,,,,Y,,,,,,,1,,Y,Y,Y,,,,,Y,Y
+2023,8934,"Howell-Oregon Elec Coop, Inc",MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,8973,Town of Hudson - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,,Y,Y,,Y,Y,,,
+2023,9023,City of Humboldt,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,9087,Town of Huntersville - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,9094,City of Huntsville - (AL),AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,9096,City of Lafayette - (LA),LA,Municipal,SPP,,,,,,,Y,,,,,,N,Y,,,1,Y,N,Y,Y,Y,Y,,,,
+2023,9124,Hustisford Utilities,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,9130,Hutchinson Utilities Comm,MN,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,,Y,Y,,Y,Y,Y,,
+2023,9187,City of Idaho Falls - (ID),ID,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,,,Y,,Y,,,Y,Y
+2023,9191,Idaho Power Co,ID,Investor Owned,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,9216,Imperial Irrigation District,CA,Political Subdivision,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,Y,Y,Y,,,,,Y,Y
+2023,9230,City of Independence - (IA),IA,Municipal,MISO,,,Y,,,,,,,,,,,Y,,,1,Y,,,Y,,,,,,
+2023,9231,City of Independence - (MO),MO,Municipal,SPP,,,Y,,,,N,,,,,,Y,,,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,9234,Indiana Municipal Power Agency,IN,Political Subdivision,RFC,,,,N,Y,,,,,,Y,,,Y,,,2,Y,Y,Y,,,Y,,,Y,Y
+2023,9246,"Indian Electric Coop, Inc",OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,Y,Y
+2023,9267,"Hoosier Energy R E C, Inc",IN,Cooperative,RFC,,,,,Y,Y,,,,,Y,,,Y,,,2,Y,Y,Y,,,Y,,,Y,Y
+2023,9269,Indiana-Kentucky Electric Corp,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,N,1,Y,,,,,,,,,
+2023,9273,AES Indiana,IN,Investor Owned,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,9286,Illinois Municipal Elec Agency,IL,Municipal Mktg Authority,SERC,,,,,N,Y,,,,,Y,,,Y,,,2,Y,,Y,,Y,Y,,,Y,Y
+2023,9292,Inter County Energy Coop Corp - (KY),KY,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,9324,Indiana Michigan Power Co,IN,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,9331,Intercounty Electric Coop Assn - (MO),MO,Cooperative,SERC,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,Y,Y
+2023,9336,CORE Electric Cooperative,CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,N,,,,
+2023,9417,Interstate Power and Light Co,IA,Investor Owned,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,,Y,Y,Y,Y,N,N,Y,Y
+2023,9425,Iowa Lakes Electric Coop,IA,Cooperative,MRO,,,N,,,,Y,,,,,,Y,,,N,1,Y,,,Y,,,,,N,N
+2023,9431,Irwin Electric Membership Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,N,
+2023,9475,Itasca-Mantrap Co-op Electrical Assn,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,9575,Jackson Energy Coop Corp - (KY),KY,Cooperative,SERC,,,,,N,Y,,,,,Y,,,,,,1,,,,Y,,,,,Y,Y
+2023,9576,Jackson County Rural E M C - (IN),IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,Y,
+2023,9590,"Jackson Electric Coop, Inc - (TX)",TX,Cooperative,TRE,Y,,,,,,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,9601,Jackson Electric Member Corp - (GA),GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,9605,Jackson Purchase Energy Corporation,KY,Cooperative,SERC,,,,,,Y,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,9612,City of Jackson - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,9613,City of Lebanon - (IN),IN,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,,N,,Y,,,,,,
+2023,9616,Beaches Energy Services,FL,Municipal,SERC,,N,,,,Y,,,,,,,,,,Y,1,,N,Y,Y,,,,Y,N,
+2023,9617,JEA,FL,Municipal,FRCC,,Y,,,,,,,,,,,,,,Y,1,Y,Y,,Y,,,,,Y,Y
+2023,9645,Jamestown Board of Public Util,NY,Municipal,NPCC,,,,Y,,,,,,,,Y,,,,,1,Y,,Y,Y,,,,Y,Y,Y
+2023,9665,Jasper County Rural E M C,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,9667,City of Jasper - (IN),IN,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,N,N,N,Y,,,,Y,,
+2023,9668,"Jasper-Newton Elec Coop, Inc",TX,Cooperative,MRO,N,,Y,,,Y,,,,N,,,N,Y,,,1,,Y,,Y,,,,,N,
+2023,9682,"Jefferson Davis Elec Coop, Inc",LA,Cooperative,SERC,,,,,,Y,,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,9689,Jefferson Electric Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,9690,Jefferson Utilities,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,9697,City of Jellico,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,9699,"Jemez Mountains Elec Coop, Inc",NM,Cooperative,WECC,N,,,,,,,Y,,,,,Y,,,,1,,,,Y,,,,,Y,Y
+2023,9726,Jersey Central Power & Lt Co,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,N,Y,N,Y,,Y,Y,,Y,Y
+2023,9739,Joe Wheeler Elec Member Corp,AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,9750,"Jo-Carroll Energy, Inc",IL,Cooperative,MRO,,,Y,,,Y,,,,,,,,Y,,,1,Y,,,Y,,,,Y,Y,Y
+2023,9777,Johnson City - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,9778,Johnson County Rural E M C,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,9837,Jones-Onslow Elec Member Corp,NC,Cooperative,SERC,,,,,N,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,9879,City Water and Light Plant,AR,Municipal,SPP,,,,,,,Y,,,,,,N,Y,,,1,Y,Y,Y,Y,,,,,N,N
+2023,9936,Juneau Utility Comm,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,9949,Just Energy,CN,Retail Power Marketer,,N,,,,,,,,,,,,,,,,0,,,,,,,Y,,,
+2023,9961,Kansas Electric Power Coop Inc,KS,Cooperative,MRO,,,Y,,,,N,N,,,,,Y,,,,1,Y,,Y,,,,,,,
+2023,9964,Kenergy Corp,KY,Cooperative,,,,,,Y,Y,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,9979,KAMO Electric Coop Inc,OK,Cooperative,SPP,,,,,,Y,,,,,,,N,,,Y,1,N,Y,Y,,,,,,,
+2023,9996,City of Kansas City - (KS),KS,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
+2023,9999,Kankakee Valley Rural E M C,IN,Cooperative,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,N,,,,Y,Y
+2023,10000,Evergy Metro,MO,Investor Owned,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,10005,"Evergy Kansas South, Inc",KS,Investor Owned,SPP,N,,Y,,N,N,N,N,,N,N,N,Y,N,,,1,Y,Y,Y,Y,N,Y,,,Y,Y
+2023,10009,Karnes Electric Coop Inc,TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,,
+2023,10012,Kay Electric Coop,OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,N,1,,,,Y,,,,,,
+2023,10019,FreeState Electric Coop,KS,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,,,Y,,,,,,
+2023,10035,Kansas Municipal Energy Agency,KS,Municipal Mktg Authority,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,,Y,,,Y,,,,
+2023,10056,City of Kaukauna,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,Y,,,Y,,,,,Y,Y
+2023,10066,K C Electric Association,CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,,
+2023,10071,Kauai Island Utility Cooperative,HI,Cooperative,HICC,,,,,,,,,,,,,,,,,0,Y,Y,N,Y,,,,,Y,Y
+2023,10170,"Kiamichi Electric Coop, Inc",OK,Cooperative,SPP,,,,,,,Y,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,10171,Kentucky Utilities Co,KY,Investor Owned,SERC,N,N,,,N,Y,,,N,,N,,,,,Y,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,10210,Ketchikan Public Utilities,AK,Municipal,AK,,,,,,,,,,,,,,,,,0,Y,N,Y,Y,,,,Y,,
+2023,10226,"Utility Board of the City of Key West, F",FL,Municipal,,,Y,,,,,,,,,,,,,,Y,1,N,Y,Y,Y,,,,,Y,Y
+2023,10325,Kings River Conservation Dist,CA,Political Subdivision,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,,,,,,,,N,N
+2023,10331,Kingsport Power Co,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,,Y,N,,,,Y,Y
+2023,10345,City of Kinston - (NC),NC,Municipal,SERC,N,,,,,Y,,,,,,,,,,Y,1,,N,,Y,,,,,,
+2023,10370,City of Kirkwood - (MO),MO,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,10376,Kissimmee Utility Authority,FL,Municipal,FRCC,,Y,,,,,,,,,,,,,,Y,1,N,N,Y,Y,,,,Y,Y,Y
+2023,10378,"Kit Carson Electric Coop, Inc",NM,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,10393,PUD No 1 of Klickitat County,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,10421,Knoxville Utilities Board,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,10433,Kodiak Electric Assn Inc,AK,Cooperative,AK,,,,,,,,,,,,,,,,Y,1,Y,Y,,Y,,,,,N,
+2023,10448,Kosciusko County Rural E M C,IN,Cooperative,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,10451,Kotzebue Electric Assn Inc,AK,Cooperative,AK,,,,,,,,,,,,,,,,Y,1,Y,,,Y,,,,,Y,Y
+2023,10454,Kootenai Electric Cooperative,ID,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,,
+2023,10508,Village of L'Anse - (MI),MI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,10539,"La Plata Electric Assn, Inc",CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,,
+2023,10574,L & O Power Co-operative,IA,Cooperative,MRO,,,Y,,,,Y,,,,,,Y,,,,1,,Y,,,,,,,,
+2023,10579,City of LaFollette,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,10585,City of La Grange - (GA),GA,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,Y,,
+2023,10596,City of Lake Crystal - (MN),MN,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,,,Y,,,,,,
+2023,10599,"Lake Region Electric Coop, Inc - (OK)",OK,Cooperative,SPP,,,,,N,N,,,,,,,,,,,0,,,,Y,Y,,Y,,Y,Y
+2023,10603,"Laclede Electric Coop, Inc",MO,Cooperative,SERC,,,,,,Y,Y,,,N,,,Y,,,,1,,,,Y,,,,,,
+2023,10605,Lake Mills Light & Water,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,10618,Lake Region Electric Cooperative - (MN),MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,10620,City of Lake Worth Beach - (FL),FL,Municipal,SERC,,N,,,,Y,,,,,,,,,,Y,1,Y,,Y,N,,,,N,Y,Y
+2023,10623,City of Lakeland - (FL),FL,Municipal,FRCC,,Y,,,,,,,,,,,,,,N,0,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,10624,Southern Rivers Energy,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,10625,"Lamb County Electric Coop, Inc",TX,Cooperative,SPP,,,,,,,Y,,,,,,N,,,,0,,,,Y,,,,,,
+2023,10627,Lakeview Light & Power,WA,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,Y,Y,Y,,,,,
+2023,10649,Lamar County Elec Coop Assn,TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,Y,,Y,,,,,,
+2023,10668,Licking Rural Electric Inc,OH,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,,Y,,,,,,
+2023,10681,Lane Electric Coop Inc,OR,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,N,,Y,Y,,,,,Y,Y
+2023,10697,Lake Country Power,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,10704,City of Lansing - (MI),MI,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y
+2023,10768,"Laurens Electric Coop, Inc",SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,10799,City of Lawrenceburg,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,10800,City of Lawrenceville - (GA),GA,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,Y,,,
+2023,10817,"Lea County Electric Coop, Inc - (NM)",NM,Cooperative,SPP,,,,,,,Y,,,,,,,,,,0,,N,,Y,,,,,,
+2023,10830,City of Lebanon - (OH),OH,Municipal,RFC,,,,,Y,,,,,,Y,,,N,,,1,N,Y,Y,Y,Y,,,Y,,
+2023,10832,City of Lebanon - (MO),MO,Municipal,SERC,,,,,,Y,N,,,,,,Y,,,,1,,N,Y,Y,,,,Y,,
+2023,10857,"Lee County Electric Coop, Inc - (FL)",FL,Cooperative,FRCC,,N,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,N,Y
+2023,10868,City of Leesburg - (FL),FL,Municipal,FRCC,,Y,,,,Y,,,,,,,,,,,0,N,,,Y,,,,Y,,
+2023,10879,Lehi City Corporation,UT,Municipal,WECC,,,,,,,,Y,Y,,,,,,,N,1,Y,,N,Y,,,,,N,
+2023,10906,City of Lenoir - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,10944,PUD No 1 of Lewis County,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,N,Y,Y,Y,,Y,,,N,
+2023,10960,City of Lewisburg - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,10966,City of Lexington - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,N,,Y,,,,,Y,Y
+2023,10967,City of Lexington - (NE),NE,Municipal,MRO,,,Y,,,,,,,,,,Y,N,,N,1,,,,Y,,,N,,Y,Y
+2023,10968,City of Lexington - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,11011,Licking Valley Rural E C C,KY,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,N,1,N,,Y,Y,,,,N,N,
+2023,11014,"Lighthouse Electric Coop, Inc",TX,Cooperative,SPP,Y,,,,,,Y,,,Y,,,Y,,,,2,N,,,Y,,,,,,
+2023,11018,Lincoln Electric System,NE,Municipal,MRO,,,Y,,,N,N,N,,,,,Y,,,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,11053,Linn County REC,IA,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,11085,Town of Littleton - (MA),MA,Municipal,NPCC,,,,,,,,,,,,,,,Y,,1,N,,,Y,,N,,,Y,Y
+2023,11118,Lockhart Power Co,SC,Investor Owned,SERC,,,,,,Y,,,,,,,,,,Y,1,Y,N,,Y,Y,,,,Y,Y
+2023,11124,City of Lodi - (CA),CA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,,1,,,,Y,,,,,Y,Y
+2023,11125,City of Lodi - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,11135,City of Logan - (UT),UT,Municipal,WECC,,,,,,,,Y,N,,,,,,,,0,Y,,Y,Y,,,,,,
+2023,11142,City of Logansport - (IN),IN,Municipal,RFC,,,,,Y,,,,,,,,,,,Y,1,N,,,Y,,,,,,
+2023,11171,Long Island Power Authority,NY,State,NPCC,N,,,Y,,,,,,,,Y,,,,,1,Y,Y,Y,Y,,Y,Y,,Y,Y
+2023,11187,City of Longmont,CO,Municipal,WECC,,,,,,,,Y,,,,,,,,,0,Y,,,Y,,,,,Y,Y
+2023,11200,"Lorain-Medina R E C, Inc",OH,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,N,Y,Y
+2023,11204,Los Alamos County,NM,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,,Y,Y,,Y,Y,Y,Y,Y
+2023,11208,Los Angeles Department of Water & Power,CA,Municipal,WECC,,,,,,,,Y,N,,,,,,,Y,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,11222,Loudon Utilities Board,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,11235,Lafayette Public Power Authority,LA,Political Subdivision,SPP,,,,,,,Y,N,,,,,N,Y,,,1,Y,,Y,,,,,,,
+2023,11241,Entergy Louisiana LLC,LA,Investor Owned,SERC,,,,,,Y,,,,,,,,Y,,,1,Y,Y,Y,Y,Y,,,Y,Y,Y
+2023,11247,Louisville Electric System,MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,11249,Louisville Gas & Electric Co,KY,Investor Owned,SERC,,,,,N,Y,,,N,N,N,,,,,Y,1,Y,Y,Y,Y,,Y,N,Y,Y,Y
+2023,11251,Loup River Public Power Dist,NE,Political Subdivision,MRO,,,,,,,Y,,,,,,Y,N,,,1,Y,Y,,Y,N,,,,Y,Y
+2023,11256,City of Loveland - (CO),CO,Municipal,WECC,,,,,,,,Y,,,,,,,,,0,Y,Y,Y,Y,,,,Y,,
+2023,11269,Lower Colorado River Authority,TX,Political Subdivision,TRE,Y,,,,,,,,,Y,,,,,,,1,Y,Y,Y,N,Y,Y,,N,Y,Y
+2023,11272,"Lower Yellowstone R E A, Inc",MT,Cooperative,SPP,,,N,,,,Y,,,,,,Y,,,N,1,,N,N,Y,N,,,,,
+2023,11273,Lower Valley Energy Inc,WY,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,N,,Y,Y,Y
+2023,11291,Lumbee River Elec Member Corp,NC,Cooperative,SERC,N,,,,,Y,,,,,,,,,,Y,1,,N,,Y,,N,,,N,
+2023,11292,City of Lubbock - (TX),TX,Municipal,TRE,Y,,Y,,,,Y,,,Y,,,Y,,,,2,Y,Y,Y,Y,,,Y,Y,,
+2023,11318,City of Lumberton - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,11355,"Lynches River Elec Coop, Inc",SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,11364,"Lyntegar Electric Coop, Inc",TX,Cooperative,SPP,Y,,,,N,,Y,,,Y,,,Y,,,,2,,Y,,Y,,,,,,
+2023,11380,M & A Electric Power Coop,MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,Y,,,,,,,,
+2023,11458,City of Macon - (MS),MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,11463,Macon Electric Coop,MO,Cooperative,SERC,,,,,,,Y,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,11475,City of Madison - (SD),SD,Municipal,MRO,,,,,,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,11477,Town of Madison - (ME),ME,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,,Y,,,,,N,
+2023,11479,Madison Gas & Electric Co,WI,Investor Owned,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,,Y,Y,,,Y,Y,Y,Y
+2023,11488,Madisonville Municipal Utils,KY,Municipal,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,11501,Magic Valley Electric Coop Inc,TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,N,Y,,,,,N,
+2023,11519,Magnolia Electric Power Assn,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,11521,"Maine Electric Power Co, Inc",ME,Transmission,NPCC,N,,,Y,,,,,,,,,,,Y,,1,,Y,,,,,,,,
+2023,11560,City of Manassas - (VA),VA,Municipal,,,,,,,Y,,,,,Y,,,,,,1,Y,N,,Y,,,,Y,,
+2023,11571,Manitowoc Public Utilities,WI,Municipal,MRO,,,Y,,N,,,,,,,,,Y,,,1,Y,,Y,Y,,Y,,Y,Y,Y
+2023,11586,Town of Mansfield - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,Y,Y,,,,,,
+2023,11611,City of Maquoketa - (IA),IA,Municipal,MISO,,,Y,,,,,,,,,,,Y,,,1,Y,N,N,Y,,,,,,
+2023,11646,City of Marietta - (GA),GA,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,N,Y,Y,Y
+2023,11701,City of Marquette - (MI),MI,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,N,Y,Y,,,,,N,N
+2023,11714,Marshall-De Kalb Electric Coop,AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,11731,City of Marshall - (MN),MN,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,N,Y,Y,,,,Y,,
+2023,11740,City of Marshfield - (WI),WI,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,,Y,Y,,N,,Y,,Y
+2023,11788,Consumers Energy Coop - (IA),IA,Cooperative,MRO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,N,N
+2023,11789,Maryville Utilities,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,11804,Massachusetts Electric Co,NY,Investor Owned,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,,Y,,,,,Y,Y
+2023,11806,Massachusetts Mun Wholes Electric Co,MA,Political Subdivision,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,N,,,,Y,,,,
+2023,11811,Town of Massena - (NY),NY,Municipal,NPCC,,,,Y,,,,,,,,Y,,,,,1,,,,Y,,,,,N,N
+2023,11824,Matanuska Electric Assn Inc,AK,Cooperative,AK,,,,,,,,,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,,
+2023,11833,Municipal Energy Agency of MS,MS,Municipal Mktg Authority,SERC,,,,,,Y,,,,,,,,Y,,,1,,,Y,,,N,,,N,
+2023,11843,Maui Electric Co Ltd,HI,Investor Owned,HI,,,,,,,,Y,,,,,,,,,0,Y,Y,,Y,,,,,Y,Y
+2023,11871,City of Mayfield Plant Board,KY,Municipal,SERC,,,,,Y,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,12087,McKenzie Electric Coop Inc,ND,Cooperative,MRO,,,Y,,,,,,,,,,Y,,,,1,,Y,,Y,,,,,N,
+2023,12090,"McLean Electric Coop, Inc",ND,Cooperative,MRO,,,Y,,,,,,,,,,,,,,0,,,,Y,N,,,,,
+2023,12186,McMinnville Electric System,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,12187,City of McMinnville - (OR),OR,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,Y,N,N
+2023,12199,Montana-Dakota Utilities Co,ND,Investor Owned,MRO,N,,Y,,,,,Y,,,,,Y,Y,,,2,Y,Y,Y,Y,,N,,Y,N,N
+2023,12208,City of McPherson - (KS),KS,Municipal,MRO,,,Y,,,,N,,,,,,Y,,,,1,Y,Y,,Y,,,,Y,,
+2023,12227,Meeker Coop Light & Power Assn,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,N,N,Y,Y
+2023,12243,Meade County Rural E C C,KY,Cooperative,SERC,,,,,Y,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,12260,Mecklenburg Electric Cooperative,VA,Cooperative,SERC,,,,,,Y,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,12268,"Medina Electric Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,,N
+2023,12293,City of Memphis - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,Y,,Y,,,,Y,Y,Y
+2023,12298,City of Menasha - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,12301,Nodak Electric Coop Inc,ND,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,N,,Y,,,,,,
+2023,12312,Merced Irrigation District,CA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,,Y,Y,,Y,,,Y,Y
+2023,12323,Miami Power Corporation,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,N,,,1,,Y,,,,,,,N,N
+2023,12330,Meriwether Lewis Electric Coop,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,12341,MidAmerican Energy Co,IA,Investor Owned,,,,Y,,N,,,,,N,Y,,,Y,,,2,Y,Y,Y,Y,N,Y,N,Y,Y,Y
+2023,12351,City of Mesa - (AZ),AZ,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,,,Y,Y,,Y,,Y,Y,Y
+2023,12377,Midwest Energy Cooperative - (MI),MI,Cooperative,RFC,,,,,Y,N,,,N,,Y,,,Y,,N,2,,,,Y,,,,,N,
+2023,12390,Metropolitan Edison Co,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,N,N,N,Y,,Y,N,,Y,Y
+2023,12395,Menard Electric Coop,IL,Cooperative,SERC,,,N,,N,Y,,,,,,,,N,,Y,1,,,,Y,,,,,,
+2023,12397,Metropolitan Water District of S CA,CA,State,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,,,,,Y,,,,
+2023,12439,"Midstate Electric Coop, Inc",OR,Cooperative,WECC,,,,,,,,Y,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,12450,Midland Power Coop,IA,Cooperative,,,,Y,,N,,Y,,,,,,N,Y,,,1,,,,Y,,,,,,
+2023,12452,Mid-South Electric Coop Assn,TX,Cooperative,TRE,Y,,,,,Y,,,,Y,,,,Y,N,,2,,,N,Y,,,,Y,Y,Y
+2023,12462,Mid-Carolina Electric Coop Inc,SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,12465,"System Energy Resources, Inc",MS,Investor Owned,SERC,,,,,,Y,,,,,,,,,,Y,1,Y,N,,,,,,,Y,Y
+2023,12470,Middle Tennessee E M C,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,12473,Town of Middleborough - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,Y,Y,Y,,N,N,Y,Y,Y
+2023,12478,Town of Middletown - (DE),DE,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,N,,,,Y,,
+2023,12515,"Midwest Electric, Inc - (OH)",OH,Cooperative,RFC,,,,,Y,,,,,,Y,N,,,,,1,,,,Y,,,,,N,
+2023,12524,Midwest Energy Inc - (KS),KS,Cooperative,SPP,,,Y,,,,Y,,,,,,Y,,,,1,Y,Y,Y,Y,,Y,Y,Y,N,
+2023,12532,City of Milan - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,12539,Midwest Electric Member Corp - (NE),NE,Cooperative,MRO,,,Y,,,,,N,,,,,Y,,,N,1,,,,Y,,,,,,
+2023,12540,City of Milford - (DE),DE,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,N,Y
+2023,12546,Mille Lacs Energy Cooperative,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,Y,Y,Y
+2023,12642,Maquoketa Valley Rrl Elec Coop,IA,Cooperative,RFC,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,Y,,
+2023,12647,"ALLETE, Inc.",MN,Investor Owned,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,12651,Minnesota Valley Electric Coop,MN,Cooperative,MRO,,,Y,,,,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,12658,"Minnkota Power Coop, Inc",ND,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,N,N,Y,,N,Y,N
+2023,12667,Minnesota Municipal Power Agny,MN,Political Subdivision,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,,,Y,,,,
+2023,12674,City of Mishawaka,IN,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,,Y,,,,,
+2023,12681,Mississippi County Electric Co,AR,Cooperative,SERC,,,,,,Y,,,,,,,Y,Y,,N,2,,,,Y,,,,,,
+2023,12685,Entergy Mississippi LLC,MS,Investor Owned,SERC,,,,,,Y,,,,,,,,Y,,,1,Y,Y,Y,Y,Y,,,,Y,Y
+2023,12686,Mississippi Power Co,MS,Investor Owned,SERC,,,,,,Y,,,,,,,,,,Y,1,Y,Y,Y,Y,Y,Y,,N,Y,Y
+2023,12692,"Missoula Electric Coop, Inc",MT,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,Y,,,,Y,Y
+2023,12698,Evergy Missouri West,MO,Investor Owned,SPP,N,,N,,N,N,Y,N,,,,,Y,,,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,12700,Missouri Rural Electric Coop,MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,12706,Mitchell Electric Member Corp,GA,Cooperative,SERC,,,,,N,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,12710,Missouri Basin Muni Power Agny,SD,Political Subdivision,MRO,,,Y,,,,,,,,,,Y,Y,,,2,,Y,Y,,,Y,,,,
+2023,12744,Modern Electric Water Company,WA,Cooperative,WECC,,,,,,,,Y,,,,,,,,,0,,,Y,Y,,,,Y,,N
+2023,12745,Modesto Irrigation District,CA,Political Subdivision,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,Y,Y,Y,,Y,Y,Y,Y,Y
+2023,12782,City of Monett - (MO),MO,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,Y,Y,N,
+2023,12796,Monongahela Power Co,PA,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,Y,,Y,,Y,,,Y,Y
+2023,12801,City of Monroe - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,N,Y,1,,,,Y,,,,,N,N
+2023,12807,Michigan South Central Power Agency,MI,Political Subdivision,RFC,,,,,Y,,,,,,,,,Y,,,1,N,Y,Y,,,Y,,,,
+2023,12825,NorthWestern Energy LLC - (MT),MT,Investor Owned,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,,Y,N,Y,Y
+2023,12860,Morgan County Rural Elec Assn,CO,Cooperative,WECC,,,,,,,,Y,,,,,Y,,,N,1,,,,Y,,,,,,
+2023,12866,Moon Lake Electric Assn Inc,UT,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,,,,N,N
+2023,12894,City of Moorhead - (MN),MN,Municipal,MRO,,,Y,,,,N,,,,,,Y,N,,,1,Y,Y,,Y,,,,Y,,
+2023,12917,Morgan Stanley Capital Grp Inc,NY,Retail Power Marketer,NPCC,,,,N,N,,,,,,,,,,,Y,1,,,Y,,,Y,Y,,,
+2023,12919,Morenci Water and Electric,AZ,Investor Owned,WECC,,,,,,,,Y,,,,,,,,,0,,,,Y,,,,,,
+2023,12929,South Central Indiana REMC,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,N,1,,,,Y,,,,,,
+2023,12944,City of Morganton - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,12988,City of Morristown - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,12990,Consolidated Cooperative,OH,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,N,,Y,,,,Y,,
+2023,13027,"Mountain Electric Coop, Inc",TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13032,Mt Carmel Public Utility Co,IL,Investor Owned,SERC,,,,,N,Y,,,,,,,,Y,,,1,,N,Y,Y,,,,Y,,
+2023,13036,Village of Mt. Horeb - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,13039,City of Mt Pleasant - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13050,"Mountain Parks Electric, Inc",CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,13058,"Mountain View Elec Assn, Inc",CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,13073,"Mt Wheeler Power, Inc",NV,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,N,
+2023,13100,Municipal Electric Authority,GA,Municipal Mktg Authority,SERC,,,,,,Y,,,,,,,,,,,0,Y,Y,,,,,,,,
+2023,13137,City of Murray - (UT),UT,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,N,,Y,,,Y,,Y,
+2023,13138,City of Murray - (KY),KY,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13143,Board of Water Electric & Communications,IA,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,Y,,Y,Y,N,Y,Y
+2023,13144,City of Muscle Shoals,AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13145,Village of Muscoda - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,13190,"N W Electric Power Coop, Inc",MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,Y,,,,,,,,
+2023,13196,Northern Plains Electric Coop,ND,Cooperative,MRO,,,,,,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13206,Nantucket Electric Co,NY,Investor Owned,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,,Y,,,,,Y,Y
+2023,13208,City of Naperville - (IL),IL,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,,Y,,,,N,Y,Y
+2023,13214,The Narragansett Electric Co,RI,Investor Owned,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,,Y,,,,,Y,Y
+2023,13216,Nashville Electric Service,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13227,Natchez Trace Elec Power Assn,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13228,City of Natchitoches,LA,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,,N,Y,Y,N,,,Y,,
+2023,13292,Norris Electric Coop,IL,Cooperative,RFC,N,,,,N,Y,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,13314,Navajo Tribal Utility Authority,AZ,State,WECC,,,,,,,,Y,,,,,Y,,,,1,,N,Y,Y,Y,,,Y,N,N
+2023,13318,"Navopache Electric Coop, Inc",AZ,Cooperative,WECC,,,,,,,,Y,,,,,,,,,0,,,,Y,,,,,,
+2023,13332,"Navarro County Elec Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,,
+2023,13337,Nebraska Public Power District,NE,Political Subdivision,MRO,,,Y,,,,N,,,,,,Y,,,,1,Y,Y,,Y,,Y,,,Y,Y
+2023,13352,City of Negaunee,MI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,13355,New England Hydro-Tran Elec Co,MA,Transmission,NPCC,,,,Y,,,,,,,,,,,Y,,1,,Y,,,,,,,,
+2023,13356,New England Hydro-Trans Corp,MA,Transmission,NPCC,,,,Y,,,,,,,,,,,Y,,1,,Y,,,,,,,,
+2023,13374,"Constellation NewEnergy, Inc",MD,Retail Power Marketer,NPCC,N,,N,N,N,N,N,N,Y,Y,Y,Y,Y,Y,Y,,7,,,,,,Y,Y,,,
+2023,13402,Nevada Irrigation District,CA,Political Subdivision,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,,,,,,,,N,N
+2023,13407,Nevada Power Co,NV,Investor Owned,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,13412,City of New Albany - (MS),MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13416,City of New Bern - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,Y,,
+2023,13418,City of New Braunfels - (TX),TX,Municipal,TRE,Y,,,,,,,,,Y,,,,,,,1,,Y,,Y,,,,Y,Y,Y
+2023,13433,New England Power Company,MA,Investor Owned,NPCC,,,,Y,N,,,,,,,,,,Y,,1,,Y,,,,,,,Y,Y
+2023,13437,City of Newbern,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13438,Village of New Glarus - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,13441,New Hampshire Elec Coop Inc,NH,Cooperative,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,Y,Y,,Y,,,,
+2023,13448,City of New Holstein - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,13467,New London Electric&Water Util,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,13478,"Entergy New Orleans, LLC",LA,Investor Owned,SERC,,,,,,Y,,,,,,,,Y,,,1,Y,Y,Y,Y,Y,,,Y,Y,Y
+2023,13481,City of New Richmond,WI,Municipal,MISO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,,Y
+2023,13482,New River Light & Power Co,NC,State,SERC,,,,,,Y,,,,,,,,,,,0,,,Y,Y,,,,,,
+2023,13485,New Smyrna Beach City of,FL,Municipal,FRCC,,Y,,,,,,,,,,,,,,Y,1,Y,N,Y,Y,,Y,,Y,,
+2023,13511,New York State Elec & Gas Corp,NY,Investor Owned,NPCC,,,,Y,Y,,,,,,,Y,,,,,1,Y,Y,Y,Y,Y,Y,,Y,Y,Y
+2023,13519,City of Newark - (DE),DE,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,,,Y,,N,,Y,Y,Y
+2023,13520,"New-Mac Electric Coop, Inc",MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,13523,City of Newberry - (SC),SC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,13524,"Newberry Electric Coop, Inc",SC,Cooperative,SERC,,,,,,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13539,New York Mun Power Agency,NY,Municipal Mktg Authority,NPCC,,,,Y,,,,,,,,Y,,,,,1,,,,,,Y,,,N,
+2023,13547,"Newnan Wtr, Sewer & Light Comm",GA,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,Y,Y,Y
+2023,13550,City of Newport - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13573,Niagara Mohawk Power Corp.,NY,Investor Owned,NPCC,,,,Y,,,,,,,,Y,,,,,1,,Y,Y,Y,Y,Y,Y,Y,Y,Y
+2023,13602,City of Niles - (OH),OH,Municipal,RFC,,,,,Y,,,,,,Y,,,N,,,1,,,,Y,,,,,N,
+2023,13630,North Carolina Mun Power Agny #1,NC,Municipal Mktg Authority,SERC,,,,,,Y,,,,,,,,,,Y,1,Y,,Y,,,Y,,,N,N
+2023,13640,Northern Virginia Elec Coop,VA,Cooperative,SERC,,,,,,Y,,,,,Y,,,,,,1,,,,Y,,,,,Y,Y
+2023,13647,Noble County R E M C,IN,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,Y,Y
+2023,13651,Nolin Rural Electric Coop Corp,KY,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,13664,Norris Public Power District,NE,Political Subdivision,MRO,,,Y,,,,,,,,,,Y,,,,1,,,,Y,,,,,Y,Y
+2023,13669,North Alabama Electric Coop,AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13670,"Northeast Texas Elec Coop, Inc",TX,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,,Y,,,Y,,,,
+2023,13676,"North Arkansas Elec Coop, Inc",AR,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,N,,Y,,,,,Y,Y
+2023,13679,Town of North Attleborough - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,N,Y,Y,,,,,,
+2023,13683,North Carolina El Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,Y,,,,,,1,Y,,Y,,,Y,,,Y,Y
+2023,13687,North Carolina Eastern M P A,NC,Municipal Mktg Authority,SERC,,,,,,Y,,,,,,,,,,Y,1,N,Y,Y,,,,,,Y,Y
+2023,13693,"North Central Elec Coop, Inc - (OH)",OH,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,N,Y,Y
+2023,13694,"North Central Elec Coop, Inc - (ND)",ND,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,N,1,,N,,Y,,,,,,
+2023,13697,North Central Power Co Inc,WI,Investor Owned,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,N,Y,Y,,,,,,
+2023,13716,North Georgia Elec Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13718,City of North Little Rock - (AR),AR,Municipal,SERC,,,,,,Y,,,,,,,,Y,,,1,Y,Y,Y,Y,,Y,,,N,
+2023,13725,City of North Platte,NE,Municipal,MRO,,,N,,,,Y,,,,,,Y,,,,1,,,,Y,,,,Y,,
+2023,13734,Northeast Oklahoma Electric Co,OK,Cooperative,SPP,,,,,,,Y,,,,,,,,,,0,,N,,Y,,,,,,
+2023,13735,Northcentral Mississippi E P A,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13738,Northeast Missouri El Pwr Coop,MO,Transmission,SERC,,,,,,Y,N,,,,,,,,,Y,1,,Y,Y,,,,,,N,N
+2023,13739,Northeast Power,NE,Political Subdivision,MRO,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,13750,"Northern Electric Coop, Inc",SD,Cooperative,MRO,,,N,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,13756,Northern Indiana Pub Serv Co,IN,Investor Owned,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,Y,Y,Y,,Y,,Y,N,N
+2023,13757,North Plains Electric Coop Inc,TX,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,Y,,Y,,,,,Y,Y
+2023,13758,"Northern Lights, Inc",ID,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,,Y,,,
+2023,13762,"Northern Neck Elec Coop, Inc",VA,Cooperative,SERC,,,,,,Y,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,13780,Northern States Power Co,MN,Investor Owned,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,13781,Northern States Power Co - Minnesota,MN,Investor Owned,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,13783,Northeast Louisiana Power Coop Inc.,LA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,13788,Northern Wasco County PUD,OR,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,13798,Northwest Iowa Power Coop,IA,Cooperative,MRO,,,Y,,,,,,,,,,Y,,,N,1,Y,Y,,,,,,,N,
+2023,13799,Prairie Land Electric Coop Inc,KS,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,Y,Y
+2023,13807,Northwestern Electric Coop Inc - (OK),OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,13809,NorthWestern Energy - (SD),SD,Investor Owned,MRO,,,Y,,,,,,,,,,Y,N,,,1,Y,Y,Y,Y,,Y,,Y,,
+2023,13815,Northwestern Wisconsin Elec Co,WI,Investor Owned,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,Y,,Y,Y,,,
+2023,13826,City of Norway,MI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,Y,,,Y,,,,,Y,Y
+2023,13830,Nueces Electric Cooperative,TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,Y,,N,
+2023,13831,City of Norwich - (CT),CT,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,Y,,Y,,,N,,Y,Y
+2023,13839,City of Norwood - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,Y,Y,Y,,,,,,
+2023,13933,City of Oak Ridge,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,13935,Oakdale&South San Joaquin Irrigation D.,CA,Political Subdivision,,,,,,,,,Y,Y,,,,,,,,1,Y,,,,,,,,,
+2023,13936,Oakdale Electric Coop,WI,Cooperative,MRO,,,Y,,,,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,13955,City of Ocala,FL,Municipal,FRCC,,Y,,,,,,,,,,,,,,Y,1,,N,N,Y,,,,Y,Y,
+2023,13962,Oconee Electric Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,N,,,,,,0,,,,Y,,,,,,
+2023,13963,Oconomowoc Utilities,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,13965,Oconto Falls Water & Light Comm,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,13994,Oglethorpe Power Corporation,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,N,0,Y,,N,,,,,,,
+2023,13998,Ohio Edison Co,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,N,,,1,N,N,,Y,,Y,N,,Y,Y
+2023,14006,Ohio Power Co,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,N,,,,1,N,Y,Y,Y,,Y,,,Y,Y
+2023,14015,Ohio Valley Electric Corp,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,N,1,Y,,,,,,,,,
+2023,14055,PUD No 1 of Okanogan County,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,,Y,Y,Y,,Y,,Y,N,N
+2023,14062,Oklahoma Electric Coop Inc,OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,14063,Oklahoma Gas & Electric Co,OK,Investor Owned,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,Y,Y,Y,Y,Y,,N,Y,Y
+2023,14077,Oklahoma Municipal Power Authority,OK,State,MRO,Y,,Y,,,,N,,,Y,,,Y,,,,2,Y,Y,Y,,,Y,,,,
+2023,14078,City of Okolona,MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,14109,"Oregon Trail El Cons Coop, Inc",OR,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,,,,Y,Y
+2023,14127,Omaha Public Power District,NE,Political Subdivision,MRO,,,Y,,,,Y,,,,,,Y,,,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,14146,City of Opelika - (AL),AL,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,14154,Orange & Rockland Utils Inc,NY,Investor Owned,NPCC,,,,Y,,,,,,,,Y,,,,,1,,N,,Y,,,,,,
+2023,14164,City of Orangeburg - (SC),SC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,Y,Y,Y,Y,,N,N,Y,Y,Y
+2023,14170,Orcas Power & Light Coop,WA,Cooperative,WECC,,,,,,,,N,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,14175,"Tri-County Electric Coop, Inc (SC)",SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,N,N
+2023,14191,South Feather Water and Power Agency,CA,Political Subdivision,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,,,,,,,,,
+2023,14192,Osage Valley Elec Coop Assn,MO,Cooperative,SERC,,,,,,,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,14194,City of Orrville - (OH),OH,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,Y,Y,Y,,,,Y,N,
+2023,14224,Otero County Electric Coop Inc,NM,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,14232,Otter Tail Power Co,MN,Investor Owned,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,Y,,Y,,N,Y,Y
+2023,14238,Ouachita Electric Coop Corp,AR,Cooperative,SERC,,,,,,,Y,,,,,,Y,Y,,,2,N,,,Y,,,,,N,
+2023,14245,Overton Power District No 5,NV,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,,,N,Y,,,,,Y,Y
+2023,14246,City of Owatonna - (MN),MN,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,Y,N,N
+2023,14251,Owen Electric Coop Inc,KY,Cooperative,,,,,,N,,,,,,,,,,,,0,,,,Y,,,,,N,N
+2023,14268,City of Owensboro - (KY),KY,Municipal,SERC,,,,,N,Y,,,,,,,,,,Y,1,N,N,Y,Y,,N,N,N,N,
+2023,14275,City of Oxford - (MS),MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,14285,Ozark Border Electric Coop,MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,14288,Ozark Electric Coop Inc - (MO),MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,14289,Ozarks Electric Coop Corp - (AR),AR,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,N,,,Y,,,Y,,Y,Y
+2023,14323,Pacific Northwest Generating Coop,OR,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,,,Y,,,,
+2023,14324,PUD No 2 of Pacific County,WA,Political Subdivision,WECC,,,,,,,,Y,Y,,,,,,,,1,,,,Y,,,,,,
+2023,14328,Pacific Gas & Electric Co.,CA,Investor Owned,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,Y,Y,Y,N,N,N,Y,Y,Y
+2023,14349,Avangrid Renewables,OR,Retail Power Marketer,WECC,,,,,,,,Y,Y,Y,Y,Y,,Y,Y,N,6,,,,,,Y,Y,,,
+2023,14354,PacifiCorp,OR,Investor Owned,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,14371,City of Paducah - (KY),KY,Municipal,SERC,,,,,N,Y,Y,,,,,,N,,,Y,1,Y,,,Y,,,,,,
+2023,14381,City of Painesville,OH,Municipal,RFC,,,,,Y,,,,,,Y,,,N,,,1,Y,,,Y,,,,,N,
+2023,14398,Palmetto Electric Coop Inc,SC,Cooperative,SERC,,,,,,Y,,,,,,,,,N,Y,1,,,,Y,,,,,Y,Y
+2023,14401,City of Palo Alto - (CA),CA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,N,1,Y,,Y,Y,,Y,,Y,Y,Y
+2023,14424,"Panola-Harrison Elec Coop, Inc",TX,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,14446,Paragould Light & Water Comm,AR,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,,Y,Y,,Y,,Y,,
+2023,14455,City of Paris - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,14468,People's Cooperative Services,MN,Cooperative,MRO,,,Y,,,,,N,,,,,,Y,,,1,,N,,Y,,,N,,,
+2023,14534,City of Pasadena - (CA),CA,Municipal,WECC,,,,N,,,,Y,Y,,,,,,,,1,Y,Y,Y,Y,,Y,Y,Y,Y,Y
+2023,14537,Pascoag Utility District,RI,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,,Y,,,,,,
+2023,14563,Pearl River Valley El Pwr Assn,MS,Cooperative,SERC,,,,,,Y,,,,,,,,Y,,N,1,,,,Y,,,,,,
+2023,14599,"Paulding-Putman Elec Coop, Inc",OH,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,N,Y,,,,,Y,Y
+2023,14602,Pea River Electric Coop,AL,Cooperative,SERC,,,,,,,N,,,,,,,,,,0,,,,Y,,,,,,
+2023,14605,City of Peabody - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,N,Y,Y,,Y,,,Y,Y
+2023,14606,"Peace River Electric Coop, Inc",FL,Cooperative,FRCC,,Y,,,,,,,,,,,,,,Y,1,N,N,,Y,,,,,,
+2023,14610,Orlando Utilities Comm,FL,Municipal,,,N,,,,Y,,,,,,,,,,Y,1,Y,Y,Y,Y,Y,Y,,,Y,Y
+2023,14624,PUD No 2 of Grant County,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,N,Y,Y,Y,Y,Y
+2023,14626,"Pedernales Electric Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,Y,Y,Y,Y,N,,,Y,Y
+2023,14649,Planters Electric Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,14653,PUD No 1 of Pend Oreille County,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,N,
+2023,14668,Peninsula Light Company,WA,Cooperative,WECC,N,,,,,,,Y,,,,,,,,Y,1,N,,Y,Y,,,,,Y,Y
+2023,14711,Pennsylvania Electric Co,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,N,N,N,Y,,Y,N,,Y,Y
+2023,14715,PPL Electric Utilities Corp,PA,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,,Y,,,,,Y,Y
+2023,14716,Pennsylvania Power Co,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,N,,,1,,N,,Y,,Y,N,,Y,Y
+2023,14717,Pee Dee Electric Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,14724,Pennyrile Rural Electric Coop,KY,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,14775,People's Electric Cooperative,OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,Y,Y,Y,Y,,,,,
+2023,14839,City of Peru - (IN),IN,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,N,,Y,,,,,,
+2023,14840,City of Peru - (IL),IL,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,N,,Y,N,,,,N,N
+2023,14864,Petit Jean Electric Coop Corp,AR,Cooperative,SERC,,,,,,N,Y,,,,,,N,Y,,,1,,,,Y,,,,,,
+2023,14940,PECO Energy Co,PA,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,,Y,,,,Y,Y,Y
+2023,14947,City of Philadelphia - (MS),MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,14999,"Pilot Power Group, LLC",CA,Retail Power Marketer,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,,
+2023,15016,Pickwick Electric Coop,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,15023,Piedmont Electric Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,15028,Piedmont Municipal Power Agny,SC,Political Subdivision,SERC,,,,,,Y,,,,,,,,,,Y,1,Y,,,,,Y,,,N,
+2023,15040,City of Pierre - (SD),SD,Municipal,MRO,,,Y,,,,,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,15045,Pike County Light & Power Co,NY,Investor Owned,NPCC,,,,Y,,,,,,,Y,,,,,,1,,Y,,Y,,,,,,
+2023,15048,Electrical Dist No2 Pinal County,AZ,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,,0,,,Y,Y,,,,,,
+2023,15054,"Pioneer Rural Elec Coop, Inc - (OH)",OH,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,15073,"Pioneer Electric Coop, Inc - (KS)",KS,Cooperative,SPP,,,,,,,Y,,,,,,N,,,Y,1,,Y,,Y,,,,,,
+2023,15086,Pioneer Power and Light Co,WI,Investor Owned,RFC,,,,,Y,,,,,,,,,,,,0,,N,,Y,,,,,,
+2023,15095,City of Piqua - (OH),OH,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,,Y,Y,,,,,N,
+2023,15127,Placer County Water Agency,CA,Political Subdivision,WECC,,,N,,,,,Y,Y,,,,,,,,1,,,,,,Y,,,,
+2023,15138,"Platte-Clay Electric Coop, Inc",MO,Cooperative,SERC,,,,,N,Y,,,,,,,N,,,Y,1,,,,Y,,,N,N,,
+2023,15141,Plateau Electric Cooperative,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,15143,Platte River Power Authority,CO,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,,,Y,,,Y,Y
+2023,15145,City of Plattsburgh - (NY),NY,Municipal,NPCC,,,,Y,,,,,,,,Y,,,,,1,,N,,Y,,,,,Y,Y
+2023,15159,City of Plymouth - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,N,N
+2023,15175,Pointe Coupee Elec Member Corp,LA,Cooperative,SERC,,,,,,Y,,,,,,,,Y,,N,1,,,Y,Y,,,Y,,N,
+2023,15202,City of Ponca City - (OK),OK,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,N,,,
+2023,15211,Pontotoc Electric Power Assn,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,15229,City of Poplar Bluff - (MO),MO,Municipal,SPP,,,,,,Y,,,,,,,Y,,,,1,Y,,Y,Y,,Y,N,N,,
+2023,15231,City of Port Angeles - (WA),WA,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,N,,N,Y,,,,Y,Y,Y
+2023,15248,Portland General Electric Co,OR,Investor Owned,WECC,,,,,,,,Y,Y,,,,,,,N,1,Y,Y,Y,Y,,Y,Y,,Y,Y
+2023,15257,"Poudre Valley REA, Inc",CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,15263,The Potomac Edison Company,PA,Investor Owned,RFC,,,,N,Y,,,,,,Y,,,,,,1,,Y,,Y,,Y,N,,Y,Y
+2023,15270,Potomac Electric Power Co,DC,Investor Owned,RFC,,,N,,Y,,,,,,Y,,,,,,1,,Y,Y,Y,N,Y,,N,Y,Y
+2023,15291,Prairie Energy Coop,IA,Cooperative,MRO,,,Y,,N,,N,,,,,,Y,,,N,1,Y,,,Y,,,,,,
+2023,15293,Powell Valley Electric Coop,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,15296,New York Power Authority,NY,State,NPCC,,,,Y,,,,,,,,Y,,,,,1,Y,Y,Y,Y,Y,Y,N,N,Y,Y
+2023,15312,Village of Prairie Du Sac - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,15334,Prentiss County Elec Pwr Assn,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,15340,Presque Isle Elec & Gas Coop,MI,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,N,,
+2023,15344,Polk-Burnett Electric Coop,WI,Cooperative,MRO,,,Y,,,,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,15349,City of Preston,IA,Municipal,MISO,,,Y,,,,,,,,,,,Y,,,1,Y,,,Y,,,,,,
+2023,15410,Prince George Electric Coop,VA,Cooperative,SERC,,,,,,Y,,,,,Y,,,,,,1,,,,Y,,,,,N,
+2023,15419,PUD No 3 of Mason County,WA,Political Subdivision,,,,,,,,,Y,,,,,,,,Y,1,,Y,Y,Y,,Y,,,Y,Y
+2023,15444,Provo City Corp,UT,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,15466,Public Service Co of Colorado,CO,Investor Owned,WECC,,,,,,,,Y,N,,,,,,,Y,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,15470,"Duke Energy Indiana, LLC",IN,Investor Owned,RFC,,,,,Y,,,,,,N,,,Y,,,1,Y,Y,Y,Y,,Y,N,,Y,Y
+2023,15472,Public Service Co of NH,NH,Investor Owned,NPCC,,,,Y,,,,,,,,,,,Y,,1,N,Y,Y,Y,,Y,Y,,Y,Y
+2023,15473,Public Service Co of NM,NM,Investor Owned,WECC,,,,,,,,Y,,,,,,,,N,0,Y,Y,N,Y,,Y,,,Y,Y
+2023,15474,Public Service Co of Oklahoma,OK,Investor Owned,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,Y,Y,Y,N,Y,,,Y,Y
+2023,15477,Public Service Elec & Gas Co,NJ,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,Y,,Y,,,,,Y,Y
+2023,15500,Puget Sound Energy Inc,WA,Investor Owned,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,N,N,Y,Y
+2023,15507,City of Pulaski - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,15671,Randolph Electric Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,Y,Y,,,Y,,,
+2023,15700,Rayle Electric Membership Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,N
+2023,15711,Rainbow Energy Marketing Corp,ND,Wholesale Power Marketer,MRO,,,,,,,,,,,,,,,,,0,,,Y,,,Y,,,,
+2023,15746,Red River Valley Rrl Elec Assn,OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,15748,Town of Reading - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,N,N,Y,,,,,Y,Y
+2023,15776,Central Florida Tourism Oversight District,FL,Municipal,FRCC,,Y,,,,,,,,,,,,,,,0,Y,N,Y,Y,,Y,,,,
+2023,15783,City of Redding - (CA),CA,Municipal,WECC,,,,,,,,Y,N,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,15787,Redlands Water & Power Company,CO,Investor Owned,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,,,,,,,,,
+2023,15804,Reedsburg Utility Comm,WI,Municipal,MISO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,15847,Reliant Energy Retail Services,TX,Retail Power Marketer,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,,
+2023,15978,City of Richland Center - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,15979,City of Richland - (WA),WA,Municipal,WECC,,,,,,,,Y,,,,,,,,,0,,,,Y,,,,,,
+2023,15989,City of Richmond - (IN),IN,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,N,N,,Y,,,,,N,N
+2023,16057,"Rio Grande Electric Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,Y,N,Y,,,,,,,1,,Y,,Y,,,,,,Y
+2023,16060,Riverland Energy Cooperative,WI,Cooperative,MRO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,16063,"Rita Blanca Electric Coop, Inc",TX,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,16082,City of River Falls,WI,Municipal,MISO,,,Y,,,,,,,,,,,Y,,,1,Y,,,Y,,,,,Y,Y
+2023,16088,City of Riverside - (CA),CA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,Y,Y,Y,,Y,Y,,Y,Y
+2023,16101,Roanoke Electric Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,Y,,,,,,1,,,Y,Y,,,,,Y,Y
+2023,16146,"Navasota Valley Elec Coop, Inc",TX,Cooperative,TRE,Y,N,,,,,,,,Y,,,,,,,1,,,,Y,Y,,N,,,
+2023,16177,"Robison Energy, LLC",NY,Retail Power Marketer,NY,,,,Y,,,,,,,,Y,,,,,1,,,,,,,Y,,N,
+2023,16179,Rochelle Municipal Utilities,IL,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,Y,Y,Y,Y,Y,N,Y,N,
+2023,16181,Rochester Public Utilities,MN,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,,Y,,N,,Y,N,N
+2023,16183,Rochester Gas & Electric Corp,NY,Investor Owned,NPCC,,,,Y,,,,,,,,Y,,,,,1,Y,Y,Y,Y,Y,Y,Y,,Y,Y
+2023,16195,City of Rock Hill - (SC),SC,Municipal,SERC,,,,,,,,,,,,,,,,Y,1,,,,Y,,,,Y,Y,Y
+2023,16196,Rock Energy Cooperative,WI,Cooperative,MRO,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,16213,Rockland Electric Co,NY,Investor Owned,NPCC,,,,Y,,,,,,,Y,,,,,,1,,Y,,Y,,,,,,
+2023,16223,City of Rockwood - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,16226,City of Rocky Mount - (NC),NC,Municipal,,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,16259,City of Rolla - (MO),MO,Municipal,SERC,,,,,,Y,,,,,,,,Y,,,1,Y,,Y,Y,,,,Y,,
+2023,16286,Rosebud Electric Coop Inc,SD,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,16295,City of Roseville - (CA),CA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,,N,Y,,Y,,Y,Y,Y
+2023,16368,Runestone Electric Assn,MN,Cooperative,MRO,,,Y,,,,,,N,,,,,,,,0,,,,Y,,,,,,
+2023,16382,"Rural Electric Coop, Inc - (OK)",OK,Cooperative,SPP,,,,,,,Y,,,,N,,Y,,,,1,,,,Y,,,,,N,N
+2023,16443,Rushmore Electric Pwr Coop Inc,SD,Cooperative,MRO,,,Y,,,,,,,,,,Y,,,,1,,N,N,,,Y,,,N,
+2023,16458,City of Russellville - (AL),AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,16459,City of Russellville - (KY),KY,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,16461,"Rusk County Electric Coop, Inc",TX,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,Y,,Y,,,,,,
+2023,16463,City of Ruston - (LA),LA,Municipal,SERC,,,,,,Y,,,,,,,,Y,,,1,,,Y,Y,,,,,Y,Y
+2023,16496,Rutherford Elec Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,N,Y,,Y,,,,,,
+2023,16534,Sacramento Municipal Util Dist,CA,Political Subdivision,WECC,,,,,,,,Y,N,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,16537,Safe Harbor Water Power Corp,PA,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,,,,,,,,,
+2023,16555,Salem Electric - (OR),OR,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,N,Y,Y,,,,,Y,Y
+2023,16558,City of Salem - (VA),VA,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,,Y,Y,,,,,N,
+2023,16565,Salmon River Electric Coop Inc,ID,Cooperative,WECC,,,,,,,,Y,,,,,,,,,0,,,,Y,,,,,,
+2023,16572,Salt River Project,AZ,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,,0,Y,Y,Y,Y,,Y,,N,Y,Y
+2023,16587,Salt River Electric Coop Corp,KY,Cooperative,RFC,,,,,N,Y,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,16603,"San Luis Valley R E C, Inc",CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,N,,Y,,,,,,
+2023,16604,City of San Antonio - (TX),TX,Municipal,TRE,Y,,,,,,,,,,,,,,,,0,Y,Y,,Y,,Y,,Y,Y,Y
+2023,16606,"Santee Electric Coop, Inc",SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,N,N
+2023,16609,San Diego Gas & Electric Co,CA,Investor Owned,WECC,,,,,,,N,Y,Y,,,,,,,,1,Y,Y,Y,Y,,,,Y,Y,Y
+2023,16611,Access Energy Coop,IA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,16612,City & County of San Francisco,CA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,Y,Y,Y,Y,Y,Y,,,
+2023,16613,Sam Houston Electric Coop Inc,TX,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,Y,,Y,,,,,,
+2023,16616,"San Isabel Electric Assn, Inc",CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,N,Y,,,,,,
+2023,16622,"San Miguel Power Assn, Inc",CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,N,,Y,,,,,Y,Y
+2023,16624,"San Miguel Electric Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,Y,,,,,,,,,
+2023,16627,San Patricio Electric Coop Inc,TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,,
+2023,16629,Sand Mountain Electric Coop,AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,16637,City of Sandersville - (GA),GA,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,16638,"San Bernard Electric Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,Y,,Y,,,,,,
+2023,16655,City of Santa Clara - (CA),CA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,N,Y,,,Y,Y,,,
+2023,16674,Satilla Rural Elec Member Corporation,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,16740,Scenic Rivers Energy Coop,WI,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,N,,,
+2023,16751,Three Rivers Electric Coop,MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,N,,
+2023,16805,SEMO Electric Cooperative,MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,N,
+2023,16821,Sam Rayburn Municipal Pwr Agny,TX,Political Subdivision,SERC,,,,,,Y,,,,,,,,Y,,N,1,,,,,,Y,,,,
+2023,16829,City of Scottsboro - (AL),AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,16840,"Calpine Energy Solutions, LLC",CA,Retail Power Marketer,WECC,,,,,,,,,,,,,,,,,0,,,,,,,Y,,N,
+2023,16865,Sawnee Electric Membership Corporation,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,N,N
+2023,16868,City of Seattle - (WA),WA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,N,1,Y,Y,Y,Y,Y,Y,,,Y,Y
+2023,16900,City of Seguin - (TX),TX,Municipal,TRE,Y,,,,,,,,,Y,,,,,,,1,,,Y,Y,,,,Y,,
+2023,16930,Sequachee Valley Electric Coop,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,16949,Sevier County Electric System,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,16971,Shakopee Public Utilities Comm,MN,Municipal,MRO,N,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,Y,,
+2023,17008,"Sharyland Utilities, LLC",TX,Transmission,,Y,,,,,,N,,,Y,,,N,,,,1,,Y,,N,,,,,,
+2023,17011,Shawano Municipal Utilities,WI,Municipal,RFC,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,17033,Sheffield Utilities,AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,17038,RushShelby Energy,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,17040,"Shelby Electric Coop, Inc - (IL)",IL,Cooperative,RFC,,,,,N,Y,,,,,,,,Y,,,1,,,,Y,,,,,N,
+2023,17044,"Shelby Energy Coop, Inc - (KY)",KY,Cooperative,SERC,,,,,,Y,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,17047,City of Shelbyville - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,17066,Shenandoah Valley Elec Coop,VA,Cooperative,SERC,,,,,,Y,,,,,Y,,,,,,1,,,,Y,,,,,Y,Y
+2023,17106,Sho-Me Power Electric Coop,MO,Cooperative,SERC,N,,,,,Y,,,,,,,N,,,Y,1,Y,Y,,N,,,,,,
+2023,17127,Town of Shrewsbury - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,Y,Y,Y,,,,Y,Y,Y
+2023,17166,Sierra Pacific Power Co,NV,Investor Owned,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,17177,City of Sikeston - (MO),MO,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,Y,Y,Y,,Y,,Y,,
+2023,17184,City of Siloam Springs - (AR),AR,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,Y,,
+2023,17252,Singing River Elec Cooperative,MS,Cooperative,SERC,N,,,,,Y,,,,,,,,Y,,N,1,,,,Y,,,,,,
+2023,17260,North West Rural Electric Coop,IA,Cooperative,MRO,,,,,N,,Y,,,,,,Y,,,,1,,,N,Y,,,,,,
+2023,17261,Slope Electric Coop Inc,ND,Cooperative,MRO,,,N,,,,Y,,,,,,Y,,,,1,,,N,Y,,,,,,
+2023,17267,Sioux Valley SW Elec Coop,SD,Cooperative,MRO,,,Y,,,,N,,,,,,Y,N,,N,1,,,,Y,,,,,Y,Y
+2023,17324,Slinger Utilities,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,17452,City of Smithville - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,17470,PUD No 1 of Snohomish County,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,17512,Village of Solvay - (NY),NY,Municipal,NPCC,,,,Y,,,,,,,,Y,,,,,1,,,,Y,,N,,,,
+2023,17513,Southern California P P A,CA,Political Subdivision,WECC,,,,,,,,Y,Y,,,,,,,N,1,,,,,,Y,,,,
+2023,17534,"South Alabama Elec Coop, Inc",AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,17539,"Dominion Energy South Carolina, Inc",SC,Investor Owned,SERC,,,,,,Y,,,,,N,,,,,Y,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,17540,"South Central Ark El Coop, Inc",AR,Cooperative,SERC,,,,,,,Y,,,,,,Y,,,,1,,N,,Y,,,,,N,
+2023,17543,South Carolina Public Service Authority,SC,State,SERC,,,,,,Y,,,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,17550,South Central Electric Assn,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,17554,"South Carolina Genertg Co, Inc",SC,Investor Owned,SERC,,,,,,Y,,,,,,,,,,Y,1,Y,,,,,,,,,
+2023,17561,South Plains Electric Coop Inc,TX,Cooperative,TRE,Y,,,,,,Y,,,Y,,,Y,,,,2,,N,,Y,,,,,,
+2023,17564,South Kentucky Rural E C C,KY,Cooperative,SERC,,,,,N,Y,,,,,Y,,,N,,,1,,,,Y,,,,,N,N
+2023,17565,South Louisiana Elec Coop Assn,LA,Cooperative,SERC,,,,,,Y,N,,,,,,N,Y,,,1,,,,Y,,,,N,N,
+2023,17568,Cooperative Energy,MS,Cooperative,SERC,,,,,,Y,,,,,,,,Y,,,1,Y,N,Y,,,Y,,,,
+2023,17572,South River Elec Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,N,,Y,,,,,Y,Y
+2023,17577,City of South Sioux City,NE,Municipal,MRO,,,Y,,,,,,,,,,Y,,,,1,,,,,,,,Y,Y,Y
+2023,17583,"South Texas Electric Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,Y,Y,Y,,,Y,,,,
+2023,17585,"Southeastern IL Elec Coop, Inc",IL,Cooperative,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,17592,Southeast Colorado Power Assn,CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,Y,,Y,,,,,N,
+2023,17599,Southeastern Indiana R E M C,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,17603,Southeastern Electric Coop Inc - (OK),OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,N,
+2023,17609,Southern California Edison Co,CA,Investor Owned,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,Y,Y,Y,Y,Y,Y,,Y,Y
+2023,17612,Bear Valley Electric Service,CA,Investor Owned,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,,Y,Y,Y,Y,,,N,Y
+2023,17622,Southern Electric Gen Co,AL,Investor Owned,SERC,,,,,,Y,,,,,,,,,,,0,Y,Y,,,,N,,,,
+2023,17632,Southern Illinois Power Coop,IL,Cooperative,SERC,,,,,N,Y,,,,,,,,Y,,,1,Y,N,Y,,,Y,,,,
+2023,17633,Southern Indiana Gas & Elec Co,IN,Investor Owned,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,17637,Southern Maryland Elec Coop Inc,MD,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,,Y,,,,,Y,Y
+2023,17642,Southern Public Power District,NE,Political Subdivision,MRO,,,Y,,,,N,,,,,,Y,,,,1,,,Y,Y,N,,,,,
+2023,17646,"Southern Pine Elec Coop, Inc",AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,N,
+2023,17647,Southern Pine Electric Cooperative,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,17671,Southwest Arkansas E C C,TX,Cooperative,,,,Y,,,Y,Y,,,,,,Y,Y,,,2,,N,,Y,,,,,,
+2023,17683,Southwest Mississippi E P A,MS,Cooperative,SERC,,,,,,Y,,,,,,,,Y,,N,1,,,,Y,,,,,,
+2023,17684,Southwest Louisiana E M C,LA,Cooperative,SERC,,,,,,Y,,,,,,,Y,,,,1,,Y,,Y,,,,,Y,Y
+2023,17692,Southwest Public Power Dist,NE,Political Subdivision,MRO,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,17693,"Southwest Texas Elec Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,,
+2023,17694,Southwest Tennessee E M C,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,17697,Southwestern Electric Coop Inc - (IL),IL,Cooperative,SERC,,,,,N,Y,,,,,,,,Y,,,1,Y,,Y,Y,,,,,Y,Y
+2023,17698,Southwestern Electric Power Co,OK,Investor Owned,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,Y,Y,Y,N,Y,,N,Y,Y
+2023,17710,"Spark Energy, LP",TX,Retail Power Marketer,TRE,,,,,,,,,,Y,,,,,,,1,,,,N,,,Y,,,
+2023,17715,Southwestern Electric Coop Inc - (NM),NM,Cooperative,WECC,,,,,,,,Y,,,,,,N,,Y,1,,,,Y,,,,,,
+2023,17716,Southwestern Power Administration,OK,Federal,MRO,,,Y,,,,N,,,,,,Y,N,,,1,Y,Y,Y,,,Y,,,Y,Y
+2023,17718,Southwestern Public Service Co,TX,Investor Owned,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,17732,Spanish Fork City Corporation,UT,Municipal,WECC,,,,,,,,Y,,,,,,,,,0,,N,,Y,,,,,,
+2023,17740,City of Sparta,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,17826,"Springer Electric Coop, Inc",NM,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,,
+2023,17828,City of Springfield - (IL),IL,Municipal,SERC,,,,,,Y,,,,,,,,Y,,,1,Y,Y,,Y,,Y,,N,Y,Y
+2023,17829,City of Springfield - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,17832,Snapping Shoals El Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,17833,City Utilities of Springfield - (MO),MO,Municipal,,,,Y,,,,N,,,,,,Y,,,,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,17839,City of Springfield - (OR),OR,Municipal,WECC,,,,,,,,Y,,,,,,,,,0,,N,Y,Y,,,,Y,Y,Y
+2023,17845,City of Springville - (UT),UT,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,,,Y,,,,,,
+2023,17858,Square Butte Electric Coop,ND,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,N,N,,,,,,,
+2023,17860,City of St Charles - (IL),IL,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,17874,City of St George,UT,Municipal,WECC,,,,,,,,Y,,,,,,,,,0,Y,Y,Y,Y,,Y,Y,,N,
+2023,17891,City of St Marys - (OH),OH,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,,Y,Y,,,Y,,,
+2023,17896,City of Shasta Lake - (CA),CA,Municipal,WECC,,,,,,,,Y,N,,,,,,,Y,1,,,Y,Y,,,,Y,N,N
+2023,18006,City of Starkville,MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,18019,Stearns Cooperative Elec Assn,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,N,Y
+2023,18022,City of Statesville - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,18047,Steele-Waseca Cooperative Electric,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,18085,South Central Power Company,OH,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,,Y,,,,,Y,Y
+2023,18087,Town of Sterling - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,,Y,,,,,Y,Y
+2023,18125,Stillwater Utilities Authority,OK,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,N,,Y,,,,,,
+2023,18181,City of Stoughton - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,18193,Direct Energy Business,PA,Retail Power Marketer,,N,,,Y,Y,Y,,Y,Y,Y,Y,Y,,Y,Y,,6,,,N,,,N,Y,,,
+2023,18203,Tallapoosa River Elec Coop Inc,AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,18205,Strawberry Water Users Assn,UT,Investor Owned,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,,,,,Y,,,,
+2023,18206,Strawberry Electric Serv Dist,UT,Political Subdivision,WECC,,,,,,,,Y,,,,,N,,,N,0,,Y,Y,Y,,,,,,
+2023,18249,City of Sturgeon Bay - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,18252,City of Sturgis - (MI),MI,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,N,Y,Y,Y,,,,N,
+2023,18260,Surprise Valley Electrification,CA,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,N,,,Y,,,,,,
+2023,18280,Sulphur Springs Valley E C Inc,AZ,Cooperative,WECC,,,,,,,,Y,,,,,,,,,0,Y,,,Y,,N,,,,
+2023,18304,"Sumter Electric Coop, Inc",FL,Cooperative,FRCC,,Y,,,,,,,,,,,,,,Y,1,,Y,Y,Y,,,,,,
+2023,18305,Sumter Electric Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,18312,Sun Prairie Utilities,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,18315,Sunflower Electric Power Corp,KS,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,Y,,,,Y,,,,
+2023,18336,Superior Water and Light Co,WI,Investor Owned,MRO,,,Y,,,,,,,,,,,,,,0,,,,,,,,Y,,
+2023,18339,Surry-Yadkin Elec Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,N,,Y,,,,,Y,Y
+2023,18360,Suwannee Valley Elec Coop Inc,FL,Cooperative,FRCC,,Y,Y,,,,,,,,,,,,,Y,1,,N,,Y,,,,,,N
+2023,18384,City of Sweetwater,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,18397,City of Sylvania - (GA),GA,Municipal,SERC,N,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,18429,City of Tacoma - (WA),WA,Municipal,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,18445,City of Tallahassee - (FL),FL,Municipal,FRCC,,Y,,,,N,,,,,,,,,,Y,1,Y,Y,Y,Y,Y,Y,N,Y,Y,Y
+2023,18447,Tallahatchie Valley E P A,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,18449,"Talquin Electric Coop, Inc",FL,Cooperative,FRCC,,Y,,,,N,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,18454,Tampa Electric Co,FL,Investor Owned,FRCC,,Y,,,,,,,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,18466,Town of Tarboro - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,18472,City of Tarrant,AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,18476,"Tara Energy, LLC",TX,Retail Power Marketer,,Y,,,,,,,,,,,,,,,,0,,,,,,,Y,,,
+2023,18488,City of Taunton,MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,N,Y,Y,,Y,,,Y,Y
+2023,18498,Taylor County Rural E C C,KY,Cooperative,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,18499,Three Notch Elec Member Corp,GA,Cooperative,SERC,Y,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,18589,"Rayburn Country Elec Coop, Inc",TX,Cooperative,TRE,Y,,,,,,N,,,Y,,,Y,,,,2,Y,Y,Y,,N,,,N,N,
+2023,18642,Tennessee Valley Authority,TN,Federal,,,,,,,Y,,,,,,,,,,Y,1,Y,Y,,,,,,,Y,Y
+2023,18643,Tennessee Valley Electric Coop,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,18848,City of Thomasville - (GA),GA,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,,,,,Y,Y,Y
+2023,18917,Tillamook Peoples Utility Dist,OR,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,18940,Tipmont Rural Elec Member Corp,IN,Cooperative,RFC,,,,,Y,,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,18943,Tippah Electric Power Assn,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,18951,Tishomingo County E P A,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,18955,"Tri-County Electric Coop, Inc (IL)",IL,Cooperative,RFC,,,,,N,Y,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,18956,Tri-County Elec Member Corp (GA),GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,Y,Y
+2023,18957,Tri-County Elec Member Corp (NC),NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,N,
+2023,18976,Trinity Valley Elec Coop Inc,TX,Cooperative,,Y,,,,,,Y,,,Y,,,,,,,1,,N,,Y,,,,,,
+2023,18995,Tenaska Power Services,TX,Retail Power Marketer,TRE,N,,N,,,N,N,,N,N,N,,N,N,,,0,,,Y,,,Y,Y,,,
+2023,18997,The Toledo Edison Co,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,N,,,1,N,N,N,Y,,Y,N,,Y,Y
+2023,19007,Tombigbee Electric Power Assn,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,19048,Toledo Bend Project Joint Oper,TX,State,SERC,,,,,,Y,,,,,,,,Y,,,1,Y,,,,,Y,,,,
+2023,19090,"ENGIE Energy Marketing NA, Inc",TX,Wholesale Power Marketer,TRE,N,,N,N,N,N,N,N,Y,Y,Y,Y,Y,Y,Y,,7,N,,N,,,Y,,,,
+2023,19096,TransAlta Energy Marketing (U.S.) Inc.,NY,Wholesale Power Marketer,WECC,,,,,,,,,Y,Y,Y,Y,Y,Y,Y,N,7,,,,,,Y,,,,
+2023,19107,ENGIE Resources LLC,TX,Retail Power Marketer,TRE,N,,,,,,,,,,,,,,,,0,,,,,,,Y,N,,
+2023,19108,Tideland Electric Member Corp,NC,Cooperative,,,,,,,Y,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,19125,City of Traverse City - (MI),MI,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,N,N,N,Y,,,,Y,Y,Y
+2023,19126,"TriEagle Energy, L.P.",TX,Retail Power Marketer,TRE,Y,,,,,,,,,Y,Y,,,,,,2,,,,,,,Y,,,
+2023,19149,City of Trenton - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,19154,Tri-State Electric Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,19156,Powder River Energy Corp,WY,Cooperative,WECC,,,,,,,,Y,,,,,,,,,0,,,,Y,,,,,N,
+2023,19157,MiEnergy Cooperative,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,,,Y,,,,,Y,Y
+2023,19159,"Tri-County Electric Coop, Inc (TX)",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,,
+2023,19160,"Tri-County Electric Coop, Inc (OK)",OK,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,Y,Y,Y,,,,,N,N
+2023,19161,"Tri-County Electric Coop, Inc (FL)",FL,Cooperative,FRCC,,Y,,,,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,19162,Tri-County Elec Member Corp (TN),TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,19189,Trico Electric Cooperative Inc,AZ,Cooperative,WECC,,,,,,,,Y,,Y,,,,,,Y,2,Y,,Y,Y,,,,,Y,Y
+2023,19219,Diverse Power Incorporated,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,19225,City of Troy - (AL),AL,Municipal,SERC,,,,,N,Y,,,,,,,,,,Y,1,,,,Y,,,,Y,,
+2023,19266,Tullahoma Board-Public Utils,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,19273,City of Tupelo - (MS),MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,19277,TDX North Slope Generating Co,AK,Investor Owned,AK,,,,,,,,Y,,,,,,,,Y,1,Y,N,,Y,,N,,,,
+2023,19281,Turlock Irrigation District,CA,Political Subdivision,WECC,,,,,,,,Y,N,,,,,,,Y,1,Y,Y,Y,Y,Y,Y,,,Y,Y
+2023,19293,Southeastern Electric Coop Inc - (SD),SD,Cooperative,MRO,,,Y,,,,N,,,,,,Y,,,N,1,,,,Y,,,,,Y,Y
+2023,19307,City of Tuscumbia,AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,19324,Two Rivers Water & Light,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,19325,Umatilla Electric Coop Assn,OR,Cooperative,WECC,,,,,N,,,Y,,,,,,,,Y,1,Y,Y,N,Y,,,N,,,Y
+2023,19327,"TXU Energy Retail Co, LLC",TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,,
+2023,19389,Upper Missouri G&T El Coop Inc,MT,Cooperative,MRO,,,Y,,,,,N,,,,,Y,,,,1,,Y,,,,Y,,,,
+2023,19390,"UGI Utilities, Inc",PA,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,Y,Y,,,Y,,,
+2023,19396,Tri-County Electric Coop (MI),MI,Cooperative,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,Y,,,,,
+2023,19430,City of Union City,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,19435,Union Electric Membership Corp - (NC),NC,Cooperative,SERC,,,,,,,,,,,,,,,,,0,,,,Y,,Y,Y,,Y,Y
+2023,19436,Union Electric Co - (MO),MO,Investor Owned,SERC,,,,,,Y,,,,,,,,Y,,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,19445,"Southern Indiana R E C, Inc",IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,19446,Duke Energy Kentucky,KY,Investor Owned,RFC,,,,,Y,,,,,,Y,,,N,,,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,19490,United Electric Coop Service Inc - (TX),TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,Y,Y
+2023,19497,United Illuminating Co,CT,Investor Owned,NPCC,,,,Y,,,,,,,,,,,Y,,1,,Y,Y,Y,,,,,Y,Y
+2023,19499,"United Power, Inc",CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,Y,Y,,,N,,Y,Y
+2023,19501,"Union Rural Electric Coop, Inc",OH,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,N,N,N
+2023,19502,"United Electric Co-op, Inc - (ID)",ID,Cooperative,WECC,,,,,,,,Y,,,,,,,,,0,,,,Y,,,,,N,
+2023,19528,University of Illinois,IL,State,,,,N,,,,,,,,Y,,,Y,,,2,Y,,,,,,,,N,
+2023,19545,"Black Hills Power, Inc.",SD,Investor Owned,WECC,N,,Y,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,N,,Y,Y
+2023,19547,Hawaiian Electric Co Inc,HI,Investor Owned,HI,,,,,,,,,,,,,,,,,0,Y,Y,,Y,,,,,Y,Y
+2023,19558,Homer Electric Assn Inc,AK,Cooperative,AK,,,,,,,,,,,,,,,,Y,1,Y,N,Y,Y,,,,,Y,Y
+2023,19574,Upper Cumberland E M C,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,19578,Upper Peninsula Power Company,MI,Investor Owned,RFC,,,Y,,Y,,,,,,,,,Y,,,1,Y,,Y,Y,,Y,,,N,
+2023,19579,Upshur Rural Elec Coop Corp,TX,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,19603,USBIA-Mission Valley Power,MT,Federal,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,,
+2023,19604,USBIA-San Carlos Project,AZ,Federal,WECC,,,,,,,,Y,,,,,,,,Y,1,,N,Y,Y,,Y,Y,,Y,Y
+2023,19667,Utilities Dist-Western IN REMC,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,19728,"UNS Electric, Inc",AZ,Investor Owned,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,Y,Y,Y,,Y,,,,
+2023,19780,Vermont Public Power Supply Authority,VT,Political Subdivision,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,N,,,,Y,,,,
+2023,19784,Vera Irrigation District #15,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,,
+2023,19785,Verdigris Valley Elec Coop Inc,OK,Cooperative,SPP,,,,,,,Y,,,,,,,,,,0,,,,Y,,,,,,
+2023,19790,Verendrye Electric Coop Inc,ND,Cooperative,MRO,,,N,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,19791,"Vermont Electric Cooperative, Inc",VT,Cooperative,NPCC,,,,Y,,,,,,,,,,,Y,,1,,Y,Y,Y,N,Y,Y,,,N
+2023,19792,"Vermont Electric Power Co, Inc",VT,Transmission,NPCC,,,,Y,,,,,,,,,,,Y,,1,,Y,,,,,,,Y,Y
+2023,19798,City of Vernon,CA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,,,Y,,,,Y,Y,Y
+2023,19806,"Victoria Electric Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,,
+2023,19820,Victory Electric Coop Assn Inc,KS,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,19840,"Valley Electric Assn, Inc",NV,Cooperative,WECC,,,,,,,,Y,Y,,,,,,,,1,,Y,Y,Y,,,,,,
+2023,19856,City of Vineland - (NJ),NJ,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,N,Y,Y,,Y,,,,
+2023,19869,Vinton Public Power Authority,LA,Political Subdivision,SERC,,,,,,Y,,,,,,,,Y,,,1,,,,,,Y,N,,,
+2023,19876,Virginia Electric & Power Co,VA,Investor Owned,SERC,,,,,,Y,,,,,Y,,,,,,1,Y,Y,,Y,,,,,Y,Y
+2023,19882,Virginia Tech Electric Service,VA,State,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,19885,Virginia Mun Elec Assn No 1,VA,Municipal Mktg Authority,SERC,,,,,,Y,,,,,,,,,,,0,Y,,Y,,,,,,,
+2023,19896,City of Volga - (SD),SD,Municipal,MRO,,,Y,,,,,,,,,,,,,Y,1,,,,Y,,,,Y,,
+2023,19898,Volunteer Electric Coop,TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,19950,Vermont Electric Trans Co Inc,VT,Transmission,NPCC,,,,Y,,,,,,,,,,,Y,,1,,Y,,,,,,,,
+2023,19951,City of Wadsworth - (OH),OH,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,Y,,
+2023,19981,Wake Electric Membership Corp,NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,20038,Town of Wallingford - (CT),CT,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,Y,Y,,,,,N,
+2023,20065,Walton Electric Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,N,,,Y,,,,,,
+2023,20077,City of Wapakoneta - (OH),OH,Municipal,RFC,,,,,Y,,,,,,Y,,N,,,,1,,Y,,Y,,,,,,
+2023,20130,Warren Rural Elec Coop Corp,KY,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,20140,City of Washington - (GA),GA,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,20142,City of Washington - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,Y,,
+2023,20146,Washington Elec Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,20151,Washington Electric Coop - (VT),VT,Cooperative,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,,,Y,,,,,,
+2023,20160,Energy Northwest,WA,State,WECC,,,,,,,,Y,,N,,,,,,Y,1,Y,N,,,,,,,N,N
+2023,20169,Avista Corp,WA,Investor Owned,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,Y,Y,Y
+2023,20176,City of Water Valley - (MS),MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,20182,Waterloo Light & Water Comm,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,20187,Watertown Municipal Utilities,SD,Municipal,MRO,,,Y,,,,,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,20188,City of Watertown - (NY),NY,Municipal,NPCC,,,,Y,,,,,,,,Y,,,,,1,Y,,,,,,,,,
+2023,20211,Village of Waunakee - (WI),WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,20213,Waupun Utilities,WI,Municipal,MISO,,,Y,,N,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,20216,Whitewater Valley Rural EMC,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,N,N,
+2023,20222,Wayne-White Counties Elec Coop,IL,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,20228,Weakley County Mun Elec Sys,TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,20230,Weatherford Mun Utility System,TX,Municipal,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,N,
+2023,20310,Town of Wellesley - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,Y,Y,,,,,Y,Y
+2023,20318,Webster Electric Coop,MO,Cooperative,SERC,,,,,Y,,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,20332,Wells Rural Electric Co,NV,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,N,,Y,,,,,Y,Y
+2023,20334,Wellsborough Electric Co,PA,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,N,
+2023,20363,West Central Electric Coop Inc - (MO),MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,N,Y,,,,,Y,Y
+2023,20371,"West Florida El Coop Assn, Inc",FL,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,20377,West Kentucky Rural E C C,KY,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,20382,City of West Memphis - (AR),AR,Municipal,,,,,,,Y,,,,,,,,,,,0,Y,,,Y,Y,,,,N,
+2023,20387,West Penn Power Company,PA,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,,Y,,Y,,,Y,Y
+2023,20394,City of West Point - (MS),MS,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,20401,West River Electric Assn Inc,SD,Cooperative,MRO,,,Y,,,,N,,,,,,Y,,,N,1,,Y,,Y,,,,,Y,Y
+2023,20404,AEP Texas North Company,OK,Investor Owned,TRE,Y,,,,,,,,,Y,N,,,,,,1,Y,Y,Y,Y,,,,,Y,Y
+2023,20413,Mountrail-Williams Elec Coop,ND,Cooperative,MRO,,,Y,,,,Y,,,,,,Y,N,,N,1,,Y,Y,Y,,,,,N,
+2023,20421,Western Minnesota Mun Pwr Agny,SD,Political Subdivision,MRO,,,Y,,,,,,,,,,Y,Y,,,2,Y,Y,,,,,,,,
+2023,20434,City of Westby,WI,Municipal,MISO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,20447,"Western Farmers Elec Coop, Inc",OK,Cooperative,SPP,,,Y,,,,N,,,,,,Y,,,,1,Y,Y,Y,,,Y,,,Y,Y
+2023,20472,"Wharton County Elec Coop, Inc",TX,Cooperative,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,N,
+2023,20476,Western Coop Electric Assn Inc,KS,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,N,
+2023,20477,City of Westerville - (OH),OH,Municipal,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,,Y,,,,,Y,Y
+2023,20481,City of Westfield - (MA),MA,Municipal,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,Y,Y,,N,,,Y,Y
+2023,20510,"Wheatland Electric Coop, Inc",KS,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,Y,Y
+2023,20521,Wheeling Power Co,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,Y,,Y,,Y,,,Y,Y
+2023,20574,White River Valley El Coop Inc,MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,Y,,,,N,N
+2023,20576,"White River Electric Assn, Inc",CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,,Y,,,N,,,
+2023,20583,Whitehall Electric Utility,WI,Municipal,MISO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,20603,Northeastern Rural E M C,IN,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,,,Y,,,,,Y,Y
+2023,20639,"Wild Rice Electric Coop, Inc",MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,20659,"WGL Energy Services, Inc.",VA,Retail Power Marketer,,,,,,Y,,,,,,Y,,,,,,1,,,,,,,Y,,,
+2023,20737,Willmar Municipal Utilities,MN,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,Y,,,,Y,,
+2023,20785,City of Wilson - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,Y,1,,N,N,Y,,,,,Y,Y
+2023,20793,City of Winchester - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,20813,City of Winfield - (KS),KS,Municipal,SPP,,,,,,,Y,,,,,,Y,,,,1,Y,Y,,Y,,,,Y,N,
+2023,20841,"Wiregrass Electric Coop, Inc",AL,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,20845,Wolverine Power Marketing Coop,MI,Cooperative,RFC,,,,N,Y,,,,,,,,,Y,,,1,,,Y,,,,Y,,,
+2023,20847,Wisconsin Electric Power Co,WI,Investor Owned,,,,N,,Y,,,,,,,,,Y,,,1,Y,,Y,Y,Y,Y,,Y,Y,Y
+2023,20856,Wisconsin Power & Light Co,WI,Investor Owned,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,,Y,Y,Y,Y,Y,Y,Y,Y
+2023,20858,WPPI Energy,WI,Municipal Mktg Authority,MISO,,,Y,,N,,,,,,,,,Y,,,1,Y,,Y,Y,Y,Y,,,Y,Y
+2023,20860,Wisconsin Public Service Corp,WI,Investor Owned,,,,N,,Y,,,,,,,,,Y,,,1,Y,,Y,Y,Y,Y,N,Y,Y,Y
+2023,20862,Wisconsin Rapids W W & L Comm,WI,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,Y,,
+2023,20863,Wisconsin River Power Company,WI,Investor Owned,RFC,,,Y,,,,,,,,,,,Y,,,1,Y,,,,,,,,N,
+2023,20885,Withlacoochee River Elec Coop,FL,Cooperative,FRCC,,Y,,,,,,,,,,,,,,,0,,N,,Y,,,,,Y,Y
+2023,20910,Wolverine Power Supply Coop,MI,Cooperative,RFC,,,,,Y,,,,,,Y,,,Y,,,2,Y,Y,Y,N,,Y,,N,,
+2023,20927,"Wood County Electric Coop, Inc",TX,Cooperative,SPP,,,,,,,Y,,,,,,,,,,0,,Y,,Y,,,,,,
+2023,20948,Wise Electric Coop Inc,TX,Cooperative,TRE,Y,,,,,,,,,,,,,,,N,0,,,,Y,,,,,,
+2023,20963,Woodruff Electric Coop Corp,AR,Cooperative,SERC,,,,,,,Y,N,,,,,Y,,,,1,,,,Y,,,,,,
+2023,20996,Wright-Hennepin Coop Elec Assn,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,20997,Yellowstone Valley Elec Co-op,MT,Cooperative,WECC,,,,,,,,Y,,,,,Y,,,N,1,,,,Y,,,,,N,
+2023,21002,York Electric Coop Inc,SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,N,,,Y,,,,,,
+2023,21013,City of Worthington - (MN),MN,Municipal,MRO,,,Y,,,,,,,,,,,Y,,,1,,,Y,Y,,,,Y,,
+2023,21048,Wyandotte Municipal Serv Comm,MI,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,N,Y,Y,,,,Y,N,N
+2023,21075,Y-W Electric Assn Inc,CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,N,,Y,,,,,,
+2023,21081,Yampa Valley Electric Assn Inc,CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,,,,Y,,,,,,
+2023,21093,3 Phases Renewables Inc,CA,Retail Power Marketer,WECC,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,21111,Perennial Public Power Dist,NE,Political Subdivision,SPP,,,,,,,Y,,,,,,N,,,Y,1,,N,Y,Y,,,,,,
+2023,21114,Yazoo Valley Elec Power Assn,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,21140,Yuba County Water Agency,CA,Political Subdivision,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,,,,,Y,,,,
+2023,21158,City of Zeeland - (MI),MI,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,Y,N,Y,Y,,,,Y,Y,Y
+2023,21244,"Southside Electric Coop, Inc",VA,Cooperative,SERC,,,,,,Y,,,,,Y,,,,,,1,,Y,,Y,,,,,Y,Y
+2023,21249,"HQ Energy Services (U.S.), Inc.",CT,Wholesale Power Marketer,NPCC,N,,,N,N,,,,,Y,Y,Y,Y,Y,Y,,6,N,,Y,,N,Y,,,,
+2023,21352,Municipal Energy Agency of NE,NE,Political Subdivision,MRO,,,Y,,,,N,Y,,,,,Y,Y,,,2,Y,,Y,,,Y,,,,
+2023,21513,"Fergus Electric Coop, Inc",MT,Cooperative,WECC,,,,,,,,Y,,,,,,,,,0,,Y,Y,Y,Y,,,,,
+2023,21538,"Mohave Electric Cooperative, Inc.",AZ,Cooperative,WECC,,,,,,,,N,,,,,,,,,0,Y,,,Y,,,,,N,
+2023,21554,Seminole Electric Cooperative Inc,FL,Cooperative,FRCC,,N,,,,Y,,,,,,,,,,Y,1,Y,Y,Y,,,Y,,,,
+2023,21567,"Washington-St Tammany E C, Inc",LA,Cooperative,SERC,,,,,,Y,N,,,,,,N,Y,,N,1,,,,Y,,,,,,
+2023,21632,EnergyUnited Elec Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,Y,Y,Y,,,,,Y,Y
+2023,21704,MSR Public Power Agency,CA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,,0,N,N,N,,,Y,,,,
+2023,22053,Kentucky Power Co,OH,Investor Owned,RFC,,,,,Y,,,,,,Y,,,,,,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,22056,Smarr EMC,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,Y,,,,,,,,,
+2023,22500,"Evergy Kansas Central, Inc",KS,Investor Owned,SPP,N,,Y,,N,N,N,N,N,N,N,N,Y,N,,,1,Y,Y,Y,Y,N,Y,,,Y,Y
+2023,22690,Roosevelt County Elec Coop Inc,NM,Cooperative,SPP,,,,,,,Y,,,,,,Y,,,,1,,,Y,Y,,,,,,
+2023,22814,Raft Rural Elec Coop Inc,ID,Cooperative,,,,,,,,,Y,,,,,,,,,0,,Y,,Y,,,,,,
+2023,22815,Delta Electric Power Assn,MS,Cooperative,SERC,,,,,,Y,,,,,,,,Y,,N,1,,,,Y,,,,,,
+2023,22822,Clark County Rural E M C - (IN),IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,N,N
+2023,24211,Tucson Electric Power Co,AZ,Investor Owned,WECC,,,,,,,,Y,Y,,,,,,,N,1,Y,Y,Y,Y,,Y,,,Y,Y
+2023,24431,Utah Municipal Power Agency,UT,Political Subdivision,WECC,,,,,,,,Y,Y,,,,,,,Y,2,Y,Y,Y,,,Y,,,,
+2023,24590,Unitil Energy Systems,NH,Investor Owned,NPCC,,,,Y,,,,,,,,,,,Y,,1,,N,Y,Y,,N,,N,Y,Y
+2023,24753,Boone County Rural EMC,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,,
+2023,24889,Brunswick Electric Member Corp,NC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,N,,Y,,,,,Y,Y
+2023,24949,Cass County Elec Coop Inc,ND,Cooperative,MRO,,,Y,,,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,25177,Dakota Electric Association,MN,Cooperative,MRO,,,Y,,,,,,,,,,,Y,,,1,,,,Y,,,,,Y,Y
+2023,25251,"Entergy Power, LLC",TX,Investor Owned,SERC,,,,,,Y,,,,,,,,Y,,N,1,Y,,,,,,,,,
+2023,25262,"DTE Energy Trading, Inc",MI,Wholesale Power Marketer,RFC,Y,,,,Y,,Y,,,Y,Y,Y,Y,Y,Y,,6,,,,,,Y,,,,
+2023,25295,Western Indiana Energy REMC,IN,Cooperative,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,N,
+2023,25866,Ak-Chin Electric Utility Authority,AZ,State,WECC,,,,,,,,Y,,,,,,,,,0,,,Y,Y,,,,,,
+2023,26253,Louisiana Energy & Power Authority,LA,Political Subdivision,SERC,,,,,,Y,N,,,,,,,Y,,,1,Y,,,,,,,,,
+2023,26510,Liberty Utilities (Granite State Electri,NH,Investor Owned,NPCC,,,,Y,,,,,,,,,,,Y,,1,,,,Y,,,,Y,Y,Y
+2023,26751,"National Grid Generation, LLC",NY,Investor Owned,NPCC,,,,Y,N,,,,,,,Y,,,,,1,Y,,,,,,,,Y,Y
+2023,27000,WAPA-- Western Area Power Administration,CO,Federal,,,,N,,,N,N,N,Y,N,,,Y,Y,,N,3,N,Y,Y,,,Y,,N,Y,Y
+2023,27058,"High West Energy, Inc",WY,Cooperative,WECC,,,,,,,,Y,,,,,,,,,0,,,,Y,,,,,,
+2023,27222,City of Ripley - (TN),TN,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,27238,"Southwest Electric Coop, Inc",MO,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,N,
+2023,27369,Taylor Electric Coop Inc - (TX),TX,Cooperative,TRE,Y,,,,,,,,,,,,,,,Y,1,,,,Y,,,,N,,
+2023,27599,Carroll-White REMC,IN,Cooperative,RFC,,,,,Y,,,,,,,,,,,,0,,,,Y,,,,,N,
+2023,27703,U S Army Corps of Engineers,MI,Federal,RFC,,,,,Y,,,,,,,,,Y,,N,1,Y,,,,,,,,N,
+2023,28541,Clatskanie Peoples Util Dist,OR,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,N,,Y,Y,,Y,Y,,Y,Y
+2023,28604,Kerrville Public Utility Board,TX,Municipal,TRE,Y,,,,,,,,,,,,,,,,0,,,Y,Y,,,,,N,N
+2023,28802,"Talen Energy Marketing, LLC",TX,Retail Power Marketer,RFC,,,,,N,,,,,Y,Y,N,,N,Y,,3,N,,Y,,,Y,Y,N,N,N
+2023,28978,City of San Marcos - (TX),TX,Municipal,ERCOT,Y,,,,,,,,,Y,,,,,,,1,,,,Y,,,,,Y,Y
+2023,29304,Southeastern Power Admin,GA,Federal,SERC,,Y,,,,Y,,,,,,,,,,,0,N,,Y,,,Y,,,,
+2023,30151,"Tri-State G & T Assn, Inc",CO,Cooperative,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,Y,,,Y,,,Y,Y
+2023,30518,Electrical Dist No3 Pinal County,AZ,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,,Y,Y,Y,,Y,,,,
+2023,31833,Okefenoke Rural El Member Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,,
+2023,38084,Great Lakes Energy Coop,MI,Cooperative,MRO,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,,,N,
+2023,39347,"East Texas Electric Coop, Inc",TX,Cooperative,SERC,Y,,,,,Y,Y,,,Y,,,Y,Y,,,3,Y,Y,Y,,,Y,,,N,
+2023,40036,Westfield Electric Company,WI,Investor Owned,RFC,,,,,Y,N,,,,,,,,,,,0,,,,Y,,,,,,
+2023,40051,Texas-New Mexico Power Co,TX,Investor Owned,TRE,Y,,,,,,,,,Y,,,,,,,1,,Y,,Y,,,,,Y,Y
+2023,40127,Clarke-Washington E M C,AL,Cooperative,SERC,,,,,,N,,,,,,,,,,,0,,N,,Y,,,,,,
+2023,40165,"Dixie Escalante R E A, Inc",UT,Cooperative,WECC,,,,,,,N,Y,Y,,,,,,,N,1,,,,Y,,,,,Y,Y
+2023,40166,"Chickasaw Electric Coop, Inc",TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,40167,"Somerset Rural Elec Coop, Inc",PA,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,40211,"Wabash Valley Power Assn, Inc",IN,Cooperative,RFC,,,,,Y,Y,,,,,Y,,,Y,,,2,Y,Y,Y,,,Y,,,Y,Y
+2023,40212,Colquitt Electric Membership Corp,GA,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,40218,"Central Electric Pwr Coop, Inc - (SC)",SC,Cooperative,SERC,,,,,,Y,,,,,N,,,,,Y,1,,Y,Y,,,,,,Y,Y
+2023,40220,Adams Electric Cooperative Inc,PA,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,Y,Y
+2023,40221,"Bedford Rural Elec Coop, Inc",PA,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,40222,Valley Rural Electric Coop Inc,PA,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,N,,Y,,,,,N,N
+2023,40224,"Central Electric Coop, Inc - (PA)",PA,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,40228,Rappahannock Electric Coop,VA,Cooperative,SERC,,,,,,,,,,,Y,,,,,,1,,,,Y,,,Y,,Y,Y
+2023,40229,Old Dominion Electric Coop,VA,Cooperative,SERC,,,,,Y,Y,,,,,Y,,,,,,1,Y,Y,Y,,,Y,,,Y,Y
+2023,40236,"Forked Deer Electric Coop, Inc",TN,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,40289,Claverack Rural Elec Coop Inc,PA,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,40290,Tri-County Rural Elec Coop Inc (PA),PA,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,40292,REA Energy Coop Inc,PA,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,,
+2023,40293,"Northwestern Rural E C A, Inc - (PA)",PA,Cooperative,RFC,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,Y,Y
+2023,40300,Nebraska Electric G&T Coop Inc,NE,Cooperative,MRO,,,Y,,,,N,,,,,,Y,,,,1,,N,Y,,,Y,,,,
+2023,40301,Central Montana E Pwr Coop Inc,MT,Cooperative,WECC,,,N,,,,Y,Y,,,,,Y,,,,1,,,Y,,,Y,,,,
+2023,40302,North East Mississippi EPA,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,40303,Monroe County Elec Power Assn,MS,Cooperative,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,40304,Minnesota Valley Coop L&P Assn,MN,Cooperative,MRO,,,Y,,,,,,,,,,Y,,,,1,,,,Y,,,,,,
+2023,40307,"Prairie Power, Inc",IL,Cooperative,SERC,,,,,,Y,,,,,,,,Y,,,1,Y,Y,Y,N,,,,,,
+2023,40364,City of Courtland,AL,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,40437,Emerald People's Utility Dist,OR,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,N,,,Y,Y,,Y,Y
+2023,40438,Columbia River Peoples Ut Dist,OR,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,,0,,Y,Y,Y,,,,,Y,Y
+2023,40441,Town of Murphy - (NC),NC,Municipal,SERC,,,,,,Y,,,,,,,,,,,0,,,,Y,,,,,,
+2023,40456,PUD No 1 of Whatcom County,WA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,,N,Y,Y,N,,N,,,
+2023,40575,Utah Associated Mun Power Sys,UT,Political Subdivision,WECC,,,,,,,,Y,N,,,,,,,,0,Y,Y,Y,,,Y,,,N,
+2023,40576,Intermountain Power Agency,CA,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,Y,Y,,,,,,,,
+2023,40577,"American Mun Power-Ohio, Inc",OH,Municipal Mktg Authority,RFC,,,,,Y,,,,,,Y,,,Y,,,2,Y,,Y,,,Y,,,,
+2023,40580,Southern Minnesota Mun P Agny,MN,Political Subdivision,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,Y,,,Y,,,N,N
+2023,40581,Northern Municipal Power Agency,MN,Municipal Mktg Authority,MRO,,,Y,,,,,,,,,,,Y,,,1,Y,Y,,,,,,,,
+2023,40582,Michigan Public Power Agency,MI,Political Subdivision,RF,,,,,Y,,,,,,N,,,Y,,,1,Y,Y,Y,,,Y,,,,
+2023,40603,Wyoming Municipal Power Agency,WY,Municipal Mktg Authority,WECC,,,,,,,,Y,,,,,,,,Y,1,N,Y,Y,,,Y,,,,
+2023,40606,City of Grand Island - (NE),NE,Municipal,MRO,,,Y,,,,,,,,,,Y,,,,1,Y,N,Y,Y,,Y,,Y,,
+2023,40613,Northern California Power Agny,CA,Political Subdivision,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,,,,,,,,,
+2023,40614,Alabama Municipal Elec Authority,AL,Municipal Mktg Authority,SERC,,,,,N,Y,,,,,,,,,,Y,1,Y,,Y,,,N,,,N,
+2023,44372,Oncor Electric Delivery Company LLC,TX,Investor Owned,TRE,Y,,,,,,,,,Y,,,,,,,1,,Y,Y,Y,Y,,,,Y,Y
+2023,44388,New England Elec Transm'n Corp,MA,Transmission,NPCC,,,,Y,,,,,,,,,,,Y,,1,,Y,,,,,,,,
+2023,49730,American PowerNet,PA,Retail Power Marketer,,,,,,,,,,,Y,Y,Y,,,Y,,4,,,,,,,Y,,,
+2023,49746,The Energy Coop,PA,Cooperative,,,,,,N,,,,,,Y,,,,,,1,,,,,,,Y,,,
+2023,49803,Alaska Electric & Energy Coop,AK,Cooperative,AK,,,,,,,,,,,,,,,,Y,1,Y,Y,,,,Y,,,N,N
+2023,49818,"Alliance Power Company, LLC.",TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,49824,Calpine Power Management LLC,TX,Wholesale Power Marketer,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,,,Y,,,,
+2023,49848,Massachusetts Bay Trans Authority,MA,Political Subdivision,NPCC,,,,Y,,,,,,,,,,,Y,,1,Y,,Y,Y,Y,Y,Y,,Y,Y
+2023,49853,Amigo Energy,TX,Retail Power Marketer,TRE,Y,,,,,,,,,,,,,,,,0,,,,,,,Y,,,
+2023,49922,U.S. Energy Partners LLC,NY,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,Y,,3,,,,,,,Y,,,
+2023,49952,3000 Energy Corp,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,49956,Merrill Lynch Commodities,TX,Wholesale Power Marketer,,,,,,,,,,N,Y,Y,Y,N,Y,Y,,5,,N,N,,,Y,,,,
+2023,49987,Harvard Dedicated Energy Limit,MA,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,,
+2023,49998,City of Berea Municipal Utility,KY,Municipal,RFC,,,,,Y,,,,,,,,,Y,,,1,,,,Y,,,N,Y,,
+2023,50041,"Stream SPE, LTD",TX,Retail Power Marketer,,,,,,,,,,,Y,N,,,,,,1,,,,,,,Y,,,
+2023,50046,"Texas Retail Energy, LLC",AR,Retail Power Marketer,,,,,,,,,,,Y,Y,Y,,Y,Y,,5,,,,,,,Y,,,
+2023,50153,"APN Starfirst, L.P.",PA,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,,
+2023,50174,Electric Transmission Texas LLC,TX,Transmission,ERCOT,Y,,,,,,,,,Y,,,,,,,1,,Y,,,,,,,N,
+2023,54728,Texas General Land Office,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,N,1,,,,,,,Y,,,
+2023,54820,Direct Energy Services,TX,Retail Power Marketer,,,,,,,,,,,Y,Y,Y,,Y,Y,,5,,,,,,,Y,,,
+2023,54862,Champion Energy Services,TX,Retail Power Marketer,,Y,,,,Y,,,,,Y,Y,Y,,Y,Y,,5,,,,,,,Y,,,
+2023,54872,"Accent Energy Holdings, LLC",OH,Retail Power Marketer,,,,,,,,,,,Y,,Y,,,,,2,,,,,,,Y,,,
+2023,54873,Freedom Energy,NH,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,Y,Y,,N,
+2023,54893,NOCO Electric,NY,Retail Power Marketer,NPCC,,,,Y,,,,,,,,Y,,,,,1,,,,,,,Y,,N,
+2023,54913,NSTAR Electric Company,MA,Investor Owned,,,,,Y,,,,,,,,,,,Y,,1,Y,Y,Y,Y,,Y,Y,,Y,Y
+2023,55701,"Sempra Gas & Power Marketing, LLC",CA,Wholesale Power Marketer,,,,,,,,,Y,Y,,,,,,,,1,N,,,,,Y,,,,
+2023,55719,TDM US,CA,Wholesale Power Marketer,WECC,,,,,,,,Y,Y,,,,,,,,1,,Y,,,,Y,,,,
+2023,55722,AEP Energy,IL,Retail Power Marketer,RFC,,,,,Y,N,,,,,,,,,,,0,,,,,,,Y,,,
+2023,55758,"GenOn Energy Management, LLC",TX,Wholesale Power Marketer,,,,,,,,,,,,,,,,,,0,,,,,,Y,,,,
+2023,55787,City of Moreno Valley - (CA),CA,Municipal,WECC,,,,,,,,Y,Y,,,,,,,,1,Y,,Y,Y,N,,,N,Y,Y
+2023,55814,"Columbia Utilities Power, LLC",NY,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,,,,,,,Y,,,
+2023,55815,"IDT Energy, Inc.",NJ,Retail Power Marketer,,,,,,,,,,,,Y,Y,,Y,Y,,4,,,,,,,Y,,,
+2023,55874,"Energy Services Providers, Inc",TX,Retail Power Marketer,,,,,,,,,,,,Y,Y,,Y,Y,,4,,,,,,,Y,,,
+2023,55878,Hudson Energy Services,NY,Retail Power Marketer,,N,,,,,,,,,Y,Y,Y,,Y,Y,,5,,,,,,,Y,,,
+2023,55897,PSEG Energy Resources and Trade,NJ,Wholesale Power Marketer,,,,,,N,,,,,,,,,,,,0,,,,,,Y,,,,
+2023,55937,Entergy Texas Inc.,TX,Investor Owned,SERC,,,,,,Y,,,,,,,,Y,,,1,Y,Y,Y,Y,Y,,,,Y,Y
+2023,55959,Roughrider Electric Cooperativ,ND,Cooperative,MRO,,,Y,,,,N,,,,,,N,,,Y,1,,N,,Y,,,,,N,N
+2023,55982,Heart of Texas Electric Coop,TX,Cooperative,,Y,,,,,,,,,,,,,,,,0,,,,Y,,,,,,
+2023,56068,International Transmission Company,MI,Transmission,,,,,,Y,,,,,,,,,Y,,,1,,Y,,,,,,,Y,Y
+2023,56146,"Black Hills Colorado Electric, LLC",SD,Investor Owned,WECC,,,N,,,,,Y,,,,,,,,Y,1,Y,Y,Y,Y,,Y,,N,Y,Y
+2023,56161,ITC Midwest LLC,MI,Transmission,,,,Y,,N,,,,,,,,,Y,,,1,,Y,,,,,,,Y,Y
+2023,56162,American Transmission Systems Inc,OH,Transmission,RFC,,,,,Y,,,,,,Y,,,N,,,1,,Y,,,,,,,N,
+2023,56163,"Michigan Electric Transmission Company,",MI,Transmission,,,,N,,Y,,,,,,,,,Y,,,1,,Y,,,,,,,Y,Y
+2023,56196,Just Energy New York Corp.,CN,Retail Power Marketer,,,,,,,,,,,,,Y,,,,,1,,,,,,,Y,,N,
+2023,56212,"Ambit Energy Holdings, LLC",TX,Retail Power Marketer,,Y,,,N,N,,,,,Y,Y,Y,,Y,Y,,5,,,,,Y,,Y,,N,
+2023,56220,Anthracite Power & Light,PA,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,,,,,,,Y,,,
+2023,56223,Macquarie Energy LLC,TX,Retail Power Marketer,,,,,,,,,,Y,Y,Y,Y,Y,Y,Y,,7,,,,,,Y,Y,,N,
+2023,56248,"Young Energy, LLC",TX,Retail Power Marketer,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,56265,Energy Plus Holdings LLC,PA,Retail Power Marketer,,N,N,,Y,N,,,,,,Y,Y,,,Y,,3,,,,,N,,Y,,N,
+2023,56276,TransCanada Energy Marketing ULC,CA,Wholesale Power Marketer,WECC,,,,,,,,N,,,,,,,,Y,1,,,,,,Y,,,N,
+2023,56279,"Spartan Renewable Energy, Inc",MI,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,Y,,Y,,,,Y,,N,
+2023,56286,"Frontier Utilities, LLC",TX,Retail Power Marketer,TRE,Y,,,,,,,,,Y,Y,N,,,,,2,,,,,,,Y,,N,
+2023,56288,Luminant Energy,TX,Wholesale Power Marketer,,N,,,,,,,,,Y,,,,,,,1,N,,,,,Y,,,N,
+2023,56379,"MC Squared Energy Services, LLC",IL,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,56408,"UGI Energy Services, LLC",PA,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,N,N,
+2023,56496,"UP Power Marketing, LLC",MI,Retail Power Marketer,MRO,,,,,,,,,,,,,,Y,,,1,,,,,,,Y,,N,
+2023,56501,"Palmco Power NJ, LLC",NY,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,,,,,,,Y,,N,
+2023,56504,Major Energy Electric Services,NY,Retail Power Marketer,NPCC,,,,,,,,,,,Y,Y,,,Y,,3,,,,,,,Y,,N,
+2023,56521,"Devonshire Energy, LLC",MA,Retail Power Marketer,,,,,,,,,,,,Y,,,,Y,,2,,,,,,,Y,,N,
+2023,56526,"ITC Great Plains, LLC",KS,Transmission,,,,Y,,,,N,,,,,,Y,,,,1,,Y,,,,,,,N,N
+2023,56528,JP Morgan,NY,Wholesale Power Marketer,,N,N,,,,,,,N,Y,N,,,,,,1,N,,,,,Y,,,N,
+2023,56546,Dominion Energy Marketing Inc.,VA,Wholesale Power Marketer,,,,,N,,,,,,,N,,,,N,,0,N,,,,,Y,,,N,
+2023,56571,AP Holdings LLC,TX,Retail Power Marketer,,,,,,,,,,,Y,Y,Y,,,,,3,,,,,,,Y,,N,
+2023,56573,"Palmco Power PA, LLC",NY,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,,,,,,,Y,,N,
+2023,56621,Yakama Power,WA,Cooperative,,,,,,,,,Y,,,,,,,,,0,,,,Y,Y,,,,N,
+2023,56692,Marin Clean Energy,CA,Community Choice Aggregator,WECC,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,56697,Ameren Illinois Company,MO,Investor Owned,SERC,,,,,,Y,,,,,,,,Y,,,1,,Y,Y,Y,,,,Y,Y,Y
+2023,56734,Smart Prepaid Electric,TX,Retail Power Marketer,,Y,,,,,,,,,,,,,,,,0,,,,,,,Y,,N,
+2023,56737,"Stream Energy Pennsylvania, LLC",PA,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,56784,NRG Power Marketing LLC,NJ,Wholesale Power Marketer,,,,,,,,,,N,N,N,N,N,N,N,,0,,,Y,,,Y,,,N,
+2023,56876,"Stream Energy Maryland, LLC",MD,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,56890,Citigroup Energy Inc,TX,Wholesale Power Marketer,,,,,,,,,,,,,,,,,,0,,,Y,,,Y,,,N,
+2023,57037,Reliant Energy Northeast LLC,TX,Retail Power Marketer,,,,,,,,,,,,Y,Y,,Y,Y,,4,,,,,,,Y,,N,
+2023,57074,"Stream Energy New Jersey, LLC",NJ,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,57132,"US Retailers, LLC",TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,57185,"Palmco Power MD, LLC",NY,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,,,,,,,Y,,N,
+2023,57307,ENGIE Power & Gas LLC,NY,Retail Power Marketer,,,,,Y,N,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,57313,Tesla Inc.,CA,Behind the Meter,,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,,7,Y,,,N,,,,,N,
+2023,57350,Summer Energy LLC,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,57394,Value Based Brands LLC,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,57459,"Wolverine Alternative Investments, LLC",IL,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,N,N,
+2023,57483,Liberty Utilities,CA,Investor Owned,WECC,,,,,,,,Y,N,,,,,,,Y,1,Y,,Y,Y,,,,,Y,Y
+2023,57486,"XOOM Energy Texas, LLC",NC,Retail Power Marketer,,,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,57487,"XOOM Energy Connecticut, LLC",NC,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,57488,"XOOM Energy Illinois, LLC",NC,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,57489,"XOOM Energy Massachusetts, LLC",NC,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,57490,"XOOM Energy Maryland, LLC",NC,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,57491,"XOOM Energy New Jersey, LLC",NC,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,58085,"Electricity Maine, LLC",ME,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,58086,"Electricity NH, LLC",ME,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,58113,"Texas A&M, Utilities & Energy Services",TX,State,,Y,,,,,,,,,Y,,,,,,,1,Y,,,,,,,,N,
+2023,58116,"Public Power & Utility of Maryland, LLC",TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,58118,Public Power LLC (PA),TX,Retail Power Marketer,,,,,,,,,,,,Y,N,,,,,1,,,,,,,Y,,N,
+2023,58119,Public Power LLC (CT),TX,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,N,,2,,,,,,,Y,Y,N,
+2023,58124,City of Winter Park - (FL),FL,Municipal,SERC,,N,,,,Y,,,,,,,,,,Y,1,,,Y,Y,N,,,Y,N,
+2023,58142,Viridian Energy Ohio LLC,TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,Y,N,N
+2023,58158,FairPoint Energy LLC,TX,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,58160,Viridian Energy NY LLC,TX,Retail Power Marketer,,,,,,,,,,,,,Y,,,,,1,,,,,,,Y,Y,N,
+2023,58161,Viridian Energy LLC,TX,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,58162,Viridian Energy PA LLC,TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,Y,N,
+2023,58181,"Stream Energy New York, LLC",NY,Retail Power Marketer,,,,,,,,,,,,,Y,,,,,1,,,,,,,Y,,N,
+2023,58196,"C. N. Brown Electricity, LLC",ME,Retail Power Marketer,,,,,Y,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,58230,MJMEUC,MO,Wholesale Power Marketer,SPP,,,Y,,,Y,N,,,,,,Y,Y,,,2,Y,Y,Y,,,Y,N,,N,
+2023,58248,"EnergyMark, LLC",NY,Retail Power Marketer,,,,,Y,,,,,,,,Y,,,,,1,,,,,,,Y,,N,
+2023,58314,"Palmco Power IL, LLC",NY,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,,,,,,,Y,,N,
+2023,58339,"XOOM Energy Pennsylvania, LLC",NC,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,58364,New Brunswick Power Generation Corp.,CN,Retail Power Marketer,,,,,Y,,,,,,,,,,,Y,,1,,,,,,Y,Y,,N,
+2023,58367,"XOOM Energy New York, LLC",NC,Retail Power Marketer,,,,,,,,,,,,,Y,,,,,1,,,,,,,Y,,N,
+2023,58458,Silver State Energy Association,NV,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,,,Y,,,,Y,,N,
+2023,58476,"Stream Energy Columbia, LLC",DC,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,58630,"XOOM Energy Maine, LLC",NC,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,58631,"XOOM Energy Rhode Island, LLC",NC,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,58632,"XOOM Energy Delaware, LLC",NC,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,58633,"XOOM Energy New Hampshire, LLC",NC,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,58663,Respond Power LLC,NY,Retail Power Marketer,,,,,,,,,,,,Y,,,N,,,1,,,,,,,Y,,N,
+2023,58667,"North American Power and Gas, LLC",TX,Retail Power Marketer,,Y,,,,,,,,,Y,Y,Y,,,Y,,4,,,,,,,Y,,N,
+2023,58683,Everyday Energy LLC,TX,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,,,,,,,Y,,N,
+2023,58747,"Provider Power MASS, LLC",ME,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,58789,DOD USMC Marine Air Ground Combat,CA,Federal,,,,,,,,,,Y,,,,,,,,1,Y,Y,,,,,,,N,
+2023,58799,"Mega Energy of New England, LLC",TX,Retail Power Marketer,,,,,,,,,,,,,,,N,Y,,1,,,,,,,Y,,N,
+2023,58851,City of Cerritos - (CA),CA,Municipal,,,,,,,,,Y,Y,,,,,,,,1,,,Y,,N,,Y,,N,
+2023,58853,Kiwi Energy NY LLC,NY,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,58951,"CleanChoice Energy, Inc.",DC,Retail Power Marketer,,,,,,Y,,,,,,Y,Y,,,Y,,3,,,,,,,Y,,N,
+2023,58952,Tomorrow Energy Corp.,NV,Retail Power Marketer,WECC,,,,,,,,,,Y,Y,N,,,Y,,3,,,,,,,Y,,N,
+2023,58956,"SmartEnergy Holdings, LLC",NY,Retail Power Marketer,,,,,,,,,,,N,Y,Y,,Y,Y,,4,,,,,,,Y,,N,
+2023,58957,"Interstate Gas Supply, Inc.",OH,Retail Power Marketer,,,,,,,,,,,,Y,,,,,Y,2,,,,,,,Y,,N,
+2023,58963,Brooklet Energy Distribution,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,58964,"Alpha Gas and Electric, LLC",NY,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,58966,Marathon Power LLC,NY,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,58972,"Realgy, LLC",CT,Retail Power Marketer,,,,,,,,,,,,Y,,,Y,,,2,,,Y,,,,Y,Y,N,
+2023,58973,"Town Square Energy East, LLC",MN,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,58974,Clearview Electric Inc.,TX,Retail Power Marketer,,Y,,,,,,,,,Y,Y,Y,,,Y,,4,,,,,,,Y,,N,
+2023,58978,"Harborside Energy, LLC",NJ,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,59012,"Mega Energy of New Hampshire, LLC",TX,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,59013,PUD No 1 of Jefferson County,WA,Political Subdivision,,,,,,,,,Y,,,N,,,,,Y,1,,,,Y,,,,Y,N,
+2023,59052,Astral Energy LLC,NJ,Retail Power Marketer,,,,,Y,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,59053,"Abest Power & Gas, LLC",NY,Retail Power Marketer,,,,,,,,,,,,N,Y,,,N,,1,,,,,,,Y,,N,
+2023,59054,"Eligo Energy, LLC",IL,Retail Power Marketer,,,,,,,,,,,Y,Y,Y,,Y,Y,,5,,,,,,,Y,,N,
+2023,59055,"Choice Energy, LLC",IA,Retail Power Marketer,,,,,,,,,,,,Y,,,,N,,1,,,,,,,Y,,N,
+2023,59057,"Mega Energy of Maine, LLC",TX,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,59059,Town Square Energy,MN,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,59062,"Horizon Power and Light, LLC",TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,N,,1,,,,,,,Y,,N,
+2023,59064,"Great American Power, LLC",GA,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,59065,Titan Gas LLC,TX,Retail Power Marketer,ERCOT,,,,,,,,,,Y,Y,,,,Y,,3,,,,,,,Y,,N,
+2023,59082,"Family Energy, Inc. New York",CN,Retail Power Marketer,,,,,,,,,,,,,Y,,,,,1,,,,,,,Y,,N,
+2023,59083,"SFE Energy Pennsylvania, Inc.",CN,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,,,N,
+2023,59084,"SFE Energy Maryland, Inc.",CN,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,,,N,
+2023,59085,"SFE Energy NJ, Inc.",CN,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,,,N,
+2023,59086,"Constellation Solar Holding, LLC",MD,Behind the Meter,,,,,Y,Y,Y,,Y,Y,N,Y,Y,,,Y,,4,Y,,,,,,,,N,
+2023,59088,"Nordic Energy Services, LLC",IL,Retail Power Marketer,,,,Y,,,,,,,,Y,Y,,Y,Y,,4,,,,,,,Y,,N,
+2023,59126,Sonoma Clean Power Authority,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,59128,MPower Energy LLC,NY,Retail Power Marketer,NPCC,,,,Y,,,,,,,,Y,,,,,1,,,,,,,Y,,N,
+2023,59310,"Inspire Energy Holdings, LLC",CA,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,Y,,3,,,,,,N,Y,,N,
+2023,59311,"XOOM Energy Ohio, LLC",NC,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,59312,"XOOM Energy Washington DC, LLC",NC,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,59385,"Dynegy Energy Services, LLC",TX,Retail Power Marketer,,,,,,,,,,,,Y,,,N,Y,,2,N,,,,,Y,Y,,N,
+2023,59410,"Shipley Choice, LLC",PA,Retail Power Marketer,RF,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,59505,Heartland REMC,IN,Cooperative,,,,,,Y,,,,,,Y,,,,,,1,,,,Y,,,,,N,
+2023,59507,Mesquite Generation Holdings LLC,NJ,Wholesale Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,Y,,,,,Y,,,N,
+2023,59579,Sunnova,TX,Behind the Meter,,Y,,,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,,7,,,,Y,,,,,N,
+2023,59580,"SunPower Capital, LLC",TX,Behind the Meter,,,,,,,,,,,,,,,,,,0,Y,,,,,,,,N,
+2023,59620,Verde Energy USA,CT,Retail Power Marketer,,,,,,,,,,,Y,Y,Y,,,Y,,4,,,,,Y,,Y,Y,N,
+2023,59622,"Ahana Renewables, LLC",NY,Behind the Meter,,,,,Y,N,,,N,N,,N,Y,,,Y,,2,Y,,,,,,,,N,
+2023,59625,Lancaster Choice Energy,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,59647,Sunrun Inc.,CA,Behind the Meter,,N,Y,N,Y,Y,Y,,Y,Y,,Y,Y,,N,Y,,4,Y,,,,,,,,N,
+2023,59676,"Collegiate Clean Energy, LLC",VA,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,59679,Aggregated Transit Energy,MA,Retail Power Marketer,,,,,Y,,,,,,,,,,,Y,,1,N,,N,N,N,Y,Y,,Y,Y
+2023,59734,"SFE Energy Massachusetts, Inc.",CN,Retail Power Marketer,,,,,,,,,,,,,,,,Y,,1,,,,,,,,,N,
+2023,59763,"Consolidated Power Co., LLC",NY,Retail Power Marketer,,,,,,,,,,,,,Y,,,,,1,,,,,,,Y,,N,
+2023,59793,"First Point Power, LLC",RI,Retail Power Marketer,,,,,,,,,,,,Y,,,,Y,,2,,,,,,,Y,,N,
+2023,59797,Park Power LLC,PA,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,N,N,
+2023,59799,American Power & Gas,FL,Retail Power Marketer,FRCC,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,59807,"Rushmore Energy, LLC",TX,Retail Power Marketer,,,,,N,N,,,,,,Y,,,Y,,,2,,,,,,,Y,,N,
+2023,59808,MP2 Energy LLC,TX,Retail Power Marketer,TRE,Y,,,,Y,,,,,Y,Y,,,,,,2,,,,,,,Y,,N,
+2023,59809,"Residents Energy, LLC",NJ,Retail Power Marketer,,,,,,,,,,,,Y,Y,,Y,Y,,4,,,,,,,Y,,N,
+2023,59810,Greenlight Energy Inc.,NY,Retail Power Marketer,NPCC,N,,,Y,Y,,,,,,Y,Y,,Y,,,3,,,,,,,Y,,N,
+2023,59811,Santanna Energy Services,TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,59812,New Wave Energy Corporation,NY,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,59818,Algonquin Energy Services,CN,Retail Power Marketer,,N,,,,,,,,,,,,,,,Y,1,Y,N,,,,,,,N,
+2023,59848,"ResCom Energy, LLC",IL,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,59931,"MidAmerican Energy Services, LLC",IA,Retail Power Marketer,,,,,,,,,,,Y,Y,Y,,Y,Y,,5,,,,,,,Y,N,N,
+2023,59933,"Texpo Power, L.P.",TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,59943,Spruce Finance,TX,Behind the Meter,,,,,,,N,,Y,Y,,,,,,,N,1,Y,,,,,,,,N,
+2023,59958,"Mega Energy of Illinois, LLC",TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,59972,The Regents of the Univ. of California,CA,Retail Power Marketer,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,59993,Discount Power Inc - (CT),CT,Retail Power Marketer,,,,,N,,,,,,,Y,,,,Y,,2,,,,,,,Y,,N,
+2023,60025,Greenbacker Renewable Energy Corporation,NY,Behind the Meter,,,Y,Y,Y,,,,Y,Y,,Y,,,,Y,,3,Y,,,,,,,,N,
+2023,60065,Cross Texas Transmission,TX,Transmission,,Y,,,,,,,,,Y,,,,,,,1,,Y,,,,,,,N,
+2023,60066,Wind Energy Transmission Texas LLC,TX,Transmission,,Y,,,,,,,,,Y,,,,,,,1,,Y,,,,,,,N,
+2023,60084,OE Holdings,NC,Wholesale Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,Y,,,N,
+2023,60123,Southeast Alaska Power Agency,AK,Transmission,,,,,,,,,,,,,,,,,Y,1,Y,,,,,Y,,,N,
+2023,60124,Spring Energy RRH LLC,NY,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,Y,N,
+2023,60181,CleanPowerSF,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,N,,,,,,Y,,N,
+2023,60202,Electranet Power LLC,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,60218,MPower Energy NJ LLC,NY,Retail Power Marketer,,,,,Y,,,,,,,Y,,,,N,,1,,,,,,,Y,,N,
+2023,60402,Peninsula Clean Energy Authority,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,60482,CKenergy Electric Cooperative,OK,Cooperative,,,,,,,,Y,,,,,,Y,,,,1,,,,Y,,,,,Y,Y
+2023,60579,"SFE Energy Ohio, Inc.",CN,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,,,N,
+2023,60583,Atlantic Energy LLC,TX,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,Y,,3,,,,,,,Y,,N,
+2023,60631,Upper Michigan Energy Resources Corp.,WI,Investor Owned,,,,,,Y,,,,,,,,,Y,,,1,Y,,Y,Y,Y,Y,Y,,N,
+2023,60696,"Vista Energy Marketing, L.P.",TX,Retail Power Marketer,,,,,,,,,,,,Y,,,Y,,,2,,,,,,,Y,Y,N,
+2023,60744,ITC Interconnection LLC,MI,Transmission,,,,,,Y,N,,,,,Y,,,,,,1,,Y,,,,,,,N,N
+2023,60758,Apple Valley Choice Energy,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,60759,Silicon Valley Clean Energy Authority,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,60839,Southern Pioneer Electric Company,KS,Cooperative,,,,,,,,Y,,,,,,Y,,,,1,N,Y,,Y,,,,,N,
+2023,60868,Redwood Coast Energy Authority,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,Y,,,,,Y,Y,,N,
+2023,60913,Dynegy Marketing and Trade LLC,TX,Wholesale Power Marketer,,,,,,,,,,Y,Y,Y,Y,,Y,Y,,6,,,Y,,,Y,,,N,
+2023,60914,Current Power & Gas Inc.,AZ,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,60977,StateWise Energy Ohio LLC,CN,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,,,N,
+2023,60981,"TerraForm US Energy Services, LLC",NY,Behind the Meter,,,,,,,,,,Y,Y,Y,Y,N,N,N,Y,5,,,,,,,Y,,N,
+2023,61059,"Renaissance Power & Gas, Inc.",NV,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,Y,,3,,,,,,,Y,,N,
+2023,61083,Pico Rivera Innovative Municipal Energy,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,61092,"Stream Energy Illinois, LLC",TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,61098,Longroad Energy,CA,Behind the Meter,,,Y,Y,Y,Y,,,Y,Y,,Y,Y,,Y,Y,,5,Y,,,,,,,,N,
+2023,61131,Freepoint Energy Solutions LLC,CT,Retail Power Marketer,ERCOT,N,,,,,,,,,Y,Y,Y,,,N,,3,,,,,,,Y,,N,
+2023,61200,"Summer Energy Northeast, LLC",TX,Retail Power Marketer,,,,,Y,,,,,,,,,,,Y,,1,,,,,,,Y,,N,
+2023,61201,"Stream Energy Delaware, LLC",TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,61206,Total Gas & Power North America Inc,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,Y,Y,,N,
+2023,61264,Heritage Power LLC,TX,Retail Power Marketer,TRE,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,61265,Pogo Energy LLC,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,61300,Members 1st Power Cooperative,WY,Cooperative,,,,Y,,,,,Y,,,,,Y,,,,1,,,,,,Y,,,N,
+2023,61353,Philadelphia Authority for Industrial Development,PA,Municipal,,,,,,,,,,,,Y,,,,,,1,,,,,,,,,N,
+2023,61367,South Bay Energy Corp.,NY,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,61424,Tidal Energy Marketing (U.S.) LLC,TX,Wholesale Power Marketer,,,,N,N,N,,,,,N,Y,N,,Y,N,,2,,,,,,Y,,,N,
+2023,61431,Pioneer Community Energy,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,61432,Central Coast Community Energy,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,61433,San Jacinto Power,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,61462,Valley Clean Energy Alliance,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,Y,Y,,N,
+2023,61471,Rancho Mirage Energy Authority,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,61475,Ava Community Energy,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,N,,Y,,N,
+2023,61479,"Stream Ohio Gas & Electric, LLC",TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,61526,Clean Power Alliance of Southern Califor,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,Y,Y,,N,
+2023,61570,King City Community Power,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,61823,"Greenskies Renewable Energy, LLC",CT,Behind the Meter,,,,,,,,,,Y,,Y,Y,Y,Y,Y,,6,,,,,,,Y,,N,
+2023,61855,"Pulse Power, LLC",TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,61858,San Jose Clean Energy,CA,Community Choice Aggregator,WECC,,,,,,,,Y,Y,,,,,,,,1,,,,,,Y,Y,,N,
+2023,61920,"All American Power and Gas, LLC",FL,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,61922,"Pure Energy USA, LLC",NY,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,61972,"SunSea Energy, LLC",NJ,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,62094,"SFE Energy Illinois, Inc.",CN,Retail Power Marketer,,,,,,,,,,,,,,,Y,,,1,,,,,,,,,N,
+2023,62117,"SFE Energy Texas, Inc.",CN,Retail Power Marketer,,,,,,,,,,,Y,,,,,,,1,,,,,,,,,N,
+2023,62154,StateWise Energy Maryland LLC,CN,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,,,N,
+2023,62156,"Power UP Energy, LLC",NJ,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,N,,Y,,N,
+2023,62776,NorthPoint Energy,CN,Wholesale Power Marketer,,,,,,,,,,,,,,Y,Y,,,2,,N,Y,,,Y,,,N,
+2023,62790,"Summer Energy Midwest, LLC",TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,62862,Chariot Energy,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,62914,StateWise Energy Pennsylvania LLC,CN,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,,,N,
+2023,62987,Octopus Energy LLC,TX,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,,,,,,,Y,,N,
+2023,63007,First Choice Energy LLC,NY,Retail Power Marketer,,,,,,,,,,,,N,Y,,,,,1,,,,,,,Y,,N,
+2023,63008,Agressive Energy LLC,NY,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,63027,Josco Energy Corp-  NY,NJ,Retail Power Marketer,,,,,,,,,,,,,Y,,,,,1,,,,,,,Y,,N,
+2023,63028,Josco Energy USA LLC,NJ,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,63029,Josco Energy IL LLC,NJ,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,63122,"Approved Energy II, LLC",NY,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,Y,N,
+2023,63168,Median Energy Corp.,NJ,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,63169,Median Energy PA LLC,NJ,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,,,,,,,Y,,N,
+2023,63200,"Heritage Power Marketing, LLC",IL,Wholesale Power Marketer,,,,,,,,,,,,,,,,,,0,,,,,,Y,,,N,
+2023,63232,"National Gas & Electric, LLC",TX,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,Y,,3,,,,,,,Y,,N,
+2023,63356,SmartestEnergy US LLC,NY,Retail Power Marketer,,,,,Y,,,,,,,Y,Y,,,Y,,3,,,,,,Y,Y,,N,
+2023,63364,"Mirabito Power & Gas, LLC",NY,Retail Power Marketer,,,,,Y,,,,,,,,Y,,,,,1,,,,,,,Y,,N,
+2023,63367,Commercial Energy of California,CA,Retail Power Marketer,,,,,,,,,,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,63422,Varsity Energy,TX,Retail Power Marketer,TRE,N,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,63489,"Tenaska Power Management, LLC",TX,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,,,Y,,,,Y,,N,
+2023,63546,"Provision Power & Gas, LLC",TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,63570,"Chief Energy Power, LLC",NY,Retail Power Marketer,,,,,,,,,,,,,Y,,,,,1,,,,,,Y,,,N,
+2023,63695,"RPA Energy, Inc.",NY,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,63725,Pomona Choice Energy (PCE),CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,63870,Click Energy LLC,PA,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,64011,Rhythm Ops LLC,TX,Retail Power Marketer,,,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,64195,Desert Community Energy,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,64222,"Grid Power Direct, LLC",NY,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,Y,,3,,,,,,,Y,,N,
+2023,64289,San Diego Community Power,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,64312,"JP Energy Resources, LLC",TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,64314,BP Energy Retail LLC,TX,Retail Power Marketer,,,,,,,,,,Y,Y,Y,Y,Y,Y,Y,,7,,,,,,,Y,,N,
+2023,64326,"Phoenix Energy Group, LLC",IL,Retail Power Marketer,,,,,,,,,,,,,,,,,,0,,,,,,,Y,,N,
+2023,64425,Clean Energy Alliance,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,64521,Ironhorse Power Services LLC,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,64543,StateWise Energy Illinois LLC,CN,Retail Power Marketer,,,,,,,,,,,,,,,Y,,,1,,,,,,,,,N,
+2023,64544,"Mega Energy of New Jersey, LLC",TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,64554,OhmConnect Texas LLC,TX,Retail Power Marketer,,,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,64555,Santa Barbara Clean Energy,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,64601,LE Energy,AL,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,64653,Declaration Energy LLC,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,64682,"Gexa Energy, LP",TX,Retail Power Marketer,,Y,,,,,,,,,Y,N,,,N,N,,1,,,,,,,Y,,N,
+2023,64705,"NTHERM, LLC",TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,Y,N,
+2023,64727,Branch Energy Texas LLC,TX,Retail Power Marketer,,,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,64777,"Mid-Atlantic Interstate Transmission, LLC",OH,Transmission,RFC,,,,,Y,,,,,,Y,,,,,,1,,Y,,,,,,,N,
+2023,64813,"Lanyard Power Marketing, LLC",NJ,Wholesale Power Marketer,,,,,,,,,,,,,,,,,,0,,,,,,Y,,,N,
+2023,64906,Mothership,TX,Retail Power Marketer,,,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,64923,Capital Energy PA LLC,TX,Retail Power Marketer,TRE,Y,,,,,,,,,Y,Y,,,,,,2,,,,,,,Y,,N,
+2023,64928,Orange County Power Authority,CA,Community Choice Aggregator,,,,,,,,,,,,,,,,,,0,,,,,,,Y,,N,
+2023,64929,"Good Charlie & Co., LLC",TX,Retail Power Marketer,,N,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,64974,PBF Power Marketing,NJ,Retail Power Marketer,RFC,,,,,Y,,,,,,Y,,,,,,1,N,,,,,N,Y,,N,
+2023,64975,Mega Energy of Ohio,TX,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,64977,Revolution Energy LLC,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,65090,"Lone Star Transmission, LLC",TX,Transmission,,Y,,,,,,,,,Y,,,,,,,1,,Y,,,,,,,N,
+2023,65242,"Scale Sustainable I, LLC",NJ,Behind the Meter,,,,,,,,,Y,Y,,Y,,,,,,2,Y,,,,,,,,N,
+2023,65259,Energy for Palmdale's Independent Choice,CA,Community Choice Aggregator,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,Y,,N,
+2023,65261,Gila River Indian Utility Authority (GRICUA),AZ,Cooperative,,,,,,,,Y,,,,,,Y,,,,1,,,Y,,Y,,,,N,
+2023,65262,"Archer Energy, LLC",OH,Retail Power Marketer,PJM,,,,,,,,,,,Y,,,,Y,,2,,,,,,,Y,,N,
+2023,65310,Energywell LLC,CT,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,Y,,3,,,,,,,Y,,N,
+2023,65314,"BKV-BPP Retail, LLC",CO,Retail Power Marketer,,,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,65335,Pay Less Energy LLC,FL,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,65352,Umpqua Indian Utility Cooperative,OR,Cooperative,,,,,,,,,Y,,,,,,,,Y,1,,,Y,Y,,,,,N,
+2023,65353,Arrow Energy TX LLC,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,N,Y,,N,
+2023,65413,Tesla Energy Ventures,TX,Retail Power Marketer,,,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,65439,CPV Retail Energy LP,TX,Retail Power Marketer,,,,,,N,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,65506,"Constellation Energy Generation, LLC",MD,Wholesale Power Marketer,,Y,,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,Y,,7,Y,,Y,,,Y,,,Y,Y
+2023,65604,Trans-Allegheny Interstate Line Co,OH,Transmission,,,,,,Y,,,,,,Y,,,,,,1,,Y,,,,,,,N,
+2023,65610,Ammper Power LLC,TX,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,65612,Citadel Energy Marketing LLC,CT,Wholesale Power Marketer,,Y,,,,,,,Y,Y,Y,,,N,,,,2,,,,,,Y,,,N,
+2023,65613,"ABN Energy, LLC",NY,Retail Power Marketer,,,,,,,,,,,,,Y,,,,,1,,,,,,,Y,,N,
+2023,65636,"Nexus Line, LLC",ND,Transmission,,,,Y,,,,,,,,,,,Y,,,1,N,Y,,,,,,,N,
+2023,65848,"Morgan Stanley Energy Structuring, L.L.C.",NY,Wholesale Power Marketer,,,,,,,,,,,,,,,,,Y,1,,,,,,Y,,,N,
+2023,65873,San Francisco Bay Area Rapid Transit,CA,Political Subdivision,,,,,,,,,Y,Y,,,,,,,,1,,,,,,,,,N,
+2023,66052,Kirkwood Meadows PUD,CA,Political Subdivision,,,,,,,,,Y,Y,,,,,,,,1,Y,,,Y,,,,,N,Y
+2023,66058,Ticaboo Electric Improvement District,UT,Political Subdivision,WECC,,,,,,,,Y,,,,,,,,Y,1,N,N,,Y,,,N,Y,N,
+2023,66062,Shelter Cove Resort Improvement Dist No. 1,CA,Political Subdivision,,,,,,,,,Y,Y,,,,,,,,1,Y,,,Y,,,Y,Y,N,
+2023,66073,MPD Electric Cooperative,SC,Cooperative,SERC,,,,,,Y,,,,,,,,,,Y,1,,,,Y,,,,,Y,Y
+2023,66082,Eastside Power Authority,CA,Political Subdivision,,,,,,,,,Y,Y,,,,,,,,1,N,,,,,Y,N,,N,
+2023,66113,"EcoPlus Power, LLC",CT,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,66116,"Robindale Retail Power Services, LLC",PA,Retail Power Marketer,,,,,,,,,,,,Y,,,,,,1,,,,,,,Y,,N,
+2023,66164,"TerraForm Renewable Energy Services, LLC",NY,Retail Power Marketer,,Y,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,N,
+2023,66173,Northeastern Power and Gas LLC,NY,Retail Power Marketer,,,,,,,,,,,,,Y,,,,,1,,,,,,,Y,,N,
+2023,66193,Power and Water Resources Pooling Authority,CA,Political Subdivision,,,,,,,,,Y,Y,,,,,,,,1,,,,,,Y,N,,N,
+2023,66398,Brookfield Renewable Trading and Marketing LP,NY,Retail Power Marketer,,,,,,,,,,,,N,Y,,,Y,,2,,,,,,,Y,,N,
+2023,66399,Brookfield Renewable Energy Marketing US LLC,NY,Retail Power Marketer,,,,,,,,,,,,Y,Y,,,,,2,,,,,,,Y,,N,
+2023,88888,Withheld,TX,Retail Power Marketer,TRE,,,,,,,,,,Y,,,,,,,1,,,,,,Y,Y,,,
+2023,88888,Withheld,TX,Retail Power Marketer,,N,,,,,,,,,Y,,,,,,,1,,,,,,,Y,,,
+2023,88888,Withheld,TX,Retail Power Marketer,TRE,Y,,,,,,,,,Y,,,,,,,1,N,,,,,N,Y,,,
