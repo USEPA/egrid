@@ -95,7 +95,7 @@ if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean
 
 ## Generator file -------
 gen_file <- # load generator file
-  read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS")) 
+  read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file_annual.RDS")) 
 
 ## Monthly unit file (if running annual temporal_res version) ------------
 if(params$temporal_res == "annual") { 
@@ -1027,7 +1027,6 @@ nuc_geo_gens_to_add <-
   group_by(pick(all_of(temporal_res_cols)), plant_id, generator_id, prime_mover) %>% 
   mutate(heat_input = sum(tot_mmbtu, na.rm = TRUE),
          heat_input_source = "EIA Prime Mover-level Data") %>%  
-         #heat_input_oz_source = "EIA Prime Mover-level Data") %>% 
   select(all_of(temporal_res_cols), 
          plant_id,
          plant_name, 
@@ -1131,9 +1130,14 @@ all_units_2 <-
 if(params$temporal_res == "monthly") { # some ozone reporters include April but is often reported as 0
   all_units_2 <- 
     all_units_2 %>% 
-    mutate(across(.cols = c("heat_input", "nox_mass", "so2_mass", "co2_mass"), 
+    mutate(across(.cols = c("heat_input", "nox_mass", "so2_mass", "co2_mass"),  
                   .fns = ~ if_else(reporting_frequency == "OS" & month == 4 & .x == 0, 
-                                   NA_real_, .x)))} # set as NA to fill during next step
+                                   NA_real_, .x)),
+           across(.cols = c("heat_input_source", "nox_source", "so2_source", "co2_source"), 
+                  .fns = ~ if_else(reporting_frequency == "OS" & month == 4 & 
+                                   is.na(get(str_replace_all(cur_column(), c("heat_input_source" = "heat_input", 
+                                                                             "source" = "mass")))), 
+                                   NA_character_, .x)))} # set as NA to fill during next step
 
 # identify units missing heat input values 
 
