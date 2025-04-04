@@ -85,10 +85,14 @@ unit_qa <- function(emission_type) {
     emission_abbrev <- emission_type
   }
   if(params$eGRID_year == "2021") {
-    unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
-                                  sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Unit-level Data"),
-                                  skip = 1,
-                                  col_names = TRUE)
+    # unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
+    #                               sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Unit-level Data"),
+    #                               skip = 1,
+    #                               col_names = TRUE)
+      unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_unit.xlsx"), 
+                                    
+                                    col_names = TRUE) %>%
+        rename(PM25SRC = PM25SRC2)
   } else if(params$eGRID_year == "2022") {
     unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_pmnh3vocemissions.xlsx"), 
                                   sheet = paste(params$eGRID_year, toupper(emission_abbrev)),
@@ -99,7 +103,7 @@ unit_qa <- function(emission_type) {
   ## Define updated column names ---------
   # Load abbreviated name to snake_case matches
   load("data/1_production_model/static_tables/name_matches.Rdata")
-  
+
   # add additional column names present in unit data
   additional_names <- setNames(c(paste0(emission_type, "_ann"), paste0(emission_type, "_rate"), paste0(emission_type, "_source")),
                                c(paste0(toupper(emission_type), "AN"), paste0(toupper(emission_type), "RT"), paste0(toupper(emission_type), "SRC")))
@@ -118,9 +122,11 @@ unit_qa <- function(emission_type) {
     unit_access_renamed %>%
     mutate(across(numeric_cols[sapply(unit_access_renamed[numeric_cols], is.character)], ~ parse_number(.)),
            across(!any_of(numeric_cols), ~ as.character(.)),
-           !!paste0(emission_type, "_source") := if_else(get(paste0(emission_type, "_source")) == "Estimated using an emission factor", "Estimated using an emissions factor", get(paste0(emission_type, "_source"))),
-           across(everything(), ~ ., .names = "{.col}_access"))
+           !!paste0(emission_type, "_source") := if_else(get(paste0(emission_type, "_source")) == "Estimated using an emission factor", "Estimated using an emissions factor", get(paste0(emission_type, "_source"))))
   
+  # add "_access" after each variable to easily identify dataset 
+  colnames(unit_access) <- paste0(colnames(unit_access), "_access")
+
   # replace any "NA" strings with an NA
   unit_access[unit_access == "NA"] <- NA_character_ 
   

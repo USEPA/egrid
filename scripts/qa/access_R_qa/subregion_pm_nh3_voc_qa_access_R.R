@@ -40,6 +40,8 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
+emission_type <- "pm25"
+
 # Create QA function -----
 subregion_qa <- function(emission_type) {
   print(paste(toupper(emission_type), "SUBREGION QA IN PROGRESS"))
@@ -82,11 +84,14 @@ subregion_qa <- function(emission_type) {
     emission_abbrev <- emission_type
   }
   
-  subregion_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
-                                sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Subregion-level Data"),
-                                skip = 1,
-                                col_names = TRUE) %>%
-    filter(SUBRGN != "U.S.")
+  # subregion_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
+  #                               sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Subregion-level Data"),
+  #                               skip = 1,
+  #                               col_names = TRUE) %>%
+  #   filter(SUBRGN != "U.S.")
+  subregion_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_subregion.xlsx"), 
+                                     col_names = TRUE) %>%
+    rename(SRNGENAN = Gen, SRPM25AN = PM25tons, SRPM25RTA = Rate)
   
   ## Define updated column names ---------
   # Load abbreviated name to snake_case matches
@@ -100,10 +105,13 @@ subregion_qa <- function(emission_type) {
   subregion_new_names <- c(subregion_nonmetric[names(subregion_nonmetric) %in% colnames(subregion_access_raw)], additional_names)
   
   # update subregion column names
+  # subregion_access <-
+  #   subregion_access_raw %>%
+  #   rename(!!!setNames(lapply(names(subregion_new_names), sym), subregion_new_names)) %>%
+  #   mutate(year = as.character(year))
   subregion_access <-
     subregion_access_raw %>%
-    rename(!!!setNames(lapply(names(subregion_new_names), sym), subregion_new_names)) %>%
-    mutate(year = as.character(year))
+    rename(!!!setNames(lapply(names(subregion_new_names), sym), subregion_new_names))
   
   # add "_access" after each variable to easily identify dataset 
   colnames(subregion_access) <- paste0(colnames(subregion_access), "_access")
@@ -139,11 +147,11 @@ subregion_qa <- function(emission_type) {
   save_diffs(check_diff_subregion_access)
   
   ## Subregion names -----
-  check_subregion_name <- 
-    subregion_comparison %>% 
-    filter(mapply(identical, subregion_name_r, subregion_name_access) == FALSE) %>% 
-    select(subregion_r, subregion_name_r, subregion_name_access) %>% distinct()
-  save_diffs(check_subregion_name)
+  # check_subregion_name <- 
+  #   subregion_comparison %>% 
+  #   filter(mapply(identical, subregion_name_r, subregion_name_access) == FALSE) %>% 
+  #   select(subregion_r, subregion_name_r, subregion_name_access) %>% distinct()
+  # save_diffs(check_subregion_name)
  
    ## Annual generation -----
   check_generation_ann <- 
@@ -153,11 +161,21 @@ subregion_qa <- function(emission_type) {
   save_diffs(check_generation_ann)
  
    ## Annual emissions -----
+  # check_emissions_tons <- 
+  #   subregion_comparison %>% 
+  #   filter(mapply(identical, get(paste0(emission_type, "_tons_r")), get(paste0(emission_type, "_tons_access"))) == FALSE) %>% 
+  #   mutate("{emission_type}_tons_r" := round(get(paste0(emission_type, "_tons_r")), 0),
+  #     "diff_{emission_type}_tons" := abs(get(paste0(emission_type, "_tons_r")) - get(paste0(emission_type, "_tons_access")))) %>% 
+  #   filter(get(paste0("diff_", emission_type, "_tons")) > 1E-5 | is.na(get(paste0(emission_type, "_tons_r"))) & !is.na(get(paste0(emission_type, "_tons_access"))) | 
+  #            !is.na(get(paste0(emission_type, "_tons_r"))) & is.na(get(paste0(emission_type, "_tons_access")))) %>%
+  #   select(subregion_r,
+  #          paste0(emission_type, "_tons_r"), paste0(emission_type, "_tons_access"), paste0("diff_", emission_type, "_tons"))
+  # save_diffs(check_emissions_tons)
   check_emissions_tons <- 
     subregion_comparison %>% 
     filter(mapply(identical, get(paste0(emission_type, "_tons_r")), get(paste0(emission_type, "_tons_access"))) == FALSE) %>% 
-    mutate("{emission_type}_tons_r" := round(get(paste0(emission_type, "_tons_r")), 0),
-      "diff_{emission_type}_tons" := abs(get(paste0(emission_type, "_tons_r")) - get(paste0(emission_type, "_tons_access")))) %>% 
+    mutate("{emission_type}_tons_r" := round(get(paste0(emission_type, "_tons_r")), 2),
+           "diff_{emission_type}_tons" := abs(get(paste0(emission_type, "_tons_r")) - get(paste0(emission_type, "_tons_access")))) %>% 
     filter(get(paste0("diff_", emission_type, "_tons")) > 1E-5 | is.na(get(paste0(emission_type, "_tons_r"))) & !is.na(get(paste0(emission_type, "_tons_access"))) | 
              !is.na(get(paste0(emission_type, "_tons_r"))) & is.na(get(paste0(emission_type, "_tons_access")))) %>%
     select(subregion_r,

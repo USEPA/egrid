@@ -40,7 +40,7 @@ if (exists("params")) {
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
 }
-  
+  emission_type = "pm25"
 # Create QA function -----
 plant_qa <- function(emission_type) {
   print(paste(toupper(emission_type), "PLANT QA IN PROGRESS"))
@@ -82,10 +82,13 @@ plant_qa <- function(emission_type) {
     emission_abbrev <- emission_type
   }
   
-  plant_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
-                                sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Plant-level Data"),
-                                skip = 1,
-                                col_names = TRUE)
+  # plant_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
+  #                               sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Plant-level Data"),
+  #                               skip = 1,
+  #                               col_names = TRUE)
+  plant_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_plant.xlsx"), 
+                                 col_names = TRUE) %>%
+    rename(PLPM25AN = PLPM25AN2, PLPM25RTA = PLPM25RTA2)
   
   ## Define updated column names ---------
   # Load abbreviated name to snake_case matches
@@ -99,11 +102,16 @@ plant_qa <- function(emission_type) {
   plant_new_names <- c(plant_nonmetric[names(plant_nonmetric) %in% colnames(plant_access_raw)], additional_names)
   
   # update plant column names
+  # plant_access <-
+  #   plant_access_raw %>%
+  #   rename(!!!setNames(lapply(names(plant_new_names), sym), plant_new_names)) %>%
+  #   mutate(year = as.character(year), 
+  #          plant_id = as.character(plant_id), 
+  #          !!paste0(emission_type, "_source") := if_else(get(paste0(emission_type, "_source")) == "Estimated using an emission factor", "Estimated using an emissions factor", get(paste0(emission_type, "_source"))))
   plant_access <-
     plant_access_raw %>%
     rename(!!!setNames(lapply(names(plant_new_names), sym), plant_new_names)) %>%
-    mutate(year = as.character(year), 
-           plant_id = as.character(plant_id), 
+    mutate(plant_id = as.character(plant_id), 
            !!paste0(emission_type, "_source") := if_else(get(paste0(emission_type, "_source")) == "Estimated using an emission factor", "Estimated using an emissions factor", get(paste0(emission_type, "_source"))))
   
   # add "_access" after each variable to easily identify dataset 
@@ -276,16 +284,16 @@ plant_qa <- function(emission_type) {
   ## Unadjusted combustion heat input -----
   check_unadj_heat_input <- 
     plant_comparison %>% 
-    filter(mapply(identical, unadj_combust_heat_input_r, unadj_heat_input_access) == FALSE) %>% 
-    mutate(diff_heat_input = unadj_combust_heat_input_r - unadj_heat_input_access) %>% 
+    filter(mapply(identical, unadj_combust_heat_input_r, unadj_combust_heat_input_access) == FALSE) %>% 
+    mutate(diff_heat_input = unadj_combust_heat_input_r - unadj_combust_heat_input_access) %>% 
     filter(abs(diff_heat_input) > 1 | is.na(diff_heat_input)) %>% 
-    select(plant_id_r, unadj_combust_heat_input_r, unadj_heat_input_access, diff_heat_input)
+    select(plant_id_r, unadj_combust_heat_input_r, unadj_combust_heat_input_access, diff_heat_input)
   save_diffs(check_unadj_heat_input)
   
   check_total_unadj_heat_input <- 
     plant_comparison %>% 
     summarize(sum_heat_input_r = sum(unadj_combust_heat_input_r, na.rm = TRUE), 
-              sum_heat_input_access = sum(unadj_heat_input_access, na.rm = TRUE)) %>% 
+              sum_heat_input_access = sum(unadj_combust_heat_input_access, na.rm = TRUE)) %>% 
     mutate(diff_heat_input = abs(sum_heat_input_r - sum_heat_input_access)) %>%
     filter(diff_heat_input > 0)
   save_diffs(check_total_unadj_heat_input)
