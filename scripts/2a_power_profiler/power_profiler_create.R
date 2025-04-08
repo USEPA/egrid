@@ -588,4 +588,155 @@ zipsubregioncomp <-
   filter(n.11 != n.12) %>%
   print(n = 28)
 
+# Find zipcodes with one utility ------
+#46:
+grouped_by_zip <-
+  zip_subregion_12 %>%
+  select(zip, eiaid) %>%
+  distinct() %>%
+  glimpse()
+
+#47: 25117 (24906)
+count_grouped_by_zip <-
+  grouped_by_zip %>%
+  group_by(zip) %>%
+  summarize(eiaid_count = n_distinct(eiaid)) %>%
+  filter(eiaid_count == 1) %>%
+  glimpse()
+
+# Update predominant utility ------
+#48:
+zip_subregion_13 <-
+  zip_subregion_12 %>%
+  left_join(count_grouped_by_zip, by = "zip") %>%
+  mutate(predominant_utility = if_else(!is.na(eiaid_count), "1", predominant_utility)) %>%
+  select(-eiaid_count) %>%
+  glimpse()
+
+count <- #39602/25482
+  zip_subregion_13 %>%
+  count(predominant_utility) %>%
+  print()
+
+# Zips with no predominant utility -----
+
+#49: 16445(16080)
+zips_with_no_predominant_utility <-
+  zip_subregion_13 %>%
+  filter(predominant_utility == "0") %>%
+  select(zip) %>%
+  distinct() %>%
+  glimpse()
+
+# Update with predom util from old PP
+#50:
+
+# select zipcodes in power profiler that match those in predominant utility
+# 39971(39092)
+predominant_utility_from_old_profiler <-
+  zips_with_no_predominant_utility %>%
+  inner_join(power_profiler_old, by = "zip") %>%
+  select(zip, trim_util_code, predominant_utility) %>%
+  glimpse()
+
+zip_subregion_14 <-
+  zip_subregion_13 %>%
+  left_join(predominant_utility_from_old_profiler, by = c("zip", "eiaid" = "trim_util_code")) %>%
+  mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
+  select(-contains(".")) %>%
+  glimpse()
+
+count <- #23531/41553
+  zip_subregion_14 %>%
+  count(predominant_utility) %>%
+  print()
+
+# Zips with no predominant utility ------
+#49: 16445
+# so far, I don't believe this step repeated is necessary
+zips_with_no_predominant_utility_2 <-
+  zip_subregion_14 %>%
+  filter(predominant_utility == "0") %>%
+  select(zip) %>%
+  distinct() %>%
+  glimpse()
+
+# Zips to update with predom util from old pp
+#51: 16445(16080)
+updates_for_predominant_utility <-
+  zips_with_no_predominant_utility_2 %>%
+  inner_join(zip_subregion_14, by = "zip") %>%
+  arrange(zip, eiaid, predominant_utility) %>%
+  group_by(zip) %>%
+  summarize(first_of_eia = first(eiaid)) %>%
+  mutate(predominant_utility = "1") %>%
+  glimpse()
+
+# Update predom utility
+#52:
+zip_subregion_15 <-
+  zip_subregion_14 %>%
+  left_join(updates_for_predominant_utility, by = c("zip", "eiaid" = "first_of_eia")) %>%
+  mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
+  select(-contains(".")) %>%
+  glimpse()
+
+count <- #7086(17677)/57998(47407)
+  zip_subregion_15 %>%
+  count(predominant_utility) %>%
+  print()
+
+access_comparison <-
+  read_csv("data/2a_power_profiler/inputs/2023/updates_for_utility_access.csv") %>%
+  janitor::clean_names() %>%
+  glimpse()
+
+comparison <-
+  updates_for_predominant_utility %>%
+  full_join(access_comparison, by = "zip") %>%
+  filter(first_of_eia != first_ofeiaid) %>%
+  glimpse()
+
+## need to decide how these things are ordered when selecting first of eiaid
+
+# Predom utility override p1
+predom_util_override_2 <-
+  read_csv("data/2a_power_profiler/inputs/2023/predom_util_override_2.csv",
+           col_types = "ccccc") %>%
+  janitor::clean_names() %>%
+  select(zip, first_ofeiaid) %>%
+  mutate(predominant_utility = "0") %>%
+  glimpse()
+
+#58:
+zip_subregion_16 <-
+  zip_subregion_15 %>%
+  left_join(predom_util_override_2, by = "zip") %>%
+  mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
+  select(-contains("."), -first_ofeiaid) %>%
+  glimpse()
+
+count <- #14263(17951)/50821(47133)
+  zip_subregion_16 %>%
+  count(predominant_utility) %>%
+  print()
+
+# predom utility override p2
+#59:
+zip_subregion_17 <-
+  zip_subregion_16 %>%
+  left_join(predom_util_override_2 %>%
+              mutate(predominant_utility = "1"), 
+            by = c("zip", "eiaid" = "first_ofeiaid")) %>%
+  mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
+  select(-contains(".")) %>%
+  glimpse()
+
+count <- #14060(17748)/51024(47336)
+  zip_subregion_17 %>%
+  count(predominant_utility) %>%
+  print()
+
+
+
 
