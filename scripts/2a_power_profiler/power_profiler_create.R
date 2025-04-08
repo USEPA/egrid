@@ -559,3 +559,33 @@ zipsubregioncomp <-
   full_join(zipsubregion10, by = "subregion") %>%
   filter(n.10 != n.11) %>%
   print(n = 27)
+
+# Make manual changes to table --------
+
+#42:
+utility_subregion_manual_table <-
+  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/utility_subregion_manual_table.csv"),
+           col_types = "ccc") %>%
+  janitor::clean_names() %>%
+  glimpse()
+
+zip_subregion_12 <-
+  zip_subregion_11 %>%
+  left_join(utility_subregion_manual_table, by = c("state", "eiaid" = "utility_id")) %>%
+  mutate(method = if_else(!is.na(subregion.y), "manual override", method),
+         subregion = if_else(!is.na(subregion.y), subregion.y, subregion.x)) %>%
+  select(-contains(".")) %>%
+  glimpse()
+
+zipsubregion12 <-#126/202(181)/1592/3036/2829/1940/68/70/888/6312/2931/3835/400/217/2063/176/4497/1456(1454)/7368(7372)/1450/1475/2570/2786/3493/3400/5438(5434)/4430/36(59)
+  zip_subregion_12 %>%
+  count(subregion, name = "n.12") %>%
+  print(n = 29)
+
+zipsubregioncomp <-
+  zipsubregion12 %>%
+  full_join(zipsubregion11, by = "subregion") %>%
+  filter(n.11 != n.12) %>%
+  print(n = 28)
+
+
