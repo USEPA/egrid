@@ -120,7 +120,7 @@ zip_codes_from_old_power_profiler_to_add <-
 zip_subregion_1 <-
   utility_zipcodes %>%
   select(zip, state, eiaid, utility_name) %>%
-  mutate(subregion = NA_character_, predominant_utility = NA_character_, old_zip_code = "no", method = NA_character_) %>%
+  mutate(subregion = NA_character_, predominant_utility = "0", old_zip_code = "no", method = NA_character_) %>%
   group_by_all() %>%
   distinct() %>%
   ungroup() %>%
@@ -501,7 +501,7 @@ zip_subregion_10 <-
   distinct() %>%
   glimpse()
 
-zipsubregion10 <-#112, 85, 1536, 3008, 2096, 1931, 68, 69, 883/5147/2737/3663/395/213/2060/4465/1415/6358(6362)/1388/1508/2480/2761/3393/3307/5421(5417)/4394/4191
+zipsubregion10 <-#126/202(181)/1629/3040/2830/1940/68/70/888/5351(5350)/2927(2920)/3835(3831)/400/217/2063/4487/1456(1454)/6534(6538)/1450/1518/2502/2782/3524/3397/5438(5434)/4433/1801(2012)
   zip_subregion_10 %>%
   count(subregion, name = "n.10") %>%
   print(n = 27)
@@ -512,7 +512,8 @@ zipsubregioncomp <-
   filter(n.10 != n.9) %>%
   print(n = 27)
 
-# -------
+# Update state subregion one to one match -------
+
 #13: 119 (120)
 states_and_subregions_grouped <-
   plant_file %>%
@@ -537,7 +538,7 @@ states_subregion_one_to_one <-
   # select(eiaid, utility_name = utility_name.x, nerc_region) %>%
   glimpse()
 
-### -----
+### Update values in subregion data -----
 
 #16:
 zip_subregion_11 <-
@@ -548,51 +549,13 @@ zip_subregion_11 <-
   select(-contains(".")) %>%
   glimpse()
 
-# --------
-#42:
+zipsubregion11 <-#126/202(181)/1629/3040/2830/1940/68/70/888/6269/2927/3835/400/217/2063/176/4497/1456(1454)/7367(7371)/1450/1518/2502/2782/3524/3397/5438(5434)/4433/40(63)
+  zip_subregion_11 %>%
+  count(subregion, name = "n.11") %>%
+  print(n = 29)
 
-#46:
-
-#47:
-
-#48:
-
-#49:
-#   
-#50:
-
-#49:
-
-#51:
-
-#52:
-#   
-#58:
-
-#59:
-
-#53:
-
-#55:
-
-#56:
-
-#57:
-
-#60:
-
-#65:
- 
-#66:
-
-#67:
-   
-#67b:
-
-#74:
-
-#75:
-
-#76:
-
- 
+zipsubregioncomp <-
+  zipsubregion11 %>%
+  full_join(zipsubregion10, by = "subregion") %>%
+  filter(n.10 != n.11) %>%
+  print(n = 27)
