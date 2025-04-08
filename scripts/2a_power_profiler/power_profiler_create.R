@@ -790,3 +790,41 @@ count <-
   primary_subregion_2 %>%
   count(subregion) %>%
   print(n = 28)
+
+# final power profiler file for website
+#65:
+zip_subregion_for_website <-
+  zip_subregion_17 %>%
+  mutate(predominant_utility = "0") %>%
+  select(zip, state, utility_name, trim_util_code = eiaid, subregion,  predominant_utility) %>%
+  arrange(zip, utility_name) %>%
+  glimpse()
+
+# first of utility
+#66:
+first_of_utility_name <-
+  zip_subregion_for_website %>%
+  group_by(zip, state) %>%
+  summarize(first_of_utility_name = first(utility_name)) %>%
+  mutate(predominant_utility = "1") %>%
+  glimpse()
+
+# update predominant utility
+#67:
+zip_subregion_for_website_2 <-
+  zip_subregion_for_website %>%
+  left_join(first_of_utility_name, by = c("utility_name" = "first_of_utility_name", "state", "zip")) %>%
+  mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
+  select(-contains(".")) %>%
+  glimpse()
+  
+# update old zip code predominant utility
+#67b:
+zip_subregion_for_website_3 <-
+  zip_subregion_for_website_2 %>%
+  left_join(zip_codes_from_old_power_profiler_to_add %>%
+              select(zip, predominant_utility),
+            by = "zip") %>%
+  mutate(predominant_utility = if_else(is.na(trim_util_code), predominant_utility.y, predominant_utility.x)) %>%
+  select(-contains(".")) %>%
+  glimpse()
