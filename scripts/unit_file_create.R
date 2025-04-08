@@ -787,6 +787,7 @@ eia_923_boilers <-
   summarize(heat_input = sum(heat_input, na.rm = TRUE), 
             fuel_consum = sum(fuel_consum, na.rm = TRUE)) %>% 
   ungroup() %>% 
+  mutate(id = paste0(plant_id, "_", boiler_id, "_", prime_mover)) %>% 
   left_join(prime_mover_corrections, by = c("plant_id", "boiler_id", "prime_mover")) %>% 
   mutate(prime_mover = if_else(!is.na(update), update, prime_mover)) %>% 
   rows_update(prime_mover_corrections_2, by = c("plant_id", "boiler_id"), unmatched = "ignore") %>% 
@@ -811,18 +812,31 @@ if(params$temporal_res == "monthly") {
            month == 12, 
            heat_input != 0) %>% 
     pull(id)
+  
+  # some annual reporting units are not in the generator file, and their heat inputs remain NA
+  # we fill these using the distribution of heat input in EIA-923 Generation and Fuel file
+  eia_923_annual_props <- 
+    eia_923$generation_and_fuel_combined %>% 
+    inner_join(eia_923_boilers %>% filter(respondent_frequency == "A", 
+                                          !id %in% check_gen_units)) %>% 
+    mutate(prop_heat = if_else(total_fuel_consumption_mmbtu == 0, 0, tot_mmbtu / total_fuel_consumption_mmbtu), 
+           prop_fuel = if_else(total_fuel_consumption_quantity == 0, 0, quantity / total_fuel_consumption_quantity)) %>% 
+    group_by(plant_id, boiler_id, prime_mover) %>% 
+    mutate(tot_monthly_heat_input = sum(heat_input, na.rm = TRUE), 
+           tot_monthly_fuel_consum = sum(fuel_consum, na.rm = TRUE)) %>% 
+    ungroup() %>% 
+    mutate(heat_input = prop_heat * tot_monthly_heat_input, 
+           fuel_consum = prop_fuel * tot_monthly_fuel_consum) %>%
+    select(all_of(temporal_res_cols), plant_id, boiler_id, fuel_type, prime_mover, heat_input, fuel_consum)
 
-  ###### CHECK what do we want to do with Annual reporters not in the generator file? ##########
   eia_923_boilers <- 
     eia_923_boilers %>% 
-    mutate(id = paste0(plant_id, "_", boiler_id, "_", prime_mover),
-           heat_input = case_when(respondent_frequency  == "A" & id %in% check_gen_units ~ NA_real_, 
+    rows_update(eia_923_annual_props, by = c(temporal_res_cols, "plant_id", "boiler_id", "prime_mover", "fuel_type")) %>% 
+    mutate(heat_input = case_when(respondent_frequency  == "A" & id %in% check_gen_units ~ NA_real_, 
                                   id %in% am_annual_responders & id %in% check_gen_units ~ NA_real_,
-                                  respondent_frequency  == "A" & !id %in% check_gen_units ~ NA_real_, 
                                   TRUE ~ heat_input), 
            fuel_consum = case_when(respondent_frequency == "A" & id %in% check_gen_units ~ NA_real_,
                                    id %in% am_annual_responders & id %in% check_gen_units ~ NA_real_, 
-                                   respondent_frequency  == "A" & !id %in% check_gen_units ~ NA_real_, 
                                    TRUE ~ fuel_consum))}
 
 # calculate ozone heat input if temporal_res is annual
@@ -1382,12 +1396,40 @@ units_missing_heat_4 <- # identify units still missing heat input
 print(glue::glue("{nrow(units_heat_updated_boiler_distributed)} units updated with EIA Prime Mover-level Data, distributed from 923 Generation and Fuel File. {nrow(units_missing_heat_4)} with missing heat input remain."))
 
 
+## Update heat input for ozone reporters with remaining EIA-923 Gen and Fuel data --------------
+
+### CHECK this will have to either be in an if statement if params$temporal_res == monthly OR ######
+######## changed with the annual version where we sum up the monthly version
+
+# Some ozone reporters do not fill heat input for non-ozone months using generator level proportions
+# Here we identify ozone reporters with heat input in EIA-923 Gen and Fuel and distribute using EPA nameplate capacity values
+os_nameplate_props <- 
+  units_missing_heat_4 %>% 
+  filter(reporting_frequency == "OS") %>% 
+  group_by(plant_id, unit_id, prime_mover) %>% 
+  summarize(nameplate_capacity = unique(nameplate_capacity)) %>% 
+  ungroup() %>% 
+  group_by(plant_id, prime_mover) %>% 
+  mutate(sum_namecap = sum(nameplate_capacity, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  mutate(prop = if_else(sum_namecap != 0, nameplate_capacity / sum_namecap, 0)) %>% 
+  select(plant_id, unit_id, prime_mover, prop)
+
+units_heat_updated_ozone_dist <- 
+  eia_fuel_consum_pm %>% 
+  inner_join(units_missing_heat_4 %>% filter(reporting_frequency == "OS"), by = c("year", "month", "plant_id", "prime_mover")) %>% 
+  inner_join(os_nameplate_props, by = c("plant_id", "unit_id", "prime_mover")) %>%
+  mutate(heat_input = prop * heat_input_923) %>% 
+  filter(!is.na(heat_input)) %>% 
+  select(year, month, plant_id, unit_id, prime_mover, heat_input)
+
 ## Updating all units with filled heat input
 
 filled_heat_inputs <- 
   bind_rows(units_heat_updated_pm_data, 
             units_heat_updated_boiler_matches, 
-            units_heat_updated_boiler_distributed) %>% 
+            units_heat_updated_boiler_distributed, 
+            units_heat_updated_ozone_dist) %>% 
   select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, starts_with("heat"))
 
 
@@ -1395,48 +1437,6 @@ all_units_3 <-
   all_units_2 %>% 
   rows_update(filled_heat_inputs,
               by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"))
-
-
-## Update heat input for ozone reporters with remaining EIA-923 Gen and Fuel data --------------
-
-# Some ozone reporters do not fill heat input for non-ozone months
-# Here we identify ozone reporters with remaining heat input in EIA-923 Gen and Fuel and distribute using a proportion
-
-if(params$temporal_res != "annual") { 
-  gen_fuel_diff <- # calculate heat input that still needs to be distributed via EIA-923 Gen and Fuel
-    all_units_3 %>% 
-    filter(reporting_frequency == "OS") %>% 
-    group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover) %>% 
-    summarize(heat_input = sum(heat_input, na.rm = TRUE)) %>% 
-    left_join(eia_923$generation_and_fuel_combined %>% 
-                group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover) %>% 
-                summarize(heat_input_923 = sum(tot_mmbtu, na.rm = TRUE)), 
-              by = c(temporal_res_cols, "plant_id", "prime_mover")) %>% 
-    mutate(heat_input_remaining = heat_input_923 - heat_input) %>% 
-    filter(heat_input_remaining > 0) %>% 
-    select(all_of(temporal_res_cols), plant_id, prime_mover, heat_input_remaining)
-  
-  unit_props <- 
-    all_units_3 %>% 
-    select(plant_id, unit_id, prime_mover, nameplate_capacity) %>% 
-    distinct() %>% 
-    group_by(plant_id, prime_mover) %>% 
-    mutate(sum_namecap = sum(nameplate_capacity, na.rm = TRUE)) %>% 
-    ungroup() %>% 
-    mutate(prop = if_else(sum_namecap != 0, nameplate_capacity / sum_namecap, NA_real_)) %>% 
-    select(plant_id, unit_id, prime_mover, prop)
-  
-  units_heat_updated_ozone_dist <- 
-    units_missing_heat_4 %>% 
-    inner_join(gen_fuel_diff, by = c(temporal_res_cols, "plant_id", "prime_mover")) %>% 
-    inner_join(unit_props, by = c("plant_id", "unit_id", "prime_mover")) %>% 
-    mutate(heat_input = prop * heat_input_remaining) %>% 
-    select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, heat_input)
-  
-  all_units_3 <- 
-    all_units_3 %>% 
-    rows_update(units_heat_updated_ozone_dist, 
-                by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"))}
 
 
 # Additional updates before emissions ------
