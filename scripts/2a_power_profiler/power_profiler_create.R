@@ -828,3 +828,35 @@ zip_subregion_for_website_3 <-
   mutate(predominant_utility = if_else(is.na(trim_util_code), predominant_utility.y, predominant_utility.x)) %>%
   select(-contains(".")) %>%
   glimpse()
+
+# 
+#71/72/73/74:
+compare_to_old_pp_single_subrgn <-
+  zip_subregion_17 %>%
+  filter(is.na(subregion)) %>%
+  select(zip, subregion) %>%
+  distinct() %>%
+  inner_join(power_profiler_old, by = "zip") %>%
+  group_by(zip) %>%
+  summarize(count_subrgn = n_distinct(subrgn)) %>%
+  filter(count_subrgn == 1) %>%
+  # distinct() %>%
+  glimpse()
+
+#75: subregions to update
+subregions_to_update_from_old_pp <-
+  compare_to_old_pp_single_subrgn %>%
+  left_join(power_profiler_old, by = "zip") %>%
+  select(zip, subrgn) %>%
+  distinct() %>%
+  glimpse()
+
+#76: update zipsubregion
+zip_subregion_18 <-
+  zip_subregion_17 %>%
+  left_join(subregions_to_update_from_old_pp %>%
+              rename(subregion = subrgn), 
+            by = "zip") %>%
+  mutate(subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
+  select(-contains(".")) %>%
+  glimpse()
