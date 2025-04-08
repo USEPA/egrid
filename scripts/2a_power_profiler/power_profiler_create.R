@@ -737,6 +737,56 @@ count <- #14060(17748)/51024(47336)
   count(predominant_utility) %>%
   print()
 
+# Update subregions -----
+# subregion of predom utility
+#53: 44619(41562)
+primary_subregion <-
+  zip_subregion_17 %>%
+  select(zip, state, subregion) %>%
+  distinct() %>%
+  mutate(secondary = "0") %>%
+  glimpse()
 
+# Group by zip and subregion, identify zips with more than subregion
+#55/56: 2984(2963)
+zips_with_more_than_one_subregion <-
+  zip_subregion_17 %>%
+  group_by(zip) %>%
+  summarize(subrgn_count = n_distinct(subregion)) %>%
+  filter(subrgn_count > 1) %>%
+  mutate(secondary = "1") %>%
+  glimpse()
 
+# update primary subregion table
+#57: 44619(41562)
+primary_subregion_2 <-
+  primary_subregion %>%
+  left_join(zips_with_more_than_one_subregion, by = "zip") %>%
+  mutate(secondary = if_else(!is.na(secondary.y), secondary.y, secondary.x)) %>%
+  select(-contains(".")) %>%
+  glimpse()
 
+count <- #38578(38599)/6041(2963)
+  primary_subregion_2 %>%
+  count(secondary) %>%
+  print()
+  
+# primary subregion override
+
+primary_subregion_override <-
+  read_csv("data/2a_power_profiler/inputs/2023/primary_subregion_override.csv",
+           col_types = "ccc") %>%
+  janitor::clean_names() %>%
+  glimpse()
+
+#60:
+primary_subregion_3 <-
+  primary_subregion_2 %>%
+  left_join(primary_subregion_override, by = "zip") %>%
+  mutate(subregion = if_else(!is.na(change), change, subregion)) %>%
+  glimpse()
+
+count <-
+  primary_subregion_2 %>%
+  count(subregion) %>%
+  print(n = 28)
