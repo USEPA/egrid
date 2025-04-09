@@ -32,7 +32,9 @@ source("scripts/functions/function_paste_concat.R")
 source("scripts/functions/function_update_source.R")
 
 # check if parameters need to be defined
-params <- check_params()
+if (!exists("params")) {
+  params <- check_params()
+}
 
 # Specify grouping columns based on temporal_res parameter
 temporal_res_cols <- create_temporal_res_cols(params$temporal_res)

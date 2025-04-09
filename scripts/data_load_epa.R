@@ -28,7 +28,9 @@ source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_check_params.R")
 
 # Create and check parameters 
-params <- check_params()
+if (!exists("params")) {
+  params <- check_params()
+}
 
 # Check if folder to store raw data exists, if not - create it
 if (!dir.exists(glue::glue("data/raw_data/epa/{params$eGRID_year}"))) {

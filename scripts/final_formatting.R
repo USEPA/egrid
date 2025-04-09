@@ -24,29 +24,15 @@ library(readxl)
 library(stringr)
 library(openxlsx)
 
-### Load in data ------ 
+# Load necessary functions
+source("scripts/functions/function_check_params.R")
 
-# check if parameters for eGRID data year need to be defined
-# this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input eGRID year in the console if params does not exist
-
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params) & "version" %in% names(params)) { # if params() and params$eGRID_year, params$version exist, do not re-define
-    print("eGRID year and version parameters are already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-    params$version <- readline(prompt = "Input version (format X.X.X): ")
-    params$version <- as.character(params$version) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
-  params$version <- readline(prompt = "Input version (format X.X.X): ")
-  params$version <- as.character(params$version) 
+# Create and check parameters 
+if (!exists("params")) {
+  params <- check_params()
 }
 
+### Load in data ------ 
 
 # load files
 unt_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
@@ -63,7 +49,6 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RD
   demo_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
 }
 
-
 # extract last two digits of year for universal labeling
 year <- as.numeric(params$eGRID_year) %% 1000
 
@@ -72,7 +57,6 @@ year <- as.numeric(params$eGRID_year) %% 1000
 wb <- createWorkbook()
 source("scripts/functions/function_create_contents_egrid_final.R")
 create_contents_egrid_final()
-
 
 ### Create styles ------
 
