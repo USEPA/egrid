@@ -16,7 +16,6 @@
 library(dplyr)
 library(readr)
 library(readxl)
-# library(stringr)
 
 # Define eGRID year parameter ----------------
 # define parameter year if no one is currently assigned using prompted user input
@@ -36,20 +35,20 @@ if (exists("params")) {
 # Load necessary data -----
 
 # load in eGRID plant data
-plant_file <- readRDS(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS")) %>%
+
+plant_file <- # 12612(12619)
+  readRDS(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS")) %>%
   glimpse()
 
 # load in previous power profiler data which had zip, utility code, predominant utility, etc. 
-# previous power profiler data (FROM ACCESS) (65187 SAME)
-power_profiler_old <- 
-  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/power_profiler_old.csv"),
+power_profiler_old <- # (FROM ACCESS) 65187
+  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/access/power_profiler_old.csv"),
            col_types = "cccccc") %>%
   janitor::clean_names() %>%
   glimpse()
 
 # load in all utility zip codes
-# utility zip codes (FROM MARISSA) (80142 SAME) (39133 unique zips)
-utility_zipcodes <- 
+utility_zipcodes <- # (FROM MARISSA) 80142 (39133 unique zips)
   read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/utility_zipcodes.csv"),
            col_types = "ccccccddd") %>%
   janitor::clean_names() %>%
@@ -57,23 +56,17 @@ utility_zipcodes <-
   # count() %>%
   glimpse()
 
-# eia-861 utility data - with count 
-eia_861_utility_data_with_count <- # (FROM ACCESS)
-  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/eia_861_utility_with_count.csv"),
+# load in EIA-861 utility data - with count 
+eia_861_utility_data_with_count <- # (FROM ACCESS) 1715
+  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/access/eia_861_utility_with_count.csv"),
            col_types = "ccccccccccccccccccccccdcccccccccc") %>%
   janitor::clean_names() %>%
   # rename_with(~ paste(., "_eia_count", sep = "")) %>%
   glimpse()
 
-# DATA - NERC CROSSWALK FOR FEW SUBREGIONS (this only has three nerc and subregion combos - what is this?)
-nerc_region_crosswalk <- # (FROM ACCESS)
-  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/nerc_region_crosswalk.csv"),
-           col_names = c("nerc","subregion")) %>%
-  janitor::clean_names() %>%
-  glimpse()
-
-eia_861_sales_ult_cust <- # (FROM ACCESS)
-  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/eia_861_sales_ult_cust.csv"),
+# load in EIA-6=861 utility data
+eia_861_sales_ult_cust <- # (FROM ACCESS) 2822
+  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/access/eia_861_sales_ult_cust.csv"),
            col_types = "cccccccc") %>%
   janitor::clean_names() %>%
   glimpse()
@@ -89,124 +82,146 @@ eia_861_sales_ult_cust <- # (FROM ACCESS)
 
 # Load necessary crosswalks -----
 
-xwalk_balancing_authority <-
+# subregion to balancing authority crosswalk
+ba_subregion_crosswalk <- #75 - access has missing data
   read_csv("data/1_production_model/static_tables/xwalk_balancing_authority.csv") %>%
   janitor::clean_names() %>%
   select(subregion = subrgn, ba_code = balancing_authority_code) %>%
   glimpse()
 
-# 1204 (access has 1160)
-xwalk_subregion_transmission <-
+# NERC region, BA, transmission, and subregion crosswalk
+ba_transmission_crosswalk <- # 1204 (access has 1160)
   read_csv("data/1_production_model/static_tables/xwalk_subregion_transmission.csv",
            col_types = "cccc") %>%
   janitor::clean_names() %>%
   rename(ba_code = balancing_authority_code, transmission = transmission_or_distribution_system_owner_id, subregion = subrgn) %>%
   glimpse()
 
-# Old Power Profiler  -------
-### Create zipcode dataset -----------
+# NERC to subregion crosswalk
+#(this only has three nerc and subregion combos - what is this?)
+nerc_region_crosswalk <- # (FROM ACCESS) 3
+  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/access/nerc_region_crosswalk.csv"),
+           col_names = c("nerc","subregion")) %>%
+  janitor::clean_names() %>%
+  glimpse()
 
-# select zip codes present in power_profiler_old but not present in utility_zipcodes
-# ultimately specifies which zipcodes  need to be added to new power profiler
-#01 : (2889 SAME)
+# Create zipcode dataset ------
+
+# create zipcode dataset using utility_zipcodes data
+#02: 62,195
+zip_subregion <-
+  utility_zipcodes %>%
+  select(zip, state, eiaid, utility_name) %>%
+  mutate(subregion = NA_character_, 
+         predominant_utility = factor("0", levels = c("0", "1")), 
+         old_zip_code = factor("no", levels = c("no", "yes")), 
+         method = NA_character_) %>%
+  # select unique rows only
+  distinct() %>%
+  glimpse()
+
+### Add zipcodes from old power profiler  -------
+
+# select zip codes in old power profiler not in utility_zipcodes
+  # ultimately specifies which zipcodes need to be added to new power profiler
+#01: 2889
 zip_codes_from_old_power_profiler_to_add <-
   power_profiler_old %>%
   anti_join(utility_zipcodes, by = "zip") %>%
-  rename(utility_name = util_name, eiaid = trim_util_code, subregion = subrgn) %>%
+  mutate(predominant_utility = factor(predominant_utility),
+         old_zip_code = factor("yes", levels = c("no", "yes")), 
+         method = "old power profiler", 
+         subrgn = NA_character_) %>%
+  rename(utility_name = util_name, 
+         eiaid = trim_util_code, 
+         subregion = subrgn) %>%
   glimpse()
 
-# create zipcode dataset with all unique combinations of the variables (zip, state, eiaid, utility name)
-#02 (62,195 SAME)
-zip_subregion_1 <-
-  utility_zipcodes %>%
-  select(zip, state, eiaid, utility_name) %>%
-  mutate(subregion = NA_character_, predominant_utility = "0", old_zip_code = "no", method = NA_character_) %>%
-  group_by_all() %>%
-  distinct() %>%
-  ungroup() %>%
-  glimpse()
+# predom_util_count <- #460/2429
+#   zip_codes_from_old_power_profiler_to_add %>%
+#   count(predominant_utility) %>%
+#   print()
 
-### Add zipcodes from old power profiler ------
-
-# add zipcodes from previous power profiler to add (append to bottom)
-#03 : (65084 SAME - 2889 old power profiler SAME)
-# right now I have the subregion values from old power profiler into subregion data
-# access has them filled as NAs
-zip_subregion_2 <-
-  zip_subregion_1 %>%
-  bind_rows(zip_codes_from_old_power_profiler_to_add %>% mutate(old_zip_code = "yes", method = "old power profiler", subregion = NA_character_)) %>%
+# append zipcodes from previous power profiler to add
+#03 : 65084
+zip_subregion_old_pp <-
+  zip_subregion %>%
+  bind_rows(zip_codes_from_old_power_profiler_to_add) %>%
   glimpse()
   
-zipcount <- # old power profiler 2889(2889), na 62195(62195)
-  zip_subregion_2 %>%
-  count(method) %>%
-  print()
+# methodcount <- #2889/62195
+#   zip_subregion_old_pp %>%
+#   count(method) %>%
+#   print()
+# 
+# predom_util_count <- #62655/2429
+#   zip_subregion_old_pp %>%
+#   count(predominant_utility) %>%
+#   print()
 
-# NERC Region --------
-### Create nerc names for missing utility id dataset -----
+# Assign zipcodes to subregions using a sequence of methods -------
+### NERC Region assignments --------
 
-#28: 1794(1207)
+# get NERC subregions for eiaid and utility_numbers in zipsubregion data
+#28: 1207
 nerc_region_for_missing_utility_id <-
-  zip_subregion_2 %>%
-  left_join(eia_861_utility_data_with_count, by = c("eiaid" = "utility_number")) %>%
+  zip_subregion_old_pp %>%
+  inner_join(eia_861_utility_data_with_count, by = c("eiaid" = "utility_number")) %>%
   select(eiaid, utility_name = utility_name.x, nerc_region) %>%
   distinct() %>%
   arrange(as.numeric(eiaid)) %>%
   glimpse()
 
-#29: 1794 (1207)
+# identify records with only one subregion assignment
+#29: 1207
 count_of_one_nerc_region <-
   nerc_region_for_missing_utility_id %>%
   group_by(eiaid, utility_name) %>%
   summarize(subrgn_count = n_distinct(nerc_region)) %>%
   filter(subrgn_count == 1) %>%
   arrange(as.numeric(eiaid)) %>%
+  ungroup() %>%
   glimpse()
 
-#30: 1806(1213)
+# assign nerc regions to eiaids with singular subregion count
+#30: 1213
 nerc_names_for_missing_utility_id <-
   nerc_region_for_missing_utility_id %>%
   inner_join(count_of_one_nerc_region, by = "eiaid") %>%
   select(eiaid, utility_name = utility_name.x, nerc_region) %>%
   glimpse()
 
-# combine the subregion - nerc region match to the nerc names for missing  utility id
-# only keep the matches, 82 that have new subregion names
-#31: (82 SAME) - now 80 because there were two duplicates
+# combine the subregion/nerc match to the nerc names for missingutility id
+#31: 82 - now 80 because there were two duplicates
 zip_utility_update_nerc <-
   nerc_names_for_missing_utility_id %>%
   inner_join(nerc_region_crosswalk, by = join_by("nerc_region" == "nerc")) %>%
   distinct() %>%
   glimpse()
 
-# we want to update fields that have matching eiaids
+#### Update subregions based on NERC crosswalk -----
+
+#32: 65084
 # if there's a matching eiaid AND subregion is blank, the method and subregion will be updated
-# there were only 82 eidids in zip_utility_update_nerc, but in the subregion data there are multiple zipcodes for each eiaid so we are matching the nerc subregion to that
-# should keep original value of 65084
-
-### Update subregions based on NERC crosswalk -----
-
-#32 -65084(65084), nerc 2861(2861), old power profiler 2888(2888)
 # join in utility ids with proper nerc region
-# update subregion and specify nerc region
-#updates 2966 rows
-zip_subregion_3 <-
-  zip_subregion_2 %>%
+# update subregion and specify matching method
+zip_subregion_nerc_xwalk <-
+  zip_subregion_old_pp %>%
   left_join(zip_utility_update_nerc, by = c("eiaid", "utility_name")) %>%
   mutate(method = if_else(is.na(subregion.x) & !is.na(subregion.y), "nerc region", method),
          subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
   select(-contains("."), -nerc_region) %>%
   glimpse()
 
-zipcount <-
-  zip_subregion_3 %>%
-  count(method) %>%
-  print()
-
-zipsubregion <-
-  zip_subregion_3 %>%
-  count(subregion) %>%
-  print()
+# zipcount <- #65084 -2861/2888/59335
+#   zip_subregion_nerc_xwalk %>%
+#   count(method) %>%
+#   print()
+# 
+# zipsubregion <- #1662/1199/62223
+#   zip_subregion_nerc_xwalk %>%
+#   count(subregion) %>%
+#   print()
 
 # Balancing Authority --------
 ### Create ba codes for missing utility id dataset -----
@@ -238,7 +253,7 @@ ba_names_for_missing_utility_id <-
 # match ba codes to subregions
 zip_utility_update_ba <- 
   ba_names_for_missing_utility_id %>%
-  inner_join(xwalk_balancing_authority, by = "ba_code") %>%
+  inner_join(ba_subregion_crosswalk, by = "ba_code") %>%
   distinct() %>%
   arrange(as.numeric(eiaid)) %>%
   glimpse() 
@@ -401,7 +416,7 @@ zip_subregion_7 <-
               select(utility_number,
                      nerc_region),
             by = c("eiaid" = "utility_number")) %>%
-  left_join(xwalk_subregion_transmission,
+  left_join(ba_transmission_crosswalk,
             by = c("nerc_region", "ba_code", "eiaid" = "transmission")) %>%
   mutate(method = if_else(is.na(subregion.x) & !is.na(subregion.y), "nerc region/ba/transmission ID", method),
          subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
