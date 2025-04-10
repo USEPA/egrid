@@ -34,6 +34,8 @@ source("scripts/functions/function_paste_concat.R")
 # Define paramters if necessary and check for valid params()
 if (!exists("params")) {
   params <- check_params()
+} else {
+  print("eGRID year and version parameters are already defined.")
 }
 
 # Specify grouping columns based on temporal_res parameter

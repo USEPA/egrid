@@ -32,6 +32,8 @@ source("scripts/functions/function_temporal_res_cols.R")
 # Create and check parameters 
 if (!exists("params")) {
   params <- check_params()
+} else {
+  print("eGRID year and version parameters are already defined.")
 }
 
 ### Read in EIA files ------

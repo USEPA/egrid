@@ -27,6 +27,8 @@ source("scripts/functions/function_temporal_res_cols.R")
 # check if parameters for eGRID data year need to be defined
 if (!exists("params")) {
   params <- check_params()
+} else {
+  print("eGRID year and version parameters are already defined.")
 }
 
 # Specify grouping columns based on temporal_res parameter

@@ -28,6 +28,8 @@ source("scripts/functions/function_check_params.R")
 # Create and check parameters 
 if (!exists("params")) {
   params <- check_params()
+} else {
+  print("eGRID year and version parameters are already defined.")
 }
 
 ### Load in data ------ 

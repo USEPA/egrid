@@ -34,6 +34,8 @@ source("scripts/functions/function_update_source.R")
 # check if parameters need to be defined
 if (!exists("params")) {
   params <- check_params()
+} else {
+  print("eGRID year and version parameters are already defined.")
 }
 
 # Specify grouping columns based on temporal_res parameter
