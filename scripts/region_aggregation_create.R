@@ -37,11 +37,7 @@ temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
 
 # Load ordered names and abbreviations -------------
 # load in name matches for shorthand to snake_case
-if(file.exists("data/static_tables/name_matches.RData")) {
-  load("data/static_tables/name_matches.RData")
-} else { 
-   source("scripts/name_matching.R")
-   load("data/static_scripts/name_matches.RData")}
+source("scripts/name_matching.R")
 
 # Call aggregation function for each region ------------
 

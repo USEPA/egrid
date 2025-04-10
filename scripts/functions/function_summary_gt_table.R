@@ -12,9 +12,9 @@
 ## -------------------------------
 
 
-create_summary_table <- function(data) {
+create_summary_gt_table <- function(data) {
   
-    #' create_summary_table
+    #' create_summary_gt_table
     #' 
     #' Takes a dataframe and returns a summary GT summary table, similar to what is produced with the glimpse function.
     #' @param data A dataframe

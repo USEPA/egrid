@@ -79,11 +79,7 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/unit_file_{params$te
 ### Load crosswalks and static tables ----------------------
 
 # load in name matches for shorthand to snake_case
-if(file.exists("data/static_tables/name_matches.RData")) {
-  load("data/static_tables/name_matches.RData")
-} else { 
-    source("scripts/name_matching.R")
-    load("data/static_scripts/name_matches.RData")}
+source("scripts/name_matching.R")
 
 # crosswalk for plant IDs between EPA and EIA data
 xwalk_oris_epa <- 

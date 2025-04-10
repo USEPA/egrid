@@ -235,7 +235,7 @@ ggl_us <-
 ggl_interconnect_3 <- rbind(ggl_interconnect_2, ggl_us)
 
 # Add year to dataframe ------------
-ggl_interconnect_4 <- cbind(params$eGRID_year, ggl_interconnect_3)
+ggl_interconnect_4 <- cbind(year = params$eGRID_year, ggl_interconnect_3)
 
 # Export GGL file -------------- 
 

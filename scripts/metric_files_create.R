@@ -19,8 +19,6 @@ library(dplyr)
 library(glue)
 library(readr)
 library(readxl)
-library(renv)
-detach("package:renv", unload=TRUE)
 
 # Load necessary functions -----------------------
 
@@ -48,11 +46,7 @@ filenames_orig <- c("unit" = "unit_file",
 # Load ordered variable names and conversion factors ---------
 
 # ordered names 
-if(file.exists("data/static_tables/name_matches.RData")) {
-  base::load("data/static_tables/name_matches.RData")
-} else { 
-  source("scripts/name_matching.R")
-  base::load("data/static_scripts/name_matches.RData")}
+source("scripts/name_matching.R")
 
 # conversion factors
 convert_rates <- read_csv(file.path("data/static_tables/conversion_factors.csv"),
