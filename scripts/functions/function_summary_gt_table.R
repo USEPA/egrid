@@ -1,10 +1,10 @@
 ## -------------------------------
 ##
-## Create summary table
+## Create summary GT table
 ## 
 ## Purpose: 
 ## 
-## This file creates a function to create summary GT summary table. 
+## This file creates a function to create summary GT table. 
 ##
 ## Authors:  
 ##      Sean Bock, Abt Global

@@ -171,8 +171,6 @@ Three data tables are downloaded from the the CAPD and stored into one .RDS file
 #| label: create-epa-tables 
 #| echo: false  
 
-source("scripts/functions/function_summary_table.R") 
-
 # function to create summary table  
 epa_raw <- read_rds(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS")) 
 

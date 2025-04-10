@@ -1152,7 +1152,7 @@ addWorksheet(wb, ggl)
 
 # convert year to numeric value
 ggl_file <- ggl_file %>%
-  mutate(data_year = as.numeric(data_year))
+  mutate(year = as.numeric(year))
 
 
 ## column names and descriptions

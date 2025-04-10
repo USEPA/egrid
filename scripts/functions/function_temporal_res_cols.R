@@ -12,7 +12,6 @@
 ## -------------------------------
 
 
-
 create_temporal_res_cols <- function(temporal_res) {
   
   #' create_temporal_res_cols
