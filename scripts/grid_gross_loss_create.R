@@ -24,25 +24,17 @@ library(readxl)
 library(stringr)
 library(openxlsx)
 
-### Read in EIA files ------
+# Load necessary functions -----------------------
 
-# define params for eGRID data year 
-# this is only necessary when running the script outside of egrid_master.qmd
+source("scripts/functions/function_check_params.R")
+source("scripts/functions/function_temporal_res_cols.R")
 
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
+# Create and check parameters 
+if (!exists("params")) {
+  params <- check_params()
 }
 
-data_year <- params$eGRID_year
+### Read in EIA files ------
 
 # read files based on eGRID year
 eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
@@ -62,7 +54,6 @@ source("scripts/functions/function_download_eia_ggl.R")
 
 # downloads and/or aggregates data needed for GGL calculations
 download_eia_ggl(params$eGRID_year)
-
 
 ### Load in datasets ----
 
@@ -87,7 +78,6 @@ nerc_interconnect <-
   rename(state = State,
          nerc_region = `NERC Region`,
          interconnect = Interconnect)
-
 
 # Create GGL table at state level for non duplicate states -----
 
@@ -245,7 +235,7 @@ ggl_us <-
 ggl_interconnect_3 <- rbind(ggl_interconnect_2, ggl_us)
 
 # Add year to dataframe ------------
-ggl_interconnect_4 <- cbind(data_year, ggl_interconnect_3)
+ggl_interconnect_4 <- cbind(params$eGRID_year, ggl_interconnect_3)
 
 # Export GGL file -------------- 
 

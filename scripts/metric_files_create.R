@@ -29,8 +29,9 @@ source("scripts/functions/function_check_params.R")
 
 # Define parameters -------------------------
 # check if parameters need to be defined
-
-params <- check_params()
+if (!exists("params")) {
+  params <- check_params()
+}
 
 # Define files to convert ---------------------------------
 

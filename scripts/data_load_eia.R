@@ -16,8 +16,10 @@
 source("scripts/functions/function_download_eia_files.R")
 source("scripts/functions/function_check_params.R")
 
-# Check params 
-params <- check_params()
+# Create and check parameters 
+if (!exists("params")) {
+  params <- check_params()
+}
 
 # Download each EIA file from the EIA website ------------ 
 # Iterating over each file, downloading, and unzipping

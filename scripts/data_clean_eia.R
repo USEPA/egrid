@@ -24,8 +24,10 @@ library(readxl)
 
 source("scripts/functions/function_check_params.R")
 
-# check if parameters for eGRID data year need to be defined
-params <- check_params()
+# Create and check parameters 
+if (!exists("params")) {
+  params <- check_params()
+}
 
 # Load manual corrections ----------
 
