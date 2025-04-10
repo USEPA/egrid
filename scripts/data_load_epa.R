@@ -28,8 +28,13 @@ source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_check_params.R")
 
 # Create and check parameters 
+source("scripts/functions/function_check_params.R")
+
+# Define parameters if necessary and check for valid params()
 if (!exists("params")) {
   params <- check_params()
+} else {
+  print("eGRID year and version parameters are already defined.")
 }
 
 # Check if folder to store raw data exists, if not - create it

@@ -32,7 +32,11 @@ source("scripts/functions/function_temporal_res_cols.R")
 # Create and check parameters 
 if (!exists("params")) {
   params <- check_params()
+} else {
+  print("eGRID year and version parameters are already defined.")
 }
+
+data_year <- params$eGRID_year
 
 ### Read in EIA files ------
 
@@ -235,7 +239,7 @@ ggl_us <-
 ggl_interconnect_3 <- rbind(ggl_interconnect_2, ggl_us)
 
 # Add year to dataframe ------------
-ggl_interconnect_4 <- cbind(params$eGRID_year, ggl_interconnect_3)
+ggl_interconnect_4 <- cbind(data_year, ggl_interconnect_3)
 
 # Export GGL file -------------- 
 
