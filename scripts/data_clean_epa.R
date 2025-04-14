@@ -75,13 +75,6 @@ unit_abbs <- # abbreviation crosswalk for unit types
 
 # Clean raw data -------
 
-xwalk_so2_control_abrvs <- 
-  read_csv("data/static_tables/xwalk_so2_control_abbreviations.csv") %>% 
-  janitor::clean_names()
-
-epa_nox_controls <- 
-  read_csv("data/static_tables/epa_nox_controls.csv") 
-
 # load manual corrections to data
 manual_corrections <- 
   read_xlsx("data/static_tables/manual_corrections.xlsx", 
@@ -125,15 +118,78 @@ epa_r <-
     unit_type = str_replace(unit_type, "\\(.*?\\)", "") %>% str_trim(), # removing notes about start dates and getting rid of extra white space
     unit_type_abb = recode(unit_type, !!!unit_abbs), ## Recoding values based on lookup table. need to looking into cases with multipe types (SB 3/28/2024)
     year_online = lubridate::year(commercial_operation_date)
-    ) %>% 
-  left_join(xwalk_so2_control_abrvs, by = c("so2_controls")) %>% 
-  mutate(so2_controls = if_else(!is.na(so2_control_abbreviation), so2_control_abbreviation, so2_controls)) %>% 
-  select(-so2_control_abbreviation) %>% 
-  rows_update(epa_nox_controls, by = c("plant_id", "unit_id"), unmatched = "ignore")
+    ) 
+
+## Abbreviate control technologies ---------------------
+
+### SO2 control technologies ---------------------
+
+epa_abbv_so2_controls <- # assign abbreviations to SO2 controls
+  epa_r %>% 
+  select(plant_id, unit_id, so2_controls) %>% distinct() %>% # remove duplicates that will arise during monthly version 
+  mutate(so2_controls = str_replace_all(so2_controls, "\\|", ","), 
+         so2_controls = gsub(", \\b[0-9]{4}\\b", "\\b[0-9]{4}\\b", so2_controls)) %>% # removing comma from year retired or installed to avoid issues using separate_longer_delim()
+  tidyr::separate_longer_delim(so2_controls, ",") %>% 
+  mutate(
+    so2_controls = 
+        gsub("^Activated (C|c)arbon (I|i)njection.*", "ACI", 
+        gsub("^Circulating (D|d)ry (S|s)crubber.*", "CD",
+        gsub("^Dual (A|a)lkali.*", "DA",
+        gsub("^Dry (L|l)ime FGD.*", "DL",
+        gsub("^Dry (S|s)orbent (I|i)njection.*", "DSI",
+        gsub("^Electrostatic (P|p)recipitator.*", "EK",
+        gsub("^Fluidized (B|b)ed (L|l)imestone (I|i)njection.*", "FBL",
+        gsub("^Other.*", "O",
+        gsub("^Sodium (B|b)ased.*", "SB",
+        gsub("^Wet (L|l)ime FGD.*", "WL",
+        gsub("^Wet (L|l)imestone.*", "WLS", so2_controls)))))))))))
+  ) %>% 
+  group_by(plant_id, unit_id) %>% 
+  mutate(so2_controls = paste(so2_controls, collapse = ","), # collapse SO2 controls into one row
+         so2_controls = if_else(so2_controls == "NA", NA_character_, so2_controls)) %>% 
+  ungroup() %>% distinct()
+
+### NOx control technologies --------------------
+
+epa_abbv_nox_controls <- # assign abbreviations to NOx controls
+  epa_r %>% 
+  select(plant_id, unit_id, nox_controls) %>% distinct() %>% # remove duplicates that will arise during monthly version 
+  mutate(nox_controls = str_replace_all(nox_controls, "\\|", ","), 
+         nox_controls = gsub(", \\b[0-9]{4}\\b", "\\b[0-9]{4}\\b", nox_controls)) %>% # removing comma from year retired or installed to avoid issues using separate_longer_delim()
+  tidyr::separate_longer_delim(nox_controls, ",") %>% 
+  mutate(
+    nox_controls = 
+      gsub("^Combustion (M|m)odification/(F|f)uel (R|r)eburning.*", "CM", 
+      gsub("^Dry (L|l)ow NOx (P|p)remixed (T|t)echnology.*", "DLNB",
+      gsub("^Electrostatic (P|p)recipitator, (H|h)ot side, without (F|f)lue (G|g)as (C|c)onditioning.*", "EW",
+      gsub("^Water (I|i)njection.*", "H2O",
+      gsub("^Low NOx (B|b)urner (T|t)echnology \\(Dry (B|b)ottom (O|o)nly\\).*", "LNB",
+      gsub("^Dry (L|l)ow NOx (B|b)urners.*", "LNB",
+      gsub("^Low NOx (B|b)urner (T|t)echnology (with|w/) ((O|o)verfire (A|a)ir|OFA).*", "LNBO",
+      gsub("^Low NOx (B|b)urner (T|t)echnology (with|w/) (C|c)losed-coupled ((O|o)verfire (A|a)ir|OFA).*", "LNC1",
+      gsub("^Low NOx (B|b)urner (T|t)echnology (with|w/) (S|s)eparated ((O|o)verfire (A|a)ir|OFA).*", "LNC2",
+      gsub("^Low NOx (B|b)urner (T|t)echnology (with|w/) (C|c)losed-coupled/(S|s)eparated ((O|o)verfire (A|a)ir|OFA).*", "LNC3",
+      gsub("^Low NOx (C|c)ell (B|b)urner.*", "LNCB",
+      gsub("^Ammonia (I|i)njection.*", "NH3",
+      gsub("^Other.*", "O",
+      gsub("^Overfire (A|a)ir.*", "OFA",
+      gsub("^Selective (C|c)atalytic (R|r)eduction.*", "SCR",
+      gsub("^Selective (N|n)o(n|n-)catalytic (R|r)eduction.*", "SNCR",
+      gsub("^Steam (I|i)njection.*", "STM", nox_controls)))))))))))))))))
+  ) %>% 
+  group_by(plant_id, unit_id) %>% 
+  mutate(nox_controls = paste(nox_controls, collapse = ","), # collapse NOx controls into one row
+         nox_controls = if_else(nox_controls == "NA", NA_character_, nox_controls)) %>% 
+  ungroup() %>% distinct()
+
+epa_r_2 <- 
+  epa_r %>% 
+  rows_update(epa_abbv_so2_controls, by = c("plant_id", "unit_id")) %>% 
+  rows_update(epa_abbv_nox_controls, by = c("plant_id", "unit_id"))
 
 if(params$temporal_res == "annual") { 
-  epa_r <- 
-    epa_r %>% 
+  epa_r_2 <- 
+    epa_r_2 %>% 
     mutate(heat_input_oz_source = if_else(is.na(heat_input_mmbtu_ozone), NA_character_, "EPA/CAPD"),
            nox_oz_source = if_else(is.na(nox_mass_short_tons_ozone), NA_character_, "EPA/CAPD"))}
  
@@ -142,7 +198,7 @@ print(glue::glue("{nrow(epa_raw) - nrow(epa_r)} rows removed because units have 
 # Remove unnecessary columns and rename as needed ------------
 
 epa_final <- # removing unnecessary columns and final renames
-  epa_r %>%
+  epa_r_2 %>%
   select(starts_with("plant"),
          unit_id,
          all_of(temporal_res_cols),

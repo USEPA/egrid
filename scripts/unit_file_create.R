@@ -969,15 +969,17 @@ os_nameplate_props <-
   mutate(sum_namecap = sum(nameplate_capacity, na.rm = TRUE)) %>% 
   ungroup() %>% 
   mutate(prop = if_else(sum_namecap != 0, nameplate_capacity / sum_namecap, 0)) %>% 
+  filter(!is.na(prop)) %>% 
   select(plant_id, unit_id, prime_mover, prop)
 
 units_heat_updated_ozone_dist <- 
   eia_fuel_consum_pm %>% 
   inner_join(units_missing_heat_4 %>% filter(reporting_frequency == "OS"), by = c("year", "month", "plant_id", "prime_mover")) %>% 
   inner_join(os_nameplate_props, by = c("plant_id", "unit_id", "prime_mover")) %>%
-  mutate(heat_input = prop * heat_input_923) %>% 
+  mutate(heat_input = prop * heat_input_923, 
+         heat_input_source = "EIA Prime Mover-level Data") %>% 
   filter(!is.na(heat_input)) %>% 
-  select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, heat_input)
+  select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, heat_input, heat_input_source)
 
 ## Updating all units with filled heat input
 
