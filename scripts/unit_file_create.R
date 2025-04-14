@@ -219,7 +219,6 @@ combustion_fuels <- fuel_type_category[["combustion_fuels"]]
 # fill reporting_frequency across temporal_res
 # some units have an NA reporting frequency because they may not report data for each month
 # specifically for ozone reporters (reporting frequency == OS), we want to fill non-ozone months with data and we need the correct reporting_frequency filled 
-#if(params$temporal_res != "annual") { 
 fill_reporting_frequency <- 
   epa %>% 
   arrange(plant_id, unit_id, reporting_frequency) %>%
@@ -233,7 +232,6 @@ epa <-
   left_join(fill_reporting_frequency, by = c("plant_id", "unit_id")) %>%
   select(-reporting_frequency.x) %>%
   rename(reporting_frequency = reporting_frequency.y)
-  #}
 
 ## Harmonizing fields with EIA ----------
 
@@ -770,7 +768,13 @@ all_units_2 <-
                 .fns = ~ if_else(reporting_frequency == "OS" & month == 4 & 
                                    is.na(get(str_replace_all(cur_column(), c("heat_input_source" = "heat_input", 
                                                                              "source" = "mass")))), 
-                                 NA_character_, .x))) # set as NA to fill during next step
+                                 NA_character_, .x))) %>% # set as NA to fill during next step
+  group_by(month, plant_id) %>% 
+  # Plant 52152 has positive heat input in two retired units. This heat input should be allocated to unit 6RB instead
+  mutate(heat_input = case_when(plant_id == "52152" & unit_id == "6RB" ~ sum(heat_input[plant_id == 52152], na.rm = TRUE), 
+                                plant_id == "52152" & !unit_id == "6RB" ~ NA_real_, 
+                                TRUE ~ heat_input)) %>% 
+  ungroup()
 
 # identify units missing heat input values 
 
@@ -1844,7 +1848,6 @@ plant_name_corrections <-
   manual_corrections %>% filter(column_to_update == "plant_name") %>% 
   select(plant_id, plant_name_update = update)
   
-
 all_units_11 <- 
   all_units_10 %>% # update to most recent unit file data frame
   left_join(stack_info, by = c("plant_id", "unit_id", "prime_mover")) %>% 
@@ -1910,18 +1913,6 @@ if(params$temporal_res == "annual") {
     ungroup() %>% 
     mutate(nox_oz_mass = case_when(nox_oz_mass > nox_mass ~ nox_mass, # check for nox_oz_mass greater than nox_mass
                                    TRUE ~ nox_oz_mass)) 
-  
-  heat_emissions_corrections <- # emissions and heat input manual corrections for annual version
-    manual_corrections %>% filter(plant_id == "52152") %>% 
-    pivot_wider(id_cols = c("plant_id", "unit_id", "prime_mover"), 
-                names_from = column_to_update, 
-                values_from = update) %>% 
-    mutate(heat_input = as.numeric(heat_input), 
-           heat_input_oz = as.numeric(heat_input_oz), 
-           nox_mass = as.numeric(nox_mass), 
-           nox_oz_mass = as.numeric(nox_oz_mass), 
-           so2_mass = as.numeric(so2_mass), 
-           co2_mass = as.numeric(co2_mass))
   
   all_units_11 <- 
     all_units_annual %>% 

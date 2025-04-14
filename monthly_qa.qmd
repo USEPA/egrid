@@ -239,8 +239,6 @@ print(glue::glue("Heat Input Differences > 0.01: {nrow(unit_heat_input_check)}")
 
 Notes:
 
--   Plant 52152 Unit ID 6RB heat input is manually corrected in the annual version. We will need to implement this change at the monthly level.
-
 -   Some differences are attributable to differences in EIA Annual reporters, this needs to be addressed.
 
 -   Some differences are attributable to differences in ozone methodology.
@@ -293,8 +291,6 @@ print(glue::glue("NOx mass differences > 0.01: {nrow(unit_nox_check)}"))
 ```
 
 Notes:
-
--   Plant 52152 Unit ID 6RB NOx mass is manually corrected in the annual version. We will need to implement this change at the monthly level.
 
 -   Some differences are attributable to differences in EIA Annual reporters, this needs to be addressed. 
 
@@ -352,8 +348,6 @@ print(glue::glue("SO2 mass differences > 0.01: {nrow(unit_so2_check)}"))
 
 Notes:
 
--   Plant 52152 Unit ID 6RB SO2 mass is manually corrected in the annual version. We will need to implement this change at the monthly level.
-
 -   Some differences are due to differences across sulfur content since annual is an average of all monthly sulfur contents, but we use monthly level sulfur contents for the monthly version.
 
 -   15 differences attributable to differences in ozone season methodology.
@@ -407,8 +401,6 @@ print(glue::glue("CO2 mass differences > 0.01: {nrow(unit_co2_check)}"))
 ```
 
 Notes:
-
--   Plant 52152 Unit ID 6RB CO2 mass is manually corrected in the annual version. We will need to implement this change at the monthly level.
 
 -   21 unit differences attributable to differences in ozone season methodology differences.
 
@@ -634,6 +626,257 @@ check_plant_diff <-
                 .fns = ~ abs(.x / get(str_replace(cur_column(), "diff", "monthly"))) * 100, 
                 .names = "{str_replace(.col, 'diff', 'pct_diff')}")) 
 ```
+
+### Emission rate outliers
+
+```{r}
+#| label: calculate-outliers
+#| echo: false
+#| message: false
+
+# output rates that are negative are typically zeroed out 
+# here, we recalculate them and keep the negatives to identify outliers 
+
+plant_rates <- 
+  plant_monthly %>% 
+  select(month, plant_id, plant_name, generation, heat_input, contains("mass"), contains("rate")) %>%  
+  mutate(nox_output_rate = nox_mass / generation * 2000, 
+         so2_output_rate = so2_mass / generation * 2000, 
+         co2_output_rate = co2_mass/ generation * 2000, 
+         ch4_output_rate = ch4_mass / generation, 
+         n2o_output_rate = n2o_mass / generation,
+         co2e_output_rate = co2e_mass / generation * 2000) 
+
+plant_rates[sapply(plant_rates, is.infinite)] <- NA_real_
+
+plant_stats <- 
+  plant_rates %>% 
+  mutate(across(.cols = c(contains("rate")), 
+                .fns = ~ mean(.x, na.rm = TRUE), 
+                .names =  "{.col}_average"), 
+         across(.cols = c(contains("rate"), -contains("average")), 
+                .fns = ~ sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_sd"))
+
+plant_stats[sapply(plant_stats, is.infinite)] <- NA_real_
+
+plant_zscore <- 
+  plant_stats %>% 
+  mutate(across(.cols = c(contains("rate"), -contains("average"), -contains("sd")), 
+                .fns = ~ (.x - mean(.x, na.rm = TRUE)) / sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_zscore")) 
+```
+
+### Input rate
+
+::: panel-tabset
+#### NOx input rate
+
+```{r}
+#| label: plant-nox-input-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(nox_input_rate_zscore > 3 | nox_input_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>%
+               filter(nox_input_rate_zscore > 3 | nox_input_rate_zscore < -3) %>% 
+               arrange(desc(nox_input_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, nox_input_rate_zscore, nox_input_rate))
+
+```
+
+#### SO2 input rate
+
+```{r}
+#| label: plant-so2-input-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(so2_input_rate_zscore > 3 | so2_input_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(so2_input_rate_zscore > 3 | so2_input_rate_zscore < -3) %>% 
+               arrange(desc(so2_input_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, so2_input_rate_zscore, so2_input_rate))
+```
+
+#### CO2 input rate
+
+```{r}
+#| label: plant-co2-input-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(co2_input_rate_zscore > 3 | co2_input_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(co2_input_rate_zscore > 3 | co2_input_rate_zscore < -3) %>% 
+               arrange(desc(co2_input_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, co2_input_rate_zscore, co2_input_rate))
+
+```
+
+#### CH4 input rate
+
+```{r}
+#| label: plant-ch4-input-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(ch4_input_rate_zscore > 3 | ch4_input_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(ch4_input_rate_zscore > 3 | ch4_input_rate_zscore < -3) %>% 
+               arrange(desc(ch4_input_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, ch4_input_rate_zscore, ch4_input_rate))
+
+```
+
+#### N2O input rate
+
+```{r}
+#| label: plant-n2o-input-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(n2o_input_rate_zscore > 3 | n2o_input_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(n2o_input_rate_zscore > 3 | n2o_input_rate_zscore < -3) %>% 
+               arrange(desc(n2o_input_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, n2o_input_rate_zscore, n2o_input_rate))
+
+```
+
+#### CO2e input rate
+
+```{r}
+#| label: plant-co2e-input-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(co2e_input_rate_zscore > 3 | co2e_input_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(co2e_input_rate_zscore > 3 | co2e_input_rate_zscore < -3) %>% 
+               arrange(desc(co2e_input_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, co2e_input_rate_zscore, co2e_input_rate))
+
+```
+:::
+
+### Output rates
+
+::: panel-tabset
+#### NOx output rate
+
+```{r}
+#| label: plant-nox-output-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(nox_output_rate_zscore > 3 | nox_output_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(nox_output_rate_zscore > 3 | nox_output_rate_zscore < -3) %>% 
+               arrange(desc(nox_output_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, nox_output_rate_zscore, nox_output_rate))
+
+```
+
+#### SO2 output rate
+
+```{r}
+#| label: plant-so2-output-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
+               arrange(desc(so2_output_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, so2_output_rate_zscore, so2_output_rate))
+
+```
+
+#### CO2 output rate
+
+```{r}
+#| label: plant-co2-output-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(co2_output_rate_zscore > 3 | co2_output_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(co2_output_rate_zscore > 3 | co2_output_rate_zscore < -3) %>% 
+               arrange(desc(co2_output_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, co2_output_rate_zscore, co2_output_rate))
+
+```
+
+#### CH4 output rate
+
+```{r}
+#| label: plant-ch4-output-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(ch4_output_rate_zscore > 3 | ch4_output_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
+               arrange(desc(so2_output_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, so2_output_rate_zscore, so2_output_rate))
+
+```
+
+#### N2O output rate
+
+```{r}
+#| label: plant_n2o_output_outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(n2o_output_rate_zscore > 3 | n2o_output_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(n2o_output_rate_zscore > 3 | n2o_output_rate_zscore < -3) %>% 
+               arrange(desc(n2o_output_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, n2o_output_rate_zscore, n2o_output_rate))
+
+```
+
+#### CO2e output rate
+
+```{r}
+#| label: plant-co2e-output-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(co2e_output_rate_zscore > 3 | co2e_output_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(co2e_output_rate_zscore > 3 | co2e_output_rate_zscore < -3) %>% 
+               arrange(desc(co2e_output_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, co2e_output_rate_zscore, co2e_output_rate))
+
+```
+:::
 
 ::: panel-tabset
 ### Unadjusted heat input
