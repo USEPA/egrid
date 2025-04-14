@@ -126,35 +126,23 @@ epa_r <-
 
 epa_abbv_so2_controls <- # assign abbreviations to SO2 controls
   epa_r %>% 
-  select(plant_id, unit_id, so2_controls) %>% 
+  select(plant_id, unit_id, so2_controls) %>% distinct() %>% # remove duplicates that will arise during monthly version 
   mutate(so2_controls = str_replace_all(so2_controls, "\\|", ","), 
          so2_controls = gsub(", \\b[0-9]{4}\\b", "\\b[0-9]{4}\\b", so2_controls)) %>% # removing comma from year retired or installed to avoid issues using separate_longer_delim()
   tidyr::separate_longer_delim(so2_controls, ",") %>% 
   mutate(
-    so2_controls = case_when(
-      grepl("^Activated (C|c)arbon (I|i)njection", so2_controls) ~ 
-        gsub("^Activated (C|c)arbon (I|i)njection.*", "ACI", so2_controls),
-      grepl("^Circulating (D|d)ry (S|s)crubber", so2_controls) ~ 
-        gsub("^Circulating (D|d)ry (S|s)crubber.*", "CD", so2_controls),
-      grepl("^Dual (A|a)lkali", so2_controls) ~ 
-        gsub("^Dual (A|a)lkali.*", "DA", so2_controls),
-      grepl("^Dry (L|l)ime FGD", so2_controls) ~ 
-        gsub("^Dry (L|l)ime FGD.*", "DL", so2_controls),
-      grepl("^Dry (S|s)orbent (I|i)njection", so2_controls) ~ 
-        gsub("^Dry (S|s)orbent (I|i)njection.*", "DSI", so2_controls),
-      grepl("^Electrostatic (P|p)recipitator", so2_controls) ~ 
-        gsub("^Electrostatic (P|p)recipitator.*", "EK", so2_controls),
-      grepl("^Fluidized (B|b)ed (L|l)imestone (I|i)njection", so2_controls) ~ 
-        gsub("^Fluidized (B|b)ed (L|l)imestone (I|i)njection.*", "FBL", so2_controls),
-      grepl("^Other", so2_controls) ~ 
-        gsub("^Other.*", "O", so2_controls),
-      grepl("^Sodium (B|b)ased", so2_controls) ~ 
-        gsub("^Sodium (B|b)ased.*", "SB", so2_controls),
-      grepl("^Wet (L|l)ime FGD", so2_controls) ~ 
-        gsub("^Wet (L|l)ime FGD.*", "WL", so2_controls),
-      grepl("^Wet (L|l)imestone", so2_controls) ~ 
-        gsub("^Wet (L|l)imestone.*", "WLS", so2_controls),
-    )
+    so2_controls = 
+        gsub("^Activated (C|c)arbon (I|i)njection.*", "ACI", 
+        gsub("^Circulating (D|d)ry (S|s)crubber.*", "CD",
+        gsub("^Dual (A|a)lkali.*", "DA",
+        gsub("^Dry (L|l)ime FGD.*", "DL",
+        gsub("^Dry (S|s)orbent (I|i)njection.*", "DSI",
+        gsub("^Electrostatic (P|p)recipitator.*", "EK",
+        gsub("^Fluidized (B|b)ed (L|l)imestone (I|i)njection.*", "FBL",
+        gsub("^Other.*", "O",
+        gsub("^Sodium (B|b)ased.*", "SB",
+        gsub("^Wet (L|l)ime FGD.*", "WL",
+        gsub("^Wet (L|l)imestone.*", "WLS", so2_controls)))))))))))
   ) %>% 
   group_by(plant_id, unit_id) %>% 
   mutate(so2_controls = paste(so2_controls, collapse = ","), # collapse SO2 controls into one row
@@ -165,48 +153,29 @@ epa_abbv_so2_controls <- # assign abbreviations to SO2 controls
 
 epa_abbv_nox_controls <- # assign abbreviations to NOx controls
   epa_r %>% 
-  select(plant_id, unit_id, nox_controls) %>% 
+  select(plant_id, unit_id, nox_controls) %>% distinct() %>% # remove duplicates that will arise during monthly version 
   mutate(nox_controls = str_replace_all(nox_controls, "\\|", ","), 
          nox_controls = gsub(", \\b[0-9]{4}\\b", "\\b[0-9]{4}\\b", nox_controls)) %>% # removing comma from year retired or installed to avoid issues using separate_longer_delim()
   tidyr::separate_longer_delim(nox_controls, ",") %>% 
   mutate(
-    nox_controls = case_when(
-      grepl("^Combustion (M|m)odification/(F|f)uel (R|r)eburning", nox_controls) ~ 
-        gsub("^Combustion (M|m)odification/(F|f)uel (R|r)eburning.*", "CM", nox_controls),
-      grepl("^Dry (L|l)ow NOx (P|p)remixed (T|t)echnology", nox_controls) ~
-        gsub("^Dry (L|l)ow NOx (P|p)remixed (T|t)echnology.*", "DLNB", nox_controls),
-      grepl("^Electrostatic (P|p)recipitator, (H|h)ot side, without (F|f)lue (G|g)as (C|c)onditioning", nox_controls) ~
-        gsub("^Electrostatic (P|p)recipitator, (H|h)ot side, without (F|f)lue (G|g)as (C|c)onditioning.*", "EW", nox_controls),
-      grepl("^Water (I|i)njection", nox_controls) ~
-        gsub("^Water (I|i)njection.*", "H2O", nox_controls),
-      grepl("^Low NOx (B|b)urner (T|t)echnology \\(Dry (B|b)ottom (O|o)nly\\)", nox_controls) ~
-        gsub("^Low NOx (B|b)urner (T|t)echnology \\(Dry (B|b)ottom (O|o)nly\\).*", "LNB", nox_controls),
-      grepl("^Dry (L|l)ow NOx (B|b)urners", nox_controls) ~ # check this is correct match
-        gsub("^Dry (L|l)ow NOx (B|b)urners.*", "LNB", nox_controls),
-      grepl("^Low NOx (B|b)urner (T|t)echnology (with|w/) ((O|o)verfire (A|a)ir|OFA)", nox_controls) ~
-        gsub("^Low NOx (B|b)urner (T|t)echnology (with|w/) ((O|o)verfire (A|a)ir|OFA).*", "LNBO", nox_controls),
-      grepl("^Low NOx (B|b)urner (T|t)echnology (with|w/) (C|c)losed-coupled ((O|o)verfire (A|a)ir|OFA)", nox_controls) ~
-        gsub("^Low NOx (B|b)urner (T|t)echnology (with|w/) (C|c)losed-coupled ((O|o)verfire (A|a)ir|OFA).*", "LNC1", nox_controls),
-      grepl("^Low NOx (B|b)urner (T|t)echnology (with|w/) (S|s)eparated ((O|o)verfire (A|a)ir|OFA)", nox_controls) ~
-        gsub("^Low NOx (B|b)urner (T|t)echnology (with|w/) (S|s)eparated ((O|o)verfire (A|a)ir|OFA).*", "LNC2", nox_controls),
-      grepl("^Low NOx (B|b)urner (T|t)echnology (with|w/) (C|c)losed-coupled/(S|s)eparated ((O|o)verfire (A|a)ir|OFA)", nox_controls) ~
-        gsub("^Low NOx (B|b)urner (T|t)echnology (with|w/) (C|c)losed-coupled/(S|s)eparated ((O|o)verfire (A|a)ir|OFA).*", "LNC3", nox_controls),
-      grepl("^Low NOx (C|c)ell (B|b)urner", nox_controls) ~
-        gsub("^Low NOx (C|c)ell (B|b)urner.*", "LNCB", nox_controls),
-      grepl("^Ammonia (I|i)njection", nox_controls) ~
-        gsub("^Ammonia (I|i)njection.*", "NH3", nox_controls),
-      grepl("^Other", nox_controls) ~
-        gsub("^Other.*", "O", nox_controls),
-      grepl("^Overfire (A|a)ir", nox_controls) ~
-        gsub("^Overfire (A|a)ir.*", "OFA", nox_controls),
-      grepl("^Selective (C|c)atalytic (R|r)eduction", nox_controls) ~
-        gsub("^Selective (C|c)atalytic (R|r)eduction.*", "SCR", nox_controls),
-      grepl("^Selective (N|n)o(n|n-)catalytic (R|r)eduction", nox_controls) ~
-        gsub("^Selective (N|n)o(n|n-)catalytic (R|r)eduction.*", "SNCR", nox_controls),
-      grepl("^Steam (I|i)njection", nox_controls) ~
-        gsub("^Steam (I|i)njection.*", "STM", nox_controls),
-      TRUE ~ nox_controls
-    )
+    nox_controls = 
+      gsub("^Combustion (M|m)odification/(F|f)uel (R|r)eburning.*", "CM", 
+      gsub("^Dry (L|l)ow NOx (P|p)remixed (T|t)echnology.*", "DLNB",
+      gsub("^Electrostatic (P|p)recipitator, (H|h)ot side, without (F|f)lue (G|g)as (C|c)onditioning.*", "EW",
+      gsub("^Water (I|i)njection.*", "H2O",
+      gsub("^Low NOx (B|b)urner (T|t)echnology \\(Dry (B|b)ottom (O|o)nly\\).*", "LNB",
+      gsub("^Dry (L|l)ow NOx (B|b)urners.*", "LNB",
+      gsub("^Low NOx (B|b)urner (T|t)echnology (with|w/) ((O|o)verfire (A|a)ir|OFA).*", "LNBO",
+      gsub("^Low NOx (B|b)urner (T|t)echnology (with|w/) (C|c)losed-coupled ((O|o)verfire (A|a)ir|OFA).*", "LNC1",
+      gsub("^Low NOx (B|b)urner (T|t)echnology (with|w/) (S|s)eparated ((O|o)verfire (A|a)ir|OFA).*", "LNC2",
+      gsub("^Low NOx (B|b)urner (T|t)echnology (with|w/) (C|c)losed-coupled/(S|s)eparated ((O|o)verfire (A|a)ir|OFA).*", "LNC3",
+      gsub("^Low NOx (C|c)ell (B|b)urner.*", "LNCB",
+      gsub("^Ammonia (I|i)njection.*", "NH3",
+      gsub("^Other.*", "O",
+      gsub("^Overfire (A|a)ir.*", "OFA",
+      gsub("^Selective (C|c)atalytic (R|r)eduction.*", "SCR",
+      gsub("^Selective (N|n)o(n|n-)catalytic (R|r)eduction.*", "SNCR",
+      gsub("^Steam (I|i)njection.*", "STM", nox_controls)))))))))))))))))
   ) %>% 
   group_by(plant_id, unit_id) %>% 
   mutate(nox_controls = paste(nox_controls, collapse = ","), # collapse NOx controls into one row
