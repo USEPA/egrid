@@ -656,12 +656,14 @@ plot_gen_ann <-
   theme_minimal() +
   labs(title = "Annual Generation")
 
-plot_gen_oz <-
-  generator_file %>% 
-  ggplot(aes(x = generation_oz)) +
-  geom_histogram() +
-  theme_minimal() +
-  labs(title = "Ozone Months Generation")
+if (params$temporal_res == "annual") {
+  plot_gen_oz <-
+    generator_file %>% 
+    ggplot(aes(x = generation_oz)) +
+    geom_histogram() +
+    theme_minimal() +
+    labs(title = "Ozone Months Generation")
+}
 
 plot_gen_ann_source <-
   generator_file %>%
@@ -672,7 +674,12 @@ plot_gen_ann_source <-
   scale_x_discrete(labels = scales::wrap_format(30)) +
   labs(title = "Annual Generation by Data Source")
 
+if (params$temporal_res == "annual") {
   (plot_gen_ann + plot_gen_oz) / plot_gen_ann_source
+} else {
+plot_gen_ann / plot_gen_ann_source
+}
+  
 ```
 
 #### Distribution of Data Sources
@@ -783,12 +790,14 @@ plot_unt_heat_in <-
   theme_minimal() +
   labs(title = "Heat Input")
 
+if (params$temporal_res == "annual") {
 plot_unt_heat_in_oz <-   
   unit_file %>%
   ggplot(aes(x = heat_input_oz)) +
   geom_histogram() +
   theme_minimal() +
   labs(title = "Heat Input Ozone")
+}
 
 plot_unt_heat_in_source_dist <-
   unit_file %>%
@@ -808,6 +817,7 @@ plot_unt_heat_in_source_dist <-
     x = NULL
     )
 
+if (params$temporal_res == "annual") {
 plot_unt_heat_in_oz_source_dist <-
   unit_file %>%
   count(heat_input_oz_source) %>%
@@ -825,8 +835,14 @@ plot_unt_heat_in_oz_source_dist <-
     y = "Share of units",
     x = NULL
     )
+}
 
+if (params$temporal_res == "annual"){
 (plot_unt_heat_in + plot_unt_heat_in_oz) / plot_unt_heat_in_source_dist / plot_unt_heat_in_oz_source_dist
+} else {
+plot_unt_heat_in / plot_unt_heat_in_source_dist
+}
+
 ```
 
 #### NOx Distributions
@@ -842,12 +858,14 @@ plot_unt_nox <-
   theme_minimal() +
   labs(title = "NOx Mass")
 
+if (params$temporal_res == "annual"){
 plot_unt_nox_oz <-   
   unit_file %>%
   ggplot(aes(x = nox_oz_mass)) +
   geom_histogram() +
   theme_minimal() +
   labs(title = "NOx Mass Ozone")
+}
 
 plot_unt_nox_sources_dist <-
   unit_file %>%
@@ -867,6 +885,7 @@ plot_unt_nox_sources_dist <-
     x = NULL
     )
 
+if (params$temporal_res == "annual"){
 plot_unt_nox_oz_source_dist <-
   unit_file %>%
   count(nox_oz_source) %>%
@@ -884,8 +903,14 @@ plot_unt_nox_oz_source_dist <-
     y = "Share of units",
     x = NULL
     )
+}
 
+if (params$temporal_res == "annual"){
 (plot_unt_nox + plot_unt_nox_oz) / (plot_unt_nox_sources_dist) / (plot_unt_nox_oz_source_dist)
+} else {
+plot_unt_nox / plot_unt_nox_sources_dist
+}
+
 ```
 
 #### SO2 Distributions
@@ -1085,6 +1110,7 @@ plot_plnt_heat_in_dist <-
 #| label: plant-file-heat-in-oz-dist
 #| fig-height: 10
 
+if (params$temporal_res == "annual") {
 plot_plnt_heat_in_oz <-
   plant_file %>%
   ggplot(aes(x = heat_input_oz)) +
@@ -1118,6 +1144,8 @@ plot_plnt_heat_in_oz_dist <-
     )
 
 (plot_plnt_heat_in_oz + plot_plnt_unadj_heat_in_oz) / plot_plnt_heat_in_oz_dist
+}
+
 ```
 
 #### NOx Distributions
@@ -1175,6 +1203,7 @@ plot_plnt_nox_dist <-
 #| label: plant-file-nox-oz-dist
 #| fig-height: 10
 
+if (params$temporal_res == "annual") {
 plot_plnt_nox_oz <-
   plant_file %>%
   ggplot(aes(x = nox_oz_mass)) +
@@ -1216,6 +1245,8 @@ plot_plnt_nox_oz_dist <-
     )
 
 (plot_plnt_nox_oz + plot_plnt_unadj_nox_oz) / plot_plnt_nox_oz_rate / plot_plnt_nox_oz_dist
+}
+
 ```
 
 #### SO2 Distributions
