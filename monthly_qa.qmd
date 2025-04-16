@@ -667,10 +667,10 @@ plant_zscore <-
                 .names =  "{.col}_zscore")) 
 ```
 
-### Input rate
+#### Input rate
 
 ::: panel-tabset
-#### NOx input rate
+##### NOx input rate
 
 ```{r}
 #| label: plant-nox-input-outliers
@@ -687,7 +687,7 @@ knitr::kable(plant_zscore %>%
 
 ```
 
-#### SO2 input rate
+##### SO2 input rate
 
 ```{r}
 #| label: plant-so2-input-outliers
@@ -703,7 +703,7 @@ knitr::kable(plant_zscore %>%
                select(month, plant_id, plant_name, so2_input_rate_zscore, so2_input_rate))
 ```
 
-#### CO2 input rate
+##### CO2 input rate
 
 ```{r}
 #| label: plant-co2-input-outliers
@@ -720,7 +720,7 @@ knitr::kable(plant_zscore %>%
 
 ```
 
-#### CH4 input rate
+##### CH4 input rate
 
 ```{r}
 #| label: plant-ch4-input-outliers
@@ -737,7 +737,7 @@ knitr::kable(plant_zscore %>%
 
 ```
 
-#### N2O input rate
+##### N2O input rate
 
 ```{r}
 #| label: plant-n2o-input-outliers
@@ -754,7 +754,7 @@ knitr::kable(plant_zscore %>%
 
 ```
 
-#### CO2e input rate
+##### CO2e input rate
 
 ```{r}
 #| label: plant-co2e-input-outliers
@@ -772,10 +772,10 @@ knitr::kable(plant_zscore %>%
 ```
 :::
 
-### Output rates
+#### Output rates
 
 ::: panel-tabset
-#### NOx output rate
+##### NOx output rate
 
 ```{r}
 #| label: plant-nox-output-outliers
@@ -792,7 +792,7 @@ knitr::kable(plant_zscore %>%
 
 ```
 
-#### SO2 output rate
+##### SO2 output rate
 
 ```{r}
 #| label: plant-so2-output-outliers
@@ -809,7 +809,7 @@ knitr::kable(plant_zscore %>%
 
 ```
 
-#### CO2 output rate
+##### CO2 output rate
 
 ```{r}
 #| label: plant-co2-output-outliers
@@ -826,7 +826,7 @@ knitr::kable(plant_zscore %>%
 
 ```
 
-#### CH4 output rate
+##### CH4 output rate
 
 ```{r}
 #| label: plant-ch4-output-outliers
@@ -843,7 +843,7 @@ knitr::kable(plant_zscore %>%
 
 ```
 
-#### N2O output rate
+##### N2O output rate
 
 ```{r}
 #| label: plant_n2o_output_outliers
@@ -860,7 +860,7 @@ knitr::kable(plant_zscore %>%
 
 ```
 
-#### CO2e output rate
+##### CO2e output rate
 
 ```{r}
 #| label: plant-co2e-output-outliers
@@ -878,8 +878,10 @@ knitr::kable(plant_zscore %>%
 ```
 :::
 
+### Differences
+
 ::: panel-tabset
-### Unadjusted heat input
+#### Unadjusted heat input
 
 ```{r}
 #| label: unadj-heat-input-plant-comp
@@ -918,7 +920,7 @@ knitr::kable(plant_unadj_heat_input_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Unadjusted combustion heat input
+#### Unadjusted combustion heat input
 
 ```{r}
 #| label: unadj-combust-heat-input-plant-comp
@@ -955,7 +957,7 @@ knitr::kable(plant_unadj_combust_heat_input_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Unadjusted NOx mass
+#### Unadjusted NOx mass
 
 ```{r}
 #| label: unadj-nox-plant-comp
@@ -992,7 +994,7 @@ knitr::kable(plant_unadj_nox_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Unadjusted SO2 mass
+#### Unadjusted SO2 mass
 
 ```{r}
 #| label: unadj-so2-plant-comp
@@ -1029,7 +1031,7 @@ knitr::kable(plant_unadj_so2_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Unadjusted CO2 mass
+#### Unadjusted CO2 mass
 
 ```{r}
 #| label: unadj-co2-plant-comp
@@ -1066,7 +1068,7 @@ knitr::kable(plant_unadj_co2_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Unadjusted CH4 mass
+#### Unadjusted CH4 mass
 
 ```{r}
 #| label: unadj-ch4-plant-comp
@@ -1103,7 +1105,7 @@ knitr::kable(plant_unadj_ch4_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Unadjusted N2O mass
+#### Unadjusted N2O mass
 
 ```{r}
 #| label: unadj-n2o-plant-comp
@@ -1140,7 +1142,7 @@ knitr::kable(plant_unadj_n2o_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Unadjusted CO2e mass
+#### Unadjusted CO2e mass
 
 ```{r}
 #| label: unadj-co2e-plant-comp
@@ -1177,7 +1179,7 @@ knitr::kable(plant_unadj_co2e_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Heat input
+#### Heat input
 
 ```{r}
 #| label: heat-input-plant-comp
@@ -1214,7 +1216,7 @@ knitr::kable(plant_heat_input_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Combustion heat input
+#### Combustion heat input
 
 ```{r}
 #| label: combust-heat-plant-comp
@@ -1259,7 +1261,7 @@ knitr::kable(plant_combust_heat_input_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Generation
+#### Generation
 
 ```{r}
 #| label: gen-plant-comp
@@ -1296,7 +1298,7 @@ knitr::kable(plant_gen_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Generation nonbaseload
+#### Generation nonbaseload
 
 ```{r}
 #| label: gen-nbsld-plant-comp
@@ -1333,7 +1335,7 @@ knitr::kable(plant_gen_nbsld_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### NOx mass
+#### NOx mass
 
 ```{r}
 #| label: nox-mass-plant-comp
@@ -1370,7 +1372,7 @@ knitr::kable(plant_nox_mass_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### SO2 mass
+#### SO2 mass
 
 ```{r}
 #| label: so2-mass-plant-comp
@@ -1407,7 +1409,7 @@ knitr::kable(plant_so2_mass_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### CO2 mass
+#### CO2 mass
 
 ```{r}
 #| label: co2-mass-plant-comp
@@ -1444,7 +1446,7 @@ knitr::kable(plant_co2_mass_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### CH4 mass
+#### CH4 mass
 
 ```{r}
 #| label: ch4-mass-plant-comp
@@ -1481,7 +1483,7 @@ knitr::kable(plant_ch4_mass_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### N2O mass
+#### N2O mass
 
 ```{r}
 #| label: n2o-mass-plant-comp
@@ -1518,7 +1520,7 @@ knitr::kable(plant_n2o_mass_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### CO2e mass
+#### CO2e mass
 
 ```{r}
 #| label: co2e-mass-plant-comp
@@ -1555,7 +1557,7 @@ knitr::kable(plant_co2e_mass_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Coal generation
+#### Coal generation
 
 ```{r}
 #| label: coal-netgen-plant-comp
@@ -1592,7 +1594,7 @@ knitr::kable(plant_coal_netgen_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Oil generation
+#### Oil generation
 
 ```{r}
 #| label: oil-netgen-plant-comp
@@ -1629,7 +1631,7 @@ knitr::kable(plant_oil_netgen_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Gas generation
+#### Gas generation
 
 ```{r}
 #| label: gas-netgen-plant-comp
@@ -1666,7 +1668,7 @@ knitr::kable(plant_gas_netgen_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Nuclear generation
+#### Nuclear generation
 
 ```{r}
 #| label: nuclear-netgen-plant-comp
@@ -1703,7 +1705,7 @@ knitr::kable(plant_nuclear_netgen_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Hydro generation
+#### Hydro generation
 
 ```{r}
 #| label: hydro-netgen-plant-comp
@@ -1740,7 +1742,7 @@ knitr::kable(plant_hydro_netgen_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Biomass generation
+#### Biomass generation
 
 ```{r}
 #| label: biomass-netgen-plant-comp
@@ -1777,7 +1779,7 @@ knitr::kable(plant_biomass_netgen_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Wind generation
+#### Wind generation
 
 ```{r}
 #| label: wind-netgen-plant-comp
@@ -1814,7 +1816,7 @@ knitr::kable(plant_wind_netgen_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Solar generation
+#### Solar generation
 
 ```{r}
 #| label: solar-netgen-plant-comp
@@ -1851,7 +1853,7 @@ knitr::kable(plant_solar_netgen_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Geothermal generation
+#### Geothermal generation
 
 ```{r}
 #| label: geothermal-netgen-plant-comp
@@ -1888,7 +1890,7 @@ knitr::kable(plant_geothermal_netgen_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Other fossil fuels
+#### Other fossil fuels
 
 ```{r}
 #| label: other-ff-netgen-plant-comp
@@ -1925,7 +1927,7 @@ knitr::kable(plant_other_ff_netgen_check,
   scroll_box(width = "100%", height = "500px")
 ```
 
-### Other generation
+#### Other generation
 
 ```{r}
 #| label: other-netgen-plant-comp
