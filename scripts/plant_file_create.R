@@ -326,18 +326,8 @@ plant_unit_2 <-
 
 # Update capacity factor  -----------------------------------------------
 
-# create dataframe of number of hours in each year or month
-if (params$temporal_res == "annual") { 
-  hours <- data.frame(year = params$eGRID_year,
-                      hours = 8760)
-} else if (params$temporal_res == "monthly") { 
-  hours <- 
-    data.frame(year = params$eGRID_year,
-               month = c(1:12), 
-               hours = c(744, 672, 744, 720, 744, 720, 744, 744, 720, 744, 720, 744))
-  if ((as.numeric(params$eGRID_year) %% 4 == 0 & as.numeric(params$eGRID_year) %% 100 != 0) | 
-      (as.numeric(params$eGRID_year) %% 400 == 0)) { 
-    hours <- hours %>% mutate(hours = case_when(month == 2 ~ 696))}} # if it is a leap year, assign hours of 29 days to february
+# # create dataframe of number of hours in each year or month
+hours <- capfac_hours(params$temporal_res, params$eGRID_year)
 
 plant_gen_2 <- 
   plant_gen %>% 
