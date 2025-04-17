@@ -119,6 +119,13 @@ xwalk_for_missing_utility_id <-
   janitor::clean_names() %>%
   glimpse()
 
+# Manual updates
+utility_subregion_manual_table <-
+  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/utility_subregion_manual_table.csv"),
+           col_types = "ccc") %>%
+  janitor::clean_names() %>%
+  glimpse()
+
 # Create zipcode dataset ------
 
 # create zipcode dataset using utility_zipcodes data
@@ -455,10 +462,10 @@ zip_subregion_missing_ids <-
   select(-contains(".")) %>% distinct() %>%
   glimpse()
 
-# zipsubregion_missing <-
-#   zip_subregion_missing_ids %>%
-#   count(subregion) %>%
-#   print(n = 27)
+zipsubregion_missing <-
+  zip_subregion_missing_ids %>%
+  count(subregion) %>%
+  print(n = 27)
 # 
 # zipsubregioncomp <- #112/85/1536/3008/2096/1931/68/69/883/5147/2737/3663/395/213/2060/4465/1415/6358(6362)/1388/1508/2480/2761/3393/3307/5421(5417)/4394/4191
 #   zipsubregion_missing %>%
@@ -466,9 +473,11 @@ zip_subregion_missing_ids <-
 #   filter(n.x != n.y) %>%
 #   print(n = 27)
   
-###%%%%%%#####
+# Subregion corrections -----
 
-# Corrections -----
+#%%%####
+#** currently, only differences are the 4 different subregion values
+#* need to work on from here onward - check why differences result from next step
 ### Update missing subregion for zip codes from old power profiler -----
 #41:
 zip_subregion_missing_subregions <-
@@ -476,8 +485,10 @@ zip_subregion_missing_subregions <-
   left_join(zip_codes_from_old_power_profiler_to_add %>%
               select(zip, eiaid, subregion), 
             by = c("zip", "eiaid")) %>%
-  #mutate(subregion = if_else(is.na(subregion.x) & !is.na(subregion.y) | subregion.x == "" & !is.na(subregion.y), subregion.y, subregion.x)) %>%
+  #filter(subregion.x != subregion.y | is.na(subregion.x) & !is.na(subregion.y)) %>%
+   # glimpse()
   mutate(subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
+  #mutate(subregion = if_else(subregion.x != subregion.y & !is.na(subregion.y), subregion.y, subregion.x)) %>%
   select(-contains(".")) %>% distinct() %>%
   glimpse()
 
@@ -492,82 +503,64 @@ zipsubregioncomp <- #126/202(181)/1629/3040/2830/1940/68/70/888/5351(5350)/2927(
   filter(n.x != n.y) %>%
   print(n = 28)
 
-# Update state subregion one to one match -------
+### State subregion one to one match -------
 
-#13: 119 (120)
-states_and_subregions_grouped <-
+#13: 17(16)
+states_and_single_subregions <-
   plant_file %>%
   select(state = plant_state, subregion = egrid_subregion) %>%
-  filter(!is.na(subregion)) %>%  distinct() %>%
-  glimpse()
-
-#14: 52 (52)
-count_of_subregions_by_state <-
-  states_and_subregions_grouped %>%
+  filter(!is.na(subregion)) %>% distinct() %>%
   group_by(state) %>%
-  summarize(count_subregion = n()) %>%
+  filter(n_distinct(subregion) == 1) %>%
   glimpse()
 
-#15: 17(16)
-states_subregion_one_to_one <-
-  states_and_subregions_grouped %>%
-  inner_join(count_of_subregions_by_state, by = "state") %>%
-  filter(count_subregion == 1) %>%
-  select(-count_subregion) %>%
-  # select(eiaid, utility_name = utility_name.x, nerc_region) %>%
-  glimpse()
-
-### Update values in subregion data -----
+#### Update values in subregion data -----
 
 #16:
-zip_subregion_11 <-
-  zip_subregion_10 %>%
-  left_join(states_subregion_one_to_one, by = "state") %>%
+zip_subregion_state <-
+  zip_subregion_missing_subregions %>%
+  left_join(states_and_single_subregions, by = "state") %>%
   mutate(method = if_else(is.na(subregion.x) & !is.na(subregion.y), "based on state", method),
          subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
   select(-contains(".")) %>%
   glimpse()
 
-zipsubregion11 <-#126/202(181)/1629/3040/2830/1940/68/70/888/6269/2927/3835/400/217/2063/176/4497/1456(1454)/7367(7371)/1450/1518/2502/2782/3524/3397/5438(5434)/4433/40(63)
-  zip_subregion_11 %>%
-  count(subregion, name = "n.11") %>%
+zipsubregion_state <-
+  zip_subregion_state %>%
+  count(subregion) %>%
   print(n = 29)
 
-zipsubregioncomp <-
-  zipsubregion11 %>%
-  full_join(zipsubregion10, by = "subregion") %>%
-  filter(n.10 != n.11) %>%
+zipsubregioncomp <- #126/202(181)/1629/3040/2830/1940/68/70/888/6269/2927/3835/400/217/2063/176/4497/1456(1454)/7367(7371)/1450/1518/2502/2782/3524/3397/5438(5434)/4433/40(63)
+  zipsubregion_state %>%
+  full_join(zipsubregion_missingsr, by = "subregion") %>%
+  filter(n.x != n.y) %>%
   print(n = 27)
 
-# Make manual changes to table --------
+### Make manual changes to table --------
 
 #42:
-utility_subregion_manual_table <-
-  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/utility_subregion_manual_table.csv"),
-           col_types = "ccc") %>%
-  janitor::clean_names() %>%
-  glimpse()
-
-zip_subregion_12 <-
-  zip_subregion_11 %>%
+zip_subregion_manual_changes <-
+  zip_subregion_state %>%
   left_join(utility_subregion_manual_table, by = c("state", "eiaid" = "utility_id")) %>%
   mutate(method = if_else(!is.na(subregion.y), "manual override", method),
          subregion = if_else(!is.na(subregion.y), subregion.y, subregion.x)) %>%
   select(-contains(".")) %>%
   glimpse()
 
-zipsubregion12 <-#126/202(181)/1592/3036/2829/1940/68/70/888/6312/2931/3835/400/217/2063/176/4497/1456(1454)/7368(7372)/1450/1475/2570/2786/3493/3400/5438(5434)/4430/36(59)
-  zip_subregion_12 %>%
-  count(subregion, name = "n.12") %>%
+zipsubregion_manual <-#126/202(181)/1592/3036/2829/1940/68/70/888/6312/2931/3835/400/217/2063/176/4497/1456(1454)/7368(7372)/1450/1475/2570/2786/3493/3400/5438(5434)/4430/36(59)
+  zip_subregion_manual_changes %>%
+  count(subregion) %>%
   print(n = 29)
 
 zipsubregioncomp <-
-  zipsubregion12 %>%
-  full_join(zipsubregion11, by = "subregion") %>%
-  filter(n.11 != n.12) %>%
+  zipsubregion_manual %>%
+  full_join(zipsubregion_state, by = "subregion") %>%
+  filter(n.x != n.y) %>%
   print(n = 28)
 
-# Find zipcodes with one utility ------
+# Update Predominant Utilities -----
+
+### Find zipcodes with one utility ------
 #46:
 grouped_by_zip <-
   zip_subregion_12 %>%
@@ -582,7 +575,7 @@ count_grouped_by_zip <-
   filter(eiaid_count == 1) %>%
   glimpse()
 
-# Update predominant utility ------
+### Update predominant utility ------
 #48:
 zip_subregion_13 <-
   zip_subregion_12 %>%
@@ -596,7 +589,7 @@ count <- #39602/25482
   count(predominant_utility) %>%
   print()
 
-# Zips with no predominant utility -----
+### Zips with no predominant utility -----
 
 #49: 16445(16080)
 zips_with_no_predominant_utility <-
@@ -605,7 +598,7 @@ zips_with_no_predominant_utility <-
   select(zip) %>% distinct() %>%
   glimpse()
 
-# Update with predom util from old PP
+### Update with predom util from old PP ----
 #50:
 
 # select zipcodes in power profiler that match those in predominant utility
