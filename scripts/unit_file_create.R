@@ -973,7 +973,7 @@ os_nameplate_props <-
   mutate(sum_namecap = sum(nameplate_capacity, na.rm = TRUE)) %>% 
   ungroup() %>% 
   mutate(prop = if_else(sum_namecap != 0, nameplate_capacity / sum_namecap, 0)) %>% 
-  filter(!is.na(prop)) %>% 
+  filter(!is.na(prop), prop > 0) %>% 
   select(plant_id, unit_id, prime_mover, prop)
 
 units_heat_updated_ozone_dist <- 
@@ -984,6 +984,13 @@ units_heat_updated_ozone_dist <-
          heat_input_source = "EIA Prime Mover-level Data") %>% 
   filter(!is.na(heat_input)) %>% 
   select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, heat_input, heat_input_source)
+
+units_missing_heat_5 <- # identify units still missing heat input
+  units_missing_heat_4 %>% 
+  anti_join(units_heat_updated_ozone_dist,
+            by = c("plant_id", "unit_id", "prime_mover"))
+
+print(glue::glue("{nrow(units_heat_updated_ozone_dist)} units updated with EIA Prime Mover-level Data, distributed from 923 Generation and Fuel File. {nrow(units_missing_heat_5)} with missing heat input remain."))
 
 ## Updating all units with filled heat input
 
