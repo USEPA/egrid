@@ -40,8 +40,6 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
-emission_type <- "pm25"
-
 # Create QA function -----
 subregion_qa <- function(emission_type) {
   print(paste(toupper(emission_type), "SUBREGION QA IN PROGRESS"))

@@ -40,7 +40,7 @@ if (exists("params")) {
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
 }
-  emission_type = "pm25"
+
 # Create QA function -----
 plant_qa <- function(emission_type) {
   print(paste(toupper(emission_type), "PLANT QA IN PROGRESS"))
@@ -82,13 +82,16 @@ plant_qa <- function(emission_type) {
     emission_abbrev <- emission_type
   }
   
-  # plant_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
-  #                               sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Plant-level Data"),
-  #                               skip = 1,
-  #                               col_names = TRUE)
-  plant_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_plant.xlsx"), 
-                                 col_names = TRUE) %>%
-    rename(PLPM25AN = PLPM25AN2, PLPM25RTA = PLPM25RTA2)
+  if(params$eGRID_year == "2021") {
+    plant_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_plant.xlsx"), 
+                                   col_names = TRUE) %>%
+      rename(PLPM25AN = PLPM25AN2, PLPM25RTA = PLPM25RTA2)
+  } else if(params$eGRID_year == "2022") {
+    plant_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_plant.xlsx"),
+                                   sheet = "PLNT_A___latest_NEI_yr_with_PM1",
+                                   col_names = TRUE) %>%
+      rename(PLPM25AN = PLPM25AN2, PLPM25RTA = PLPM25RTA2)
+  }
   
   ## Define updated column names ---------
   # Load abbreviated name to snake_case matches
