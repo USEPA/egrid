@@ -31,7 +31,7 @@ source("scripts/functions/function_region_aggregation.R")
 if (!exists("params")) {
   params <- check_params()
 } else {
-  print("eGRID year and version parameters are already defined.")
+  print("eGRID year, temporal resolution, and version parameters are already defined.")
 }
 
 # Create temporal_res_cols --------------------
