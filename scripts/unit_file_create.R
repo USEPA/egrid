@@ -473,6 +473,43 @@ eia_923_boilers <-
   select(-update) %>% 
   distinct()
 
+eia_923_boilers_grouped <- 
+  eia_923_boilers %>% 
+  group_by(pick(all_of(temporal_res_cols)), 
+           plant_id,
+           boiler_id, 
+           prime_mover,
+           fuel_type) %>%
+  mutate(# summing heat input by either monthly or annual values 
+         heat_input = if_else(all(is.na(heat_input)), 
+                              NA_real_, 
+                              sum(heat_input, na.rm = TRUE)), 
+         fuel_consum = if_else(all(is.na(fuel_consum)), 
+                                         NA_real_, 
+                                         sum(fuel_consum, na.rm = TRUE))) %>% 
+  ungroup() %>% 
+  distinct()
+
+## Determining primary fuel type for EIA-923 boilers based on type of unit with max fuel consumption 
+ 
+primary_fuel_types_923_boilers <- # this will be joined with final dataframe of boilers to be added 
+  eia_923_boilers_grouped %>% 
+  group_by(plant_id, boiler_id, prime_mover, fuel_type) %>% 
+  summarize(heat_input = sum(heat_input, na.rm = TRUE), 
+            fuel_consum = sum(fuel_consum, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  group_by(plant_id, boiler_id, prime_mover) %>% 
+  arrange(plant_id, boiler_id, fuel_type) %>% # order primary fuels alphabetically 
+  slice_max(if_else(!is.na(heat_input), heat_input, fuel_consum), # identifying row with highest heat input to get primary_fuel_type
+            n = 1, 
+            with_ties = FALSE) %>% # only retain first row, if there are ties, it will take the first fuel alphabetically
+  select(plant_id, 
+         boiler_id, 
+         prime_mover,
+         "primary_fuel_type" = fuel_type) %>% 
+  ungroup()
+
+# after primary fuel is identified, identify Annual reporters
 # identify annual reporters and make current heat input and fuel consumption NA 
 # these values will be filled by EIA-923 Gen and Fuel later distributed across months
 check_gen_units <- 
@@ -507,35 +544,35 @@ eia_923_annual_props <-
          fuel_consum = prop_fuel * tot_monthly_fuel_consum) %>%
   select(year, month, plant_id, boiler_id, fuel_type, prime_mover, heat_input, fuel_consum)
 
-eia_923_boilers <- 
-  eia_923_boilers %>% 
-  rows_update(eia_923_annual_props, by = c("year", "month", "plant_id", "boiler_id", "prime_mover", "fuel_type")) %>% 
-  mutate(heat_input = case_when(respondent_frequency  == "A" & id %in% check_gen_units ~ NA_real_, 
+eia_923_boilers_2 <-
+  eia_923_boilers %>%
+  rows_update(eia_923_annual_props, by = c("year", "month", "plant_id", "boiler_id", "prime_mover", "fuel_type")) %>%
+  mutate(heat_input = case_when(respondent_frequency  == "A" & id %in% check_gen_units ~ NA_real_,
                                 id %in% am_annual_responders & id %in% check_gen_units ~ NA_real_,
-                                TRUE ~ heat_input), 
+                                TRUE ~ heat_input),
          fuel_consum = case_when(respondent_frequency == "A" & id %in% check_gen_units ~ NA_real_,
-                                 id %in% am_annual_responders & id %in% check_gen_units ~ NA_real_, 
+                                 id %in% am_annual_responders & id %in% check_gen_units ~ NA_real_,
                                  TRUE ~ fuel_consum))
 
-eia_923_boilers_grouped <- 
-  eia_923_boilers %>% 
+eia_923_boilers_grouped_2 <- 
+  eia_923_boilers_2 %>% 
   group_by(pick(all_of(temporal_res_cols)), 
            plant_id,
            boiler_id, 
            prime_mover,
            fuel_type) %>%
   mutate(# summing heat input by either monthly or annual values 
-         heat_input = if_else(all(is.na(heat_input)), 
-                              NA_real_, 
-                              sum(heat_input, na.rm = TRUE)), 
-         fuel_consum = if_else(all(is.na(fuel_consum)), 
-                                         NA_real_, 
-                                         sum(fuel_consum, na.rm = TRUE))) %>% 
+    heat_input = if_else(all(is.na(heat_input)), 
+                         NA_real_, 
+                         sum(heat_input, na.rm = TRUE)), 
+    fuel_consum = if_else(all(is.na(fuel_consum)), 
+                          NA_real_, 
+                          sum(fuel_consum, na.rm = TRUE))) %>% 
   ungroup() %>% 
   distinct()
 
 eia_923_boilers_heat <- 
-  eia_923_boilers %>% 
+  eia_923_boilers_2 %>% 
   group_by(pick(all_of(temporal_res_cols)), 
            plant_id, 
            plant_name, 
@@ -543,26 +580,10 @@ eia_923_boilers_heat <-
            prime_mover, 
            boiler_id) %>% 
   summarize(# summing heat input  
-            heat_input = if_else(all(is.na(heat_input)), 
-                                 NA_real_, 
-                                 sum(heat_input, na.rm = TRUE))) %>% 
+    heat_input = if_else(all(is.na(heat_input)), 
+                         NA_real_, 
+                         sum(heat_input, na.rm = TRUE))) %>% 
   ungroup()
-
-## Determining primary fuel type for EIA-923 boilers based on type of unit with max fuel consumption 
- 
-primary_fuel_types_923_boilers <- # this will be joined with final dataframe of boilers to be added 
-  eia_923_boilers_grouped %>% 
-  group_by(plant_id, boiler_id, prime_mover) %>% 
-  arrange(plant_id, boiler_id, fuel_type) %>% # order primary fuels alphabetically 
-  slice_max(if_else(!is.na(heat_input), heat_input, fuel_consum), # identifying row with highest heat input to get primary_fuel_type
-            n = 1, 
-            with_ties = FALSE) %>% # only retain first row, if there are ties, it will take the first fuel alphabetically
-  select(plant_id, 
-         boiler_id, 
-         prime_mover,
-         "primary_fuel_type" = fuel_type) %>% 
-  ungroup()
-
 
 # We only want to keep EIA-923 boilers that are: 
 # 1) from plants that are not already in EPA
@@ -871,7 +892,7 @@ units_missing_heat_2 <- # creating updated dataframe with remaining missing heat
 ### Match units EIA-923 boiler file on plant and boiler id -------
 
 eia_923_boiler_update_heat <- 
-  eia_923_boilers %>%  
+  eia_923_boilers_2 %>%  
   select(all_of(temporal_res_cols), plant_id, unit_id = boiler_id, prime_mover, fuel_consum, heat_input) %>% 
   group_by(pick(all_of(temporal_res_cols)), plant_id, unit_id, prime_mover) %>% 
   slice_max(fuel_consum, n = 1, with_ties = FALSE) %>% 
@@ -905,7 +926,7 @@ print(glue::glue("{nrow(units_heat_updated_boiler_matches)} units updated with E
 # here we estimate heat to be distributed to boilers based on differences between prime mover level heat we have included and what is in EIA-923 Gen and Fuel file
 
 boiler_dist_props <-  # determining distributional proportions for EIA-923 boilers 
-  eia_923_boilers %>%
+  eia_923_boilers_2 %>%
   group_by(pick(all_of(temporal_res_cols)), 
            plant_id,
            boiler_id,
