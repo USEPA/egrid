@@ -19,6 +19,7 @@ library(readr)
 library(tidyr)
 library(purrr)
 library(readxl)
+library(stringr)
 
 # Load necessary functions -----------------------
 
