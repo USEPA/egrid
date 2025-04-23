@@ -35,13 +35,12 @@ if (exists("params")) {
 # Load necessary data -----
 
 # load in eGRID plant data
-
 plant_file <- # 12612(12619)
   readRDS(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS")) %>%
   glimpse()
 
 # load in previous power profiler data which had zip, utility code, predominant utility, etc. 
-power_profiler_old <- # (FROM ACCESS) 65187
+power_profiler_old <- # (ACCESS) 65187
   read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/access/power_profiler_old.csv"),
            col_types = "cccccc") %>%
   janitor::clean_names() %>%
@@ -49,16 +48,14 @@ power_profiler_old <- # (FROM ACCESS) 65187
   glimpse()
 
 # load in all utility zip codes
-utility_zipcodes <- # (FROM MARISSA) 80142 (39133 unique zips)
+utility_zipcodes <- # (INPUTS) 80142 (39133 unique zips)
   read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/utility_zipcodes.csv"),
            col_types = "ccccccddd") %>%
   janitor::clean_names() %>%
-  # group_by(zip) %>%
-  # count() %>%
   glimpse()
 
 # load in EIA-861 utility data - with count 
-eia_861_utility_data_with_count <- # (FROM ACCESS) 1715
+eia_861_utility_data_with_count <- # (ACCESS) 1715
   read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/access/eia_861_utility_with_count.csv"),
            col_types = "ccccccccccccccccccccccdcccccccccc") %>%
   janitor::clean_names() %>%
@@ -169,7 +166,7 @@ zip_subregion_old_pp <-
   bind_rows(zip_codes_from_old_power_profiler_to_add) %>%
   mutate(subregion = NA_character_) %>%
   glimpse()
-  
+
 # methodcount <- #2889/62195
 #   zip_subregion_old_pp %>%
 #   count(method) %>%
@@ -275,7 +272,7 @@ zip_subregion_ba_xwalk <-
          subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
   select(-contains("."), -ba_code) %>%
   glimpse()
-  
+
 # zipcount <- #65084(65084), ba 22931(57963), nerc 2861(2861), old power profiler 2796(2782), na 36496(1478)
 #   zip_subregion_ba_xwalk %>%
 #   count(method) %>%
@@ -313,7 +310,7 @@ plant_transmission_subregions <-
   glimpse()
 
 #### Update subregions based on transmission ID plant file -----------
-  
+
 #12:
 zip_subregion_plant_transmission <-
   zip_subregion_ba_xwalk %>%
@@ -404,7 +401,7 @@ zip_subregion_nerc_ba_transmission <-
          subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
   select(-contains("."), -ba_code, -nerc_region) %>% distinct() %>%
   glimpse()
-  
+
 # zipcount <- # ba 22931 (29702), nerc region 2861 (2861), nerc/ba/. 4451 (4455), old profiler 2793 (2782), plant file transm 22545 (22541), plant file utility 2616 (2616), NA 6887 (216)
 #   zip_subregion_nerc_ba_transmission %>%
 #   count(method) %>%
@@ -469,7 +466,7 @@ zipsubregion_missing <-
 #   full_join(zipsubregion_transmxwalk, by = "subregion") %>%
 #   filter(n.x != n.y) %>%
 #   print(n = 27)
-  
+
 # Subregion corrections -----
 
 ### Update missing subregion for zip codes from old power profiler -----
@@ -493,9 +490,9 @@ zip_subregion_missing_subregions <-
 #   full_join(zipsubregion_missing, by = "subregion") %>%
 #   filter(n.x != n.y) %>%
 #   print(n = 28)
-  # addition of 176 PRMS
-  # extra assignments in 4 more subregions that 
-  # remain blank in access data - not sure why
+# addition of 176 PRMS
+# extra assignments in 4 more subregions that 
+# remain blank in access data - not sure why
 
 ### State subregion one to one match -------
 
@@ -682,13 +679,6 @@ zip_subregion_predominant_override_eiaid <-
   select(-contains(".")) %>%
   glimpse()
 
-compare <-
-  zip_subregion_predominant_override_eiaid %>%
-  inner_join(pred_util, by = c("zip", "eiaid")) %>%
-  #glimpse()
-  filter(predominant_utility != predominant_utility.y) %>%
-  glimpse()
-
 # count <- #41562/23522
 #   zip_subregion_predominant_override_eiaid %>%
 #   count(predominant_utility) %>%
@@ -730,7 +720,7 @@ count <- #38578(38599)/2984(2963)
   subregions_secondary %>%
   count(secondary) %>%
   print()
-  
+
 ### Override from table -----
 
 #60: 41562
@@ -746,12 +736,12 @@ count <- #92/187(166)/1195/2561/2056/1391/68/70/483/3670/2321/2548/396/198/1582/
   count(subregion) %>%
   print(n = 28)
 
-# Prepare data for final website ------
+# Create data for final website ------
 
 ### Update predominant utility using first utility site name -----
 
 #65: 65084
-zip_subregion_for_website <-
+website_zip_subregion <-
   zip_subregion_predominant_override_eiaid %>%
   mutate(predominant_utility = as.factor(0)) %>%
   select(zip, state, utility_name, trim_util_code = eiaid, subregion,  predominant_utility) %>%
@@ -760,7 +750,7 @@ zip_subregion_for_website <-
 
 #66: 41562 (41351 without NAs)
 first_of_utility_name <-
-  zip_subregion_for_website %>%
+  website_zip_subregion %>%
   group_by(zip, state) %>%
   summarize(first_of_utility_name = first(utility_name)) %>%
   mutate(predominant_utility = as.factor(1)) %>%
@@ -768,25 +758,20 @@ first_of_utility_name <-
   filter(!is.na(first_of_utility_name)) %>%
   glimpse()
 
-# update predominant utility
+# update predominant utility in zipcodes for website
 #67:
-zip_subregion_updated_utility_name <-
-  zip_subregion_for_website %>%
+website_zip_subregion_first_utility <-
+  website_zip_subregion %>%
   left_join(first_of_utility_name, by = c("utility_name" = "first_of_utility_name", "state", "zip")) %>%
   mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
   select(-contains(".")) %>%
   glimpse()
 
-count <- # 41351/23522
-  zip_subregion_updated_utility_name %>%
-  count(predominant_utility) %>%
-  print()
-
 ### Update predominant utility using old power plant assignment -----
 
 #67b:
-zip_subregion_updated_old_zipcode <-
-  zip_subregion_updated_utility_name %>%
+website_zip_subregion_old_pp <-
+  website_zip_subregion_first_utility %>%
   left_join(zip_codes_from_old_power_profiler_to_add %>%
               select(zip, eiaid, predominant_utility) %>%
               filter(is.na(eiaid)),
@@ -804,7 +789,7 @@ count <- #23522/41562
 
 #71/72/73/74/75: 36(59)
 subregions_to_update_from_old_pp <-
-  zip_subregion_updated_old_zipcode %>%
+  zip_subregion_predominant_override_eiaid %>%
   filter(is.na(subregion)) %>%
   select(zip, subregion) %>% distinct() %>%
   inner_join(power_profiler_old, by = "zip") %>%
@@ -815,7 +800,7 @@ subregions_to_update_from_old_pp <-
 
 #76: update zipsubregion
 zip_subregion_final <-
-  zip_subregion_updated_old_zipcode %>%
+  zip_subregion_predominant_override_eiaid %>%
   left_join(subregions_to_update_from_old_pp %>%
               rename(subregion = subrgn), 
             by = "zip") %>%
@@ -827,3 +812,4 @@ zip_subregion_final <-
 #   zip_subregion_final %>%
 #   count(subregion) %>%
 #   print(n=29)
+
