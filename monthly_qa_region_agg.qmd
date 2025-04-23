@@ -206,11 +206,13 @@ subregion_total_sum_comp <-
   pivot_longer(-c(agg), names_to = "column", values_to = "value") %>% 
   arrange(column) %>% 
   group_by(column) %>% 
-  mutate(difference = value - lag(value)) 
+  mutate(difference = value - lag(value)) %>% 
+  ungroup() %>% 
+  mutate(percent_diff = difference / value * 100)
 
 # produce tale of differences of total values
 knitr::kable(subregion_total_sum_comp,
-             digits = 0, 
+             digits = c(0, 0, 0, 0, 2), 
              format.args = list(big.mark = ","), 
              col.names = gsub("[_]", " ", names(subregion_total_sum_comp)), 
              caption = "Subregion file totals comparison") 
@@ -235,10 +237,11 @@ subregion_combust_heat_input <-
   full_join(subregion_monthly_sum %>% 
               select(subregion, subregion_combust_heat_input_monthly)) %>% 
   mutate(difference = subregion_combust_heat_input_annual -
-           subregion_combust_heat_input_monthly)
+           subregion_combust_heat_input_monthly, 
+         percent_diff = difference / subregion_combust_heat_input_monthly * 100)
 
 knitr::kable(subregion_combust_heat_input, 
-             digits = 0, 
+             digits = c(0, 0, 0, 0, 2), 
              format.args = list(big.mark = ","), 
              col.names = gsub("[_]", " ", names(subregion_combust_heat_input)))
 ```
@@ -257,10 +260,11 @@ subregion_heat_input <-
   full_join(subregion_monthly_sum %>% 
               select(subregion, subregion_heat_input_monthly)) %>% 
   mutate(difference = subregion_heat_input_annual -
-           subregion_heat_input_monthly)
+           subregion_heat_input_monthly, 
+         percent_diff = difference / subregion_heat_input_monthly * 100)
 
 knitr::kable(subregion_heat_input, 
-             digits = 0, 
+             digits = c(0, 0, 0, 0, 2), 
              format.args = list(big.mark = ","), 
              col.names = gsub("[_]", " ", names(subregion_heat_input)))
 ```
@@ -279,17 +283,16 @@ subregion_generation <-
   full_join(subregion_monthly_sum %>% 
               select(subregion, subregion_generation_monthly)) %>% 
   mutate(difference = subregion_generation_annual -
-           subregion_generation_monthly)
+           subregion_generation_monthly, 
+         percent_diff = difference / subregion_generation_monthly * 100)
 
 knitr::kable(subregion_generation, 
-             digits = 0, 
+             digits = c(0, 0, 0, 0, 2), 
              format.args = list(big.mark = ","), 
              col.names = gsub("[_]", " ", names(subregion_generation)))
 ```
 
 ### NOx mass
-
--   Differences in NOx mass may be due to the monthly version removing landfill gas NOx adjustments. Now the only biomass adjustment made in the plant file is CO2. 
 
 ```{r}
 #| label: subregion-nox-mass
@@ -303,10 +306,11 @@ subregion_nox_mass <-
   full_join(subregion_monthly_sum %>% 
               select(subregion, subregion_nox_mass_monthly)) %>% 
   mutate(difference = subregion_nox_mass_annual -
-           subregion_nox_mass_monthly)
+           subregion_nox_mass_monthly, 
+         percent_diff = difference / subregion_nox_mass_monthly * 100)
 
 knitr::kable(subregion_nox_mass, 
-             digits = 0, 
+             digits = c(0, 0, 0, 0, 2), 
              format.args = list(big.mark = ","), 
              col.names = gsub("[_]", " ", names(subregion_nox_mass)))
 ```
@@ -325,10 +329,11 @@ subregion_so2_mass <-
   full_join(subregion_monthly_sum %>% 
               select(subregion, subregion_so2_mass_monthly)) %>% 
   mutate(difference = subregion_so2_mass_annual -
-           subregion_so2_mass_monthly)
+           subregion_so2_mass_monthly, 
+         percent_diff = difference / subregion_so2_mass_monthly * 100)
 
 knitr::kable(subregion_so2_mass, 
-             digits = 0, 
+             digits = c(0, 0, 0, 0, 2), 
              format.args = list(big.mark = ","), 
              col.names = gsub("[_]", " ", names(subregion_so2_mass)))
 ```
@@ -347,10 +352,11 @@ subregion_co2_mass <-
   full_join(subregion_monthly_sum %>% 
               select(subregion, subregion_co2_mass_monthly)) %>% 
   mutate(difference = subregion_co2_mass_annual -
-           subregion_co2_mass_monthly)
+           subregion_co2_mass_monthly, 
+         percent_diff = difference / subregion_co2_mass_monthly * 100)
 
 knitr::kable(subregion_co2_mass, 
-             digits = 0, 
+             digits = c(0, 0, 0, 0, 2), 
              format.args = list(big.mark = ","), 
              col.names = gsub("[_]", " ", names(subregion_co2_mass)))
 ```
@@ -369,10 +375,11 @@ subregion_ch4_mass <-
   full_join(subregion_monthly_sum %>% 
               select(subregion, subregion_ch4_mass_monthly)) %>% 
   mutate(difference = subregion_ch4_mass_annual -
-           subregion_ch4_mass_monthly)
+           subregion_ch4_mass_monthly, 
+         percent_diff = difference / subregion_ch4_mass_monthly * 100)
 
 knitr::kable(subregion_ch4_mass, 
-             digits = 0, 
+             digits = c(0, 0, 0, 0, 2), 
              format.args = list(big.mark = ","), 
              col.names = gsub("[_]", " ", names(subregion_ch4_mass)))
 ```
@@ -391,7 +398,8 @@ subregion_n2o_mass <-
   full_join(subregion_monthly_sum %>% 
               select(subregion, subregion_n2o_mass_monthly)) %>% 
   mutate(difference = subregion_n2o_mass_annual -
-           subregion_n2o_mass_monthly)
+           subregion_n2o_mass_monthly, 
+         percent_diff = difference / subregion_n2o_mass_monthly * 100)
 
 knitr::kable(subregion_n2o_mass, 
              digits = 0, 
@@ -413,7 +421,8 @@ subregion_co2e_mass <-
   full_join(subregion_monthly_sum %>% 
               select(subregion, subregion_co2e_mass_monthly)) %>% 
   mutate(difference = subregion_co2e_mass_annual -
-           subregion_co2e_mass_monthly)
+           subregion_co2e_mass_monthly, 
+         percent_diff = difference / subregion_co2e_mass_monthly * 100)
 
 knitr::kable(subregion_co2e_mass, 
              digits = 0, 

@@ -187,11 +187,13 @@ unit_total_sum_comp <-
   pivot_longer(-c(agg), names_to = "column", values_to = "value") %>% 
   arrange(column) %>% 
   group_by(column) %>% 
-  mutate(difference = value - lag(value)) 
+  mutate(difference = value - lag(value)) %>% 
+  ungroup() %>% 
+  mutate(percent_diff = difference / value * 100) 
 
 # produce tale of differences of total values
 knitr::kable(unit_total_sum_comp,
-             digits = 0, 
+             digits = c(0, 0, 0, 0, 2), 
              format.args = list(big.mark = ","), 
              col.names = gsub("[_]", " ", names(unit_total_sum_comp)), 
              caption = "Unit file totals comparison") 
@@ -597,7 +599,9 @@ plant_total_sum_comp <-
   pivot_longer(-c(agg), names_to = "column", values_to = "value") %>% 
   arrange(column) %>% 
   group_by(column) %>% 
-  mutate(difference = value - lag(value)) 
+  mutate(difference = value - lag(value)) %>% 
+  ungroup() %>% 
+  mutate(percent_diff = difference / value * 100)
 
 # produce tale of differences of total values
 knitr::kable(plant_total_sum_comp,

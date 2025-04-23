@@ -33,7 +33,7 @@ source("scripts/functions/function_coalesce_join_vars.R")
 if (!exists("params")) {
   params <- check_params()
 } else {
-  print("eGRID year and version parameters are already defined.")
+  print("eGRID year, temporal resolution, and version parameters are already defined.")
 }
 
 # Set up temporal_res_cols
