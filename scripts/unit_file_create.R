@@ -1303,12 +1303,12 @@ pr_coal_plants <-
 
 so2_pr <- # calculate average sulfur content and removal rate for coal types by fuel, PM, and botfirty
   avg_sulfur_content_2 %>% 
-  left_join(schedule_8c %>% 
-              select(plant_id, boiler_id, so2_removal_efficiency_rate_at_annual_operating_factor) %>% 
-              group_by(plant_id, boiler_id) %>% 
+  left_join(schedule_8c %>%
+              select(plant_id, boiler_id, so2_removal_efficiency_rate_at_annual_operating_factor) %>%
+              group_by(plant_id, boiler_id) %>%
               slice_max(so2_removal_efficiency_rate_at_annual_operating_factor, # identify max so2 removal rate
-                        with_ties = FALSE) %>% ungroup(), 
-            by = c("plant_id", "boiler_id")) %>% 
+                        with_ties = FALSE) %>% ungroup(),
+            by = c("plant_id", "boiler_id")) %>%
   mutate(botfirty = NA_character_) %>% # create a botfirty column, and fill in with data from all_units_4
   rows_update(all_units_4 %>% 
                 select(all_of(temporal_res_cols), plant_id, boiler_id = unit_id, botfirty, prime_mover, "fuel_type" = primary_fuel_type) %>% 
@@ -1319,7 +1319,7 @@ so2_pr <- # calculate average sulfur content and removal rate for coal types by 
          prime_mover %in% pr_coal_plants$prime_mover, 
          botfirty == "FLUIDIZED", 
          avg_sulfur_content > 0) %>% # check each year if botfirty needs to change
-  group_by(fuel_type, prime_mover, botfirty) %>% 
+  group_by(pick(all_of(temporal_res_cols)), fuel_type, prime_mover, botfirty) %>% 
   summarize(avg_sulfur_content = mean(avg_sulfur_content, na.rm = TRUE), 
             so2_removal_efficiency_rate_at_annual_operating_factor = mean(so2_removal_efficiency_rate_at_annual_operating_factor, na.rm = TRUE)) %>% 
   ungroup()
@@ -1341,7 +1341,7 @@ estimated_so2_emissions_content_pr <- # estimate SO2 mass for PR coal plants
   summarize(fuel_consum = sum(fuel_consum, na.rm = TRUE), 
             heat_input = sum(heat_input, na.rm = TRUE)) %>% 
   ungroup() %>% 
-  left_join(so2_pr, by = c("primary_fuel_type" = "fuel_type", "prime_mover")) %>% 
+  left_join(so2_pr, by = c(temporal_res_cols, "primary_fuel_type" = "fuel_type", "prime_mover")) %>% 
   left_join(emission_factors_all %>%
               select(prime_mover, botfirty, so2_ef, so2_flag, unit_flag, primary_fuel_type),
             by = c("prime_mover", "botfirty", "primary_fuel_type")) %>%
