@@ -1311,12 +1311,12 @@ so2_pr <- # calculate average sulfur content and removal rate for coal types by 
             by = c("plant_id", "boiler_id")) %>%
   mutate(botfirty = NA_character_) %>% # create a botfirty column, and fill in with data from all_units_4
   rows_update(all_units_4 %>% 
-                select(all_of(temporal_res_cols), plant_id, boiler_id = unit_id, botfirty, prime_mover, "fuel_type" = primary_fuel_type) %>% 
+                select(all_of(temporal_res_cols), plant_id, boiler_id = unit_id, botfirty, prime_mover) %>% 
                 distinct(), 
               by = c(temporal_res_cols, "plant_id", "boiler_id", "prime_mover"), 
               unmatched = "ignore") %>% 
-  filter(fuel_type %in% pr_coal_plants$primary_fuel_type, 
-         prime_mover %in% pr_coal_plants$prime_mover, 
+  filter(fuel_type %in% unique(pr_coal_plants$primary_fuel_type), 
+         prime_mover %in% unique(pr_coal_plants$prime_mover), 
          botfirty == "FLUIDIZED", 
          avg_sulfur_content > 0) %>% # check each year if botfirty needs to change
   group_by(pick(all_of(temporal_res_cols)), fuel_type, prime_mover, botfirty) %>% 

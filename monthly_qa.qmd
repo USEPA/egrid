@@ -605,7 +605,7 @@ plant_total_sum_comp <-
 
 # produce tale of differences of total values
 knitr::kable(plant_total_sum_comp,
-             digits = 0, 
+             digits = c(0, 0, 0, 0, 2), 
              format.args = list(big.mark = ","), 
              col.names = gsub("[_]", " ", names(plant_total_sum_comp)), 
              caption = "Plant file totals comparison") %>% 
