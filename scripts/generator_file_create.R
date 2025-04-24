@@ -356,15 +356,25 @@ print(glue::glue("{nrow(filled_gen_data_2)} generators updated with generation v
 # find plants in the EIA-923 Generator file that are using the same net generation amount in December and redistribute using GenFuel file 
 
 # select out columns for respondent_frequency
-respondent_frequency <-
+respondent_frequency_df <-
   eia_923_gen_r_2 %>% 
-  select(plant_id, generator_id, respondent_frequency) %>%
+  select(plant_id, 
+         generator_id, 
+         respondent_frequency) %>%
   unique()
+
+# select out columns for netgen
+netgen_df <-
+  eia_923_gen_fuel %>%
+  group_by(year, month, plant_id, prime_mover) %>%
+  summarize(netgen = sum(netgen, na.rm = TRUE),
+            net_generation_megawatthours = sum(net_generation_megawatthours, na.rm = TRUE)) %>%
+  ungroup()
 
 # find generator data where December generation is equal to net_generation_year_to_date
 december_gen_ids <- 
   generation_df %>%
-  left_join(respondent_frequency, by = c("plant_id", "generator_id")) %>% # join in respondent_frequency information
+  left_join(respondent_frequency_df, by = c("plant_id", "generator_id")) %>% # join in respondent_frequency information
   filter(respondent_frequency %in% c("A", "AM")) %>% # only calculate if annual reporter 
   group_by(year, 
            plant_id, 
@@ -388,17 +398,16 @@ december_gen_props <-
   generation_df %>%
   right_join(december_gen_ids) %>%
   left_join(eia_gen_fuel_generation_sum) %>%
-  group_by(year, plant_id, prime_mover, generator_id) %>%
-  mutate(gen_fuel_sum = sum(tot_generation_fuel, na.rm = TRUE),
-         gen_fuel_prop = net_generation_year_to_date / gen_fuel_sum) %>%
-  ungroup() %>%
+  left_join(netgen_df) %>%
+  mutate(prop_netgen = if_else(net_generation_megawatthours == 0, 0,
+                               netgen / net_generation_megawatthours)) %>%
   select(year, 
          month, 
          plant_id, 
          prime_mover, 
          generator_id, 
          tot_generation_fuel, 
-         gen_fuel_prop)
+         prop_netgen)
 
 december_gen <-
   generation_df %>%
@@ -406,7 +415,7 @@ december_gen <-
   left_join(december_gen_props) %>%
   mutate(
     # generation = tot_generation_fuel * prop, # distribute using same method of distribution instead of dividing by 12
-    generation = tot_generation_fuel * gen_fuel_prop, # distribute using same method of distribution instead of dividing by 12
+    generation = net_generation_year_to_date * prop_netgen,
     # generation = net_generation_year_to_date / 12, # divide generation by 12 months
     gen_data_source = "Distributed from EIA-923 Generation and Fuel File") %>% # flag: created new generation data source - i.e. distributed through EIA-923
   # gen_data_source = "EIA-923 Generator File") %>% # - i.e. distributed through EIA-923
@@ -457,15 +466,12 @@ gen_overwrite <-
   filter(any(overwrite == "overwrite")) %>% # prevents data deletion of non-overwrite months in the same generator
   ungroup() %>%
   mutate(
-        generation = case_when(overwrite == "overwrite" ~ tot_generation_fuel * prop,
-                               overwrite == "overwrite" & tot_generation > tot_generation_fuel ~ tot_generation * prop,
-                               TRUE ~ generation),
-         # generation = if_else(overwrite != "overwrite" | tot_generation_fuel == 0 & !is.na(tot_generation), # flag: where there is difference if missing data in Generation and Fuel data
-         #  # generation = if_else(overwrite != "overwrite" | tot_generation_fuel < tot_generation,
-         #                      tot_generation * prop,
-         #                      tot_generation_fuel * prop),
-         gen_data_source = if_else(overwrite != "overwrite",
-                                   "EIA-923 Generator File",
+         generation = case_when(overwrite == "overwrite" & tot_generation_fuel < tot_generation ~ generation,
+                                overwrite == "overwrite" & tot_generation_fuel > tot_generation ~ tot_generation_fuel * prop,
+                                TRUE ~ generation),
+         gen_data_source = if_else(overwrite != "overwrite" | tot_generation_fuel < tot_generation,
+                                   # "EIA-923 Generator File",
+                                   gen_data_source,
                                    "Data from EIA-923 Generator File overwritten with distributed data from EIA-923 Generation and Fuel")) %>%
  select(plant_id, 
         prime_mover, 
