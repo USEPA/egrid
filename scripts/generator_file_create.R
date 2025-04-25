@@ -11,6 +11,7 @@
 ##      Sean Bock, Abt Global
 ##      Caroline Watson, Abt Global
 ##      Teagan Goforth, Abt Global
+##      Madeline Zhang, Abt Global
 ##
 ## -------------------------------
 
@@ -295,27 +296,28 @@ eia_gen_genfuel_diff <-
   select(-contains("tot"))
 
 # 4. Create proportion dataframe using nameplate capacity 
-gen_distributed_props <-
+gen_distributed_props_diff <-
   eia_gen_generation %>%
   select(plant_id, 
          prime_mover,
          generator_id,
+         gen_data_source,
          nameplate_capacity) %>%
   distinct() %>% # keep only distinct plants and generators
+  filter(is.na(gen_data_source)) %>% 
   group_by(plant_id, prime_mover) %>%
   mutate(tot_nameplate_capacity = sum(nameplate_capacity),
          prop = if_else(tot_nameplate_capacity != 0, # the proportion of the individual generator nameplate capacity to total nameplate capacity at plant/PM level
                         nameplate_capacity / tot_nameplate_capacity,
                         NA_real_)) %>%
   ungroup() %>%
-  select(-contains("nameplate_capacity"))
+  select(-contains("nameplate_capacity"), -gen_data_source)
   
 # 5. Distribute generation where there is no data using calculated proportions
 gen_distributed <- 
   eia_gen_generation %>% 
-  left_join(gen_distributed_props) %>%
+  left_join(gen_distributed_props_diff) %>%
   left_join(eia_gen_genfuel_diff) %>%
-  filter(is.na(gen_data_source)) %>% # filtering to only generators with missing source
   mutate(generation = generation_diff * prop,
          gen_data_source = if_else(!is.na(generation), 
                                    "Distributed from EIA-923 Generation and Fuel", 
@@ -460,7 +462,15 @@ generation_diff <-
 gen_overwrite <-
   generation_df %>%
   left_join(generation_diff) %>%
-  left_join(gen_distributed_props) %>%
+  #left_join(gen_distributed_props) %>%
+  left_join(eia_860_combined_r %>% 
+              select(plant_id, generator_id, prime_mover, nameplate_capacity)) %>% 
+  group_by(plant_id, prime_mover) %>% 
+  mutate(tot_nameplate_capacity = sum(nameplate_capacity),
+         prop = if_else(tot_nameplate_capacity != 0, # creating proportion based on nameplate_capacity used to distribute generation across generators
+                        nameplate_capacity / tot_nameplate_capacity, 
+                        NA_real_)) %>% 
+  ungroup() %>% 
   # anti_join(december_gen_ids) %>%
   group_by(year, plant_id, prime_mover) %>%
   filter(any(overwrite == "overwrite")) %>% # prevents data deletion of non-overwrite months in the same generator
