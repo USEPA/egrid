@@ -1412,13 +1412,13 @@ default_sulfur_content_coal <-
   eia_923$boiler_fuel_data %>% 
   group_by(plant_state, fuel_type) %>% 
   summarize(across(c(starts_with(c("quantity", "mmbtu_")), "total_fuel_consumption_quantity"), ~ sum(.x, na.rm = TRUE)),
-            sulfur_content = max(sulfur_content)) %>% 
+            sulfur_content = max(sulfur_content, na.rm = TRUE)) %>% 
   ungroup() %>% 
   mutate(heat_input = quantity_of_fuel_consumed * mmbtu_per_unit) %>% 
   group_by(plant_state, fuel_type) %>% 
   summarize(avg_sulfur_content = if_else(sum(quantity_of_fuel_consumed, na.rm = TRUE) > 0, 
-                                         sum(quantity_of_fuel_consumed * sulfur_content, na.rm = TRUE)/sum(quantity_of_fuel_consumed, na.rm = TRUE), 
-                                         sum(quantity_of_fuel_consumed * sulfur_content, na.rm = TRUE)/1)) %>% 
+                                         sum(quantity_of_fuel_consumed * sulfur_content, na.rm = TRUE) / sum(quantity_of_fuel_consumed, na.rm = TRUE), 
+                                         sum(quantity_of_fuel_consumed * sulfur_content, na.rm = TRUE) / 1)) %>% 
   filter(fuel_type %in% coal_fuels, avg_sulfur_content > 0) %>% 
   select(plant_state,
          fuel_type,
@@ -1634,6 +1634,17 @@ nox_emissions_oz <-
   mutate(nox_mass = (nox_rate_oz * heat_input) / 2000,
          nox_source = "Estimated based on unit-level NOx ozone season emission rates") %>%
   select(-nox_rate_oz) %>%
+  filter(!is.na(nox_mass)) 
+
+# fill ozone months using the annual NOx rates if they are not filled previously 
+nox_emissions_oz_annual_rate <- 
+  all_units_7 %>% select(all_of(temporal_res_cols), plant_id, unit_id, prime_mover, heat_input) %>%
+  filter(month %in% c(5:9)) %>% 
+  inner_join(nox_rates_ann) %>% 
+  mutate(# calculate NOx emissions for each unit and time period
+    nox_mass = nox_rate_ann * heat_input / 2000, 
+    nox_source = "Estimated based on unit-level NOx emission rates") %>%
+  select(-nox_rate_ann, -contains("heat_input")) %>% 
   filter(!is.na(nox_mass))
 
 nox_emissions_rates <-
@@ -1641,6 +1652,8 @@ nox_emissions_rates <-
   rows_patch(nox_emissions_ann, 
              by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
   rows_patch(nox_emissions_oz,
+             by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
+  rows_patch(nox_emissions_oz_annual_rate, 
              by = c(temporal_res_cols, "plant_id", "unit_id", "prime_mover"), unmatched = "ignore")
 
 ### NOx emissions - emissions factor -----
