@@ -436,18 +436,27 @@ generation_diff <-
 ## and distribute the difference with EIA-923 Generation and Fuel File generation values.
 ## Note that generators incorrectly end up in overwrite if they share a plant prime mover id with another generator
 ## that is indeed in generator file.
+
+# create distributed proportions for overwriting generation using EIA-923 Generation and Fuel
+gen_distributed_props <-
+  eia_gen_generation %>%
+  select(plant_id, 
+         prime_mover,
+         generator_id,
+         nameplate_capacity) %>%
+  distinct() %>% # keep only distinct plants and generators
+  group_by(plant_id, prime_mover) %>%
+  mutate(tot_nameplate_capacity = sum(nameplate_capacity),
+         prop = if_else(tot_nameplate_capacity != 0, # the proportion of the individual generator nameplate capacity to total nameplate capacity at plant/PM level
+                        nameplate_capacity / tot_nameplate_capacity,
+                        NA_real_)) %>%
+  ungroup() %>%
+  select(-contains("nameplate_capacity"))
   
 gen_overwrite <-
   generation_df %>%
   left_join(generation_diff) %>%
-  left_join(eia_860_combined_r %>% 
-              select(plant_id, generator_id, prime_mover, nameplate_capacity)) %>% 
-  group_by(plant_id, prime_mover) %>% 
-  mutate(tot_nameplate_capacity = sum(nameplate_capacity),
-         prop = if_else(tot_nameplate_capacity != 0, # creating proportion based on nameplate_capacity used to distribute generation across generators
-                        nameplate_capacity / tot_nameplate_capacity, 
-                        NA_real_)) %>% 
-  ungroup() %>% 
+  left_join(gen_distributed_props) %>% 
   group_by(plant_id, prime_mover) %>%
   filter(any(overwrite == "overwrite")) %>% # prevents data deletion of non-overwrite months in the same generator 
   ungroup() %>%
@@ -456,9 +465,8 @@ gen_overwrite <-
                                 overwrite == "overwrite" & tot_generation_fuel > tot_generation ~ tot_generation_fuel * prop,
                                 TRUE ~ generation),
          gen_data_source = if_else(overwrite != "overwrite" | tot_generation_fuel < tot_generation,
-                                   # "EIA-923 Generator File",
                                    gen_data_source,
-                                   "Data from EIA-923 Generator File overwritten with distributed data from EIA-923 Generation and Fuel")) #%>%
+                                   "Data from EIA-923 Generator File overwritten with distributed data from EIA-923 Generation and Fuel")) %>%
  select(all_of(temporal_res_cols),
         plant_id, 
         prime_mover, 
