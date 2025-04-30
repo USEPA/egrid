@@ -99,10 +99,10 @@ xwalk_ba_transmission <- # 1204(1160)
   rename(ba_code = balancing_authority_code, transmission = transmission_or_distribution_system_owner_id, subregion = subrgn)
 
 # Transmission to subregion crosswalk
-xwalk_transmissionid_subregion <-
-  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/access/xwalk_transmissionid_subregion.csv"),
-           col_types = "cc") %>%
-  janitor::clean_names()
+# xwalk_transmissionid_subregion <-
+#   read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/access/xwalk_transmissionid_subregion.csv"),
+#            col_types = "cc") %>%
+#   janitor::clean_names()
 
 # Crosswalk for missing utility ids
 xwalk_missing_utilityid <-
@@ -287,7 +287,7 @@ zip_utility_subregion_6 <- #23
 ### NERC Region / BA / Transmission ID assignment -----
 
 # update subregion using BA transmission crosswalk
-zip_utility_subregion_7 <- #38
+zip_utility_subregion_8 <- #38
   zip_utility_subregion_6 %>%
   left_join(eia_861_sales_ult_cust %>% 
               select(utility_number, ba_code),
@@ -305,12 +305,12 @@ zip_utility_subregion_7 <- #38
 ### Transmission ID -> Subregion Crosswalk assignment --------
 
 # update subregion based on transmission ID subregion crosswalk
-zip_utility_subregion_8 <- #39
-  zip_utility_subregion_7 %>%
-  left_join(xwalk_transmissionid_subregion, by = c("eiaid" = "transmission_id")) %>%
-  mutate(method = if_else(is.na(subregion.x) & !is.na(subregion.y), "power profiler transmission ID crosswalk", method),
-         subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
-  select(-contains(".")) %>% distinct()
+# zip_utility_subregion_8 <- #39
+#   zip_utility_subregion_7 %>%
+#   left_join(xwalk_transmissionid_subregion, by = c("eiaid" = "transmission_id")) %>%
+#   mutate(method = if_else(is.na(subregion.x) & !is.na(subregion.y), "power profiler transmission ID crosswalk", method),
+#          subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
+#   select(-contains(".")) %>% distinct()
 
 ### Missing Utility ID crosswalk --------
 
