@@ -35,14 +35,14 @@ check_params <- function() {
       params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
       params$eGRID_year <- as.character(params$eGRID_year) 
     } else if (!("temporal_res" %in% names(params))) {  # if params() is defined, but temporal_res is not, define it here 
-      params$temporal_res <- readline(prompt = "Input temporal resolution (annual/monthly/daily/hourly): ")
+      params$temporal_res <- readline(prompt = "Input temporal resolution (annual/monthly): ")
       params$temporal_res <- as.character(params$temporal_res) 
     }
   } else { # if params(), eGRID_year, temporal_res are not defined, define them here
     params <- list()
     params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
     params$eGRID_year <- as.character(params$eGRID_year)
-    params$temporal_res <- readline(prompt = "Input temporal resolution (annual/monthly/daily/hourly): ")
+    params$temporal_res <- readline(prompt = "Input temporal resolution (annual/monthly): ")
     params$temporal_res <- as.character(params$temporal_res) 
   }
   
@@ -55,7 +55,7 @@ check_params <- function() {
   }
   
   # valid temporal_res inputs
-  temporal_res_inputs <- c("annual", "monthly", "daily", "hourly")
+  temporal_res_inputs <- c("annual", "monthly")
   
   if (!(params$temporal_res %in% temporal_res_inputs)) {
     print("The input for params$temporal_res is not one of the valid responses. Please input either annual, monthly, daily, or hourly.")
