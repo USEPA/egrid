@@ -99,7 +99,9 @@ colnames(r_zip_utility) <- paste0(colnames(r_zip_utility), "_r")
 
 zip_utility_comparison <-
   r_zip_utility %>%
-  full_join(access_zip_utility, by = c("zip_r" = "zip_access", "eiaid_r" = "eiaid_access")) %>%
+  full_join(access_zip_utility, by = c("zip_r" = "zip_access", 
+                                       "eiaid_r" = "eiaid_access", 
+                                       "subregion_r" = "subregion_access")) %>%
   glimpse()
 
 ## Difference checks ------
@@ -108,15 +110,19 @@ zip_utility_comparison <-
 # Records in Access not in R
 check_zip_utility_records_missing_from_r <- #61
   access_zip_utility %>%
-  anti_join(r_zip_utility, by = c("zip_access" = "zip_r", "eiaid_access" = "eiaid_r")) %>%
+  anti_join(r_zip_utility, by = c("zip_access" = "zip_r", 
+                                  "eiaid_access" = "eiaid_r",
+                                  "subregion_access" = "subregion_r")) %>%
   filter(!is.na(eiaid_access)) %>%
   glimpse()
 save_diffs(check_zip_utility_records_missing_from_r)
 
 # Records in R not in Access
-check_zip_utility_records_missing_from_access <- #35
+check_zip_utility_records_missing_from_access <-
   r_zip_utility %>%
-  anti_join(access_zip_utility, by = c("zip_r" = "zip_access", "eiaid_r" = "eiaid_access")) %>%
+  anti_join(access_zip_utility, by = c("zip_r" = "zip_access", 
+                                       "eiaid_r" = "eiaid_access",
+                                       "subregion_r" = "subregion_access")) %>%
   filter(!is.na(eiaid_r)) %>%
   glimpse()
 save_diffs(check_zip_utility_records_missing_from_access)
