@@ -98,12 +98,6 @@ xwalk_ba_transmission <- # 1204(1160)
   janitor::clean_names() %>%
   rename(ba_code = balancing_authority_code, transmission = transmission_or_distribution_system_owner_id, subregion = subrgn)
 
-# NERC to subregion crosswalk
-xwalk_nerc_region <-
-  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/access/xwalk_nerc_region.csv"),
-           col_names = c("nerc","subregion")) %>%
-  janitor::clean_names()
-
 # Transmission to subregion crosswalk
 xwalk_transmissionid_subregion <-
   read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/access/xwalk_transmissionid_subregion.csv"),
@@ -195,16 +189,16 @@ count_of_one_nerc_region <-
   arrange(as.numeric(eiaid)) %>%
   ungroup()
 
-# assign nerc regions to eiaids with singular subregion count
-nerc_names_for_missing_utility_id <-
+# assign subregion for unique cases with one-to-one NERC-subregion match
+zip_utility_update_nerc <-
   nerc_region_for_missing_utility_id %>%
   inner_join(count_of_one_nerc_region, by = "eiaid") %>%
-  select(eiaid, utility_name = utility_name.x, nerc_region)
-
-# combine the subregion/nerc match to the nerc names for missing utility id
-zip_utility_update_nerc <-
-  nerc_names_for_missing_utility_id %>%
-  inner_join(xwalk_nerc_region, by = join_by("nerc_region" == "nerc")) %>% distinct()
+  mutate(subregion = case_when(nerc_region == "TRE" ~ "ERCT",
+                               nerc_region == "FRCC" ~ "FRCC",
+                               nerc_region == "PR" ~ "PRMS",
+                               TRUE ~ NA_character_)) %>%
+  select(eiaid, utility_name = utility_name.x, nerc_region, subregion) %>%
+  filter(!is.na(subregion)) %>% distinct()
 
 #### Update subregions based on NERC grouping -----
 
