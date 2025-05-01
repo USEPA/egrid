@@ -100,8 +100,7 @@ colnames(r_zip_utility) <- paste0(colnames(r_zip_utility), "_r")
 zip_utility_comparison <-
   r_zip_utility %>%
   full_join(access_zip_utility, by = c("zip_r" = "zip_access", 
-                                       "eiaid_r" = "eiaid_access", 
-                                       "subregion_r" = "subregion_access")) %>%
+                                       "eiaid_r" = "eiaid_access")) %>%
   glimpse()
 
 ## Difference checks ------
