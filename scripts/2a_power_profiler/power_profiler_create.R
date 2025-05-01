@@ -8,7 +8,7 @@
 ## assigns subregions to each utility using a sequence of
 ## methods with the resulting outputs of:
 ##    * Predominant utility for each zipcode
-##    * Primary (and secondary) subregion for each zipcode
+##    * Primary, secondary, and tertiary subregions for each zipcode
 ##
 ## Output datasets include:
 ##    * zip subregion final
@@ -71,17 +71,27 @@ utility_zipcodes <-
            col_types = "ccccccddd") %>%
   janitor::clean_names()
 
-# load in EIA-861 utility data - with count 
-eia_861_utility_data_with_count <-
-  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/access/eia_861_utility_with_count.csv"),
-           col_types = "ccccccccccccccccccccccdcccccccccc") %>%
-  janitor::clean_names()
+# load in EIA-861 data
+if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))) { 
+  eia_861 <-
+    read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
+} else { 
+  stop("eia_861_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")
+}
 
-# load in EIA-861 utility data
+# EIA-861 utility data
+eia_861_utility <-
+  eia_861$utility_data %>%
+  mutate(year = as.character(year),
+         utility_number = as.character(utility_number))
+
+# EIA-861 sales ult cust data
 eia_861_sales_ult_cust <-
-  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/access/eia_861_sales_ult_cust.csv"),
-           col_types = "cccccccc") %>%
-  janitor::clean_names()
+  eia_861$sales_ult_cust %>%
+  mutate(year = as.character(year),
+         utility_number = as.character(utility_number)) %>%
+  filter(year == "2023") %>% # remove note for calculations
+  glimpse()
 
 # Load necessary crosswalks -----
 
@@ -176,7 +186,7 @@ zip_utility_subregion_2 <- #03
 # get NERC subregions for eiaid and utility_numbers in zipsubregion data
 nerc_region_for_missing_utility_id <- #28
   zip_utility_subregion_2 %>%
-  inner_join(eia_861_utility_data_with_count, by = c("eiaid" = "utility_number")) %>%
+  inner_join(eia_861_utility, by = c("eiaid" = "utility_number")) %>%
   select(eiaid, utility_name = utility_name.x, nerc_region) %>% distinct() %>%
   arrange(as.numeric(eiaid))
 
@@ -292,7 +302,7 @@ zip_utility_subregion_8 <- #38
   left_join(eia_861_sales_ult_cust %>% 
               select(utility_number, ba_code),
             by = c("eiaid" = "utility_number")) %>%
-  left_join(eia_861_utility_data_with_count %>% 
+  left_join(eia_861_utility %>% 
               select(utility_number, nerc_region),
             by = c("eiaid" = "utility_number")) %>%
   left_join(xwalk_ba_transmission,
