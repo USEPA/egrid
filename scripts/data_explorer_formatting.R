@@ -219,7 +219,7 @@ egrid_plant <-
             # 2019
             egrid_2019_plant %>% 
               mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
-                                               .fns = ~ .x * 100)) %>% 
+                            .fns = ~ .x * 100)) %>% 
               select(-contains("seqplt")), 
             # 2020 
             egrid_2020_plant %>% 
@@ -307,7 +307,8 @@ egrid_plant_2 <- # merge secondary fuel into plant file
 egrid_state <- 
   bind_rows(egrid_2018_state %>% 
               mutate(across(.cols = any_of(paste0("ST", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)), 
+                            .fns = ~ .x * 100)) %>% 
+              rename("STNAMEPCAP" = NAMEPCAP), 
             egrid_2019_state %>% 
               mutate(across(.cols = any_of(paste0("ST", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)), 
@@ -329,7 +330,8 @@ egrid_state <-
 egrid_ba <- 
   bind_rows(egrid_2018_ba %>% 
               mutate(across(.cols = any_of(paste0("BA", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)), 
+                            .fns = ~ .x * 100)) %>% 
+              rename("BANAMEPCAP" = NAMEPCAP), 
             egrid_2019_ba %>% 
               mutate(across(.cols = any_of(paste0("BA", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)), 
@@ -351,7 +353,8 @@ egrid_ba <-
 egrid_subregion <- 
   bind_rows(egrid_2018_subregion %>% 
               mutate(across(.cols = any_of(paste0("SRL", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)), 
+                            .fns = ~ .x * 100)) %>% 
+              rename("SRNAMEPCAP" = NAMEPCAP), 
             egrid_2019_subregion %>% 
               mutate(across(.cols = any_of(paste0("SRL", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)), 
@@ -373,7 +376,8 @@ egrid_subregion <-
 egrid_nerc <- 
   bind_rows(egrid_2018_nerc %>% 
               mutate(across(.cols = any_of(paste0("NRL", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)), 
+                            .fns = ~ .x * 100)) %>% 
+              rename("NRNAMEPCAP" = NAMEPCAP), 
             egrid_2019_nerc %>% 
               mutate(across(.cols = any_of(paste0("NRL", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)), 
@@ -395,7 +399,8 @@ egrid_nerc <-
 egrid_us <- 
   bind_rows(egrid_2018_us %>% 
               mutate(across(.cols = any_of(paste0("US", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)), 
+                            .fns = ~ .x * 100)) %>% 
+              rename("USNAMEPCAP" = NAMEPCAP), 
             egrid_2019_us %>% 
               mutate(across(.cols = any_of(paste0("US", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)), 
