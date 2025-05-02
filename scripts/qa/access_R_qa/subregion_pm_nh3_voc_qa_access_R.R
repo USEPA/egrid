@@ -39,7 +39,7 @@ if (exists("params")) {
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
 }
-
+emission_type = "pm25"
 # Create QA function -----
 subregion_qa <- function(emission_type) {
   print(paste(toupper(emission_type), "SUBREGION QA IN PROGRESS"))
@@ -81,15 +81,23 @@ subregion_qa <- function(emission_type) {
   } else {
     emission_abbrev <- emission_type
   }
-  
-  # subregion_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
-  #                               sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Subregion-level Data"),
-  #                               skip = 1,
-  #                               col_names = TRUE) %>%
-  #   filter(SUBRGN != "U.S.")
-  subregion_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_subregion.xlsx"), 
-                                     col_names = TRUE) %>%
-    rename(SRNGENAN = Gen, SRPM25AN = PM25tons, SRPM25RTA = Rate)
+  if(params$eGRID_year == "2021") {
+  subregion_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"),
+                                sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Subregion-level Data"),
+                                skip = 1,
+                                col_names = TRUE) %>%
+    filter(SUBRGN != "U.S.")
+  } else {
+      if(emission_type == "pm25") {
+        subregion_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_subregion.xlsx"), 
+                                      col_names = TRUE) %>%
+          rename(SRNGENAN = Gen, SRPM25AN = PM25tons, SRPM25RTA = Rate)
+      } else {
+          subregion_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_subregion.xlsx"), 
+                                             col_names = TRUE) %>%
+            rename(SRNGENAN = Gen, SRPM25AN = PM25tons, SRPM25RTA = Rate)
+      }
+  }
   
   ## Define updated column names ---------
   # Load abbreviated name to snake_case matches
@@ -229,5 +237,5 @@ print(paste(toupper(emission_type), "SUBREGION QA COMPLETE"))
 
 # Run function for emission types -----
 subregion_qa("pm25")
-subregion_qa("nh3")
-subregion_qa("voc")
+#subregion_qa("nh3")
+#subregion_qa("voc")

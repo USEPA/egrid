@@ -88,7 +88,7 @@ plant_qa <- function(emission_type) {
       rename(PLPM25AN = PLPM25AN2, PLPM25RTA = PLPM25RTA2)
   } else if(params$eGRID_year == "2022") {
     plant_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_plant.xlsx"),
-                                   sheet = "PLNT_A___latest_NEI_yr_with_PM1",
+                                   sheet = "PLNT_A___latest_NEI_yr_with_PM_",
                                    col_names = TRUE) %>%
       rename(PLPM25AN = PLPM25AN2, PLPM25RTA = PLPM25RTA2)
   }
@@ -342,5 +342,5 @@ print(paste(toupper(emission_type), "PLANT QA COMPLETE"))
 
 # Run function for emission types -----
 plant_qa("pm25")
-plant_qa("nh3")
-plant_qa("voc")
+#plant_qa("nh3")
+#plant_qa("voc")
