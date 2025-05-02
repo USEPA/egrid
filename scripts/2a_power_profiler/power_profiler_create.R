@@ -55,8 +55,7 @@ plant_file <-
          utility_id = as.character(utility_id)) %>%
   rename(egrid_subregion = subrgn,
          system_owner_id = transmission_or_distribution_system_owner_id,
-         plant_state = state) %>%
-  glimpse()
+         plant_state = state)
 
 # load in previous power profiler data which had zip, utility code, predominant utility, etc. 
 power_profiler_old <-
@@ -90,8 +89,7 @@ eia_861_sales_ult_cust <-
   eia_861$sales_ult_cust %>%
   mutate(year = as.character(year),
          utility_number = as.character(utility_number)) %>%
-  filter(year == "2023") %>% # remove note for calculations
-  glimpse()
+  filter(year == "2023") # remove note for calculations
 
 # Load necessary crosswalks -----
 
