@@ -66,7 +66,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
   } else {
     ## EIA-923 - for Schedule C Air Emissions Control information (2023+)
     if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) {
-      eia_923 <- read_rds(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_clean.RDS"))$air_emissions_control_info
+      eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))$air_emissions_control_info
     } else {
       stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
   }
@@ -86,30 +86,36 @@ unit_data_pm_nh3_voc <- function(emission_type){
   efs <- read_csv(glue::glue("data/2b_pm_nh3_voc/static_tables/emission_factors_{emission_type}.csv"), col_types = "cccdccc") %>%
     janitor::clean_names()
   
-  ## eGRID production model data - unit file
-  unit_file_raw <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
-                          sheet = paste0("UNT", substr(params$eGRID_year, 3, 4)),
-                          skip = 1,
-                          col_names = TRUE) %>%
-    rename(CAPDFLAG = CAMDFLAG) %>% # rename CAMD flag to updated name
-  rename_with(~ ifelse(. == paste0("SEQUNT", substr(params$eGRID_year, 3, 4)), "SEQUNT", .)) # rename SEQUNT if necessary
-  
-  # replace any "NA" strings with an NA
-  unit_file_raw[unit_file_raw == "NA"] <- NA_character_ 
-  
-  # Prepare unit data for evaluation --------------
-  # Load abbreviated name to snake_case matches
-  load("data/1_production_model/static_tables/name_matches.Rdata")
-  # Select names present in unit file column names
-  unit_new_names <- unit_nonmetric[names(unit_nonmetric) %in% colnames(unit_file_raw)]
-  
-  ## rename data columns to prepare for computation
-  unit_file <- 
-    unit_file_raw %>%
-    # rename columns based on name matches
-    rename(!!!setNames(lapply(names(unit_new_names), sym), unit_new_names)) %>%
-    # convert year and plant_id data to characters
-    mutate(year = as.character(year), plant_id = as.character(plant_id))
+  ## eGRID production model data - unit file (2021 & 2022)
+  if(params$eGRID_year %in% c("2021", "2022")) {
+    unit_file_raw <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
+                            sheet = paste0("UNT", substr(params$eGRID_year, 3, 4)),
+                            skip = 1,
+                            col_names = TRUE) %>%
+      rename(CAPDFLAG = CAMDFLAG) %>% # rename CAMD flag to updated name
+    rename_with(~ ifelse(. == paste0("SEQUNT", substr(params$eGRID_year, 3, 4)), "SEQUNT", .)) # rename SEQUNT if necessary
+    
+    # replace any "NA" strings with an NA
+    unit_file_raw[unit_file_raw == "NA"] <- NA_character_ 
+    
+    # Prepare unit data for evaluation --------------
+    # Load abbreviated name to snake_case matches
+    load("data/1_production_model/static_tables/name_matches.Rdata")
+    # Select names present in unit file column names
+    unit_new_names <- unit_nonmetric[names(unit_nonmetric) %in% colnames(unit_file_raw)]
+    
+    ## rename data columns to prepare for computation
+    unit_file <- 
+      unit_file_raw %>%
+      # rename columns based on name matches
+      rename(!!!setNames(lapply(names(unit_new_names), sym), unit_new_names)) %>%
+      # convert year and plant_id data to characters
+      mutate(year = as.character(year), plant_id = as.character(plant_id))
+    
+  ## eGRID production model data - unit file (2023+)
+  } else {
+      unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
+  }
   
   # Calculate PM data -------------
   ## 1) Direct Match - "NEI/EIA" --------------
@@ -186,7 +192,6 @@ unit_data_pm_nh3_voc <- function(emission_type){
   
   # if there is a unit match with EIA-923, adjust emission by control efficiency (only for PM2.5 data)
   if(emission_type == "pm25") {
-  # if(emission_type %in% c("pm25", "nh3", "voc")) {
     removal_efficiencies <-
       eia_923 %>%
       # select plants with removal efficiency rates
