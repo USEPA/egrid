@@ -43,26 +43,32 @@ plant_data_pm_nh3_voc <- function(emission_type){
   require(readxl)
 
   # Load necessary data --------------------
-  ## eGRID production model data - plant file
-  plant_file_raw <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
-                              sheet = paste0("PLNT", substr(params$eGRID_year, 3, 4)),
-                              skip = 1,
-                              col_names = TRUE) %>%
-    rename(CAPDFLAG = CAMDFLAG)
-  
-  # Prepare plant data for evaluation --------------
-  # Load abbreviated name to snake_case matches
-  load("data/1_production_model/static_tables/name_matches.Rdata")
-  # Select names present in unit file column names
-  plant_new_names <- plant_nonmetric[names(plant_nonmetric) %in% colnames(plant_file_raw)]
-  
-  ## rename data columns to prepare for computation
-  plant_file <- 
-    plant_file_raw %>%
-    # rename columns based on name matches
-    rename(!!!setNames(lapply(names(plant_new_names), sym), plant_new_names)) %>%
-    # convert year and plant_id data to characters
-    mutate(year = as.character(year), plant_id = as.character(plant_id))
+  ## eGRID production model data - plant file (2021 & 2022)
+  if(params$eGRID_year %in% c("2021", "2022")) {
+    plant_file_raw <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
+                                sheet = paste0("PLNT", substr(params$eGRID_year, 3, 4)),
+                                skip = 1,
+                                col_names = TRUE) %>%
+      rename(CAPDFLAG = CAMDFLAG)
+    
+    # Prepare plant data for evaluation --------------
+    # Load abbreviated name to snake_case matches
+    load("data/1_production_model/static_tables/name_matches.Rdata")
+    # Select names present in unit file column names
+    plant_new_names <- plant_nonmetric[names(plant_nonmetric) %in% colnames(plant_file_raw)]
+    
+    ## rename data columns to prepare for computation
+    plant_file <- 
+      plant_file_raw %>%
+      # rename columns based on name matches
+      rename(!!!setNames(lapply(names(plant_new_names), sym), plant_new_names)) %>%
+      # convert year and plant_id data to characters
+      mutate(year = as.character(year), plant_id = as.character(plant_id))
+    
+    ## eGRID production model data - plant file (2023+)
+  } else {
+    plant_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
+  }
 
   # Run unit data creation script ---------
   source("scripts/functions/function_unit_data_pm_nh3_voc.R")
