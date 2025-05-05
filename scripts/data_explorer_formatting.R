@@ -71,7 +71,7 @@ for(i in 1:length(urls)) { # download files online if they have not already been
 
 # Load historical eGRID years --------------------------
 
-for(year in c(2018:2022)) { ### Note: check for updates or changes each data year ### Add previous data year here
+for(year in c(2018:(as.numeric(params$eGRID_year) - 1))) { ### Note: check for updates or changes each data year ### Add previous data year here
   name_plant <- glue::glue("egrid_{as.character(year)}_plant")
   name_state <- glue::glue("egrid_{as.character(year)}_state")
   name_ba <- glue::glue("egrid_{as.character(year)}_ba")
@@ -289,19 +289,7 @@ egrid_plant_2 <- # merge secondary fuel into plant file
          "PLPRMFL" = PLPRMFL2) %>% 
   # re-order new columns to location in 2023 data
   relocate(SECFUEL, .after = "FUEL") %>% 
-  relocate(PLPRMFL, .after = "PLPRMFL_OLD") %>% 
-  relocate(CAPDFLAG, .after = "LON") %>% 
-  relocate(PLNGENNB, .after = "PLNGENOZ") %>% 
-  relocate(PLC2ECRT, .after = "PLN2OCRT") %>% 
-  relocate(UNCO2E, .after = "UNN2O") %>% 
-  relocate(UNC2ESRC, .after = "UNN2OSRC") %>% 
-  relocate(BIOCO2E, .after = "BION2O") %>% 
-  relocate(CHPCO2E, .after = "CHPN2O") %>% 
-  relocate(PLGENATO, .after = "PLGENATR") %>% 
-  relocate(PLGENACO, .after = "PLGENACN") %>% 
-  relocate(PLTOPR, .after = "PLTRPR") %>% 
-  relocate(PLCOPR, .after = "PLCNPR")
-
+  relocate(PLPRMFL, .after = "PLPRMFL_OLD") 
 ### State file --------------------
 
 egrid_state <- 
