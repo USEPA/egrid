@@ -53,31 +53,42 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
     plant_data %>%
     rename_with(~gsub("emission", emission_type, .)) %>%
     group_by(egrid_subregion, egrid_subregion_name) %>%
-    summarise(generation_ann_sum = sum(generation_ann, na.rm = TRUE), "{emission_type}_ann_sum" := sum(get(paste0(emission_type, "_ann")), na.rm = TRUE)) %>%
+    summarise(generation_ann_sum = sum(generation_ann, na.rm = TRUE), 
+              "{emission_type}_ann_sum" := sum(get(paste0(emission_type, "_ann")), na.rm = TRUE)) %>%
     mutate(subregion_generation_ann = round(generation_ann_sum, 0),
-           "{emission_type}_tons" := round(get(paste0(emission_type, "_ann_sum")), 2),
-           "{emission_type}_rate" := round(get(paste0(emission_type, "_ann_sum")) * 2000 / generation_ann_sum, 4),
+           "{emission_type}_ann" := round(get(paste0(emission_type, "_ann_sum")), 2),
+           "{emission_type}_output_rate" := round(get(paste0(emission_type, "_ann_sum")) * 2000 / generation_ann_sum, 4),
            year = params$eGRID_year) %>%
     ungroup() %>%
-    select(year, subregion = egrid_subregion, subregion_name = egrid_subregion_name, subregion_generation_ann, paste0(emission_type, "_tons"), paste0(emission_type, "_rate"))
+    select(year, 
+           subregion = egrid_subregion, 
+           subregion_name = egrid_subregion_name, 
+           subregion_generation_ann, 
+           paste0(emission_type, "_ann"), 
+           paste0(emission_type, "_output_rate"))
   
   # Sum emission subregion data to US -------
   us_emissions <-
     subregion_emissions %>%
-    summarise(generation_ann = sum(subregion_generation_ann, na.rm = TRUE), "{emission_type}_tons" := sum(get(paste0(emission_type, "_tons")), na.rm = TRUE)) %>%
+    summarise(generation_ann = sum(subregion_generation_ann, na.rm = TRUE), 
+              "{emission_type}_tons" := sum(get(paste0(emission_type, "_ann")), na.rm = TRUE)) %>%
     mutate("{emission_type}_rate" := round(get(paste0(emission_type, "_tons")) * 2000 / generation_ann, 4),
            year = params$eGRID_year) %>%
     relocate(year, .before = generation_ann)
-  
   
   # Sum emission plant data by state ---------
   state_emissions <-
     plant_file %>%
     group_by(plant_state) %>%
-    summarise(generation_ann = sum(generation_ann, na.rm = TRUE), "{emission_type}_ann" := sum(get(paste0(emission_type, "_ann")), na.rm = TRUE), "{emission_type}_output_rate" := get(paste0(emission_type, "_ann")) * 2000 / generation_ann) %>%
+    summarise(state_generation_ann = sum(generation_ann, na.rm = TRUE), 
+              "{emission_type}_ann" := sum(get(paste0(emission_type, "_ann")), na.rm = TRUE),
+              "{emission_type}_output_rate" := get(paste0(emission_type, "_ann")) * 2000 / state_generation_ann) %>%
     mutate(year = params$eGRID_year) %>%
-    select(year, plant_state, generation_ann, paste0(emission_type, "_ann"), paste0(emission_type, "_output_rate"))
-  
+    select(year, 
+           state = plant_state, 
+           state_generation_ann, 
+           paste0(emission_type, "_ann"), 
+           paste0(emission_type, "_output_rate"))
   
   # Save aggregated data ----------
   source("scripts/functions/function_save_output_data.R")
