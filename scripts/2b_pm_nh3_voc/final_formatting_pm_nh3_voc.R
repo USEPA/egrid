@@ -40,8 +40,10 @@ if (exists("params")) {
 emission_type <- "pm25"
 if(emission_type == "pm25") {
   emission_abbrev <- "pm"
+  emission_header <- "PM2.5"
 } else {
   emission_abbrev <- emission_type
+  emission_header <- emission_type
 }
 
 # Define selection of style types -----
@@ -89,7 +91,7 @@ for (file in (filenames)){
 load("data/1_production_model/static_tables/name_matches.Rdata")
 
 # define level abbreviations to assist in renaming
-level_abbrev <-c("unit" = "",
+level_abbrev <- c("unit" = "",
                  "plant" = "PL",
                  "state" = "ST",
                  "subregion" = "SR")
@@ -131,6 +133,12 @@ for(emission_level in c("unit", "plant", "state", "subregion")) {
   emission_data_formatted <-
     get(emission_data) %>%
     rename(!!!setNames(lapply(colnames, sym), names(colnames)))
+  
+  ## Gather header names from function -----
+  source("scripts/functions/function_formatting_headers_pm_nh3_voc.R")
+  headers <- function_formatting_headers_pm_nh3_voc(emission_level)
+  names(headers) <- colnames(emission_data_formatted)
+  headers_to_write <- matrix(unname(headers), ncol = length(headers))
 
   ## Create new worksheet for emissions level -----
 
@@ -140,11 +148,15 @@ for(emission_level in c("unit", "plant", "state", "subregion")) {
   ## Write data to new worksheet -----
   
   # full description headers
+  writeData(wb, current_worksheet, headers_to_write, startCol = 1, startRow = 1, colNames = FALSE)
   
   # emissions data
-  writeData(wb, sheet = current_worksheet, x = emission_data_formatted, startCol = 1, startRow = 2)
+  writeData(wb, current_worksheet,emission_data_formatted, startCol = 1, startRow = 2)
 
   ## Format worksheet -----
+  
+  sheetWidth <- length(emission_data_formatted)
+  sheetLength <- nrow(emission_data_formatted)
   
   ### Headers -----
   
@@ -178,12 +190,30 @@ for(emission_level in c("unit", "plant", "state", "subregion")) {
   ### Cell Sizes ------
   setRowHeights(wb, current_worksheet, rows = 1, heights = 54)
   setRowHeights(wb, current_worksheet, rows = 2:sheetLength, heights = 10.5)
-  setColWidths(wb, current_worksheet, cols = c(1:sheetWidth), widths = 12.7)
+  setColWidths(wb, current_worksheet, cols = c(1:sheetWidth), widths = 13)
+  setColWidths(wb, current_worksheet, cols = which(grepl("PNAME", colnames(emission_data_formatted))), widths = 38)
+  setColWidths(wb, current_worksheet, cols = which(grepl("SRC$", colnames(emission_data_formatted))), widths = 28.29)
+  
+  ### Freeze Pane -----
+  if(emission_level == "unit") {
+    freezePane(wb, current_worksheet, firstActiveCol = 6, firstActiveRow = 3)
+  } else if(emission_level == "plant") {
+    freezePane(wb, current_worksheet, firstActiveCol = 5, firstActiveRow = 3)
+  } else {
+    freezePane(wb, current_worksheet, firstActiveRow = 3)
+  }
 
   ### Data Types -----
+  
+  # add number formats
+  # addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0"), rows = 5:sheetLength, 
+  #          cols = c(4, 7:9, 11, 14:16), stack = TRUE, gridExpand = TRUE)
+  # addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.000"), rows = 5:sheetLength, 
+  #          cols = c(5:6, 10, 12:13, 17), stack = TRUE, gridExpand = TRUE)
+  # addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0%"), rows = 5:sheetLength, 
+  #          cols = 18, stack = TRUE, gridExpand = TRUE)
   
 }
 
 saveWorkbook(wb, glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/{emission_type}_final.xlsx"), 
              overwrite = TRUE)
-
