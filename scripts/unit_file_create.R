@@ -104,9 +104,17 @@ if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean
    stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
 ## Generator file -------
-gen_file <- # load generator file
-  read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file_annual.RDS")) 
+if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))) { 
+  gen_file <- # load generator file
+    read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS")) %>% 
+    group_by(plant_id, generator_id, prime_mover, nameplate_capacity) %>% 
+    summarize(generation = sum(generation, na.rm = TRUE)) %>% 
+    distinct() %>% 
+    ungroup()
+} else { 
+  stop(glue::glue("generator_file_{params$temporal_res}.RDS does not exist. Run generator_file_create.R to obtain."))}
 
+  
 ## Crosswalks and static tables ---------
 # for each crosswalk or static table, we specify the column types (ex: character or numeric) to avoid misread values
 
@@ -851,9 +859,6 @@ eia_fuel_consum_fuel_type <- # summing fuel and consum to PM and fuel_type level
 
 dist_props <- # determining distributional proportions to distribute heat inputs
   gen_file %>% 
-  group_by(plant_id, generator_id, prime_mover, nameplate_capacity) %>% 
-  summarize(generation = sum(generation, na.rm = TRUE)) %>% 
-  distinct() %>% 
   filter(generation != 0) %>% 
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_namecap = sum(nameplate_capacity, na.rm = TRUE)) %>%
