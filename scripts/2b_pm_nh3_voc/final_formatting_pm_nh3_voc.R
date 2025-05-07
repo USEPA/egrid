@@ -68,14 +68,20 @@ headers_abbrev <- createStyle(
   borderColour = "black",
   borderStyle = "thin")
 
+us_row <- createStyle(
+  fontName = "Arial",
+  textDecoration = "bold",
+  fgFill = "#F2F2F2")
+
 # Import .RDS data -----
 
 # create a list of files in R directory
 data_dir <- glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/")
 filename_types <- list("unit_file_",
-                         "plant_file_",
-                         "state_aggregation_",
-                         "subregion_aggregation_")
+                       "plant_file_",
+                       "state_aggregation_",
+                       "subregion_aggregation_",
+                       "us_aggregation_")
 filenames <- lapply(filename_types, function(filename) paste0(filename, paste0(emission_type, ".RDS")))
 
 # import files in filenames list
@@ -96,13 +102,24 @@ level_abbrev <- c("unit" = "",
                  "state" = "ST",
                  "subregion" = "SR")
 
+# Add US data to bottom of subregion data -----
+us_formatted <-
+  us_file %>%
+  mutate(subregion = "U.S.", 
+         subregion_name = "") %>%
+  rename(subregion_generation_ann = generation_ann)
+
+subregion_file <-
+  subregion_file %>%
+  bind_rows(us_formatted)
+
 # Create workbook -----
 wb <- createWorkbook()
 
 # set base font
 modifyBaseFont(wb, fontName = "Arial", fontSize = 8.5)
 
-# Loop through emission levels and write and format data
+# Loop through emission levels and write and format data -----
 for(emission_level in c("unit", "plant", "state", "subregion")) {
   
   ## Rename and format level data -----
@@ -147,6 +164,9 @@ for(emission_level in c("unit", "plant", "state", "subregion")) {
   
   ## Write data to new worksheet -----
   
+  sheetWidth <- length(emission_data_formatted)
+  sheetLength <- nrow(emission_data_formatted) + 2
+  
   # full description headers
   writeData(wb, current_worksheet, headers_to_write, startCol = 1, startRow = 1, colNames = FALSE)
   
@@ -154,10 +174,7 @@ for(emission_level in c("unit", "plant", "state", "subregion")) {
   writeData(wb, current_worksheet,emission_data_formatted, startCol = 1, startRow = 2)
 
   ## Format worksheet -----
-  
-  sheetWidth <- length(emission_data_formatted)
-  sheetLength <- nrow(emission_data_formatted)
-  
+
   ### Headers -----
   
   # assign column type for color-coding based on variable naming
@@ -190,9 +207,9 @@ for(emission_level in c("unit", "plant", "state", "subregion")) {
   ### Cell Sizes ------
   setRowHeights(wb, current_worksheet, rows = 1, heights = 54)
   setRowHeights(wb, current_worksheet, rows = 2:sheetLength, heights = 10.5)
-  setColWidths(wb, current_worksheet, cols = c(1:sheetWidth), widths = 13)
-  setColWidths(wb, current_worksheet, cols = which(grepl("PNAME", colnames(emission_data_formatted))), widths = 38)
-  setColWidths(wb, current_worksheet, cols = which(grepl("SRC$", colnames(emission_data_formatted))), widths = 28.29)
+  setColWidths(wb, current_worksheet, cols = c(1:sheetWidth), widths = 13.25)
+  setColWidths(wb, current_worksheet, cols = which(grepl("NAME$", colnames(emission_data_formatted))), widths = 38.25)
+  setColWidths(wb, current_worksheet, cols = which(grepl("SRC$", colnames(emission_data_formatted))), widths = 29)
   
   ### Freeze Pane -----
   if(emission_level == "unit") {
@@ -202,17 +219,37 @@ for(emission_level in c("unit", "plant", "state", "subregion")) {
   } else {
     freezePane(wb, current_worksheet, firstActiveRow = 3)
   }
+  
+  ### US Data Row -----
+  if(emission_level == "subregion") {
+    addStyle(wb, current_worksheet, us_row, rows = sheetLength, cols = 1:sheetWidth)
+  }
 
-  ### Data Types -----
+  ### Number Formats -----
   
-  # add number formats
-  # addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0"), rows = 5:sheetLength, 
-  #          cols = c(4, 7:9, 11, 14:16), stack = TRUE, gridExpand = TRUE)
-  # addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.000"), rows = 5:sheetLength, 
-  #          cols = c(5:6, 10, 12:13, 17), stack = TRUE, gridExpand = TRUE)
-  # addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0%"), rows = 5:sheetLength, 
-  #          cols = 18, stack = TRUE, gridExpand = TRUE)
+  # generation annual, heat annual, operating hours, unadjusted heat input
+  addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0"), rows = 3:sheetLength,
+           cols = which(grepl("GENAN$|HTIAN$|^HRSOP$|UNHTI$", colnames(emission_data_formatted))),
+           stack = TRUE, gridExpand = TRUE)
+  # emission annual values
+  addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.000"), rows = 3:sheetLength,
+           cols = which(grepl(paste0(toupper(emission_type), "AN"), colnames(emission_data_formatted))),
+           stack = TRUE, gridExpand = TRUE)
+  # emission rates 
+  addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0000"), rows = 3:sheetLength,
+           cols = which(grepl("RT$|RTA$|RA$", colnames(emission_data_formatted))), 
+           stack = TRUE, gridExpand = TRUE)
   
+  # NAMEPCAP
+  # ELCALLOC
+  # UNPM25
+  
+  # STATE
+  
+  # SUBREGION
+  
+  # these may need to differ based on the level...
+  # check to see if we can switch to integer if value exceeds 1
 }
 
 saveWorkbook(wb, glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/{emission_type}_final.xlsx"), 
