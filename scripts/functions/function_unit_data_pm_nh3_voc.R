@@ -109,8 +109,10 @@ unit_data_pm_nh3_voc <- function(emission_type){
       unit_file_raw %>%
       # rename columns based on name matches
       rename(!!!setNames(lapply(names(unit_new_names), sym), unit_new_names)) %>%
-      # convert year and plant_id data to characters
-      mutate(year = as.character(year), plant_id = as.character(plant_id))
+      # convert years and plant_id data to characters
+      mutate(year = as.character(year), 
+             plant_id = as.character(plant_id),
+             year_online = as.character(year_online))
     
   ## eGRID production model data - unit file (2023+)
   } else {
