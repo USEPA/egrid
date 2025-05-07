@@ -71,8 +71,8 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
   us_emissions <-
     subregion_emissions %>%
     summarise(generation_ann = sum(subregion_generation_ann, na.rm = TRUE), 
-              "{emission_type}_tons" := sum(get(paste0(emission_type, "_ann")), na.rm = TRUE)) %>%
-    mutate("{emission_type}_rate" := round(get(paste0(emission_type, "_tons")) * 2000 / generation_ann, 4),
+              "{emission_type}_ann" := sum(get(paste0(emission_type, "_ann")), na.rm = TRUE)) %>%
+    mutate("{emission_type}_output_rate" := round(get(paste0(emission_type, "_ann")) * 2000 / generation_ann, 4),
            year = params$eGRID_year) %>%
     relocate(year, .before = generation_ann)
   
