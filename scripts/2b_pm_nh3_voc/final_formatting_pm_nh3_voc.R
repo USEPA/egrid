@@ -18,9 +18,6 @@ library(readr)
 library(readxl)
 library(stringr)
 
-params <- list()
-params$eGRID_year <- "2022"
-
 # Define eGRID year parameter ----------------
 # define parameter year if no one is currently assigned using prompted user input
 if (exists("params")) {
@@ -207,9 +204,9 @@ for(emission_level in c("unit", "plant", "state", "subregion")) {
   ### Cell Sizes ------
   setRowHeights(wb, current_worksheet, rows = 1, heights = 54)
   setRowHeights(wb, current_worksheet, rows = 2:sheetLength, heights = 10.5)
-  setColWidths(wb, current_worksheet, cols = c(1:sheetWidth), widths = 13.25)
+  setColWidths(wb, current_worksheet, cols = c(1:sheetWidth), widths = 13.5)
   setColWidths(wb, current_worksheet, cols = which(grepl("NAME$", colnames(emission_data_formatted))), widths = 38.25)
-  setColWidths(wb, current_worksheet, cols = which(grepl("SRC$", colnames(emission_data_formatted))), widths = 29)
+  setColWidths(wb, current_worksheet, cols = which(grepl("SRC$", colnames(emission_data_formatted))), widths = 30)
   
   ### Freeze Pane -----
   if(emission_level == "unit") {
@@ -227,30 +224,23 @@ for(emission_level in c("unit", "plant", "state", "subregion")) {
 
   ### Number Formats -----
   
-  # generation annual, heat annual, operating hours, unadjusted heat input
+  # generation annual, heat annual, operating hours, unadjusted heat input, state annual emissions, subregion annual emissions
   addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0"), rows = 3:sheetLength,
-           cols = which(grepl("GENAN$|HTIAN$|^HRSOP$|UNHTI$", colnames(emission_data_formatted))),
+           cols = which(grepl(glue::glue("GENAN$|HTIAN$|^HRSOP$|UNHTI$|^ST{toupper(emission_type)}AN$|^SR{toupper(emission_type)}AN$"), colnames(emission_data_formatted))),
            stack = TRUE, gridExpand = TRUE)
-  # emission annual values
+  # nameplate capacity
+  addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0"), rows = 3:sheetLength,
+           cols = which(grepl("^NAMEPCAP$", colnames(emission_data_formatted))),
+           stack = TRUE, gridExpand = TRUE)
+  # unit annual emission values, plant annual emission values, unadjusted annual rates
   addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.000"), rows = 3:sheetLength,
-           cols = which(grepl(paste0(toupper(emission_type), "AN"), colnames(emission_data_formatted))),
+           cols = which(grepl(glue::glue("^{toupper(emission_type)}AN|^PL{toupper(emission_type)}AN|^UN{toupper(emission_type)}"), colnames(emission_data_formatted))),
            stack = TRUE, gridExpand = TRUE)
   # emission rates 
   addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0000"), rows = 3:sheetLength,
-           cols = which(grepl("RT$|RTA$|RA$", colnames(emission_data_formatted))), 
+           cols = which(grepl("RT$|RTA$|RA$|^ELCALLOC$", colnames(emission_data_formatted))), 
            stack = TRUE, gridExpand = TRUE)
-  
-  # NAMEPCAP
-  # ELCALLOC
-  # UNPM25
-  
-  # STATE
-  
-  # SUBREGION
-  
-  # these may need to differ based on the level...
-  # check to see if we can switch to integer if value exceeds 1
 }
 
-saveWorkbook(wb, glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/{emission_type}_final.xlsx"), 
+saveWorkbook(wb, glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
              overwrite = TRUE)
