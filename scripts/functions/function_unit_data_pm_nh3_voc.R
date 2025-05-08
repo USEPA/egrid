@@ -79,8 +79,11 @@ unit_data_pm_nh3_voc <- function(emission_type){
     stop(glue::glue("nei_{emission_type}_emissions.csv does not exist."))}
   
   ## NEI-EIA crosswalk matching NEI and EIA unit ids
-  nei_eia_xwalk <- read_csv("data/2b_pm_nh3_voc/static_tables/xwalk_nei_eia.csv", col_types = "cccccccccccccccccccc") %>%
-    janitor::clean_names()
+  if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv"))) { 
+    nei_eia_xwalk <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv"), col_types = "cccccccccccccccccccc") %>%
+      janitor::clean_names()
+  } else { 
+    stop(glue::glue("data/2b_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv does not exist."))}
   
   ## Particulate matter emission factors from EPA AP-42 dataset
   efs <- read_csv(glue::glue("data/2b_pm_nh3_voc/static_tables/emission_factors_{emission_type}.csv"), col_types = "cccdccc") %>%
