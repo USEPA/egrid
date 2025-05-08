@@ -149,8 +149,8 @@ for(emission_level in c("unit", "plant", "state", "subregion")) {
     rename(!!!setNames(lapply(colnames, sym), names(colnames)))
   
   ## Gather header names from function -----
-  source("scripts/functions/function_formatting_headers_pm_nh3_voc.R")
-  headers <- function_formatting_headers_pm_nh3_voc(emission_level)
+  source("scripts/functions/function_format_headers_pm_nh3_voc.R")
+  headers <- function_format_headers_pm_nh3_voc(emission_level)
   names(headers) <- colnames(emission_data_formatted)
   headers_to_write <- matrix(unname(headers), ncol = length(headers))
 
