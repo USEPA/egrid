@@ -1736,8 +1736,13 @@ The final output file is `r glue::glue("egrid{params$eGRID_year}_data.xlsx")`.
 
 ```{r}
 #| label: final-formatting
-#| file: "scripts/final_formatting.R"
 #| results: hold
+
+if(params$temporal_res == "annual"){
+  source("scripts/final_formatting_annual.R")
+} else if(params$temporal_res == "monthly") { 
+  source("scripts/final_formatting_monthly.R")}
+
 ```
 
 ### Metric Version
@@ -1746,8 +1751,13 @@ The final metric output file is `r glue::glue("egrid{params$eGRID_year}_data_met
 
 ```{r}
 #| label: metric-final-formatting
-#| file: "scripts/final_formatting_metric.R"
 #| results: hold
+
+if(params$temporal_res == "annual"){
+  source("scripts/final_formatting_metric_annual.R")
+} else if(params$temporal_res == "monthly") { 
+  source("scripts/final_formatting_metric_monthly.R")}
+
 ```
 
 # eGRID Summary

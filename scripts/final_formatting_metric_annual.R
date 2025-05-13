@@ -411,7 +411,7 @@ for (i in 2:length(names(unt_labels))) { # skip SEQUNT since this will always be
     unit_check_cols <- c(unit_check_cols, names(unt_labels)[i]) }} 
 
 if (!is.null(unit_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R unit_metric_annual: {glue::glue_collapse(unit_check_cols, sep = ', ')}")))
+  stop(print(glue::glue("These columns do not match name_matching.R unit_metric_annual: {glue::glue_collapse(unit_check_cols, sep = ', ')}. Check for errors.")))
 } else {
   print("All shorthand columns match name_matching.R unit_metric_annual.")
 }
@@ -518,7 +518,7 @@ for (i in 2:length(names(gen_labels))) { # skip SEQGEN since this will always be
     gen_check_cols <- c(gen_check_cols, names(gen_labels)[i]) }} 
 
 if (!is.null(gen_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R generator_metric_annual: {glue::glue_collapse(gen_check_cols, sep = ', ')}")))
+  stop(print(glue::glue("These columns do not match name_matching.R generator_metric_annual: {glue::glue_collapse(gen_check_cols, sep = ', ')}. Check for errors.")))
 } else {
   print("All shorthand columns match name_matching.R generator_metric_annual.")
 }
@@ -772,7 +772,7 @@ plnt_labels <- c(seqplt_label,
                  "PLGENATN2" = "Plant annual total nonrenewables net generation (GJ)", # new metric
                  "PLGENATR"  = "Plant annual total renewables net generation (MWh)",
                  "PLGENATR2" = "Plant annual total renewables net generation (GJ)", # new metric
-                 "PLGENATO"  = "Plant annual total nonrenweable other unknown/purchased net generation (MWh)", # new
+                 "PLGENATO"  = "Plant annual total nonrenweable other unknown/purchased net generation (MWh)", 
                  "PLGENATO2" = "Plant annual total nonrenweable other unknown/purchased net generation (GJ)", # new metric
                  
                  "PLGENATH"  = "Plant annual total nonhydro renewables net generation (MWh)",
@@ -973,7 +973,7 @@ for (i in 1:length((st_header))) {
     state_check_cols <- c(state_check_cols, st_header[i]) }} 
 
 if (!is.null(state_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R state_nonmetric_annual: {glue::glue_collapse(state_check_cols, sep = ', ')}")))
+  stop(print(glue::glue("These columns do not match name_matching.R state_nonmetric_annual: {glue::glue_collapse(state_check_cols, sep = ', ')}. Check for errors.")))
 } else {
   print("All shorthand columns match name_matching.R state_nonmetric_annual.")
 }
@@ -1034,7 +1034,7 @@ for (i in 1:length((ba_header))) {
     ba_check_cols <- c(ba_check_cols, ba_header[i]) }} 
 
 if (!is.null(ba_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R ba_metric_annual: {glue::glue_collapse(ba_check_cols, sep = ', ')}")))
+  stop(print(glue::glue("These columns do not match name_matching.R ba_metric_annual: {glue::glue_collapse(ba_check_cols, sep = ', ')}. Check for errors.")))
 } else {
   print("All shorthand columns match name_matching.R ba_metric_annual.")
 }
