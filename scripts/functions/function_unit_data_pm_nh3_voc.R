@@ -44,27 +44,18 @@ unit_data_pm_nh3_voc <- function(emission_type){
   require(readxl)
   
   # Load necessary data --------------------
-  if(params$eGRID_year == "2021") {
+  if(params$eGRID_year %in% c("2021", "2022")) {
     if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"))) {
       ## EIA-923 - for Schedule C Air Emissions Control information (2021)
-      eia_923 <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), col_types = "ccccccccddddcccdccddcdc") %>%
+      eia_923 <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), 
+                          col_types = "ccccccccddddcccdccddcdc",
+                          na = c("", ".")) %>%
         janitor::clean_names() %>%
+        # convert string percentages to numeric proportions
         mutate(across(.cols = where(is.character) & contains("efficiency"), 
                       .fns =  ~ as.numeric(sub("%", "", .)) / 100))
     } else {
       stop("eia_923_9c_airemissions.csv does not exist.")}
-  } else if(params$eGRID_year == "2022") {
-    ## EIA-923 - for Schedule C Air Emissions Control information (2022)
-    if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923.xlsx"))) {
-      eia_923 <- read_excel(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923.xlsx"),
-                            sheet = "8C Air Emissions Control Info",
-                            skip = 4,
-                            col_name = TRUE,
-                            col_types = c("text", "text", "text", "text", "text", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "numeric", "numeric", "text", "numeric", "numeric", "numeric", "numeric", "numeric"),
-                            na = ".") %>%
-        janitor::clean_names()
-    } else {
-      stop("eia_923.RDS does not exist.")}
   } else {
     ## EIA-923 - for Schedule C Air Emissions Control information (2023+)
     if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) {
