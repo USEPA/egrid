@@ -24,7 +24,7 @@ library(readr)
 library(readxl)
 library(stringr)
 
-### Load necessary functions --------------------
+## Load necessary functions --------------------
 
 source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_temporal_res_cols.R")

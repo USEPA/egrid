@@ -13,7 +13,7 @@
 ##
 ## -------------------------------
 
-### Load libraries ------
+# Load libraries -------------------------------------
 
 library(dplyr)
 library(tidyr)
@@ -32,7 +32,7 @@ if (!exists("params")) {
   print("eGRID year and version parameters are already defined.")
 }
 
-### Load in data ------ 
+# Load in data ----------------------------------------
 
 # load files
 unt_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file_metric.RDS"))
@@ -49,6 +49,9 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RD
   demo_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
 }
 
+# load name_matching.R
+source("scripts/name_matching.R")
+
 # extract last two digits of year for universal labeling
 year <- as.numeric(params$eGRID_year) %% 1000
 
@@ -58,7 +61,7 @@ source("scripts/functions/function_create_contents_egrid_final.R")
 create_contents_egrid_final()
 
 
-### Create styles ------
+# Create styles -----------------------------------------
 
 # call helper functions into script
 source("scripts/functions/function_format_styles.R")
@@ -68,7 +71,7 @@ source("scripts/functions/function_add_hyperlink.R")
 # create eGRID output style list using function
 s <- create_format_styles()
 
-### Standard Column Names -----
+# Standard Column Names -----------------------------------------
 # names for data sets: ST, BA, SRL, NRL, US
 # data for region aggregated files contain same columns and information
 # therefore, can assign a standardized list of columns, names, and styles
@@ -283,8 +286,8 @@ standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
                      "GENACY2"  = "annual total combustion net generation (GJ)", # new metric
                      "GENACN"   = "annual total noncombustion net generation (MWh)",
                      "GENACN2"  = "annual total noncombustion net generation (GJ)", # new metric
-                     "GENACNO"  = "annual total noncombustion other unknown/purchased net generation (MWh)",
-                     "GENACNO2" = "annual total noncombustion other unknown/purchased net generation (GJ)", # new metric
+                     "GENACO"   = "annual total noncombustion other unknown/purchased net generation (MWh)",
+                     "GENACO2"  = "annual total noncombustion other unknown/purchased net generation (GJ)", # new metric
 
                      "CLPR"     = "coal generation percent (resource mix)",
                      "OLPR"     = "oil generation percent (resource mix)",	
@@ -348,7 +351,7 @@ standard_header <- names(standard_labels)  # column names
 standard_desc   <- unname(standard_labels) # description of column names
 
 
-### UNT Formatting -----
+# UNT Formatting -------------------------------------
 
 ## create "UNT" sheet
 unt <- glue::glue("UNT{year}")
@@ -375,7 +378,7 @@ unt_labels <-  c(sequnt_label,
                  "UNITID"   = "Unit ID",
                  "PRMVR"    = "Prime Mover",
                  "UNTOPST"  = "Unit Operational Status",
-                 "CAMDFLAG" = "CAMD program flag",
+                 "CAPDFLAG" = "CAPD program flag",
                  "PRGCODE"  = "Program code(s)",
                  "BOTFIRTY" = "Unit bottom and firing type",
                  "NUMGEN"   = "Number of associated generators",
@@ -400,6 +403,18 @@ unt_labels <-  c(sequnt_label,
                  "HGCTLDV"  = "Unit Hg Activated carbon injection system flag",
                  "UNTYRONL" = "Unit year on-line",
                  "STACKHT"  = "Stack Height (meters)")
+
+# check if shorthand names match name_matching.R and stop if not. 
+unit_check_cols <- c()
+for (i in 2:length(names(unt_labels))) { # skip SEQUNT since this will always be different
+  if (names(unt_labels)[i] != names(unit_metric_annual)[i]) { 
+    unit_check_cols <- c(unit_check_cols, names(unt_labels)[i]) }} 
+
+if (!is.null(unit_check_cols)){ 
+  stop(print(glue::glue("These columns do not match name_matching.R unit_metric_annual: {glue::glue_collapse(unit_check_cols, sep = ', ')}")))
+} else {
+  print("All shorthand columns match name_matching.R unit_metric_annual.")
+}
 
 unt_header <- names(unt_labels)  # column names
 unt_desc   <- unname(unt_labels) # description of column names
@@ -455,7 +470,7 @@ addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 22:33,
 # freeze panes
 freezePane(wb, sheet = unt, firstActiveCol = 7, firstActiveRow = 3)
 
-### GEN Formatting -----
+# GEN Formatting --------------------------------------
 
 ## create "GEN" sheet
 gen <- glue::glue("GEN{year}")
@@ -495,6 +510,18 @@ gen_labels <- c(seqgen_label,
                 "GENERSRC"  = "Generation data source",
                 "GENYRONL"  = "Generator year on-line",
                 "GENYRRET"  = "Generator planned or actual retirement year")
+
+# check if shorthand names match name_matching.R and stop if not. 
+gen_check_cols <- c()
+for (i in 2:length(names(gen_labels))) { # skip SEQGEN since this will always be different
+  if (names(gen_labels)[i] != names(generator_metric_annual)[i]) { 
+    gen_check_cols <- c(gen_check_cols, names(gen_labels)[i]) }} 
+
+if (!is.null(gen_check_cols)){ 
+  stop(print(glue::glue("These columns do not match name_matching.R generator_metric_annual: {glue::glue_collapse(gen_check_cols, sep = ', ')}")))
+} else {
+  print("All shorthand columns match name_matching.R generator_metric_annual.")
+}
 
 gen_header <- names(gen_labels)  # column names
 gen_desc   <- unname(gen_labels) # description of column names
@@ -556,7 +583,7 @@ addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 17:19,
 # freeze panes
 freezePane(wb, sheet = gen, firstActiveCol = 7, firstActiveRow = 3)
 
-### PLNT Formatting -----
+# PLNT Formatting ----------------------------------
 
 ## create "PLNT" sheet
 plnt <- glue::glue("PLNT{year}")
@@ -630,7 +657,7 @@ plnt_labels <- c(seqplt_label,
                  "PLCO2AN"   = "Plant annual CO2 emissions (metric tons)",
                  "PLCH4AN"   = "Plant annual CH4 emissions (kg)",
                  "PLN2OAN"   = "Plant annual N2O emissions (kg)",
-                 "PLCO2EQA"  = "Plant annual CO2 equivalent emissions (metric tons)", # new
+                 "PLCO2EQA"  = "Plant annual CO2 equivalent emissions (metric tons)", 
                  "PLHGAN"    = "Plant annual Hg emissions (kg)",
                  
                  "PLNOXRTA"  = "Plant annual NOx total output emission rate (kg/MWh)",
@@ -682,7 +709,7 @@ plnt_labels <- c(seqplt_label,
                  "UNCO2"     = "Plant unadjusted annual CO2 emissions (metric tons)",
                  "UNCH4"     = "Plant unadjusted annual CH4 emissions (kg",                                              
                  "UNN2O"     = "Plant unadjusted annual N2O emissions (kg)",
-                 "UNCO2E"    = "Plant unadjusted annual CO2 equivalent emissions (metric tons)", # new
+                 "UNCO2E"    = "Plant unadjusted annual CO2 equivalent emissions (metric tons)", 
                  "UNHG"      = "Plant unadjusted annual Hg emissions (kg)",
                  "UNHTI"     = "Plant unadjusted annual heat input from combustion (GJ)",
                  "UNHTIOZ"   = "Plant unadjusted ozone season heat input from combustion (GJ)",
@@ -694,7 +721,7 @@ plnt_labels <- c(seqplt_label,
                  "UNCO2SRC"  = "Plant unadjusted annual CO2 emissions source",
                  "UNCH4SRC"  = "Plant unadjusted annual CH4 emissions source",
                  "UNN2OSRC"  = "Plant unadjusted annual N2O emissions source",
-                 "UNCO2ESRC" = "Plant unadjusted annual CO2 equivalent emissions source", # new
+                 "UNC2ESRC"  = "Plant unadjusted annual CO2 equivalent emissions source", 
                  "UNHGSRC"   = "Plant unadjusted annual Hg emissions source",
                  "UNHTISRC"  = "Plant unadjusted annual heat input source",
                  "UNHOZSRC"  = "Plant unadjusted ozone season heat input source",
@@ -752,9 +779,9 @@ plnt_labels <- c(seqplt_label,
                  "PLGENATH2" = "Plant annual total nonhydro renewables net generation (GJ)", # new metric
                  
                  "PLGENACY"  = "Plant annual total combustion net generation (MWh)",
-                 "PLGENACY"  = "Plant annual total combustion net generation (GJ)", # new metric
+                 "PLGENACY2" = "Plant annual total combustion net generation (GJ)", # new metric
                  "PLGENACN"  = "Plant annual total noncombustion net generation (MWh)",
-                 "PLGENACN"  = "Plant annual total noncombustion net generation (GJ)", # new metric
+                 "PLGENACN2" = "Plant annual total noncombustion net generation (GJ)", # new metric
                  "PLGENACO"  = "Plant annual total noncombustion other unknown/purchased net generation (MWh)", # new
                  "PLGENACO2" = "Plant annual total noncombustion other unknown/purchased net generation (GJ)", # new metric
                  
@@ -772,13 +799,25 @@ plnt_labels <- c(seqplt_label,
                  
                  "PLTNPR"    = "Plant total nonrenewables generation percent (resource mix)",
                  "PLTRPR"    = "Plant total renewables generation percent (resource mix)",
-                 "PLTOPR"    = "Plant total nonrenewables other unknown/purchased generation percent (resource mix)", # new
+                 "PLTOPR"    = "Plant total nonrenewables other unknown/purchased generation percent (resource mix)", 
                  
                  "PLTHPR"    = "Plant total nonhydro renewables generation percent (resource mix)",
                  
                  "PLCYPR"    = "Plant total combustion generation percent (resource mix)",
                  "PLCNPR"    = "Plant total noncombustion generation percent (resource mix)",
-                 "PLCOPR"    = "Plant total noncombustion other unknown/purchased generation percent (resource mix)") # new
+                 "PLCOPR"    = "Plant total noncombustion other unknown/purchased generation percent (resource mix)") 
+
+# check if shorthand names match name_matching.R and stop if not. 
+plnt_check_cols <- c()
+for (i in 2:length(names(plnt_labels))) { # skip SEQPLT since this will always be different
+  if (names(plnt_labels)[i] != names(plant_metric_annual)[i]) { 
+    plnt_check_cols <- c(plnt_check_cols, names(plnt_labels)[i]) }} 
+
+if (!is.null(plnt_check_cols)){ 
+  stop(print(glue::glue("These columns do not match name_matching.R plant_metric_annual: {glue::glue_collapse(plnt_check_cols, sep = ', ')}. Check for errors.")))
+} else {
+  print("All shorthand columns match name_matching.R plant_metric_annual.")
+}
 
 plnt_header <- names(plnt_labels)  # column names
 plnt_desc   <- unname(plnt_labels) # description of column names
@@ -906,7 +945,7 @@ addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 107:
 # freeze panes
 freezePane(wb, sheet = plnt, firstActiveCol = 6, firstActiveRow = 3)
 
-### ST Formatting -----
+# ST Formatting ---------------------------------------
 
 ## create "ST" sheet
 st <- glue::glue("ST{year}")
@@ -926,6 +965,18 @@ st_header <- c("YEAR",
                "PSTATABB",
                "FIPSST",
                paste0("ST", standard_header))
+
+# check if shorthand names match name_matching.R and stop if not. 
+state_check_cols <- c()
+for (i in 1:length((st_header))) { 
+  if (st_header[i] != names(state_metric_annual)[i]) { 
+    state_check_cols <- c(state_check_cols, st_header[i]) }} 
+
+if (!is.null(state_check_cols)){ 
+  stop(print(glue::glue("These columns do not match name_matching.R state_nonmetric_annual: {glue::glue_collapse(state_check_cols, sep = ', ')}")))
+} else {
+  print("All shorthand columns match name_matching.R state_nonmetric_annual.")
+}
 
 # description of column names
 st_desc <- c("Data Year",
@@ -954,7 +1005,7 @@ writeData(wb,
 format_region_metric(st, st_rows)
 
 
-### BA Formatting -----
+# BA Formatting ----------------------------------------
 
 ## create "BA" sheet
 ba <- glue::glue("BA{year}")
@@ -975,6 +1026,18 @@ ba_header <- c("YEAR",
                "BANAME",	
                "BACODE",
                paste0("BA", standard_header))
+
+# check if shorthand names match name_matching.R and stop if not. 
+ba_check_cols <- c()
+for (i in 1:length((ba_header))) { 
+  if (ba_header[i] != names(ba_metric_annual)[i]) { 
+    ba_check_cols <- c(ba_check_cols, ba_header[i]) }} 
+
+if (!is.null(ba_check_cols)){ 
+  stop(print(glue::glue("These columns do not match name_matching.R ba_metric_annual: {glue::glue_collapse(ba_check_cols, sep = ', ')}")))
+} else {
+  print("All shorthand columns match name_matching.R ba_metric_annual.")
+}
 
 # description of column names
 ba_desc <- c("Data Year",
@@ -1005,7 +1068,7 @@ format_region_metric(ba, ba_rows)
 setColWidths(wb, sheet = ba, cols = 2, widths = 75.55)
 
 
-### SRL Formatting -----
+# SRL Formatting ------------------------------------
 
 ## create "SRL" sheet
 srl <- glue::glue("SRL{year}")
@@ -1025,6 +1088,18 @@ srl_header <- c("YEAR",
                 "SUBRGN",	
                 "SRNAME",
                 paste0("SR", standard_header))
+
+# check if shorthand names match name_matching.R and stop if not. 
+subregion_check_cols <- c()
+for (i in 1:length((srl_header))) { 
+  if (srl_header[i] != names(subregion_metric_annual)[i]) { 
+    subregion_check_cols <- c(subregion_check_cols, srl_header[i]) }} 
+
+if (!is.null(subregion_check_cols)){ 
+  stop(print(glue::glue("These columns do not match name_matching.R subregion_metric_annual: {glue::glue_collapse(subregion_check_cols, sep = ', ')}. Check for errors.")))
+} else {
+  print("All shorthand columns match name_matching.R subregion_nonmetric_annual.")
+}
 
 # description of column names
 srl_desc <- c("Data Year",
@@ -1055,7 +1130,7 @@ format_region_metric(srl, srl_rows)
 setColWidths(wb, sheet = srl, cols = 3, widths = 18.45)
 
 
-### NRL Formatting -----
+# NRL Formatting ---------------------------------
 
 ## create "NRL" sheet
 nrl <- glue::glue("NRL{year}")
@@ -1075,6 +1150,18 @@ nrl_header <- c("YEAR",
                 "NERC",	
                 "NERCNAME",
                 paste0("NR", standard_header))
+
+# check if shorthand names match name_matching.R and stop if not. 
+nerc_check_cols <- c()
+for (i in 1:length((nrl_header))) { 
+  if (nrl_header[i] != names(nerc_metric_annual)[i]) { 
+    nerc_check_cols <- c(nerc_check_cols, nrl_header[i]) }} 
+
+if (!is.null(nerc_check_cols)){ 
+  stop(print(glue::glue("These columns do not match name_matching.R nerc_metric_annual: {glue::glue_collapse(nerc_check_cols, sep = ', ')}. Check for errors.")))
+} else {
+  print("All shorthand columns match name_matching.R nerc_metric_annual.")
+}
 
 # description of column names
 nrl_desc <- c("Data Year",
@@ -1105,7 +1192,7 @@ format_region_metric(nrl, nrl_rows)
 setColWidths(wb, sheet = nrl, cols = 3, widths = 29.45)
 
 
-### US Formatting -----
+# US Formatting ----------------------------------------
 
 ## create "US" sheet
 us <- glue::glue("US{year}")
@@ -1119,6 +1206,18 @@ us_rows <- nrow(us_file) + 2
 # column names
 us_header <- c("YEAR",	
                paste0("US", standard_header))
+
+# check if shorthand names match name_matching.R and stop if not. 
+us_check_cols <- c()
+for (i in 1:length((us_header))) { 
+  if (us_header[i] != names(us_metric_annual)[i]) { 
+    us_check_cols <- c(us_check_cols, us_header[i]) }} 
+
+if (!is.null(us_check_cols)){ 
+  stop(print(glue::glue("These columns do not match name_matching.R us_metric_annual: {glue::glue_collapse(us_check_cols, sep = ', ')}. Check for errors.")))
+} else {
+  print("All shorthand columns match name_matching.R us_metric_annual.")
+}
 
 # description of column names
 us_desc <- c("Data Year",
@@ -1144,7 +1243,7 @@ writeData(wb,
 ## add styles to document
 format_region_metric(us, us_rows)
 
-### GGL Formatting -----
+# GGL Formatting -------------------------------------------
 
 ## create "GGL" sheet
 ggl <- glue::glue("GGL{year}")
@@ -1165,6 +1264,18 @@ ggl_labels <- c("YEAR"      = "Data Year",
                 "DIRCTUSE"  = "Direct use (MWh)",
                 "DIRCTUSE2" = "Direct use (GJ)",
                 "GGRSLOSS"  = "Grid gross loss [Estimated losses/(Total disposition without exports - Direct use)]")
+
+# check if shorthand names match name_matching.R and stop if not. 
+ggl_check_cols <- c()
+for (i in 1:length(names(ggl_labels))) { # skip SEQUNT since this will always be different
+  if (names(ggl_labels)[i] != names(ggl_metric)[i]) { 
+    ggl_check_cols <- c(ggl_check_cols, names(ggl_labels)[i]) }} 
+
+if (!is.null(ggl_check_cols)){ 
+  stop(print(glue::glue("These columns do not match name_matching.R ggl_metric: {glue::glue_collapse(ggl_check_cols, sep = ', ')}. Check for errors.")))
+} else {
+  print("All shorthand columns match name_matching.R ggl_metric.")
+}
 
 ggl_header <- names(ggl_labels)  # column names
 ggl_desc   <- unname(ggl_labels) # description of column names
@@ -1215,7 +1326,7 @@ addStyle(wb, sheet = ggl, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpa
 addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
 
 
-### DEMO Formatting -----
+# DEMO Formatting --------------------------------------------
 # only build demographics file if the file exists in outputs
 # this is because pulling data from the EJScreen API to build the demographics file takes several hours
 if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
@@ -1371,7 +1482,7 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RD
 }
 
 
-### Contents Formatting -------------
+# Contents Formatting ---------------------------------------------
 
 # add link to sheets 
 add_hyperlink(glue::glue("UNT{year}"),  row_link = 1, col_link = 1, loc = c(3, 9),  text_to_show = glue::glue("UNT{year}"))
@@ -1512,7 +1623,7 @@ add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 245, loc = c(16
 add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 243, loc = c(17, 43), text_to_show = "US")
 
 
-### Save and export -----
+# Save and export ------------------------------------------
 output <- glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data_metric.xlsx")
 saveWorkbook(wb, output, overwrite = TRUE)
 
