@@ -47,7 +47,7 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
   # Run plant data creation script ---------
   source("scripts/functions/function_plant_data_pm_nh3_voc.R")
   plant_data <- plant_data_pm_nh3_voc(emission_type)
-  
+
   # Sum emission plant data by subregion ---------
   subregion_emissions <-
     plant_data %>%

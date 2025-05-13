@@ -159,7 +159,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
     mutate(emission = emission_factors * heat_input, 
            emission_source = "NEI avg EF - PM, fuel type, firing type") %>% 
     ungroup() %>%
-    select(plant_id, unit_id, prime_mover, emission, emission_source)
+    select(plant_id, unit_id, emission, emission_source)
   
   
   ## 3) Match by fuel type and prime mover - "NEI avg EF - PM, fuel type" ----------
@@ -178,7 +178,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
     # define method used under source
     mutate(emission = emission_factors * heat_input, emission_source = "NEI avg EF - PM, fuel type") %>%
     ungroup() %>%
-    select(plant_id, unit_id, prime_mover, emission, emission_source)
+    select(plant_id, unit_id, emission, emission_source)
   
   
   ## 4) Use emissions factors from AP-42 - "Estimated using an emissions factor" ---------
@@ -217,8 +217,8 @@ unit_data_pm_nh3_voc <- function(emission_type){
     # includes removal efficiencies for PM2.5
     unit_emissions_updated <-
       unit_emissions %>%
-      rows_patch(fuel_pmover_firing, by = c("unit_id", "plant_id", "prime_mover")) %>%
-      rows_patch(fuel_pmover, by = c("unit_id", "plant_id", "prime_mover")) %>%
+      rows_patch(fuel_pmover_firing, by = c("unit_id", "plant_id")) %>%
+      rows_patch(fuel_pmover, by = c("unit_id", "plant_id")) %>%
       left_join(removal_efficiencies, by = join_by(unit_id, plant_id, prime_mover)) %>%
       mutate(emission = if_else(is.na(emission_source), emission_re, emission), emission_source = if_else(is.na(emission_source), emission_source_re, emission_source)) %>%
       select(-emission_re, -emission_source_re)
@@ -226,8 +226,8 @@ unit_data_pm_nh3_voc <- function(emission_type){
     # does not include removal efficiences for other pollutants
     unit_emissions_updated <-
       unit_emissions %>%
-      rows_patch(fuel_pmover_firing, by = c("unit_id", "plant_id", "prime_mover")) %>%
-      rows_patch(fuel_pmover, by = c("unit_id", "plant_id", "prime_mover"))}
+      rows_patch(fuel_pmover_firing, by = c("unit_id", "plant_id")) %>%
+      rows_patch(fuel_pmover, by = c("unit_id", "plant_id"))}
   
   # update unit file with remaining emission rates
   unit_emissions_final <-

@@ -49,7 +49,8 @@ plant_data_pm_nh3_voc <- function(emission_type){
                                 sheet = paste0("PLNT", substr(params$eGRID_year, 3, 4)),
                                 skip = 1,
                                 col_names = TRUE) %>%
-      rename(CAPDFLAG = CAMDFLAG)
+      rename(CAPDFLAG = CAMDFLAG) %>% # rename CAMD flag to updated name
+      rename_with(~ ifelse(. == paste0("SEQPLT", substr(params$eGRID_year, 3, 4)), "SEQPLT", .)) # rename SEQPLT if necessary
     
     # Prepare plant data for evaluation --------------
     # Load abbreviated name to snake_case matches
@@ -73,14 +74,14 @@ plant_data_pm_nh3_voc <- function(emission_type){
   # Run unit data creation script ---------
   source("scripts/functions/function_unit_data_pm_nh3_voc.R")
   unit_data <- unit_data_pm_nh3_voc(emission_type)
-
+  
   # Sum emission unit data by plant id ---------
   plant_sum <-
     unit_data %>%
     group_by(plant_id) %>%
     summarise(emission_plant = if_else(all(is.na(emission)), NA_real_, sum(emission, na.rm = TRUE))) %>%
     ungroup()
-
+  
   # Add emission data to plant file ---------
   plant_emissions <-
     plant_file %>%
