@@ -80,23 +80,15 @@ unit_qa <- function(emission_type) {
   } else {
     emission_abbrev <- emission_type
   }
-  if(params$eGRID_year == "2021") {
-    if(emission_type == "pm25") {
-      unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_unit.xlsx"), 
-                                      
-                                      col_names = TRUE) %>%
-          rename(PM25SRC = PM25SRC2)
-    } else {
-      unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"),
-                                    sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Unit-level Data"),
-                                    skip = 1,
-                                    col_names = TRUE)
-    }
-   } else if(params$eGRID_year == "2022") {
-     unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_unit.xlsx"), 
-                                   sheet = "UNT_A___latest_NEI_yr_w_PM_comb",
-                                   col_names = TRUE) %>%
-       rename(PM25SRC = PM25SRC2) 
+  if(emission_type == "pm25") {
+    unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_unit.xlsx"),
+                                    col_names = TRUE) %>%
+        rename(PM25SRC = PM25SRC2)
+  } else {
+    unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"),
+                                  sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Unit-level Data"),
+                                  skip = 1,
+                                  col_names = TRUE)
   }
   
   ## Define updated column names ---------

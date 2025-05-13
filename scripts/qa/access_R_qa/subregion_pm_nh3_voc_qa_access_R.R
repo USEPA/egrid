@@ -39,7 +39,7 @@ if (exists("params")) {
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
 }
-emission_type = "pm25"
+
 # Create QA function -----
 subregion_qa <- function(emission_type) {
   print(paste(toupper(emission_type), "SUBREGION QA IN PROGRESS"))
@@ -81,23 +81,15 @@ subregion_qa <- function(emission_type) {
   } else {
     emission_abbrev <- emission_type
   }
-  if(params$eGRID_year == "2021") {
-  subregion_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"),
-                                sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Subregion-level Data"),
-                                skip = 1,
-                                col_names = TRUE) %>%
-    filter(SUBRGN != "U.S.")
-  } else {
-      if(emission_type == "pm25") {
+    if(emission_type == "pm25") {
+      subregion_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_subregion.xlsx"), 
+                                    col_names = TRUE) %>%
+        rename(SRNGENAN = Gen, SRPM25AN = PM25tons, SRPM25RTA = Rate)
+    } else {
         subregion_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_subregion.xlsx"), 
-                                      col_names = TRUE) %>%
+                                           col_names = TRUE) %>%
           rename(SRNGENAN = Gen, SRPM25AN = PM25tons, SRPM25RTA = Rate)
-      } else {
-          subregion_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_subregion.xlsx"), 
-                                             col_names = TRUE) %>%
-            rename(SRNGENAN = Gen, SRPM25AN = PM25tons, SRPM25RTA = Rate)
-      }
-  }
+    }
   
   ## Define updated column names ---------
   # Load abbreviated name to snake_case matches
@@ -111,10 +103,6 @@ subregion_qa <- function(emission_type) {
   subregion_new_names <- c(subregion_nonmetric[names(subregion_nonmetric) %in% colnames(subregion_access_raw)], additional_names)
   
   # update subregion column names
-  # subregion_access <-
-  #   subregion_access_raw %>%
-  #   rename(!!!setNames(lapply(names(subregion_new_names), sym), subregion_new_names)) %>%
-  #   mutate(year = as.character(year))
   subregion_access <-
     subregion_access_raw %>%
     rename(!!!setNames(lapply(names(subregion_new_names), sym), subregion_new_names))
@@ -126,7 +114,8 @@ subregion_qa <- function(emission_type) {
   subregion_access[subregion_access == "NA"] <- NA_character_ 
   
   # Import R subregion data ---------
-  subregion_r <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))
+  subregion_r <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS")) %>%
+    rename(pm25_tons = pm25_ann, pm25_rate = pm25_output_rate)
   
   # add "_r" after each variable to easily identify dataset 
   colnames(subregion_r) <- paste0(colnames(subregion_r), "_r")
@@ -151,13 +140,6 @@ subregion_qa <- function(emission_type) {
     anti_join(subregion_r, by = join_by(subregion_access == subregion_r)) %>% 
     filter(!is.na(subregion_access))
   save_diffs(check_diff_subregion_access)
-  
-  ## Subregion names -----
-  # check_subregion_name <- 
-  #   subregion_comparison %>% 
-  #   filter(mapply(identical, subregion_name_r, subregion_name_access) == FALSE) %>% 
-  #   select(subregion_r, subregion_name_r, subregion_name_access) %>% distinct()
-  # save_diffs(check_subregion_name)
  
    ## Annual generation -----
   check_generation_ann <- 
@@ -167,16 +149,6 @@ subregion_qa <- function(emission_type) {
   save_diffs(check_generation_ann)
  
    ## Annual emissions -----
-  # check_emissions_tons <- 
-  #   subregion_comparison %>% 
-  #   filter(mapply(identical, get(paste0(emission_type, "_tons_r")), get(paste0(emission_type, "_tons_access"))) == FALSE) %>% 
-  #   mutate("{emission_type}_tons_r" := round(get(paste0(emission_type, "_tons_r")), 0),
-  #     "diff_{emission_type}_tons" := abs(get(paste0(emission_type, "_tons_r")) - get(paste0(emission_type, "_tons_access")))) %>% 
-  #   filter(get(paste0("diff_", emission_type, "_tons")) > 1E-5 | is.na(get(paste0(emission_type, "_tons_r"))) & !is.na(get(paste0(emission_type, "_tons_access"))) | 
-  #            !is.na(get(paste0(emission_type, "_tons_r"))) & is.na(get(paste0(emission_type, "_tons_access")))) %>%
-  #   select(subregion_r,
-  #          paste0(emission_type, "_tons_r"), paste0(emission_type, "_tons_access"), paste0("diff_", emission_type, "_tons"))
-  # save_diffs(check_emissions_tons)
   check_emissions_tons <- 
     subregion_comparison %>% 
     filter(mapply(identical, get(paste0(emission_type, "_tons_r")), get(paste0(emission_type, "_tons_access"))) == FALSE) %>% 
@@ -222,20 +194,22 @@ check_files <- grep("check", dir(save_dir), value = TRUE)
 # ignore datasets with total value differences
 files <- grep("total", check_files, invert = TRUE, value = TRUE)
 
-# combine checked files
-subregion_unit_diffs <-
-  purrr::map_df(paste0(save_dir, files),
-                ~read_csv(.x, col_types = cols(.default = col_character()))) %>%
-  select(subregion_r) %>%
-  distinct() %>%
-  mutate(source_diff = "subregion_file")
-
-write_csv(subregion_unit_diffs, paste0(save_dir, "subregion_difference_ids.csv"))
+if(length(files) > 0) {
+  # combine checked files
+  subregion_unit_diffs <-
+    purrr::map_df(paste0(save_dir, files),
+                  ~read_csv(.x, col_types = cols(.default = col_character()))) %>%
+    select(subregion_r) %>%
+    distinct() %>%
+    mutate(source_diff = "subregion_file")
+  
+  write_csv(subregion_unit_diffs, paste0(save_dir, "subregion_difference_ids.csv"))
+}
 
 print(paste(toupper(emission_type), "SUBREGION QA COMPLETE"))
 }
 
 # Run function for emission types -----
 subregion_qa("pm25")
-#subregion_qa("nh3")
-#subregion_qa("voc")
+# subregion_qa("nh3")
+# subregion_qa("voc")

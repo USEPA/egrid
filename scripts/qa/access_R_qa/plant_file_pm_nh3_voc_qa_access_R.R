@@ -88,7 +88,6 @@ plant_qa <- function(emission_type) {
       rename(PLPM25AN = PLPM25AN2, PLPM25RTA = PLPM25RTA2)
   } else if(params$eGRID_year == "2022") {
     plant_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_plant.xlsx"),
-                                   sheet = "PLNT_A___latest_NEI_yr_with_PM_",
                                    col_names = TRUE) %>%
       rename(PLPM25AN = PLPM25AN2, PLPM25RTA = PLPM25RTA2)
   }
@@ -105,12 +104,6 @@ plant_qa <- function(emission_type) {
   plant_new_names <- c(plant_nonmetric[names(plant_nonmetric) %in% colnames(plant_access_raw)], additional_names)
   
   # update plant column names
-  # plant_access <-
-  #   plant_access_raw %>%
-  #   rename(!!!setNames(lapply(names(plant_new_names), sym), plant_new_names)) %>%
-  #   mutate(year = as.character(year), 
-  #          plant_id = as.character(plant_id), 
-  #          !!paste0(emission_type, "_source") := if_else(get(paste0(emission_type, "_source")) == "Estimated using an emission factor", "Estimated using an emissions factor", get(paste0(emission_type, "_source"))))
   plant_access <-
     plant_access_raw %>%
     rename(!!!setNames(lapply(names(plant_new_names), sym), plant_new_names)) %>%
@@ -327,20 +320,22 @@ check_files <- grep("check", dir(save_dir), value = TRUE)
 # ignore datasets with total value differences
 files <- grep("total", check_files, invert = TRUE, value = TRUE)
 
-# combine checked files
-plant_unit_diffs <-
-  purrr::map_df(paste0(save_dir, files),
-                ~read_csv(.x, col_types = cols(.default = col_character()))) %>%
-  select(plant_id_r) %>%
-  distinct() %>%
-  mutate(source_diff = "plant_file")
-
-write_csv(plant_unit_diffs, paste0(save_dir, "plant_difference_ids.csv"))
-
+if(length(files) > 0) {
+  # combine checked files
+  plant_unit_diffs <-
+    purrr::map_df(paste0(save_dir, files),
+                  ~read_csv(.x, col_types = cols(.default = col_character()))) %>%
+    select(plant_id_r) %>%
+    distinct() %>%
+    mutate(source_diff = "plant_file")
+  
+  write_csv(plant_unit_diffs, paste0(save_dir, "plant_difference_ids.csv"))
+}
+  
 print(paste(toupper(emission_type), "PLANT QA COMPLETE"))
 }
 
 # Run function for emission types -----
 plant_qa("pm25")
-#plant_qa("nh3")
-#plant_qa("voc")
+plant_qa("nh3")
+plant_qa("voc")
