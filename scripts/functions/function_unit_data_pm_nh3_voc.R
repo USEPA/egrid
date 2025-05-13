@@ -48,7 +48,9 @@ unit_data_pm_nh3_voc <- function(emission_type){
     if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"))) {
       ## EIA-923 - for Schedule C Air Emissions Control information (2021)
       eia_923 <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), col_types = "ccccccccddddcccdccddcdc") %>%
-        janitor::clean_names()
+        janitor::clean_names() %>%
+        mutate(across(.cols = where(is.character) & contains("efficiency"), 
+                      .fns =  ~ as.numeric(sub("%", "", .)) / 100))
     } else {
       stop("eia_923_9c_airemissions.csv does not exist.")}
   } else if(params$eGRID_year == "2022") {
@@ -58,8 +60,8 @@ unit_data_pm_nh3_voc <- function(emission_type){
                             sheet = "8C Air Emissions Control Info",
                             skip = 4,
                             col_name = TRUE,
-                           col_types = c("text", "text", "text", "text", "text", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "numeric", "numeric", "text", "numeric", "numeric", "numeric", "numeric", "numeric"),
-                           na = ".") %>%
+                            col_types = c("text", "text", "text", "text", "text", "text", "text", "text", "numeric", "numeric", "numeric", "numeric", "numeric", "numeric", "text", "numeric", "numeric", "text", "numeric", "numeric", "numeric", "numeric", "numeric"),
+                            na = ".") %>%
         janitor::clean_names()
     } else {
       stop("eia_923.RDS does not exist.")}
@@ -72,7 +74,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
   }
   
   ## NEI emission data
-  if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"))) { 
+  if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"))) {
     raw_nei <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"), col_types = "cccccccccccccccccdcc") %>%
       janitor::clean_names()
   } else { 
@@ -85,21 +87,21 @@ unit_data_pm_nh3_voc <- function(emission_type){
   } else { 
     stop(glue::glue("data/2b_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv does not exist."))}
   
-  ## Particulate matter emission factors from EPA AP-42 dataset
+  ## Emission factors from EPA AP-42 dataset
   efs <- read_csv(glue::glue("data/2b_pm_nh3_voc/static_tables/emission_factors_{emission_type}.csv"), col_types = "cccdccc") %>%
     janitor::clean_names()
   
   ## eGRID production model data - unit file (2021 & 2022)
   if(params$eGRID_year %in% c("2021", "2022")) {
     unit_file_raw <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
-                            sheet = paste0("UNT", substr(params$eGRID_year, 3, 4)),
-                            skip = 1,
-                            col_names = TRUE) %>%
+                                sheet = paste0("UNT", substr(params$eGRID_year, 3, 4)),
+                                skip = 1,
+                                col_names = TRUE) %>%
       rename(CAPDFLAG = CAMDFLAG) %>% # rename CAMD flag to updated name
-    rename_with(~ ifelse(. == paste0("SEQUNT", substr(params$eGRID_year, 3, 4)), "SEQUNT", .)) # rename SEQUNT if necessary
+      rename_with(~ ifelse(. == paste0("SEQUNT", substr(params$eGRID_year, 3, 4)), "SEQUNT", .)) # rename SEQUNT if necessary
     
     # replace any "NA" strings with an NA
-    unit_file_raw[unit_file_raw == "NA"] <- NA_character_ 
+    unit_file_raw[unit_file_raw == "NA"] <- NA_character_
     
     # Prepare unit data for evaluation --------------
     # Load abbreviated name to snake_case matches
@@ -117,9 +119,9 @@ unit_data_pm_nh3_voc <- function(emission_type){
              plant_id = as.character(plant_id),
              year_online = as.character(year_online))
     
-  ## eGRID production model data - unit file (2023+)
+    ## eGRID production model data - unit file (2023+)
   } else {
-      unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
+    unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
   }
   
   # Calculate PM data -------------
@@ -143,7 +145,9 @@ unit_data_pm_nh3_voc <- function(emission_type){
     # combine direct match emission and unit file data
     left_join(direct_match, by = join_by(plant_id == oris_facility_code, unit_id == oris_boiler_id)) %>% 
     # modify dataset format and add emission source for those calculated with direct match
-    mutate(emission_source = if_else(is.na(emission), NA_character_, "EPA/NEI"), eia_control_efficiency = NA_real_, botfirty = if_else(botfirty == "", NA_character_, botfirty))
+    mutate(emission_source = if_else(is.na(emission), NA_character_, "EPA/NEI"),
+           eia_control_efficiency = NA_real_, 
+           botfirty = if_else(botfirty == "", NA_character_, botfirty))
   
   
   ## 2) Match by fuel type, unit firing type, and prime mover - "NEI avg EF - PM, fuel type, firing type" ----------
@@ -200,10 +204,11 @@ unit_data_pm_nh3_voc <- function(emission_type){
     removal_efficiencies <-
       eia_923 %>%
       # select plants with removal efficiency rates
-      filter(!is.na(pm_removal_efficiency_rate_at_annual_operating_factor)) %>%
+      filter(!is.na(max(pm_removal_efficiency_rate_at_annual_operating_factor, na.rm = TRUE))) %>%
       group_by(plant_id) %>%
-      # convert efficiency rate to numeric percentage
-      summarise(eia_control_efficiency = max(as.numeric(sub("%", "", pm_removal_efficiency_rate_at_annual_operating_factor)) / 100)) %>%
+      # select maximum control efficiency rate
+      summarise(eia_control_efficiency = if_else(all(is.na(pm_removal_efficiency_rate_at_annual_operating_factor)), NA_real_, max(pm_removal_efficiency_rate_at_annual_operating_factor, na.rm = TRUE))) %>%
+      # remove any efficiency rates exceeding 100%
       filter(eia_control_efficiency <= 1) %>%
       inner_join(emissions_factors, by = join_by(plant_id == plant_id)) %>%
       # adjust emission using control efficiency rate

@@ -71,7 +71,7 @@ format_unit <- function(unit_emissions, emission_type) {
 source("scripts/functions/function_unit_data_pm_nh3_voc.R")
 pm_unit_data <- unit_data_pm_nh3_voc("pm25")
 nh3_unit_data <- unit_data_pm_nh3_voc("nh3")
-voc_unit_data <- unit_data_pm_nh3_voc("voc") 
+voc_unit_data <- unit_data_pm_nh3_voc("voc")
 
 # Format final version of PM2.5, NH3, and VOC unit files ------------
 pm_unit_formatted <- format_unit(pm_unit_data, "pm25")
