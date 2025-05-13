@@ -44,9 +44,10 @@ unit_data_pm_nh3_voc <- function(emission_type){
   require(readxl)
   
   # Load necessary data --------------------
+  
+  ## EIA-923 - for Schedule C Air Emissions Control information (2021 & 2022)
   if(params$eGRID_year %in% c("2021", "2022")) {
     if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"))) {
-      ## EIA-923 - for Schedule C Air Emissions Control information (2021)
       eia_923 <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), 
                           col_types = "ccccccccddddcccdccddcdc",
                           na = c("", ".")) %>%
@@ -56,13 +57,13 @@ unit_data_pm_nh3_voc <- function(emission_type){
                       .fns =  ~ as.numeric(sub("%", "", .)) / 100))
     } else {
       stop("eia_923_9c_airemissions.csv does not exist.")}
+    
+  ## EIA-923 - for Schedule C Air Emissions Control information (2023+)
   } else {
-    ## EIA-923 - for Schedule C Air Emissions Control information (2023+)
     if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) {
       eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))$air_emissions_control_info
     } else {
-      stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
-  }
+      stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}}
   
   ## NEI emission data
   if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"))) {
@@ -110,10 +111,10 @@ unit_data_pm_nh3_voc <- function(emission_type){
              plant_id = as.character(plant_id),
              year_online = as.character(year_online))
     
-    ## eGRID production model data - unit file (2023+)
+  ## eGRID production model data - unit file (2023+)
   } else {
-    unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
-  }
+    unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))}
+  
   
   # Calculate PM data -------------
   ## 1) Direct Match - "NEI/EIA" --------------
@@ -135,7 +136,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
     unit_file %>%
     # combine direct match emission and unit file data
     left_join(direct_match, by = join_by(plant_id == oris_facility_code, unit_id == oris_boiler_id)) %>% 
-    # modify dataset format and add emission source for those calculated with direct match
+    # add emission source for those calculated with direct match
     mutate(emission_source = if_else(is.na(emission), NA_character_, "EPA/NEI"),
            eia_control_efficiency = NA_real_, 
            botfirty = if_else(botfirty == "", NA_character_, botfirty))
@@ -155,7 +156,8 @@ unit_data_pm_nh3_voc <- function(emission_type){
     inner_join(unit_emissions, by = join_by(prime_mover, botfirty, primary_fuel_type)) %>%
     # multiply individual heat inputs by emission factors to estimate emission
     # define method used under source
-    mutate(emission = emission_factors * heat_input, emission_source = "NEI avg EF - PM, fuel type, firing type") %>% 
+    mutate(emission = emission_factors * heat_input, 
+           emission_source = "NEI avg EF - PM, fuel type, firing type") %>% 
     ungroup() %>%
     select(plant_id, unit_id, prime_mover, emission, emission_source)
   
@@ -183,14 +185,15 @@ unit_data_pm_nh3_voc <- function(emission_type){
   # calculate emission emissions based on emission factors in AP-42 report
   emissions_factors <-
     unit_emissions %>%
-    # use emissions factors specific to fuel, firing type, and prime mover to calculate emission
+    # calculate emissions with emissions factors specific to fuel, firing type, and prime mover
     inner_join(efs, by = join_by(botfirty, primary_fuel_type == fuelu1, prime_mover == prmvr)) %>%
     mutate(emission = ef * heat_input / 2000, emission_source = "Estimated using an emissions factor") %>% 
     filter(!is.na(emission)) %>%
     rename(emission_ef = emission, emission_source_ef = emission_source) %>%
     select(plant_id, unit_id, prime_mover, emission_ef, emission_source_ef)
   
-  # if there is a unit match with EIA-923, adjust emission by control efficiency (only for PM2.5 data)
+  # if there is a unit match with EIA-923, adjust emission by control efficiency 
+  # currently only for PM2.5 data
   if(emission_type == "pm25") {
     removal_efficiencies <-
       eia_923 %>%
@@ -206,6 +209,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
       mutate(emission = emission_ef * (1 - eia_control_efficiency), emission_source = "Estimated using an emissions factor") %>%
       rename(emission_re = emission, emission_source_re = emission_source) %>%
       select(plant_id, unit_id, prime_mover, emission_re, emission_source_re)
+    
     
     # Add emission estimates to unit data -------------
     # update unit file with emission emission rates from each method - order specific
@@ -223,8 +227,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
     unit_emissions_updated <-
       unit_emissions %>%
       rows_patch(fuel_pmover_firing, by = c("unit_id", "plant_id", "prime_mover")) %>%
-      rows_patch(fuel_pmover, by = c("unit_id", "plant_id", "prime_mover"))
-  }
+      rows_patch(fuel_pmover, by = c("unit_id", "plant_id", "prime_mover"))}
   
   # update unit file with remaining emission rates
   unit_emissions_final <-
