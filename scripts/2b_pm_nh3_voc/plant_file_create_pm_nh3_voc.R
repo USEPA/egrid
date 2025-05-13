@@ -47,7 +47,7 @@ format_plant <- function(emission_type) {
   
   # load unit file
   if(file.exists(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_{emission_type}.RDS"))) {
-    unit_file <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_{emission_type}.RDS")) #%>%
+    unit_file <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_{emission_type}.RDS"))
   } else {
     stop(glue::glue("unit_file_{emission_type}.RDS does not exist. Run unit_file_create_pm_nh3_voc.R to obtain."))}
   
