@@ -39,7 +39,7 @@ if (exists("params")) {
   params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
   params$eGRID_year <- as.character(params$eGRID_year)
 }
-emission_type <- "pm25"
+
 # Create QA function -----
 unit_qa <- function(emission_type) {
   print(paste(toupper(emission_type), "UNIT QA IN PROGRESS"))
@@ -111,7 +111,7 @@ unit_qa <- function(emission_type) {
   unit_new_names <- c(unit_nonmetric[names(unit_nonmetric) %in% colnames(unit_access_raw)], additional_names)
   
   # define numeric column names
-  numeric_cols <- c("operating_hours", "heat_input", paste0(emission_type, "_ann"), paste0(emission_type, "_rate"), "year_online")
+  numeric_cols <- c("operating_hours", "heat_input", paste0(emission_type, "_ann"), paste0(emission_type, "_rate"))
   # update unit column names
   unit_access_renamed <-
     unit_access_raw %>%
@@ -327,20 +327,22 @@ unit_qa <- function(emission_type) {
   # ignore datasets with total value differences
   files <- grep("total", check_files, invert = TRUE, value = TRUE)
   
-  # combine checked files
-  plant_unit_diffs <- 
-    purrr::map_df(paste0(save_dir, files), 
-                  ~read_csv(.x, col_types = cols(.default = col_character()))) %>% 
-    select(plant_id_r, unit_id_r, prime_mover_r) %>% 
-    distinct() %>% 
-    mutate(source_diff = "unit_file")
-  
-  write_csv(plant_unit_diffs, paste0(save_dir, "plant_unit_difference_ids.csv"))
+  if(length(files) > 0) {
+    # combine checked files
+    plant_unit_diffs <- 
+      purrr::map_df(paste0(save_dir, files), 
+                    ~read_csv(.x, col_types = cols(.default = col_character()))) %>% 
+      select(plant_id_r, unit_id_r, prime_mover_r) %>% 
+      distinct() %>% 
+      mutate(source_diff = "unit_file")
+    
+    write_csv(plant_unit_diffs, paste0(save_dir, "plant_unit_difference_ids.csv"))
+  }
   
   print(paste(toupper(emission_type), "UNIT QA COMPLETE"))
 }
 
 # Run function for emission types -----
 unit_qa("pm25")
-#unit_qa("nh3")
-#unit_qa("voc")
+unit_qa("nh3")
+unit_qa("voc")
