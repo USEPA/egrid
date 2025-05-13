@@ -294,10 +294,7 @@ region_aggregation <- function(region, region_cols) {
              !primary_fuel_category == 'OSFL') %>% # do not include other fossil in individual fuel rate calculations
       summarize(across(.cols = c(contains("heat_input"), 
                                  generation, 
-                                 contains("_mass"), 
-                                 coal_netgen, 
-                                 oil_netgen, 
-                                 gas_netgen), 
+                                 contains("_mass")), 
                        .fns = ~ sum(.x, na.rm = TRUE))) %>% 
       ungroup() %>% 
       mutate(
@@ -374,10 +371,7 @@ region_aggregation <- function(region, region_cols) {
                !primary_fuel_category == 'OSFL') %>% # do not include other fossil in individual fuel rate calculations
         summarize(across(.cols = c(combust_heat_input_oz, 
                                    generation_oz, 
-                                   nox_oz_mass, 
-                                   coal_netgen, 
-                                   oil_netgen, 
-                                   gas_netgen), 
+                                   nox_oz_mass), 
                          .fns = ~ sum(.x, na.rm = TRUE))) %>% 
         ungroup() %>% 
         mutate(
