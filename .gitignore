@@ -20,3 +20,5 @@ monthly_qa_files/
 monthly_qa_region_agg_files/
 data/2c_api/
 data/static_tables/historical_egrid/
+data/2d_data_explorer/
+monthly_qa_2_files/

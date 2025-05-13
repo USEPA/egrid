@@ -408,11 +408,15 @@ egrid_us <-
 
 # Export data  ---------------------------------
 
-write_csv(egrid_plant_2, glue::glue("data/outputs/{params$eGRID_year}/data_explorer_plant_file.csv"))
-write_csv(egrid_state, glue::glue("data/outputs/{params$eGRID_year}/data_explorer_state_file.csv"))
-write_csv(egrid_ba, glue::glue("data/outputs/{params$eGRID_year}/data_explorer_ba_file.csv"))
-write_csv(egrid_subregion, glue::glue("data/outputs/{params$eGRID_year}/data_explorer_subregion_file.csv"))
-write_csv(egrid_nerc, glue::glue("data/outputs/{params$eGRID_year}/data_explorer_nerc_file.csv"))
-write_csv(egrid_us, glue::glue("data/outputs/{params$eGRID_year}/data_explorer_us_file.csv"))
+if(!dir.exists(glue::glue("data/2d_data_explorer/{params$eGRID_year}"))){
+  dir.create(glue::glue("data/2d_data_explorer/{params$eGRID_year}"))
+}
+
+write_csv(egrid_plant_2, glue::glue("data/2d_data_explorer/{params$eGRID_year}/data_explorer_plant_file.csv"))
+write_csv(egrid_state, glue::glue("data/2d_data_explorer/{params$eGRID_year}/data_explorer_state_file.csv"))
+write_csv(egrid_ba, glue::glue("data/2d_data_explorer/{params$eGRID_year}/data_explorer_ba_file.csv"))
+write_csv(egrid_subregion, glue::glue("data/2d_data_explorer/{params$eGRID_year}/data_explorer_subregion_file.csv"))
+write_csv(egrid_nerc, glue::glue("data/2d_data_explorer/{params$eGRID_year}/data_explorer_nerc_file.csv"))
+write_csv(egrid_us, glue::glue("data/2d_data_explorer/{params$eGRID_year}/data_explorer_us_file.csv"))
 
 
