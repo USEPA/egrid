@@ -14,12 +14,12 @@ qa_all.html
 qa_all_files
 qa_annual_comparison_files
 *.Rprofile
-data/static_tables/Thumbs.db
+data/1_production_model/static_tables/Thumbs.db
 README_files/
 monthly_qa_files/
 monthly_qa_cache/
 monthly_qa_region_agg_files/
 data/2c_api/
-data/static_tables/historical_egrid/
+data/1_production_model/static_tables/historical_egrid/
 monthly_qa_2_files/
 data/2d_data_explorer/

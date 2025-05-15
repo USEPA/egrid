@@ -38,8 +38,8 @@ if (!exists("params")) {
 }
 
 # Check if folder to store raw data exists, if not - create it
-if (!dir.exists(glue::glue("data/raw_data/epa/{params$eGRID_year}"))) {
-  dir.create(glue::glue("data/raw_data/epa/{params$eGRID_year}"), recursive = TRUE)
+if (!dir.exists(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}"))) {
+  dir.create(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}"), recursive = TRUE)
 }
 
 # Set your API key here
@@ -246,14 +246,14 @@ epa_data_combined <-
   
 ## Saving EPA data 
 
-print(glue::glue("Writing file epa_raw_{params$temporal_res}.RDS to folder data/raw_data/epa/{params$eGRID_year}."))
+print(glue::glue("Writing file epa_raw_{params$temporal_res}.RDS to folder data/1_production_model/raw_data/epa/{params$eGRID_year}."))
 
 readr::write_rds(epa_data_combined, 
-                 file = glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))
+                 file = glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))
 
 # check if file is successfully written to folder 
-if(file.exists(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))){
-  print(glue::glue("File epa_raw_{params$temporal_res}.RDS successfully written to folder data/raw_data/epa/{params$eGRID_year}"))
+if(file.exists(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))){
+  print(glue::glue("File epa_raw_{params$temporal_res}.RDS successfully written to folder data/1_production_model/raw_data/epa/{params$eGRID_year}"))
 } else {
    print(glue::glue("File epa_raw_{params$temporal_res}.RDS failed to write to folder."))
 }

@@ -84,12 +84,12 @@ region_aggregation <- function(region, region_cols) {
   
   # read in NERC names to add to plant file
   
-  nerc_names <- read_csv("data/static_tables/nerc_region_names.csv") %>% janitor::clean_names()
+  nerc_names <- read_csv("data/1_production_model/static_tables/nerc_region_names.csv") %>% janitor::clean_names()
   
   # read in plant file 
   
   plant_file <- 
-    read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file_{params$temporal_res}.RDS")) %>% 
+    read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_{params$temporal_res}.RDS")) %>% 
     left_join(nerc_names, by = c("nerc")) %>% 
     select(any_of(columns_to_keep))
   
@@ -742,21 +742,15 @@ region_aggregation <- function(region, region_cols) {
   
     ### Export region aggregation file -----------
     
-    if(dir.exists("data/outputs")) {
-      print("Folder outputs already exists.")
-    } else {
-      dir.create("data/outputs")
-    }
-    
-    if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
+    if(dir.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))) {
       print(glue::glue("Folder outputs/{params$eGRID_year} already exists."))
     } else {
-      dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
+      dir.create(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"), recursive = TRUE)
     }
     
-    print(glue::glue("Saving {toupper(region)} aggregation file to folder data/outputs/{params$eGRID_year}"))
+    print(glue::glue("Saving {toupper(region)} aggregation file to folder data/1_production_model/outputs/{params$eGRID_year}"))
     
-    write_rds(region_formatted, glue::glue("data/outputs/{params$eGRID_year}/{region}_aggregation_{params$temporal_res}.RDS")) 
+    write_rds(region_formatted, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{region}_aggregation_{params$temporal_res}.RDS")) 
     
   } else {
 
@@ -1396,21 +1390,15 @@ region_aggregation <- function(region, region_cols) {
     
     ### Export region aggregation file -----------
     
-    if(dir.exists("data/outputs")) {
-      print("Folder outputs already exists.")
-    } else {
-      dir.create("data/outputs")
-    }
-    
-    if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
+    if(dir.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))) {
       print(glue::glue("Folder outputs/{params$eGRID_year} already exists."))
     } else {
-      dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
+      dir.create(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"), recursive = TRUE)
     }
     
-    print(glue::glue("Saving {toupper(region)} aggregation file to folder data/outputs/{params$eGRID_year}"))
+    print(glue::glue("Saving {toupper(region)} aggregation file to folder data/1_production_model/outputs/{params$eGRID_year}"))
     
-    write_rds(region_formatted, glue::glue("data/outputs/{params$eGRID_year}/{region}_aggregation_{params$temporal_res}.RDS")) 
+    write_rds(region_formatted, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{region}_aggregation_{params$temporal_res}.RDS")) 
   }  
   
 }

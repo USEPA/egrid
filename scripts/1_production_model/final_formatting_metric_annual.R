@@ -35,22 +35,22 @@ if (!exists("params")) {
 # Load in data ----------------------------------------
 
 # load files
-unt_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file_metric.RDS"))
-gen_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file_metric.RDS"))
-plnt_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file_metric.RDS"))
-st_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/state_aggregation_metric.RDS"))
-ba_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/ba_aggregation_metric.RDS"))
-srl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/subregion_aggregation_metric.RDS"))
-nrl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/nerc_aggregation_metric.RDS"))
-us_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/us_aggregation_metric.RDS"))
-ggl_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss_metric.RDS"))
+unt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_metric.RDS"))
+gen_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_metric.RDS"))
+plnt_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_metric.RDS"))
+st_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/state_aggregation_metric.RDS"))
+ba_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/ba_aggregation_metric.RDS"))
+srl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/subregion_aggregation_metric.RDS"))
+nrl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/nerc_aggregation_metric.RDS"))
+us_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/us_aggregation_metric.RDS"))
+ggl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss_metric.RDS"))
 
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
-  demo_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
+  demo_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))
 }
 
 # load name_matching.R
-source("scripts/name_matching.R")
+source("scripts/1_production_model/name_matching.R")
 
 # extract last two digits of year for universal labeling
 year <- as.numeric(params$eGRID_year) %% 1000
@@ -1329,7 +1329,7 @@ addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpa
 # DEMO Formatting --------------------------------------------
 # only build demographics file if the file exists in outputs
 # this is because pulling data from the EJScreen API to build the demographics file takes several hours
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   
   ## create "DEMO" sheet
   demo <- glue::glue("DEMO{year}")
@@ -1495,7 +1495,7 @@ add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 1
 add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 1, loc = c(3, 16), text_to_show = glue::glue("US{year}"))
 add_hyperlink(glue::glue("GGL{year}"),  row_link = 1, col_link = 1, loc = c(3, 17), text_to_show = glue::glue("GGL{year}"))
 
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   add_hyperlink(glue::glue("DEMO{year}"),  row_link = 1, col_link = 1, loc = c(3, 18), text_to_show = glue::glue("DEMO{year}"))
 }
 
@@ -1624,10 +1624,10 @@ add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 243, loc = c(17
 
 
 # Save and export ------------------------------------------
-output <- glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data_metric.xlsx")
+output <- glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data_metric.xlsx")
 saveWorkbook(wb, output, overwrite = TRUE)
 
-print(glue::glue("Saving final formatted metric file to folder data/outputs/{params$eGRID_year}/"))
+print(glue::glue("Saving final formatted metric file to folder data/1_production_model/outputs/{params$eGRID_year}/"))
 
 # remove to save space
 rm(unt_file, gen_file, plnt_file)

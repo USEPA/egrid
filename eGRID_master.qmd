@@ -77,7 +77,7 @@ The script `install_libraries.R` detects all necessary libraries within the proj
 
 ```{r}
 #| label: install-libraries.R
-#| file: "scripts/install_libraries.R"
+#| file: "scripts/1_production_model/install_libraries.R"
 #| echo: false
 ```
 
@@ -139,7 +139,7 @@ kable(stringr::str_remove(stringr::str_remove(functions, ".R"), "function_"),
 
 ```{r}
 #| label: load-names
-#| file: "scripts/name_matching.R"
+#| file: "scripts/1_production_model/name_matching.R"
 #| echo: false
 
 ```
@@ -158,7 +158,7 @@ An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-port
 
 ```{r}
 #| label: load-data-epa 
-#| file: "scripts/data_load_epa.R" 
+#| file: "scripts/1_production_model/data_load_epa.R" 
 #| echo: fenced 
 #| error: false 
 ```
@@ -172,7 +172,7 @@ Three data tables are downloaded from the the CAPD and stored into one .RDS file
 #| echo: false  
 
 # function to create summary table  
-epa_raw <- read_rds(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS")) 
+epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw.RDS")) 
 
 table_epa_raw <- create_summary_gt_table(epa_raw)  
 
@@ -232,7 +232,7 @@ As of 2024, the EIA API does not contain the most detailed data available, which
 
 ```{r}
 #| label: data-load-eia
-#| file: "scripts/data_load_eia.R"
+#| file: "scripts/1_production_model/data_load_eia.R"
 #| error: false
 #| echo: fenced
 ```
@@ -450,7 +450,7 @@ There are several procedures applied to the raw EPA file:
 
 ```{r}
 #| label: data-clean-epa 
-#| file: "scripts/data_clean_epa.R" 
+#| file: "scripts/1_production_model/data_clean_epa.R" 
 #| results: hold
 ```
 
@@ -465,7 +465,7 @@ There are several procedures applied to the raw EPA file:
 #| label: create-epa-summary-table 
 #| echo: false  
 
-create_summary_gt_table(readr::read_rds(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")))
+create_summary_gt_table(readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")))
 ```
 :::
 
@@ -495,7 +495,7 @@ There are several procedures that are applied to each of the raw EIA files:
 
 ```{r}
 #| label: data-clean-eia
-#| file: "scripts/data_clean_eia.R"
+#| file: "scripts/1_production_model/data_clean_eia.R"
 #| results: hold
 ```
 
@@ -504,11 +504,11 @@ There are several procedures that are applied to each of the raw EIA files:
 #| echo: false
 
 eia_923_files <- read_rds(
-        glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+        glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 eia_860_files <- read_rds(
-        glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+        glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
 eia_861_files <- read_rds(
-        glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
+        glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
 ```
 
 ### EIA-923
@@ -616,7 +616,7 @@ Crosswalks used in this file:
 
 ```{r}
 #| label: generator-file-create
-#| file: "scripts/generator_file_create.R"
+#| file: "scripts/1_production_model/generator_file_create.R"
 #| results: hold
 ```
 
@@ -625,7 +625,7 @@ Crosswalks used in this file:
 #| include: false
 
 generator_file <- readr::read_rds(
-        glue::glue("data/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))
+        glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))
 ```
 
 ## View Generator File Data
@@ -750,7 +750,7 @@ Crosswalks used in this file:
 
 ```{r}
 #| label: unit-file-create
-#| file: "scripts/unit_file_create.R"
+#| file: "scripts/1_production_model/unit_file_create.R"
 #| results: hold
 ```
 
@@ -759,7 +759,7 @@ Crosswalks used in this file:
 #| include: false
 
 unit_file <- readr::read_rds(
-      glue::glue("data/outputs/{params$eGRID_year}/unit_file_{params$temporal_res}.RDS"))
+      glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_{params$temporal_res}.RDS"))
 ```
 
 ## View Unit File Data
@@ -1036,7 +1036,7 @@ Crosswalks used in this file:
 
 ```{r}
 #| label: plant-file-create
-#| file: "scripts/plant_file_create.R"
+#| file: "scripts/1_production_model/plant_file_create.R"
 #| results: hold
 ```
 
@@ -1045,7 +1045,7 @@ Crosswalks used in this file:
 #| include: false
 
 plant_file <- readr::read_rds(
-        glue::glue("data/outputs/{params$eGRID_year}/plant_file_{params$temporal_res}.RDS"))
+        glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_{params$temporal_res}.RDS"))
 ```
 
 ## View Plant File Data
@@ -1462,7 +1462,7 @@ Crosswalks used in this file:
 
 ```{r}
 #| label: region-aggregation-create
-#| file: "scripts/region_aggregation_create.R"
+#| file: "scripts/1_production_model/region_aggregation_create.R"
 #| results: hold
 ```
 
@@ -1471,19 +1471,19 @@ Crosswalks used in this file:
 #| echo: false
 
 ba_agg  <- read_rds(
-    glue::glue("data/outputs/{params$eGRID_year}/ba_aggregation_{params$temporal_res}.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/ba_aggregation_{params$temporal_res}.RDS"))
 
 st_agg  <- read_rds(
-    glue::glue("data/outputs/{params$eGRID_year}/state_aggregation_{params$temporal_res}.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/state_aggregation_{params$temporal_res}.RDS"))
 
 srl_agg <- read_rds(
-    glue::glue("data/outputs/{params$eGRID_year}/subregion_aggregation_{params$temporal_res}.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/subregion_aggregation_{params$temporal_res}.RDS"))
 
 nrl_agg <- read_rds(
-    glue::glue("data/outputs/{params$eGRID_year}/nerc_aggregation_{params$temporal_res}.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/nerc_aggregation_{params$temporal_res}.RDS"))
 
 us_agg  <- read_rds(
-    glue::glue("data/outputs/{params$eGRID_year}/us_aggregation_{params$temporal_res}.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/us_aggregation_{params$temporal_res}.RDS"))
 ```
 
 ## View Aggregation Files Data
@@ -1560,7 +1560,7 @@ Crosswalk used in this file:
 
 ```{r}
 #| label: grid-gross-loss-create
-#| file: "scripts/grid_gross_loss_create.R"
+#| file: "scripts/1_production_model/grid_gross_loss_create.R"
 #| results: hold
 ```
 
@@ -1569,7 +1569,7 @@ Crosswalk used in this file:
 #| include: false
 
 ggl_file <- readr::read_rds(
-           glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+           glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 ```
 
 ## View Grid Gross Loss File Data
@@ -1665,7 +1665,7 @@ For full documentation, reference the [eGRID Technical Guide](https://www.epa.go
 
 if (params$run_demo_file) {
 
-    source("scripts/demographics_file_create.R")
+    source("scripts/1_production_model/demographics_file_create.R")
     print("demographics_file_create is running because run_script is TRUE. Code will take 4-5 hours to complete.")
 
 } else {
@@ -1704,7 +1704,7 @@ The eGRID variables added or altered in the metric file versions are included in
 ```{r}
 #| label: conversion-table
 
-conversion_table <- read_csv("data/static_tables/conversion_factors.csv")
+conversion_table <- read_csv("data/1_production_model/static_tables/conversion_factors.csv")
 
 
 conversion_table %>%
@@ -1720,7 +1720,7 @@ conversion_table %>%
 
 ```{r}
 #| label: metric-files-create
-#| file: "scripts/metric_files_create.R"
+#| file: "scripts/1_production_model/metric_files_create.R"
 #| results: hold
 ```
 
@@ -1732,16 +1732,16 @@ The data is formatted into an Excel file that contains all eight levels of data 
 
 ### Imperial Version
 
-The final output file is `r glue::glue("egrid{params$eGRID_year}_data.xlsx")`.
+The final output file is `r glue::glue("egrid{params$eGRID_year}_data.xlsx")` if running annual version and `r glue::glue("egrid{params$eGRID_year}_data_monthly.xlsx")` if running monthly version.
 
 ```{r}
 #| label: final-formatting
 #| results: hold
 
 if(params$temporal_res == "annual"){
-  source("scripts/final_formatting_annual.R")
+  source("scripts/1_production_model/final_formatting_annual.R")
 } else if(params$temporal_res == "monthly") { 
-  source("scripts/final_formatting_monthly.R")}
+  source("scripts/1_production_model/final_formatting_monthly.R")}
 
 ```
 
@@ -1754,9 +1754,9 @@ The final metric output file is `r glue::glue("egrid{params$eGRID_year}_data_met
 #| results: hold
 
 if(params$temporal_res == "annual"){
-  source("scripts/final_formatting_metric_annual.R")
+  source("scripts/1_production_model/final_formatting_metric_annual.R")
 } else if(params$temporal_res == "monthly") { 
-  source("scripts/final_formatting_metric_monthly.R")}
+  source("scripts/1_production_model/final_formatting_metric_monthly.R")}
 
 ```
 
@@ -1770,7 +1770,7 @@ A summary tables document is produced to provide a synopsis of the eGRID informa
 
 ```{r}
 #| label: summary-tables-create
-#| file: "scripts/summary_tables_create.R"
+#| file: "scripts/1_production_model/summary_tables_create.R"
 #| results: false
 ```
 

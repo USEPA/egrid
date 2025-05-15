@@ -95,13 +95,13 @@ metric_conversion <- function(which_file) {
   
   # original output data
   if(which_file != "ggl") { # grid gross loss does not have a monthly version
-    orig_data <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/{filename}_{params$temporal_res}.RDS")) 
+    orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{filename}_{params$temporal_res}.RDS")) 
   } else {
-    orig_data <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/{filename}.RDS")) 
+    orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{filename}.RDS")) 
   }
   
   # metric file structure
-  metric_struct <- read_excel("data/static_tables/metric_structure.xlsx",
+  metric_struct <- read_excel("data/1_production_model/static_tables/metric_structure.xlsx",
                                  # sheet name depends on which_file and temporal_res parameter
                                  sheet = glue::glue("{which_file}_{params$temporal_res}"),
                                  # keep column names to include NA fields
@@ -156,9 +156,9 @@ metric_conversion <- function(which_file) {
   # Export file -------------
   
   # check if data output folder exists, if not make folder
-  save_dir <- glue::glue("data/outputs/{params$eGRID_year}")
+  save_dir <- glue::glue("data/1_production_model/outputs/{params$eGRID_year}")
   if(!dir.exists(save_dir)) {
-    dir.create(save_dir)
+    dir.create(save_dir, recursive = TRUE)
     print(glue::glue("Folder {save_dir} created."))
   }
   

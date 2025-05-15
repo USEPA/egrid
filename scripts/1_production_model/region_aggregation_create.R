@@ -39,7 +39,7 @@ temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
 
 # Load ordered names and abbreviations -------------
 # load in name matches for shorthand to snake_case
-source("scripts/name_matching.R")
+source("scripts/1_production_model/name_matching.R")
 
 # Call aggregation function for each region ------------
 

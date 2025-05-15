@@ -30,22 +30,16 @@ library(data.table)
 
 # Set parameters ------
 
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
+# Define paramters if necessary and check for valid params()
+if (!exists("params")) {
+  params <- check_params()
+} else {
+  print("eGRID year and version parameters are already defined.")
 }
 
 # Load in datasets ------
 
-plant_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
+plant_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_annual.RDS"))
 
 # subset data to columns
 
@@ -179,6 +173,6 @@ demo_file <- plant_file %>%
              relocate(N_D_UNEMPLOYED_PER, .before = N_D_LIFEEXP_PER) 
 
 # save output as RDS
-write_rds(demo_file, file = glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
+write_rds(demo_file, file = glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))
 
 

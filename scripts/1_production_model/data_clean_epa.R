@@ -36,7 +36,7 @@ temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
 
 # Read raw EPA files -------
 
-epa_raw <- read_rds(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))
+epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))
 
 # standardizing variables names to match eia data and removing retired and inactive plants
 
@@ -77,7 +77,7 @@ unit_abbs <- # abbreviation crosswalk for unit types
 
 # load manual corrections to data
 manual_corrections <- 
-  read_xlsx("data/static_tables/manual_corrections.xlsx", 
+  read_xlsx("data/1_production_model/static_tables/manual_corrections.xlsx", 
             sheet = "epa_clean", 
             col_types = c("text", "text", "text"))
 
@@ -223,23 +223,23 @@ epa_final <- # removing unnecessary columns and final renames
 
 # creating folder if not already present
 
-if(!dir.exists("data/clean_data/epa")){
-  dir.create("data/clean_data/epa")
+if(!dir.exists("data/1_production_model/clean_data/epa")){
+  dir.create("data/1_production_model/clean_data/epa")
 } else{
-  print("Folder data/clean_data/epa already exists.")
+  print("Folder data/1_production_model/clean_data/epa already exists.")
 }
 
-if(!dir.exists(glue::glue("data/clean_data/epa/{params$eGRID_year}"))){
-  dir.create(glue::glue("data/clean_data/epa/{params$eGRID_year}"))
+if(!dir.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}"))){
+  dir.create(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}"))
 } else{
-  print(glue::glue("Folder data/clean_data/epa/{params$eGRID_year} already exists."))
+  print(glue::glue("Folder data/1_production_model/clean_data/epa/{params$eGRID_year} already exists."))
 }
 
-write_rds(epa_final, glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean_{params$temporal_res}.RDS"))
+write_rds(epa_final, glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_{params$temporal_res}.RDS"))
 
 # check if file is successfully written to folder 
-if(file.exists(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))){
-  print(glue::glue("File epa_clean_{params$temporal_res}.RDS successfully written to folder data/clean_data/epa/{params$eGRID_year}"))
+if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))){
+  print(glue::glue("File epa_clean_{params$temporal_res}.RDS successfully written to folder data/1_production_model/clean_data/epa/{params$eGRID_year}"))
 } else {
   print(glue::glue("File epa_clean_{params$temporal_res}.RDS failed to write to folder."))
 }

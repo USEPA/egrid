@@ -39,8 +39,8 @@ if (!exists("params")) {
 ### Read in EIA files ------
 
 # read files based on eGRID year
-eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
-eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+eia_860 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 
 ### Extracting EIA tables and data -----
 
@@ -60,13 +60,13 @@ download_eia_ggl(params$eGRID_year)
 ### Load in datasets ----
 
 # ggl_r = Table 10: State supply and disposition data (from EIA website) compiled into a summary sheet
-ggl_r <- read_xlsx(glue::glue("data/clean_data/eia_ggl/ggl_{params$eGRID_year}.xlsx")) 
+ggl_r <- read_xlsx(glue::glue("data/1_production_model/clean_data/eia_ggl/ggl_{params$eGRID_year}.xlsx")) 
 
 # state_and_interconnection = states and their interconnections
-state_interconnect <- read_csv("data/static_tables/state_and_interconnection.csv")
+state_interconnect <- read_csv("data/1_production_model/static_tables/state_and_interconnection.csv")
 
 # nerc_region_and_interconnect = states, interconnections, and NERC region
-nerc_interconnect <- read_xlsx("data/static_tables/nerc_region_and_interconnect.xlsx")
+nerc_interconnect <- read_xlsx("data/1_production_model/static_tables/nerc_region_and_interconnect.xlsx")
 
 # standardizing column names for easier manipulations
 state_interconnect <- 
@@ -242,26 +242,20 @@ ggl_interconnect_4 <- cbind(year = params$eGRID_year, ggl_interconnect_3)
 # Export GGL file -------------- 
 
 # check if folders exist 
-if(dir.exists("data/outputs")) {
-  print("Folder output already exists.")
+if(dir.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))) {
+  print(glue::glue("Folder 1_production_model/outputs/{params$eGRID_year} already exists."))
 } else {
-  dir.create("data/outputs")
-}
-
-if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
-  print("Folder output already exists.")
-} else {
-  dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
+  dir.create(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))
 }
 
 # write RDS file
-print(glue::glue("Saving grid gross loss file to folder data/outputs/{params$eGRID_year}"))
+print(glue::glue("Saving grid gross loss file to folder data/1_production_model/outputs/{params$eGRID_year}"))
 
-write_rds(ggl_interconnect_4, glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+write_rds(ggl_interconnect_4, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 
 # check if file is successfully written to folder 
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))){
-  print(glue::glue("File grid_gross_loss.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))){
+  print(glue::glue("File grid_gross_loss.RDS successfully written to folder data/1_production_model/outputs/{params$eGRID_year}"))
 } else {
   print("File grid_gross_loss.RDS failed to write to folder.")
 } 

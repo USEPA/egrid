@@ -37,7 +37,7 @@ Further information on the eGRID methodology can be found in the [eGRID Technica
 
 The dataset that this code produces is publicly available [here](https://www.epa.gov/egrid/download-data).
 
-![Figure 1: eGRID subregions.](egrid_subregion_map.png)
+![Figure 1: eGRID subregions.](data/1_production_model/static_tables/formatting/egrid_subregion_map.png)
 
 ## Architecture
 
