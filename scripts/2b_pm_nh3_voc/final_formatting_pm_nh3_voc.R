@@ -110,8 +110,10 @@ subregion_file <-
   subregion_file %>%
   bind_rows(us_formatted)
 
-# Create workbook -----
-wb <- createWorkbook()
+# Load in previous year workbook -----
+year_prev <- as.numeric(params$eGRID_year) - 1
+wb_dir <- glue::glue("data/2b_pm_nh3_voc/outputs/{year_prev}/eGRID{year_prev}_{emission_abbrev}emissions.xlsx")
+wb <- loadWorkbook(wb_dir)
 
 # set base font
 modifyBaseFont(wb, fontName = "Arial", fontSize = 8.5)
@@ -242,5 +244,11 @@ for(emission_level in c("unit", "plant", "state", "subregion")) {
            stack = TRUE, gridExpand = TRUE)
 }
 
+# order worksheets - move graphs and EIA crosswalk to the end
+wb_order <- worksheetOrder(wb)
+wb_new_order <- c(wb_order[1:(length(wb_order) - 6)], tail(wb_order, n = 4), wb_order[(length(wb_order) - 6):(length(wb_order) - 4)])
+worksheetOrder(wb) <-wb_new_order
+
+# save workbook
 saveWorkbook(wb, glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
              overwrite = TRUE)
