@@ -1106,6 +1106,13 @@ hg_flags_to_update <- # boilers that have strategy == "ACI" get mercury controls
 
 ## Updating units with available values ------
 
+controls_manual_corrections <- 
+  manual_corrections %>% 
+  filter(column_to_update %in% c("so2_controls", "nox_controls", "hg_controls_flag")) %>% 
+  select(plant_id, column_to_update, update) %>% 
+  pivot_wider(names_from = "column_to_update", 
+              values_from = "update")
+
 all_units_4 <-  
   all_units_3 %>% 
   rows_patch(nox_controls_860 %>%  # updating with available 860 NOx controls
@@ -1125,6 +1132,7 @@ all_units_4 <-
   rows_patch(pm_860 %>% rename("unit_id" = "boiler_id"), # updating missing prime movers
              by = c("plant_id", "unit_id"),
              unmatched = "ignore") %>% 
+  rows_update(controls_manual_corrections, by = c("plant_id")) %>% # update SO2 controls manually
   left_join(num_gens_860, # Adding num_generators variable from 860 boiler generator file
             by = c("plant_id", "unit_id" = "boiler_id")) %>%
   left_join(hg_flags_to_update, # Adding HG flag variable

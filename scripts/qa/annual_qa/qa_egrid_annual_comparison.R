@@ -1,4 +1,15 @@
-
+## -------------------------------
+##
+## QA eGRID Annual Comparison 
+## 
+## Purpose: 
+## 
+## This file creates the QA to compare across eGRID years.
+## 
+## Authors:  
+##      Teagan Goforth, Abt Global
+##
+## -------------------------------
 
 # Load libraries  ----
 
@@ -8,25 +19,15 @@ library(readr)
 library(readxl)
 library(stringr)
 
-# Check for params() --------
+# Load necessary functions
+source("scripts/functions/function_check_params.R")
 
-# check if parameters for eGRID data year need to be defined
-# this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input eGRID year in the console if params does not exist
-
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- (params$eGRID_year) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
+# Create and check parameters 
+if (!exists("params")) {
+  params <- check_params()
+} else {
+  print("eGRID year, temporal resolution, and version parameters are already defined.")
 }
-
 # Set years to evaluate ---------
 
 cur_year <- as.numeric(params$eGRID_year)
@@ -41,7 +42,7 @@ cur_year <- as.character(cur_year)
 ### Note: check each year if these URLs have changed 
 
 # 2019 data
-path_2019 <- "data/static_tables/qa/egrid2019_data.xlsx"
+path_2019 <- "data/1_production_model/static_tables/historical_egrid/egrid2019_data.xlsx"
 
 if(!file.exists(path_2019)){
   download.file(url = "https://www.epa.gov/sites/default/files/2021-02/egrid2019_data.xlsx", 
@@ -52,7 +53,7 @@ if(!file.exists(path_2019)){
 }
 
 # 2020 data
-path_2020 <- "data/static_tables/qa/egrid2020_data.xlsx"
+path_2020 <- "data/1_production_model/static_tables/historical_egrid/egrid2020_data.xlsx"
 
 if(!file.exists(path_2019)){
   download.file(url = "https://www.epa.gov/system/files/documents/2022-09/eGRID2020_Data_v2.xlsx", 
@@ -63,7 +64,7 @@ if(!file.exists(path_2019)){
 }
 
 # 2021 data
-path_2021 <- "data/static_tables/qa/egrid2021_data.xlsx"
+path_2021 <- "data/1_production_model/static_tables/historical_egrid/egrid2021_data.xlsx"
 
 if(!file.exists(path_2019)){
   download.file(url = "https://www.epa.gov/system/files/documents/2023-01/eGRID2021_data.xlsx", 
@@ -74,7 +75,7 @@ if(!file.exists(path_2019)){
 }
 
 # 2022 data
-path_2022 <- "data/static_tables/qa/egrid2022_data.xlsx"
+path_2022 <- "data/1_production_model/static_tables/historical_egrid/egrid2022_data.xlsx"
 
 if(!file.exists(path_2019)){
   download.file(url = "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx", 
@@ -195,25 +196,25 @@ if(!file.exists(path_2019)){
 
 # read in subregion data for each data year to compare here
 subregion_prev_yr3 <- 
-  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr3}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{prev_yr3}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(prev_yr3) %% 1000}"), 
                         skip = 1) %>% 
   select(any_of(subregion_column_names))
   
 subregion_prev_yr2 <- 
-  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr2}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{prev_yr2}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(prev_yr2) %% 1000}"),
                         skip = 1) %>% 
   select(any_of(subregion_column_names))
 
 subregion_prev_yr1 <- 
-  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr1}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{prev_yr1}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(prev_yr1) %% 1000}"),
                         skip = 1) %>% 
   select(any_of(subregion_column_names))
 
 subregion_cur_yr <- 
-  read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(cur_year) %% 1000}"),
                         skip = 1) %>% 
   select(any_of(subregion_column_names))
@@ -335,25 +336,25 @@ state_column_names <- c(
 
 # read in state data for each data year to compare here
 state_prev_yr3 <- 
-  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr3}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{prev_yr3}_data.xlsx"), 
              sheet = glue::glue("ST{as.numeric(prev_yr3) %% 1000}"), 
              skip = 1) %>% 
   select(any_of(state_column_names))
 
 state_prev_yr2 <- 
-  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr2}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{prev_yr2}_data.xlsx"), 
              sheet = glue::glue("ST{as.numeric(prev_yr2) %% 1000}"),
              skip = 1) %>% 
   select(any_of(state_column_names))
 
 state_prev_yr1 <- 
-  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr1}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{prev_yr1}_data.xlsx"), 
              sheet = glue::glue("ST{as.numeric(prev_yr1) %% 1000}"),
              skip = 1) %>% 
   select(any_of(state_column_names))
 
 state_cur_yr <- 
-  read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
              sheet = glue::glue("ST{as.numeric(cur_year) %% 1000}"),
              skip = 1) %>% 
   select(any_of(state_column_names))
@@ -480,25 +481,25 @@ us_column_names <- c(
   "net_gen" = "USNGENAN")
 
 us_prev_yr3 <- 
-  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr3}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{prev_yr3}_data.xlsx"), 
              sheet = glue::glue("US{as.numeric(prev_yr3) %% 1000}"), 
              skip = 1) %>% 
   select(any_of(us_column_names))
 
 us_prev_yr2 <- 
-  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr2}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{prev_yr2}_data.xlsx"), 
              sheet = glue::glue("US{as.numeric(prev_yr2) %% 1000}"),
              skip = 1) %>% 
   select(any_of(us_column_names))
 
 us_prev_yr1 <- 
-  read_excel(glue::glue("data/static_tables/qa/egrid{prev_yr1}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{prev_yr1}_data.xlsx"), 
              sheet = glue::glue("US{as.numeric(prev_yr1) %% 1000}"),
              skip = 1) %>% 
   select(any_of(us_column_names))
 
 us_cur_yr <- 
-  read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
              sheet = glue::glue("US{as.numeric(cur_year) %% 1000}"),
              skip = 1) %>% 
   select(any_of(us_column_names))

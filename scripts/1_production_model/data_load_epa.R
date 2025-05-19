@@ -76,8 +76,14 @@ facility_path <-
          dataType == "Facility") %>% 
   pull(s3Path)
 
-temporal_res_cols_to_add <- cols_to_add(params$temporal_res)
-temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
+# annual version will use monthly version of EPA data 
+if(params$temporal_res %in% c("annual", "monthly")) { 
+  temporal_res_cols_to_add <- cols_to_add("monthly")
+  temporal_res_cols <- create_temporal_res_cols("monthly")
+} else { 
+  temporal_res_cols_to_add <- cols_to_add(params$temporal_res)
+  temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
+  }
 
 facility_df <- 
   read_csv(paste0(bucket_url_base,facility_path)) %>% 
@@ -157,33 +163,15 @@ emissions_groupby_cols <-
   colnames()
 
 emissions_select_cols <- c(temporal_res_cols, emissions_groupby_cols, cols_to_sum, "reporting_months", "reporting_frequency") # used to drop columns based on temporal_res (i.e. annual = drop "month", "day")
-emissions_groupby_cols <- c(temporal_res_cols, emissions_groupby_cols) # only sum to the specified temporal_res (i.e. annual = "year")
+emissions_groupby_cols <- c(temporal_res_cols, emissions_groupby_cols) # only sum to the specified temporal_res (i.e. monthly = c("year", "month))
 
-# for annual, sum to annual and sum ozone months
-if (params$temporal_res == "annual") {
-  emissions_data_r_2 <-
-    emissions_data_r %>%
-    group_by(pick(-c(all_of(cols_to_sum), day, reporting_months, reporting_frequency))) %>% # group_by month & year
-    summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE)),
-              reporting_months = unique(reporting_months),
-              reporting_frequency = unique(reporting_frequency)) %>% # aggregating emissions to monthly values first for ozone months
-    ungroup() %>%
-    #distinct() %>% # reframe and not keep day
-    group_by(pick(all_of(emissions_groupby_cols))) %>%
-    mutate(across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone"), # now calculating ozone month emissions
-           across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}")) %>% # calculating annual emissions 
-    ungroup() %>%
-    select(all_of(emissions_select_cols), contains("ozone")) %>%
-    distinct() # removing duplicate rows that aren't needed after ozone calculation
- } else {  # for monthly, daily, and hourly temporal resolutions, only sum to temporal resolution
-  emissions_data_r_2 <-
-    emissions_data_r %>%
-    group_by(pick(all_of(emissions_groupby_cols))) %>%
-    mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}")) %>%
-    ungroup() %>%
-    select(all_of(emissions_select_cols)) %>% # will only keep temporal_res columns specified by params$temporal_res
-    distinct()
-}
+emissions_data_r_2 <-
+  emissions_data_r %>%
+  group_by(pick(all_of(emissions_groupby_cols))) %>%
+  mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}")) %>%
+  ungroup() %>%
+  select(all_of(emissions_select_cols)) %>% # will only keep temporal_res columns specified by params$temporal_res
+  distinct()
 
 ## Get MATS data --------------
 
@@ -248,13 +236,26 @@ epa_data_combined <-
 
 print(glue::glue("Writing file epa_raw_{params$temporal_res}.RDS to folder data/1_production_model/raw_data/epa/{params$eGRID_year}."))
 
-readr::write_rds(epa_data_combined, 
-                 file = glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))
+if(params$temporal_res %in% c("annual", "monthly")) { # annual version uses monthly version of EPA data 
+  readr::write_rds(epa_data_combined, 
+                   file = glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_monthly.RDS"))
+} else { 
+  readr::write_rds(epa_data_combined, 
+                   file = glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))
+  }
 
 # check if file is successfully written to folder 
-if(file.exists(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))){
-  print(glue::glue("File epa_raw_{params$temporal_res}.RDS successfully written to folder data/1_production_model/raw_data/epa/{params$eGRID_year}"))
-} else {
-   print(glue::glue("File epa_raw_{params$temporal_res}.RDS failed to write to folder."))
+if(params$temporal_res %in% c("annual", "monthly")) { # annual version uses monthly version of EPA data 
+  if(file.exists(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_monthly.RDS"))){
+  print(glue::glue("File epa_raw_monthly.RDS successfully written to folder data/1_production_model/raw_data/epa/{params$eGRID_year}"))
+  } else {
+     print(glue::glue("File epa_raw_monthly.RDS failed to write to folder."))
+  }
+} else { 
+  if(file.exists(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))){
+    print(glue::glue("File epa_raw_{params$temporal_res}.RDS successfully written to folder data/1_production_model/raw_data/epa/{params$eGRID_year}"))
+  } else {
+    print(glue::glue("File epa_raw_{params$temporal_res}.RDS failed to write to folder."))
+  }
 }
 

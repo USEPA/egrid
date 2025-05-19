@@ -32,11 +32,20 @@ if (!exists("params")) {
 }
 
 # Specify grouping columns based on temporal_res parameter
-temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
+# annual version will use monthly version of EPA data 
+if(params$temporal_res %in% c("annual", "monthly")) { 
+  temporal_res_cols <- create_temporal_res_cols("monthly")
+} else { 
+  temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
+}
 
 # Read raw EPA files -------
 
-epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))
+# annual version will use monthly version of EPA data 
+if(params$temporal_res %in% c("annual", "monthly")) { 
+  epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_monthly.RDS"))
+} else { 
+  epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))}
 
 # standardizing variables names to match eia data and removing retired and inactive plants
 
@@ -97,7 +106,7 @@ epa_r <-
   epa_raw %>% 
   rename(any_of(rename_cols)) %>%
   filter((!operating_status %in% c("Future", "Retired", "Long-term Cold Storage") | plant_id %in% manual_corrections$plant_id), # removing plants that are listed as future, retired, or long-term cold storage
-         (plant_id < 880000 | plant_id %in% manual_corrections$plant_id)) %>% # removing plant with plant ids above 880,000 unless they are in Puerto Rico
+         (plant_id < 880000 | plant_id %in% manual_corrections$plant_id)) %>% # removing plant with plant ids above 880000
   mutate(
     plant_id = case_when(
       plant_id %in% plant_id_corrections$plant_id ~ plant_id_corrections$update, 
@@ -116,7 +125,7 @@ epa_r <-
       plant_id %in% op_status_corrections$plant_id ~ op_status_corrections$operating_status,
       TRUE ~ operating_status),
     unit_type = str_replace(unit_type, "\\(.*?\\)", "") %>% str_trim(), # removing notes about start dates and getting rid of extra white space
-    unit_type_abb = recode(unit_type, !!!unit_abbs), ## Recoding values based on lookup table. need to looking into cases with multipe types (SB 3/28/2024)
+    unit_type_abb = recode(unit_type, !!!unit_abbs), ## Recoding values based on lookup table. need to looking into cases with multiple types (SB 3/28/2024)
     year_online = lubridate::year(commercial_operation_date)
     ) 
 
@@ -186,14 +195,8 @@ epa_r_2 <-
   epa_r %>% 
   rows_update(epa_abbv_so2_controls, by = c("plant_id", "unit_id")) %>% 
   rows_update(epa_abbv_nox_controls, by = c("plant_id", "unit_id"))
-
-if(params$temporal_res == "annual") { 
-  epa_r_2 <- 
-    epa_r_2 %>% 
-    mutate(heat_input_oz_source = if_else(is.na(heat_input_mmbtu_ozone), NA_character_, "EPA/CAPD"),
-           nox_oz_source = if_else(is.na(nox_mass_short_tons_ozone), NA_character_, "EPA/CAPD"))}
  
-print(glue::glue("{nrow(epa_raw) - nrow(epa_r)} rows removed because units have status of future, retired, long-term cold storage, or the plant ID is > 80,000."))
+print(glue::glue("{nrow(epa_raw) - nrow(epa_r)} rows removed because units have status of future, retired, long-term cold storage, or the plant ID is > 880,000."))
 
 # Remove unnecessary columns and rename as needed ------------
 
@@ -223,23 +226,29 @@ epa_final <- # removing unnecessary columns and final renames
 
 # creating folder if not already present
 
-if(!dir.exists("data/1_production_model/clean_data/epa")){
-  dir.create("data/1_production_model/clean_data/epa")
-} else{
-  print("Folder data/1_production_model/clean_data/epa already exists.")
-}
-
 if(!dir.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}"))){
-  dir.create(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}"))
+  dir.create(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}"), recursive = TRUE)
 } else{
   print(glue::glue("Folder data/1_production_model/clean_data/epa/{params$eGRID_year} already exists."))
 }
 
-write_rds(epa_final, glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_{params$temporal_res}.RDS"))
+if(params$temporal_res %in% c("annual", "monthly")) { 
+  write_rds(epa_final, glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS"))
+} else { 
+  write_rds(epa_final, glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_{params$temporal_res}.RDS"))
+  }
 
 # check if file is successfully written to folder 
-if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))){
-  print(glue::glue("File epa_clean_{params$temporal_res}.RDS successfully written to folder data/1_production_model/clean_data/epa/{params$eGRID_year}"))
-} else {
-  print(glue::glue("File epa_clean_{params$temporal_res}.RDS failed to write to folder."))
+if(params$temporal_res %in% c("annual", "monthly")) { # annual version uses monthly version of EPA data 
+  if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS"))){
+    print(glue::glue("File epa_clean_monthly.RDS successfully written to folder data/1_production_model/clean_data/epa/{params$eGRID_year}"))
+  } else {
+    print(glue::glue("File epa_clean_monthly.RDS failed to write to folder."))
+  }
+} else { 
+  if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_{params$temporal_res}.RDS"))){
+    print(glue::glue("File epa_clean_{params$temporal_res}.RDS successfully written to folder data/1_production_model/clean_data/epa/{params$eGRID_year}"))
+  } else {
+    print(glue::glue("File epa_clean_{params$temporal_res}.RDS failed to write to folder."))
+  }
 }
