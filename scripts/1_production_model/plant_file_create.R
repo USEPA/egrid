@@ -122,12 +122,28 @@ manual_corrections <-
             col_types = c("text", "text", "text"))
 
 # previous eGRID year CHP plants
-plant_prev_year <- # plant file of previous year
-  read_csv("data/1_production_model/static_tables/egrid_2022_chp.csv", 
-           col_types = "cc") %>% 
-  janitor::clean_names() %>% 
-  rename(plant_id = orispl, 
-         prev_egrid_chp = chpflag)
+if(file.exists(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.numeric(params$eGRID_year) - 1}_data.xlsx"))) { 
+  plant_chp_prev_year <- # plant file of previous year
+    read_xlsx(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.numeric(params$eGRID_year) - 1}_data.xlsx"),
+              sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000 - 1}"),
+              skip = 1) %>% 
+    janitor::clean_names() %>% 
+    select(plant_id = orispl, 
+           prev_egrid_chp = chpflag) %>% 
+    filter(prev_egrid_chp == "Yes")
+} else { 
+  ### Note: check for updates or changes each data year ###
+  # add previous eGRID data year every year
+  urls <- c("2018" = "https://www.epa.gov/sites/default/files/2020-03/egrid2018_data_v2.xlsx",
+            "2019" = "https://www.epa.gov/sites/default/files/2021-02/egrid2019_data.xlsx",
+            "2020" = "https://www.epa.gov/system/files/documents/2022-09/eGRID2020_Data_v2.xlsx",
+            "2021" = "https://www.epa.gov/system/files/documents/2023-01/eGRID2021_data.xlsx",
+            "2022" = "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx")
+  
+  download.file(url = urls[as.character(as.numeric(params$eGRID_year) - 1)], 
+                destfile = glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.numeric(params$eGRID_year) - 1}_data.xlsx"), 
+                mode = "wb")
+}
 
 # EPA CHP database
 chp_database <- 
