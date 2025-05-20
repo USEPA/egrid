@@ -61,8 +61,8 @@ plot_subregion_emissions <- function(emission_type,
   require(scales)
   
   # Load subregion data -----
-  if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))) {
-    subregion_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS")) #%>%
+  if(file.exists(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))) {
+    subregion_file <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))
   } else {
     stop(glue::glue("subregion_aggregation_{emission_type}.RDS does not exist. Run region_aggregation_create_pm_nh3_voc.R to obtain."))
   }
