@@ -70,10 +70,15 @@ format_plant <- function(emission_type) {
   emissions_source_var <- paste0(emission_type, "_source")
   plant_sources <- 
     unit_file %>%
-    group_by(plant_id, "{emissions_source_var}") %>%
     filter(!is.na(get(emissions_source_var)) | get(emissions_source_var) == "") %>%
     arrange(get(emissions_source_var)) %>% # sort by PM2.5 source
-    summarize("{emission_type}_source" := str_c(unique(get(emissions_source_var)), collapse = "; "), .groups = "drop") %>% # concatenate source strings
+    group_by(plant_id) %>%
+    # concatenate source strings
+    summarize("{emission_type}_source" := str_c(unique(get(emissions_source_var)), collapse = "; "), .groups = "drop") %>%
+    # replace multiple sources with generalized multiple source assignment
+    mutate("{emission_type}_source" := if_else(grepl(";", get(emissions_source_var)), 
+                                               "EPA/NEI; Estimated using an emission source", 
+                                               get(emissions_source_var))) %>%
     ungroup() %>%
     select(-contains("var"))
 
