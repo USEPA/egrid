@@ -1,6 +1,6 @@
 ## -------------------------------
 ##
-## Final formatting
+## Final formatting (monthly)
 ## 
 ## Purpose: 
 ## 
@@ -63,6 +63,9 @@ year <- as.numeric(params$eGRID_year) %% 1000
 wb <- createWorkbook()
 source("scripts/functions/function_create_contents_egrid_final.R")
 create_contents_egrid_final()
+
+# vector for month names
+month_abbr <- toupper(month.abb)
 
 # Create styles ------------------------------
 

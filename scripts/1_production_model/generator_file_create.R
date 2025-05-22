@@ -94,8 +94,8 @@ manual_corrections <- # manual corrections needed for generator file
             col_types = c("text", "text", "text", "text", "text"))
 
 # Load EPA data to update plant names to EPA versions
-if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))) { # if file does not exist, stop code and print error
-  epa <- read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")) %>% 
+if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS"))) { # if file does not exist, stop code and print error
+  epa <- read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")) %>% 
     select(plant_id, plant_name) %>% distinct()
 } else { 
   stop("epa_clean.RDS does not exist. Run data_load_epa.R and data_clean_epa.R to obtain.")}
