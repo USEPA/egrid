@@ -34,13 +34,13 @@ if (exists("params")) {
 }
 
 # Ultimately loop through emission types -----
-emission_type <- "pm25"
+emission_type <- "voc"
 if(emission_type == "pm25") {
   emission_abbrev <- "pm"
   emission_header <- "PM2.5"
 } else {
   emission_abbrev <- emission_type
-  emission_header <- emission_type
+  emission_header <- toupper(emission_type)
 }
 
 # Define selection of style types -----
@@ -69,6 +69,13 @@ us_row <- createStyle(
   fontName = "Arial",
   textDecoration = "bold",
   fgFill = "#F2F2F2")
+
+graph_headers <- createStyle(
+  fontName = "Arial",
+  fontSize = 16,
+  textDecoration = "bold",
+  halign = "center",
+  valign = "center")
 
 # Import .RDS data -----
 
@@ -244,9 +251,46 @@ for(emission_level in c("unit", "plant", "state", "subregion")) {
            stack = TRUE, gridExpand = TRUE)
 }
 
+# Add Subregion Emissions Graphs  -----
+
+# reset graphs worksheet by removing and adding new sheet
+removeWorksheet(wb, "Graphs")
+addWorksheet(wb, "Graphs")
+
+# run script to save subregion graphs
+source(glue::glue("scripts/functions/function_create_subregion_emission_figures.R"))
+create_subregion_emission_figures(emission_type)
+
+# define graph directory, names, and years
+graph_dir <- glue::glue("data/2b_pm_nh3_voc/static_tables/formatting/")
+graph_types <- c("annual_generation", "emissions", "rate")
+graph_years <- seq(2018, as.numeric(params$eGRID_year), 1)
+
+# add all images from previous and current year
+graph_col <- 1
+graph_col_step <- 12
+graph_row_step <- 20
+for(year in graph_years) {
+  # add year label and formatting
+  graph_row <- 2
+  writeData(wb, "Graphs", x = year, startCol = graph_col, startRow = graph_row - 1)
+  addStyle(wb, "Graphs", style = graph_headers, rows = 1, cols = 1:40, gridExpand = TRUE)
+  mergeCells(wb, "Graphs", rows = 1, cols = graph_col:(graph_col + graph_col_step - 1))
+  # add images
+  for(graph in graph_types) {
+    graph_file <- glue::glue("{graph_dir}{emission_type}_{graph}_{year}.png")
+    insertImage(wb, "Graphs", file = graph_file,
+            width = 8.5, height = 3.2, startRow = graph_row, startCol = graph_col)
+    # shift image location down
+    graph_row <- graph_row + graph_row_step }
+  # shift image location right
+  graph_col <- graph_col + graph_col_step }
+
+# Order Worksheets and Save Workbook -----
+
 # order worksheets - move graphs and EIA crosswalk to the end
 wb_order <- worksheetOrder(wb)
-wb_new_order <- c(wb_order[1:(length(wb_order) - 6)], tail(wb_order, n = 4), wb_order[(length(wb_order) - 6):(length(wb_order) - 4)])
+wb_new_order <- c(wb_order[1:(length(wb_order) - 6)], wb_order[(length(wb_order) - 4):(length(wb_order) - 1)], tail(wb_order, n = 1), wb_order[(length(wb_order) - 5)])
 worksheetOrder(wb) <-wb_new_order
 
 # save workbook
