@@ -128,6 +128,7 @@ if(file.exists(glue::glue("data/1_production_model/static_tables/historical_egri
               sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000 - 1}"),
               skip = 1) %>% 
     janitor::clean_names() %>% 
+    mutate(orispl = as.character(orispl)) %>%
     select(plant_id = orispl, 
            prev_egrid_chp = chpflag) %>% 
     filter(prev_egrid_chp == "Yes")
@@ -143,6 +144,16 @@ if(file.exists(glue::glue("data/1_production_model/static_tables/historical_egri
   download.file(url = urls[as.character(as.numeric(params$eGRID_year) - 1)], 
                 destfile = glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.numeric(params$eGRID_year) - 1}_data.xlsx"), 
                 mode = "wb")
+ 
+  plant_chp_prev_year <- # plant file of previous year
+    read_xlsx(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.numeric(params$eGRID_year) - 1}_data.xlsx"),
+              sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000 - 1}"),
+              skip = 1) %>% 
+    janitor::clean_names() %>% 
+    mutate(orispl = as.character(orispl)) %>%
+    select(plant_id = as.character(orispl), 
+           prev_egrid_chp = chpflag) %>% 
+    filter(prev_egrid_chp == "Yes")
 }
 
 # EPA CHP database
@@ -1065,7 +1076,7 @@ chp_plants <- # identify CHP plants from EIA-860, EIA-923, EPA CHP database, and
   left_join(chp_database %>% 
               mutate(chp_database = "Y") %>% 
               distinct()) %>% 
-  full_join(plant_prev_year) %>% 
+  full_join(plant_chp_prev_year) %>% 
   mutate(eia_860_chp = if_else(eia_860_chp == "Y" & !is.na(eia_860_chp), 1, 0), 
          eia_923_chp = if_else(eia_923_chp == "Y" & !is.na(eia_923_chp), 1, 0), 
          prev_egrid_chp = if_else(prev_egrid_chp == "Yes" & !is.na(prev_egrid_chp), 1, 0), 

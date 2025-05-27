@@ -38,14 +38,14 @@ if (!exists("params")) {
 # Load in data ------------------------------
 
 # load files
-unt_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
-gen_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file.RDS"))
-plnt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
-st_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/state_aggregation.RDS"))
-ba_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/ba_aggregation.RDS"))
-srl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/subregion_aggregation.RDS"))
-nrl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/nerc_aggregation.RDS"))
-us_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/us_aggregation.RDS"))
+unt_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_annual.RDS"))
+gen_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_annual.RDS"))
+plnt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_annual.RDS"))
+st_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/state_aggregation_annual.RDS"))
+ba_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/ba_aggregation_annual.RDS"))
+srl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/subregion_aggregation_annual.RDS"))
+nrl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/nerc_aggregation_annual.RDS"))
+us_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/us_aggregation_annual.RDS"))
 ggl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 
 if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
@@ -249,7 +249,6 @@ standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
 
 standard_header <- names(standard_labels)  # column names
 standard_desc   <- unname(standard_labels) # description of column names
-
 
 # UNT Formatting --------------------------------
 
