@@ -83,7 +83,7 @@ function_format_headers_pm_nh3_voc <- function(emission_level) {
       "eGRID subregion acronym",
       "eGRID subregion name",
       "Subregion annual net generation (MWh)",
-      paste(emission_header, "Emissions (tons"),
+      paste(emission_header, "Emissions (tons)"),
       paste(emission_header, "Total Output Emission rate (lb/MWh)"))
   }
   
