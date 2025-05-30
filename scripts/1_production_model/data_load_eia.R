@@ -32,14 +32,20 @@ invisible(purrr::map(c("860", "861", "923"), ~ download_eia_files(form = .x, yea
 # Downloading Puerto Rico .xls file separately since it isn't zipped
 
 url_860m  <- glue::glue("https://www.eia.gov/electricity/data/eia860m/archive/xls/december_generator{params$eGRID_year}.xlsx")
+path_860m <- glue::glue("data/1_production_model/raw_data/860m/{params$eGRID_year}/eia_860m_december_generator{params$eGRID_year}.xlsx")
 
-path_860m <- glue::glue("data/1_production_model/raw_data/860/{params$eGRID_year}/eia_pr_860m.xlsx")
-
-if(!file.exists(path_860m)){
+if (!dir.exists(glue::glue("data/1_production_model/raw_data/860m/{params$eGRID_year}/"))) {
+  dir.create(glue::glue("data/1_production_model/raw_data/860m/{params$eGRID_year}/"), recursive = TRUE)
+}
+ 
+if(!file.exists(path_860m)){  
+  if(!check_valid_url(url_860m)){
+    print(glue::glue("December 860m does not exist for {params$eGRID_year}."))
+  } else { 
     download.file(url = url_860m,
                   destfile = path_860m, 
-                  mode = "wb") 
+                  mode = "wb") }
 } else {
-   print("File eia_pr_860m.xlsx already exists in folder. Stopping.")
+  print(glue::glue("File eia_860m_december_generator{params$eGRID_year}.xlsx already exists in folder. Stopping."))
 }
 

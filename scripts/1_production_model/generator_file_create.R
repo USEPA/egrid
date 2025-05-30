@@ -43,6 +43,14 @@ temporal_res_cols <- create_temporal_res_cols("monthly") # keep as monthly for b
 # Create temporal dataframe for better and more accurate joins
 temporal_cols_to_add <- cols_to_add("monthly") # keep as monthly
 
+# Identify available monthly data if Annual data is not available
+if (length(grep("M_12", glue::glue("data/1_production_model/raw_data/923/{params$eGRID_year}"))) == 0) { 
+  file_name_923 <- list.files(glue::glue("data/1_production_model/raw_data/923/{params$eGRID_year}"))
+  published_month <- as.numeric(substr(sub(".*M_", "", file_name_923), 1, 2))
+  months_available <- c(1:published_month)
+} else { 
+  months_available <- c(1:12)}
+
 # Load in necessary 923 and 860 files ----------
 
 if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { # if file does not exist, stop code and print error
@@ -57,7 +65,12 @@ if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_
 
 eia_923_gen <- eia_923$generator_data
 eia_923_gen_fuel <- eia_923$generation_and_fuel_combined
-eia_860_boiler <- eia_860$boiler_generator
+
+if ("boiler_generator" %in% names(eia_860)) { 
+  eia_860_boiler <- eia_860$boiler_generator
+} else { 
+  print("boiler_generator does not exist in eia_860 due to use of 860m data.")}
+
 eia_860_combined <- eia_860$combined %>% 
                     select(plant_id, # keeping only necessary files for to streamline joins
                            plant_name, 
@@ -94,11 +107,11 @@ manual_corrections <- # manual corrections needed for generator file
             col_types = c("text", "text", "text", "text", "text"))
 
 # Load EPA data to update plant names to EPA versions
-if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))) { # if file does not exist, stop code and print error
-  epa <- read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")) %>% 
+if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS"))) { # if file does not exist, stop code and print error
+  epa <- read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")) %>% 
     select(plant_id, plant_name) %>% distinct()
 } else { 
-  stop("epa_clean.RDS does not exist. Run data_load_epa.R and data_clean_epa.R to obtain.")}
+  stop("epa_clean_monthly.RDS does not exist. Run data_load_epa.R and data_clean_epa.R to obtain.")}
 
 # load in name matches for shorthand to snake_case
 if(file.exists("data/1_production_model/static_tables/name_matches.RData")) {
@@ -154,6 +167,7 @@ gen_id_pm_corrections <- # update generator IDs for plant with duplicate prime m
 
 eia_923_gen_r <- 
   eia_923_gen %>% 
+  filter(month %in% months_available) %>% 
   left_join(gen_id_manual_corrections, by = c("plant_id", "generator_id")) %>% 
   left_join(gen_id_pm_corrections, by = c("plant_id", "generator_id", "prime_mover")) %>% 
   mutate(
@@ -202,13 +216,15 @@ eia_860_combined_r <-
     generator_id = if_else(!is.na(update), update, generator_id), # update generator IDs from manual_corrections
     retirement_year = if_else(is.na(retirement_year), planned_retirement_year, retirement_year)) %>% 
   select(-update)
-    
-eia_860_boiler_count <- # creating count of boilers for each generator
-  eia_860_boiler %>% 
-  group_by(plant_id, 
-           generator_id) %>% 
-  summarize(n_boilers = n()) %>% 
-  ungroup()
+  
+if (exists("eia_860_boiler")) { 
+  eia_860_boiler_count <- # creating count of boilers for each generator
+    eia_860_boiler %>% 
+    group_by(plant_id, 
+             generator_id) %>% 
+    summarize(n_boilers = n()) %>% 
+    ungroup()
+} ##### CHECK: Add boiler count from previous year here? ###############
 
 # Determine generation ------------
 
@@ -216,7 +232,8 @@ eia_860_boiler_count <- # creating count of boilers for each generator
 
 eia_gen_generation <- 
   eia_860_combined_r %>% 
-  cross_join(temporal_cols_to_add) %>% # join in missing temporal_cols
+  cross_join(temporal_cols_to_add %>% 
+               filter(month %in% months_available)) %>% # join in missing temporal_cols
   left_join(eia_923_gen_r_2 %>% # join EIA-923 Generator Data
               select(all_of(temporal_res_cols),
                      plant_id, 
@@ -583,7 +600,8 @@ generators_edits <-
          plant_name = recode(plant_id, !!!lookup_epa_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
          gen_data_source = if_else(is.na(generation), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
          year = params$eGRID_year) %>%
-  left_join(eia_860_boiler_count) %>% 
+  #### CHECK: need to have a way to handle this if boiler count exists or not #########
+  #left_join(eia_860_boiler_count) %>% 
   rows_update(epa, by = c("plant_id"), unmatched = "ignore") %>% 
   rows_delete(epa_plants_to_delete, by = c("plant_id"), unmatched = "ignore")
 
