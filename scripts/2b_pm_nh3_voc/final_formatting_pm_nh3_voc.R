@@ -263,7 +263,7 @@ for (emission_type in c("pm25", "nh3", "voc")) {
   # run script to save subregion graphs
   source(glue::glue("scripts/functions/function_create_subregion_emission_figures.R"))
   create_subregion_emission_figures(emission_type,
-                                    skip_if_exists = FALSE)
+                                    skip_if_exists = TRUE)
   
   # define graph directory, names, and years
   graph_dir <- glue::glue("data/2b_pm_nh3_voc/static_tables/formatting/")

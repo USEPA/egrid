@@ -61,15 +61,12 @@ create_subregion_emission_figures <- function(emission_type,
                                        ylabel_int,
                                        yaxis_max) {
     
-    # specify unique formatting for 2018 VOC emissions
-    if(ydata == "voc_ann" & year == 2018) {
-      ylabel_max = 3.4e4
-      ylabel_int = 2e3
-      yaxis_max = 3.6e4
-      y_annot_box_min = 1e4
+    # specify unique formatting for VOC emissions
+    if(ydata == "voc_ann") {
+      y_annot_box_min =  1e4
       y_annot_box_max = 1.3e4
       y_annot_text = 1.15e4
-      
+
     } else {
       y_annot_box_min = yaxis_max - ((ylabel_max - ylabel_min) / 6)
       y_annot_box_max = yaxis_max
@@ -111,10 +108,10 @@ create_subregion_emission_figures <- function(emission_type,
             plot.margin=grid::unit(c(-5, 3.75 ,0, 6), "mm")) +
       scale_y_continuous(limits = c(0, yaxis_max), breaks = seq(ylabel_min, ylabel_max, ylabel_int),  labels = label_comma())
     
-    # split axis for 2018 VOC emissions data
-    if (ydata == "voc_ann" & year == 2018) {
+    # split axis for VOC emissions data
+    if (ydata == "voc_ann") {
       plot <- plot +
-        scale_y_break(c(1.3e4, 3.4e4), ticklabels = c(34000, 35000)) + 
+        scale_y_break(c(1.3e4, 3.4e4), scales = 0.2) + 
         labs(y = "label") +
         theme(panel.background = element_rect(fill = NA),
               panel.grid.major.x = element_line(color = NA),
@@ -122,9 +119,7 @@ create_subregion_emission_figures <- function(emission_type,
               axis.ticks = element_line(linewidth = 0),
               axis.text.x = element_text(angle = 48, vjust = 1.3, hjust=1, color = "#595959", size = 7.8),
               axis.text.y = element_text(color = "#595959", size = 7.8),
-              # axis.title.y = element_text(color = "#595959", size = 9, hjust = 30, vjust = 10),
               plot.title = element_text(hjust = 0.5, vjust = -90), 
-              # plot.margin=grid::unit(c(0, 0 ,0, 0), "mm"),
               axis.title.y.right = element_blank(),
               axis.text.y.right = element_blank(),
               axis.ticks.y.right = element_blank())
@@ -153,12 +148,12 @@ create_subregion_emission_figures <- function(emission_type,
   plot_params <- list(
     label = c(pm25 = "PM", nh3 = "NH", voc = "VOC"),
     subscript = c(pm25 = 2.5, nh3 = 3, voc = ""),
-    ylabel_int_emissions = c(pm25 = 1e4, nh3 = 1e3, voc = 1e3),
-    ylabel_max_emissions = c(pm25 = 7.5e4, nh3 = 7e3, voc = 1e4),
-    yaxis_max_emissions = c(pm25 = 8e4, nh3 = 7.5e3, voc = 1.15e4),
-    ylabel_int_rate = c(pm25 = 0.1, nh3 = 0.05, voc = 0.025),
-    ylabel_max_rate = c(pm25 = 1.0, nh3 = 0.2, voc = 0.3),
-    yaxis_max_rate = c(pm25 = 1.05, nh3 = 0.2065, voc = 0.4565)
+    ylabel_int_emissions = c(pm25 = 1e4, nh3 = 1e3, voc = 2e3),
+    ylabel_max_emissions = c(pm25 = 7.5e4, nh3 = 7e3, voc = 3.4e4),
+    yaxis_max_emissions = c(pm25 = 8e4, nh3 = 7.5e3, voc = 3.5e4),
+    ylabel_int_rate = c(pm25 = 0.1, nh3 = 0.05, voc = 0.1),
+    ylabel_max_rate = c(pm25 = 1.0, nh3 = 0.2, voc = 0.7),
+    yaxis_max_rate = c(pm25 = 1.05, nh3 = 0.2065, voc = 0.7265)
   )
 
   # Define Data Years to Produce Plots -----
@@ -168,7 +163,7 @@ create_subregion_emission_figures <- function(emission_type,
   
   # Create list of data years (2018 - eGRID_year)
   years <- seq(year_numeric, 2018, -1)
-  
+
   # Loop Through Data Years and Produce Plots -----
   for(year in years) {
     
