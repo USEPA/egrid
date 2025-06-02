@@ -112,27 +112,27 @@ for(year in c(2018:(as.numeric(params$eGRID_year) - 1))) { ### Note: check for u
 
 # Load current year data ------------------
 
-egrid_2023_plant <- read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+egrid_2023_plant <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
                                sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000}"),
                                skip = 1)
   
-egrid_2023_state <- read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+egrid_2023_state <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
                                sheet = glue::glue("ST{as.numeric(params$eGRID_year) %% 1000}"),
                                skip = 1)
 
-egrid_2023_ba <- read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+egrid_2023_ba <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
                             sheet = glue::glue("BA{as.numeric(params$eGRID_year) %% 1000}"),
                             skip = 1)
 
-egrid_2023_subregion <- read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+egrid_2023_subregion <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
                                    sheet = glue::glue("SRL{as.numeric(params$eGRID_year) %% 1000}"),
                                    skip = 1)
 
-egrid_2023_nerc <- read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+egrid_2023_nerc <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
                               sheet = glue::glue("NRL{as.numeric(params$eGRID_year) %% 1000}"),
                               skip = 1)
 
-egrid_2023_us <- read_excel(glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+egrid_2023_us <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
                             sheet = glue::glue("US{as.numeric(params$eGRID_year) %% 1000}"),
                             skip = 1)
 
@@ -408,15 +408,15 @@ egrid_us <-
 
 # Export data  ---------------------------------
 
-if(!dir.exists(glue::glue("data/2d_data_explorer/{params$eGRID_year}"))){
-  dir.create(glue::glue("data/2d_data_explorer/{params$eGRID_year}"))
+if(!dir.exists(glue::glue("data/2d_web_updates/{params$eGRID_year}"))){
+  dir.create(glue::glue("data/2d_web_updates/{params$eGRID_year}"), recursive = TRUE)
 }
 
-write_csv(egrid_plant_2, glue::glue("data/2d_data_explorer/{params$eGRID_year}/data_explorer_plant_file.csv"))
-write_csv(egrid_state, glue::glue("data/2d_data_explorer/{params$eGRID_year}/data_explorer_state_file.csv"))
-write_csv(egrid_ba, glue::glue("data/2d_data_explorer/{params$eGRID_year}/data_explorer_ba_file.csv"))
-write_csv(egrid_subregion, glue::glue("data/2d_data_explorer/{params$eGRID_year}/data_explorer_subregion_file.csv"))
-write_csv(egrid_nerc, glue::glue("data/2d_data_explorer/{params$eGRID_year}/data_explorer_nerc_file.csv"))
-write_csv(egrid_us, glue::glue("data/2d_data_explorer/{params$eGRID_year}/data_explorer_us_file.csv"))
+write_csv(egrid_plant_2, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_plant_file.csv"))
+write_csv(egrid_state, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_state_file.csv"))
+write_csv(egrid_ba, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_ba_file.csv"))
+write_csv(egrid_subregion, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_subregion_file.csv"))
+write_csv(egrid_nerc, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_nerc_file.csv"))
+write_csv(egrid_us, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_us_file.csv"))
 
 
