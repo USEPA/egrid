@@ -30,6 +30,7 @@ source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_paste_concat.R")
 source("scripts/functions/function_update_source.R")
+source("scripts/functions/function_check_file_exists.R")
 
 # check if parameters need to be defined
 if (!exists("params")) {
@@ -47,41 +48,47 @@ temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
 
 # check if each file exists. If they do not, stop the script. 
 # check for and load EIA-860
-if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))) { 
-  eia_860 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
-} else { 
-   stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+eia_860 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+# if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))) { 
+#   eia_860 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+# } else { 
+#    stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
 # check for and load EIA-861
-if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))) { 
-  eia_861 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
-} else { 
-   stop("eia_861_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+eia_861 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
+# if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))) { 
+#   eia_861 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
+# } else { 
+#    stop("eia_861_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
 # check for and load EIA-923
-if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { 
-  eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
-} else { 
-   stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+eia_923 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+# if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { 
+#   eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+# } else { 
+#    stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
 ### Load lower-level eGRID files (unit and generator files) ------------
 
 # load generator file
-if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))) { 
-  generator_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))
-} else { 
-   stop(glue::glue("generator_file_{params$temporal_res}.RDS does not exist. Run generator_file_create.R to obtain."))}
+generator_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/generator_file_{params$temporal_res}.RDS"))
+# if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))) { 
+#   generator_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))
+# } else { 
+#    stop(glue::glue("generator_file_{params$temporal_res}.RDS does not exist. Run generator_file_create.R to obtain."))}
 
 # load unit file
-if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_{params$temporal_res}.RDS"))) { 
-  unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_{params$temporal_res}.RDS"))
-} else { 
-   stop(glue::glue("unit_file_{params$temporal_res}.RDS does not exist. Run unit_file_create.R to obtain."))}
+unit_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/unit_file_{params$temporal_res}.RDS"))
+# if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_{params$temporal_res}.RDS"))) { 
+#   unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_{params$temporal_res}.RDS"))
+# } else { 
+#    stop(glue::glue("unit_file_{params$temporal_res}.RDS does not exist. Run unit_file_create.R to obtain."))}
 
 ### Load crosswalks and static tables ----------------------
 
 # load in name matches for shorthand to snake_case
-source("scripts/1_production_model/name_matching.R")
+# source("scripts/1_production_model/name_matching.R")
+check_name_matches()
 
 # crosswalk for plant IDs between EPA and EIA data
 xwalk_oris_epa <- 
@@ -1418,7 +1425,7 @@ if (params$temporal_res == "annual") {
   final_vars <- 
     plant_nonmetric_monthly}
 
-plant_formatted <-
+plants_formatted <-
   plant_file_24 %>%
   arrange(plant_state, plant_name) %>% 
   mutate(seqplt = row_number(), 
