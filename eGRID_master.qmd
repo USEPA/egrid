@@ -355,7 +355,7 @@ Crosswalks and static tables are used to supplement EPA and EIA files and provid
 ```{r}
 #| label: create-xwalk-summary
 
-path <- glue::glue("data/static_tables")
+path <- glue::glue("data/1_production_model/static_tables")
 
     files <- list.files(path)
     
@@ -466,7 +466,7 @@ There are several procedures applied to the raw EPA file:
 #| label: create-epa-summary-table 
 #| echo: false  
 
-create_summary_gt_table(readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")))
+create_summary_gt_table(readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_{params$temporal_res}.RDS")))
 ```
 :::
 
@@ -626,7 +626,7 @@ Crosswalks used in this file:
 #| include: false
 
 generator_file <- readr::read_rds(
-        glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))
+        glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/generator_file_{params$temporal_res}.RDS"))
 ```
 
 ## View Generator File Data
@@ -760,7 +760,7 @@ Crosswalks used in this file:
 #| include: false
 
 unit_file <- readr::read_rds(
-      glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_{params$temporal_res}.RDS"))
+      glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/unit_file_{params$temporal_res}.RDS"))
 ```
 
 ## View Unit File Data
@@ -1046,7 +1046,7 @@ Crosswalks used in this file:
 #| include: false
 
 plant_file <- readr::read_rds(
-        glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_{params$temporal_res}.RDS"))
+        glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/plant_file_{params$temporal_res}.RDS"))
 ```
 
 ## View Plant File Data
@@ -1472,19 +1472,21 @@ Crosswalks used in this file:
 #| echo: false
 
 ba_agg  <- read_rds(
-    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/ba_aggregation_{params$temporal_res}.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/ba_aggregation_{params$temporal_res}.RDS"))
 
 st_agg  <- read_rds(
-    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/state_aggregation_{params$temporal_res}.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/state_aggregation_{params$temporal_res}.RDS"))
 
 srl_agg <- read_rds(
-    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/subregion_aggregation_{params$temporal_res}.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/subregion_aggregation_{params$temporal_res}.RDS"))
 
 nrl_agg <- read_rds(
-    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/nerc_aggregation_{params$temporal_res}.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/nerc_aggregation_{params$temporal_res}.RDS"))
 
 us_agg  <- read_rds(
-    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/us_aggregation_{params$temporal_res}.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}
+               
+               /us_aggregation_{params$temporal_res}.RDS"))
 ```
 
 ## View Aggregation Files Data
