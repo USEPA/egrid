@@ -30,6 +30,7 @@ library(stringr)
 source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_paste_concat.R")
+source("scripts/functions/function_save_output_data.R")
 
 # Define paramters if necessary and check for valid params()
 if (!exists("params")) {
@@ -2022,20 +2023,4 @@ units_formatted <-
 
 # Export unit file -------------
 
-if(dir.exists("data/1_production_model/outputs/{params$eGRID_year}")) {
-  print("Folder outputs already exists.")
-} else {
-   dir.create("data/1_production_model/outputs/{params$eGRID_year}", recursive = TRUE)
-}
-
-print(glue::glue("Saving unit file to folder data/1_production_model/outputs/{params$eGRID_year}"))
-
-write_rds(units_formatted, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_{params$temporal_res}.RDS"))
-
-# check if file is successfully written to folder 
-if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_{params$temporal_res}.RDS"))){
-  print(glue::glue("File unit_file_{params$temporal_res}.RDS successfully written to folder data/1_production_model/outputs/{params$eGRID_year}"))
-} else {
-  print(glue::glue("File unit_file_{params$temporal_res}.RDS failed to write to folder."))
-} 
-
+save_output_data(units_formatted, "data/1_production_model/outputs", glue::glue("unit_file_{params$temporal_res}.RDS"))

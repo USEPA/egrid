@@ -1428,22 +1428,6 @@ plant_formatted <-
 
 # Export plant file -------------
 
-# check if folders exist 
-if(dir.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))) {
-  print("Folder output already exists.")
-} else {
-   dir.create(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"), recursive = TRUE)
-}
+save_output_data(plants_formatted, "data/1_production_model/outputs", glue::glue("plant_file_{params$temporal_res}.RDS"))
 
-# write RDS file 
-print(glue::glue("Saving unit file to folder data/1_production_model/outputs/{params$eGRID_year}"))
-
-write_rds(plant_formatted, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_{params$temporal_res}.RDS"))
-
-# check if file is successfully written to folder 
-if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_{params$temporal_res}.RDS"))){
-  print(glue::glue("File plant_file_{params$temporal_res}.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
-} else {
-   print(glue::glue("File plant_file_{params$temporal_res}.RDS failed to write to folder."))
-} 
 
