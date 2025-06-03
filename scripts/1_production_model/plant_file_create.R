@@ -165,7 +165,7 @@ if(file.exists(glue::glue("data/1_production_model/static_tables/historical_egri
 
 # EPA CHP database
 chp_database <- 
-  read_csv("data/1_production_model/static_tables/chp_database.csv", 
+  read_csv(glue::glue("data/1_production_model/static_tables/chp_database_{params$eGRID_year}.csv"), 
            col_types = cols_only(`ORIS Code` = "c")) %>% 
   rename(plant_id = `ORIS Code`)
 
@@ -405,8 +405,8 @@ plant_file <-
   mutate(# calculate unadjusted CO2 equivalent 
          unadj_co2e_mass = # calculate unadjusted CO2 equivalent 
            if_else(is.na(unadj_co2_mass), 0, unadj_co2_mass) + 
-           if_else(is.na(unadj_ch4_mass), 0, gwp$gwp[gwp$gas == "CH4"] * unadj_ch4_mass / 2000) + 
-           if_else(is.na(unadj_n2o_mass), 0, gwp$gwp[gwp$gas == "N2O"] * unadj_n2o_mass / 2000), 
+           if_else(is.na(unadj_ch4_mass), 0, gwp$ar6[gwp$gas == "CH4"] * unadj_ch4_mass / 2000) + # specify which GWP value to use (AR6 here)
+           if_else(is.na(unadj_n2o_mass), 0, gwp$ar6[gwp$gas == "N2O"] * unadj_n2o_mass / 2000),  # specify which GWP value to use (AR6 here)
          # if all emission masses are NA, fill CO2e mass with NA
          unadj_co2e_mass = if_else(is.na(unadj_co2_mass) & is.na(unadj_ch4_mass) & is.na(unadj_n2o_mass), 
                                    NA_real_, unadj_co2e_mass), 
@@ -861,8 +861,8 @@ plant_file_14 <-
          n2o_biomass = pmin(n2o_biomass, unadj_n2o_mass),
          co2e_biomass = 
            if_else(is.na(co2_biomass), 0, co2_biomass) + 
-           if_else(is.na(ch4_biomass), 0, gwp$gwp[gwp$gas == "CH4"] * ch4_biomass / 2000) + 
-           if_else(is.na(n2o_biomass), 0, gwp$gwp[gwp$gas == "N2O"] * n2o_biomass / 2000), # calculate CO2e biomass
+           if_else(is.na(ch4_biomass), 0, gwp$ar6[gwp$gas == "CH4"] * ch4_biomass / 2000) + 
+           if_else(is.na(n2o_biomass), 0, gwp$ar6[gwp$gas == "N2O"] * n2o_biomass / 2000), # calculate CO2e biomass
          # if all emission masses are NA, fill CO2e mass with NA
          co2e_biomass = if_else(is.na(co2_biomass) & is.na(ch4_biomass) & is.na(n2o_biomass), 
                                 NA_real_, co2e_biomass), 
