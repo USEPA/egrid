@@ -61,20 +61,50 @@ create_subregion_emission_figures <- function(emission_type,
                                        ylabel_int,
                                        yaxis_max) {
     
-    # specify unique formatting for VOC emissions
-    if(ydata == "voc_ann") {
-      y_annot_box_min =  1e4
-      y_annot_box_max = 1.3e4
-      y_annot_text = 1.15e4
-
+    # Split axis for VOC emissions data
+    if (ydata == "voc_ann") {
+      
+      # Plot VOC emissions data
+      plot <- ggplot(subregion_file, aes(x = subregion, y = get(ydata))) +
+        geom_col(fill = fill_color, 
+                 color = "black", 
+                 width = 0.35, 
+                 linewidth = 0.23) +
+        scale_y_continuous(limits = c(0, yaxis_max), breaks = seq(ylabel_min, ylabel_max, ylabel_int),  labels = label_comma()) + 
+          scale_y_break(c(1.3e4, 3.4e4), scales = 0.2) +
+          labs(x = "", 
+               y = ylabel,
+               title = year) +
+          annotate("rect",
+                   xmin = 21.35,
+                   xmax = 27.1,
+                   ymin = 1e4,
+                   ymax = 1.3e4,
+                   alpha = 1,
+                   fill = "#E7E6E6",
+                   color = "black",
+                   linewidth = 0.23) +
+          annotate("text",
+                   x = 24.225,
+                   y = 1.15e4,
+                   label = annotate_label,
+                   size = 3,
+                   fontface = "bold") +
+          theme(panel.background = element_rect(fill = NA),
+                panel.grid.major.x = element_line(color = NA),
+                panel.grid.major.y = element_line(color = "#D9D9D9", size = 0.35, linetype = 1),
+                axis.ticks = element_line(linewidth = 0),
+                axis.text.x = element_text(angle = 48, vjust = 1.3, hjust=1, color = "#595959", size = 7.8),
+                axis.text.y = element_text(color = "#595959", size = 7.8),
+                axis.title.y = element_text(color = "#595959", size = 9, angle = 90, vjust = -1, hjust = 0.6),
+                axis.title.y.right = element_blank(),
+                axis.text.y.right = element_blank(),
+                axis.ticks.y.right = element_blank(),
+                plot.title = element_text(hjust = 0.5, vjust = -80, size = 12))
+      
+    # Plot all other emission variables
     } else {
-      y_annot_box_min = yaxis_max - ((ylabel_max - ylabel_min) / 6)
-      y_annot_box_max = yaxis_max
-      y_annot_text = yaxis_max - ((ylabel_max - ylabel_min) / 12)
-    }
-    
-    # plot data
-    plot <- ggplot(subregion_file, aes(x = subregion, y = get(ydata))) +
+      plot <- ggplot(subregion_file, aes(x = subregion, y = get(ydata))) +
       geom_col(fill = fill_color, 
                color = "black", 
                width = 0.35, 
@@ -85,15 +115,15 @@ create_subregion_emission_figures <- function(emission_type,
       annotate("rect", 
                xmin = 21.35, 
                xmax = 27.1, 
-               ymin = y_annot_box_min, 
-               ymax = y_annot_box_max, 
+               ymin = yaxis_max - ((ylabel_max - ylabel_min) / 6), 
+               ymax = yaxis_max, 
                alpha = 1, 
                fill = "#E7E6E6", 
                color = "black", 
                linewidth = 0.23) +
       annotate("text", 
                x = 24.225, 
-               y = y_annot_text, 
+               y =  yaxis_max - ((ylabel_max - ylabel_min) / 12), 
                label = annotate_label, 
                size = 3, 
                fontface = "bold") +
@@ -107,24 +137,7 @@ create_subregion_emission_figures <- function(emission_type,
             plot.title = element_text(hjust = 0.5, vjust = -85), 
             plot.margin=grid::unit(c(-5, 3.75 ,0, 6), "mm")) +
       scale_y_continuous(limits = c(0, yaxis_max), breaks = seq(ylabel_min, ylabel_max, ylabel_int),  labels = label_comma())
-    
-    # split axis for VOC emissions data
-    if (ydata == "voc_ann") {
-      plot <- plot +
-        scale_y_break(c(1.3e4, 3.4e4), scales = 0.2) + 
-        labs(y = "label") +
-        theme(panel.background = element_rect(fill = NA),
-              panel.grid.major.x = element_line(color = NA),
-              panel.grid.major.y = element_line(color = "#D9D9D9", size = 0.35, linetype = 1),
-              axis.ticks = element_line(linewidth = 0),
-              axis.text.x = element_text(angle = 48, vjust = 1.3, hjust=1, color = "#595959", size = 7.8),
-              axis.text.y = element_text(color = "#595959", size = 7.8),
-              plot.title = element_text(hjust = 0.5, vjust = -90), 
-              axis.title.y.right = element_blank(),
-              axis.text.y.right = element_blank(),
-              axis.ticks.y.right = element_blank())
-      } 
-      
+    }
     return(plot)
   }
   
@@ -152,8 +165,8 @@ create_subregion_emission_figures <- function(emission_type,
     ylabel_max_emissions = c(pm25 = 7.5e4, nh3 = 7e3, voc = 3.4e4),
     yaxis_max_emissions = c(pm25 = 8e4, nh3 = 7.5e3, voc = 3.5e4),
     ylabel_int_rate = c(pm25 = 0.1, nh3 = 0.05, voc = 0.1),
-    ylabel_max_rate = c(pm25 = 1.0, nh3 = 0.2, voc = 0.7),
-    yaxis_max_rate = c(pm25 = 1.05, nh3 = 0.2065, voc = 0.7265)
+    ylabel_max_rate = c(pm25 = 1.0, nh3 = 0.35, voc = 0.7),
+    yaxis_max_rate = c(pm25 = 1.05, nh3 = 0.4, voc = 0.7265)
   )
 
   # Define Data Years to Produce Plots -----
@@ -191,7 +204,7 @@ create_subregion_emission_figures <- function(emission_type,
       # collect subregion data from excel sheet for previous years
       if(year < params$eGRID_year) {
         # import excel subregion data
-        emission_prev <- read_xlsx(glue::glue("data/2b_pm_nh3_voc/outputs/{year_numeric - 1}/eGRID{year_prev}_{emission_abbrev}emissions.xlsx"),
+        emission_prev <- read_xlsx(glue::glue("data/2b_pm_nh3_voc/outputs/{year_numeric - 1}/eGRID{year_numeric - 1}_{emission_abbrev}emissions.xlsx"),
                                    skip = 1,
                                    sheet = glue::glue("{year} {toupper(emission_abbrev)} Subregion-level Data")) %>%
           # remove U.S. row if present
