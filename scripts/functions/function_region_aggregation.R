@@ -89,7 +89,7 @@ region_aggregation <- function(region, region_cols) {
   # read in plant file 
   
   plant_file <- 
-    read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_{params$temporal_res}.RDS")) %>% 
+    read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/plant_file_{params$temporal_res}.RDS")) %>% 
     left_join(nerc_names, by = c("nerc")) %>% 
     select(any_of(columns_to_keep))
   
@@ -741,16 +741,7 @@ region_aggregation <- function(region, region_cols) {
       
   
     ### Export region aggregation file -----------
-    
-    if(dir.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))) {
-      print(glue::glue("Folder outputs/{params$eGRID_year} already exists."))
-    } else {
-      dir.create(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"), recursive = TRUE)
-    }
-    
-    print(glue::glue("Saving {toupper(region)} aggregation file to folder data/1_production_model/outputs/{params$eGRID_year}"))
-    
-    write_rds(region_formatted, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{region}_aggregation_{params$temporal_res}.RDS")) 
+    save_output_data(region_formatted, "data/1_production_model/outputs", glue::glue("{region}_aggregation_{params$temporal_res}.RDS"))
     
   } else {
 
@@ -1389,17 +1380,8 @@ region_aggregation <- function(region, region_cols) {
     
     
     ### Export region aggregation file -----------
-    
-    if(dir.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))) {
-      print(glue::glue("Folder outputs/{params$eGRID_year} already exists."))
-    } else {
-      dir.create(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"), recursive = TRUE)
-    }
-    
-    print(glue::glue("Saving {toupper(region)} aggregation file to folder data/1_production_model/outputs/{params$eGRID_year}"))
-    
-    write_rds(region_formatted, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{region}_aggregation_{params$temporal_res}.RDS")) 
-  }  
+    save_output_data(region_formatted, "data/1_production_model/outputs", glue::glue("{region}_aggregation_{params$temporal_res}.RDS"))
+   }  
   
 }
   

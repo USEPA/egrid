@@ -30,6 +30,8 @@ library(stringr)
 source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_paste_concat.R")
+source("scripts/functions/function_save_output_data.R")
+source("scripts/functions/function_check_file_exists.R")
 
 # Define paramters if necessary and check for valid params()
 if (!exists("params")) {
@@ -81,38 +83,48 @@ epa_vars_to_keep <-
     "hg_controls",
     "year_online"
   ) 
+# 
+# if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS"))) { 
+#   epa <- 
+#     read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")) %>% 
+#     select(all_of(temporal_res_cols), any_of(epa_vars_to_keep)) # keeping only necessary variables
+# } else { 
+#    stop(glue::glue("epa_clean_{params$temporal_res}.RDS does not exist. Run data_load_epa.R and data_clean_epa.R to obtain."))}
 
-if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS"))) { 
-  epa <- 
-    read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")) %>% 
-    select(all_of(temporal_res_cols), any_of(epa_vars_to_keep)) # keeping only necessary variables
-} else { 
-   stop(glue::glue("epa_clean_{params$temporal_res}.RDS does not exist. Run data_load_epa.R and data_clean_epa.R to obtain."))}
+epa <- check_file_exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")) %>%
+       select(all_of(temporal_res_cols), any_of(epa_vars_to_keep)) # keeping only necessary variables
 
 ## EIA ------------
 
 # Load EIA-860
-if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))) {
-  eia_860 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
-} else { 
-  stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+# if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))) {
+#   eia_860 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+# } else { 
+#   stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+eia_860 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
 
 # Load EIA-923
-if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { 
-  eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
-} else { 
-   stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+# if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { 
+#   eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+# } else { 
+#    stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+eia_923 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 
 ## Generator file -------
-if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))) { 
-  gen_file <- # load generator file
-    read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS")) %>% 
-    group_by(plant_id, generator_id, prime_mover, nameplate_capacity) %>% 
-    summarize(generation = sum(generation, na.rm = TRUE)) %>% 
-    distinct() %>% 
-    ungroup()
-} else { 
-  stop(glue::glue("generator_file_{params$temporal_res}.RDS does not exist. Run generator_file_create.R to obtain."))}
+# if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))) { 
+#   gen_file <- # load generator file
+#     read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS")) %>% 
+#     group_by(plant_id, generator_id, prime_mover, nameplate_capacity) %>% 
+#     summarize(generation = sum(generation, na.rm = TRUE)) %>% 
+#     distinct() %>% 
+#     ungroup()
+# } else { 
+#   stop(glue::glue("generator_file_{params$temporal_res}.RDS does not exist. Run generator_file_create.R to obtain."))}
+gen_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/generator_file_{params$temporal_res}.RDS")) %>%
+            group_by(plant_id, generator_id, prime_mover, nameplate_capacity) %>% 
+            summarize(generation = sum(generation, na.rm = TRUE)) %>% 
+            distinct() %>% 
+            ungroup()
 
   
 ## Crosswalks and static tables ---------
@@ -131,7 +143,7 @@ xwalk_eia_epa <- read_csv("data/1_production_model/static_tables/xwalk_epa_eia_p
                                                 EIA_GENERATOR_ID = "c", 
                                                 EIA_FUEL_TYPE = "c", 
                                                 EIA_UNIT_TYPE = "c")) %>% # define col_types to all be characters
-                  janitor::clean_names() 
+                 janitor::clean_names() 
 
 # Boiler Firing Type Crosswalk
 xwalk_botfirty <- read_csv("data/1_production_model/static_tables/xwalk_boiler_firing_type.csv", 
@@ -150,14 +162,14 @@ xwalk_pr_oris <- read_csv("data/1_production_model/static_tables/xwalk_pr_oris.c
 ### Note: check for updates or changes each data year ###
 biomass_units <- read_csv("data/1_production_model/static_tables/biomass_units_to_add_to_unit_file.csv", 
                           col_types = "ccccccc") %>% 
-  janitor::clean_names() %>% 
-  filter(year == params$eGRID_year) # only keep units from eGRID_year
+                 janitor::clean_names() %>% 
+                 filter(year == params$eGRID_year) # only keep units from eGRID_year
 
 # Some plants in EPA are not connected to the grid or are retired, so they are excluded from eGRID
 ### Note: check for updates or changes each data year ###
 epa_plants_to_delete <- read_csv("data/1_production_model/static_tables/epa_plants_to_delete.csv", 
                                   col_types = "c") %>% 
-  select("plant_id" = "ORIS Code") 
+                        select("plant_id" = "ORIS Code") 
 
 # Emission factors 
 # physical units emission factors
@@ -174,13 +186,12 @@ co2_ef <- read_csv("data/1_production_model/static_tables/co2_ch4_n2o_ef.csv",
 
 # OG fuel types  
 ### Note: check for updates or changes each data year ###
-og_fuel_types_update <- 
-  read_csv("data/1_production_model/static_tables/og_oth_units_to_change_fuel_type.csv", 
-           col_types = cols_only(plant_id = "c", 
-                                 unit_id = "c", 
-                                 prime_mover = "c",
-                                 primary_fuel_type = "c",
-                                 fuel_code = "c")) 
+og_fuel_types_update <- read_csv("data/1_production_model/static_tables/og_oth_units_to_change_fuel_type.csv", 
+                                 col_types = cols_only(plant_id = "c", 
+                                                       unit_id = "c", 
+                                                       prime_mover = "c",
+                                                       primary_fuel_type = "c",
+                                                       fuel_code = "c")) 
 
 # NREL geothermal plants
 ### Note: check for updates or changes each data year ###
@@ -188,39 +199,36 @@ og_fuel_types_update <-
 # check in 2025 for updated table 
 nrel_geo_type <- read_csv("data/1_production_model/static_tables/nrel_geothermal_table.csv", 
                           col_types = "c") %>% 
-  rename("plant_id" = "ORISPL") %>% janitor::clean_names() %>% distinct()
+                 rename("plant_id" = "ORISPL") %>% janitor::clean_names() %>% distinct()
 
 # Geothermal emission factors
 geo_emission_factors <- read_csv("data/1_production_model/static_tables/geothermal_emission_factors.csv", 
                                  col_types = "ccdddddd") %>% 
-  janitor::clean_names()
+                        janitor::clean_names()
 
 # Units to remove 
 ### Note: check for updates or changes each data year ###
-units_to_remove <- 
-  read_csv("data/1_production_model/static_tables/units_to_remove.csv", 
-           col_types = "c") 
+units_to_remove <- read_csv("data/1_production_model/static_tables/units_to_remove.csv", 
+                            col_types = "c") 
 
 # EIA plants to delete 
 # we delete plants that are already in EPA and matched to EIA from this crosswalk
 eia_plants_to_delete <- read_csv("data/1_production_model/static_tables/xwalk_oris_epa.csv", 
                                  col_types = cols_only(eia_plant_id = "c")) %>% 
-  mutate(plant_id = eia_plant_id) %>% select(plant_id)
+                        mutate(plant_id = eia_plant_id) %>% select(plant_id)
 
 # Manual edits
 # there are some units and plants that need manual changes 
 # we document them in this Excel sheet 
 ### Note: check for updates or changes each data year ### 
-manual_corrections <- 
-  read_excel("data/1_production_model/static_tables/manual_corrections.xlsx", 
-             sheet = "unit_file", 
-             col_types = c("text", "text", "text", "text", "text"))
+manual_corrections <- read_excel("data/1_production_model/static_tables/manual_corrections.xlsx", 
+                                 sheet = "unit_file", 
+                                 col_types = c("text", "text", "text", "text", "text"))
 
 # Fuel types by category 
-fuel_type_category <- 
-  read_csv("data/1_production_model/static_tables/fuel_type_categories.csv", 
-           col_types = cols_only(coal_fuels = "c",
-                                 combustion_fuels = "c")) 
+fuel_type_category <- read_csv("data/1_production_model/static_tables/fuel_type_categories.csv", 
+                               col_types = cols_only(coal_fuels = "c",
+                                                     combustion_fuels = "c")) 
 
 coal_fuels <- fuel_type_category[["coal_fuels"]]
 coal_fuels <- coal_fuels[!is.na(coal_fuels)]
@@ -309,8 +317,11 @@ coal_xwalk_update <-
          unit_id = epa_unit_id, 
          prime_mover = eia_unit_type, 
          energy_source_1) %>%
-  distinct() %>% group_by(plant_id, unit_id) %>% filter(!n() > 1) %>% # keep units with only 1 fuel type 
-  drop_na() %>% ungroup()  
+  distinct() %>% 
+  group_by(plant_id, unit_id) %>% 
+  filter(!n() > 1) %>% # keep units with only 1 fuel type 
+  drop_na() %>% 
+  ungroup()  
 
 # identify coal fuel types in EPA and match to primary coal fuel types in EIA-923
 # these coal fuel types will update the primary fuel type for those that do not have an energy_source_1 listed in EIA-860
@@ -319,7 +330,8 @@ coal_eia_923 <-
   select(plant_id, prime_mover, fuel_type, total_fuel_consumption_mmbtu) %>%
   filter(fuel_type %in% coal_fuels) %>% 
   group_by(plant_id, prime_mover) %>%
-  slice_max(total_fuel_consumption_mmbtu, n = 1, with_ties = FALSE) %>% ungroup() %>% # identify fuel type associate with max fuel consumption by plant
+  slice_max(total_fuel_consumption_mmbtu, n = 1, with_ties = FALSE) %>% 
+  ungroup() %>% # identify fuel type associate with max fuel consumption by plant
   select(plant_id, prime_mover, fuel_type)
   
 coal_fuel_type_923 <- 
@@ -350,7 +362,8 @@ eia_max_fuel_cons <-
   eia_923$generation_and_fuel_combined %>%  
   select(plant_id, prime_mover, fuel_type, total_fuel_consumption_mmbtu) %>%
   group_by(plant_id, prime_mover) %>%
-  slice_max(total_fuel_consumption_mmbtu, n = 1, with_ties = FALSE) %>% ungroup() %>% # identify fuel type associate with max fuel consumption by plant
+  slice_max(total_fuel_consumption_mmbtu, n = 1, with_ties = FALSE) %>% 
+  ungroup() %>% # identify fuel type associate with max fuel consumption by plant
   select(plant_id, prime_mover, fuel_type)
 
 # update EPA with primary fuel types by matching EIA fuel codes or using EIA data  
@@ -2022,20 +2035,4 @@ units_formatted <-
 
 # Export unit file -------------
 
-if(dir.exists("data/1_production_model/outputs/{params$eGRID_year}")) {
-  print("Folder outputs already exists.")
-} else {
-   dir.create("data/1_production_model/outputs/{params$eGRID_year}", recursive = TRUE)
-}
-
-print(glue::glue("Saving unit file to folder data/1_production_model/outputs/{params$eGRID_year}"))
-
-write_rds(units_formatted, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_{params$temporal_res}.RDS"))
-
-# check if file is successfully written to folder 
-if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_{params$temporal_res}.RDS"))){
-  print(glue::glue("File unit_file_{params$temporal_res}.RDS successfully written to folder data/1_production_model/outputs/{params$eGRID_year}"))
-} else {
-  print(glue::glue("File unit_file_{params$temporal_res}.RDS failed to write to folder."))
-} 
-
+save_output_data(units_formatted, "data/1_production_model/outputs", glue::glue("unit_file_{params$temporal_res}.RDS"))

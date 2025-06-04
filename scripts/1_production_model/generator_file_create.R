@@ -29,6 +29,8 @@ library(tidyverse)
 source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_coalesce_join_vars.R")
+source("scripts/functions/function_save_output_data.R")
+source("scripts/functions/function_check_file_exists.R")
 
 # Create and check parameters 
 if (!exists("params")) {
@@ -45,15 +47,18 @@ temporal_cols_to_add <- cols_to_add("monthly") # keep as monthly
 
 # Load in necessary 923 and 860 files ----------
 
-if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { # if file does not exist, stop code and print error
-  eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS")) # read in all 923 files
-} else { 
-   stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+eia_923 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS")) # read in all 923 files
+eia_860 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS")) # read in all 860 files
 
-if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))) { # if file does not exist, stop code and print error
-  eia_860 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS")) # read in all 860 files
-} else { 
-   stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+# if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { # if file does not exist, stop code and print error
+#   eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS")) # read in all 923 files
+# } else { 
+#    stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+# 
+# if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))) { # if file does not exist, stop code and print error
+#   eia_860 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS")) # read in all 860 files
+# } else { 
+#    stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
 eia_923_gen <- eia_923$generator_data
 eia_923_gen_fuel <- eia_923$generation_and_fuel_combined
@@ -94,19 +99,24 @@ manual_corrections <- # manual corrections needed for generator file
             col_types = c("text", "text", "text", "text", "text"))
 
 # Load EPA data to update plant names to EPA versions
-if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS"))) { # if file does not exist, stop code and print error
-  epa <- read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")) %>% 
-    select(plant_id, plant_name) %>% distinct()
-} else { 
-  stop("epa_clean.RDS does not exist. Run data_load_epa.R and data_clean_epa.R to obtain.")}
+# if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS"))) { # if file does not exist, stop code and print error
+#   epa <- read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")) %>% 
+#     select(plant_id, plant_name) %>% distinct()
+# } else { 
+#   stop("epa_clean.RDS does not exist. Run data_load_epa.R and data_clean_epa.R to obtain.")}
+
+epa <- check_file_exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")) %>%
+       select(plant_id, plant_name) %>% 
+       distinct()
 
 # load in name matches for shorthand to snake_case
-if(file.exists("data/1_production_model/static_tables/name_matches.RData")) {
-  base::load("data/1_production_model/static_tables/name_matches.RData")
-} else { 
-  source("scripts/1_production_model/name_matching.R")
-  base::load("data/1_production_model/static_scripts/name_matches.RData")
-}
+# if(file.exists("data/1_production_model/static_tables/name_matches.RData")) {
+#   base::load("data/1_production_model/static_tables/name_matches.RData")
+# } else { 
+#   source("scripts/1_production_model/name_matching.R")
+#   base::load("data/1_production_model/static_scripts/name_matches.RData")
+# }
+check_name_matches()
 
 # Create lookup table for generator IDs with leading zeroes ------------
 # some IDs in EIA-923 do not have leading zeroes, but should match to generators in EIA-860 that have leading zeroes
@@ -602,22 +612,5 @@ generators_formatted <-
   mutate(across(c(starts_with("capfac"), starts_with("generation")), ~ round(.x, 3)))
 
 # Export generator file -----------
- 
-if(dir.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))) {
-  print(glue::glue("Folder 1_production_model/output/{params$eGRID_year} already exists."))
-} else {
-   dir.create(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"), recursive = TRUE)
-}
 
-print(glue::glue("Saving generator file to folder data/1_production_model/outputs/{params$eGRID_year}"))
-
-write_rds(generators_formatted, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))
-
-# check if file is successfully written to folder 
-if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))){
-  print(glue::glue("File generator_file_{params$temporal_res}.RDS successfully written to folder data/1_production_model/outputs/{params$eGRID_year}"))
-} else {
-   print(glue::glue("File generator_file_{params$temporal_res}.RDS failed to write to folder."))
-}  
-
-  
+save_output_data(generators_formatted, "data/1_production_model/outputs", glue::glue("generator_file_{params$temporal_res}.RDS"))

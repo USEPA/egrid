@@ -28,6 +28,8 @@ library(openxlsx)
 
 source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_temporal_res_cols.R")
+source("scripts/functions/function_save_output_data.R")
+source("scripts/functions/function_check_file_exists.R")
 
 # Create and check parameters 
 if (!exists("params")) {
@@ -39,8 +41,8 @@ if (!exists("params")) {
 ### Read in EIA files ------
 
 # read files based on eGRID year
-eia_860 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
-eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+eia_860 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+eia_923 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 
 ### Extracting EIA tables and data -----
 
@@ -240,23 +242,5 @@ ggl_interconnect_3 <- rbind(ggl_interconnect_2, ggl_us)
 ggl_interconnect_4 <- cbind(year = params$eGRID_year, ggl_interconnect_3)
 
 # Export GGL file -------------- 
-
-# check if folders exist 
-if(dir.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))) {
-  print(glue::glue("Folder 1_production_model/outputs/{params$eGRID_year} already exists."))
-} else {
-  dir.create(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))
-}
-
-# write RDS file
-print(glue::glue("Saving grid gross loss file to folder data/1_production_model/outputs/{params$eGRID_year}"))
-
-write_rds(ggl_interconnect_4, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
-
-# check if file is successfully written to folder 
-if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))){
-  print(glue::glue("File grid_gross_loss.RDS successfully written to folder data/1_production_model/outputs/{params$eGRID_year}"))
-} else {
-  print("File grid_gross_loss.RDS failed to write to folder.")
-} 
+save_output_data(ggl_interconnect_4, "data/1_production_model/outputs", "grid_gross_loss.RDS")
 

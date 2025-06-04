@@ -24,6 +24,7 @@ library(stringr)
 # Load necessary functions -----------------------
 
 source("scripts/functions/function_check_params.R")
+source("scripts/functions/function_save_output_data.R")
 
 # Create and check parameters 
 if (!exists("params")) {
@@ -131,20 +132,7 @@ dfs_923 <- c(sched_2_3_4_5_m_12_dfs,
 
 ## Saving 923 Files --------
 
-# create directory
-if(!dir.exists("data/1_production_model/clean_data/eia")){
-  dir.create("data/1_production_model/clean_data/eia")
-} else{
-  print("Folder data/1_production_model/clean_data/eia already exists.")
-}
-
-if(!dir.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}"))){
-  dir.create(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}"))
-} else{
-  print(glue::glue("Folder data/1_production_model/clean_data/eia/{params$eGRID_year} already exists."))
-}
-
-write_rds(dfs_923, glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+save_output_data(dfs_923, "data/1_production_model/clean_data/eia", "eia_923_clean.RDS")
 
 # printing confirmation message
 print(glue::glue("File eia_923_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_923), sep = ', ', last = ', and ')}, written to folder data/clean_data/eia/{params$eGRID_year}."))
@@ -371,7 +359,7 @@ dfs_860_final <-
 
 ## Saving 860 files ----------
 
-write_rds(dfs_860_final, glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+save_output_data(dfs_860_final, "data/1_production_model/clean_data/eia", "eia_860_clean.RDS")
 
 # printing confirmation message
 print(glue::glue("File eia_860_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_860_final), sep = ', ', last = ', and ')}, written to folder data/clean_data/eia/{params$eGRID_year}."))
@@ -447,7 +435,7 @@ dfs_861 <-
 
 ## Saving 861 Files -----------
 
-write_rds(dfs_861, glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
+save_output_data(dfs_861, "data/1_production_model/clean_data/eia", "eia_861_clean.RDS")
 
 # printing confirmation message
 print(glue::glue("File eia_861_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_861), sep = ', ', last = ', and ')}, written to folder data/clean_data/eia/{params$eGRID_year}."))
