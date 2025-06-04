@@ -58,7 +58,7 @@ library(stringr)
 
 ## Compare plants between EIA and EPA
 
-Check if any plants are only in the EPA data and not EIA data. These plants will be checked with EPA to see if there are any ORIS (plant ID) matches we should be making or if the plants should be deleted.
+Check if any plants are only in the EPA data and not EIA data. These plants will be checked with EPA to see if there are any ORIS (plant ID) matches we should be making or if the plants should be deleted. We also check if there are any plants just in EIA-923 and not any other data sources.
 
 ```{r}
 #| label: compare-eia-epa
@@ -66,48 +66,61 @@ Check if any plants are only in the EPA data and not EIA data. These plants will
 # load in cleaned epa and eia data
 epa <- 
   read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$year}/epa_clean_monthly.RDS"))
+
 eia_860 <- 
   read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$year}/eia_860_clean.RDS")) 
+
 eia_923 <- 
   read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$year}/eia_923_clean.RDS")) 
 
 # group data by distinct plant IDs
 compare_plants <- 
   epa %>% 
-  select(plant_id, plant_name) %>% distinct() %>% 
+  select(epa_plant_id = plant_id, plant_name) %>% distinct() %>% 
   full_join(eia_860$plant %>% select(plant_id) %>% distinct() %>% 
-              mutate(eia_860_plant_id = plant_id), by = "plant_id") %>% 
+              mutate(eia_860_plant_id = plant_id), by = c("epa_plant_id" = "plant_id")) %>% 
   full_join(eia_923$generation_and_fuel_combined %>% 
               select(plant_id) %>% distinct() %>% 
-              mutate(eia_923_plant_id = plant_id), by = "plant_id")
+              mutate(eia_923_plant_id = plant_id), by = c("epa_plant_id" = "plant_id"))
 
 # identify plants only present in EPA data
-check_compare_plants <- 
+check_compare_plants_epa <- 
   compare_plants %>% 
-  filter(!is.na(plant_id) & is.na(eia_860_plant_id) & is.na(eia_923_plant_id))
+  filter(!is.na(epa_plant_id) & is.na(eia_860_plant_id) & is.na(eia_923_plant_id))
 
 # print plants not in EIA
-ifelse(nrow(check_compare_plants) == 0, "Status: PASS - No plants in EPA not in EIA.", 
-        glue::glue("Status: NEEDS CHECKED - {nrow(check_compare_plants)} plants in EPA not in EIA."))
+ifelse(nrow(check_compare_plants_epa) == 0, "Status: PASS - No plants in EPA not in EIA.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(check_compare_plants_epa)} plants in EPA not in EIA."))
 
-knitr::kable(check_compare_plants %>% 
-               select(plant_id, plant_name), caption = "EPA plants not in EIA")
+knitr::kable(check_compare_plants_epa %>% 
+               select(epa_plant_id, plant_name), caption = "EPA plants not in EIA")
 
 # compare to EPA plants to delete in unit file
 epa_plants_to_delete <-
   read_csv("data/1_production_model/static_tables/epa_plants_to_delete.csv")
 
 only_in_epa <-
-  check_compare_plants %>%
-  filter(!plant_id %in% epa_plants_to_delete$`ORIS Code`)
+  check_compare_plants_epa %>%
+  filter(!epa_plant_id %in% epa_plants_to_delete$`ORIS Code`)
 
 # print plants not in epa_plants_to_delete
 ifelse(nrow(only_in_epa) == 0, "Status: PASS - No plants in EPA not in list of EPA plants to delete.", 
         glue::glue("Status: NEEDS CHECKED - {nrow(only_in_epa)} plants in EPA not in list of EPA plants to delete."))
 
 knitr::kable(only_in_epa %>% 
-               select(plant_id, plant_name), caption = "EPA plants not in list of EPA plants to delete")
+               select(epa_plant_id, plant_name), caption = "EPA plants not in list of EPA plants to delete")
 
+# check if any units are just in one EIA files and no other data files
+only_in_eia_923 <- 
+  compare_plants %>% 
+  filter(!is.na(eia_923_plant_id), is.na(eia_860_plant_id), is.na(epa_plant_id))
+
+# print plants not in epa_plants_to_delete
+ifelse(nrow(only_in_eia_923) == 0, "Status: PASS - No plants in EIA-923 not in EPA or EIA-860 plants.", 
+        glue::glue("Status: NEEDS CHECKED - {nrow(only_in_eia_923)} plants in EIA not in EPA or EIA-860 plants. Check if they are retired."))
+
+knitr::kable(only_in_eia_923 %>% 
+               select(eia_923_plant_id), caption = "EIA-923 plants not in EPA or EIA-860 plants.")
 ```
 
 ## Biomass units added table
