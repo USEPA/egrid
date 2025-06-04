@@ -215,9 +215,10 @@ for (emission_type in c("pm25", "nh3", "voc")) {
     
     ### Cell Sizes ------
     setRowHeights(wb, current_worksheet, rows = 1, heights = 54)
-    setRowHeights(wb, current_worksheet, rows = 2:sheetLength, heights = 10.5)
+    setRowHeights(wb, current_worksheet, rows = 2:sheetLength, heights = 13.5)
     setColWidths(wb, current_worksheet, cols = c(1:sheetWidth), widths = 13.5)
     setColWidths(wb, current_worksheet, cols = which(grepl("NAME$", colnames(emission_data_formatted))), widths = 38.25)
+    setColWidths(wb, current_worksheet, cols = which(grepl("^SRNAME$", colnames(emission_data_formatted))), widths = 24)
     setColWidths(wb, current_worksheet, cols = which(grepl("SRC$", colnames(emission_data_formatted))), widths = 30)
     
     ### Freeze Pane -----
@@ -262,23 +263,23 @@ for (emission_type in c("pm25", "nh3", "voc")) {
   
   # run script to save subregion graphs
   source(glue::glue("scripts/functions/function_create_subregion_emission_figures.R"))
-  create_subregion_emission_figures(emission_type,
-                                    skip_if_exists = TRUE)
+  create_subregion_emission_figures(emission_type)
   
   # define graph directory, names, and years
   graph_dir <- glue::glue("data/2b_pm_nh3_voc/static_tables/formatting/")
   graph_types <- c("annual_generation", "emissions", "rate")
   graph_years <- seq(2018, as.numeric(params$eGRID_year), 1)
   
-  # add all images from previous and current year
+  # set graph starting location and location intervals
   graph_col <- 1
   graph_col_step <- 12
   graph_row_step <- 20
+  
+  # loop through years of data
   for(year in graph_years) {
     # add year label and formatting
     graph_row <- 2
     writeData(wb, "Graphs", x = year, startCol = graph_col, startRow = graph_row - 1)
-    addStyle(wb, "Graphs", style = graph_headers, rows = 1, cols = 1:40, gridExpand = TRUE)
     mergeCells(wb, "Graphs", rows = 1, cols = graph_col:(graph_col + graph_col_step - 1))
     # add images
     for(graph in graph_types) {
@@ -290,7 +291,17 @@ for (emission_type in c("pm25", "nh3", "voc")) {
     # shift image location right
     graph_col <- graph_col + graph_col_step }
   
+  # add styling to year headers
+  addStyle(wb, "Graphs", style = graph_headers, rows = 1, cols = 1:(graph_row_step * length(graph_years)), gridExpand = TRUE)
+  
+  # Add eGRID Subregion Map -----
+  map_row <- graph_row + 1
+  map_file <- "data/1_production_model/static_tables/formatting/eGRID_subregions.png"
+  insertImage(wb, "Graphs", file = map_file,
+              width = 8.5, height = 6.42, startRow = map_row, startCol = 1)
+  
   # Order Worksheets and Save Workbook -----
+  
   
   # order worksheets - move graphs and EIA crosswalk to the end
   wb_order <- worksheetOrder(wb)
