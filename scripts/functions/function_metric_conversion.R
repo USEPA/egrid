@@ -95,9 +95,9 @@ metric_conversion <- function(which_file) {
   
   # original output data
   if(which_file != "ggl") { # grid gross loss does not have a monthly version
-    orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{filename}_{params$temporal_res}.RDS")) 
+    orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/{filename}_{params$temporal_res}.RDS")) 
   } else {
-    orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$temporal_res}/{params$eGRID_year}/{filename}.RDS")) 
+    orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{filename}.RDS")) 
   }
   
   # metric file structure
@@ -164,10 +164,10 @@ metric_conversion <- function(which_file) {
   
   # save folder to outputs file
   if(which_file != "ggl") { 
-    print(glue::glue("Saving {filename}_{params$temporal_res}_metric.RDS to {save_dir}"))
+    print(glue::glue("Saving {filename}_{params$temporal_res}_metric.RDS to {save_dir}/{params$temporal_res}"))
     write_rds(metric_data, glue::glue("{save_dir}/{filename}_{params$temporal_res}_metric.RDS"))
   } else {
     print(glue::glue("Saving {filename}_metric.RDS to {save_dir}"))
-    write_rds(metric_data, glue::glue("{save_dir}/{params$temporal_res}/{filename}_metric.RDS"))
+    write_rds(metric_data, glue::glue("{save_dir}/{filename}_metric.RDS"))
   }
 }
