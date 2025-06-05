@@ -79,27 +79,27 @@ for(year in c(2018:(as.numeric(params$eGRID_year) - 1))) { ### Note: check for u
   name_nerc <- glue::glue("egrid_{as.character(year)}_nerc")
   name_us <- glue::glue("egrid_{as.character(year)}_us")
   
-  plant <- read_excel(glue::glue("data/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
+  plant <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
                       sheet = glue::glue("PLNT{year %% 1000}"),
                       skip = 1)
   
-  state <- read_excel(glue::glue("data/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
+  state <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
                       sheet = glue::glue("ST{year %% 1000}"),
                       skip = 1)
   
-  ba <- read_excel(glue::glue("data/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
+  ba <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
                    sheet = glue::glue("BA{year %% 1000}"),
                    skip = 1)
   
-  subregion <- read_excel(glue::glue("data/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
+  subregion <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
                           sheet = glue::glue("SRL{year %% 1000}"),
                           skip = 1)
   
-  nerc <- read_excel(glue::glue("data/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
+  nerc <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
                      sheet = glue::glue("NRL{year %% 1000}"),
                      skip = 1)
   
-  us <- read_excel(glue::glue("data/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
+  us <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
                    sheet = glue::glue("US{year %% 1000}"),
                    skip = 1)
   
