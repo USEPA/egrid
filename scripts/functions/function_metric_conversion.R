@@ -95,9 +95,9 @@ metric_conversion <- function(which_file) {
   
   # original output data
   if(which_file != "ggl") { # grid gross loss does not have a monthly version
-    orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{filename}_{params$temporal_res}.RDS")) 
+    orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/{filename}_{params$temporal_res}.RDS")) 
   } else {
-    orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$temporal_res}/{params$eGRID_year}/{filename}.RDS")) 
+    orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{filename}.RDS")) 
   }
   
   # metric file structure

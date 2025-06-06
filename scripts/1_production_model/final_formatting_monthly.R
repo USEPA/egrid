@@ -38,25 +38,22 @@ if (!exists("params")) {
 # Load in data ------------------------------
 
 # load files
-unt_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_monthly.RDS"))
-gen_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_monthly.RDS"))
-plnt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_monthly.RDS"))
-st_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/state_aggregation_monthly.RDS"))
-ba_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/ba_aggregation_monthly.RDS"))
-srl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/subregion_aggregation_monthly.RDS"))
-nrl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/nerc_aggregation_monthly.RDS"))
-us_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/us_aggregation_monthly.RDS"))
+# unt_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/unit_file_monthly.RDS"))
+# gen_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/generator_file_monthly.RDS"))
+# plnt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/plant_file_monthly.RDS"))
+st_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/state_aggregation_monthly.RDS"))
+ba_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/ba_aggregation_monthly.RDS"))
+srl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/subregion_aggregation_monthly.RDS"))
+nrl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/nerc_aggregation_monthly.RDS"))
+us_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/us_aggregation_monthly.RDS"))
 ggl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 
-if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
-  demo_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))
-}
 
-# unt_file_ann <- unt_file %>%
-#                 group_by(pick(-c(contains("source"), contains("mass"), heat_input, operating_hours))) %>%
-#                 mutate(across(c(contains("mass"), heat_input, operating_hours), ~sum(.x))) %>%
-#                 mutate(across(contains("source"), paste(unique(.x), collapse = ", "))) %>%
-#                 ungroup()
+st_file_ann    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/state_aggregation_annual.RDS"))
+ba_file_ann    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/ba_aggregation_annual.RDS"))
+srl_file_ann   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/subregion_aggregation_annual.RDS"))
+nrl_file_ann   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/nerc_aggregation_annual.RDS"))
+us_file_ann    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/us_aggregation_annual.RDS"))
 
 
 # load in name_matching.R
@@ -154,6 +151,22 @@ for (j in 1:length(file_names)){
   all_desc_list[[file_names[j]]] <- file_desc_list
   
 }
+
+colnames(st_file) <- names(state_nonmetric_monthly)
+
+st_file_wider_cols <- st_file %>%
+                      select(all_of(paste0("ST", standard_header))) %>%
+                      select(contains("nameplate_capacity"), 
+                             contains("heat_input"), 
+                             contains("generation"), 
+                             contains("mass"), 
+                             contains("rate"),
+                             contains("")) %>%
+                      colnames()
+
+# Structure dataframe
+st_file_formatted <- st_file %>%
+                     pivot_wider(names_from = month, values_from = all_of(st_file_wider_cols))
 
 
 # ST Formatting --------------------------------------
