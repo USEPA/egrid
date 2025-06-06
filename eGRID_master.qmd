@@ -176,13 +176,11 @@ epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGR
 
 table_epa_raw <- create_summary_gt_table(epa_raw)  
 
-epa_facilities      <- epa_raw[1:26] 
-epa_emissions       <- epa_raw[27:46] 
-epa_emissions_ozone <- epa_raw[47:58]  
+epa_facilities  <- epa_raw[1:26] 
+epa_emissions   <- epa_raw[27:46] 
 
-table_facilities      <- create_summary_gt_table(epa_facilities) 
-table_emissions       <- create_summary_gt_table(epa_emissions) 
-table_emissions_ozone <- create_summary_gt_table(epa_emissions_ozone)
+table_facilities  <- create_summary_gt_table(epa_facilities) 
+table_emissions   <- create_summary_gt_table(epa_emissions) 
 ```
 
 ::: panel-tabset
@@ -212,15 +210,6 @@ table_facilities
 #| echo: false  
 
 table_emissions
-```
-
-#### EPA ozone season emissions
-
-```{r}
-#| label: print-epa-tab-emissions-ozone 
-#| echo: false  
-
-table_emissions_ozone
 ```
 :::
 
@@ -465,7 +454,7 @@ There are several procedures applied to the raw EPA file:
 #| label: create-epa-summary-table 
 #| echo: false  
 
-create_summary_gt_table(readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_{params$temporal_res}.RDS")))
+create_summary_gt_table(readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")))
 ```
 :::
 
