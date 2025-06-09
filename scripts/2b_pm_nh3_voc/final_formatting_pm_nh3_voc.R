@@ -293,6 +293,8 @@ for (emission_type in c("pm25", "nh3", "voc")) {
   
   # add styling to year headers
   addStyle(wb, "Graphs", style = graph_headers, rows = 1, cols = 1:(graph_row_step * length(graph_years)), gridExpand = TRUE)
+  # set row heights
+  setRowHeights(wb, "Graphs", rows = 2:100, heights = 13.5)
   
   # Add eGRID Subregion Map -----
   map_row <- graph_row + 1
