@@ -38,15 +38,15 @@ if (!exists("params")) {
 # Load in data ------------------------------
 
 # load files
-unt_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_annual.RDS"))
-gen_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_annual.RDS"))
-plnt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_annual.RDS"))
-st_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/state_aggregation_annual.RDS"))
-ba_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/ba_aggregation_annual.RDS"))
-srl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/subregion_aggregation_annual.RDS"))
-nrl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/nerc_aggregation_annual.RDS"))
-us_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/us_aggregation_annual.RDS"))
-ggl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+unt_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/unit_file_annual.RDS"))
+gen_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/generator_file_annual.RDS"))
+plnt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/plant_file_annual.RDS"))
+st_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/state_aggregation_annual.RDS"))
+ba_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/ba_aggregation_annual.RDS"))
+srl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/subregion_aggregation_annual.RDS"))
+nrl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/nerc_aggregation_annual.RDS"))
+us_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/us_aggregation_annual.RDS"))
+ggl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/grid_gross_loss.RDS"))
 
 if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   demo_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))
@@ -1478,10 +1478,10 @@ add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 159, loc = c(16
 add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 157, loc = c(17, 43), text_to_show = "US")
 
 # Save and export -------------------------------------------
-output <- glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx")
+output <- glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/egrid{params$eGRID_year}_data.xlsx")
 saveWorkbook(wb, output, overwrite = TRUE)
 
-print(glue::glue("Saving final formatted file to folder data/1_production_model/outputs/{params$eGRID_year}/"))
+print(glue::glue("Saving final formatted file to folder data/1_production_model/outputs/{params$eGRID_year}/annual"))
 
 # remove to save space
 rm(unt_file, gen_file, plnt_file)
