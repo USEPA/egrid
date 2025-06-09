@@ -31,6 +31,7 @@ source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_paste_concat.R")
 source("scripts/functions/function_update_source.R")
 source("scripts/functions/function_check_file_exists.R")
+source("scripts/functions/function_save_output_data.R")
 
 # check if parameters need to be defined
 if (!exists("params")) {
@@ -87,8 +88,7 @@ unit_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{para
 ### Load crosswalks and static tables ----------------------
 
 # load in name matches for shorthand to snake_case
-# source("scripts/1_production_model/name_matching.R")
-check_name_matches()
+source("scripts/1_production_model/name_matching.R")
 
 # crosswalk for plant IDs between EPA and EIA data
 xwalk_oris_epa <- 
