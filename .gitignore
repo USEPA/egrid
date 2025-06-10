@@ -24,3 +24,7 @@ data/1_production_model/static_tables/historical_egrid/
 monthly_qa_2_files/
 data/2d_data_explorer/
 Thumbs.db
+data/2d_web_updates/
+data/clean_data/
+data/outputs/
+data/raw_data/
