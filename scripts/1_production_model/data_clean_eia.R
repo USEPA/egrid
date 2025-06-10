@@ -60,7 +60,7 @@ eia_861_files <- list.files(glue::glue("data/1_production_model/raw_data/861/{pa
 
 ## Annual 923 data -----------------------------
 
-if (length(grep("M_12", eia_923_files)) > 0) { # check if the annual files are available. If not, we use the available monthly data. 
+if (length(grep("Final", eia_923_files)) > 0) { # check if the final annual files are available. If not, we use the available monthly data. 
   
   ### 923 Schedules_2_3_4_5_M_12 ----------------
   
@@ -132,9 +132,10 @@ if (length(grep("M_12", eia_923_files)) > 0) { # check if the annual files are a
                          across(contains(c("capacity", "generation", "netgen")), ~ as.numeric(.x)),
                          across(starts_with(c("year")), ~ as.character(.x))) %>% 
                   filter(!if_all(everything(), is.na)))
-  
-## Monthly 923 data ----------------------
+
 } else { 
+## Monthly 923 data ----------------------
+  
   ### 923 Schedules_2_3_4_5_M_12 --------
   
   sheets_923_1 <- c("Page 1 Generation and Fuel Data", # defining list of sheets to iterate over and extract from excel file

@@ -40,7 +40,7 @@ if (!dir.exists(glue::glue("data/1_production_model/raw_data/860m/{params$eGRID_
  
 if(!file.exists(path_860m)){  
   if(!check_valid_url(url_860m)){
-    print(glue::glue("December 860m does not exist for {params$eGRID_year}."))
+    print(glue::glue("December 860m does not exist for {params$eGRID_year}. Will need to default to the latest month available."))
   } else { 
     download.file(url = url_860m,
                   destfile = path_860m, 
