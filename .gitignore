@@ -25,3 +25,6 @@ monthly_qa_2_files/
 data/2d_data_explorer/
 data/2d_web_updates/
 Thumbs.db
+data/clean_data/
+data/outputs/
+data/raw_data/
