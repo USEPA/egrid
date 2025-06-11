@@ -1087,7 +1087,7 @@ state_nonmetric_monthly <-
     "STCH4RT"   = "state_ch4_output_rate", 
     "STN2ORT"   = "state_n2o_output_rate", 
     "STC2ERT"   = "state_co2e_output_rate", 
-    "STHGRTM"    = "state_hg_output_rate", 
+    "STHGRT"    = "state_hg_output_rate", 
     "STNOXR"    = "state_nox_input_rate", 
     "STSO2R"    = "state_so2_input_rate", 
     "STCO2R"    = "state_co2_input_rate", 

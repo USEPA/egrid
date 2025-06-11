@@ -92,7 +92,7 @@ file_names_long <- c("State", "Balancing authority", "eGRID subregion", "NERC re
 
 standard_labels <- c(
                      "HTIT"   = "total heat input (MMBtu)",
-                     "NGENAN" = "net generation (MWh)",
+                     "NGEN" = "net generation (MWh)",
                      "NGENNB" = "nonbaseload generation (MWh)",
                      "NOX"    = "NOx emissions (tons)",	
                      "SO2"    = "SO2 emissions (tons)",	
@@ -101,20 +101,20 @@ standard_labels <- c(
                      "N2O"    = "N2O emissions (lbs)",	
                      "CO2EQA" = "CO2 equivalent emissions (tons)",	
                      "HG"     = "Hg emissions (lbs)",
-                     "NOXRTA" = "NOx total output emission rate (lb/MWh)",
-                     "SO2RTA" = "SO2 total output emission rate (lb/MWh)",	
-                     "CO2RTA" = "CO2 total output emission rate (lb/MWh)",	
-                     "CH4RTA" = "CH4 total output emission rate (lb/MWh)",
-                     "N2ORTA" = "N2O total output emission rate (lb/MWh)",
-                     "C2ERTA" = "CO2 equivalent total output emission rate (lb/MWh)",
-                     "HGRTA"  = "Hg total output emission rate (lb/MWh)",
-                     "NOXRA"  = "NOx input emission rate (lb/MMBtu)",
-                     "SO2RA"  = "SO2 input emission rate (lb/MMBtu)",	
-                     "CO2RA"  = "CO2 input emission rate (lb/MMBtu)",
-                     "CH4RA"  = "CH4 input emission rate (lb/MMBtu)",	
-                     "N2ORA"  = "N2O input emission rate (lb/MMBtu)",	
-                     "C2ERA"  = "CO2 equivalent input emission rate (lb/MMBtu)",	
-                     "HGRA"   = "Hg input emission rate (lb/MMBtu)",	
+                     "NOXRT" = "NOx total output emission rate (lb/MWh)",
+                     "SO2RT" = "SO2 total output emission rate (lb/MWh)",	
+                     "CO2RT" = "CO2 total output emission rate (lb/MWh)",	
+                     "CH4RT" = "CH4 total output emission rate (lb/MWh)",
+                     "N2ORT" = "N2O total output emission rate (lb/MWh)",
+                     "C2ERT" = "CO2 equivalent total output emission rate (lb/MWh)",
+                     "HGRT"  = "Hg total output emission rate (lb/MWh)",
+                     "NOXR"  = "NOx input emission rate (lb/MMBtu)",
+                     "SO2R"  = "SO2 input emission rate (lb/MMBtu)",	
+                     "CO2R"  = "CO2 input emission rate (lb/MMBtu)",
+                     "CH4R"  = "CH4 input emission rate (lb/MMBtu)",	
+                     "N2OR"  = "N2O input emission rate (lb/MMBtu)",	
+                     "C2ER"  = "CO2 equivalent input emission rate (lb/MMBtu)",	
+                     "HGR"   = "Hg input emission rate (lb/MMBtu)",	
                      "NOXCRT" = "annual NOx combustion output emission rate (lb/MWh)",
                      "NBNOX"  = "NOx non-baseload output emission rate (lb/MWh)",	
                      "NBSO2"  = "SO2 non-baseload output emission rate (lb/MWh)",	
@@ -129,44 +129,44 @@ standard_header <- names(standard_labels)  # column names
 standard_desc   <- unname(standard_labels) # description of column names
 
 # initialize lists to store header and description names for each file
-all_header_list <- list()
-all_desc_list <- list()
+all_header_month_list <- list()
+all_desc_month_list <- list()
+
+all_header_annual_list <- list()
+all_desc_annual_list <- list()
 
 for (j in 1:length(file_names)){
   
   # initialize lists
-  file_header_list <- list()
-  file_desc_list <- list()
+  file_header_month_list <- list()
+  file_desc_month_list <- list()
+  
+  file_header_annual_list <- list()
+  file_desc_annual_list <- list()
   
   for (i in 1:length(standard_labels)) {
-    file_header <- paste0(file_names[j], names(standard_labels)[i], "_", month_abbr_upper)
+    file_header_month <- paste0(file_names[j], names(standard_labels)[i], "_", month_abbr_upper)
+    file_header_annual <- paste0(file_names[j], names(standard_labels)[i], "_ANNUAL")
     
-    file_desc <- paste0(file_names_long[j], " ", unname(standard_labels)[i], " - ", month_abbr_upper)
+    file_desc_month <- paste0(file_names_long[j], " ", unname(standard_labels)[i], " - ", month_abbr_upper)
+    file_desc_annual <- paste0(file_names_long[j], " ", unname(standard_labels)[i], " - ANNUAL")
     
-    file_header_list <- c(file_header_list, file_header)
-    file_desc_list <- c(file_desc_list, file_desc)
+    file_header_list <- c(file_header_month_list, file_header_month)
+    file_desc_list <- c(file_desc_month_list, file_desc_month)
+    
+    file_header_annual_list <- c(file_header_annual_list, file_header_annual)
+    file_desc_annual_list <- c(file_desc_annual_list, file_desc_annual)
   }
   
-  all_header_list[[file_names[j]]] <- file_header_list
-  all_desc_list[[file_names[j]]] <- file_desc_list
+  all_header_month_list[[file_names[j]]] <- file_header_month_list
+  all_desc_month_list[[file_names[j]]] <- file_desc_month_list
+  
+  all_header_annual_list[[file_names[j]]] <- file_header_annual_list
+  all_desc_annual_list[[file_names[j]]] <- file_desc_annual_list
   
 }
 
-colnames(st_file) <- names(state_nonmetric_monthly)
 
-st_file_wider_cols <- st_file %>%
-                      select(all_of(paste0("ST", standard_header))) %>%
-                      select(contains("nameplate_capacity"), 
-                             contains("heat_input"), 
-                             contains("generation"), 
-                             contains("mass"), 
-                             contains("rate"),
-                             contains("")) %>%
-                      colnames()
-
-# Structure dataframe
-st_file_formatted <- st_file %>%
-                     pivot_wider(names_from = month, values_from = all_of(st_file_wider_cols))
 
 
 # ST Formatting --------------------------------------
@@ -190,17 +190,35 @@ st_header <- c("YEAR",
                "FIPSST",
                paste0("ST", standard_header))
 
-# check if shorthand names match name_matching.R and stop if not. 
-state_check_cols <- c()
-for (i in 1:length((st_header))) { 
-  if (st_header[i] != names(state_nonmetric_annual)[i]) { 
-    state_check_cols <- c(state_check_cols, st_header[i]) }} 
+colnames(st_file) <- names(state_nonmetric_monthly)
 
-if (!is.null(state_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R state_nonmetric_annual: {glue::glue_collapse(state_check_cols, sep = ', ')}. Check for errors.")))
-} else {
-  print("All shorthand columns match name_matching.R state_nonmetric_annual.")
-}
+st_file_wider_cols <- st_file %>%
+                      select(all_of(paste0("ST", standard_header))) %>%
+                      colnames()
+
+# Structure dataframe
+st_file_formatted <- st_file %>%
+                     select("YEAR",
+                            "MONTH",
+                            "PSTATABB",
+                            "FIPSST",
+                            all_of(paste0("ST", standard_header))) %>%
+                     mutate(MONTH = month_abbr_upper[MONTH]) %>%
+                     pivot_wider(names_from = MONTH, values_from = all_of(st_file_wider_cols))
+
+st_file_ann_formatted <- st_file_ann 
+
+# check if shorthand names match name_matching.R and stop if not. 
+# state_check_cols <- c()
+# for (i in 1:length((st_header))) { 
+#   if (st_header[i] != names(state_nonmetric_annual)[i]) { 
+#     state_check_cols <- c(state_check_cols, st_header[i]) }} 
+# 
+# if (!is.null(state_check_cols)){ 
+#   stop(print(glue::glue("These columns do not match name_matching.R state_nonmetric_annual: {glue::glue_collapse(state_check_cols, sep = ', ')}. Check for errors.")))
+# } else {
+#   print("All shorthand columns match name_matching.R state_nonmetric_annual.")
+# }
 
 # description of column names
 st_desc <- c("Data Year",
