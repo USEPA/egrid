@@ -57,6 +57,7 @@ epa_vars_to_keep <-
     "plant_id",
     "unit_id",
     "operating_status",
+    "max_hourly_hi_rate_mmbtu_hr",
     "reporting_frequency",
     "program_code",
     "primary_fuel_type",
@@ -83,43 +84,18 @@ epa_vars_to_keep <-
     "hg_controls",
     "year_online"
   ) 
-# 
-# if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS"))) { 
-#   epa <- 
-#     read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")) %>% 
-#     select(all_of(temporal_res_cols), any_of(epa_vars_to_keep)) # keeping only necessary variables
-# } else { 
-#    stop(glue::glue("epa_clean_{params$temporal_res}.RDS does not exist. Run data_load_epa.R and data_clean_epa.R to obtain."))}
 
 epa <- check_file_exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")) %>%
        select(all_of(temporal_res_cols), any_of(epa_vars_to_keep)) # keeping only necessary variables
 
 ## EIA ------------
 
-# Load EIA-860
-# if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))) {
-#   eia_860 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
-# } else { 
-#   stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 eia_860 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
 
-# Load EIA-923
-# if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { 
-#   eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
-# } else { 
-#    stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 eia_923 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 
 ## Generator file -------
-# if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS"))) { 
-#   gen_file <- # load generator file
-#     read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_{params$temporal_res}.RDS")) %>% 
-#     group_by(plant_id, generator_id, prime_mover, nameplate_capacity) %>% 
-#     summarize(generation = sum(generation, na.rm = TRUE)) %>% 
-#     distinct() %>% 
-#     ungroup()
-# } else { 
-#   stop(glue::glue("generator_file_{params$temporal_res}.RDS does not exist. Run generator_file_create.R to obtain."))}
+
 gen_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/generator_file_{params$temporal_res}.RDS")) %>%
             group_by(plant_id, generator_id, prime_mover, nameplate_capacity) %>% 
             summarize(generation = sum(generation, na.rm = TRUE)) %>% 
@@ -1009,22 +985,35 @@ print(glue::glue("{nrow(units_heat_updated_boiler_distributed)} units updated wi
 # Some ozone reporters do not fill heat input for non-ozone months using generator level proportions
 # Here we identify ozone reporters with heat input in EIA-923 Gen and Fuel and distribute using EPA nameplate capacity values
 os_nameplate_props <- 
-  units_missing_heat_4 %>% 
-  filter(reporting_frequency == "OS") %>% 
-  group_by(plant_id, unit_id, prime_mover) %>% 
-  summarize(nameplate_capacity = unique(nameplate_capacity)) %>% 
-  ungroup() %>% 
+  epa_6 %>% 
+  select(plant_id, unit_id, prime_mover, reporting_frequency, nameplate_capacity) %>% 
+  distinct() %>% 
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_namecap = sum(nameplate_capacity, na.rm = TRUE)) %>% 
   ungroup() %>% 
+  filter(reporting_frequency == "OS") %>% 
   mutate(prop = if_else(sum_namecap != 0, nameplate_capacity / sum_namecap, 0)) %>% 
+  filter(!is.na(prop), prop > 0) %>% 
+  select(plant_id, unit_id, prime_mover, prop)
+
+os_max_hi_rate_props <- 
+  epa_6 %>% 
+  select(plant_id, unit_id, prime_mover, reporting_frequency, max_hourly_hi_rate_mmbtu_hr) %>% 
+  distinct() %>% 
+  group_by(plant_id, prime_mover) %>% 
+  mutate(sum_max_hi_rate = sum(max_hourly_hi_rate_mmbtu_hr, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  filter(reporting_frequency == "OS") %>% 
+  mutate(prop = if_else(sum_max_hi_rate != 0, max_hourly_hi_rate_mmbtu_hr / sum_max_hi_rate, 0)) %>% 
   filter(!is.na(prop), prop > 0) %>% 
   select(plant_id, unit_id, prime_mover, prop)
 
 units_heat_updated_ozone_dist <- 
   eia_fuel_consum_pm %>% 
   inner_join(units_missing_heat_4 %>% filter(reporting_frequency == "OS"), by = c("year", "month", "plant_id", "prime_mover")) %>% 
-  inner_join(os_nameplate_props, by = c("plant_id", "unit_id", "prime_mover")) %>%
+  left_join(os_nameplate_props, by = c("plant_id", "unit_id", "prime_mover")) %>%
+  rows_patch(os_max_hi_rate_props, by = c("plant_id", "unit_id", "prime_mover"), unmatched = "ignore") %>% 
+  filter(!is.na(prop), prop > 0) %>% 
   mutate(heat_input = prop * heat_input_923, 
          heat_input_source = "EIA Prime Mover-level Data") %>% 
   filter(!is.na(heat_input)) %>% 

@@ -213,12 +213,15 @@ epa_final <- # removing unnecessary columns and final renames
          nameplate_capacity,
          operating_status,
          associated_generators,
+         max_hourly_hi_rate_mmbtu_hr, 
          ends_with("_type"),
          unit_type_abb,
          reporting_frequency,
          starts_with(c("heat","so2", "co2", "nox", "hg")),
          contains("operating_time"),
-         -contains("rate"),
+         -contains("so2_rate"),
+         -contains("nox_rate"), 
+         -contains("co2_rate"),
          year_online) %>%
   mutate(across(ends_with("id"), ~ as.character(.x)))
 
@@ -227,36 +230,9 @@ epa_final <- # removing unnecessary columns and final renames
 # creating folder if not already present
 
 if(params$temporal_res %in% c("annual", "monthly")) { # annual version uses monthly version of EPA data
-  file <- "epa_raw_monthly.RDS"
+  file <- "epa_clean_monthly.RDS"
 } else {
-  file <- glue::glue("epa_raw_{params$temporal_res}.RDS")
+  file <- glue::glue("epa_clean_{params$temporal_res}.RDS")
 }
 
 save_output_data(epa_final, "data/1_production_model/clean_data/epa", file)
-
-# if(!dir.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}"))){
-#   dir.create(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}"), recursive = TRUE)
-# } else{
-#   print(glue::glue("Folder data/1_production_model/clean_data/epa/{params$eGRID_year} already exists."))
-# }
-# 
-# if(params$temporal_res %in% c("annual", "monthly")) { 
-#   write_rds(epa_final, glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS"))
-# } else { 
-#   write_rds(epa_final, glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_{params$temporal_res}.RDS"))
-#   }
-# 
-# # check if file is successfully written to folder 
-# if(params$temporal_res %in% c("annual", "monthly")) { # annual version uses monthly version of EPA data 
-#   if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS"))){
-#     print(glue::glue("File epa_clean_monthly.RDS successfully written to folder data/1_production_model/clean_data/epa/{params$eGRID_year}"))
-#   } else {
-#     print(glue::glue("File epa_clean_monthly.RDS failed to write to folder."))
-#   }
-# } else { 
-#   if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_{params$temporal_res}.RDS"))){
-#     print(glue::glue("File epa_clean_{params$temporal_res}.RDS successfully written to folder data/1_production_model/clean_data/epa/{params$eGRID_year}"))
-#   } else {
-#     print(glue::glue("File epa_clean_{params$temporal_res}.RDS failed to write to folder."))
-#   }
-# }
