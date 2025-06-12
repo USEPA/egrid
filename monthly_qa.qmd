@@ -26,7 +26,7 @@ library(stringr)
 #| message: false
 
 source("scripts/qa/monthly_qa/function_plot_monthly_comparison.R")
-base::load("data/static_tables/name_matches.RData")
+base::load("data/1_production_model/static_tables/name_matches.RData")
 ```
 
 ```{r}
@@ -36,7 +36,7 @@ base::load("data/static_tables/name_matches.RData")
 
 # load in unit data, format, and merge
 unit_monthly <- 
-  read_rds("data/outputs/2023/unit_file_monthly.RDS")
+  read_rds("data/1_production_model/outputs/2023/monthly/unit_file_monthly.RDS")
 
 colnames(unit_monthly) <- paste0(colnames(unit_monthly), "_monthly")
 unit_monthly <- unit_monthly %>% 
@@ -48,7 +48,7 @@ unit_monthly <- unit_monthly %>%
   mutate(month = as.character(month))
 
 unit_annual <- 
-  read_rds("data/outputs/2023/unit_file.RDS")
+  read_rds("data/1_production_model/outputs/2023/unit_file.RDS")
 
 colnames(unit_annual) <- paste0(colnames(unit_annual), "_annual")
 unit_annual <- unit_annual %>% 
@@ -60,7 +60,7 @@ unit_annual <- unit_annual %>%
 
 # load in generator data, format, and merge
 generator_monthly <- 
-  read_rds("data/outputs/2023/generator_file_monthly.RDS")
+  read_rds("data/1_production_model/outputs/2023/monthly/generator_file_monthly.RDS")
 
 colnames(generator_monthly) <- paste0(colnames(generator_monthly), "_monthly")
 generator_monthly <- generator_monthly %>% 
@@ -72,7 +72,7 @@ generator_monthly <- generator_monthly %>%
   mutate(month = as.character(month))
 
 generator_annual <- 
-  read_rds("data/outputs/2023/generator_file.RDS")
+  read_rds("data/1_production_model/outputs/2023/generator_file.RDS")
 
 colnames(generator_annual) <- paste0(colnames(generator_annual), "_annual")
 generator_annual <- generator_annual %>% 
@@ -85,7 +85,7 @@ generator_annual <- generator_annual %>%
 
 # load in plant data, format, and merge
 plant_monthly <- 
-  read_rds("data/outputs/2023/plant_file_monthly.RDS") %>% 
+  read_rds("data/1_production_model/outputs/2023/monthly/plant_file_monthly.RDS") %>% 
   mutate(month = as.character(month))
 
 plant_monthly_2 <- plant_monthly
@@ -98,7 +98,7 @@ plant_monthly_2 <-
   mutate(month = as.character(month))
 
 plant_annual <- 
-  read_rds("data/outputs/2023/plant_file.RDS") 
+  read_rds("data/1_production_model/outputs/2023/plant_file.RDS") 
 
 # rename to new version of column names
 new_vars <- 
@@ -135,13 +135,13 @@ In the tabset below, we list what units have a difference greater than 0.01 for 
 
 # read in EPA data to identify OS reporters
 epa <- 
-  read_rds("data/clean_data/epa/2023/epa_clean_annual.RDS") %>% 
+  read_rds("data/1_production_model/clean_data/epa/2023/epa_clean_monthly.RDS") %>% 
   select(plant_id, unit_id, reporting_frequency) %>% 
   distinct()
 
 # read in EIA data to identify Annual reporters (which may not represent monthly version well)
 eia_923 <- 
-  read_rds("data/clean_data/eia/2023/eia_923_clean.RDS") 
+  read_rds("data/1_production_model/clean_data/eia/2023/eia_923_clean.RDS") 
 
 annual_reporters <-
   eia_923$boiler_fuel_data %>% 

@@ -25,7 +25,7 @@ library(stringr)
 #| message: false
 
 source("scripts/qa/monthly_qa/function_plot_monthly_comparison.R")
-base::load("data/static_tables/name_matches.RData")
+base::load("data/1_production_model/static_tables/name_matches.RData")
 ```
 
 ```{r}
@@ -35,7 +35,7 @@ base::load("data/static_tables/name_matches.RData")
 
 # load in plant data, format, and merge
 plant_monthly <- 
-  read_rds("data/outputs/2023/plant_file_monthly.RDS") %>% 
+  read_rds("data/1_production_model/outputs/2023/monthly/plant_file_monthly.RDS") %>% 
   mutate(month = as.character(month))
 
 plant_monthly_2 <- plant_monthly
@@ -48,7 +48,7 @@ plant_monthly_2 <-
   mutate(month = as.character(month))
 
 plant_annual <- 
-  read_rds("data/outputs/2023/plant_file.RDS") 
+  read_rds("data/1_production_model/outputs/2023/plant_file.RDS") 
 
 # rename to new version of column names
 new_vars <- 
@@ -72,11 +72,11 @@ plant_merged$month <- factor(plant_merged$month,
 
 # load in subregion data, format, and merge
 subregion_monthly <- 
-  read_rds("data/outputs/2023/subregion_aggregation_monthly.RDS") %>% 
+  read_rds("data/1_production_model/outputs/2023/monthly/subregion_aggregation_monthly.RDS") %>% 
   mutate(month = as.character(month))
 
 subregion_annual <- 
-  read_rds("data/outputs/2023/subregion_aggregation.RDS") %>% 
+  read_rds("data/1_production_model/outputs/2023/subregion_aggregation.RDS") %>% 
   mutate(month = "annual")
 
 subregion_merged <-
@@ -93,7 +93,7 @@ subregion_merged$month <- factor(subregion_merged$month,
 
 The differences between the totals of heat input, emission masses, and generation of the monthly and annual unit files are shown here. The monthly version is aggregated to the annual resolution to compare.
 
-In the tabset below, we list what units have a difference greater than 1 for heat input, emission masses, and generation. 
+In the tabset below, we list what units have a difference greater than 1 for heat input, emission masses, and generation.
 
 ```{r}
 #| label: plant-comparison
@@ -1523,13 +1523,13 @@ knitr::kable(plant_other_netgen_check,
 
 ## Subregion file comparison
 
-We compare the annual and monthly versions in three different ways: 
+We compare the annual and monthly versions in three different ways:
 
-1. Total US level sums for heat input, generation, and emission mass values. 
+1.  Total US level sums for heat input, generation, and emission mass values.
 
-2. Total subregion level sums for heat input, generation, and emission mass values. 
+2.  Total subregion level sums for heat input, generation, and emission mass values.
 
-3. Output and input emission rates for each subregion. We show both the monthly and annual rates as well as an average monthly rate. 
+3.  Output and input emission rates for each subregion. We show both the monthly and annual rates as well as an average monthly rate.
 
 ```{r}
 #| label: subregion-avg
@@ -1621,9 +1621,9 @@ knitr::kable(subregion_total_sum_comp,
 ```
 
 ::: panel-tabset
-### Summary 
+### Summary
 
-This tabset shows comparisons between the monthly and annual versions for heat input, emission masses, and generation values. 
+This tabset shows comparisons between the monthly and annual versions for heat input, emission masses, and generation values.
 
 ### Combustion heat input
 

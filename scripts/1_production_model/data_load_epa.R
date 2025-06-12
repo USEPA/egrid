@@ -28,7 +28,7 @@ source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_save_output_data.R")
 
-# Define parameters if necessary and check for valid params()
+# Create and check parameters 
 if (!exists("params")) {
   params <- check_params()
 } else {
@@ -215,13 +215,6 @@ mats_data_r <-
 
 ## Join facility, emissions, and MATS data --------
 
-# issue with daily data in facility_df, transform month to be aligned with other dataframes 
-if (params$temporal_res == "daily") {
-  facility_df <- 
-    facility_df %>%
-    mutate(month = as.numeric(month))
-}
-
 epa_data_combined <- 
   facility_df %>% 
   left_join(emissions_data_r_2, 
@@ -242,27 +235,3 @@ if(params$temporal_res %in% c("annual", "monthly")) { # annual version uses mont
 
 save_output_data(epa_data_combined, "data/1_production_model/raw_data/epa", file)
 
-
-# if(params$temporal_res %in% c("annual", "monthly")) { # annual version uses monthly version of EPA data 
-#   readr::write_rds(epa_data_combined, 
-#                    file = glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_monthly.RDS"))
-# } else { 
-#   readr::write_rds(epa_data_combined, 
-#                    file = glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))
-#   }
-# 
-# # check if file is successfully written to folder 
-# if(params$temporal_res %in% c("annual", "monthly")) { # annual version uses monthly version of EPA data 
-#   if(file.exists(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_monthly.RDS"))){
-#   print(glue::glue("File epa_raw_monthly.RDS successfully written to folder data/1_production_model/raw_data/epa/{params$eGRID_year}"))
-#   } else {
-#      print(glue::glue("File epa_raw_monthly.RDS failed to write to folder."))
-#   }
-# } else { 
-#   if(file.exists(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))){
-#     print(glue::glue("File epa_raw_{params$temporal_res}.RDS successfully written to folder data/1_production_model/raw_data/epa/{params$eGRID_year}"))
-#   } else {
-#     print(glue::glue("File epa_raw_{params$temporal_res}.RDS failed to write to folder."))
-#   }
-# }
-# 
