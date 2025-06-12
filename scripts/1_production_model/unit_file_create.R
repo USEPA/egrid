@@ -986,24 +986,24 @@ print(glue::glue("{nrow(units_heat_updated_boiler_distributed)} units updated wi
 # Here we identify ozone reporters with heat input in EIA-923 Gen and Fuel and distribute using EPA nameplate capacity values
 os_nameplate_props <- 
   epa_6 %>% 
+  filter(reporting_frequency == "OS") %>% 
   select(plant_id, unit_id, prime_mover, reporting_frequency, nameplate_capacity) %>% 
   distinct() %>% 
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_namecap = sum(nameplate_capacity, na.rm = TRUE)) %>% 
   ungroup() %>% 
-  filter(reporting_frequency == "OS") %>% 
   mutate(prop = if_else(sum_namecap != 0, nameplate_capacity / sum_namecap, 0)) %>% 
   filter(!is.na(prop), prop > 0) %>% 
   select(plant_id, unit_id, prime_mover, prop)
 
 os_max_hi_rate_props <- 
   epa_6 %>% 
+  filter(reporting_frequency == "OS") %>% 
   select(plant_id, unit_id, prime_mover, reporting_frequency, max_hourly_hi_rate_mmbtu_hr) %>% 
   distinct() %>% 
   group_by(plant_id, prime_mover) %>% 
   mutate(sum_max_hi_rate = sum(max_hourly_hi_rate_mmbtu_hr, na.rm = TRUE)) %>% 
   ungroup() %>% 
-  filter(reporting_frequency == "OS") %>% 
   mutate(prop = if_else(sum_max_hi_rate != 0, max_hourly_hi_rate_mmbtu_hr / sum_max_hi_rate, 0)) %>% 
   filter(!is.na(prop), prop > 0) %>% 
   select(plant_id, unit_id, prime_mover, prop)
