@@ -1,0 +1,109 @@
+---
+title: "eGRID PM2.5, NH3, and VOC Emission Estimates"
+author: 
+  - "Emma Russell, Abt Global"
+freeze: true
+format: 
+  html:
+    toc: true
+    toc-expand: true
+    toc-location: left
+    html-table-processing: none
+    code-fold: true
+execute: 
+  message: false
+  warning: false
+  results: hold
+params:
+  eGRID_year: "2021"
+  version: "1.0.1"
+  run_QA: FALSE
+
+editor: visual
+project: 
+  execute_dir: project
+---
+
+## Produce Unit Files
+
+```{r}
+#| label: unit-files-create
+#| file: "scripts/2b_pm_nh3_voc/unit_file_create_pm_nh3_voc.R"
+```
+
+## Produce Plant Files
+
+```{r}
+#| label: plant-files-create
+#| file: "scripts/2b_pm_nh3_voc/plant_file_create_pm_nh3_voc.R"
+```
+
+## Produce Regional Aggregation Files
+
+-   State
+-   Subregion
+-   U.S.
+
+```{r}
+#| label: regional-aggregation-files-create
+#| file: "scripts/2b_pm_nh3_voc/region_aggregation_create_pm_nh3_voc.R"
+```
+
+# Produce Final Dataset
+
+```{r}
+#| label: final-formatting
+#| file: "scripts/2b_pm_nh3_voc/final_formatting_pm_nh3_voc.R"
+```
+
+# Run QA : Optional
+
+## Unit File QA
+
+```{r}
+#| label: unit-file-qa
+
+if (params$run_QA) {
+  source("scripts/qa/access_R_qa/unit_file_pm_nh3_voc_qa_access_R.R")
+}
+```
+
+## Plant File QA
+
+```{r}
+#| label: plant-file-qa
+
+if (params$run_QA) {
+  source("scripts/qa/access_R_qa/plant_file_pm_nh3_voc_qa_access_R.R")
+}
+```
+
+## State File QA
+
+```{r}
+#| label: state-file-qa
+
+if (params$run_QA) {
+  source("scripts/qa/access_R_qa/state_pm_nh3_voc_qa_access_R.R")
+}
+```
+
+## Subregion File QA
+
+```{r}
+#| label: subregion-file-qa
+
+if (params$run_QA) {
+  source("scripts/qa/access_R_qa/subregion_pm_nh3_voc_qa_access_R.R")
+}
+```
+
+## Unit Emissions Source QA
+
+```{r}
+#| label: unit-emissions-source-qa
+
+if (params$run_QA) {
+  source("scripts/qa/access_R_qa/unit_summary_emission_source.R")
+}
+```
