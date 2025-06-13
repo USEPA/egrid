@@ -85,10 +85,10 @@ s <- create_format_styles()
 # data for region aggregated files contain same columns and information
 # therefore, can assign a standardized list of columns, names, and styles
 
-standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",	
+standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
                      
                      "HTIAN"    = "annual heat input from combustion (GJ)",	
-                     "HTIOZ"    = "annual heat input from combustion (GJ)",	
+                     "HTIOZ"    = "ozone season heat input from combustion (GJ)",	
                      "HTIANT"   = "total annual heat input (GJ)",
                      "HTIOZT"   = "total ozone season heat input (GJ)",	
                      "NGENAN"   = "annual net generation (MWh)",	
@@ -146,8 +146,8 @@ standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
                      "N2OCRT2"  = "annual N2O combustion output emission rate (kg/GJ)",	# new metric
                      "C2ECRT"   = "annual CO2 equivalent combustion output emission rate (kg/MWh)",
                      "C2ECRT2"  = "annual CO2 equivalent combustion output emission rate (kg/GJ)", # new metric
-                     "HGCRT"    = "Hg combustion output emission rate (kg/MWh)",	
-                     "HGCRT2"   = "Hg combustion output emission rate (kg/GJ)",	# new metric
+                     "HGCRT"    = "annual Hg combustion output emission rate (kg/MWh)",	
+                     "HGCRT2"   = "annual Hg combustion output emission rate (kg/GJ)",	# new metric
                      
                      "CNOXRT"   = "annual NOx coal output emission rate (kg/MWh)",	
                      "CNOXRT2"  = "annual NOx coal output emission rate (kg/GJ)", # new metric
@@ -387,7 +387,7 @@ unt_labels <-  c(sequnt_label,
                  "UNITID"   = "Unit ID",
                  "PRMVR"    = "Prime Mover",
                  "UNTOPST"  = "Unit Operational Status",
-                 "CAMDFLAG" = "CAMD program flag",
+                 "CAPDFLAG" = "CAPD program flag",
                  "PRGCODE"  = "Program code(s)",
                  "BOTFIRTY" = "Unit bottom and firing type",
                  "NUMGEN"   = "Number of associated generators",
@@ -490,7 +490,7 @@ gen_rows <- nrow(gen_file) + 2
 ## column names and descriptions
 gen_labels <- c(seqgen_label,
                 "YEAR"      = "Data Year",
-                "PSTATEABB" = "Plant state abbreviation", 
+                "PSTATABB"  = "Plant state abbreviation", 
                 "PNAME"     = "Plant name",
                 "ORISPL"    = "DOE/EIA ORIS plant or facility code",
                 "GENID"     = "Generator ID",

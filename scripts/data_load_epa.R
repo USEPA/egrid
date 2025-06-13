@@ -137,7 +137,7 @@ emissions_data_r <-
   mutate(year = as.character(year(date)), # extracting year from date
          month = as.character(month(date)), # extracting month from date
          month = recode(month, !!!month_name_map)) %>% # updating month to name
-  select(-date) %>%
+  select(-date, -facility_name, -nox_controls) %>% # excluding facility_name and nox_controls due to differences in facility names across months
   mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) %>% # SB 6/4/2024: Temporary fix for issue in API where there are a mix of pipes and commas in some character values
   group_by(pick(-c(all_of(cols_to_sum)))) %>% 
   summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first
@@ -146,6 +146,7 @@ emissions_data_r <-
   mutate(reporting_months = paste(month, collapse = ", "), # creating column with list of reporting months 
          reporting_frequency = if_else(grepl("january|february|march|october|november|december", # filtering out non-ozone season reporting months, excluding april
                                              reporting_months), "Q", "OS")) %>% # assigning reporting frequency 
+  ungroup() %>% 
   group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% 
   mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions
          across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
