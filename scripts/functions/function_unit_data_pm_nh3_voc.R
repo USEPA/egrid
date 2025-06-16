@@ -192,8 +192,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
     rename(emission_ef = emission, emission_source_ef = emission_source) %>%
     select(plant_id, unit_id, prime_mover, emission_ef, emission_source_ef)
   
-  # if there is a unit match with EIA-923, adjust emission by control efficiency 
-  # currently only for PM2.5 data
+  # for PM2.5 data, if there is a unit match with EIA-923, adjust emission by control efficiency 
   if(emission_type == "pm25") {
     removal_efficiencies <-
       eia_923 %>%
@@ -212,7 +211,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
     
     
     # Add emission estimates to unit data -------------
-    # update unit file with emission emission rates from each method - order specific
+    # update unit file with emission rates from each method - order specific
     
     # includes removal efficiencies for PM2.5
     unit_emissions_updated <-
@@ -222,12 +221,14 @@ unit_data_pm_nh3_voc <- function(emission_type){
       left_join(removal_efficiencies, by = join_by(unit_id, plant_id, prime_mover)) %>%
       mutate(emission = if_else(is.na(emission_source), emission_re, emission), emission_source = if_else(is.na(emission_source), emission_source_re, emission_source)) %>%
       select(-emission_re, -emission_source_re)
+    
   } else {
     # does not include removal efficiences for other pollutants
     unit_emissions_updated <-
       unit_emissions %>%
       rows_patch(fuel_pmover_firing, by = c("unit_id", "plant_id")) %>%
-      rows_patch(fuel_pmover, by = c("unit_id", "plant_id"))}
+      rows_patch(fuel_pmover, by = c("unit_id", "plant_id"))
+    }
   
   # update unit file with remaining emission rates
   unit_emissions_final <-
