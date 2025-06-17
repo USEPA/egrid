@@ -185,6 +185,8 @@ check_plant_diff <-
 
 ### Emission rate outliers
 
+Here we list any plants with outliers across months. An outlier is identified by a z-score greater than or less than 3. Many outliers listed here are due to all other months being equal to each other, and one month having a difference of 0.001.
+
 ```{r}
 #| label: calculate-outliers
 #| echo: false
@@ -207,19 +209,25 @@ plant_rates[sapply(plant_rates, is.infinite)] <- NA_real_
 
 plant_stats <- 
   plant_rates %>% 
+  group_by(plant_id) %>% 
   mutate(across(.cols = c(contains("rate")), 
                 .fns = ~ mean(.x, na.rm = TRUE), 
                 .names =  "{.col}_average"), 
          across(.cols = c(contains("rate"), -contains("average")), 
                 .fns = ~ sd(.x, na.rm = TRUE), 
-                .names =  "{.col}_sd"))
+                .names =  "{.col}_sd")) %>% 
+  ungroup() %>% 
+  mutate(across(.cols = c(contains("rate"), -contains("average"), -contains("sd")), 
+         .fns = ~ abs(.x - get(glue::glue("{cur_column()}_average"))),
+         .names = "{.col}_diff_from_avg"))
 
 plant_stats[sapply(plant_stats, is.infinite)] <- NA_real_
+plant_stats[sapply(plant_stats, is.nan)] <- NA_real_
 
 plant_zscore <- 
   plant_stats %>% 
-  mutate(across(.cols = c(contains("rate"), -contains("average"), -contains("sd")), 
-                .fns = ~ (.x - mean(.x, na.rm = TRUE)) / sd(.x, na.rm = TRUE), 
+  mutate(across(.cols = c(contains("rate"), -contains("average"), -contains("sd"), -contains("diff_from_avg")), 
+                .fns = ~ (.x - get(glue::glue("{cur_column()}_average"))) / get(glue::glue("{cur_column()}_sd")), 
                 .names =  "{.col}_zscore")) 
 ```
 
@@ -239,7 +247,7 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>%
                filter(nox_input_rate_zscore > 3 | nox_input_rate_zscore < -3) %>% 
                arrange(desc(nox_input_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, nox_input_rate_zscore, nox_input_rate))
+               select(month, plant_id, plant_name, nox_input_rate_zscore, nox_input_rate, nox_input_rate_diff_from_avg))
 
 ```
 
@@ -256,7 +264,7 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(so2_input_rate_zscore > 3 | so2_input_rate_zscore < -3) %>% 
                arrange(desc(so2_input_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, so2_input_rate_zscore, so2_input_rate))
+               select(month, plant_id, plant_name, so2_input_rate_zscore, so2_input_rate, so2_input_rate_diff_from_avg))
 ```
 
 ##### CO2 input rate
@@ -272,7 +280,7 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(co2_input_rate_zscore > 3 | co2_input_rate_zscore < -3) %>% 
                arrange(desc(co2_input_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, co2_input_rate_zscore, co2_input_rate))
+               select(month, plant_id, plant_name, co2_input_rate_zscore, co2_input_rate, co2_input_rate_diff_from_avg))
 
 ```
 
@@ -289,7 +297,7 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(ch4_input_rate_zscore > 3 | ch4_input_rate_zscore < -3) %>% 
                arrange(desc(ch4_input_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, ch4_input_rate_zscore, ch4_input_rate))
+               select(month, plant_id, plant_name, ch4_input_rate_zscore, ch4_input_rate, ch4_input_rate_diff_from_avg))
 
 ```
 
@@ -306,7 +314,7 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(n2o_input_rate_zscore > 3 | n2o_input_rate_zscore < -3) %>% 
                arrange(desc(n2o_input_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, n2o_input_rate_zscore, n2o_input_rate))
+               select(month, plant_id, plant_name, n2o_input_rate_zscore, n2o_input_rate, n2o_input_rate_diff_from_avg))
 
 ```
 
@@ -323,7 +331,7 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(co2e_input_rate_zscore > 3 | co2e_input_rate_zscore < -3) %>% 
                arrange(desc(co2e_input_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, co2e_input_rate_zscore, co2e_input_rate))
+               select(month, plant_id, plant_name, co2e_input_rate_zscore, co2e_input_rate, co2e_input_rate_diff_from_avg))
 
 ```
 :::
@@ -344,7 +352,7 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(nox_output_rate_zscore > 3 | nox_output_rate_zscore < -3) %>% 
                arrange(desc(nox_output_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, nox_output_rate_zscore, nox_output_rate))
+               select(month, plant_id, plant_name, nox_output_rate_zscore, nox_output_rate, nox_output_rate_diff_from_avg))
 
 ```
 
@@ -361,7 +369,7 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
                arrange(desc(so2_output_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, so2_output_rate_zscore, so2_output_rate))
+               select(month, plant_id, plant_name, so2_output_rate_zscore, so2_output_rate, so2_output_rate_diff_from_avg))
 
 ```
 
@@ -378,7 +386,7 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(co2_output_rate_zscore > 3 | co2_output_rate_zscore < -3) %>% 
                arrange(desc(co2_output_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, co2_output_rate_zscore, co2_output_rate))
+               select(month, plant_id, plant_name, co2_output_rate_zscore, co2_output_rate, co2_output_rate_diff_from_avg))
 
 ```
 
@@ -393,9 +401,9 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
                  filter(ch4_output_rate_zscore > 3 | ch4_output_rate_zscore < -3))}"))
 
 knitr::kable(plant_zscore %>% 
-               filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
-               arrange(desc(so2_output_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, so2_output_rate_zscore, so2_output_rate))
+               filter(ch4_output_rate_zscore > 3 | ch4_output_rate_zscore < -3) %>% 
+               arrange(desc(ch4_output_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, ch4_output_rate_zscore, ch4_output_rate, ch4_output_rate_diff_from_avg))
 
 ```
 
@@ -412,7 +420,7 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(n2o_output_rate_zscore > 3 | n2o_output_rate_zscore < -3) %>% 
                arrange(desc(n2o_output_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, n2o_output_rate_zscore, n2o_output_rate))
+               select(month, plant_id, plant_name, n2o_output_rate_zscore, n2o_output_rate, n2o_output_rate_diff_from_avg))
 
 ```
 
@@ -429,7 +437,7 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(co2e_output_rate_zscore > 3 | co2e_output_rate_zscore < -3) %>% 
                arrange(desc(co2e_output_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, co2e_output_rate_zscore, co2e_output_rate))
+               select(month, plant_id, plant_name, co2e_output_rate_zscore, co2e_output_rate, co2e_output_rate_diff_from_avg))
 
 ```
 :::
