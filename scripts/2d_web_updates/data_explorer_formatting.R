@@ -412,11 +412,11 @@ if(!dir.exists(glue::glue("data/2d_web_updates/{params$eGRID_year}"))){
   dir.create(glue::glue("data/2d_web_updates/{params$eGRID_year}"), recursive = TRUE)
 }
 
-write_csv(egrid_plant_2, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_plant_file.csv"))
-write_csv(egrid_state, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_state_file.csv"))
-write_csv(egrid_ba, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_ba_file.csv"))
-write_csv(egrid_subregion, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_subregion_file.csv"))
-write_csv(egrid_nerc, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_nerc_file.csv"))
-write_csv(egrid_us, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_us_file.csv"))
+write.csv(egrid_plant_2, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_plant_file.csv"), na = "")
+write.csv(egrid_state, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_state_file.csv"), na = "")
+write.csv(egrid_ba, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_ba_file.csv"), na = "")
+write.csv(egrid_subregion, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_subregion_file.csv"), na = "")
+write.csv(egrid_nerc, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_nerc_file.csv"), na = "")
+write.csv(egrid_us, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_us_file.csv"), na = "")
 
 
