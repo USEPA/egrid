@@ -137,7 +137,8 @@ In the tabset below, we list what units have a difference greater than 0.01 for 
 epa <- 
   read_rds("data/1_production_model/clean_data/epa/2023/epa_clean_monthly.RDS") %>% 
   select(plant_id, unit_id, reporting_frequency) %>% 
-  distinct()
+  distinct() %>% 
+  tidyr::drop_na()
 
 # read in EIA data to identify Annual reporters (which may not represent monthly version well)
 eia_923 <- 
