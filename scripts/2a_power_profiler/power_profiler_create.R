@@ -58,7 +58,7 @@ plant_file <-
          system_owner_id = transmission_or_distribution_system_owner_id,
          plant_state = state)
 
-# load in previous power profiler data which had zip, utility code, predominant utility, etc. 
+# load in previous power profiler data which has zip, utility code, predominant utility, etc. 
 power_profiler_old <-
   read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/power_profiler_old.csv"),
            col_types = "cccccc") %>%
@@ -68,7 +68,13 @@ power_profiler_old <-
          eiaid = trim_util_code, 
          subregion = subrgn)
 
-# load in all utility zip codes
+# load in previous power profiler subregion assignments
+power_profiler_old_primary_subregion <-
+  read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/power_profiler_old_primary_subregion.csv"),
+           col_types = "cccc") %>%
+  janitor::clean_names() %>%
+  select(zip, subregion_1, subregion_2, subregion_3)
+
 utility_zipcodes <-
   read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/utility_zipcodes.csv"),
            col_types = "ccccccddd") %>%
@@ -326,7 +332,7 @@ zip_utility_subregion_10 <- #16
          subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
   select(-contains("."))
 
-### Manual overrides from old power profiler --------
+### Old power profiler updates --------
 
 # override subregion assignments from old power profiler
 # currently 160 differences from manual table
@@ -380,7 +386,7 @@ zip_utility_subregion_14 <- #50
   mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
   select(-contains("."))
 
-#### Update as first EIAID from old power profiler ------
+### Update as first EIAID from old power profiler ------
 
 # check again for zipcodes without predominant utility assignment
 no_predominant_utility_2 <- #49
@@ -407,8 +413,9 @@ zip_utility_subregion_15 <- #52
   mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
   select(-contains("."))
 
-### Manual override from old power profiler ------
+### Old power profiler updates------
 # override predominant utility assignment for zipcodes in old power profiler
+# 401 differences from manual table
 zip_utility_subregion_16 <- #58,59 - updated
   zip_utility_subregion_15 %>%
   left_join(power_profiler_old %>%
@@ -445,12 +452,13 @@ zip_primary_subregion_1 <- #57
   mutate(secondary = if_else(!is.na(secondary.y), secondary.y, secondary.x)) %>%
   select(-contains("."))
 
-### Manual updates to primary subregions ----
-zip_primary_subregion_2 <- #60
+### Old power profiler updates ----
+# 25 differences
+zip_primary_subregion_2_new <- #60
   zip_primary_subregion_1 %>%
-  left_join(primary_subregion_manual_updates, by = "zip") %>%
-  mutate(subregion = if_else(!is.na(change), change, subregion)) %>%
-  select(-current, -change) %>% distinct()
+  left_join(power_profiler_old_primary_subregion, by = "zip") %>%
+  mutate(subregion = if_else(!is.na(subregion_1), subregion_1, subregion)) %>%
+  select(-contains("_")) %>% distinct()
 
 ### Fill missing subregions with those from old profiler -----
 
@@ -485,21 +493,21 @@ zip_secondary_subregion <- #62
   zip_additional_subregion %>%
   arrange(as.numeric(zip), subregion) %>%
   group_by(zip) %>%
-  summarize(subregion_secondary = first(subregion))
+  summarize(subregion_2 = first(subregion))
 
 # assign remaining subregions as tertiary and create unique columns for each subregion level
 zip_secondary_tertiary_subregion <- #63
   zip_secondary_subregion %>%
   left_join(zip_additional_subregion, by = "zip") %>%
   # identify tertiary subregions if original subregion doesn't match assigned secondary
-  mutate(tertiary = if_else(subregion == subregion_secondary, 0, 1)) %>%
+  mutate(tertiary = if_else(subregion == subregion_2, 0, 1)) %>%
   select(zip, subregion, tertiary) %>%
   # create column for each subregion type (primary, secondary, tertiary)
   pivot_wider(
     names_from = tertiary,
     values_from = subregion,
     values_fn = list(subregion = ~first(.))) %>%
-  rename(subregion_secondary = "0", subregion_tertiary = "1")
+  rename(subregion_2 = "0", subregion_3 = "1")
 
 # join secondary and tertiary assignments to primary assignments
 zip_subregion_assignments <- #64
@@ -557,7 +565,7 @@ zip_utility_subregion_final <-
 zip_subregion_assignments_final <-
   zip_subregion_assignments %>%
   mutate(zip_numeric = as.numeric(zip)) %>%
-  select(zip, zip_numeric, state, subregion, subregion_secondary, subregion_tertiary) %>%
+  select(zip, zip_numeric, state, subregion_1 = subregion, subregion_2, subregion_3) %>%
   arrange(zip_numeric)
 
 # Export data -----
