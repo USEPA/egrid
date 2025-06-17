@@ -368,10 +368,14 @@ egrid_nerc <-
               rename("NRNAMEPCAP" = NAMEPCAP), 
             egrid_2019_nerc %>% 
               mutate(across(.cols = any_of(paste0("NRL", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)), 
+                            .fns = ~ .x * 100)) %>% 
+              rename("NRGENASO" = NRGENAOP,
+                     "NRGENAOP" = SumOfPLGENAOP), 
             egrid_2020_nerc %>% 
               mutate(across(.cols = any_of(paste0("NRL", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
+                            .fns = ~ .x * 100)) %>% 
+              rename("NRGENASO" = NRGENAOP, 
+                     "NRGENAOP" = SumOfPLGENAOP),
             egrid_2021_nerc %>% 
               mutate(across(.cols = any_of(paste0("NRL", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)),
