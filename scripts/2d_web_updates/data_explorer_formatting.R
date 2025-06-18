@@ -230,21 +230,22 @@ egrid_plant <-
             egrid_2021_plant %>% 
               mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)) %>% 
-              rename("CAPDFLAG" = CAMDFLAG) %>% # rename cols
               select(-contains("seqplt")),
             # 2022
             egrid_2022_plant %>% 
               mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)) %>% 
-              rename("CAPDFLAG" = CAMDFLAG) %>% # rename cols
               select(-contains("seqplt")),
             # 2023
             egrid_2023_plant %>% 
               mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)) %>% 
+              rename("CAMDFLAG" = CAPDFLAG) %>% 
               select(-contains("seqplt"))) %>% 
   mutate(PLPRMFL2 = recode(PLPRMFL, !!!fuel_type_map, default = PLPRMFL)) %>% # add column with long hand fuel type names
-  rename("FUEL" = PLFUELCT) 
+  rename("FUEL" = PLFUELCT,
+         "Year" = YEAR, 
+         "PLNAMEPCAP" = NAMEPCAP) 
 
 # identify secondary fuel type for each plant (if exists) 
 secondary_fuel_category <- # map fuel category to secondary fuel type
@@ -266,7 +267,7 @@ names(plant_resource_mix_cols) <- paste0("PL", names(resource_mix_cols[1:18]))
 
 secondary_fuel <- 
   egrid_plant %>% 
-  select(YEAR, ORISPL, PLPRMFL, FUEL, names(plant_resource_mix_cols)) %>% 
+  select(Year, ORISPL, PLPRMFL, FUEL, names(plant_resource_mix_cols)) %>% 
   tidyr::pivot_longer(cols = paste0("PL", names(resource_mix_cols[1:18])), 
                names_to = "resource_mix_fuel", 
                values_to = "resource_mix") %>% 
@@ -276,20 +277,21 @@ secondary_fuel <-
          !is.na(resource_mix_fuel), 
          resource_mix_fuel != FUEL) %>% 
   mutate(resource_mix_fuel = recode(resource_mix_fuel, !!!secondary_fuel_category)) %>% 
-  group_by(YEAR, ORISPL) %>% 
+  group_by(Year, ORISPL) %>% 
   mutate(SECFUEL = paste(resource_mix_fuel, collapse = ", ")) %>% 
   ungroup() %>% 
-  select(YEAR, ORISPL, SECFUEL) %>% 
+  select(Year, ORISPL, SECFUEL) %>% 
   distinct()
 
 egrid_plant_2 <- # merge secondary fuel into plant file
   egrid_plant %>% 
-  left_join(secondary_fuel, by = c("YEAR", "ORISPL")) %>% 
+  left_join(secondary_fuel, by = c("Year", "ORISPL")) %>% 
   rename("PLPRMFL_OLD" = PLPRMFL, # rename primary fuel columns
          "PLPRMFL" = PLPRMFL2) %>% 
   # re-order new columns to location in 2023 data
   relocate(SECFUEL, .after = "FUEL") %>% 
   relocate(PLPRMFL, .after = "PLPRMFL_OLD") 
+
 ### State file --------------------
 
 egrid_state <- 
@@ -311,7 +313,8 @@ egrid_state <-
                             .fns = ~ .x * 100)),
             egrid_2023_state %>% 
               mutate(across(.cols = any_of(paste0("ST", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)))
+                            .fns = ~ .x * 100))) %>% 
+  rename("Year" = YEAR)
 
 ### Balancing authority file --------------------
 
@@ -334,57 +337,60 @@ egrid_ba <-
                             .fns = ~ .x * 100)),
             egrid_2023_ba %>% 
               mutate(across(.cols = any_of(paste0("BA", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)))
+                            .fns = ~ .x * 100))) %>% 
+  rename("Year" = YEAR)
 
 ### Subregion file ----------------------------
 
 egrid_subregion <- 
   bind_rows(egrid_2018_subregion %>% 
-              mutate(across(.cols = any_of(paste0("SRL", names(resource_mix_cols))), 
+              mutate(across(.cols = any_of(paste0("SR", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)) %>% 
               rename("SRNAMEPCAP" = NAMEPCAP), 
             egrid_2019_subregion %>% 
-              mutate(across(.cols = any_of(paste0("SRL", names(resource_mix_cols))), 
+              mutate(across(.cols = any_of(paste0("SR", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)), 
             egrid_2020_subregion %>% 
-              mutate(across(.cols = any_of(paste0("SRL", names(resource_mix_cols))), 
+              mutate(across(.cols = any_of(paste0("SR", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)),
             egrid_2021_subregion %>% 
-              mutate(across(.cols = any_of(paste0("SRL", names(resource_mix_cols))), 
+              mutate(across(.cols = any_of(paste0("SR", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)),
             egrid_2022_subregion %>% 
-              mutate(across(.cols = any_of(paste0("SRL", names(resource_mix_cols))), 
+              mutate(across(.cols = any_of(paste0("SR", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)),
             egrid_2023_subregion %>% 
-              mutate(across(.cols = any_of(paste0("SRL", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)))
+              mutate(across(.cols = any_of(paste0("SR", names(resource_mix_cols))), 
+                            .fns = ~ .x * 100))) %>% 
+  rename("Year" = YEAR)
 
 ### NERC file -------------------------------
 
 egrid_nerc <- 
   bind_rows(egrid_2018_nerc %>% 
-              mutate(across(.cols = any_of(paste0("NRL", names(resource_mix_cols))), 
+              mutate(across(.cols = any_of(paste0("NR", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)) %>% 
               rename("NRNAMEPCAP" = NAMEPCAP), 
             egrid_2019_nerc %>% 
-              mutate(across(.cols = any_of(paste0("NRL", names(resource_mix_cols))), 
+              mutate(across(.cols = any_of(paste0("NR", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)) %>% 
               rename("NRGENASO" = NRGENAOP,
                      "NRGENAOP" = SumOfPLGENAOP), 
             egrid_2020_nerc %>% 
-              mutate(across(.cols = any_of(paste0("NRL", names(resource_mix_cols))), 
+              mutate(across(.cols = any_of(paste0("NR", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)) %>% 
               rename("NRGENASO" = NRGENAOP, 
                      "NRGENAOP" = SumOfPLGENAOP),
             egrid_2021_nerc %>% 
-              mutate(across(.cols = any_of(paste0("NRL", names(resource_mix_cols))), 
+              mutate(across(.cols = any_of(paste0("NR", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)),
             egrid_2022_nerc %>% 
-              mutate(across(.cols = any_of(paste0("NRL", names(resource_mix_cols))), 
+              mutate(across(.cols = any_of(paste0("NR", names(resource_mix_cols))), 
                             .fns = ~ .x * 100)),
             egrid_2023_nerc %>% 
-              mutate(across(.cols = any_of(paste0("NRL", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)))
+              mutate(across(.cols = any_of(paste0("NR", names(resource_mix_cols))), 
+                            .fns = ~ .x * 100))) %>% 
+  rename("Year" = YEAR)
 
 ### US file -------------------------------------
 
@@ -407,7 +413,8 @@ egrid_us <-
                             .fns = ~ .x * 100)),
             egrid_2023_us %>% 
               mutate(across(.cols = any_of(paste0("US", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)))
+                            .fns = ~ .x * 100))) %>% 
+  rename("Year" = YEAR)
 
 
 # Export data  ---------------------------------
