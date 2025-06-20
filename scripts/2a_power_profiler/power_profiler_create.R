@@ -332,7 +332,6 @@ zip_utility_subregion_10 <- #16
 ### Old power profiler updates --------
 
 # override subregion assignments from old power profiler
-# currently 160 differences from manual table
 zip_utility_subregion_11 <- #42 - updated
   zip_utility_subregion_10 %>%
   left_join(power_profiler_old %>%
@@ -341,6 +340,13 @@ zip_utility_subregion_11 <- #42 - updated
   mutate(method = if_else(!is.na(subregion.y), "from old power profiler", method),
          subregion = if_else(!is.na(subregion.x) & !is.na(subregion.y), subregion.y, subregion.x)) %>%
   select(-contains("."))
+
+# currently 160 differences from manual table
+compare_subregion_assignment <-
+  zip_utility_subregion_11 %>%
+  inner_join(zip_utility_subregion_12_old, by = c("zip", "eiaid"), suffix = c("", "_old")) %>%
+  filter(subregion != subregion_old) %>%
+  glimpse()
 
 # Update Predominant Utilities-----
 
@@ -410,8 +416,15 @@ zip_utility_subregion_15 <- #52
   mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
   select(-contains("."))
 
-# results in 184 zipcodes with different predominant utility
 zip_utility_subregion_16 <- zip_utility_subregion_15
+
+# results in 184 zipcodes with different predominant utility
+compare_predominant_utility <-
+  zip_utility_subregion_16 %>%
+  inner_join(zip_utility_subregion_18_old, by = c("zip", "eiaid"), suffix = c("", "_old")) %>%
+  filter(predominant_utility == 1 & predominant_utility_old != 1) %>%
+  select(zip, state, eiaid, subregion, predominant_utility, subregion_old, predominant_utility_old) %>%
+  glimpse()
 
 # Create Subregion Assignments Data -----
 
@@ -442,7 +455,7 @@ zip_primary_subregion_1 <- #57
   select(-contains("."))
 
 ### Old power profiler updates ----
-# 25 differences
+# 25 new differences
 zip_primary_subregion_2 <- #60
   zip_primary_subregion_1 %>%
   left_join(power_profiler_old_primary_subregion, by = "zip") %>%
@@ -490,6 +503,7 @@ zip_secondary_tertiary_subregion <- #63
   # identify tertiary subregions if original subregion doesn't match assigned secondary
   mutate(tertiary = if_else(subregion == subregion_2, 0, 1)) %>%
   select(zip, subregion, tertiary) %>%
+  filter(!is.na(tertiary)) %>%
   # create column for each subregion type (primary, secondary, tertiary)
   pivot_wider(
     names_from = tertiary,
@@ -501,6 +515,31 @@ zip_secondary_tertiary_subregion <- #63
 zip_subregion_assignments <- #64
   zip_primary_subregion_2 %>%
   left_join(zip_secondary_tertiary_subregion, by = "zip")
+
+compare_primary_subregion <-
+  zip_subregion_assignments %>%
+  mutate(across(contains("subregion"), 
+                ~ replace_na(as.character(.), "missing"))) %>%
+  inner_join(zip_subregion_assignments_old %>%
+               mutate(across(all_of(columns_to_compare), ~ replace_na(as.character(.), "missing"))), 
+             by = "zip", 
+             suffix = c("", "_old")) %>%
+  mutate(across(contains("subregion") & !contains("old"),
+         ~ . != get(paste0(cur_column(), "_old")),
+         .names = "{.col}_diff")) %>%
+  filter(if_any(ends_with("_diff"), ~ .)) %>%
+  select(zip, subregion, subregion_2, subregion_old, subregion_2_old) %>%
+  filter(subregion != subregion_old & 
+           subregion != subregion_2_old |
+           subregion_2 != subregion_2_old &
+           subregion_2 != subregion_old) %>%
+  mutate(across(everything(), ~ na_if(., "missing"))) %>%
+  glimpse()
+
+# the differences here are due to the subregion differences
+compare_comparisons <-
+  inner_join(compare_subregion_assignment, compare_primary_subregion, by = "zip") %>%
+  glimpse()
 
 # Create Website Data - assign predominant utilities ------
 
