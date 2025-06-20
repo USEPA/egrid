@@ -63,7 +63,6 @@ power_profiler_old <-
   read_csv(glue::glue("data/2a_power_profiler/inputs/{params$eGRID_year}/power_profiler_old.csv"),
            col_types = "cccccc") %>%
   janitor::clean_names() %>%
-  mutate(predominant_utility = as.factor(predominant_utility)) %>%
   rename(utility_name = util_name,
          eiaid = trim_util_code, 
          subregion = subrgn)
@@ -129,8 +128,8 @@ zip_utility_subregion_1 <- #02
   utility_zipcodes %>%
   select(zip, state, eiaid, utility_name) %>%
   mutate(subregion = NA_character_, 
-         predominant_utility = factor("0", levels = c("0", "1")), 
-         old_zip_code = factor("no", levels = c("no", "yes")), 
+         predominant_utility = "0", 
+         old_zip_code = "no", 
          method = NA_character_) %>% distinct()
 
 ### Add zipcodes from old power profiler  -------
@@ -139,8 +138,7 @@ zip_utility_subregion_1 <- #02
 zip_codes_from_old_power_profiler_to_add <- #01
   power_profiler_old %>%
   anti_join(utility_zipcodes, by = "zip") %>%
-  mutate(predominant_utility = factor(predominant_utility),
-         old_zip_code = factor("yes", levels = c("no", "yes")), 
+  mutate(old_zip_code = "yes", 
          method = "old power profiler")
 
 # append zipcodes from previous power profiler to add
@@ -150,15 +148,14 @@ zip_utility_subregion_2 <- #03
   mutate(subregion = NA_character_)
 
 # Assign subregions to utility using a sequence of methods -------
-# Subregions are assigned by grouping data by desired variable and identifying utilities with a singular subregion in the following sequence:
-  # Grouped By:
-    # 1) NERC Region
-    # 2) Balancing Authority Code
-    # 3) Plant Transmission ID
-    # 4) Plant Utility ID
-    # 5) NERC Region, BA Code, and Transmission ID
-    # 6) Missing Utility ID Crosswalk
-
+#' Subregions are assigned by grouping data by desired variable and identifying utilities with a singular subregion in the following sequence:
+#'  Grouped By:
+#'    1) NERC Region
+#'    2) Balancing Authority Code
+#'    3) Plant Transmission ID
+#'    4) Plant Utility ID
+#'    5) NERC Region, BA Code, and Transmission ID
+#'    6) Missing Utility ID Crosswalk
 
 ### NERC Region assignments --------
 
@@ -355,10 +352,10 @@ zip_utility_subregion_12 <- #46/47
   select(zip, eiaid) %>% distinct() %>%
   group_by(zip) %>%
   filter(n_distinct(eiaid) == 1) %>%
-  mutate(predominant_utility = as.factor(1)) %>%
+  mutate(predominant_utility = "1") %>%
   ungroup()
 
-# assign zipcodes to be predominant utility
+# assign zipcodes with one utility to predominant utility
 zip_utility_subregion_13 <- #48
   zip_utility_subregion_11 %>%
   left_join(zip_utility_subregion_12, by = c("zip", "eiaid")) %>%
@@ -372,7 +369,7 @@ no_predominant_utility <- #49
   zip_utility_subregion_13 %>%
   group_by(zip) %>%
   # select zipcodes without predominant utility assignment
-  filter(!any(predominant_utility != 0)) %>%
+  filter(!any(predominant_utility != "0")) %>%
   select(zip) %>% distinct() %>%
   ungroup() %>%
   # gather old power profiler assignment
@@ -384,7 +381,7 @@ zip_utility_subregion_14 <- #50
   zip_utility_subregion_13 %>%
   left_join(no_predominant_utility, by = c("zip", "eiaid")) %>%
   mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
-  select(-contains("."))
+  select(-contains(".")) 
 
 ### Update as first EIAID from old power profiler ------
 
@@ -392,7 +389,7 @@ zip_utility_subregion_14 <- #50
 no_predominant_utility_2 <- #49
   zip_utility_subregion_14 %>%
   group_by(zip) %>%
-  filter(!any(predominant_utility != 0)) %>%
+  filter(!any(predominant_utility != "0")) %>%
   select(zip) %>% distinct() %>%
   arrange(as.numeric(zip)) %>%
   ungroup()
@@ -404,7 +401,7 @@ zips_to_update_first_eiaid <- #51
   inner_join(no_predominant_utility_2, by = "zip") %>%
   group_by(zip) %>%
   summarize(first_of_eia = first(eiaid)) %>%
-  mutate(predominant_utility = as.factor("1"))
+  mutate(predominant_utility = "1")
 
 # Update zipcode dataset
 zip_utility_subregion_15 <- #52
@@ -413,25 +410,17 @@ zip_utility_subregion_15 <- #52
   mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
   select(-contains("."))
 
-### Old power profiler updates------
-# override predominant utility assignment for zipcodes in old power profiler
-# 401 differences from manual table
-zip_utility_subregion_16 <- #58,59 - updated
-  zip_utility_subregion_15 %>%
-  left_join(power_profiler_old %>%
-              select(zip, eiaid, predominant_utility),
-            by = c("zip", "eiaid")) %>%
-  mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
-  select(-contains("."))
+# results in 184 zipcodes with different predominant utility
+zip_utility_subregion_16 <- zip_utility_subregion_15
 
 # Create Subregion Assignments Data -----
 
 ### Primary subregion for zips assigned as predominant utility -----
 subregions_primary <- #53
   zip_utility_subregion_16 %>%
-  filter(predominant_utility == 1) %>%
+  filter(predominant_utility == "1") %>%
   select(zip, state, subregion) %>% distinct() %>%
-  mutate(secondary = as.factor("0"))
+  mutate(secondary = "0")
 
 ### Zips with multiple subregion assignments -----
 
@@ -443,7 +432,7 @@ subregions_secondary <- #55/56
   filter(n_distinct(subregion) > 1) %>%
   ungroup() %>%
   select(zip) %>% distinct() %>%
-  mutate(secondary = as.factor("1"))
+  mutate(secondary = "1")
 
 # update primary subregion table
 zip_primary_subregion_1 <- #57
@@ -454,7 +443,7 @@ zip_primary_subregion_1 <- #57
 
 ### Old power profiler updates ----
 # 25 differences
-zip_primary_subregion_2_new <- #60
+zip_primary_subregion_2 <- #60
   zip_primary_subregion_1 %>%
   left_join(power_profiler_old_primary_subregion, by = "zip") %>%
   mutate(subregion = if_else(!is.na(subregion_1), subregion_1, subregion)) %>%
@@ -468,14 +457,13 @@ subregions_to_update_from_old_pp <- #71/72/73/74/75
   select(zip, subregion) %>% distinct() %>%
   inner_join(power_profiler_old, by = "zip") %>%
   group_by(zip) %>%
-  filter(n_distinct(subrgn) == 1) %>% distinct() %>%
-  select(zip, subrgn) %>% distinct()
+  filter(n_distinct(subregion.y) == 1) %>% distinct() %>%
+  select(zip, subregion = subregion.y) %>% distinct()
 
 # update zipsubregion
 zip_utility_subregion_17 <- #76
   zip_utility_subregion_16 %>%
-  left_join(subregions_to_update_from_old_pp %>%
-              rename(subregion = subrgn), 
+  left_join(subregions_to_update_from_old_pp, 
             by = "zip") %>%
   mutate(subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
   select(-contains("."))
@@ -523,7 +511,7 @@ zip_website_1 <- #65
   zip_utility_subregion_16 %>%
   # account for capitalization and dashes when alphabetizing
   mutate(utility_name_clean = tolower(str_replace_all(utility_name, "-", "")),
-         predominant_utility = as.factor(0)) %>%
+         predominant_utility = "0") %>%
   arrange(zip, utility_name_clean) %>%
   select(zip, state, utility_name, trim_util_code = eiaid, subregion,  predominant_utility)
 
@@ -533,7 +521,7 @@ first_of_utility_name <- #66
   group_by(zip, state) %>%
   summarize(first_of_utility_name = first(utility_name)) %>%
   filter(!is.na(first_of_utility_name)) %>%
-  mutate(predominant_utility = as.factor(1)) %>%
+  mutate(predominant_utility = "1") %>%
   ungroup()
 
 # update predominant utility in zipcodes for website
@@ -557,7 +545,7 @@ zip_website_3 <- #67b
 # Format final data  -----
 # all utility zipcodes and subregions
 zip_utility_subregion_final <-
-  zip_utility_subregion_19 %>%
+  zip_utility_subregion_17 %>%
   select(zip, state, eiaid, utility_name, subregion, predominant_utility) %>%
   arrange(as.numeric(zip), as.numeric(eiaid))
 
