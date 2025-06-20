@@ -110,20 +110,18 @@ zip_utility_comparison <-
 check_zip_utility_records_missing_from_r <- #61
   access_zip_utility %>%
   anti_join(r_zip_utility, by = c("zip_access" = "zip_r", 
-                                  "eiaid_access" = "eiaid_r",
-                                  "subregion_access" = "subregion_r")) %>%
+                                  "eiaid_access" = "eiaid_r")) %>%
   filter(!is.na(eiaid_access)) %>%
-  glimpse()
+  print()
 save_diffs(check_zip_utility_records_missing_from_r)
 
 # Records in R not in Access
 check_zip_utility_records_missing_from_access <-
   r_zip_utility %>%
   anti_join(access_zip_utility, by = c("zip_r" = "zip_access", 
-                                       "eiaid_r" = "eiaid_access",
-                                       "subregion_r" = "subregion_access")) %>%
+                                       "eiaid_r" = "eiaid_access")) %>%
   filter(!is.na(eiaid_r)) %>%
-  glimpse()
+  print()
 save_diffs(check_zip_utility_records_missing_from_access)
 
 ### Utility states -----
@@ -131,7 +129,7 @@ check_zip_utility_state <-
   zip_utility_comparison %>%
   filter(state_r != state_access) %>%
   select(eiaid_r, state_r, state_access) %>% distinct() %>%
-  glimpse()
+  print()
 save_diffs(check_zip_utility_state)
 
 ### Utility name ------
@@ -139,24 +137,35 @@ check_zip_utility_utility_name <-
   zip_utility_comparison %>%
   filter(utility_name_r != utility_name_access) %>%
   select(eiaid_r, utility_name_r, utility_name_access) %>% distinct() %>%
-  glimpse()
+  print()
 save_diffs(check_zip_utility_utility_name)
 
 ### Utility subregion ------
 check_zip_utility_subregion <-
   zip_utility_comparison %>%
   filter(subregion_r != subregion_access) %>%
-  select(eiaid_r, subregion_r, subregion_access) %>% distinct() %>%
-  glimpse()
+  # select(zip_r, subregion_r, subregion_access) %>%
+  select(eiaid_r, zip_r, subregion_r, subregion_access) %>% #distinct() %>%
+  print()
 save_diffs(check_zip_utility_subregion)
 
 ### Utility predominant utility assignment -----
 check_zip_utility_predominant_utility <-
   zip_utility_comparison %>%
   filter(predominant_utility_r != predominant_utility_access) %>%
-  select(eiaid_r, subregion_r, subregion_access) %>% distinct() %>%
-  glimpse()
+  select(zip_r, predominant_utility_r, predominant_utility_access) %>%
+  print()
 save_diffs(check_zip_utility_predominant_utility)
+
+  
+check_zip_utility_predominant_utility_sum <- 
+  check_zip_utility_predominant_utility %>%
+  group_by(zip_r) %>%
+  summarize(sum_r = sum(as.numeric(as.character(predominant_utility_r))), sum_access = (as.numeric(as.character(predominant_utility_access)))) %>%
+  filter(sum_r != 1) %>%
+  print()
+save_diffs(check_zip_utility_predominant_utility_sum)
+  
 
 ### Identify all unique plant IDs that have differences ------------
 
@@ -203,9 +212,9 @@ access_subregion_assign <- read_excel(glue::glue("data/2a_power_profiler/static_
                               col_types = c("text", "text", "text", "text", "text", "text")) %>%
   janitor::clean_names() %>%
   rename(zip = zip_character,
-         subregion = e_grid_subregion_number_1,
-         subregion_secondary = e_grid_subregion_number_2,
-         subregion_tertiary = e_grid_subregion_number_3) %>%
+         subregion_1 = e_grid_subregion_number_1,
+         subregion_2 = e_grid_subregion_number_2,
+         subregion_3 = e_grid_subregion_number_3) %>%
   glimpse()
 
 # add "_access" after each variable to easily identify dataset 
@@ -224,8 +233,8 @@ colnames(r_subregion_assign) <- paste0(colnames(r_subregion_assign), "_r")
 ## Combine two datasets for comparison -----
 subregion_assign_comparison <-
   r_subregion_assign %>%
-  full_join(access_subregion_assign, by = c("zip_r" = "zip_access", "subregion_r" = "subregion_access")) %>%
-  glimpse()
+  full_join(access_subregion_assign, by = c("zip_r" = "zip_access", "subregion_1_r" = "subregion_1_access")) %>%
+  print()
 
 ## Difference checks ------
 ### Plant presence ------
@@ -235,7 +244,7 @@ check_subregion_assign_records_missing_from_r <-
   access_subregion_assign %>%
   anti_join(r_subregion_assign, by = c("zip_access" = "zip_r")) %>%
   filter(!is.na(zip_access)) %>%
-  glimpse()
+  print()
 save_diffs(check_subregion_assign_records_missing_from_r)
 
 # Records in R not in Access
@@ -243,7 +252,7 @@ check_subregion_assign_records_missing_from_access <-
   r_subregion_assign %>%
   anti_join(access_subregion_assign, by = c("zip_r" = "zip_access")) %>%
   filter(!is.na(zip_r)) %>%
-  glimpse()
+  print()
 save_diffs(check_subregion_assign_records_missing_from_access)
 
 ### Subregion states -----
@@ -257,16 +266,16 @@ save_diffs(check_subregion_assign_state)
 ### Subregion secondary assignment -----
 check_subregion_assign_secondary_subregion <-
   subregion_assign_comparison %>%
-  filter(subregion_secondary_r != subregion_secondary_access) %>%
-  select(zip_r, subregion_secondary_r, subregion_secondary_access) %>%
+  filter(subregion_2_r != subregion_2_access) %>%
+  select(zip_r, subregion_2_r, subregion_2_access) %>%
   print()
 save_diffs(check_subregion_assign_secondary_subregion)
 
 ### Subregion tertiary assignment -----
 check_subregion_assign_tertiary_subregion <-
   subregion_assign_comparison %>%
-  filter(subregion_tertiary_r != subregion_tertiary_access) %>%
-  select(zip_r, subregion_tertiary_r, subregion_tertiary_access) %>%
+  filter(subregion_3_r != subregion_3_access) %>%
+  select(zip_r, subregion_3_r, subregion_3_access) %>%
   print()
 save_diffs(check_subregion_assign_tertiary_subregion)
 
