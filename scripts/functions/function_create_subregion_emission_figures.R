@@ -1,6 +1,6 @@
 ## -------------------------------
 ## 
-## Create subregion emissions figures
+## Create subregion emissions figures function
 ##
 ## Purpose: 
 ## 
@@ -25,13 +25,13 @@ create_subregion_emission_figures <- function(emission_type,
   
   #' create_subregion_emission_figures
   #' 
-  #' Function to plot pm2.5, nh3, or voc subregion annual generation, emissions, 
+  #' Function to plot PM2.5, NH3, or VOC subregion annual generation, emissions, 
   #' and output rates data
   #' 
   #' @param emission_type Emission type to produce plots for - either
   #'                      "pm25", "nh3", or "voc"
   #' @param skip_if_exists If TRUE, checks the presence of figures and skips
-  #'                       plotting and saving is figure already exists.
+  #'                       plot production if figure already exists.
   #'                       If FALSE, all plots will be reproduced and resaved
   #' 
   #' @return Saved figures of subregion annual generation, emissions, and output rates 
@@ -39,17 +39,18 @@ create_subregion_emission_figures <- function(emission_type,
   #' "data/2b_pm_nh3_voc/static_tables/formatting/"
   #'         
   #' @examples 
-  #' # Create PM2.5 plots
-  #' pm25_annual_generation <- plot_subregion_emissions(emission_type = "pm25")
-  
-  # Require Libraries ---------
+  #' # Create PM2.5 plots and override previously-saved plots
+  #' pm25_annual_generation <- create_subregion_emission_figures(emission_type = "pm25",
+  #'                                                             skip_if_exists = FALSE)
+                                                            
+  # Require libraries ---------
   require(ggbreak)
   require(ggplot2)
   require(readr)
   require(readxl)
   require(scales)
   
-  # Create Nested Functions ------
+  # Create nested functions ------
   
   ## Plotting function -----
   plot_subregion_emissions <- function(ydata,
@@ -62,8 +63,18 @@ create_subregion_emission_figures <- function(emission_type,
                                        yaxis_max) {
     
     # Split axis for VOC emissions data
-    if (ydata == "voc_ann") {
+    if (ydata %in% c("voc_ann", "voc_output_rate")) {
       
+      # define split axis parameters
+      scale_params <- list(
+       break_min = c(voc_ann = 1.3e4, voc_output_rate = 0.2),
+        break_max = c(voc_ann = 3.4e4, voc_output_rate = 0.6),
+        proportion = c(voc_ann = 0.2, voc_output_rate = 0.3),
+        annot_min = c(voc_ann = 1e4, voc_output_rate = 0.61),
+        annot_max = c(voc_ann = 1.3e4, voc_output_rate = 0.68),
+        annot_text = c(voc_ann = 1.15e4, voc_output_rate = 0.645)
+        )
+        
       # Plot VOC emissions data
       plot <- ggplot(subregion_file, aes(x = subregion, y = get(ydata))) +
         geom_col(fill = fill_color, 
@@ -71,22 +82,22 @@ create_subregion_emission_figures <- function(emission_type,
                  width = 0.35, 
                  linewidth = 0.23) +
         scale_y_continuous(limits = c(0, yaxis_max), breaks = seq(ylabel_min, ylabel_max, ylabel_int),  labels = label_comma()) + 
-          scale_y_break(c(1.3e4, 3.4e4), scales = 0.2) +
+          scale_y_break(c(scale_params$break_min[ydata], scale_params$break_max[ydata]), scales = scale_params$proportion[ydata]) +
           labs(x = "", 
                y = ylabel,
                title = year) +
           annotate("rect",
                    xmin = 21.35,
                    xmax = 27.1,
-                   ymin = 1e4,
-                   ymax = 1.3e4,
+                   ymin = scale_params$annot_min[ydata],
+                   ymax = scale_params$annot_max[ydata],
                    alpha = 1,
                    fill = "#E7E6E6",
                    color = "black",
                    linewidth = 0.23) +
           annotate("text",
                    x = 24.225,
-                   y = 1.15e4,
+                   y = scale_params$annot_text[ydata],
                    label = annotate_label,
                    size = 3,
                    fontface = "bold") +
@@ -162,19 +173,19 @@ create_subregion_emission_figures <- function(emission_type,
     label = c(pm25 = "PM", nh3 = "NH", voc = "VOC"),
     subscript = c(pm25 = 2.5, nh3 = 3, voc = ""),
     ylabel_int_emissions = c(pm25 = 1e4, nh3 = 1e3, voc = 2e3),
-    ylabel_max_emissions = c(pm25 = 7.5e4, nh3 = 7e3, voc = 3.4e4),
-    yaxis_max_emissions = c(pm25 = 8e4, nh3 = 7.5e3, voc = 3.5e4),
-    ylabel_int_rate = c(pm25 = 0.1, nh3 = 0.05, voc = 0.1),
-    ylabel_max_rate = c(pm25 = 1.0, nh3 = 0.35, voc = 0.7),
-    yaxis_max_rate = c(pm25 = 1.05, nh3 = 0.4, voc = 0.7265)
+    ylabel_max_emissions = c(pm25 = 7.5e4, nh3 = 6e3, voc = 3.4e4),
+    yaxis_max_emissions = c(pm25 = 8e4, nh3 = 6e3, voc = 3.5e4),
+    ylabel_int_rate = c(pm25 = 0.1, nh3 = 0.02, voc = 0.05),
+    ylabel_max_rate = c(pm25 = 1.0, nh3 = 0.18, voc = 0.65),
+    yaxis_max_rate = c(pm25 = 1.05, nh3 = 0.2, voc = 0.68)
   )
 
   # Define Data Years to Produce Plots -----
   
-  # Convert eGRID year to numeric
+  # convert eGRID year to numeric
   year_numeric <- as.numeric(params$eGRID_year)
   
-  # Create list of data years (2018 - eGRID_year)
+  # create list of data years (2018 - eGRID_year)
   years <- seq(year_numeric, 2018, -1)
 
   # Loop Through Data Years and Produce Plots -----
@@ -197,30 +208,29 @@ create_subregion_emission_figures <- function(emission_type,
       }
     }
     
+    # produce plots if skip_if_exists == FALSE or files don't already exist
     if (test_missing > 0 | skip_if_exists == FALSE) {
       print(glue::glue("Producing Plots for {toupper(emission_type)} {year}"))
       
       ## Load Subregion Data -----
       # collect subregion data from excel sheet for previous years
       if(year < params$eGRID_year) {
-        # import excel subregion data
         emission_prev <- read_xlsx(glue::glue("data/2b_pm_nh3_voc/outputs/{year_numeric - 1}/eGRID{year_numeric - 1}_{emission_abbrev}emissions.xlsx"),
                                    skip = 1,
                                    sheet = glue::glue("{year} {toupper(emission_abbrev)} Subregion-level Data")) %>%
           # remove U.S. row if present
           filter(SUBRGN != "U.S.")
         
-        # Define new data column names
+        # define new data column names
         load("data/1_production_model/static_tables/name_matches.Rdata")
         colnames_new <- setNames(c(paste0(emission_type, "_ann"),
                                    paste0(emission_type, "_output_rate")),
                                  c(paste0("SR", toupper(emission_type), "AN"), 
                                    paste0("SR", toupper(emission_type), "RTA")))
         
+        # reassign column names
         colnames <- c(subregion_nonmetric[names(subregion_nonmetric) %in% colnames(emission_prev)],
                       colnames_new[names(colnames_new) %in% colnames(emission_prev)])
-        
-        # Rename data columns
         subregion_file <-
           emission_prev %>%
           rename(!!!setNames(lapply(names(colnames), sym), colnames))

@@ -4,7 +4,13 @@
 ## 
 ## Purpose: 
 ## 
-## This file pulls data from .RDS files to create final version of saved data in excel sheet
+## This file pulls data from .RDS files to create final version of saved data in excel sheet for PM2.5, NH3, and VOC emisisons data
+##
+## The resulting output are the following files saved in:
+##  data/2b_pm_nh3_voc/outputs/{params$eGRID_year}
+##    "eGRID{params$eGRID_year}_pmemissions.xlsx"
+##    "eGRID{params$eGRID_year}_nh3emissions.xlsx"
+##    "eGRID{params$eGRID_year}_vocemissions.xlsx"
 ##
 ## Authors:  
 ##      Emma Russell, Abt Global
@@ -79,8 +85,9 @@ level_abbrev <- c("unit" = "",
                   "state" = "ST",
                   "subregion" = "SR")
 
-# Loop Through Emission Types -----
+# Loop through emission types -----
 for (emission_type in c("pm25", "nh3", "voc")) {
+    # assign emission type formatting for headers
   if(emission_type == "pm25") {
     emission_abbrev <- "pm"
     emission_header <- "PM2.5"
@@ -162,7 +169,7 @@ for (emission_type in c("pm25", "nh3", "voc")) {
     
     ## Gather header names from function -----
     source("scripts/functions/function_format_headers_pm_nh3_voc.R")
-    headers <- function_format_headers_pm_nh3_voc(emission_level)
+    headers <- format_headers_pm_nh3_voc(emission_level)
     names(headers) <- colnames(emission_data_formatted)
     headers_to_write <- matrix(unname(headers), ncol = length(headers))
   
@@ -213,7 +220,7 @@ for (emission_type in c("pm25", "nh3", "voc")) {
     addStyle(wb, current_worksheet, createStyle(fgFill = "#C4D79B"), rows = 1:2, 
              cols = input_rate_cols, stack = TRUE, gridExpand = TRUE)
     
-    ### Cell Sizes ------
+    ### Cell sizes ------
     setRowHeights(wb, current_worksheet, rows = 1, heights = 54)
     setRowHeights(wb, current_worksheet, rows = 2:sheetLength, heights = 13.5)
     setColWidths(wb, current_worksheet, cols = c(1:sheetWidth), widths = 13.5)
@@ -221,7 +228,7 @@ for (emission_type in c("pm25", "nh3", "voc")) {
     setColWidths(wb, current_worksheet, cols = which(grepl("^SRNAME$", colnames(emission_data_formatted))), widths = 24)
     setColWidths(wb, current_worksheet, cols = which(grepl("SRC$", colnames(emission_data_formatted))), widths = 30)
     
-    ### Freeze Pane -----
+    ### Freeze pane -----
     if(emission_level == "unit") {
       freezePane(wb, current_worksheet, firstActiveCol = 6, firstActiveRow = 3)
     } else if(emission_level == "plant") {
@@ -230,12 +237,12 @@ for (emission_type in c("pm25", "nh3", "voc")) {
       freezePane(wb, current_worksheet, firstActiveRow = 3)
     }
     
-    ### US Data Row -----
+    ### US data row -----
     if(emission_level == "subregion") {
       addStyle(wb, current_worksheet, us_row, rows = sheetLength, cols = 1:sheetWidth)
     }
   
-    ### Number Formats -----
+    ### Number formats -----
     
     # generation annual, heat annual, operating hours, unadjusted heat input, state annual emissions, subregion annual emissions
     addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0"), rows = 3:sheetLength,
@@ -255,7 +262,7 @@ for (emission_type in c("pm25", "nh3", "voc")) {
              stack = TRUE, gridExpand = TRUE)
   }
   
-  # Add Subregion Emissions Graphs  -----
+  # Add subregion emissions graphs  -----
   
   # reset graphs worksheet by removing and adding new sheet
   removeWorksheet(wb, "Graphs")
@@ -296,13 +303,13 @@ for (emission_type in c("pm25", "nh3", "voc")) {
   # set row heights
   setRowHeights(wb, "Graphs", rows = 2:100, heights = 13.5)
   
-  # Add eGRID Subregion Map -----
+  # Add eGRID subregion map -----
   map_row <- graph_row + 1
   map_file <- "data/1_production_model/static_tables/formatting/eGRID_subregions.png"
   insertImage(wb, "Graphs", file = map_file,
               width = 8.5, height = 6.42, startRow = map_row, startCol = 1)
   
-  # Order Worksheets and Save Workbook -----
+  # Order worksheets and save workbook -----
   
   
   # order worksheets - move graphs and EIA crosswalk to the end
