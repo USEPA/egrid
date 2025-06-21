@@ -21,7 +21,7 @@
 ##
 ## -------------------------------
 
-# Load Libraries ---------
+# Load libraries ---------
 library(dplyr)
 library(readr)
 library(readxl)
@@ -62,12 +62,13 @@ format_unit <- function(unit_emissions, emission_type) {
 
 # Produce PM2.5, NH3, and VOC unit data using function ---------
 
-# Emissions are estimated by the following methods and order:
-    # 1) Direct Match - calculate emissions data using direct unit match from EIA to NEI ("NEI/EIA")
-    # 2) Match by fuel type, unit firing type, and prime mover - calculate emissions using matching of fuel type, prime mover, and firing type ("NEI avg EF - PM, fuel type, firing type")
-    # 3) Match by fuel type and prime mover - calculate emissions using matching of prime mover and fuel type ("NEI avg EF - PM, fuel type")
-    # 4) Use emissions factors from AP-42 - calculate pm2.5 emissions based on emission factors in AP-42 report. If there is a unit match with EIA-923, adjust pm2.5 by control efficiency ("Estimated using an emissions factor")
+#' Emissions are estimated by the following methods and order:
+#'  1) Direct Match - calculate emissions data using direct unit match from EIA to NEI ("NEI/EIA")
+#'  2) Match by fuel type, unit firing type, and prime mover - calculate emissions using matching of fuel type, prime mover, and firing type ("NEI avg EF - PM, fuel type, firing type")
+#'  3) Match by fuel type and prime mover - calculate emissions using matching of prime mover and fuel type ("NEI avg EF - PM, fuel type")
+#'  4) Use emissions factors from AP-42 - calculate pm2.5 emissions based on emission factors in AP-42 report. If there is a unit match with EIA-923, adjust pm2.5 by control efficiency ("Estimated using an emissions factor")
 
+# run script to produce unit data
 source("scripts/functions/function_unit_data_pm_nh3_voc.R")
 pm_unit_data <- unit_data_pm_nh3_voc("pm25")
 nh3_unit_data <- unit_data_pm_nh3_voc("nh3")

@@ -15,11 +15,12 @@
 ##
 ## -------------------------------
 
-function_format_headers_pm_nh3_voc <- function(emission_level) {
+format_headers_pm_nh3_voc <- function(emission_level) {
   
   #' format_headers_pm_nh3_voc
   #' 
-  #' Function to create header description data for final formatting script of pm2.5, nh3, or voc emissions
+  #' Function to create header description data for final formatting script of 
+  #' pm2.5, nh3, or voc emissions. Headers are the same across emission types
   #' 
   #' @param emission_level Emission level to produce header data - must be the following:
   #'                       "unit", "plant", "state", "subregion"
@@ -27,7 +28,7 @@ function_format_headers_pm_nh3_voc <- function(emission_level) {
   #' @return Vector of header descriptors
   #'         
   #' @examples 
-  #' # Create PM2.5 unit-level header descriptor data
+  #' # Create unit-level header descriptor data (same for PM2.5, NH3, and VOC)
   #' pm_unit_headers <- format_headers_pm_nh3_voc("unit")
 
   if(emission_level == "unit") {

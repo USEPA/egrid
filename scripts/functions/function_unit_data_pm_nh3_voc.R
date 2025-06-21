@@ -4,10 +4,10 @@
 ## 
 ## Purpose: 
 ## 
-## This function creates the first iteration of the emission unit
-## data for PM2.5, NH3, and VOC that is used to compute plant 
-## aggregated values. The output is not the final version used in 
-## the unit files and are formatted in unit_file_create_pm_nh3_voc.
+## This function creates emission unit data for PM2.5, NH3, and VOC 
+## that is used to compute plant aggregated values. 
+## The output is not the final version used in 
+## the unit files and are formatted in unit_file_create_pm_nh3_voc.R.
 ## 
 ## The method of emission calculations are listed within emission_source.
 ##
@@ -38,14 +38,14 @@ unit_data_pm_nh3_voc <- function(emission_type){
   #' pm_unit_data <- unit_data_pm_nh3_voc("pm25")
   
   
-  # Require Libraries ---------
+  # Require libraries ---------
   require(dplyr)
   require(readr)
   require(readxl)
   
   # Load necessary data --------------------
   
-  ## EIA-923 - for Schedule C Air Emissions Control information (2021 & 2022)
+  # EIA-923 - for Schedule C Air Emissions Control information (2021 & 2022)
   if(params$eGRID_year %in% c("2021", "2022")) {
     if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"))) {
       eia_923 <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), 
@@ -56,34 +56,41 @@ unit_data_pm_nh3_voc <- function(emission_type){
         mutate(across(.cols = where(is.character) & contains("efficiency"), 
                       .fns =  ~ as.numeric(sub("%", "", .)) / 100))
     } else {
-      stop("eia_923_9c_airemissions.csv does not exist.")}
+      stop("eia_923_9c_airemissions.csv does not exist.")
+      }
     
-  ## EIA-923 - for Schedule C Air Emissions Control information (2023+)
+  # EIA-923 - for Schedule C Air Emissions Control information (2023+)
   } else {
     if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) {
       eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))$air_emissions_control_info
     } else {
-      stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}}
+      stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+    }
   
-  ## NEI emission data
+  # NEI emission data
   if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"))) {
-    raw_nei <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"), col_types = "cccccccccccccccccdcc") %>%
+    raw_nei <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"), 
+                        col_types = "cccccccccccccccccdcc") %>%
       janitor::clean_names()
   } else { 
-    stop(glue::glue("nei_{emission_type}_emissions.csv does not exist."))}
+    stop(glue::glue("nei_{emission_type}_emissions.csv does not exist."))
+    }
   
-  ## NEI-EIA crosswalk matching NEI and EIA unit ids
+  # NEI-EIA crosswalk matching NEI and EIA unit ids
   if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv"))) { 
-    nei_eia_xwalk <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv"), col_types = "cccccccccccccccccccc") %>%
+    nei_eia_xwalk <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv"), 
+                              col_types = "cccccccccccccccccccc") %>%
       janitor::clean_names()
   } else { 
-    stop(glue::glue("data/2b_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv does not exist."))}
+    stop(glue::glue("data/2b_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv does not exist."))
+    }
   
-  ## Emission factors from EPA AP-42 dataset
-  efs <- read_csv(glue::glue("data/2b_pm_nh3_voc/static_tables/emission_factors_{emission_type}.csv"), col_types = "cccdccc") %>%
+  # Emission factors from EPA AP-42 dataset
+  efs <- read_csv(glue::glue("data/2b_pm_nh3_voc/static_tables/emission_factors_{emission_type}.csv"), 
+                  col_types = "cccdccc") %>%
     janitor::clean_names()
   
-  ## eGRID production model data - unit file (2021 & 2022)
+  # eGRID production model data - unit file (2021 & 2022)
   if(params$eGRID_year %in% c("2021", "2022")) {
     unit_file_raw <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
                                 sheet = paste0("UNT", substr(params$eGRID_year, 3, 4)),
@@ -96,12 +103,13 @@ unit_data_pm_nh3_voc <- function(emission_type){
     unit_file_raw[unit_file_raw == "NA"] <- NA_character_
     
     # Prepare unit data for evaluation --------------
-    # Load abbreviated name to snake_case matches
+    # load abbreviated name to snake_case matches
     load("data/1_production_model/static_tables/name_matches.Rdata")
-    # Select names present in unit file column names
+    
+    # select names present in unit file column names
     unit_new_names <- unit_nonmetric[names(unit_nonmetric) %in% colnames(unit_file_raw)]
     
-    ## rename data columns to prepare for computation
+    # rename data columns to prepare for computation
     unit_file <- 
       unit_file_raw %>%
       # rename columns based on name matches
@@ -111,9 +119,10 @@ unit_data_pm_nh3_voc <- function(emission_type){
              plant_id = as.character(plant_id),
              year_online = as.character(year_online))
     
-  ## eGRID production model data - unit file (2023+)
+  # eGRID production model data - unit file (2023+)
   } else {
-    unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))}
+    unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
+    }
   
   
   # Calculate PM data -------------
@@ -171,7 +180,8 @@ unit_data_pm_nh3_voc <- function(emission_type){
     # group by prime mover, fuel type
     group_by(prime_mover, primary_fuel_type, emission_source) %>%
     # calculate emissions factor
-    summarise(sum_heat_input = if_else(all(is.na(heat_input)), NA_real_, sum(heat_input, na.rm = TRUE)), sum_emission = if_else(all(is.na(emission)), NA_real_, sum(emission, na.rm = TRUE))) %>%
+    summarise(sum_heat_input = if_else(all(is.na(heat_input)), NA_real_, sum(heat_input, na.rm = TRUE)), 
+              sum_emission = if_else(all(is.na(emission)), NA_real_, sum(emission, na.rm = TRUE))) %>%
     mutate(emission_factors = if_else(sum_heat_input != 0, sum_emission / sum_heat_input, NA_real_)) %>%
     inner_join(unit_emissions, by = join_by(prime_mover, primary_fuel_type)) %>%
     # multiply individual heat inputs by emission factors to estimate emission
@@ -187,7 +197,8 @@ unit_data_pm_nh3_voc <- function(emission_type){
     unit_emissions %>%
     # calculate emissions with emissions factors specific to fuel, firing type, and prime mover
     inner_join(efs, by = join_by(botfirty, primary_fuel_type == fuelu1, prime_mover == prmvr)) %>%
-    mutate(emission = ef * heat_input / 2000, emission_source = "Estimated using an emissions factor") %>% 
+    mutate(emission = ef * heat_input / 2000, 
+           emission_source = "Estimated using an emissions factor") %>% 
     filter(!is.na(emission)) %>%
     rename(emission_ef = emission, emission_source_ef = emission_source) %>%
     select(plant_id, unit_id, prime_mover, emission_ef, emission_source_ef)
@@ -205,21 +216,22 @@ unit_data_pm_nh3_voc <- function(emission_type){
       filter(eia_control_efficiency <= 1) %>%
       inner_join(emissions_factors, by = join_by(plant_id == plant_id)) %>%
       # adjust emission using control efficiency rate
-      mutate(emission = emission_ef * (1 - eia_control_efficiency), emission_source = "Estimated using an emissions factor") %>%
+      mutate(emission = emission_ef * (1 - eia_control_efficiency), 
+             emission_source = "Estimated using an emissions factor") %>%
       rename(emission_re = emission, emission_source_re = emission_source) %>%
       select(plant_id, unit_id, prime_mover, emission_re, emission_source_re)
     
     
     # Add emission estimates to unit data -------------
     # update unit file with emission rates from each method - order specific
-    
     # includes removal efficiencies for PM2.5
     unit_emissions_updated <-
       unit_emissions %>%
       rows_patch(fuel_pmover_firing, by = c("unit_id", "plant_id")) %>%
       rows_patch(fuel_pmover, by = c("unit_id", "plant_id")) %>%
       left_join(removal_efficiencies, by = join_by(unit_id, plant_id, prime_mover)) %>%
-      mutate(emission = if_else(is.na(emission_source), emission_re, emission), emission_source = if_else(is.na(emission_source), emission_source_re, emission_source)) %>%
+      mutate(emission = if_else(is.na(emission_source), emission_re, emission),
+             emission_source = if_else(is.na(emission_source), emission_source_re, emission_source)) %>%
       select(-emission_re, -emission_source_re)
     
   } else {
@@ -234,7 +246,8 @@ unit_data_pm_nh3_voc <- function(emission_type){
   unit_emissions_final <-
     unit_emissions_updated %>%
     left_join(emissions_factors, by = join_by(unit_id, plant_id, prime_mover)) %>%
-    mutate(emission = if_else(is.na(emission_source), emission_ef, emission), emission_source = if_else(is.na(emission_source), emission_source_ef, emission_source)) %>%
+    mutate(emission = if_else(is.na(emission_source), emission_ef, emission),
+           emission_source = if_else(is.na(emission_source), emission_source_ef, emission_source)) %>%
     select(-emission_ef, -emission_source_ef)
   
   return(unit_emissions_final)

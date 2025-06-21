@@ -21,7 +21,7 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
   
   #' region_aggregation_pm_nh3_voc
   #' 
-  #' Function to create pm2.5, nh3, or voc state, subregion, and US aggregated
+  #' Function to create PM2.5, NH3, or VOC state, subregion, and US aggregated
   #' data from the plant data
   #' 
   #' @param emission_type Emission type to be calculated - either
@@ -42,7 +42,8 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
   if(file.exists(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/plant_file_{emission_type}.RDS"))) {
     plant_file <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/plant_file_{emission_type}.RDS"))
   } else {
-    stop("plant_file_{emission_type}.RDS does not exist. Run plant_file_create_ pm_nh3_voc.R to obtain.")}
+    stop("plant_file_{emission_type}.RDS does not exist. Run plant_file_create_ pm_nh3_voc.R to obtain.")
+    }
   
   # Run plant data creation script ---------
   source("scripts/functions/function_plant_data_pm_nh3_voc.R")

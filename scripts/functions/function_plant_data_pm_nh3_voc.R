@@ -4,10 +4,10 @@
 ##
 ## Purpose: 
 ## 
-## This function creates the first iteration of the emission plant
-## data for PM2.5, NH3, and VOC that are used to compute regional 
-## aggregated values. The output is not the final version used in 
-## the plant files and are formatted in plant_file_create_pm_nh3_voc.
+## This function creates emission plant data for PM2.5, NH3, and VOC 
+## that are used to compute regional aggregated values. 
+## The output is not the final version used in  the plant files 
+## and are formatted in plant_file_create_pm_nh3_voc.
 ## 
 ## The method of emission calculations are listed within emission_source
 ##
@@ -34,10 +34,10 @@ plant_data_pm_nh3_voc <- function(emission_type){
   #'         
   #' @examples 
   #' # Create PM2.5 plant data
-  #' pm_plant_data <- plant_data_pm_nh3_voc()
+  #' pm_plant_data <- plant_data_pm_nh3_voc("pm25")
   
   
-  # Require Libraries ---------
+  # Require libraries ---------
   require(dplyr)
   require(readr)
   require(readxl)
@@ -55,10 +55,11 @@ plant_data_pm_nh3_voc <- function(emission_type){
     # Prepare plant data for evaluation --------------
     # Load abbreviated name to snake_case matches
     load("data/1_production_model/static_tables/name_matches.Rdata")
+    
     # Select names present in unit file column names
     plant_new_names <- plant_nonmetric[names(plant_nonmetric) %in% colnames(plant_file_raw)]
     
-    ## rename data columns to prepare for computation
+    # rename data columns to prepare for computation
     plant_file <- 
       plant_file_raw %>%
       # rename columns based on name matches
@@ -66,7 +67,7 @@ plant_data_pm_nh3_voc <- function(emission_type){
       # convert year and plant_id data to characters
       mutate(year = as.character(year), plant_id = as.character(plant_id))
     
-    ## eGRID production model data - plant file (2023+)
+    # eGRID production model data - plant file (2023+)
   } else {
     plant_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
   }

@@ -21,7 +21,7 @@
 ##
 ## -------------------------------
 
-# Load Libraries ---------
+# Load libraries ---------
 library(dplyr)
 library(readr)
 library(readxl)
@@ -49,7 +49,8 @@ format_plant <- function(emission_type) {
   if(file.exists(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_{emission_type}.RDS"))) {
     unit_file <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_{emission_type}.RDS"))
   } else {
-    stop(glue::glue("unit_file_{emission_type}.RDS does not exist. Run unit_file_create_pm_nh3_voc.R to obtain."))}
+    stop(glue::glue("unit_file_{emission_type}.RDS does not exist. Run unit_file_create_pm_nh3_voc.R to obtain."))
+    }
   
   # Run plant data creation script ---------
   source("scripts/functions/function_plant_data_pm_nh3_voc.R")
@@ -71,7 +72,7 @@ format_plant <- function(emission_type) {
   plant_sources <- 
     unit_file %>%
     filter(!is.na(get(emissions_source_var)) | get(emissions_source_var) == "") %>%
-    arrange(get(emissions_source_var)) %>% # sort by PM2.5 source
+    arrange(get(emissions_source_var)) %>% # sort by emissions source
     group_by(plant_id) %>%
     # concatenate source strings
     summarize("{emission_type}_source" := str_c(unique(get(emissions_source_var)), collapse = "; "), .groups = "drop") %>%
