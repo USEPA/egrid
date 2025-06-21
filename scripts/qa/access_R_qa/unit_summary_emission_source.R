@@ -76,9 +76,11 @@ unit_summary <- function(emission_type, year = params$eGRID_year) {
     arrange(get(paste0(emission_type, "_source")), desc(is.na(primary_fuel_type))) %>%
     mutate(primary_fuel_type = if_else(is.na(primary_fuel_type), "Total", primary_fuel_type))
 
-    # save output data in QA folder
-    write_csv(total_summary, glue::glue("{save_dir}{emission_type}_emissions_source_comparison_{year}.csv"))
-  }
+  # save output data in QA folder
+  write_csv(total_summary, glue::glue("{save_dir}{emission_type}_emissions_source_comparison_{year}.csv"))
+  
+  print(paste(toupper(emission_type), "UNIT EMISSION TYPE QA COMPLETE"))
+}
 
 # Run and save summary statistics for different emission estimation sources -----
 unit_summary("nh3")

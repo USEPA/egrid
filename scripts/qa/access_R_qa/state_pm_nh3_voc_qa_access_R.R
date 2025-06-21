@@ -81,10 +81,15 @@ state_qa <- function(emission_type) {
   } else {
     emission_abbrev <- emission_type
   }
-
+  
+  # check for file presence and load if file exists
+  if(file.exists(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_state.xlsx"))) {
     state_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_state.xlsx"), 
-                                  col_names = TRUE) %>%
+                                   col_names = TRUE) %>%
       rename(STNGENAN = SumOfPLNGENAN, STPM25AN = SumOfPLPM25AN2)
+  } else {
+    stop(glue::glue("Access output 'eGRID{params$eGRID_year}_{emission_abbrev}emissions_state.xlsx' does not exist and is required for QA. \n Skipping {toupper(emission_abbrev)} QA."))
+  }
   
   ## Define updated column names ---------
   # Load abbreviated name to snake_case matches
@@ -205,7 +210,16 @@ if(length(files) > 0) {
 print(paste(toupper(emission_type), "STATE QA COMPLETE"))
 }
 
+# Create a function to safely call QA function and handle errors -----
+state_qa_safe_call <- function(emission_type) {
+  result <- tryCatch({
+    state_qa(emission_type)
+  }, error = function(e) {
+    message("Caught an error: \n", e$message)
+  })
+}
+
 # Run function for emission types -----
-state_qa("pm25")
-state_qa("nh3")
-state_qa("voc")
+state_qa_safe_call("pm25")
+state_qa_safe_call("nh3")
+state_qa_safe_call("voc")

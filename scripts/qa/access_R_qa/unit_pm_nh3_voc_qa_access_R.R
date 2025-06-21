@@ -80,15 +80,21 @@ unit_qa <- function(emission_type) {
   } else {
     emission_abbrev <- emission_type
   }
-  if(emission_type == "pm25") {
-    unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_unit.xlsx"),
+  
+  # check for file presence and load if file exists
+  if(file.exists(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_unit.xlsx"))) {
+    if(emission_type == "pm25") {
+      unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_unit.xlsx"),
                                     col_names = TRUE) %>%
         rename(PM25SRC = PM25SRC2)
+    } else {
+      unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"),
+                                    sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Unit-level Data"),
+                                    skip = 1,
+                                    col_names = TRUE)
+    }
   } else {
-    unit_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"),
-                                  sheet = paste(params$eGRID_year, toupper(emission_abbrev), "Unit-level Data"),
-                                  skip = 1,
-                                  col_names = TRUE)
+      stop(glue::glue("Access output 'eGRID{params$eGRID_year}_{emission_abbrev}emissions_unit.xlsx' does not exist and is required for QA. \n Skipping {toupper(emission_abbrev)} QA."))
   }
   
   ## Define updated column names ---------
@@ -334,7 +340,16 @@ unit_qa <- function(emission_type) {
   print(paste(toupper(emission_type), "UNIT QA COMPLETE"))
 }
 
+# Create a function to safely call QA function and handle errors -----
+unit_qa_safe_call <- function(emission_type) {
+  result <- tryCatch({
+    unit_qa(emission_type)
+  }, error = function(e) {
+    message("Caught an error: \n", e$message)
+  })
+}
+
 # Run function for emission types -----
-unit_qa("pm25")
-unit_qa("nh3")
-unit_qa("voc")
+unit_qa_safe_call("pm25")
+unit_qa_safe_call("nh3")
+unit_qa_safe_call("voc")
