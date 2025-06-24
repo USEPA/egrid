@@ -27,6 +27,8 @@ check_file_exists <- function(file_path){
   #' # Save PM2.5 plant file
   #' save_output_data(pm_plant_formatted, "data/outputs/1_production_model", "pm_plant_file.RDS")
   
+  require(stringr)
+  
   # get file name from file path
   file <- str_split(file_path, "/") %>%
           sapply(tail, 1)

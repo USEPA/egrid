@@ -29,3 +29,4 @@ data/clean_data/
 data/outputs/
 data/raw_data/
 data/static_tables/historical_egrid/
+data/1_production_model/static_tables/qa/

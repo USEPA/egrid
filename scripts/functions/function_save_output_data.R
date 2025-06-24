@@ -71,7 +71,7 @@ save_output_data <- function(data, output_folder_path, file_name){
     
     # check if file is successfully written to folder
     if(file.exists(glue::glue("{output_folder_path}/{params$eGRID_year}/monthly/{file_name}"))){
-      print(glue::glue("File {file_name} successfully written to folder {output_folder_path}/monthly/{params$eGRID_year}"))
+      print(glue::glue("File {file_name} successfully written to folder {output_folder_path}/{params$eGRID_year}/monthly"))
     } else {
       print(glue::glue("File {file_name} failed to write to folder."))
     }
