@@ -1955,7 +1955,7 @@ all_units_11 <-
   mutate(across(c(starts_with("heat_input"), -contains("source")), ~ round(.x, 3)), 
          across(contains("_mass"), ~ round(.x, 3))) 
 
-# if running the annual, aggregate the data 
+# if running the annual, aggregate the data --------------------
 if(params$temporal_res == "annual") { 
   ozone_months <- c(5:9)
   

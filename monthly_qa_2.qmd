@@ -247,7 +247,8 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>%
                filter(nox_input_rate_zscore > 3 | nox_input_rate_zscore < -3) %>% 
                arrange(desc(nox_input_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, nox_input_rate_zscore, nox_input_rate, nox_input_rate_diff_from_avg))
+               select(month, plant_id, plant_name, nox_input_rate_zscore, nox_input_rate, nox_input_rate_diff_from_avg)) %>% 
+  scroll_box(width = "100%", height = "500px")
 
 ```
 
@@ -264,7 +265,8 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(so2_input_rate_zscore > 3 | so2_input_rate_zscore < -3) %>% 
                arrange(desc(so2_input_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, so2_input_rate_zscore, so2_input_rate, so2_input_rate_diff_from_avg))
+               select(month, plant_id, plant_name, so2_input_rate_zscore, so2_input_rate, so2_input_rate_diff_from_avg)) %>% 
+  scroll_box(width = "100%", height = "500px")
 ```
 
 ##### CO2 input rate
@@ -280,7 +282,8 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(co2_input_rate_zscore > 3 | co2_input_rate_zscore < -3) %>% 
                arrange(desc(co2_input_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, co2_input_rate_zscore, co2_input_rate, co2_input_rate_diff_from_avg))
+               select(month, plant_id, plant_name, co2_input_rate_zscore, co2_input_rate, co2_input_rate_diff_from_avg)) %>% 
+  scroll_box(width = "100%", height = "500px")
 
 ```
 
@@ -297,7 +300,8 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(ch4_input_rate_zscore > 3 | ch4_input_rate_zscore < -3) %>% 
                arrange(desc(ch4_input_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, ch4_input_rate_zscore, ch4_input_rate, ch4_input_rate_diff_from_avg))
+               select(month, plant_id, plant_name, ch4_input_rate_zscore, ch4_input_rate, ch4_input_rate_diff_from_avg)) %>% 
+  scroll_box(width = "100%", height = "500px")
 
 ```
 
@@ -314,7 +318,8 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(n2o_input_rate_zscore > 3 | n2o_input_rate_zscore < -3) %>% 
                arrange(desc(n2o_input_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, n2o_input_rate_zscore, n2o_input_rate, n2o_input_rate_diff_from_avg))
+               select(month, plant_id, plant_name, n2o_input_rate_zscore, n2o_input_rate, n2o_input_rate_diff_from_avg)) %>% 
+  scroll_box(width = "100%", height = "500px")
 
 ```
 
@@ -352,7 +357,8 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(nox_output_rate_zscore > 3 | nox_output_rate_zscore < -3) %>% 
                arrange(desc(nox_output_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, nox_output_rate_zscore, nox_output_rate, nox_output_rate_diff_from_avg))
+               select(month, plant_id, plant_name, nox_output_rate_zscore, nox_output_rate, nox_output_rate_diff_from_avg)) %>% 
+  scroll_box(width = "100%", height = "500px")
 
 ```
 
@@ -386,7 +392,8 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(co2_output_rate_zscore > 3 | co2_output_rate_zscore < -3) %>% 
                arrange(desc(co2_output_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, co2_output_rate_zscore, co2_output_rate, co2_output_rate_diff_from_avg))
+               select(month, plant_id, plant_name, co2_output_rate_zscore, co2_output_rate, co2_output_rate_diff_from_avg))%>% 
+  scroll_box(width = "100%", height = "500px")
 
 ```
 
@@ -420,7 +427,8 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(n2o_output_rate_zscore > 3 | n2o_output_rate_zscore < -3) %>% 
                arrange(desc(n2o_output_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, n2o_output_rate_zscore, n2o_output_rate, n2o_output_rate_diff_from_avg))
+               select(month, plant_id, plant_name, n2o_output_rate_zscore, n2o_output_rate, n2o_output_rate_diff_from_avg)) %>% 
+  scroll_box(width = "100%", height = "500px")
 
 ```
 
@@ -437,7 +445,8 @@ print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(co2e_output_rate_zscore > 3 | co2e_output_rate_zscore < -3) %>% 
                arrange(desc(co2e_output_rate_zscore)) %>% 
-               select(month, plant_id, plant_name, co2e_output_rate_zscore, co2e_output_rate, co2e_output_rate_diff_from_avg))
+               select(month, plant_id, plant_name, co2e_output_rate_zscore, co2e_output_rate, co2e_output_rate_diff_from_avg)) %>% 
+  scroll_box(width = "100%", height = "500px")
 
 ```
 :::
