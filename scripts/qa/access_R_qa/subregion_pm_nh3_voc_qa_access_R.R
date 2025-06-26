@@ -46,26 +46,26 @@ subregion_qa <- function(emission_type) {
   
   # Create save directory for QA outputs -----
   
-  if(dir.exists("data/2b_pm_nh3_voc/outputs/qa")) {
+  if(dir.exists("data/2a_pm_nh3_voc/outputs/qa")) {
     print("Folder qa already exists.")
   }else{
-    dir.create("data/2b_pm_nh3_voc/outputs/qa")
+    dir.create("data/2a_pm_nh3_voc/outputs/qa")
   }
   
-  if(dir.exists(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}"))) {
+  if(dir.exists(glue::glue("data/2a_pm_nh3_voc/outputs/qa/{params$eGRID_year}"))) {
     print(glue::glue("Folder qa/{params$eGRID_year} already exists."))
   }else{
-    dir.create(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}"))
+    dir.create(glue::glue("data/2a_pm_nh3_voc/outputs/qa/{params$eGRID_year}"))
   }
   
-  if(dir.exists(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}/subregion_file_{emission_type}_differences"))) {
+  if(dir.exists(glue::glue("data/2a_pm_nh3_voc/outputs/qa/{params$eGRID_year}/subregion_file_{emission_type}_differences"))) {
     print(glue::glue("Folder qa/{params$eGRID_year}/subregion_file_{emission_type}_differences already exists."))
   }else{
-    dir.create(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}/subregion_file_{emission_type}_differences"))
+    dir.create(glue::glue("data/2a_pm_nh3_voc/outputs/qa/{params$eGRID_year}/subregion_file_{emission_type}_differences"))
   }
   
   # set directory for saving files 
-  save_dir <- glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}/subregion_file_{emission_type}_differences/")
+  save_dir <- glue::glue("data/2a_pm_nh3_voc/outputs/qa/{params$eGRID_year}/subregion_file_{emission_type}_differences/")
   
   
   ## Create function to save file differences -----
@@ -83,8 +83,8 @@ subregion_qa <- function(emission_type) {
   }
   
   # check for file presence and load if file exists
-  if(file.exists(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_subregion.xlsx"))) {
-    subregion_access_raw <- read_excel(glue::glue("data/2b_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_subregion.xlsx"), 
+  if(file.exists(glue::glue("data/2a_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_subregion.xlsx"))) {
+    subregion_access_raw <- read_excel(glue::glue("data/2a_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_subregion.xlsx"), 
                                        col_names = TRUE) %>%
       rename(SRNGENAN = Gen, SRPM25AN = PM25tons, SRPM25RTA = Rate)
   } else {
@@ -114,7 +114,7 @@ subregion_qa <- function(emission_type) {
   subregion_access[subregion_access == "NA"] <- NA_character_ 
   
   # Import R subregion data ---------
-  subregion_r <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS")) %>%
+  subregion_r <- read_rds(glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS")) %>%
     rename(pm25_tons = pm25_ann, pm25_rate = pm25_output_rate)
   
   # add "_r" after each variable to easily identify dataset 

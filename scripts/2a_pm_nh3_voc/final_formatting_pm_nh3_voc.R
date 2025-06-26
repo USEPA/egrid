@@ -7,7 +7,7 @@
 ## This file pulls data from .RDS files to create final version of saved data in excel sheet for PM2.5, NH3, and VOC emisisons data
 ##
 ## The resulting output are the following files saved in:
-##  data/2b_pm_nh3_voc/outputs/{params$eGRID_year}
+##  data/2a_pm_nh3_voc/outputs/{params$eGRID_year}
 ##    "eGRID{params$eGRID_year}_pmemissions.xlsx"
 ##    "eGRID{params$eGRID_year}_nh3emissions.xlsx"
 ##    "eGRID{params$eGRID_year}_vocemissions.xlsx"
@@ -99,7 +99,7 @@ for (emission_type in c("pm25", "nh3", "voc")) {
   # Import .RDS data -----
   
   # create a list of files in R directory
-  data_dir <- glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/")
+  data_dir <- glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/")
   filename_types <- list("unit_file_",
                          "plant_file_",
                          "state_aggregation_",
@@ -129,7 +129,7 @@ for (emission_type in c("pm25", "nh3", "voc")) {
   
   # Load in previous year workbook -----
   year_prev <- as.numeric(params$eGRID_year) - 1
-  wb_dir <- glue::glue("data/2b_pm_nh3_voc/outputs/{year_prev}/eGRID{year_prev}_{emission_abbrev}emissions.xlsx")
+  wb_dir <- glue::glue("data/2a_pm_nh3_voc/outputs/{year_prev}/eGRID{year_prev}_{emission_abbrev}emissions.xlsx")
   wb <- loadWorkbook(wb_dir)
   
   # set base font
@@ -273,7 +273,7 @@ for (emission_type in c("pm25", "nh3", "voc")) {
   create_subregion_emission_figures(emission_type, skip_if_exists = FALSE)
   
   # define graph directory, names, and years
-  graph_dir <- glue::glue("data/2b_pm_nh3_voc/static_tables/formatting/")
+  graph_dir <- glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/")
   graph_types <- c("annual_generation", "emissions", "rate")
   graph_years <- seq(2018, as.numeric(params$eGRID_year), 1)
   
@@ -318,6 +318,6 @@ for (emission_type in c("pm25", "nh3", "voc")) {
   worksheetOrder(wb) <-wb_new_order
   
   # save workbook
-  saveWorkbook(wb, glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
+  saveWorkbook(wb, glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
                overwrite = TRUE)
 }

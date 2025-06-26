@@ -47,8 +47,8 @@ unit_data_pm_nh3_voc <- function(emission_type){
   
   # EIA-923 - for Schedule C Air Emissions Control information (2021 & 2022)
   if(params$eGRID_year %in% c("2021", "2022")) {
-    if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"))) {
-      eia_923 <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), 
+    if(file.exists(glue::glue("data/2a_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"))) {
+      eia_923 <- read_csv(glue::glue("data/2a_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), 
                           col_types = "ccccccccddddcccdccddcdc",
                           na = c("", ".")) %>%
         janitor::clean_names() %>%
@@ -68,8 +68,8 @@ unit_data_pm_nh3_voc <- function(emission_type){
     }
   
   # NEI emission data
-  if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"))) {
-    raw_nei <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"), 
+  if(file.exists(glue::glue("data/2a_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"))) {
+    raw_nei <- read_csv(glue::glue("data/2a_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"), 
                         col_types = "cccccccccccccccccdcc") %>%
       janitor::clean_names()
   } else { 
@@ -77,16 +77,16 @@ unit_data_pm_nh3_voc <- function(emission_type){
     }
   
   # NEI-EIA crosswalk matching NEI and EIA unit ids
-  if(file.exists(glue::glue("data/2b_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv"))) { 
-    nei_eia_xwalk <- read_csv(glue::glue("data/2b_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv"), 
+  if(file.exists(glue::glue("data/2a_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv"))) { 
+    nei_eia_xwalk <- read_csv(glue::glue("data/2a_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv"), 
                               col_types = "cccccccccccccccccccc") %>%
       janitor::clean_names()
   } else { 
-    stop(glue::glue("data/2b_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv does not exist."))
+    stop(glue::glue("data/2a_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv does not exist."))
     }
   
   # Emission factors from EPA AP-42 dataset
-  efs <- read_csv(glue::glue("data/2b_pm_nh3_voc/static_tables/emission_factors_{emission_type}.csv"), 
+  efs <- read_csv(glue::glue("data/2a_pm_nh3_voc/static_tables/emission_factors_{emission_type}.csv"), 
                   col_types = "cccdccc") %>%
     janitor::clean_names()
   

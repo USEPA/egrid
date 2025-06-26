@@ -46,8 +46,8 @@ if (exists("params")) {
 format_plant <- function(emission_type) {
   
   # load unit file
-  if(file.exists(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_{emission_type}.RDS"))) {
-    unit_file <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_{emission_type}.RDS"))
+  if(file.exists(glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_{emission_type}.RDS"))) {
+    unit_file <- read_rds(glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_{emission_type}.RDS"))
   } else {
     stop(glue::glue("unit_file_{emission_type}.RDS does not exist. Run unit_file_create_pm_nh3_voc.R to obtain."))
     }
@@ -102,7 +102,7 @@ voc_plant_formatted <- format_plant("voc")
 
 # Export plant files -----
 source("scripts/functions/function_save_output_data.R")
-output_folder <- "2b_pm_nh3_voc"
+output_folder <- "2a_pm_nh3_voc"
 save_output_data(pm_plant_formatted, output_folder, "plant_file_pm25.RDS")
 save_output_data(nh3_plant_formatted, output_folder, "plant_file_nh3.RDS")
 save_output_data(voc_plant_formatted, output_folder, "plant_file_voc.RDS")

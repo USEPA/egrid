@@ -81,7 +81,7 @@ voc_unit_formatted <- format_unit(voc_unit_data, "voc")
   
 # Export emission unit files ---------
 source("scripts/functions/function_save_output_data.R")
-output_folder <- "2b_pm_nh3_voc"
+output_folder <- "2a_pm_nh3_voc"
 save_output_data(pm_unit_formatted, output_folder, "unit_file_pm25.RDS")
 save_output_data(nh3_unit_formatted, output_folder, "unit_file_nh3.RDS")
 save_output_data(voc_unit_formatted, output_folder, "unit_file_voc.RDS")

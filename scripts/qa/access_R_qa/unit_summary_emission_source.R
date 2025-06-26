@@ -34,27 +34,27 @@ if (exists("params")) {
 
 # Create save directory for QA outputs -----
 
-if(dir.exists("data/2b_pm_nh3_voc/outputs/qa")) {
+if(dir.exists("data/2a_pm_nh3_voc/outputs/qa")) {
   print("Folder qa already exists.")
 }else{
-  dir.create("data/2b_pm_nh3_voc/outputs/qa")
+  dir.create("data/2a_pm_nh3_voc/outputs/qa")
 }
 
-if(dir.exists(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}"))) {
+if(dir.exists(glue::glue("data/2a_pm_nh3_voc/outputs/qa/{params$eGRID_year}"))) {
   print(glue::glue("Folder qa/{params$eGRID_year} already exists."))
 }else{
-  dir.create(glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}"))
+  dir.create(glue::glue("data/2a_pm_nh3_voc/outputs/qa/{params$eGRID_year}"))
 }
 
 # set directory for saving files 
-save_dir <- glue::glue("data/2b_pm_nh3_voc/outputs/qa/{params$eGRID_year}/")
+save_dir <- glue::glue("data/2a_pm_nh3_voc/outputs/qa/{params$eGRID_year}/")
 
 
 # Create function to summarize data -----
 unit_summary <- function(emission_type, year = params$eGRID_year) {
   
   # summarize unit emissions data by emission source type
-  source_summary <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{year}/unit_file_{emission_type}.RDS")) %>%
+  source_summary <- read_rds(glue::glue("data/2a_pm_nh3_voc/outputs/{year}/unit_file_{emission_type}.RDS")) %>%
     filter(!is.na(get(paste0(emission_type, "_source")))) %>%
     group_by(get(paste0(emission_type, "_source"))) %>%
     summarize(count = n(), 
@@ -62,7 +62,7 @@ unit_summary <- function(emission_type, year = params$eGRID_year) {
               rate_avg = mean(get(paste0(emission_type, "_rate")), na.rm = TRUE)) %>%
     rename("{emission_type}_source" := `get(paste0(emission_type, "_source"))`)
 
-  primary_fuel_summary <-  read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{year}/unit_file_{emission_type}.RDS")) %>%
+  primary_fuel_summary <-  read_rds(glue::glue("data/2a_pm_nh3_voc/outputs/{year}/unit_file_{emission_type}.RDS")) %>%
     filter(!is.na(get(paste0(emission_type, "_source")))) %>%
     group_by(get(paste0(emission_type, "_source")), primary_fuel_type) %>%
     summarize(count = n(), 

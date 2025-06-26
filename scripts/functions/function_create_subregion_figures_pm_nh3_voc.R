@@ -9,7 +9,7 @@
 ## to be used in the final .xlsx sheet of data
 ##
 ## Resulting figures are saved in the following folder:
-## "data/2b_pm_nh3_voc/static_tables/formatting/"
+## "data/2a_pm_nh3_voc/static_tables/formatting/"
 ##
 ## Images are included in the final .xlsx files for emisisons data
 ## using the final_formatting_pm_nh3_voc.R script
@@ -36,7 +36,7 @@ create_subregion_emission_figures <- function(emission_type,
   #' 
   #' @return Saved figures of subregion annual generation, emissions, and output rates 
   #' for each year from 2018 to current eGRID year - saved in 
-  #' "data/2b_pm_nh3_voc/static_tables/formatting/"
+  #' "data/2a_pm_nh3_voc/static_tables/formatting/"
   #'         
   #' @examples 
   #' # Create PM2.5 plots and override previously-saved plots
@@ -158,7 +158,7 @@ create_subregion_emission_figures <- function(emission_type,
   }
   
   # Define save directory -----
-  save_dir <- glue::glue("data/2b_pm_nh3_voc/static_tables/formatting/")
+  save_dir <- glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/")
   
   # Define emission abbreviation for data import -----
   if(emission_type == "pm25") {
@@ -215,7 +215,7 @@ create_subregion_emission_figures <- function(emission_type,
       ## Load Subregion Data -----
       # collect subregion data from excel sheet for previous years
       if(year < params$eGRID_year) {
-        emission_prev <- read_xlsx(glue::glue("data/2b_pm_nh3_voc/outputs/{year_numeric - 1}/eGRID{year_numeric - 1}_{emission_abbrev}emissions.xlsx"),
+        emission_prev <- read_xlsx(glue::glue("data/2a_pm_nh3_voc/outputs/{year_numeric - 1}/eGRID{year_numeric - 1}_{emission_abbrev}emissions.xlsx"),
                                    skip = 1,
                                    sheet = glue::glue("{year} {toupper(emission_abbrev)} Subregion-level Data")) %>%
           # remove U.S. row if present
@@ -237,8 +237,8 @@ create_subregion_emission_figures <- function(emission_type,
         
         # collect subregion data from .RDS file for current year
       } else {
-        if(file.exists(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))) {
-          subregion_file <- read_rds(glue::glue("data/2b_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))
+        if(file.exists(glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))) {
+          subregion_file <- read_rds(glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))
         } else {
           stop(glue::glue("subregion_aggregation_{emission_type}.RDS does not exist. Run region_aggregation_create_pm_nh3_voc.R to obtain."))
         }
