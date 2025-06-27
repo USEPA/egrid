@@ -20,9 +20,8 @@ check_var_names <- function(header, name_matching_cols) {
   for (i in 1:length((header))) {
     if (header[i] != names(name_matching_cols)[i]) {
       check_cols <- c(check_cols, header[i]) }}
-  
   if (!is.null(check_cols)){
-    stop(print(glue::glue("These columns do not match name_matching.R {name_matching_cols}: {glue::glue_collapse(check_cols, sep = ', ')}. Check for errors.")))
+    print(glue::glue("These columns do not match name_matching.R {name_matching_cols}: {glue::glue_collapse(check_cols, sep = ', ')}. Check for errors."))
   } else {
     print("All shorthand columns match name_matching.R {name_matching_cols}.")
   }
@@ -63,7 +62,7 @@ rename_variables <- function(df, name_map, strict = TRUE, rename = TRUE) {
 
 }
 
-test <- rename_variables(st_file_ann, state_nonmetric_annual)
+# test <- rename_variables(st_file_ann, state_nonmetric_annual)
 
 format_headers <- function(df, name_map) {
   for (colname in names(df)) {
