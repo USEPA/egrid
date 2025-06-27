@@ -33,6 +33,13 @@ source("scripts/functions/function_paste_concat.R")
 source("scripts/functions/function_save_output_data.R")
 source("scripts/functions/function_check_file_exists.R")
 
+# Set parameters -----------------------------
+
+# Define flag whether or not to include biomass_units_to_add table
+# we do this because we need to run a version of the unit and plant file without this table to identify which units need to be added 
+# for running eGRID as expected, this should be TRUE
+bio_units_to_add_flag <- TRUE
+
 # Define paramters if necessary and check for valid params()
 if (!exists("params")) {
   params <- check_params()
@@ -136,10 +143,14 @@ xwalk_pr_oris <- read_csv("data/1_production_model/static_tables/xwalk_pr_oris.c
 
 # Biomass units to add, these units are identified from the plant file each data year
 ### Note: check for updates or changes each data year ###
-biomass_units <- read_csv("data/1_production_model/static_tables/biomass_units_to_add_to_unit_file.csv", 
-                          col_types = "ccccccc") %>% 
-                 janitor::clean_names() %>% 
-                 filter(year == params$eGRID_year) # only keep units from eGRID_year
+if (bio_units_to_add_flag) { 
+  biomass_units <- read_csv("data/1_production_model/static_tables/biomass_units_to_add_to_unit_file.csv", 
+                            col_types = "ccccccc") %>% 
+                   janitor::clean_names() %>% 
+                   filter(year == params$eGRID_year) # only keep units from eGRID_year
+} else {
+  print("Skipping file biomass_units_to_add_to_unit_file.csv and creating empty dataframe.")
+  biomass_units <- data.frame(plant_id = NA_character_, unit_id = NA_character_, prime_mover = NA_character_)}
 
 # Some plants in EPA are not connected to the grid or are retired, so they are excluded from eGRID
 ### Note: check for updates or changes each data year ###
@@ -731,13 +742,15 @@ eia_860_generators_to_add_3 <-
 # We include additional biomass units. This is a static table that is created each year after the plant file.
 ### Note: check for updates or changes each data year ###
 
-biomass_units_to_add <- 
-  biomass_units %>% # this CSV is also used while updating coal fuel types, use now to add in biomass plants
-  rename("primary_fuel_type" = fuel_type, 
-         "plant_id" = plant_code) %>% 
-  mutate(plant_id = as.character(plant_id), 
-         source = "plant_file_biomass") %>% 
-  select(-year)
+if (bio_units_to_add_flag) { 
+  biomass_units_to_add <- 
+    biomass_units %>% # this CSV is also used while updating coal fuel types, use now to add in biomass plants
+    rename("primary_fuel_type" = fuel_type, 
+           "plant_id" = plant_code) %>% 
+    mutate(plant_id = as.character(plant_id), 
+           source = "plant_file_biomass") %>% 
+    select(-year)
+} else {biomass_units_to_add <- biomass_units}
 
 
 # Fill missing heat inputs for all units --------
@@ -1955,7 +1968,7 @@ all_units_11 <-
   mutate(across(c(starts_with("heat_input"), -contains("source")), ~ round(.x, 3)), 
          across(contains("_mass"), ~ round(.x, 3))) 
 
-# if running the annual, aggregate the data --------------------
+# If running the annual version, aggregate the data to annual level --------------------
 if(params$temporal_res == "annual") { 
   ozone_months <- c(5:9)
   
@@ -2023,5 +2036,7 @@ units_formatted <-
 
 
 # Export unit file -------------
-
-save_output_data(units_formatted, "data/1_production_model/outputs", glue::glue("unit_file_{params$temporal_res}.RDS"))
+if(bio_units_to_add_flag) {
+  save_output_data(units_formatted, "data/1_production_model/outputs", glue::glue("unit_file_{params$temporal_res}.RDS"))
+} else { 
+  save_output_data(units_formatted, "data/1_production_model/outputs", glue::glue("unit_file_no_bio_added_{params$temporal_res}.RDS"))}

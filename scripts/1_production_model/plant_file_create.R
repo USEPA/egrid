@@ -33,6 +33,10 @@ source("scripts/functions/function_update_source.R")
 source("scripts/functions/function_check_file_exists.R")
 source("scripts/functions/function_save_output_data.R")
 
+# Define flag whether or not to include biomass_units_to_add table
+# we do this because we need to run a version of the unit and plant file without this table to identify which units need to be added 
+bio_units_to_add_flag <- FALSE
+
 # check if parameters need to be defined
 if (!exists("params")) {
   params <- check_params()
@@ -63,8 +67,11 @@ eia_923 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/
 generator_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/generator_file_{params$temporal_res}.RDS"))
 
 # load unit file
-unit_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/unit_file_{params$temporal_res}.RDS"))
-
+if (bio_units_to_add_flag) { 
+  unit_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/unit_file_{params$temporal_res}.RDS"))
+} else { 
+  unit_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/unit_file_no_bio_added_{params$temporal_res}.RDS"))}
+  
 ### Load crosswalks and static tables ----------------------
 
 # load in name matches for shorthand to snake_case
@@ -823,31 +830,49 @@ eia_923_biomass <-
             n2o_biomass = 0) %>%
   mutate(biomass_adj_flag = "Yes") %>%   # add a flag for this adjustment
   ungroup()
+
+if (bio_units_to_add_flag) {
+  plant_file_14 <- 
+    plant_file_13 %>% 
+    left_join(eia_923_biomass, by = c(temporal_res_cols, "plant_id"))  %>%
+    mutate(nox_mass = if_else(is.na(nox_biomass), unadj_nox_mass, unadj_nox_mass - nox_biomass),
+           so2_mass = if_else(is.na(so2_biomass), unadj_so2_mass, unadj_so2_mass - so2_biomass),
+           co2_mass = if_else(is.na(co2_biomass), unadj_co2_mass, unadj_co2_mass - co2_biomass), 
+           ch4_mass = if_else(is.na(ch4_biomass), unadj_ch4_mass, unadj_ch4_mass - ch4_biomass),
+           n2o_mass = if_else(is.na(n2o_biomass), unadj_n2o_mass, unadj_n2o_mass - n2o_biomass),
+           hg_mass = unadj_hg_mass,
+           # assign the minimum between biomass and unadjusted values
+           nox_biomass = pmin(nox_biomass, unadj_nox_mass), 
+           so2_biomass = pmin(so2_biomass, unadj_so2_mass),
+           co2_biomass = pmin(co2_biomass, unadj_co2_mass),
+           ch4_biomass = pmin(ch4_biomass, unadj_ch4_mass),
+           n2o_biomass = pmin(n2o_biomass, unadj_n2o_mass),
+           co2e_biomass = 
+             if_else(is.na(co2_biomass), 0, co2_biomass) + 
+             if_else(is.na(ch4_biomass), 0, gwp$ar6[gwp$gas == "CH4"] * ch4_biomass / 2000) + 
+             if_else(is.na(n2o_biomass), 0, gwp$ar6[gwp$gas == "N2O"] * n2o_biomass / 2000), # calculate CO2e biomass
+           # if all emission masses are NA, fill CO2e mass with NA
+           co2e_biomass = if_else(is.na(co2_biomass) & is.na(ch4_biomass) & is.na(n2o_biomass), 
+                                  NA_real_, co2e_biomass), 
+           co2e_mass = if_else(!is.na(co2e_biomass), pmax(unadj_co2e_mass - co2e_biomass, 0), unadj_co2e_mass),
+           co2e_biomass = pmin(co2e_biomass, unadj_co2e_mass))
+} else { 
+  plant_file_14 <- 
+    plant_file_13 %>% 
+    left_join(eia_923_biomass, by = c(temporal_res_cols, "plant_id"))  %>%
+    mutate(co2_mass = if_else(is.na(co2_biomass), unadj_co2_mass, unadj_co2_mass - co2_biomass))
   
-plant_file_14 <- 
-  plant_file_13 %>% 
-  left_join(eia_923_biomass, by = c(temporal_res_cols, "plant_id"))  %>%
-  mutate(nox_mass = if_else(is.na(nox_biomass), unadj_nox_mass, unadj_nox_mass - nox_biomass),
-         so2_mass = if_else(is.na(so2_biomass), unadj_so2_mass, unadj_so2_mass - so2_biomass),
-         co2_mass = if_else(is.na(co2_biomass), unadj_co2_mass, unadj_co2_mass - co2_biomass), 
-         ch4_mass = if_else(is.na(ch4_biomass), unadj_ch4_mass, unadj_ch4_mass - ch4_biomass),
-         n2o_mass = if_else(is.na(n2o_biomass), unadj_n2o_mass, unadj_n2o_mass - n2o_biomass),
-         hg_mass = unadj_hg_mass,
-         # assign the minimum between biomass and unadjusted values
-         nox_biomass = pmin(nox_biomass, unadj_nox_mass), 
-         so2_biomass = pmin(so2_biomass, unadj_so2_mass),
-         co2_biomass = pmin(co2_biomass, unadj_co2_mass),
-         ch4_biomass = pmin(ch4_biomass, unadj_ch4_mass),
-         n2o_biomass = pmin(n2o_biomass, unadj_n2o_mass),
-         co2e_biomass = 
-           if_else(is.na(co2_biomass), 0, co2_biomass) + 
-           if_else(is.na(ch4_biomass), 0, gwp$ar6[gwp$gas == "CH4"] * ch4_biomass / 2000) + 
-           if_else(is.na(n2o_biomass), 0, gwp$ar6[gwp$gas == "N2O"] * n2o_biomass / 2000), # calculate CO2e biomass
-         # if all emission masses are NA, fill CO2e mass with NA
-         co2e_biomass = if_else(is.na(co2_biomass) & is.na(ch4_biomass) & is.na(n2o_biomass), 
-                                NA_real_, co2e_biomass), 
-         co2e_mass = if_else(!is.na(co2e_biomass), pmax(unadj_co2e_mass - co2e_biomass, 0), unadj_co2e_mass),
-         co2e_biomass = pmin(co2e_biomass, unadj_co2e_mass))
+  negative_co2_mass <- 
+    plant_file_14 %>% 
+    group_by(plant_id) %>% 
+    summarize(co2_mass = sum(co2_mass, na.rm = TRUE)) %>% 
+    ungroup() %>% 
+    filter(co2_mass < -1)  
+  
+  write_csv(negative_co2_mass, "data/1_production_model/static_tables/qa/check_biomass_units.csv")
+  
+  stop("Stopping plant file. Identified plants with negative CO2 mass after biomass adjustments. Check for biomass units that need to be added in unit file.")
+} 
 
 if(params$temporal_res == "annual") { 
   define_nox_oz_mass <- 
@@ -1131,7 +1156,6 @@ plant_chp <-
          chp_co2e = co2e_mass_bio_adj - co2e_mass, 
          # check if CHP emission masses are greater than unadjusted values, and assign unadjusted values if TRUE
          chp_nox = if_else(chp_nox > unadj_nox_mass | chp_nox < 0, unadj_nox_mass, chp_nox),
-         #chp_nox_oz = if_else(chp_nox_oz > unadj_nox_oz_mass | chp_nox_oz < 0, unadj_nox_oz_mass, chp_nox_oz),
          chp_so2 = if_else(chp_so2 > unadj_so2_mass | chp_so2 < 0, unadj_so2_mass, chp_so2),
          chp_co2 = if_else(chp_co2 > unadj_co2_mass | chp_co2 < 0, unadj_co2_mass, chp_co2),
          chp_ch4 = if_else(chp_ch4 > unadj_ch4_mass | chp_ch4 < 0, unadj_ch4_mass, chp_ch4),

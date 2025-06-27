@@ -1,7 +1,9 @@
 ---
-title: "monthly_qa_2"
-format: html
-editor: visual
+title: "Monthly Plant and Subregion QA"
+format:
+  html: 
+    css: styles.css
+editor: source
 ---
 
 ```{r}
@@ -77,7 +79,18 @@ subregion_monthly <-
 
 subregion_annual <- 
   read_rds("data/1_production_model/outputs/2023/subregion_aggregation.RDS") %>% 
-  mutate(month = "annual")
+  mutate(month = "annual") %>% 
+  rename(subregion_coal_resource_mix = subregion_ann_resource_mix_coal, 
+         subregion_oil_resource_mix = subregion_ann_resource_mix_oil,
+         subregion_gas_resource_mix = subregion_ann_resource_mix_gas, 
+         subregion_nuclear_resource_mix = subregion_ann_resource_mix_nuclear,
+         subregion_hydro_resource_mix = subregion_ann_resource_mix_hydro,
+         subregion_biomass_resource_mix = subregion_ann_resource_mix_biomass, 
+         subregion_wind_resource_mix = subregion_ann_resource_mix_wind, 
+         subregion_solar_resource_mix = subregion_ann_resource_mix_solar, 
+         subregion_geothermal_resource_mix = subregion_ann_resource_mix_geothermal, 
+         subregion_other_ff_resource_mix = subregion_ann_resource_mix_other_ff, 
+         subregion_other_resource_mix = subregion_ann_resource_mix_other)
 
 subregion_merged <-
   subregion_monthly %>% 
@@ -1849,6 +1862,8 @@ knitr::kable(subregion_co2e_mass,
              col.names = gsub("[_]", " ", names(subregion_co2e_mass)))
 ```
 :::
+
+### Emission Rates
 
 ::: panel-tabset
 ### Summary
@@ -5603,5 +5618,788 @@ plotly::ggplotly(plot_co2_input_rate)
 plotly::ggplotly(plot_ch4_input_rate)
 plotly::ggplotly(plot_n2o_input_rate)
 plotly::ggplotly(plot_co2e_input_rate)
+```
+:::
+
+### Resource Mix
+
+::: panel-tabset
+### Summary
+
+This tabset shows the output and input rates for each subregion. The black dotted line displays the monthly average.
+
+### AKGD
+
+```{r}
+#| label: subregion-akgd-mix 
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_akgd_mix <- 
+  subregion_akgd %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_akgd_mix_2 <- 
+  subregion_akgd_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_akgd_mix <- 
+  ggplot(subregion_akgd_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_akgd_mix) 
+
+```
+
+### AKMS
+
+```{r}
+#| label: subregion-akms-mix 
+#| echo: false 
+#| message: false 
+#| fig-height: 4  
+
+subregion_akms_mix <- 
+  subregion_akms %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_akms_mix_2 <- 
+  subregion_akms_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_akms_mix <- 
+  ggplot(subregion_akms_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_akms_mix) 
+
+```
+
+### AZNM
+
+```{r}
+#| label: subregion-aznm-mix 
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_aznm_mix <- 
+  subregion_aznm %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_aznm_mix_2 <- 
+  subregion_aznm_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_aznm_mix <- 
+  ggplot(subregion_akms_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_aznm_mix) 
+
+```
+
+### CAMX
+
+```{r}
+#| label: subregion-camx-mix 
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_camx_mix <- 
+  subregion_camx %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_camx_mix_2 <- 
+  subregion_camx_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_camx_mix <- 
+  ggplot(subregion_camx_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_camx_mix) 
+
+```
+
+### FRCC
+
+```{r}
+#| label: subregion-frcc-mix 
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_frcc_mix <- 
+  subregion_frcc %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_frcc_mix_2 <- 
+  subregion_frcc_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_frcc_mix <- 
+  ggplot(subregion_frcc_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_frcc_mix) 
+
+```
+
+### HIMS
+
+```{r}
+#| label: subregion-hims-mix 
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_hims_mix <- 
+  subregion_hims %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_hims_mix_2 <- 
+  subregion_hims_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_hims_mix <- 
+  ggplot(subregion_hims_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_hims_mix) 
+
+```
+
+### HIOA
+
+```{r}
+#| label: subregion-hioa-mix 
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_hioa_mix <- 
+  subregion_hioa %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_hioa_mix_2 <- 
+  subregion_hioa_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_hioa_mix <- 
+  ggplot(subregion_hioa_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_hioa_mix) 
+
+```
+
+### MROE
+
+```{r}
+#| label: subregion-mroe-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_mroe_mix <- 
+  subregion_mroe %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_mroe_mix_2 <- 
+  subregion_mroe_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_mroe_mix <- 
+  ggplot(subregion_mroe_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_mroe_mix) 
+
+```
+
+### MROW
+
+```{r}
+#| label: subregion-mrow-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_mrow_mix <- 
+  subregion_mrow %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_mrow_mix_2 <- 
+  subregion_mrow_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_mrow_mix <- 
+  ggplot(subregion_mrow_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_mrow_mix) 
+
+```
+
+### NEWE
+
+```{r}
+#| label: subregion-newe-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_newe_mix <- 
+  subregion_newe %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_newe_mix_2 <- 
+  subregion_newe_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_newe_mix <- 
+  ggplot(subregion_newe_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_newe_mix) 
+
+```
+
+### NWPP
+
+```{r}
+#| label: subregion-nwpp-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_nwpp_mix <- 
+  subregion_nwpp %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_nwpp_mix_2 <- 
+  subregion_nwpp_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_nwpp_mix <- 
+  ggplot(subregion_nwpp_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_nwpp_mix) 
+
+```
+
+### NYCW
+
+```{r}
+#| label: subregion-nycw-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_nycw_mix <- 
+  subregion_nycw %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_nycw_mix_2 <- 
+  subregion_nycw_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_nycw_mix <- 
+  ggplot(subregion_nycw_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_nycw_mix) 
+
+```
+
+### NYLI
+
+```{r}
+#| label: subregion-nyli-mix 
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_nyli_mix <- 
+  subregion_nyli %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_nyli_mix_2 <- 
+  subregion_nyli_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_nyli_mix <- 
+  ggplot(subregion_nyli_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_nyli_mix) 
+
+```
+
+### NYUP
+
+```{r}
+#| label: subregion-nyup-mix 
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_nyup_mix <- 
+  subregion_nyup %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_nyup_mix_2 <- 
+  subregion_nyup_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_nyup_mix <- 
+  ggplot(subregion_nyup_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_nyup_mix) 
+
+```
+
+### PRMS
+
+```{r}
+#| label: subregion-prms-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_prms_mix <- 
+  subregion_prms %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_prms_mix_2 <- 
+  subregion_prms_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_prms_mix <- 
+  ggplot(subregion_prms_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_prms_mix) 
+
+```
+
+### RFCE
+
+```{r}
+#| label: subregion-rfce-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_rfce_mix <- 
+  subregion_rfce %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_rfce_mix_2 <- 
+  subregion_rfce_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_rfce_mix <- 
+  ggplot(subregion_rfce_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_rfce_mix) 
+
+```
+
+### RFCM
+
+```{r}
+#| label: subregion-rfcm-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_rfcm_mix <- 
+  subregion_rfcm %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_rfcm_mix_2 <- 
+  subregion_rfcm_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_rfcm_mix <- 
+  ggplot(subregion_rfcm_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_rfcm_mix) 
+
+```
+
+### RFCW
+
+```{r}
+#| label: subregion-rfcw-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_rfcw_mix <- 
+  subregion_rfcw %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_rfcw_mix_2 <- 
+  subregion_rfcw_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_rfcw_mix <- 
+  ggplot(subregion_rfcw_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_rfcw_mix) 
+
+```
+
+### RMPA
+
+```{r}
+#| label: subregion-rmpa-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_rmpa_mix <- 
+  subregion_rmpa %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_rmpa_mix_2 <- 
+  subregion_rmpa_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_rmpa_mix <- 
+  ggplot(subregion_rmpa_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_rmpa_mix) 
+
+```
+
+### SPNO
+
+```{r}
+#| label: subregion-spno-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_spno_mix <- 
+  subregion_spno %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_spno_mix_2 <- 
+  subregion_spno_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_spno_mix <- 
+  ggplot(subregion_spno_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_spno_mix) 
+
+```
+
+### SPSO
+
+```{r}
+#| label: subregion-spso-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_spso_mix <- 
+  subregion_spso %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_spso_mix_2 <- 
+  subregion_spso_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_spso_mix <- 
+  ggplot(subregion_spso_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_spso_mix) 
+
+```
+
+### SRMV
+
+```{r}
+#| label: subregion-srmv-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_srmv_mix <- 
+  subregion_srmv %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_srmv_mix_2 <- 
+  subregion_srmv_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_srmv_mix <- 
+  ggplot(subregion_srmv_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_srmv_mix) 
+
+```
+
+### SRSO
+
+```{r}
+#| label: subregion-srso-mix 
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_srso_mix <- 
+  subregion_srso %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_srso_mix_2 <- 
+  subregion_srso_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_srso_mix <- 
+  ggplot(subregion_srso_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_srso_mix) 
+
+```
+
+### SRTV
+
+```{r}
+#| label: subregion-srtv-mix
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_srtv_mix <- 
+  subregion_srtv %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_srtv_mix_2 <- 
+  subregion_srtv_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_srtv_mix <- 
+  ggplot(subregion_srtv_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_srtv_mix) 
+
+```
+
+### SRVC
+
+```{r}
+#| label: subregion-srvc-mix 
+#| echo: false 
+#| message: false 
+#| fig-height: 4 
+
+subregion_srvc_mix <- 
+  subregion_srvc %>% 
+  select(subregion, month, contains("resource_mix"), -contains("nonbaseload"), 
+         -contains("renew"), -contains("combust")) %>% 
+  tidyr::pivot_longer(cols = contains("resource_mix"), 
+                      names_to = "fuel", 
+                      values_to = "pct_mix") 
+
+subregion_srvc_mix_2 <- 
+  subregion_srvc_mix %>%
+  mutate(across("fuel", \(x) str_replace_all(x, c("subregion_" =  "", 
+                                                  "_resource_mix" = ""))), 
+         pct_mix = pct_mix * 100)
+
+plot_srvc_mix <- 
+  ggplot(subregion_srvc_mix_2, aes(x = month, y = pct_mix, fill = fuel)) + 
+  geom_bar(stat = "identity") + 
+  ylab("Percent Mix")
+
+plotly::ggplotly(plot_srvc_mix) 
+
 ```
 :::

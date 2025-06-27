@@ -26,6 +26,7 @@ library(stringr)
 source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_region_aggregation.R")
+source("scripts/functions/function_save_output_data.R")
 
 # Check for params() --------
 if (!exists("params")) {
