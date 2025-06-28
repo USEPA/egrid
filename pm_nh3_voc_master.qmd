@@ -7,6 +7,7 @@ format:
   html:
     toc: true
     toc-expand: true
+    toc-depth: 2
     toc-location: left
     html-table-processing: none
     code-fold: true
@@ -14,101 +15,337 @@ execute:
   message: false
   warning: false
   results: hold
+  eval: false
 params:
   eGRID_year: "2021"
-  version: "1.0.1"
-  run_QA: TRUE
 
 editor: visual
 project: 
   execute_dir: project
 ---
 
-## Produce Unit Files
+# Overview
+
+This project includes all necessary scripts and documentation to create the Emissions & Generation Resource Integrated Database (eGRID) particulate matter (PM~2.5~), ammonia (NH~3~), and volatile organic compound (VOC) emission estimates.
+
+# Background
+
+eGRID is a comprehensive source of data from [EPA's Clean Air and Power Division (CAPD)](https://epa.gov/power-sector) on the environmental characteristics of almost all electric power generated in the United States. Currently, eGRID includes emissions data on carbon dioxide (CO~2~), nitrogen oxides (NO~X~), sulfur dioxide (SO~2~), methane (CH~4~), and nitrous oxide (N~2~O), but does not include PM~2.5~, NH~3~, and VOC emissions. The data used for emission calculations in eGRID is not available for PM~2.5~, NH~3~, and VOCs and is instead collected from the National Emissions Inventory (NEI).
+
+Here we use NEI data to determine PM~2.5~, NH~3~, and VOC emissions and emission rates as well as estimate emissions for units that may not report to the NEI.
+
+The final emissions datasets include four levels of data aggregation:
+
+-   **Unit**: A set of equipment that either produces electricity and is connected to the U.S electricity grid or a set of equipment that is connected to a generator which produces electricity and is connected to the U.S. electricity grid.
+
+-   **Plant**: A facility with one or more units and/or generators that provide power to the electric grid.
+
+-   **State**: U.S. states, Puerto Rico (PR), and the District of Columbia (DC).
+
+-   **eGRID subregion**: EPA defined subregions designed to limit the impacts of the import and export of electricity.
+
+-   **National U.S.**: Contains all 50 states, Puerto Rico (PR), and the District of Columbia (DC).
+
+Further information on the eGRID PM~2.5~, NH~3~, and VOC methodology can be found in the [Particulate Matter Emissions for eGRID2021](https://www.epa.gov/system/files/documents/2024-06/egrid2021-draft-pm-memo.pdf).
+
+The dataset that this code produces is publicly available [here](https://www.epa.gov/egrid/egrid-pm25).
+
+## Using the .qmd file
+
+This is a Quarto (.qmd) file that documents and runs the code necessary to create the eGRID PM~2.5~, NH~3~, and VOC datasets. This document can be used in two ways: First, when used within an IDE, such as RStudio, it serves as an enhanced master script, allowing users to easily perform each step necessary to create the eGRID PM~2.5~, NH~3~, and VOC data from within a single file. Second, when viewing as a rendered file, it provides thorough documentation of the steps involved in creating the emissiond data. When rendered, this file provides additional information and tools for navigating the project. The table of contents provides both a convenient look at the project structure and method for navigating the document. There are also hidden code chunks throughout, marked by a button ("Code" with an arrow next to it). Clicking this button reveals the underlying code from the R script that is being sourced in a given section.
+
+# Install Libraries and Set Parameters
+
+Before loading any data or beginning to construct the eGRID database, we install all necessary libraries used in subsequent scripts. Next, the eGRID year is defined, which controls which year of data is loaded from the raw data sources.
+
+## Install required libraries
+
+The script `install_libraries.R` detects all necessary libraries within the project using `renv::dependencies()`, checks for installation, and installs (if needed) and loads into the workspace.
+
+```{r}
+#| label: install-libraries.R
+#| file: "scripts/1_production_model/install_libraries.R"
+#| echo: false
+```
+
+```{r}
+#| label: load-packages
+#| echo: false
+
+library(docstring)
+library(dplyr)
+library(ggiraph)
+library(ggplot2)
+library(gt)
+library(gtExtras)
+library(kableExtra)
+library(knitr)
+library(patchwork)
+library(readxl)
+library(stringr)
+```
+
+## Define eGRID year
+
+The year of eGRID specified as the parameter "eGRID_year" within the YAML of the Quarto document. When a year value needs to be specified (e.g., when pulling relevant data from the CAMPD API), it is done so by calling `params$eGRID_year`.
+
+**Current year setting: `r params$eGRID_year`**
+
+## Load all helper functions
+
+There are a set of helper functions used throughout the project. These are defined in the folder `scripts/functions`. The `docstring` package is used to provide documentation for functions, similar to typical package documentation. To view the documentation for a given function, run `docstring({function_name})`
+
+```{r}
+#| label: load-functions
+#| echo: false
+
+# sourcing each file in functions folder
+functions <- list.files("scripts/functions")
+purrr::walk(paste0("scripts/functions/", functions), ~ source(.x))
+```
+
+::: panel-tabset
+### Overview
+
+*Click on the tab to view the helper function names.*
+
+### Helper Functions
+
+```{r}
+#| label: list-functions
+#| echo: false
+
+# listing function names
+kable(stringr::str_remove(stringr::str_remove(functions, ".R"), "function_"),
+      col.names = c("Helper Functions")) %>%
+            kable_styling(full_width = F)
+```
+:::
+
+# Load Data
+
+## NEI
+
+Document the difference between publically-available NEI data and the data we are using
+
+Discuss how one might download it
+
+## EIA
+
+The U.S. Energy Information Administration (EIA), a part of the Department of Energy, collects and maintains energy-related data for policy making and for the public. We are using the same EIA data used in eGRID. If this data has not been downloaded previously, we can run the eGRID scripts to properly download and clean this data.
+
+As of 2024, the EIA API does not contain the most detailed data available, which is necessary for the construction of eGRID. More detailed data for the EIA forms [923](https://www.eia.gov/electricity/data/eia923/), [860](https://www.eia.gov/electricity/data/eia860/), and [861](https://www.eia.gov/electricity/data/eia861/) are available as zipped excel file downloads on the EIA website. `data_load_eia.R` creates a new folder in the project folder called "raw_data". The zip files for each of the forms are downloaded and unzipped within this newly created folder. Each excel file contains several sheets that serve as the raw EIA data sources used to create eGRID.
+
+```{r}
+#| label: data-load-eia
+#| file: "scripts/1_production_model/data_load_eia.R"
+#| error: false
+#| echo: fenced
+```
+
+The tables within EIA Files and Sheets display each of the unzipped raw files across the three EIA forms, including the sheets embedded within. Here we are interested only in the EIA-923 Data.
+
+```{r}
+#| label: custom-gt-print
+#| echo: false
+
+knit_print.gt <- function(x, ...) {
+  stringr::str_c("<div style='all:initial;'>\n", gt::as_raw_html(x), "\n</div>") %>%
+    knitr::asis_output()
+}
+registerS3method("knit_print", "gt_tbl", knit_print.gt, envir = asNamespace("gt"))
+```
+
+```{r}
+#| label: create-eia-sheets-list
+
+sheets_923  <- get_sheets("923")
+tab_923  <- make_sheets_table(sheets_923, "923") 
+ 
+sheets_used923 <-   c("Page 1 Generation and Fuel Data", # eia-923
+                      "Page 1 Puerto Rico",
+                      "Page 3 Boiler Fuel Data",
+                      "Page 4 Generator Data",
+                      "8C Air Emissions Control Info")
+
+```
+
+#### EIA Files and Sheets {#eia-files-sheets}
+
+::::::: panel-tabset
+#### Overview
+
+*Click through the tabs above to view files represented from each EIA source.*
+
+**EIA-923**: Data reported on fuel consumption and generation
+
+#### EIA-923
+
+```{r}
+#| label: print-eia-923-sheets
+#| tbl-cap: "EIA-923 sheets"
+#| echo: false
+
+tab_923
+```
+
+:::::::
+
+## EIA-NEI Crosswalk
+
+Describe EIA-NEI crosswalk here Determine where we get this data
+
+```{r}
+#| label: create-xwalk-summary
+#| 
+```
+
+
+
+# Produce Data
+
+## Unit Files
+
+This script will produce unit file for PM~2.5~, NH~3~, and VOC emissions.
 
 ```{r}
 #| label: unit-files-create
-#| file: "scripts/2b_pm_nh3_voc/unit_file_create_pm_nh3_voc.R"
+#| file: "scripts/2a_pm_nh3_voc/unit_file_create_pm_nh3_voc.R"
 #| message: FALSE
 ```
 
-## Produce Plant Files
+```{r}
+#| label: unit-file-table
+#| include: false
+
+unit_file_pm25 <- readr::read_rds(
+           glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_pm25.RDS"))
+```
+
+### View Unit File Data
+
+::::: panel-tabset
+#### Overview
+
+*Click through the tabs above to preview data contained within the unit file.*
+
+#### Data Summary
+
+```{r}
+#| label: unit-file-summary
+
+create_summary_table(unit_file_pm25)
+```
+
+:::::
+
+## Plant Files
+
+The plant file aggregates the unit data at the plant level using the eGRID dataseta and calcualtes () describe what it calculates
 
 ```{r}
 #| label: plant-files-create
-#| file: "scripts/2b_pm_nh3_voc/plant_file_create_pm_nh3_voc.R"
+#| file: "scripts/2a_pm_nh3_voc/plant_file_create_pm_nh3_voc.R"
 #| message: FALSE
 ```
 
-## Produce Regional Aggregation Files
+```{r}
+#| label: plant-file-table
+#| include: false
 
--   State
--   Subregion
--   U.S.
+plant_file_pm25 <- readr::read_rds(
+           glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/plant_file_pm25.RDS"))
+```
+
+### View Plant File Data
+
+::: panel-tabset
+#### Overview
+
+*Click through the tabs above to preview data contained within the plant file.*
+
+#### Data Summary
+
+```{r}
+#| label: plant-file-summary
+
+create_summary_table(plant_file_pm25)
+```
+
+:::
+
+## Region Aggregation Files
+
+The plant file (`plant_file_pm25.RDS`) is aggregated to calculate the heat input, emissions, generation, fuel-based net generation, resource mix, and nameplate capacity from the plant-level data to the various aggregated levels: state (ST), balancing authority (BA), eGRID subregion (SRL), NERC region (NRL), and US level.
+
+The aggregated files also calculate region specific output, input, combustion output, fuel-specific output, fuel-specific input, and nonbaseload output emissions rates. The aggregated level resource mix is estimated based on the summed generation by fuel values from the plant file. The nonbaseload generation is estimated by fuel type and resource mix.
 
 ```{r}
 #| label: regional-aggregation-files-create
-#| file: "scripts/2b_pm_nh3_voc/region_aggregation_create_pm_nh3_voc.R"
+#| file: "scripts/2a_pm_nh3_voc/region_aggregation_create_pm_nh3_voc.R"
 #| message: FALSE
 ```
+
+```{r}
+#| label: load-reg-agg-files
+#| echo: false
+
+st_agg  <- read_rds(
+        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/state_aggregation_pm25.RDS"))
+srl_agg <- read_rds(
+        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_pm25.RDS"))
+us_agg  <- read_rds(
+        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/us_aggregation_pm25.RDS"))
+```
+
+## View Aggregation Files Data
+
+::: panel-tabset
+#### Overview
+
+*Click through the tabs above to preview data for each region aggregation.*
+
+**ST**: State Aggregation
+
+**SRL**: Subregion Aggregation
+
+**US**: U.S. Aggregation
+
+#### ST
+
+```{r}
+#| label: st-agg-summary
+
+create_summary_table(st_agg)
+```
+
+#### SRL
+
+```{r}
+#| label: srl-agg-summary
+
+create_summary_table(srl_agg)
+```
+
+#### US
+
+```{r}
+#| label: us-agg-summary
+
+create_summary_table(us_agg)
+```
+:::
 
 # Produce Final Dataset
 
+The data is formatted into an Excel file that contains all eight levels of data aggregation. For headers, we add descriptions and label conventions to maintain consistency with previous eGRID releases. Formatting is applied for both imperial unit version and the metric unit version.
+
+The final output file is `r glue::glue("egrid{params$eGRID_year}_data.xlsx")`.
+
 ```{r}
 #| label: final-formatting
-#| file: "scripts/2b_pm_nh3_voc/final_formatting_pm_nh3_voc.R"
+#| file: "scripts/2a_pm_nh3_voc/final_formatting_pm_nh3_voc.R"
 #| message: FALSE
 ```
 
-# Run QA : Optional
-
-## Unit File QA
-
-```{r}
-#| label: unit-file-qa
-
-if (params$run_QA) {
-  source("scripts/qa/access_R_qa/unit_pm_nh3_voc_qa_access_R.R")
-}
-```
-
-## Plant File QA
-
-```{r}
-#| label: plant-file-qa
-
-if (params$run_QA) {
-  source("scripts/qa/access_R_qa/plant_pm_nh3_voc_qa_access_R.R")
-}
-```
-
-## State File QA
-
-```{r}
-#| label: state-file-qa
-
-if (params$run_QA) {
-  source("scripts/qa/access_R_qa/state_pm_nh3_voc_qa_access_R.R")
-}
-```
-
-## Subregion File QA
-
-```{r}
-#| label: subregion-file-qa
-
-if (params$run_QA) {
-  source("scripts/qa/access_R_qa/subregion_pm_nh3_voc_qa_access_R.R")
-}
-```
-
-## Unit Emissions Source QA
-
-```{r}
-#| label: unit-emissions-source-qa
-#| message: FALSE
-
-if (params$run_QA) {
-  source("scripts/qa/access_R_qa/unit_summary_emission_source.R")
-}
-```
+# we could at some point show the subregion plots as well
