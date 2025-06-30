@@ -39,9 +39,6 @@ if (!exists("params")) {
 # Load in data ------------------------------
 
 # load files
-# unt_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/unit_file_monthly.RDS"))
-# gen_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/generator_file_monthly.RDS"))
-# plnt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/plant_file_monthly.RDS"))
 st_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/state_aggregation_monthly.RDS"))
 ba_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/ba_aggregation_monthly.RDS"))
 srl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/subregion_aggregation_monthly.RDS"))
@@ -67,7 +64,7 @@ year <- as.numeric(params$eGRID_year) %% 1000
 ### Note: check for updates or changes each data year ###
 wb <- createWorkbook()
 # source("scripts/functions/function_create_contents_egrid_final.R")
-# create_contents_egrid_final()
+# create_contents_egrid_final(temporal_res = "monthly")
 
 # vector for month names
 month_abbr_lower <- month.abb
@@ -82,6 +79,39 @@ source("scripts/functions/function_add_hyperlink.R")
 
 # create eGRID output style list using function
 s <- create_format_styles()
+
+style_map <- c(
+ "HTIT"   = "color1", # keep has color1 or do just 1?
+ "NGEN"   = "color1",
+ "NGENNB" = "color1",
+ "NOX"    = "color1",
+ "SO2"    = "color1",
+ "CH4"    = "color1",
+ "N2O"    = "color1",
+ "CO2EQA" = "color1",
+ "HG"     = "color1",
+ "NOXRT"  = "color4",
+ "SO2RT"  = "color4",
+ "CO2RT"  = "color4",
+ "CH4RT"  = "color4",
+ "N2ORT"  = "color4",
+ "C2ERT"  = "color4",
+ "HGRT"   = "color4",
+ "NOXR"   = "color5",
+ "SO2R"   = "color5",	
+ "CO2R"   = "color5",
+ "CH4R"   = "color5",	
+ "N2OR"   = "color5",	
+ "C2ER"   = "color5",	
+ "HGR"    = "color5",	
+ "NBNOX"  = "color15",	
+ "NBSO2"  = "color15",	
+ "NBCO2"  = "color15",
+ "NBCH4"  = "color15",	
+ "NBN2O"  = "color15",	
+ "NBC2E"  = "color15",	
+ "NBHG"   = "color15"
+)
 
 # Standard Column Names -----------------------------
 # names for data sets: ST, BA, SRL, NRL, US
@@ -116,7 +146,6 @@ standard_labels <- c(
                      "N2OR"   = "N2O input emission rate (lb/MMBtu)",	
                      "C2ER"   = "CO2 equivalent input emission rate (lb/MMBtu)",	
                      "HGR"    = "Hg input emission rate (lb/MMBtu)",	
-                     "NOXCRT" = "annual NOx combustion output emission rate (lb/MWh)",
                      "NBNOX"  = "NOx non-baseload output emission rate (lb/MWh)",	
                      "NBSO2"  = "SO2 non-baseload output emission rate (lb/MWh)",	
                      "NBCO2"  = "CO2 non-baseload output emission rate (lb/MWh)",
@@ -179,10 +208,6 @@ for (j in 1:length(file_names)){
   
 }
 
-
-
-
-
 # ST Formatting --------------------------------------
 
 ## create "ST" sheet
@@ -234,7 +259,8 @@ st_file_ann_formatted <- st_file_ann %>%
                          select(all_of(paste0("ST", as.matrix(standard_header_ann)))) %>%
                          rename_with(~ paste0(., "_ANNUAL"))
 
-st_file_ann_desc <- colnames(rename_variables(st_file_ann_formatted, all_labels_annual_list[["ST"]]))
+st_file_ann_desc <- rename_variables(st_file_ann_formatted, all_labels_annual_list[["ST"]]) %>%
+                    colnames()
                                        
 
 # check if shorthand names match name_matching.R and stop if not. 
@@ -255,19 +281,34 @@ st_file_ann_desc <- colnames(rename_variables(st_file_ann_formatted, all_labels_
 #              "FIPS State code",
 #              paste0("State ", standard_desc))
 
-## write data
-# write data for first row only
+## write monthly data
+# write monthly descriptions for first row only
 writeData(wb,
           sheet = st,
           t(st_file_desc),
           startRow = 1,
           colNames = FALSE)
 
-# write data to sheet
+# write monthly data to sheet
 writeData(wb,
           sheet = st,
           st_file_formatted,
           startRow = 2)
+
+## write annual data
+writeData(wb,
+          sheet = st,
+          t(st_file_ann_desc),
+          startRow = 1,
+          startCol = length(st_file_formatted)+1,
+          colNames = FALSE)
+
+writeData(wb,
+          sheet = st,
+          st_file_ann_formatted,
+          startRow = 2,
+          startCol = length(st_file_formatted)+1)
+
 
 ## add styles to document
 # format_region(st, st_rows)
@@ -319,6 +360,15 @@ ba_desc <- c("Data Year" = "YEAR",
 
 ba_file_desc <- colnames(rename_variables(ba_file_formatted, ba_desc))
 
+ba_file_ann <- rename_variables(ba_file_ann, ba_nonmetric_annual)
+
+ba_file_ann_formatted <- ba_file_ann %>%
+  select(all_of(paste0("BA", as.matrix(standard_header_ann)))) %>%
+  rename_with(~ paste0(., "_ANNUAL"))
+
+ba_file_ann_desc <- rename_variables(ba_file_ann_formatted, all_labels_annual_list[["BA"]]) %>%
+  colnames()
+
 # check if shorthand names match name_matching.R and stop if not. 
 # ba_check_cols <- c()
 # for (i in 1:length((ba_header))) { 
@@ -337,19 +387,34 @@ ba_file_desc <- colnames(rename_variables(ba_file_formatted, ba_desc))
 #              "Balancing Authority Code",
 #              paste0("BA ", standard_desc))
 
-## write data
-# write data for first row only
+## write monthly data
+# write monthly descriptions for first row only
 writeData(wb,
           sheet = ba,
           t(ba_file_desc),
           startRow = 1,
           colNames = FALSE)
 
-# write data to sheet
+# write monthly data to sheet
 writeData(wb, 
           sheet = ba, 
           ba_file_formatted,
           startRow = 2)
+
+## write annual data
+writeData(wb,
+          sheet = ba,
+          t(ba_file_ann_desc),
+          startRow = 1,
+          startCol = length(ba_file_formatted)+1,
+          colNames = FALSE)
+
+writeData(wb,
+          sheet = ba,
+          ba_file_ann_formatted,
+          startRow = 2,
+          startCol = length(ba_file_formatted)+1)
+
 
 ## add styles to document
 # format_region(ba, ba_rows)
@@ -394,6 +459,15 @@ srl_file_formatted <- srl_file %>%
   mutate(MONTH = month_abbr_upper[MONTH]) %>%
   pivot_wider(names_from = MONTH, values_from = all_of(srl_file_wider_cols))
 
+srl_file_ann <- rename_variables(srl_file_ann, subregion_nonmetric_annual)
+
+srl_file_ann_formatted <- srl_file_ann %>%
+  select(all_of(paste0("SR", as.matrix(standard_header_ann)))) %>%
+  rename_with(~ paste0(., "_ANNUAL"))
+
+srl_file_ann_desc <- rename_variables(srl_file_ann_formatted, all_labels_annual_list[["SR"]]) %>%
+  colnames()
+
 # check if shorthand names match name_matching.R and stop if not. 
 # subregion_check_cols <- c()
 # for (i in 1:length((srl_header))) { 
@@ -420,19 +494,33 @@ srl_desc <- c("Data Year" = "YEAR",
 
 srl_file_desc <- colnames(rename_variables(srl_file_formatted, srl_desc))
 
-## write data
-# write data for first row only
+## write monthly data
+# write dmonthly ata for first row only
 writeData(wb,
           sheet = srl,
           t(srl_file_desc),
           startRow = 1,
           colNames = FALSE)
 
-# write data to sheet
+# write monthly data to sheet
 writeData(wb, 
           sheet = srl, 
           srl_file_formatted,
           startRow = 2)
+
+## write annual data
+writeData(wb,
+          sheet = srl,
+          t(srl_file_ann_desc),
+          startRow = 1,
+          startCol = length(srl_file_formatted)+1,
+          colNames = FALSE)
+
+writeData(wb,
+          sheet = srl,
+          srl_file_ann_formatted,
+          startRow = 2,
+          startCol = length(srl_file_formatted)+1)
 
 ## add styles to document
 # format_region(srl, srl_rows)
@@ -502,19 +590,42 @@ nrl_desc <- c("Data Year" = "YEAR",
 
 nrl_file_desc <- colnames(rename_variables(nrl_file_formatted, nrl_desc))
 
-## write data
-# write data for first row only
+nrl_file_ann <- rename_variables(nrl_file_ann, nerc_nonmetric_annual)
+
+nrl_file_ann_formatted <- nrl_file_ann %>%
+  select(all_of(paste0("NR", as.matrix(standard_header_ann)))) %>%
+  rename_with(~ paste0(., "_ANNUAL"))
+
+nrl_file_ann_desc <- rename_variables(nrl_file_ann_formatted, all_labels_annual_list[["NR"]]) %>%
+  colnames()
+
+## write monthly data
+# write monthly description for first row only
 writeData(wb,
           sheet = nrl,
           t(nrl_file_desc),
           startRow = 1,
           colNames = FALSE)
 
-# write data to sheet
+# write monthly data to sheet
 writeData(wb, 
           sheet = nrl, 
           nrl_file_formatted,
           startRow = 2)
+
+## write annual data
+writeData(wb,
+          sheet = nrl,
+          t(nrl_file_ann_desc),
+          startRow = 1,
+          startCol = length(nrl_file_formatted)+1,
+          colNames = FALSE)
+
+writeData(wb,
+          sheet = nrl,
+          nrl_file_ann_formatted,
+          startRow = 2,
+          startCol = length(nrl_file_formatted)+1)
 
 ## add styles to document
 # format_region(nrl, nrl_rows)
@@ -577,8 +688,17 @@ us_desc <- c("Data Year" = "YEAR",
 
 us_file_desc <- colnames(rename_variables(us_file_formatted, us_desc))
 
-## write data
-# write data for first row only
+us_file_ann <- rename_variables(us_file_ann, us_nonmetric_annual)
+
+us_file_ann_formatted <- us_file_ann %>%
+  select(all_of(paste0("US", as.matrix(standard_header_ann)))) %>%
+  rename_with(~ paste0(., "_ANNUAL"))
+
+us_file_ann_desc <- rename_variables(us_file_ann_formatted, all_labels_annual_list[["US"]]) %>%
+  colnames()
+
+## write monthly data
+# write monthly description for first row only
 writeData(wb,
           sheet = us,
           t(us_file_desc),
@@ -591,242 +711,22 @@ writeData(wb,
           us_file_formatted,
           startRow = 2)
 
+## write annual data
+writeData(wb,
+          sheet = us,
+          t(us_file_ann_desc),
+          startRow = 1,
+          startCol = length(us_file_formatted)+1,
+          colNames = FALSE)
+
+writeData(wb,
+          sheet = us,
+          us_file_ann_formatted,
+          startRow = 2,
+          startCol = length(us_file_formatted)+1)
+
 ## add styles to document
 # format_region(us, us_rows)
-
-# GGL Formatting --------------------------------------------
-
-## create "GGL" sheet
-# ggl <- glue::glue("GGL{year}")
-# addWorksheet(wb, ggl)
-# 
-# # convert year to numeric value
-# ggl_file <- ggl_file %>%
-#   mutate(year = as.numeric(year))
-# 
-# 
-# ## column names and descriptions
-# ggl_labels <- c("YEAR"     = "Data Year",
-#                 "REGION"   = "One of the three interconnect power grids in the U.S. (plus Alaska, Hawaii, and the entire U.S.)",
-#                 "ESTLOSS"  = "Estimated losses (MWh)",
-#                 "TOTDISP"  = "Total disposition (MWh) without exports",
-#                 "DIRCTUSE" = "Direct use (MWh)",
-#                 "GGRSLOSS" = "Grid gross loss [Estimated losses/(Total disposition without exports - Direct use)]")
-# 
-# # check if shorthand names match name_matching.R and stop if not. 
-# ggl_check_cols <- c()
-# for (i in 1:length(names(ggl_labels))) { # skip SEQUNT since this will always be different
-#   if (names(ggl_labels)[i] != names(ggl_nonmetric)[i]) { 
-#     ggl_check_cols <- c(ggl_check_cols, names(ggl_labels)[i]) }} 
-# 
-# if (!is.null(ggl_check_cols)){ 
-#   stop(print(glue::glue("These columns do not match name_matching.R ggl_nonmetric: {glue::glue_collapse(ggl_check_cols, sep = ', ')}. Check for errors.")))
-# } else {
-#   print("All shorthand columns match name_matching.R ggl_nonmetric.")
-# }
-# 
-# ggl_header <- names(ggl_labels)  # column names
-# ggl_desc   <- unname(ggl_labels) # description of column names
-# 
-# # add new column names
-# colnames(ggl_file) <- ggl_header
-# 
-# ## write data
-# # write data for first row only
-# writeData(wb, 
-#           sheet = ggl, 
-#           t(ggl_desc), 
-#           startRow = 1, 
-#           colNames = FALSE)
-# 
-# # write data to sheet
-# writeData(wb, 
-#           sheet = ggl, 
-#           ggl_file,
-#           startRow = 2)
-# 
-# ## add styles to document
-# # add description styles
-# addStyle(wb, sheet = ggl, style = s[['desc_style']], rows = 1, cols = 1:6, gridExpand = TRUE)
-# 
-# # add header style
-# addStyle(wb, sheet = ggl, style = s[['header_style']], rows = 2, cols = 1:6, gridExpand = TRUE)
-# 
-# # set column widths
-# setColWidths(wb, sheet = ggl, cols = 1,   widths = 10)
-# setColWidths(wb, sheet = ggl, cols = 2,   widths = 21.29)
-# setColWidths(wb, sheet = ggl, cols = 3:5, widths = 11.14)
-# setColWidths(wb, sheet = ggl, cols = 6,   widths = 23)
-# 
-# # set row heights
-# setRowHeights(wb, sheet = ggl, row = 1, heights = 60.75)
-# 
-# # add number styles
-# addStyle(wb, sheet = ggl, style = s[['integer']], rows = 3:7, cols = 3:5, gridExpand = TRUE)
-# addStyle(wb, sheet = ggl, style = s[['percent']], rows = 3:7, cols = 6,   gridExpand = TRUE)
-# 
-# # add number styles (bold)
-# addStyle(wb, sheet = ggl, style = s[['integer_bold']], rows = 8, cols = 3:5, gridExpand = TRUE)
-# addStyle(wb, sheet = ggl, style = s[['percent_bold']], rows = 8, cols = 6,   gridExpand = TRUE)
-# 
-# # add text styles
-# addStyle(wb, sheet = ggl, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpand = TRUE)
-# addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
-
-# DEMO Formatting -------------------------------------------
-# only build demographics file if the file exists in outputs
-# this is because pulling data from the EJScreen API to build the demographics file takes several hours
-# if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
-#   
-#   ## create "DEMO" sheet
-#   demo <- glue::glue("DEMO{year}")
-#   addWorksheet(wb, demo)
-#   
-#   # convert year to numeric value
-#   demo_file <- 
-#     demo_file %>%
-#     mutate(year = as.numeric(year))
-#   
-#   demo_rows <- nrow(demo_file) + 2
-#   
-#   ## column names and descriptions
-#   demo_labels <- c("SEQPLT"              = "Plant file sequence number",
-#                    "YEAR"                = "Data Year",
-#                    "PSTATABB"            = "Plant state abbreviation",
-#                    "PNAME"               = "Plant name",
-#                    "ORISPL"              = "DOE/EIA ORIS plant or facility code",
-#                    "LAT"                 = "Plant latitude",
-#                    "LON"                 = "Plant longitude",
-#                    "PLPRMFL"             = "Plant primary fuel", 
-#                    "PLFUELCT"            = "Plant primary fuel category",
-#                    "NAMEPCAP"            = "Plant nameplate capacity (MW)",
-#                    "COALFLAG"            = "Flag indicating if the plant burned or generated any amount of coal",
-#                    "TOTALPOP"            = "Total Population", 
-#                    "RAW_D_PEOPCOLOR"     = "People of Color (%)",
-#                    "RAW_D_INCOME"        = "Low Income (%)",
-#                    "RAW_D_LESSHS"        = "Less Than High School Education (%)",
-#                    "RAW_D_LING"          = "Limited English Speaking (%)",
-#                    "RAW_D_UNDER5"        = "Under Age 5 (%)",
-#                    "RAW_D_OVER64"        = "Over Age 64 (%)",
-#                    "RAW_D_UNEMPLOYED"    = "Unemployment Rate (%)",
-#                    "RAW_D_LIFEEXP"       = "Limited Life Expectancy (%)",
-#                    "RAW_D_DEMOGIDX2"     = "Demographic Index",
-#                    "RAW_D_DEMOGIDX5"     = "Supplemental Demographic Index",
-#                    "RAW_D_DEMOGIDX2ST"   = "State Demographic Index",
-#                    "RAW_D_DEMOGIDX5ST"   = "State Supplemental Demographic Index",
-#                    "S_D_PEOPCOLOR"       = "State Average of People of Color (%)",
-#                    "S_D_INCOME"          = "State Average of Low Income (%)",
-#                    "S_D_LESSHS"          = "State Average of Less Than High School Education (%)",
-#                    "S_D_LING"            = "State Average of Limited English Speaking (%)",
-#                    "S_D_UNDER5"          = "State Average of Under Age 5 (%)",
-#                    "S_D_OVER64"          = "State Average of Over Age 64 (%)", 
-#                    "S_D_UNEMPLOYED"      = "State Average of Unemployment Rate (%)",
-#                    "S_D_LIFEEXP"         = "State Average of Limited Life Expectancy (%)",
-#                    "S_D_DEMOGIDX2ST"     = "State Average of Demographic Index",
-#                    "S_D_DEMOGIDX5ST"     = "State Average of Supplemental Demographic Index",
-#                    "S_D_PEOPCOLOR_PER"   = "State Percentile of People of Color", 
-#                    "S_D_INCOME_PER"      = "State Percentile of Low Income",
-#                    "S_D_LESSHS_PER"      = "State Percentile of Less Than High School Education",
-#                    "S_D_LING_PER"        = "State Percentile of Limited English Speaking",
-#                    "S_D_UNDER5_PER"      = "State Percentile of Under Age 5",
-#                    "S_D_OVER64_PER"      = "State Percentile of Over Age 64",
-#                    "S_D_UNEMPLOYED_PER"  = "State Percentile of Unemployment Rate",
-#                    "S_D_LIFEEXP_PER"     = "State Percentile of Limited Life Expectancy",        
-#                    "S_D_DEMOGIDX2ST_PER" = "State Percentile of Demographic Index",                                                 
-#                    "S_D_DEMOGIDX5ST_PER" = "State Percentile of Supplemental Demographic Index",
-#                    "N_D_PEOPCOLOR"       = "National Average of People of Color (%)",
-#                    "N_D_INCOME"          = "National Average of Low Income (%)",
-#                    "N_D_LESSHS"          = "National Average of Less Than High School Education (%)",
-#                    "N_D_LING"            = "National Average of Limited English Speaking (%)",
-#                    "N_D_UNDER5"          = "National Average of Under Age 5 (%)",
-#                    "N_D_OVER64"          = "National Average of Over Age 64 (%)",
-#                    "N_D_UNEMPLOYED"      = "National Average of Unemployment Rate (%)",
-#                    "N_D_LIFEEXP"         = "National Average of Limited Life Expectancy (%)",
-#                    "N_D_DEMOGIDX2"       = "National Average of Demographic Index",
-#                    "N_D_DEMOGIDX5"       = "National Average of Supplemental Demographic Index",
-#                    "N_D_MINOR_PER"       = "National Percentile of People of Color",
-#                    "N_D_INCOME_PER"      = "National Percentile of Low Income",
-#                    "N_D_LESSHS_PER"      = "National Percentile of Less Than High School Education",
-#                    "N_D_LING_PER"        = "National Percentile of Limited English Speaking",
-#                    "N_D_UNDER5_PER"      = "National Percentile of Under Age 5",
-#                    "N_D_OVER64_PER"      = "National Percentile of Over Age 64",
-#                    "N_D_UNEMPLOYED_PER"  = "National Percentile of Unemployment Rate",
-#                    "N_D_LIFEEXP_PER"     = "National Percentile of Limited Life Expectancy",
-#                    "N_D_DEMOGIDX2_PER"   = "National Percentile of Demographic Index",
-#                    "N_D_DEMOGIDX5_PER"   = "National Percentile of Supplemental Demographic Index",
-#                    "DISTANCE"            = "Distance (miles)")
-#   
-#   demo_header <- names(demo_labels)  # column names
-#   demo_desc   <- unname(demo_labels) # description of column names
-#   
-#   # add new column names
-#   colnames(demo_file) <- demo_header
-#   
-#   ## write data
-#   # write data for first row only
-#   writeData(wb, 
-#             sheet = demo, 
-#             t(demo_desc), 
-#             startRow = 1, 
-#             colNames = FALSE)
-#   
-#   # write data to sheet
-#   writeData(wb, 
-#             sheet = demo, 
-#             demo_file,
-#             startRow = 2)
-#   
-#   ## add styles to document
-#   # add description styles
-#   addStyle(wb, sheet = demo, style = s[['desc_style']], rows = 1, cols = 1:65, gridExpand = TRUE)
-#   
-#   # add header style
-#   addStyle(wb, sheet = demo, style = s[['header_style']], rows = 2, cols = 1:65, gridExpand = TRUE)
-#   
-#   # set column widths
-#   setColWidths(wb, sheet = demo, cols = 1:2,     widths = 12.71)
-#   setColWidths(wb, sheet = demo, cols = 3,       widths = 12.43)
-#   setColWidths(wb, sheet = demo, cols = 4,       widths = 34.71)
-#   setColWidths(wb, sheet = demo, cols = 5:10,    widths = 12.45)
-#   setColWidths(wb, sheet = demo, cols = 11,      widths = 12.55)
-#   setColWidths(wb, sheet = demo, cols = 12,      widths = 13)
-#   setColWidths(wb, sheet = demo, cols = 13,      widths = 18)
-#   setColWidths(wb, sheet = demo, cols = 14:18,   widths = 13)
-#   setColWidths(wb, sheet = demo, cols = 19,      widths = 17.18)
-#   setColWidths(wb, sheet = demo, cols = 20,      widths = 13)
-#   setColWidths(wb, sheet = demo, cols = 21:22,   widths = 15.55)
-#   setColWidths(wb, sheet = demo, cols = 23:24,   widths = 17.64)
-#   setColWidths(wb, sheet = demo, cols = 25:29,   widths = 13.84)
-#   setColWidths(wb, sheet = demo, cols = 30:34,   widths = 15)
-#   setColWidths(wb, sheet = demo, cols = 35,      widths = 18)
-#   setColWidths(wb, sheet = demo, cols = 36:40,   widths = 15)
-#   setColWidths(wb, sheet = demo, cols = 41,      widths = 18.57)
-#   setColWidths(wb, sheet = demo, cols = 42,      widths = 15)
-#   setColWidths(wb, sheet = demo, cols = 43:44,   widths = 18.86)
-#   setColWidths(wb, sheet = demo, cols = 45:60,   widths = 15)
-#   setColWidths(wb, sheet = demo, cols = 61,      widths = 20)
-#   setColWidths(wb, sheet = demo, cols = 62,      widths = 15)
-#   setColWidths(wb, sheet = demo, cols = 63:64,   widths = 18.29)
-#   setColWidths(wb, sheet = demo, cols = 65,      widths = 15)
-#   
-#   # set row heights
-#   setRowHeights(wb, sheet = demo, row = 1, heights = 67.5)
-#   
-#   # add number styles
-#   addStyle(wb, sheet = demo, style = s[['integer']],   rows = 3:demo_rows, cols = 12:20,  gridExpand = TRUE)
-#   addStyle(wb, sheet = demo, style = s[['decimal5']],  rows = 3:demo_rows, cols = 21:24,  gridExpand = TRUE)
-#   addStyle(wb, sheet = demo, style = s[['integer']],   rows = 3:demo_rows, cols = 25:32,  gridExpand = TRUE)
-#   addStyle(wb, sheet = demo, style = s[['decimal5']],  rows = 3:demo_rows, cols = 33:34,  gridExpand = TRUE)
-#   addStyle(wb, sheet = demo, style = s[['integer']],   rows = 3:demo_rows, cols = 35:52,  gridExpand = TRUE)
-#   addStyle(wb, sheet = demo, style = s[['decimal5']],  rows = 3:demo_rows, cols = 53:54,  gridExpand = TRUE)
-#   addStyle(wb, sheet = demo, style = s[['integer']],   rows = 3:demo_rows, cols = 55:65,  gridExpand = TRUE)
-#   
-#   # add text styles
-#   addStyle(wb, sheet = demo, style = s[['basic']], rows = 3:demo_rows, cols = 1:11, gridExpand = TRUE)
-#   
-#   # freeze panes
-#   freezePane(wb, sheet = demo, firstActiveCol = 6, firstActiveRow = 3)
-# }
 
 
 # Contents Formatting -----------------------------------------

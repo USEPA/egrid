@@ -11,13 +11,14 @@
 ##
 ## -------------------------------
 
-create_contents_egrid_final <- function(year = params$eGRID_year) {
+create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res = params$temporal_res) {
   
   #' create_contents_egrid_final
   #' 
   #' Function to create and format contents sheet for final excel file.
   #' 
   #' @param year The year of eGRID data used for formatting. 
+  #' @param temporal_res The temporal resolution for formatting mode. 
   #' 
   #' @return One new excel sheet added to the preexisting workbook with a table 
   #'         of contents, feedback, color coding legend, notes, and conversion
@@ -94,6 +95,15 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
     "#B1A0C7",
     "#60497A")
   
+  if (temporal_res == "monthly") {
+    color_coding <- c(
+      "#F2DCDB",
+      "#EBF1DE",
+      "#C4D79B",
+      "#E4DFEC"
+    )
+  }
+  
   # Write data for sections -----------
   
   ## Main title ---------
@@ -143,6 +153,18 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
     "U.S.",
     "Grid Gross Loss (%)")
   
+  if (temporal_res == "monthly") {
+    sheet_names <- c(
+      "Plant",
+      "State",
+      "Balancing authority area",
+      "eGRID subregion",
+      "NERC region",
+      "U.S."
+    )
+  }
+  
+  
   table_of_contents_descrip <- append(
     paste(sheet_names, glue::glue("year {year} data")),
     glue::glue("Surrounding demographic data for eGRID{year} plants"))
@@ -166,7 +188,7 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
     "Unadjusted Annual Values (emissions, and heat input)",						
     "Adjustment Values (emissions, heat input, heat rate)",						
     "Output Emission Rates (emissions per MWh)",						
-    "Input Emission rates (emissions per MMBtu)",						
+    "Input Emission Rates (emissions per MMBtu)",						
     "Combustion Output Rates (emissions per MWh)",						
     "Generation by Fuel Type (MWh)",						
     "Renewable and Non-Renewable Generation (MWh)",						
@@ -179,6 +201,15 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
     "Nonbaseload Output Emission Rates (emissions per MWh)",						
     "Nonbaseload Generation by Fuel Type (MWh)",						
     "Nonbaseload Resource Mix (percentages)")
+  
+  if (temporal_res == "monthly") {
+    c(
+      "Annual Values (generation, emissions, and heat input)",
+      "Output Emission Rates (emissions per MWh)",
+      "Input Emission Rates (emissions per MMBtu)",
+      "Nonbaseload Output Emission Rates (emissions per MWh)"
+    )
+  }
   
   category_labeled <- paste0(1:length(category_names), paste(")", category_names))
   
@@ -222,6 +253,18 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
     start_rows[5] + 6)
   start_cols <- 2
   sheetWidth <- start_cols + 9
+  
+  if (temporal_res == "monthly"){
+    start_rows <- c(2, 16, 20, 27, 32)
+    end_rows <- c(
+      start_rows[1] + 12,
+      start_rows[2] + 2,
+      start_rows[3] + 5,
+      start_rows[4] + 3,
+      start_rows[5] + 6)
+    start_cols <- 2
+    sheetWidth <- start_cols + 9
+  }
 
   ## Add data ----------------
 

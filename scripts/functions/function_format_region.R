@@ -190,3 +190,45 @@ format_region <- function(region, reg_rows) {
   
   }
 }
+
+
+format_headers <- function(df, style_map) {
+  for (colname in names(df)) {
+    if (colname %in% names(style_map)) {
+      col_index <- which(names(df) == colname)
+      addStyle(
+        wb, 
+        sheet = "Data", 
+        style = style_map[[colname]], 
+        cols = col_index, 
+        rows = 2, 
+        gridExpand = TRUE
+      )
+    }
+  }
+}
+
+
+format_cols <- function(df, style_map) {
+  
+  # format names 
+  for (colname in names(df)) {
+    if (colname %in% names(style_map)) {
+      col_index <- which(names(df) == colname)
+      addStyle(
+        wb, 
+        sheet = "Data", 
+        style = style_map[[colname]], 
+        cols = col_index, 
+        rows = 2, 
+        gridExpand = TRUE
+      )
+    }
+  }
+  
+  # format descriptions
+  
+  # format text 
+  
+  # format widths and heights 
+}
