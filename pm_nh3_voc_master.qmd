@@ -52,11 +52,17 @@ The dataset that this code produces is publicly available [here](https://www.epa
 
 ## Using the .qmd file
 
-This is a Quarto (.qmd) file that documents and runs the code necessary to create the eGRID PM~2.5~, NH~3~, and VOC datasets. This document can be used in two ways: First, when used within an IDE, such as RStudio, it serves as an enhanced master script, allowing users to easily perform each step necessary to create the eGRID PM~2.5~, NH~3~, and VOC data from within a single file. Second, when viewing as a rendered file, it provides thorough documentation of the steps involved in creating the emissiond data. When rendered, this file provides additional information and tools for navigating the project. The table of contents provides both a convenient look at the project structure and method for navigating the document. There are also hidden code chunks throughout, marked by a button ("Code" with an arrow next to it). Clicking this button reveals the underlying code from the R script that is being sourced in a given section.
+This is a Quarto (.qmd) file that documents and runs the code necessary to create the eGRID PM~2.5~, NH~3~, and VOC datasets. This document can be used in two ways: First, when used within an IDE, such as RStudio, it serves as an enhanced master script, allowing users to easily perform each step necessary to create the eGRID PM~2.5~, NH~3~, and VOC data from within a single file.
+
+Second, when viewing as a rendered file, it provides thorough documentation of the steps involved in creating the emissions data. When rendered, this file provides additional information and tools for navigating the project. The table of contents provides both a convenient look at the project structure and method for navigating the document. There are also hidden code chunks throughout, marked by a button ("Code" with an arrow next to it). Clicking this button reveals the underlying code from the R script that is being sourced in a given section. Some of the code included in this document is from the eGRID production model while the main infrastructure is specific to PM~2.5~, NH~3~, and VOC emission calculations.
+
+## Data availiability
+
+Emissions data and crosswalks used in these calculations are from a version of EPA's NEI that are not publicly available and are therefore not included in this document. Information about the data inputs and the code used to produce the final data are included here to document the process and inform any need for replication. Meanwhile, those that do have access to the data inputs can use this document to produce the eGRID PM~2.5~, NH~3~, and VOC emissions datasets.
 
 # Install Libraries and Set Parameters
 
-Before loading any data or beginning to construct the eGRID database, we install all necessary libraries used in subsequent scripts. Next, the eGRID year is defined, which controls which year of data is loaded from the raw data sources.
+Before loading any data or beginning to construct the eGRID PM~2.5~, NH~3~, and VOC emissions datasets, we install all necessary libraries used in subsequent scripts. Next, the eGRID year is defined, which controls which year of data is loaded from the raw data sources.
 
 ## Install required libraries
 
@@ -122,19 +128,17 @@ kable(stringr::str_remove(stringr::str_remove(functions, ".R"), "function_"),
 ```
 :::
 
-# Load Data
+# Input Data
 
 ## NEI
 
-Document the difference between publically-available NEI data and the data we are using
-
-Discuss how one might download it
+NEI provides emission estimates for PM~2.5~, NH~3~, and VOC pollutants using the Emissions Inventory System (EIS) that aggregates pollutant data from a variety of state, local, and tribal data sources. A version of this data is provided to us annually while a publically-avaliable version is released every three years. You can [read more](https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei) about NEI data and [download](https://www.epa.gov/air-emissions-inventories/get-air-emissions-data-0) the publically-available version of data.
 
 ## EIA
 
-The U.S. Energy Information Administration (EIA), a part of the Department of Energy, collects and maintains energy-related data for policy making and for the public. We are using the same EIA data used in eGRID. If this data has not been downloaded previously, we can run the eGRID scripts to properly download and clean this data.
+The U.S. Energy Information Administration (EIA), a part of the Department of Energy, collects and maintains energy-related data for policy making and for the public. As of 2024, the EIA API does not contain the most detailed data available, which is necessary for the construction of eGRID. More detailed data for the EIA forms used in the eGRID production model - [923](https://www.eia.gov/electricity/data/eia923/), [860](https://www.eia.gov/electricity/data/eia860/), and [861](https://www.eia.gov/electricity/data/eia861/) - are available as zipped excel file downloads on the EIA website.
 
-As of 2024, the EIA API does not contain the most detailed data available, which is necessary for the construction of eGRID. More detailed data for the EIA forms [923](https://www.eia.gov/electricity/data/eia923/), [860](https://www.eia.gov/electricity/data/eia860/), and [861](https://www.eia.gov/electricity/data/eia861/) are available as zipped excel file downloads on the EIA website. `data_load_eia.R` creates a new folder in the project folder called "raw_data". The zip files for each of the forms are downloaded and unzipped within this newly created folder. Each excel file contains several sheets that serve as the raw EIA data sources used to create eGRID.
+A portion of the EIA data used in the eGRID production model is used here. If this data has not been downloaded previously, the following code downloads and cleans the necessary EIA data. `data_load_eia.R` creates a new folder in the project folder called `/raw_data/`. The zip file for the forms are downloaded and unzipped within this new folder. Each excel file contains several sheets that serve as the raw EIA data sources used in producing the eGRID data. EIA-923 is the only form needed to produce the PM~2.5~, NH~3~, and VOC emissions data.
 
 ```{r}
 #| label: data-load-eia
@@ -143,7 +147,7 @@ As of 2024, the EIA API does not contain the most detailed data available, which
 #| echo: fenced
 ```
 
-The tables within EIA Files and Sheets display each of the unzipped raw files across the three EIA forms, including the sheets embedded within. Here we are interested only in the EIA-923 Data.
+The table within EIA Files and Sheets displays each of the unzipped raw files from EIA-923.
 
 ```{r}
 #| label: custom-gt-print
@@ -172,14 +176,12 @@ sheets_used923 <-   c("Page 1 Generation and Fuel Data", # eia-923
 
 #### EIA Files and Sheets {#eia-files-sheets}
 
-::::::: panel-tabset
-#### Overview
+::: panel-tabset
 
-*Click through the tabs above to view files represented from each EIA source.*
+#### EIA-923
 
 **EIA-923**: Data reported on fuel consumption and generation
 
-#### EIA-923
 
 ```{r}
 #| label: print-eia-923-sheets
@@ -188,10 +190,13 @@ sheets_used923 <-   c("Page 1 Generation and Fuel Data", # eia-923
 
 tab_923
 ```
-
-:::::::
+:::
 
 ## EIA-NEI Crosswalk
+
+This crosswalk matches units from the NEI data to the EIA data - matching unit names.
+
+The EIA-NEI crosswalk data is not publically available. 
 
 Describe EIA-NEI crosswalk here Determine where we get this data
 
@@ -200,7 +205,50 @@ Describe EIA-NEI crosswalk here Determine where we get this data
 #| 
 ```
 
+## Load Static Tables
 
+Emission factors for each of the emission types are provided as static tables here. These are used \[describe how this data is used and contributed to the full computation\]
+
+```{r}
+#| label: create-xwalk-summary
+
+path <- glue::glue("data/2a_pm_nh3_voc/static_tables")
+
+    files <- list.files(path)
+    
+    # filter for only necessary files
+    file_files <- stringr::str_subset(files, ".csv")
+    
+# table for crosswalks
+tab_xwalk <- 
+      tibble(file_files) %>%
+      rename("Emission Factor Static Tables" = file_files) %>%
+      gt::gt() %>% 
+      gt::tab_style(
+        style = cell_text(weight = "bold"),
+        locations = cells_row_groups()
+      ) %>% 
+      gt::tab_style(
+        style = cell_text(size = 14, weight = "bold"),
+        locations = cells_column_labels()
+      ) %>%
+      gt::tab_caption(caption = glue::glue("Emission Factor Static Tables"))
+```
+
+::: panel-tabset
+#### Overview
+
+*Click on the tab to view emission factor static table files*
+
+#### Files
+
+```{r}
+#| label: xwalk-summary
+#| echo: false
+
+tab_xwalk
+```
+:::
 
 # Produce Data
 
@@ -224,7 +272,7 @@ unit_file_pm25 <- readr::read_rds(
 
 ### View Unit File Data
 
-::::: panel-tabset
+::: panel-tabset
 #### Overview
 
 *Click through the tabs above to preview data contained within the unit file.*
@@ -236,8 +284,7 @@ unit_file_pm25 <- readr::read_rds(
 
 create_summary_table(unit_file_pm25)
 ```
-
-:::::
+:::
 
 ## Plant Files
 
@@ -271,7 +318,6 @@ plant_file_pm25 <- readr::read_rds(
 
 create_summary_table(plant_file_pm25)
 ```
-
 :::
 
 ## Region Aggregation Files
