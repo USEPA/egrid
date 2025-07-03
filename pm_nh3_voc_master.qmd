@@ -56,7 +56,7 @@ This is a Quarto (.qmd) file that documents and runs the code necessary to creat
 
 Second, when viewing as a rendered file, it provides thorough documentation of the steps involved in creating the emissions data. When rendered, this file provides additional information and tools for navigating the project. The table of contents provides both a convenient look at the project structure and method for navigating the document. There are also hidden code chunks throughout, marked by a button ("Code" with an arrow next to it). Clicking this button reveals the underlying code from the R script that is being sourced in a given section. Some of the code included in this document is from the eGRID production model while the main infrastructure is specific to PM~2.5~, NH~3~, and VOC emission calculations.
 
-## Data availiability
+## Data availability
 
 Emissions data and crosswalks used in these calculations are from a version of EPA's NEI that are not publicly available and are therefore not included in this document. Information about the data inputs and the code used to produce the final data are included here to document the process and inform any need for replication. Meanwhile, those that do have access to the data inputs can use this document to produce the eGRID PM~2.5~, NH~3~, and VOC emissions datasets.
 
@@ -99,7 +99,7 @@ The year of eGRID specified as the parameter "eGRID_year" within the YAML of the
 
 ## Load all helper functions
 
-There are a set of helper functions used throughout the project. These are defined in the folder `scripts/functions`. The `docstring` package is used to provide documentation for functions, similar to typical package documentation. To view the documentation for a given function, run `docstring({function_name})`
+There are a set of helper functions used throughout the project. These are defined in the folder `/scripts/functions`. The `docstring` package is used to provide documentation for functions, similar to typical package documentation. To view the documentation for a given function, run `docstring({function_name})`
 
 ```{r}
 #| label: load-functions
@@ -132,7 +132,7 @@ kable(stringr::str_remove(stringr::str_remove(functions, ".R"), "function_"),
 
 ## NEI
 
-NEI provides emission estimates for PM~2.5~, NH~3~, and VOC pollutants using the Emissions Inventory System (EIS) that aggregates pollutant data from a variety of state, local, and tribal data sources. A version of this data is provided to us annually while a publically-avaliable version is released every three years. You can [read more](https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei) about NEI data and [download](https://www.epa.gov/air-emissions-inventories/get-air-emissions-data-0) the publically-available version of data.
+NEI provides emission estimates for PM~2.5~, NH~3~, and VOC pollutants using the Emissions Inventory System (EIS) that aggregates pollutant data from a variety of state, local, and tribal data sources. A version of this data is provided to us annually while a publicly-avaliable version is released every three years. You can [read more](https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei) about NEI data and [download](https://www.epa.gov/air-emissions-inventories/get-air-emissions-data-0) the publicly-available version of data.
 
 ## EIA
 
@@ -177,11 +177,9 @@ sheets_used923 <-   c("Page 1 Generation and Fuel Data", # eia-923
 #### EIA Files and Sheets {#eia-files-sheets}
 
 ::: panel-tabset
-
 #### EIA-923
 
 **EIA-923**: Data reported on fuel consumption and generation
-
 
 ```{r}
 #| label: print-eia-923-sheets
@@ -192,13 +190,14 @@ tab_923
 ```
 :::
 
-## EIA-NEI Crosswalk
+## NEI-EIA Crosswalk
 
-This crosswalk matches units from the NEI data to the EIA data - matching unit names.
+EPA's Office of Air Quality Planning and Standards (OAQPS) produces an NEI-EIA crosswalk used to match the electric generating units from the NEI emissions data to the eGRID data. NEI uses EIS codes to identify units while eGRID uses Office of Regulatory Information Systems Plant (ORISPL) codes. The crosswalk matches EIS and ORISPL codes of the same unit to directly link eGRID units to their NEI emissions data if available.
 
-The EIA-NEI crosswalk data is not publically available. 
+*NOTE: The NEI-EIA crosswalk is not publicly available.*
 
-Describe EIA-NEI crosswalk here Determine where we get this data
+\\\
+add crosswalk viewing \\\
 
 ```{r}
 #| label: create-xwalk-summary
@@ -208,6 +207,8 @@ Describe EIA-NEI crosswalk here Determine where we get this data
 ## Load Static Tables
 
 Emission factors for each of the emission types are provided as static tables here. These are used \[describe how this data is used and contributed to the full computation\]
+
+Emission factors are from the AP-42 form from the EPA Some of these have been revised
 
 ```{r}
 #| label: create-xwalk-summary
