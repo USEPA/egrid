@@ -196,58 +196,71 @@ EPA's Office of Air Quality Planning and Standards (OAQPS) produces an NEI-EIA c
 
 *NOTE: The NEI-EIA crosswalk is not publicly available.*
 
-\\\
-add crosswalk viewing \\\
-
-```{r}
-#| label: create-xwalk-summary
-#| 
-```
-
-## Load Static Tables
-
-Emission factors for each of the emission types are provided as static tables here. These are used \[describe how this data is used and contributed to the full computation\]
-
-Emission factors are from the AP-42 form from the EPA Some of these have been revised
-
 ```{r}
 #| label: create-xwalk-summary
 
-path <- glue::glue("data/2a_pm_nh3_voc/static_tables")
+xwalk_path <- glue::glue("data/2a_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv")
+nei_eia_xwalk <-
+  read.csv(xwalk_path)
 
-    files <- list.files(path)
-    
-    # filter for only necessary files
-    file_files <- stringr::str_subset(files, ".csv")
-    
-# table for crosswalks
+# Create a tibble of column names
+column_names <- tibble(`Column Names` = colnames(nei_eia_xwalk))
+
+# Create a gt table
 tab_xwalk <- 
-      tibble(file_files) %>%
-      rename("Emission Factor Static Tables" = file_files) %>%
-      gt::gt() %>% 
-      gt::tab_style(
-        style = cell_text(weight = "bold"),
-        locations = cells_row_groups()
-      ) %>% 
-      gt::tab_style(
-        style = cell_text(size = 14, weight = "bold"),
-        locations = cells_column_labels()
-      ) %>%
-      gt::tab_caption(caption = glue::glue("Emission Factor Static Tables"))
+  column_names %>%
+    gt() %>%
+    tab_header(
+      title = md("**NEI-EIA Crosswalk**")
+    )
 ```
+
+Below are the column names within the NEI-EIA Crosswalk.
 
 ::: panel-tabset
-#### Overview
-
-*Click on the tab to view emission factor static table files*
-
-#### Files
+#### NEI-EIA Crosswalk
 
 ```{r}
-#| label: xwalk-summary
+#| label: xwalk_summary
 #| echo: false
 
 tab_xwalk
+```
+:::
+
+## Load Emissions Factors
+
+EPA's AP-42 form reporting emissions factors is used in part to estimate PM~2.5~, NH~3~, and VOC emissions. These emissions factors are specific to unit's fuel, firing type, and prime mover and when necessary, are adjusted to account for a control efficiency. Emission factors for each of the emission types are provided as static tables.
+
+Below are the column names within the PM~2.5~ emissions factors static table and are the same within the NH~3~ and VOC tables.
+
+```{r}
+#| label: create-emissions-factors-summary
+
+ef_pm_path <- glue::glue("data/2a_pm_nh3_voc/static_tables/emission_factors_pm25.csv")
+efs <-
+  read.csv(ef_pm_path)
+
+# Create a tibble of column names
+column_names <- tibble(`Column Names` = colnames(efs))
+
+# Create a gt table
+tab_efs <-
+  column_names %>%
+    gt() %>%
+    tab_header(
+      title = md("**PM<sub>2.5</sub> Emisison Factors Static Table**")
+  )
+```
+
+::: panel-tabset
+#### Emissions Factors
+
+```{r}
+#| label: emission-factors-summary
+#| echo: false
+
+tab_efs
 ```
 :::
 
@@ -255,7 +268,9 @@ tab_xwalk
 
 ## Unit Files
 
-This script will produce unit file for PM~2.5~, NH~3~, and VOC emissions.
+For each emissions type (PM~2.5~, NH~3~, and VOC), the unit file contains data from the eGRID production model, annual emissions, and emissions rates.
+
+For full documentation, reference the [Particulate Matter Emissions for eGRID2021](https://www.epa.gov/system/files/documents/2024-06/egrid2021-draft-pm-memo.pdf).
 
 ```{r}
 #| label: unit-files-create
@@ -269,6 +284,12 @@ This script will produce unit file for PM~2.5~, NH~3~, and VOC emissions.
 
 unit_file_pm25 <- readr::read_rds(
            glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_pm25.RDS"))
+
+unit_file_nh3 <- readr::read_rds(
+           glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_nh3.RDS"))
+
+unit_file_voc <- readr::read_rds(
+           glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_voc.RDS"))
 ```
 
 ### View Unit File Data
@@ -276,20 +297,36 @@ unit_file_pm25 <- readr::read_rds(
 ::: panel-tabset
 #### Overview
 
-*Click through the tabs above to preview data contained within the unit file.*
+*Click through the tabs above to preview data contained within the unit files.*
 
-#### Data Summary
+#### PM~2.5~ Unit File
 
 ```{r}
-#| label: unit-file-summary
+#| label: pm25-unit-file-summary
 
 create_summary_table(unit_file_pm25)
+```
+
+#### NH~3~ Unit File
+
+```{r}
+#| label: nh3-unit-file-summary
+
+create_summary_table(unit_file_nh3)
+```
+
+#### VOC Unit File
+
+```{r}
+#| label: voc-unit-file-summary
+
+create_summary_table(unit_file_voc)
 ```
 :::
 
 ## Plant Files
 
-The plant file aggregates the unit data at the plant level using the eGRID dataseta and calcualtes () describe what it calculates
+The plant file aggregates the unit data at the plant level using the eGRID production model dataset and calculates unadjusted and adjusted annual emissions, and output and input emission rates.
 
 ```{r}
 #| label: plant-files-create
@@ -303,6 +340,12 @@ The plant file aggregates the unit data at the plant level using the eGRID datas
 
 plant_file_pm25 <- readr::read_rds(
            glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/plant_file_pm25.RDS"))
+
+plant_file_nh3 <- readr::read_rds(
+           glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/plant_file_nh3.RDS"))
+
+plant_file_voc <- readr::read_rds(
+           glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/plant_file_voc.RDS"))
 ```
 
 ### View Plant File Data
@@ -312,18 +355,39 @@ plant_file_pm25 <- readr::read_rds(
 
 *Click through the tabs above to preview data contained within the plant file.*
 
-#### Data Summary
+#### PM~2.5~ Plant File
 
 ```{r}
-#| label: plant-file-summary
+#| label: pm25-plant-file-summary
 
 create_summary_table(plant_file_pm25)
+```
+
+#### NH~3~ Plant File
+
+```{r}
+#| label: nh3-plant-file-summary
+
+create_summary_table(plant_file_nh3)
+```
+
+#### VOC Plant File
+
+```{r}
+#| label: voc-plant-file-summary
+
+create_summary_table(plant_file_voc)
 ```
 :::
 
 ## Region Aggregation Files
 
-The plant file (`plant_file_pm25.RDS`) is aggregated to calculate the heat input, emissions, generation, fuel-based net generation, resource mix, and nameplate capacity from the plant-level data to the various aggregated levels: state (ST), balancing authority (BA), eGRID subregion (SRL), NERC region (NRL), and US level.
+The plant file is aggregated to calculate the heat input, emissions, generation, fuel-based net generation, resource mix, and nameplate capacity from the plant-level data to the various aggregated levels: state (ST), eGRID subregion (SRL), and US level.
+
+- annual net generation
+- annual emissions
+- total output emissions rate
+
 
 The aggregated files also calculate region specific output, input, combustion output, fuel-specific output, fuel-specific input, and nonbaseload output emissions rates. The aggregated level resource mix is estimated based on the summed generation by fuel values from the plant file. The nonbaseload generation is estimated by fuel type and resource mix.
 
@@ -345,7 +409,7 @@ us_agg  <- read_rds(
         glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/us_aggregation_pm25.RDS"))
 ```
 
-## View Aggregation Files Data
+## View Aggregation Files Data (PM2.5 data)
 
 ::: panel-tabset
 #### Overview
