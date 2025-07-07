@@ -1222,8 +1222,8 @@ avg_sulfur_content <-
   group_by(pick(all_of(temporal_res_cols)), plant_id, boiler_id, prime_mover, fuel_type, physical_unit_label) %>% 
   summarize(across(c("quantity_of_fuel_consumed", "mmbtu_per_unit", "heat_input"), ~ sum(.x, na.rm = TRUE)),
             sulfur_content = max(sulfur_content, na.rm = TRUE),
-            avg_sulfur_content = if_else(sum(quantity_of_fuel_consumed, na.rm = TRUE) > 0, 
-                                         sum(quantity_of_fuel_consumed * sulfur_content, na.rm = TRUE) / sum(quantity_of_fuel_consumed, na.rm = TRUE), 
+            avg_sulfur_content = if_else(sum(quantity_of_fuel_consumed, na.rm = TRUE) > 0,
+                                         sum(quantity_of_fuel_consumed * sulfur_content, na.rm = TRUE) / sum(quantity_of_fuel_consumed, na.rm = TRUE),
                                          sum(quantity_of_fuel_consumed * sulfur_content, na.rm = TRUE) / 1),
             heat_input = sum(heat_input, na.rm = TRUE),  
             fuel_consum = sum(quantity_of_fuel_consumed, na.rm = TRUE)) %>% 
