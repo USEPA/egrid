@@ -39,53 +39,30 @@ cur_year <- as.character(cur_year)
 
 # Load and clean data -----
 
-## Download historical eGRID data
-### Note: check each year if these URLs have changed 
+## Download historical eGRID years ------------------------
 
-# 2019 data
-path_2019 <- "data/1_production_model/static_tables/historical_egrid/egrid2019_data.xlsx"
+file_paths <- 
+  c("data/static_tables/historical_egrid/egrid2018_data.xlsx", 
+    "data/static_tables/historical_egrid/egrid2019_data.xlsx",
+    "data/static_tables/historical_egrid/egrid2020_data.xlsx",
+    "data/static_tables/historical_egrid/egrid2021_data.xlsx",
+    "data/static_tables/historical_egrid/egrid2022_data.xlsx") # add previous data year to this list every year 
 
-if(!file.exists(path_2019)){
-  download.file(url = "https://www.epa.gov/sites/default/files/2021-02/egrid2019_data.xlsx", 
-                destfile = path_2019, 
-                mode = "wb")
-} else {
-  print("Stopping. File egrid2019_data.xlsx already downloaded.")
-}
+urls <- ### Note: check for updates or changes each data year ###
+  c("https://www.epa.gov/sites/default/files/2020-03/egrid2018_data_v2.xlsx", 
+    "https://www.epa.gov/sites/default/files/2021-02/egrid2019_data.xlsx", 
+    "https://www.epa.gov/system/files/documents/2022-09/eGRID2020_Data_v2.xlsx", 
+    "https://www.epa.gov/system/files/documents/2023-01/eGRID2021_data.xlsx",
+    "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx") # add previous data year to this list every year 
 
-# 2020 data
-path_2020 <- "data/1_production_model/static_tables/historical_egrid/egrid2020_data.xlsx"
-
-if(!file.exists(path_2019)){
-  download.file(url = "https://www.epa.gov/system/files/documents/2022-09/eGRID2020_Data_v2.xlsx", 
-                destfile = path_2020, 
-                mode = "wb")
-} else {
-  print("Stopping. File egrid2020_data.xlsx already downloaded.")
-}
-
-# 2021 data
-path_2021 <- "data/1_production_model/static_tables/historical_egrid/egrid2021_data.xlsx"
-
-if(!file.exists(path_2019)){
-  download.file(url = "https://www.epa.gov/system/files/documents/2023-01/eGRID2021_data.xlsx", 
-                destfile = path_2021, 
-                mode = "wb")
-} else {
-  print("Stopping. File egrid2021_data.xlsx already downloaded.")
-}
-
-# 2022 data
-path_2022 <- "data/1_production_model/static_tables/historical_egrid/egrid2022_data.xlsx"
-
-if(!file.exists(path_2019)){
-  download.file(url = "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx", 
-                destfile = path_2021, 
-                mode = "wb")
-} else {
-  print("Stopping. File egrid2022_data.xlsx already downloaded.")
-}
-
+for(i in 1:length(urls)) { # download files online if they have not already been downloaded. 
+  if(!file.exists(file_paths[i])) { 
+    download.file(url = urls[i], 
+                  destfile = file_paths[i], 
+                  mode = "wb")
+  } else {
+    print(glue::glue("Stopping. File {file_paths[i]} already downloaded."))
+  }}
 
 ## Load and combine eGRID subregion data -----
 
