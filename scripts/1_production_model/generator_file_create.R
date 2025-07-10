@@ -44,12 +44,15 @@ temporal_res_cols <- create_temporal_res_cols("monthly") # keep as monthly for b
 temporal_cols_to_add <- cols_to_add("monthly") # keep as monthly
 
 # Identify available monthly data if Annual data is not available
-if (length(grep("M_12", glue::glue("data/1_production_model/raw_data/923/{params$eGRID_year}"))) == 0) { 
+if (length(grep("Final", list.files(glue::glue("data/1_production_model/raw_data/923/{params$eGRID_year}")))) == 0) { 
   file_name_923 <- list.files(glue::glue("data/1_production_model/raw_data/923/{params$eGRID_year}"))
   published_month <- as.numeric(substr(sub(".*M_", "", file_name_923), 1, 2))
-  months_available <- c(1:published_month)
+  months_available <- c(1:published_month[!is.na(published_month)])
+  version_flag <- "quarterly" # flag if running quarterly version without annual data
 } else { 
-  months_available <- c(1:12)}
+  months_available <- c(1:12)
+  version_flag <- "annual_monthly" # flag if running monthly or annual versoin with annual data
+}
 
 # Load in necessary 923 and 860 files ----------
 
@@ -69,6 +72,7 @@ eia_923_gen_fuel <- eia_923$generation_and_fuel_combined
 if ("boiler_generator" %in% names(eia_860)) { 
   eia_860_boiler <- eia_860$boiler_generator
 } else { 
+  # do we want to pull in previous year's boiler_generator data here? 
   print("boiler_generator does not exist in eia_860 due to use of 860m data.")}
 
 eia_860_combined <- eia_860$combined %>% 
@@ -182,16 +186,7 @@ eia_923_gen_r <-
            ) %>% 
   summarize(generation = sum(net_generation, na.rm = TRUE),
             net_generation_year_to_date = sum(unique(net_generation_year_to_date), na.rm = TRUE)) %>% # sum generation for plants with duplicate prime movers) # keep respondent_frequency
-  ungroup() # %>%
-  # select(year,  # select necessary columns
-  #        month, 
-  #        plant_id,
-  #        generator_id, 
-  #        combined_heat_and_power_plant, 
-  #        net_generation, 
-  #        net_generation_year_to_date,
-  #        respondent_frequency,
-  #        prime_mover)
+  ungroup() 
 
 eia_923_gen_dups <- # check for duplicates in EIA-923 Generator File
   eia_923_gen_r %>% 
@@ -224,7 +219,9 @@ if (exists("eia_860_boiler")) {
              generator_id) %>% 
     summarize(n_boilers = n()) %>% 
     ungroup()
-} ##### CHECK: Add boiler count from previous year here? ###############
+} else { 
+  eia_860_boiler_count <- 
+    data.frame(n_boilers = NA_real_)} ##### CHECK: Add boiler count from previous year here? ###############
 
 # Determine generation ------------
 
@@ -243,12 +240,6 @@ eia_gen_generation <-
                      net_generation_year_to_date,
                      ),
             by = c(temporal_res_cols, "plant_id", "generator_id")) %>%
-  #group_by(pick(all_of(temporal_res_cols)), plant_id, generator_id, combined_heat_and_power_plant) %>% # group by month (to keep necessary data for December gen and ozone calculations)
-  #mutate(generation = sum(net_generation, na.rm = TRUE), # sum generation to month
-  #       gen_data_source = if_else(is.na(generation), # label data source 
-  #                                 NA_character_,
-  #                                 "EIA-923 Generator File")) %>%
-  #ungroup() %>%
   mutate(gen_data_source = if_else(is.na(generation), # label data source 
                                    NA_character_,
                                    "EIA-923 Generator File"))
@@ -496,12 +487,6 @@ gen_overwrite <-
 print(glue::glue("{length(unique(gen_overwrite$id_pm))} generators have generation data overwritten from EIA-923 Generator file with distributed data from EIA-923 Generation and Fuel due to percent difference >0.1% between data sources."))
 
 # Form generator file structure ------------
-# check_dup_ids <-
-#   december_gen %>%
-#   select(id_pm) %>%
-#   filter(id_pm %in% gen_overwrite$id_pm) %>%
-#   distinct() %>%
-#   pull(id_pm)
 check_dup_ids <-
   gen_overwrite %>%
   select(id_pm) %>%
@@ -511,9 +496,6 @@ check_dup_ids <-
 
 # combine set of special cases
 december_and_overwritten <- 
-  # bind_rows(
-  #   december_gen %>% filter(!(id_pm %in% check_dup_ids)), # if generator is in both december_gen and gen_overwrite, default to gen_overwrite
-  #   gen_overwrite) %>%
   bind_rows(
     gen_overwrite %>% filter(!(id_pm %in% check_dup_ids)), # if generator is in both december_gen and gen_overwrite, default to december_gen
     december_gen) %>% # prevents errors in final dataframe
@@ -600,8 +582,8 @@ generators_edits <-
          plant_name = recode(plant_id, !!!lookup_epa_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
          gen_data_source = if_else(is.na(generation), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
          year = params$eGRID_year) %>%
-  #### CHECK: need to have a way to handle this if boiler count exists or not #########
-  #left_join(eia_860_boiler_count) %>% 
+  #### CHECK: this is an issue for quarterly version. Need to address ##########
+  left_join(eia_860_boiler_count, by = c("plant_id", "generator_id")) %>% 
   rows_update(epa, by = c("plant_id"), unmatched = "ignore") %>% 
   rows_delete(epa_plants_to_delete, by = c("plant_id"), unmatched = "ignore")
 

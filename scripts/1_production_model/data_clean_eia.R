@@ -213,7 +213,7 @@ print(glue::glue("File eia_923_clean.RDS, containing dataframes {glue::glue_coll
 
 ## Annual 860 data ----------------------
 
-if (length(list.files(eia_860_files)) > 0) { 
+if (length(eia_860_files) > 0) { 
 
   ### 860 3_1_Generator -------
   
@@ -372,7 +372,7 @@ if (length(list.files(eia_860_files)) > 0) {
     purrr::map(pr_sheets, 
                ~ read_excel(glue::glue("data/1_production_model/raw_data/860m/{params$eGRID_year}/eia_860m_december_generator{params$eGRID_year}.xlsx"),
                             sheet = .x,
-                            skip = 2,
+                            skip = 1,
                             na = c(".", "X"),
                             guess_max = 4000)) %>%
     setNames(., janitor::make_clean_names(pr_sheets))
@@ -721,7 +721,7 @@ print(glue::glue("File eia_860_clean.RDS, containing dataframes {glue::glue_coll
 
 # EIA-861 -------------
 
-if (length(list.files(eia_861_files)) > 1) { # check if 861 for the data year exists. If it does not, skip. 
+if (length(eia_861_files) > 1) { # check if 861 for the data year exists. If it does not, skip. 
   
   ## 861 Balancing authority  ----------
   
@@ -796,4 +796,5 @@ if (length(list.files(eia_861_files)) > 1) { # check if 861 for the data year ex
   # printing confirmation message
   print(glue::glue("File eia_861_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_861), sep = ', ', last = ', and ')}, written to folder data/clean_data/eia/{params$eGRID_year}."))
 } else { 
-  print(glue::glue("EIA-861 Files do not exist. Either run data_load_eia.R to obtain or files are not yet available for {params$eGRID_year}."))}
+  print(glue::glue("EIA-861 Files do not exist. Either run data_load_eia.R to obtain or files are not yet available for {params$eGRID_year}."))
+  }

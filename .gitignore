@@ -28,3 +28,7 @@ data/2d_web_updates/
 data/clean_data/
 data/outputs/
 data/raw_data/
+data/1_production_model/static_tables/qa/
+data/static_tables/historical_egrid/
+monthly_qa_plant_subregion_files/
+styles.css

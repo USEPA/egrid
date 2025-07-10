@@ -404,18 +404,19 @@ epa_4 <-
   mutate(botfirty = eGRID) %>% 
   select(-any_of(names(xwalk_botfirty)))
 
+##### CHECK this does not work without annual data - pull in last years?? #################
 botfirty_to_update <- # matching with 860 data to see if more specific botfirty type exists
-  epa_4 %>% 
-  select(plant_id, unit_id, botfirty) %>% distinct() %>% 
-  filter(botfirty %in% c("OTHER BOILER", "OTHER TURBINE", NA_character_)) %>% 
-  left_join(eia_860$boiler_info_design_parameters %>% 
+  epa_4 %>%
+  select(plant_id, unit_id, botfirty) %>% distinct() %>%
+  filter(botfirty %in% c("OTHER BOILER", "OTHER TURBINE", NA_character_)) %>%
+  left_join(eia_860$boiler_info_design_parameters %>% ##### CHECK: boiler info design parameters DNE without annual data
               select(plant_id,
                      "unit_id" = boiler_id,
                      firing_type_1)) %>%
   left_join(xwalk_botfirty %>% select(`EIA-860`, eGRID) %>% filter(!is.na(`EIA-860`)),
-            by = c("firing_type_1" = "EIA-860")) %>% 
-  filter(!is.na(eGRID)) %>% 
-  select(plant_id, unit_id, eGRID) 
+            by = c("firing_type_1" = "EIA-860")) %>%
+  filter(!is.na(eGRID)) %>%
+  select(plant_id, unit_id, eGRID)
 
 
 epa_5 <- # updating units where available
@@ -599,6 +600,7 @@ eia_923_boilers_heat <-
 # 3) matches to plant/gen_id in the EIA-860 combined
 
 # getting vectors of ids for 860 tables to filter on
+##### CHECK: boiler_generator DNE for annual. use previous year? ##########
 eia_860_boil_gen_ids <- eia_860$boiler_generator %>% mutate(id = paste0(plant_id, "_", boiler_id)) %>% pull(id)
 eia_860_combined_ids <- eia_860$combined %>% mutate(id_pm = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% pull(id_pm)
 
