@@ -14,8 +14,8 @@ format:
 execute: 
   message: false
   warning: false
-  results: hold
-  eval: false
+  results: "hold"
+  eval: true
 params:
   eGRID_year: "2021"
 
@@ -32,7 +32,7 @@ This project includes all necessary scripts and documentation to create the Emis
 
 eGRID is a comprehensive source of data from [EPA's Clean Air and Power Division (CAPD)](https://epa.gov/power-sector) on the environmental characteristics of almost all electric power generated in the United States. Currently, eGRID includes emissions data on carbon dioxide (CO~2~), nitrogen oxides (NO~X~), sulfur dioxide (SO~2~), methane (CH~4~), and nitrous oxide (N~2~O), but does not include PM~2.5~, NH~3~, and VOC emissions. The data used for emission calculations in eGRID is not available for PM~2.5~, NH~3~, and VOCs and is instead collected from the National Emissions Inventory (NEI).
 
-Here we use NEI data to determine PM~2.5~, NH~3~, and VOC emissions and emission rates as well as estimate emissions for units that may not report to the NEI.
+Here we use NEI data to determine PM~2.5~, NH~3~, and VOC emissions and emission rates as well as estimations for units that may not report to the NEI.
 
 The final emissions datasets include four levels of data aggregation:
 
@@ -93,7 +93,7 @@ library(stringr)
 
 ## Define eGRID year
 
-The year of eGRID specified as the parameter "eGRID_year" within the YAML of the Quarto document. When a year value needs to be specified (e.g., when pulling relevant data from the CAMPD API), it is done so by calling `params$eGRID_year`.
+The year of eGRID specified as the parameter "eGRID_year" within the YAML of the Quarto document. When a year value needs to be specified (e.g., when pulling relevant data from the EIA API), it is done so by calling `params$eGRID_year`.
 
 **Current year setting: `r params$eGRID_year`**
 
@@ -132,7 +132,9 @@ kable(stringr::str_remove(stringr::str_remove(functions, ".R"), "function_"),
 
 ## NEI
 
-NEI provides emission estimates for PM~2.5~, NH~3~, and VOC pollutants using the Emissions Inventory System (EIS) that aggregates pollutant data from a variety of state, local, and tribal data sources. A version of this data is provided to us annually while a publicly-avaliable version is released every three years. You can [read more](https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei) about NEI data and [download](https://www.epa.gov/air-emissions-inventories/get-air-emissions-data-0) the publicly-available version of data.
+NEI provides emission estimates for PM~2.5~, NH~3~, and VOC pollutants using the Emissions Inventory System (EIS) that aggregates pollutant data from a variety of state, local, and tribal data sources. A version of this data is provided to us annually while a publicly-available version is released every three years. You can [read more](https://www.epa.gov/air-emissions-inventories/national-emissions-inventory-nei) about NEI data and [download](https://www.epa.gov/air-emissions-inventories/get-air-emissions-data-0) the publicly-available version of data.
+
+*NOTE: The publicly-available NEI-EIA data may differ from the version used to produce the finalized eGRID PM~2.5~, NH~3~, and VOC data.*
 
 ## EIA
 
@@ -177,6 +179,10 @@ sheets_used923 <-   c("Page 1 Generation and Fuel Data", # eia-923
 #### EIA Files and Sheets {#eia-files-sheets}
 
 ::: panel-tabset
+#### Overview
+
+*Click on the tab to view the EIA-923 data.*
+
 #### EIA-923
 
 **EIA-923**: Data reported on fuel consumption and generation
@@ -218,6 +224,10 @@ tab_xwalk <-
 Below are the column names within the NEI-EIA Crosswalk.
 
 ::: panel-tabset
+#### Overview
+
+*Click on the tab to view the NEI-EIA Crosswalk variables.*
+
 #### NEI-EIA Crosswalk
 
 ```{r}
@@ -228,9 +238,9 @@ tab_xwalk
 ```
 :::
 
-## Load Emissions Factors
+## Emissions Factors
 
-EPA's AP-42 form reporting emissions factors is used in part to estimate PM~2.5~, NH~3~, and VOC emissions. These emissions factors are specific to unit's fuel, firing type, and prime mover and when necessary, are adjusted to account for a control efficiency. Emission factors for each of the emission types are provided as static tables.
+EPA's AP-42 form reports emissions factors and is used in part to estimate PM~2.5~, NH~3~, and VOC emissions. These emissions factors are specific to unit's fuel, firing type, and prime mover and when necessary, are adjusted to account for a control efficiency. Emission factors for each of the emission types are provided as static tables.
 
 Below are the column names within the PM~2.5~ emissions factors static table and are the same within the NH~3~ and VOC tables.
 
@@ -254,6 +264,10 @@ tab_efs <-
 ```
 
 ::: panel-tabset
+#### Overview
+
+*Click on the tab to view the PM~2.5~ emissions factors static table variables.*
+
 #### Emissions Factors
 
 ```{r}
@@ -268,7 +282,7 @@ tab_efs
 
 ## Unit Files
 
-For each emissions type (PM~2.5~, NH~3~, and VOC), the unit file contains data from the eGRID production model, annual emissions, and emissions rates.
+For each emissions type (PM~2.5~, NH~3~, and VOC), the unit file computes annual emissions and emissions rates for units and is combined with data from the eGRID production model.
 
 For full documentation, reference the [Particulate Matter Emissions for eGRID2021](https://www.epa.gov/system/files/documents/2024-06/egrid2021-draft-pm-memo.pdf).
 
@@ -292,7 +306,7 @@ unit_file_voc <- readr::read_rds(
            glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_voc.RDS"))
 ```
 
-### View Unit File Data
+### View Unit Files Data
 
 ::: panel-tabset
 #### Overview
@@ -326,7 +340,7 @@ create_summary_table(unit_file_voc)
 
 ## Plant Files
 
-The plant file aggregates the unit data at the plant level using the eGRID production model dataset and calculates unadjusted and adjusted annual emissions, and output and input emission rates.
+The plant file aggregates the unit data at the plant level using the eGRID production model dataset and calculates unadjusted and adjusted annual emissions, and input and output emissions rates.
 
 ```{r}
 #| label: plant-files-create
@@ -348,12 +362,12 @@ plant_file_voc <- readr::read_rds(
            glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/plant_file_voc.RDS"))
 ```
 
-### View Plant File Data
+### View Plant Files Data
 
 ::: panel-tabset
 #### Overview
 
-*Click through the tabs above to preview data contained within the plant file.*
+*Click through the tabs above to preview data contained within the plant files.*
 
 #### PM~2.5~ Plant File
 
@@ -382,14 +396,7 @@ create_summary_table(plant_file_voc)
 
 ## Region Aggregation Files
 
-The plant file is aggregated to calculate the heat input, emissions, generation, fuel-based net generation, resource mix, and nameplate capacity from the plant-level data to the various aggregated levels: state (ST), eGRID subregion (SRL), and US level.
-
-- annual net generation
-- annual emissions
-- total output emissions rate
-
-
-The aggregated files also calculate region specific output, input, combustion output, fuel-specific output, fuel-specific input, and nonbaseload output emissions rates. The aggregated level resource mix is estimated based on the summed generation by fuel values from the plant file. The nonbaseload generation is estimated by fuel type and resource mix.
+The plant file is aggregated to calculate annual net generation, annual emissions, and output emissions rates from the plant-level data to the various aggregated levels: state (ST), eGRID subregion (SRL), and US level.
 
 ```{r}
 #| label: regional-aggregation-files-create
@@ -401,20 +408,42 @@ The aggregated files also calculate region specific output, input, combustion ou
 #| label: load-reg-agg-files
 #| echo: false
 
-st_agg  <- read_rds(
+pm_st_agg  <- read_rds(
         glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/state_aggregation_pm25.RDS"))
-srl_agg <- read_rds(
+
+pm_srl_agg <- read_rds(
         glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_pm25.RDS"))
-us_agg  <- read_rds(
+
+pm_us_agg  <- read_rds(
         glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/us_aggregation_pm25.RDS"))
+
+nh3_st_agg  <- read_rds(
+        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/state_aggregation_nh3.RDS"))
+
+nh3_srl_agg <- read_rds(
+        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_nh3.RDS"))
+
+nh3_us_agg  <- read_rds(
+        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/us_aggregation_nh3.RDS"))
+
+voc_st_agg  <- read_rds(
+        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/state_aggregation_voc.RDS"))
+
+voc_srl_agg <- read_rds(
+        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_voc.RDS"))
+
+voc_us_agg  <- read_rds(
+        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/us_aggregation_voc.RDS"))
 ```
 
-## View Aggregation Files Data (PM2.5 data)
+### View Aggregation Files Data
+
+Below are summary tables for the state, subregion, and U.S. aggregated data for each emissions type.
 
 ::: panel-tabset
 #### Overview
 
-*Click through the tabs above to preview data for each region aggregation.*
+*Click through the tabs above to preview PM~2.5~, NH~3~, and VOC data for each region aggregation.*
 
 **ST**: State Aggregation
 
@@ -422,41 +451,186 @@ us_agg  <- read_rds(
 
 **US**: U.S. Aggregation
 
-#### ST
+#### PM~2.5~ ST
 
 ```{r}
-#| label: st-agg-summary
+#| label: pm-st-agg-summary
 
-create_summary_table(st_agg)
+create_summary_table(pm_st_agg)
 ```
 
-#### SRL
+#### PM~2.5~ SRL
 
 ```{r}
-#| label: srl-agg-summary
+#| label: pm-srl-agg-summary
 
-create_summary_table(srl_agg)
+create_summary_table(pm_srl_agg)
 ```
 
-#### US
+#### PM~2.5~ US
 
 ```{r}
-#| label: us-agg-summary
+#| label: pm-us-agg-summary
 
-create_summary_table(us_agg)
+create_summary_table(pm_us_agg)
+```
+
+#### NH~3~ ST
+
+```{r}
+#| label: nh3-st-agg-summary
+
+create_summary_table(nh3_st_agg)
+```
+
+#### NH~3~ SRL
+
+```{r}
+#| label: nh3-srl-agg-summary
+
+create_summary_table(nh3_srl_agg)
+```
+
+#### NH~3~ US
+
+```{r}
+#| label: nh3-us-agg-summary
+
+create_summary_table(nh3_us_agg)
+```
+
+#### VOC ST
+
+```{r}
+#| label: voc-st-agg-summary
+
+create_summary_table(voc_st_agg)
+```
+
+#### VOC SRL
+
+```{r}
+#| label: voc-srl-agg-summary
+
+create_summary_table(voc_srl_agg)
+```
+
+#### VOC US
+
+```{r}
+#| label: voc-us-agg-summary
+
+create_summary_table(voc_us_agg)
 ```
 :::
 
-# Produce Final Dataset
+# Produce Final Datasets
 
-The data is formatted into an Excel file that contains all eight levels of data aggregation. For headers, we add descriptions and label conventions to maintain consistency with previous eGRID releases. Formatting is applied for both imperial unit version and the metric unit version.
+For each emissions type, the data is formatted and added to the previous year's data in an Excel file that contains all five levels of data aggregation. For headers, we add descriptions and label conventions to maintain consistency with the eGRID production model. Graphs of subregion-level generation, emissions, and emission rates are included in the final file.
 
-The final output file is `r glue::glue("egrid{params$eGRID_year}_data.xlsx")`.
+The final output files are:
+
+-   `r glue::glue("egrid{params$eGRID_year}_pmemissions.xlsx")`
+-   `r glue::glue("egrid{params$eGRID_year}_nh3emissions.xlsx")`
+-   `r glue::glue("egrid{params$eGRID_year}_vocemissions.xlsx")`
 
 ```{r}
 #| label: final-formatting
 #| file: "scripts/2a_pm_nh3_voc/final_formatting_pm_nh3_voc.R"
 #| message: FALSE
+#| results: FALSE
 ```
 
-# we could at some point show the subregion plots as well
+### View Subregion-Level Graphs
+
+Below are the `r {params$eGRID_year}` PM~2.5~, NH~3~, and VOC graphs included in the final datasets.
+
+::: panel-tabset
+#### Overview
+
+*Click through the tabs above to view subregion graphs for each emissions type.*
+
+#### PM~2.5~ Annual Generation
+
+```{r}
+#| label: pm25-annual-generation-plot
+#| echo: FALSE
+
+knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/pm25_annual_generation_{params$eGRID_year}.png"))
+
+```
+
+#### PM~2.5~ Emissions
+
+```{r}
+#| label: pm25-emissions-plot
+#| echo: FALSE
+
+knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/pm25_emissions_{params$eGRID_year}.png"))
+```
+
+#### PM~2.5~ Emission Rates
+
+```{r}
+#| label: pm25-emissions-rate
+#| echo: FALSE
+
+knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/pm25_rate_{params$eGRID_year}.png"))
+```
+
+#### NH~3~ Annual Generation
+
+```{r}
+#| label: nh3-annual-generation-plot
+#| echo: FALSE
+
+knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/nh3_annual_generation_{params$eGRID_year}.png"))
+
+```
+
+#### NH~3~ Emissions
+
+```{r}
+#| label: nh3-emissions-plot
+#| echo: FALSE
+
+knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/nh3_emissions_{params$eGRID_year}.png"))
+```
+
+#### NH~3~ Emission Rates
+
+```{r}
+#| label: nh3-emissions-rate
+#| echo: FALSE
+
+knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/nh3_rate_{params$eGRID_year}.png"))
+```
+
+#### VOC Annual Generation
+
+```{r}
+#| label: voc-annual-generation-plot
+#| echo: FALSE
+
+knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/voc_annual_generation_{params$eGRID_year}.png"))
+
+```
+
+#### VOC Emissions
+
+```{r}
+#| label: voc-emissions-plot
+#| echo: FALSE
+
+knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/voc_emissions_{params$eGRID_year}.png"))
+```
+
+#### VOC Emission Rates
+
+```{r}
+#| label: voc-emissions-rate
+#| echo: FALSE
+
+knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/voc_rate_{params$eGRID_year}.png"))
+```
+:::
