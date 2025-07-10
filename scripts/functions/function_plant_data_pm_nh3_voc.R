@@ -54,7 +54,7 @@ plant_data_pm_nh3_voc <- function(emission_type){
     
     # Prepare plant data for evaluation --------------
     # Load abbreviated name to snake_case matches
-    load("data/1_production_model/static_tables/name_matches.Rdata")
+    base::load("data/1_production_model/static_tables/name_matches.Rdata")
     
     # Select names present in unit file column names
     plant_new_names <- plant_nonmetric[names(plant_nonmetric) %in% colnames(plant_file_raw)]

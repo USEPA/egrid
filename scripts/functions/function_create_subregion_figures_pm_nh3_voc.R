@@ -222,7 +222,7 @@ create_subregion_emission_figures <- function(emission_type,
           filter(SUBRGN != "U.S.")
         
         # define new data column names
-        load("data/1_production_model/static_tables/name_matches.Rdata")
+        base::load("data/1_production_model/static_tables/name_matches.Rdata")
         colnames_new <- setNames(c(paste0(emission_type, "_ann"),
                                    paste0(emission_type, "_output_rate")),
                                  c(paste0("SR", toupper(emission_type), "AN"), 

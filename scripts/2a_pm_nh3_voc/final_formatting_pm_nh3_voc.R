@@ -77,7 +77,7 @@ graph_headers <- createStyle(
   valign = "center")
 
 # Load abbreviated name to snake_case matches -----
-load("data/1_production_model/static_tables/name_matches.Rdata")
+base::load("data/1_production_model/static_tables/name_matches.Rdata")
 
 # define level abbreviations to assist in renaming
 level_abbrev <- c("unit" = "",
@@ -269,8 +269,8 @@ for (emission_type in c("pm25", "nh3", "voc")) {
   addWorksheet(wb, "Graphs")
   
   # run script to save subregion graphs
-  source(glue::glue("scripts/functions/function_create_subregion_emission_figures.R"))
-  create_subregion_emission_figures(emission_type, skip_if_exists = FALSE)
+  source(glue::glue("scripts/functions/function_create_subregion_figures_pm_nh3_voc.R"))
+  create_subregion_emission_figures(emission_type, skip_if_exists = TRUE)
   
   # define graph directory, names, and years
   graph_dir <- glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/")
