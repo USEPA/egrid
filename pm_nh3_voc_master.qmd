@@ -17,7 +17,7 @@ execute:
   results: "hold"
   eval: true
 params:
-  eGRID_year: "2021"
+  eGRID_year: "2022"
 
 editor: visual
 project: 
@@ -58,7 +58,13 @@ Second, when viewing as a rendered file, it provides thorough documentation of t
 
 ## Data availability
 
-Emissions data and crosswalks used in these calculations are from a version of EPA's NEI that are not publicly available and are therefore not included in this document. Information about the data inputs and the code used to produce the final data are included here to document the process and inform any need for replication. Meanwhile, those that do have access to the data inputs can use this document to produce the eGRID PM~2.5~, NH~3~, and VOC emissions datasets.
+Emissions data and crosswalks used in these calculations are from a version of EPA's NEI that are not publicly available and are therefore not included in this document. Information about the data inputs and the code used to produce the final data are included here to document the process and inform any need for replication.
+
+**If you would like to render this document but do not have access to the data inputs, switch the following parameter in the YAML header under execute:**
+
+*eval: false*
+
+Those that do have access to the data inputs can use this document to produce the eGRID PM~2.5~, NH~3~, and VOC emissions datasets with *eval: true*.
 
 # Install Libraries and Set Parameters
 
@@ -99,7 +105,7 @@ The year of eGRID specified as the parameter "eGRID_year" within the YAML of the
 
 ## Load all helper functions
 
-There are a set of helper functions used throughout the project. These are defined in the folder `/scripts/functions`. The `docstring` package is used to provide documentation for functions, similar to typical package documentation. To view the documentation for a given function, run `docstring({function_name})`
+There are a set of helper functions used throughout the project. These are defined in the folder `/scripts/functions/`. The `docstring` package is used to provide documentation for functions, similar to typical package documentation. To view the documentation for a given function, run `docstring({function_name})`
 
 ```{r}
 #| label: load-functions
@@ -136,11 +142,89 @@ NEI provides emission estimates for PM~2.5~, NH~3~, and VOC pollutants using the
 
 *NOTE: The publicly-available NEI-EIA data may differ from the version used to produce the finalized eGRID PM~2.5~, NH~3~, and VOC data.*
 
+## EPA
+
+The EPA's Clean Air and Power Division (CAPD) contains power plant emissions, compliance, and allowance data. We create and incorporate a composite file from several CAPD sources, containing data about facilities and annual emissions. Specifically, we include data about facility attributes, annual emissions, and annual emissions during ozone months.
+
+These data are available through the [CAPD API](https://www.epa.gov/power-sector/cam-api-portal#/documentation). `data_load_epa.R` downloads the facility attributes and emissions data for a selected year from the CAPD API. These raw files are stored in a new folder called `data/1_production_model/raw_data/epa/` and will be combined and cleaned in subsequent steps. For this script to run, an API key is required.
+
+An API key can be requested [here](https://www.epa.gov/power-sector/cam-api-portal#/api-key-signup). Once a key is obtained, paste your key into the file `api_keys/epa_api_key.txt` and save. Once saved, the script `data_load_epa.R` will be able to successfully connect to and load data from the CAPD API.
+
+```{r}
+#| label: load-data-epa 
+#| file: "scripts/1_production_model/data_load_epa.R" 
+#| echo: fenced 
+#| error: false 
+```
+
+Three data tables are downloaded from the the CAPD and stored into one .RDS file, `epa_raw.RDS`. This file consists of facility attributes, annual emissions data, and containing annual emissions data for the ozone months. See a summary of the raw EPA file below, separated into categories.
+
+### EPA Raw Tables
+
+```{r}
+#| label: create-epa-tables 
+#| echo: false  
+
+source("scripts/functions/function_summary_table.R") 
+
+# function to create summary table  
+epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw.RDS")) 
+
+table_epa_raw <- create_summary_table(epa_raw)  
+
+epa_facilities      <- epa_raw[1:26] 
+epa_emissions       <- epa_raw[27:46] 
+epa_emissions_ozone <- epa_raw[47:58]  
+
+table_facilities      <- create_summary_table(epa_facilities) 
+table_emissions       <- create_summary_table(epa_emissions) 
+table_emissions_ozone <- create_summary_table(epa_emissions_ozone)
+```
+
+::: panel-tabset
+#### Overview
+
+*Click through the tabs above to view files represented from each EPA source.*
+
+**EPA facility attributes**: Columns 1 - 26 of `epa_raw.RDS`.
+
+**EPA annual emissions**: Columns 27 - 47 of `epa_raw.RDS`.
+
+**EPA ozone season emissions**: Columns 47 - 58 of `epa_raw.RDS`. The ozone season is defined as May through September.
+
+#### EPA facility attributes
+
+```{r}
+#| label: print-epa-tab-facilities 
+#| echo: false  
+
+table_facilities
+```
+
+#### EPA annual emissions
+
+```{r}
+#| label: print-epa-tab-emissions 
+#| echo: false  
+
+table_emissions
+```
+
+#### EPA ozone season emissions
+
+```{r}
+#| label: print-epa-tab-emissions-ozone 
+#| echo: false  
+
+table_emissions_ozone
+```
+:::
+
 ## EIA
 
 The U.S. Energy Information Administration (EIA), a part of the Department of Energy, collects and maintains energy-related data for policy making and for the public. As of 2024, the EIA API does not contain the most detailed data available, which is necessary for the construction of eGRID. More detailed data for the EIA forms used in the eGRID production model - [923](https://www.eia.gov/electricity/data/eia923/), [860](https://www.eia.gov/electricity/data/eia860/), and [861](https://www.eia.gov/electricity/data/eia861/) - are available as zipped excel file downloads on the EIA website.
 
-A portion of the EIA data used in the eGRID production model is used here. If this data has not been downloaded previously, the following code downloads and cleans the necessary EIA data. `data_load_eia.R` creates a new folder in the project folder called `/raw_data/`. The zip file for the forms are downloaded and unzipped within this new folder. Each excel file contains several sheets that serve as the raw EIA data sources used in producing the eGRID data. EIA-923 is the only form needed to produce the PM~2.5~, NH~3~, and VOC emissions data.
+A portion of the EIA data used in the eGRID production model is used here. If this data has not been downloaded previously, the following code downloads and cleans the necessary EIA data. `data_load_eia.R` downloads and unzips the zip file for each form within `data/1_production_model/raw_data/`. Each excel file contains several sheets that serve as the raw EIA data sources used in producing the eGRID data. EIA-923 is the only form needed to produce the PM~2.5~, NH~3~, and VOC emissions data.
 
 ```{r}
 #| label: data-load-eia
@@ -202,39 +286,23 @@ EPA's Office of Air Quality Planning and Standards (OAQPS) produces an NEI-EIA c
 
 *NOTE: The NEI-EIA crosswalk is not publicly available.*
 
-```{r}
-#| label: create-xwalk-summary
-
-xwalk_path <- glue::glue("data/2a_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv")
-nei_eia_xwalk <-
-  read.csv(xwalk_path)
-
-# Create a tibble of column names
-column_names <- tibble(`Column Names` = colnames(nei_eia_xwalk))
-
-# Create a gt table
-tab_xwalk <- 
-  column_names %>%
-    gt() %>%
-    tab_header(
-      title = md("**NEI-EIA Crosswalk**")
-    )
-```
-
-Below are the column names within the NEI-EIA Crosswalk.
-
 ::: panel-tabset
 #### Overview
 
-*Click on the tab to view the NEI-EIA Crosswalk variables.*
+*Click on the tab to view variables contained in the NEI-EIA Crosswalk*
 
 #### NEI-EIA Crosswalk
 
 ```{r}
-#| label: xwalk_summary
+#| label: create-xwalk-summary
 #| echo: false
 
-tab_xwalk
+xwalk_path <- glue::glue("data/2a_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv")
+
+nei_eia_xwalk <-
+  read.csv(xwalk_path)
+
+create_summary_table(nei_eia_xwalk)
 ```
 :::
 
@@ -244,37 +312,193 @@ EPA's AP-42 form reports emissions factors and is used in part to estimate PM~2.
 
 Below are the column names within the PM~2.5~ emissions factors static table and are the same within the NH~3~ and VOC tables.
 
+::: panel-tabset
+#### Overview
+
+*Click on the tab to view PM~2.5~, NH~3~, and VOC emissions factors static table variables.*
+
+#### PM~2.5~ EFs
+
 ```{r}
-#| label: create-emissions-factors-summary
+#| label: create-pm-emission-factors-summary
+#| echo: false
 
 ef_pm_path <- glue::glue("data/2a_pm_nh3_voc/static_tables/emission_factors_pm25.csv")
-efs <-
+
+efs_pm <-
   read.csv(ef_pm_path)
 
-# Create a tibble of column names
-column_names <- tibble(`Column Names` = colnames(efs))
+create_summary_table(efs_pm)
+```
 
-# Create a gt table
-tab_efs <-
-  column_names %>%
-    gt() %>%
-    tab_header(
-      title = md("**PM<sub>2.5</sub> Emisison Factors Static Table**")
-  )
+#### NH~3~ EFs
+
+```{r}
+#| label: create-nh3-emission-factors-summary
+#| echo: false
+
+ef_nh3_path <- glue::glue("data/2a_pm_nh3_voc/static_tables/emission_factors_nh3.csv")
+
+efs_nh3 <-
+  read.csv(ef_nh3_path)
+
+create_summary_table(efs_nh3)
+```
+
+#### VOC EFs
+
+```{r}
+#| label: create-voc-emission-factors-summary
+#| echo: false
+
+ef_voc_path <- glue::glue("data/2a_pm_nh3_voc/static_tables/emission_factors_voc.csv")
+
+efs_voc <-
+  read.csv(ef_voc_path)
+
+create_summary_table(efs_voc)
+```
+:::
+
+# Clean Raw Data
+
+## EPA
+
+There are several procedures applied to the raw EPA file:
+
+-   Variable name standardization
+
+    -   All variable names are converted to snake case (e.g., "snake_case").
+
+    -   Each form includes identifiers such as a given plant name, prime mover, fuel type, etc., but the assigned column names are inconsistent. To facilitate data operations (e.g., joins) and reduce confusion, we use a common naming scheme across all files (including EIA and EPA).
+
+        -   `plant_id`
+
+        -   `plant_name`
+
+        -   `plant_state`
+
+        -   `prime_mover`
+
+        -   `fuel_type`
+
+        -   `generator_id`
+
+        -   `boiler_id`
+
+        -   `nameplate_capacity`
+
+-   Removing unnecessary plants and columns
+
+    -   Plants listed as future, retired, or long-term cold storage are removed. Additionally, plants with IDs above 80000 are removed
+
+-   Create source variables and apply source: `EPA/CAPD`
+
+    -   `heat_input_source`
+
+    -   `heat_input_oz_source`
+
+    -   `nox_source`
+
+    -   `nox_oz_source`
+
+    -   `so2_source`
+
+    -   `co2_source`
+
+    -   `hg_source`
+
+-   Re-coding values to standardized abbreviations
+
+    -   Ex. Operating Status to OP, unit type description to unit type abbreviation
+
+-   Removing unnecessary notes about start date
+
+    -   This keeps all data rows into a usable, consistent format. In the raw version, some plants have added notes about dates or the plant.
+
+```{r}
+#| label: data-clean-epa 
+#| file: "scripts/1_production_model/data_clean_epa.R" 
+#| results: hold
 ```
 
 ::: panel-tabset
 #### Overview
 
-*Click on the tab to view the PM~2.5~ emissions factors static table variables.*
+*Click tab above to view variables contained in* `epa_clean.RDS`.
 
-#### Emissions Factors
+#### EPA clean
 
 ```{r}
-#| label: emission-factors-summary
+#| label: create-epa-summary-table 
+#| echo: false  
+
+create_summary_table(readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")))
+```
+:::
+
+## EIA
+
+From the raw Excel downloads, we load, clean, and save select files that are used in eGRID production. The EPA data is used to produce three "clean" EIA files:
+
+-   `eia_923_clean.RDS`
+
+-   `eia_860_clean.RDS`
+
+-   `eia_861_clean.RDS`
+
+Each of these .RDS files contains lists of the relevant tables (stored as dataframes) from each EIA form.
+
+There are several procedures that are applied to each of the raw EIA files:
+
+-   Handling Excel format
+
+    -   Each Excel file contains header rows of varying lengths. These rows are skipped when read in.
+
+    -   Files contain various missing value characters, including: " ","X", and ".". These characters are converted to explicit missing values (i.e., "NA")
+
+-   Variable name standardization
+
+    -   The same method as EPA data above.
+
+```{r}
+#| label: data-clean-eia
+#| file: "scripts/1_production_model/data_clean_eia.R"
+#| results: hold
+```
+
+```{r}
+#| label: load-eia-clean-files
 #| echo: false
 
-tab_efs
+eia_923_files <- read_rds(
+        glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+```
+
+### EIA-923
+
+EIA-923 is the only form needed to produce PM~2.5~, NH~3~, and VOC emissions data
+
+::: panel-tabset
+#### Overview
+
+*Click through the tabs above to preview values represented from required EIA-923 files.*
+
+```{r}
+#| label: eia-923-summary-tabs
+#| results: asis
+
+tabs_923 <- 
+  eia_923_files %>% 
+  map(., ~ create_summary_table(.x))
+
+purrr::iwalk(tabs_923, ~ {
+  cat("#### ", .y, "\n\n")
+  
+  print(.x)
+  
+  cat("\n\n")
+} )
 ```
 :::
 
@@ -541,7 +765,7 @@ The final output files are:
 #| results: FALSE
 ```
 
-### View Subregion-Level Graphs
+## View Subregion-Level Graphs
 
 Below are the `r {params$eGRID_year}` PM~2.5~, NH~3~, and VOC graphs included in the final datasets.
 
