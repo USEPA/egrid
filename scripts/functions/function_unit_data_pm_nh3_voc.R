@@ -45,26 +45,11 @@ unit_data_pm_nh3_voc <- function(emission_type){
   
   # Load necessary data --------------------
   
-  # EIA-923 - for Schedule C Air Emissions Control information (2021 & 2022)
-  if(params$eGRID_year %in% c("2021", "2022")) {
-    if(file.exists(glue::glue("data/2a_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"))) {
-      eia_923 <- read_csv(glue::glue("data/2a_pm_nh3_voc/inputs/eia/{params$eGRID_year}/eia_923_9c_airemissions.csv"), 
-                          col_types = "ccccccccddddcccdccddcdc",
-                          na = c("", ".")) %>%
-        janitor::clean_names() %>%
-        # convert string percentages to numeric proportions
-        mutate(across(.cols = where(is.character) & contains("efficiency"), 
-                      .fns =  ~ as.numeric(sub("%", "", .)) / 100))
-    } else {
-      stop("eia_923_9c_airemissions.csv does not exist.")
-      }
-    
-  # EIA-923 - for Schedule C Air Emissions Control information (2023+)
+  # EIA-923 - for Schedule C Air Emissions Control information
+  if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) {
+    eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))$air_emissions_control_info
   } else {
-    if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) {
-      eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))$air_emissions_control_info
-    } else {
-      stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
+    stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R in /scripts/1_production_model/ to obtain.")
     }
   
   # NEI emission data
