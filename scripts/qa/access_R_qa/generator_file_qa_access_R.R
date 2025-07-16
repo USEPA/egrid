@@ -28,28 +28,28 @@ library(readxl)
 
 # create and set directory for saving files 
 
-if(dir.exists("data/outputs/qa")) {
+if(dir.exists("data/1_production_model/outputs/qa")) {
   print("Folder qa already exists.")
 } else {
-   dir.create("data/outputs/qa")
+   dir.create("data/1_production_model/outputs/qa")
 }
 
-if(dir.exists("data/outputs/qa/generator_file_differences")) {
+if(dir.exists("data/1_production_model/outputs/qa/generator_file_differences")) {
   print(glue::glue("Folder generator_file_differences already exists."))
 } else {
-  dir.create("data/outputs/qa/generator_file_differences")
+  dir.create("data/1_production_model/outputs/qa/generator_file_differences")
 }
 
-if(dir.exists(glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}"))) {
+if(dir.exists(glue::glue("data/1_production_model/outputs/qa/generator_file_differences/{params$eGRID_year}"))) {
   print(glue::glue("Folder generator_file_differences/{params$eGRID_year} already exists."))
 } else {
-   dir.create(glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}"))
+   dir.create(glue::glue("data/1_production_model/outputs/qa/generator_file_differences/{params$eGRID_year}"))
 }
 
-save_dir <- glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}/")
+save_dir <- glue::glue("data/1_production_model/outputs/qa/generator_file_differences/{params$eGRID_year}/")
 
 # load R dataset
-generator_r <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
+generator_r <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file.RDS"))
 
 # add "_r" after each variable to easily identify dataset 
 colnames(generator_r) <- paste0(colnames(generator_r), "_r")
@@ -60,7 +60,7 @@ generator_r <-
          "generator_id" = "generator_id_r") %>% select(-seqgen_r)
 
 # load access dataset (from published 2021 eGRID excel sheet)  
-generator_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
+generator_access <- read_excel(glue::glue("data/1_production_model/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
                                sheet = glue::glue("GEN{as.numeric(params$eGRID_year) %% 1000}"),  
                                skip = 1, 
                                guess_max = 4000) %>% janitor::clean_names() %>% 

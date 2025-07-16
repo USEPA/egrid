@@ -26,7 +26,7 @@ library(readxl)
 library(stringr)
 
 # set directory for saving files 
-save_dir <- here("data/outputs/qa/plant_file_differences", Sys.Date(),"")
+save_dir <- here("data/1_production_model/outputs/qa/plant_file_differences", Sys.Date(),"")
 
 # create it if it doesn't already exist
 if(!dir.exists(save_dir)) {dir.create(save_dir,recursive = T)}
@@ -34,7 +34,7 @@ do.call(file.remove, list(dir(save_dir, full.names = TRUE)))
 
 ## 1. R Version --------------
 # load plant file R
-plant_r <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
+plant_r <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
 
 write.csv(plant_r, paste0(save_dir,"/plant_file_qa.csv"))
 # add "_r" after each variable to easily identify dataset 
@@ -43,7 +43,7 @@ colnames(plant_r) <- paste0(colnames(plant_r), "_r")
 plant_r <- plant_r %>% rename("plant_id" = "plant_id_r")
 
 ## 2. Access Version ---------------------
-plant_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
+plant_access <- read_excel(glue::glue("data/1_production_model/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
                            sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000}"), 
                            skip = 1, 
                            guess_max = 4000) %>% janitor::clean_names() %>% 
@@ -208,11 +208,11 @@ plant_access <- read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_yea
 # load plant differences from unit and gen files
 
 gen_diffs <- 
-  read_csv(glue::glue("data/outputs/qa/generator_file_differences/{params$eGRID_year}/plant_gen_difference_ids.csv")) %>% 
+  read_csv(glue::glue("data/1_production_model/outputs/qa/generator_file_differences/{params$eGRID_year}/plant_gen_difference_ids.csv")) %>% 
   select(plant_id, source_diff) %>% distinct()
 
 unit_diffs <- 
-  read_csv(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}/plant_unit_difference_ids.csv")) %>% 
+  read_csv(glue::glue("data/1_production_model/outputs/qa/unit_file_differences/{params$eGRID_year}/plant_unit_difference_ids.csv")) %>% 
   select(plant_id, source_diff) %>% distinct()
 
 gen_unit_diffs <- 

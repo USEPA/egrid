@@ -43,7 +43,7 @@ if (exists("params")) {
 # Import .RDS data --------------------------------
 
 # create a list of files in R directory
-data_dir <- glue::glue("data/outputs/{params$eGRID_year}/")
+data_dir <- glue::glue("data/1_production_model/outputs/{params$eGRID_year}/")
 filenames <- list("state_aggregation.RDS", "subregion_aggregation.RDS", 
                   "grid_gross_loss.RDS", "us_aggregation.RDS")
 
@@ -56,7 +56,7 @@ for (file in (filenames)){
 
 # read in crosswalk assigning subregions to interconnect regions
 xwalk_subregion_ggl <- 
-  read.csv("data/static_tables/xwalk_subregion_interconnect.csv") %>%
+  read.csv("data/1_production_model/static_tables/xwalk_subregion_interconnect.csv") %>%
   janitor::clean_names() %>%
   rename(subregion = subregion_code) %>%
   # join grid gross loss data by interconnect assignment
@@ -181,5 +181,5 @@ create_summary_tables()
                       
 # Save excel sheet -------------------------------
 
-saveWorkbook(wb, glue::glue("data/outputs/{params$eGRID_year}/summary_tables.xlsx"), 
+saveWorkbook(wb, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/summary_tables.xlsx"), 
              overwrite = TRUE)
