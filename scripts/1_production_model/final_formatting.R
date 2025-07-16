@@ -49,18 +49,18 @@ if (exists("params")) {
 
 
 # load files
-unt_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
-gen_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
-plnt_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
-st_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/state_aggregation.RDS"))
-ba_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/ba_aggregation.RDS"))
-srl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/subregion_aggregation.RDS"))
-nrl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/nerc_aggregation.RDS"))
-us_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/us_aggregation.RDS"))
-ggl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+unt_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
+gen_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file.RDS"))
+plnt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
+st_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/state_aggregation.RDS"))
+ba_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/ba_aggregation.RDS"))
+srl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/subregion_aggregation.RDS"))
+nrl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/nerc_aggregation.RDS"))
+us_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/us_aggregation.RDS"))
+ggl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
-  demo_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
+  demo_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))
 }
 
 
@@ -91,7 +91,7 @@ s <- create_format_styles()
 
 standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",	
                      "HTIAN"    = "annual heat input from combustion (MMBtu)",	
-                     "HTIOZ"    = "annual heat input from combustion (MMBtu)",	
+                     "HTIOZ"    = "ozone season heat input from combustion (MMBtu)",	
                      "HTIANT"   = "total annual heat input (MMBtu)",
                      "HTIOZT"   = "total ozone season heat input (MMBtu)",	
                      "NGENAN"   = "annual net generation (MWh)",	
@@ -128,7 +128,7 @@ standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
                      "CH4CRT"   = "annual CH4 combustion output emission rate (lb/MWh)",	
                      "N2OCRT"   = "annual N2O combustion output emission rate (lb/MWh)",	
                      "C2ECRT"   = "annual CO2 equivalent combustion output emission rate (lb/MWh)",
-                     "HGCRT"    = "Hg combustion output emission rate (lb/MWh)",	
+                     "HGCRT"    = "annual Hg combustion output emission rate (lb/MWh)",	
                      "CNOXRT"   = "annual NOx coal output emission rate (lb/MWh)",	
                      "ONOXRT"   = "annual NOx oil output emission rate (lb/MWh)",	
                      "GNOXRT"   = "annual NOx gas output emission rate (lb/MWh)",	
@@ -288,7 +288,7 @@ unt_labels <-  c(sequnt_label,
                  "UNITID"   = "Unit ID",
                  "PRMVR"    = "Prime Mover",
                  "UNTOPST"  = "Unit Operational Status",
-                 "CAMDFLAG" = "CAMD program flag",
+                 "CAPDFLAG" = "CAPD program flag",
                  "PRGCODE"  = "Program code(s)",
                  "BOTFIRTY" = "Unit bottom and firing type",
                  "NUMGEN"   = "Number of associated generators",
@@ -391,7 +391,7 @@ gen_rows <- nrow(gen_file) + 2
 ## column names and descriptions
 gen_labels <- c(seqgen_label,
                 "YEAR"      = "Data Year",
-                "PSTATEABB" = "Plant state abbreviation", 
+                "PSTATABB"  = "Plant state abbreviation", 
                 "PNAME"     = "Plant name",
                 "ORISPL"    = "DOE/EIA ORIS plant or facility code",
                 "GENID"     = "Generator ID",
@@ -509,7 +509,7 @@ plnt_labels <- c(seqplt_label,
                  "CNTYNAME"  = "Plant county name",
                  "LAT"       = "Plant latitude",
                  "LON"       = "Plant longitude",
-                 "CAMDFLAG"  = "CAMD Program Flag",
+                 "CAPDFLAG"  = "CAPD Program Flag",
                  "NUMUNT"    = "Number of units",
                  "NUMGEN"    = "Number of generators",
                  "PLPRMFL"   = "Plant primary fuel",
@@ -1086,7 +1086,7 @@ addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpa
 ### DEMO Formatting -----
 # only build demographics file if the file exists in outputs
 # this is because pulling data from the EJScreen API to build the demographics file takes several hours
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   
   ## create "DEMO" sheet
   demo <- glue::glue("DEMO{year}")
@@ -1252,7 +1252,7 @@ add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 1
 add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 1, loc = c(3, 16), text_to_show = glue::glue("US{year}"))
 add_hyperlink(glue::glue("GGL{year}"),  row_link = 1, col_link = 1, loc = c(3, 17), text_to_show = glue::glue("GGL{year}"))
 
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   add_hyperlink(glue::glue("DEMO{year}"),  row_link = 1, col_link = 1, loc = c(3, 18), text_to_show = glue::glue("DEMO{year}"))
 }
 
@@ -1381,7 +1381,7 @@ add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 159, loc = c(16
 add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 157, loc = c(17, 43), text_to_show = "US")
 
 ### Save and export -----
-output <- glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx")
+output <- glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx")
 saveWorkbook(wb, output, overwrite = TRUE)
 
 print(glue::glue("Saving final formatted file to folder data/outputs/{params$eGRID_year}/"))

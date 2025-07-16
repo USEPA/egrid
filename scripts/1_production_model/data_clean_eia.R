@@ -21,7 +21,6 @@ library(purrr)
 library(readxl)
 library(stringr)
 
-
 # check if parameters for eGRID data year need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
 # user will be prompted to input eGRID year in the console if params does not exist

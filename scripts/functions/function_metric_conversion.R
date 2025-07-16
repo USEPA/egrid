@@ -84,10 +84,10 @@ metric_conversion <- function(which_file) {
   # Load original data and metric structure ------------------
   
   # original output data
-  orig_data <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/{filename}.RDS")) 
+  orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{filename}.RDS")) 
   
   # metric file structure
-  metric_struct <- read_excel("data/static_tables/metric_structure.xlsx",
+  metric_struct <- read_excel("data/1_production_model/static_tables/metric_structure.xlsx",
                                  # sheet index is same index in list of data files
                                  sheet = which(filenames_orig == filename),
                                  # keep column names to include NA fields
@@ -141,7 +141,7 @@ metric_conversion <- function(which_file) {
   # Export file -------------
   
   # check if data output folder exists, if not make folder
-  save_dir <- glue::glue("data/outputs/{params$eGRID_year}")
+  save_dir <- glue::glue("data/1_production_model/outputs/{params$eGRID_year}")
   if(!dir.exists(save_dir)) {
     dir.create(save_dir)
     print(glue::glue("Folder {save_dir} created."))

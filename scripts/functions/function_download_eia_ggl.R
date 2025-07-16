@@ -35,8 +35,8 @@ download_eia_ggl <- function(year) {
   
   
   # create a eia_ggl folder for raw_data & clean_data if one does not already exists
-  new_folder <- "data/raw_data/eia_ggl"
-  new_folder2 <- "data/clean_data/eia_ggl"
+  new_folder <- "data/1_production_model/raw_data/eia_ggl"
+  new_folder2 <- "data/1_production_model/clean_data/eia_ggl"
   
   if (!dir.exists(new_folder)) {
     dir.create(new_folder, recursive = TRUE)
