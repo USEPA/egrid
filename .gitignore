@@ -8,7 +8,6 @@ archive
 eGRID_master_files
 pm_nh3_voc_master_files
 api_keys
-style.css
 brand
 *.Rproj
 qa_all.html
@@ -21,3 +20,9 @@ monthly_qa_files/
 monthly_qa_region_agg_files/
 data/2c_api/
 data/static_tables/historical_egrid/
+Thumbs.db
+styles.css
+monthly_qa_plant_subregion_files/
+data/2d_web_updates/
+data/1_production_model/static_tables/historical_egrid/
+data/1_production_model/static_tables/qa/
