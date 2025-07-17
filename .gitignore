@@ -32,3 +32,8 @@ data/1_production_model/static_tables/qa/
 data/static_tables/historical_egrid/
 monthly_qa_plant_subregion_files/
 styles.css
+data/2a_pm_nh3_voc/inputs/eia/
+data/2a_pm_nh3_voc/inputs/nei/
+data/2a_pm_nh3_voc/inputs/nei_eia_crosswalk/
+data/2a_pm_nh3_voc/outputs/
+pm_nh3_voc_master_files/
