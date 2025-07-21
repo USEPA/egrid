@@ -57,8 +57,7 @@ unit_file <-
 # biomass fuel types 
 bio_fuels <- 
   read_csv("data/1_production_model/static_tables/fuel_type_categories.csv", 
-            col_types = cols_only(biomass_fuel_adj = "c"),
-           nas) %>% 
+            col_types = cols_only(biomass_fuel_adj = "c")) %>% 
   tidyr::drop_na()
 
 # previous year of biomass units 
@@ -72,10 +71,6 @@ xwalk_epa_eia <- read_csv("data/1_production_model/static_tables/xwalk_oris_epa.
 
 # EIA Boiler data --------------------------------
 
-# getting vectors of ids for 860 tables to filter on
-#eia_860_boil_gen_ids <- eia_860$boiler_generator %>% mutate(id = paste0(plant_id, "_", boiler_id)) %>% pull(id)
-#eia_860_combined_ids <- eia_860$combined %>% mutate(id_pm = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% pull(id_pm)
-
 eia_923_boiler_bio_plants <- 
   eia_923$boiler %>% 
   inner_join(plants_negative_co2 %>% select(plant_id), by = "plant_id") %>% # only include plants with negative CO2
@@ -88,7 +83,7 @@ eia_923_boiler_bio_plants <-
   ungroup() %>% 
   mutate(id = paste0(plant_id, "_", boiler_id), 
          id_pm = paste0(plant_id, "_", boiler_id, "_", prime_mover)) %>% 
-  filter(!id %in% unit_file$id)
+  filter(!id %in% unit_file$id) # exclude units already in unit flie
 
 count_923_bio_plants <- nrow(eia_923_boiler_bio_plants %>% select(plant_id) %>% distinct())
 
@@ -103,13 +98,16 @@ write_csv(eia_923_boiler_bio_plants, "data/1_production_model/static_tables/qa/e
 
 # EIA 860 Generator data ---------------------------
 
+eia_860_boil_gen_ids <- eia_860$boiler_generator %>% mutate(id = paste0(plant_id, "_", generator_id)) %>% pull(id)
+
 eia_860_gen_bio_plants <- 
   eia_860$operable %>% 
   right_join(plants_negative_co2 %>% select(plant_id), by = "plant_id") %>% # only include plants with negative CO2
   mutate(id = paste0(plant_id, "_", generator_id),
-         id_pm = paste0(plant_id, "_", boiler_id, "_", prime_mover)) %>% 
-  filter(!id %in% eia_923_boiler_bio_plants$id, 
-         !id %in% unit_file$id) %>% 
+         id_pm = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% 
+  filter(!id %in% eia_923_boiler_bio_plants$id, # exclude generators in EIA-923 biomass unit list already
+         !id %in% unit_file$id, # exclude units already in unit file
+         !id %in% eia_860_boil_gen_ids) %>% # exclude generators that match to boilers in EIA-923
   select(plant_id, generator_id, prime_mover, energy_source_1)
 
 count_860_bio_plants <- nrow(eia_860_gen_bio_plants %>% select(plant_id) %>% distinct())
