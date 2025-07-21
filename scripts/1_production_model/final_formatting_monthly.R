@@ -63,6 +63,8 @@ year <- as.numeric(params$eGRID_year) %% 1000
 # set up output file
 ### Note: check for updates or changes each data year ###
 wb <- createWorkbook()
+
+# create contents page
 # source("scripts/functions/function_create_contents_egrid_final.R")
 # create_contents_egrid_final(temporal_res = "monthly")
 
@@ -81,11 +83,12 @@ source("scripts/functions/function_add_hyperlink.R")
 s <- create_format_styles()
 
 style_map <- c(
- "HTIT"   = "color1", # keep has color1 or do just 1?
+ "HTIT"   = "color1", 
  "NGEN"   = "color1",
  "NGENNB" = "color1",
  "NOX"    = "color1",
  "SO2"    = "color1",
+ "CO2"    = "color1",
  "CH4"    = "color1",
  "N2O"    = "color1",
  "CO2EQA" = "color1",
@@ -185,6 +188,7 @@ for (j in 1:length(file_names)){
   
   file_header_annual_list <- list()
   file_desc_annual_list <- list()
+
   
   for (i in 1:length(standard_labels)) {
     file_header_month <- paste0(file_names[j], names(standard_labels)[i], "_", month_abbr_upper)
@@ -308,11 +312,34 @@ writeData(wb,
           st_file_ann_formatted,
           startRow = 2,
           startCol = length(st_file_formatted)+1)
+# 
+# for (month in month_abbr_upper){
+#   st_style_map <- style_map
+#   
+#   for (i in 1:length(st_style_map)) { # change to style_map in function
+#     old_name <- names(style_map)[i]
+#     new_name <- paste0("ST", old_name, "_", month)
+#     st_style_map <- modify_style_name(st_style_map, old_name, new_name)
+#   }
+#   
+#   format_cols(st_file_formatted, st, st_style_map)
+# }
+# 
+# st_base_style_map <- c("YEAR" = "base",
+#                        "PSTATABB" = "base",
+#                        "FIPSST" = "base")
+# 
+# format_cols(st_file_formatted, st, st_base_style_map)
 
+# num_cols <- length(st_file_formatted) + length(st_file_ann_formatted)
 
 ## add styles to document
 # format_region(st, st_rows)
-
+format_sheet(df_month = st_file_formatted,
+             df_ann = st_file_ann_formatted,
+             file_name = "ST",
+             temporal_res = params$temporal_res,
+             default_style_map = style_map)
 
 # BA Formatting ----------------------------------
 
@@ -417,7 +444,12 @@ writeData(wb,
 
 
 ## add styles to document
-# format_region(ba, ba_rows)
+format_sheet(df_month = ba_file_formatted,
+             df_ann = ba_file_ann_formatted,
+             file_name = "BA",
+             temporal_res = params$temporal_res,
+             default_style_map = style_map)
+
 
 # setColWidths(wb, sheet = ba, cols = 2, widths = 75.55)
 
@@ -446,27 +478,27 @@ srl_rows <- nrow(srl_file) + 2
 srl_file <- rename_variables(srl_file, subregion_nonmetric_monthly)
 
 srl_file_wider_cols <- srl_file %>%
-  select(all_of(paste0("SR", standard_header))) %>%
-  colnames()
+                       select(all_of(paste0("SR", standard_header))) %>%
+                       colnames()
 
 # Structure dataframe
 srl_file_formatted <- srl_file %>%
-  select("YEAR",
-         "MONTH",
-         "SUBRGN",
-         "SRNAME",
-         all_of(paste0("SR", standard_header))) %>%
-  mutate(MONTH = month_abbr_upper[MONTH]) %>%
-  pivot_wider(names_from = MONTH, values_from = all_of(srl_file_wider_cols))
+                      select("YEAR",
+                             "MONTH",
+                             "SUBRGN",
+                             "SRNAME",
+                             all_of(paste0("SR", standard_header))) %>%
+                       mutate(MONTH = month_abbr_upper[MONTH]) %>%
+                       pivot_wider(names_from = MONTH, values_from = all_of(srl_file_wider_cols))
 
 srl_file_ann <- rename_variables(srl_file_ann, subregion_nonmetric_annual)
 
 srl_file_ann_formatted <- srl_file_ann %>%
-  select(all_of(paste0("SR", as.matrix(standard_header_ann)))) %>%
-  rename_with(~ paste0(., "_ANNUAL"))
+                          select(all_of(paste0("SR", as.matrix(standard_header_ann)))) %>%
+                          rename_with(~ paste0(., "_ANNUAL"))
 
 srl_file_ann_desc <- rename_variables(srl_file_ann_formatted, all_labels_annual_list[["SR"]]) %>%
-  colnames()
+                     colnames()
 
 # check if shorthand names match name_matching.R and stop if not. 
 # subregion_check_cols <- c()
@@ -527,6 +559,11 @@ writeData(wb,
 # 
 # setColWidths(wb, sheet = srl, cols = 3, widths = 18.45)
 
+format_sheet(df_month = srl_file_formatted,
+             df_ann = srl_file_ann_formatted,
+             file_name = "SR",
+             temporal_res = params$temporal_res,
+             default_style_map = style_map)
 
 # NRL Formatting ----------------------------------------
 
@@ -631,7 +668,11 @@ writeData(wb,
 # format_region(nrl, nrl_rows)
 
 # setColWidths(wb, sheet = nrl, cols = 3, widths = 29.45)
-
+format_sheet(df_month = nrl_file_formatted,
+             df_ann = nrl_file_ann_formatted,
+             file_name = "NR",
+             temporal_res = params$temporal_res,
+             default_style_map = style_map)
 
 # US Formatting ---------------------------------------
 
@@ -727,7 +768,11 @@ writeData(wb,
 
 ## add styles to document
 # format_region(us, us_rows)
-
+format_sheet(df_month = us_file_formatted,
+             df_ann = us_file_ann_formatted,
+             file_name = "US",
+             temporal_res = params$temporal_res,
+             default_style_map = style_map)
 
 # Contents Formatting -----------------------------------------
 

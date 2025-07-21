@@ -64,7 +64,7 @@ rename_variables <- function(df, name_map, strict = TRUE, rename = TRUE) {
 
 # test <- rename_variables(st_file_ann, state_nonmetric_annual)
 
-format_headers <- function(df, name_map) {
+format_headers <- function(df, style_map) {
   for (colname in names(df)) {
     if (colname %in% names(style_map)) {
       col_index <- which(names(df) == colname)
@@ -81,7 +81,7 @@ format_headers <- function(df, name_map) {
 }
 
 
-format_cols <- function(df, name_map) {
+format_cols <- function(df, style_map) {
   
   # format names 
   for (colname in names(df)) {
