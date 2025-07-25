@@ -66,6 +66,7 @@ wb <- createWorkbook()
 
 # create contents page
 # source("scripts/functions/function_create_contents_egrid_final.R")
+# create_contents_egrid_final()
 # create_contents_egrid_final(temporal_res = "monthly")
 
 # vector for month names

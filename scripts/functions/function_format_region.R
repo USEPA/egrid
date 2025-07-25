@@ -339,11 +339,33 @@ format_sheet <- function(df_month, df_ann, file_name, temporal_res, default_styl
       format_cols(df_ann, sheet, style_map_ann, start_col = length(df_month))
     }
 
-    
     # format base identifier columns
     format_cols(df_month, sheet, base_style_map)
     
 
+  } else if (temporal_res == "annual") {
+    format_cols(df_ann, sheet, default_style_map)
+    
+    style_map <- default_style_map # set up style map
+    
+    # region formatting
+    if (file_name %in% c("ST","BA","SR","NR","US")) {
+      for (i in 1:length(style_map)) { 
+        old_name <- names(default_style_map)[i]
+        new_name <- paste0(file_name, old_name)
+        style_map <- modify_style_name(style_map, old_name, new_name) # update names from base style map to monthly ver
+      }
+      
+      format_cols(df_ann, sheet, style_map)
+      # format base identifier columns
+      format_cols(df_ann, sheet, base_style_map)
+    
+    # all other sheets formatting
+    } else {
+      format_cols(df_ann, sheet, default_style_map)
+    }
+    
+  
   }
   
 }
