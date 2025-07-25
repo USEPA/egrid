@@ -110,9 +110,17 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
   
   title <- c(
     "for",
-    glue::glue("eGRID{year}_Data.xlsx"),
+    glue::glue("eGRID{year}_data.xlsx"),
     glue::glue("eGRID{year} Unit, Generator, Plant, State, Balancing Authority Area, eGRID Subregion, NERC Region, U.S., Grid Gross Loss (%), and Demographic Data Files"),
     format(Sys.Date(), "%B %d, %Y"))
+
+  if (temporal_res == "monthly") {
+    title <- c(
+      "for",
+      glue::glue("eGRID{year}_monthly_data.xlsx"),
+      glue::glue("eGRID{year} State, Balancing Authority Area, eGRID Subregion, NERC Region, and U.S. Files"),
+      format(Sys.Date(), "%B %d, %Y"))
+  }
   
   ## Subsection titles -----------
 
@@ -155,7 +163,6 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
   
   if (temporal_res == "monthly") {
     sheet_names <- c(
-      "Plant",
       "State",
       "Balancing authority area",
       "eGRID subregion",
@@ -164,10 +171,15 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
     )
   }
   
-  
-  table_of_contents_descrip <- append(
-    paste(sheet_names, glue::glue("year {year} data")),
-    glue::glue("Surrounding demographic data for eGRID{year} plants"))
+  if (temporal_res == "annual") {
+    table_of_contents_descrip <- append(
+      paste(sheet_names, glue::glue("year {year} data")),
+      glue::glue("Surrounding demographic data for eGRID{year} plants"))
+  } else if (temporal_res == "monthly") {
+    table_of_contents_descrip <-
+      paste(sheet_names, glue::glue("year {year} data"))
+  }
+
   
   # table of contents production model note
   production_link <- c("https://github.com/USEPA/egrid")
@@ -201,9 +213,9 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
     "Nonbaseload Output Emission Rates (emissions per MWh)",						
     "Nonbaseload Generation by Fuel Type (MWh)",						
     "Nonbaseload Resource Mix (percentages)")
-  
+
   if (temporal_res == "monthly") {
-    c(
+    category_names <-  c(
       "Annual Values (generation, emissions, and heat input)",
       "Output Emission Rates (emissions per MWh)",
       "Input Emission Rates (emissions per MMBtu)",
@@ -214,10 +226,17 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
   category_labeled <- paste0(1:length(category_names), paste(")", category_names))
   
   ## Notes ------------
-  
-  notes <- c(
-    "Values in parentheses are negative numbers.",
-    "Dashes (-) are zeroes.")
+  if (temporal_res == "annual") {
+    notes <- c(
+      "Values in parentheses are negative numbers.",
+      "Dashes (-) are zeroes.")
+  } else if (temporal_res == "monthly") {
+    notes <- c(
+      "Values in parentheses are negative numbers.",
+      "Dashes (-) are zeroes.",
+      "* denotes months that fall within the ozone season (May through September).")
+  }
+
   
   ## Conversion factors ---------------
   
@@ -433,10 +452,20 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
   
   ## Add cell sizes -------------
 
-  setRowHeights(wb, current_worksheet, rows = 2:4, heights = 17.4)
-  setRowHeights(wb, current_worksheet, rows = c(7, 18, 20, 24), heights = 15.6)
-  setRowHeights(wb, current_worksheet, rows = c(5:7, 25), heights = c(43.8, 25.8, 25.8, 16.2))
-  setColWidths(wb, current_worksheet, cols = 1:12, widths = 10.33)
-  setColWidths(wb, current_worksheet, cols = c(1:2, 5:6), widths = c(1, 14.33, 8.33, 18))
-  setColWidths(wb, current_worksheet, cols = 10:19, widths = 5)
+  if (temporal_res == "annual") {
+    setRowHeights(wb, current_worksheet, rows = 2:4, heights = 17.4)
+    setRowHeights(wb, current_worksheet, rows = c(7, 18, 20, 24), heights = 15.6)
+    setRowHeights(wb, current_worksheet, rows = c(5:7, 25), heights = c(43.8, 25.8, 25.8, 16.2))
+    setColWidths(wb, current_worksheet, cols = 1:12, widths = 10.33)
+    setColWidths(wb, current_worksheet, cols = c(1:2, 5:6), widths = c(1, 14.33, 8.33, 18))
+    setColWidths(wb, current_worksheet, cols = 10:19, widths = 5)
+  } else if (temporal_res == "monthly") {
+    setRowHeights(wb, current_worksheet, rows = 2:4, heights = 17.4)
+    setRowHeights(wb, current_worksheet, rows = c(7, 15, 19), heights = 15.6)
+    setRowHeights(wb, current_worksheet, rows = c(5:7, 20), heights = c(43.8, 25.8, 25.8, 16.2))
+    setColWidths(wb, current_worksheet, cols = 1:12, widths = 10.33)
+    setColWidths(wb, current_worksheet, cols = c(1:2, 5:6), widths = c(1, 14.33, 8.33, 18))
+    setColWidths(wb, current_worksheet, cols = 10:19, widths = 5)
+  }
+
 }
