@@ -86,14 +86,14 @@ level_abbrev <- c("unit" = "",
                   "subregion" = "SR")
 
 # Loop through emission types -----
-for (emission_type in c("pm25", "nh3", "voc")) {
+for (emission_type in c("pm", "nh3", "voc")) {
     # assign emission type formatting for headers
-  if(emission_type == "pm25") {
-    emission_abbrev <- "pm"
+  if(emission_type == "pm") {
     emission_header <- "PM2.5"
+    emission_label <- "pm25"
   } else {
-    emission_abbrev <- emission_type
     emission_header <- toupper(emission_type)
+    emission_label <- emission_type
   }
   
   # Import .RDS data -----
@@ -129,7 +129,7 @@ for (emission_type in c("pm25", "nh3", "voc")) {
   
   # Load in previous year workbook -----
   year_prev <- as.numeric(params$eGRID_year) - 1
-  wb_dir <- glue::glue("data/2a_pm_nh3_voc/outputs/{year_prev}/eGRID{year_prev}_{emission_abbrev}emissions.xlsx")
+  wb_dir <- glue::glue("data/2a_pm_nh3_voc/outputs/{year_prev}/eGRID{year_prev}_{emission_type}emissions.xlsx")
   wb <- loadWorkbook(wb_dir)
   
   # set base font
@@ -145,18 +145,18 @@ for (emission_type in c("pm25", "nh3", "voc")) {
     emission_data <- paste0(emission_level, "_file")
     
     # match additional column names present in emissions data not in name_matches
-    colnames_new <- setNames(c(paste0(emission_type, "_ann"),
-                               paste0(emission_type, "_output_rate"),
-                               paste0(emission_type, "_input_rate"),
-                               paste0(emission_type, "_rate"), 
-                               paste0(emission_type, "_source"),
-                               paste0("unadj_", emission_type)),
-                             c(paste0(level_abbrev[[emission_level]], toupper(emission_type), "AN"), 
-                               paste0(level_abbrev[[emission_level]], toupper(emission_type), "RTA"),
-                               paste0(level_abbrev[[emission_level]], toupper(emission_type), "RA"),
-                               paste0(level_abbrev[[emission_level]], toupper(emission_type), "RT"), 
-                               paste0(toupper(emission_type), "SRC"),
-                               paste0("UN", toupper(emission_type))))
+    colnames_new <- setNames(c(paste0(emission_label, "_ann"),
+                               paste0(emission_label, "_output_rate"),
+                               paste0(emission_label, "_input_rate"),
+                               paste0(emission_label, "_rate"), 
+                               paste0(emission_label, "_source"),
+                               paste0("unadj_", emission_label)),
+                             c(paste0(level_abbrev[[emission_level]], toupper(emission_label), "AN"), 
+                               paste0(level_abbrev[[emission_level]], toupper(emission_label), "RTA"),
+                               paste0(level_abbrev[[emission_level]], toupper(emission_label), "RA"),
+                               paste0(level_abbrev[[emission_level]], toupper(emission_label), "RT"), 
+                               paste0(toupper(emission_label), "SRC"),
+                               paste0("UN", toupper(emission_label))))
   
     # select name matches and new column names present in emissions data
     colnames <- c(get(name_matches)[get(name_matches) %in% colnames(get(emission_data))],
@@ -175,7 +175,7 @@ for (emission_type in c("pm25", "nh3", "voc")) {
   
     ## Create new worksheet for emissions level -----
   
-    current_worksheet <- glue::glue("{params$eGRID_year} {toupper(emission_abbrev)} {str_to_title(emission_level)}-level Data")
+    current_worksheet <- glue::glue("{params$eGRID_year} {toupper(emission_type)} {str_to_title(emission_level)}-level Data")
     addWorksheet(wb, sheetName = current_worksheet)
     
     ## Write data to new worksheet -----
@@ -246,7 +246,7 @@ for (emission_type in c("pm25", "nh3", "voc")) {
     
     # generation annual, heat annual, operating hours, unadjusted heat input, state annual emissions, subregion annual emissions
     addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0"), rows = 3:sheetLength,
-             cols = which(grepl(glue::glue("GENAN$|HTIAN$|^HRSOP$|UNHTI$|^ST{toupper(emission_type)}AN$|^SR{toupper(emission_type)}AN$"), colnames(emission_data_formatted))),
+             cols = which(grepl(glue::glue("GENAN$|HTIAN$|^HRSOP$|UNHTI$|^ST{toupper(emission_label)}AN$|^SR{toupper(emission_label)}AN$"), colnames(emission_data_formatted))),
              stack = TRUE, gridExpand = TRUE)
     # nameplate capacity
     addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0"), rows = 3:sheetLength,
@@ -254,7 +254,7 @@ for (emission_type in c("pm25", "nh3", "voc")) {
              stack = TRUE, gridExpand = TRUE)
     # unit annual emission values, plant annual emission values, unadjusted annual rates
     addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.000"), rows = 3:sheetLength,
-             cols = which(grepl(glue::glue("^{toupper(emission_type)}AN|^PL{toupper(emission_type)}AN|^UN{toupper(emission_type)}"), colnames(emission_data_formatted))),
+             cols = which(grepl(glue::glue("^{toupper(emission_label)}AN|^PL{toupper(emission_label)}AN|^UN{toupper(emission_label)}"), colnames(emission_data_formatted))),
              stack = TRUE, gridExpand = TRUE)
     # emission rates 
     addStyle(wb, current_worksheet, createStyle(numFmt = "#,##0.0000"), rows = 3:sheetLength,
@@ -270,7 +270,7 @@ for (emission_type in c("pm25", "nh3", "voc")) {
   
   # run script to save subregion graphs
   source(glue::glue("scripts/functions/function_create_subregion_figures_pm_nh3_voc.R"))
-  create_subregion_emission_figures(emission_type, skip_if_exists = FALSE)
+  create_subregion_emission_figures(emission_type, skip_if_exists = TRUE)
   
   # define graph directory, names, and years
   graph_dir <- glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/")
@@ -318,6 +318,6 @@ for (emission_type in c("pm25", "nh3", "voc")) {
   worksheetOrder(wb) <-wb_new_order
   
   # save workbook
-  saveWorkbook(wb, glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx"), 
+  saveWorkbook(wb, glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_type}emissions.xlsx"), 
                overwrite = TRUE)
 }

@@ -76,19 +76,19 @@ state_qa <- function(emission_type) {
   
   # Import Access state data and match formatting of R ------
   ## Load state data -------
-  if(emission_type == "pm25") {
-    emission_abbrev <- substr(emission_type, 1, 2)
+  if(emission_type == "pm") {
+    emission_label <- "pm25"
   } else {
-    emission_abbrev <- emission_type
+    emission_label <- emission_type
   }
   
   # check for file presence and load if file exists
-  if(file.exists(glue::glue("data/2a_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_state.xlsx"))) {
-    state_access_raw <- read_excel(glue::glue("data/2a_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_state.xlsx"), 
+  if(file.exists(glue::glue("data/2a_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_type}emissions_state.xlsx"))) {
+    state_access_raw <- read_excel(glue::glue("data/2a_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_type}emissions_state.xlsx"), 
                                    col_names = TRUE) %>%
       rename(STNGENAN = SumOfPLNGENAN, STPM25AN = SumOfPLPM25AN2)
   } else {
-    stop(glue::glue("Access output 'eGRID{params$eGRID_year}_{emission_abbrev}emissions_state.xlsx' does not exist and is required for QA. \n Skipping {toupper(emission_abbrev)} QA."))
+    stop(glue::glue("Access output 'eGRID{params$eGRID_year}_{emission_type}emissions_state.xlsx' does not exist and is required for QA. \n Skipping {toupper(emission_type)} QA."))
   }
   
   ## Define updated column names ---------
@@ -96,8 +96,8 @@ state_qa <- function(emission_type) {
   load("data/1_production_model/static_tables/name_matches.Rdata")
   
   # add additional column names present in state data
-  additional_names <- setNames(c(paste0(emission_type, "_tons"), paste0(emission_type, "_rate")), 
-                               c(paste0("ST", toupper(emission_type), "AN"), paste0("ST", toupper(emission_type), "RTA")))
+  additional_names <- setNames(c(paste0(emission_label, "_tons"), paste0(emission_label, "_rate")), 
+                               c(paste0("ST", toupper(emission_label), "AN"), paste0("ST", toupper(emission_label), "RTA")))
   
   # select name matches present in state data
   state_new_names <- c(state_nonmetric[names(state_nonmetric) %in% colnames(state_access_raw)], additional_names)
@@ -153,39 +153,39 @@ state_qa <- function(emission_type) {
    ## Annual emissions -----
   check_emissions_tons <- 
     state_comparison %>% 
-    filter(mapply(identical, get(paste0(emission_type, "_tons_r")), get(paste0(emission_type, "_tons_access"))) == FALSE) %>% 
-    mutate("diff_{emission_type}_tons" := abs(get(paste0(emission_type, "_tons_r")) - get(paste0(emission_type, "_tons_access")))) %>% 
-    filter(get(paste0("diff_", emission_type, "_tons")) > 1E-5 | is.na(get(paste0(emission_type, "_tons_r"))) & !is.na(get(paste0(emission_type, "_tons_access"))) | 
-             !is.na(get(paste0(emission_type, "_tons_r"))) & is.na(get(paste0(emission_type, "_tons_access")))) %>%
+    filter(mapply(identical, get(paste0(emission_label, "_tons_r")), get(paste0(emission_label, "_tons_access"))) == FALSE) %>% 
+    mutate("diff_{emission_label}_tons" := abs(get(paste0(emission_label, "_tons_r")) - get(paste0(emission_label, "_tons_access")))) %>% 
+    filter(get(paste0("diff_", emission_label, "_tons")) > 1E-5 | is.na(get(paste0(emission_label, "_tons_r"))) & !is.na(get(paste0(emission_label, "_tons_access"))) | 
+             !is.na(get(paste0(emission_label, "_tons_r"))) & is.na(get(paste0(emission_label, "_tons_access")))) %>%
     select(state_r,
-           paste0(emission_type, "_tons_r"), paste0(emission_type, "_tons_access"), paste0("diff_", emission_type, "_tons"))
+           paste0(emission_label, "_tons_r"), paste0(emission_label, "_tons_access"), paste0("diff_", emission_label, "_tons"))
   save_diffs(check_emissions_tons)
   
   check_total_emissions_tons <- 
     state_comparison %>% 
-    summarize("sum_{emission_type}_tons_r" := sum(get(paste0(emission_type, "_tons_r")), na.rm = TRUE), 
-              "sum_{emission_type}_tons_access" := sum(get(paste0(emission_type, "_tons_access")), na.rm = TRUE)) %>% 
-    mutate("diff_{emission_type}_tons" := abs(get(paste0("sum_", emission_type, "_tons_r")) - get(paste0("sum_", emission_type, "_tons_access")))) %>%
-    filter(get(paste0("diff_", emission_type, "_tons")) > 0)
+    summarize("sum_{emission_label}_tons_r" := sum(get(paste0(emission_label, "_tons_r")), na.rm = TRUE), 
+              "sum_{emission_label}_tons_access" := sum(get(paste0(emission_label, "_tons_access")), na.rm = TRUE)) %>% 
+    mutate("diff_{emission_label}_tons" := abs(get(paste0("sum_", emission_label, "_tons_r")) - get(paste0("sum_", emission_label, "_tons_access")))) %>%
+    filter(get(paste0("diff_", emission_label, "_tons")) > 0)
   save_diffs(check_total_emissions_tons)
   
   ## Emissions output rate ------
   check_emissions_rate <- 
     state_comparison %>% 
-    filter(mapply(identical, get(paste0(emission_type, "_rate_r")), get(paste0(emission_type, "_rate_access"))) == FALSE) %>% 
-    mutate("diff_{emission_type}_rate" := abs(get(paste0(emission_type, "_rate_r")) - get(paste0(emission_type, "_rate_access")))) %>% 
-    filter(get(paste0("diff_", emission_type, "_rate")) > 1E-5 | is.na(get(paste0(emission_type, "_rate_r"))) & !is.na(get(paste0(emission_type, "_rate_access"))) | 
-             !is.na(get(paste0(emission_type, "_rate_r"))) & is.na(get(paste0(emission_type, "_rate_access")))) %>%
+    filter(mapply(identical, get(paste0(emission_label, "_rate_r")), get(paste0(emission_label, "_rate_access"))) == FALSE) %>% 
+    mutate("diff_{emission_label}_rate" := abs(get(paste0(emission_label, "_rate_r")) - get(paste0(emission_label, "_rate_access")))) %>% 
+    filter(get(paste0("diff_", emission_label, "_rate")) > 1E-5 | is.na(get(paste0(emission_label, "_rate_r"))) & !is.na(get(paste0(emission_label, "_rate_access"))) | 
+             !is.na(get(paste0(emission_label, "_rate_r"))) & is.na(get(paste0(emission_label, "_rate_access")))) %>%
     select(state_r,
-           paste0(emission_type, "_rate_r"), paste0(emission_type, "_rate_access"), paste0("diff_", emission_type, "_rate"))
+           paste0(emission_label, "_rate_r"), paste0(emission_label, "_rate_access"), paste0("diff_", emission_label, "_rate"))
   save_diffs(check_emissions_rate)
   
   check_total_emissions_rate <- 
     state_comparison %>% 
-    summarize("sum_{emission_type}_rate_r" := sum(get(paste0(emission_type, "_rate_r")), na.rm = TRUE), 
-              "sum_{emission_type}_rate_access" := sum(get(paste0(emission_type, "_rate_access")), na.rm = TRUE)) %>% 
-    mutate("diff_{emission_type}_rate" := abs(get(paste0("sum_", emission_type, "_rate_r")) - get(paste0("sum_", emission_type, "_rate_access")))) %>%
-    filter(get(paste0("diff_", emission_type, "_rate")) > 0)
+    summarize("sum_{emission_label}_rate_r" := sum(get(paste0(emission_label, "_rate_r")), na.rm = TRUE), 
+              "sum_{emission_label}_rate_access" := sum(get(paste0(emission_label, "_rate_access")), na.rm = TRUE)) %>% 
+    mutate("diff_{emission_label}_rate" := abs(get(paste0("sum_", emission_label, "_rate_r")) - get(paste0("sum_", emission_label, "_rate_access")))) %>%
+    filter(get(paste0("diff_", emission_label, "_rate")) > 0)
   save_diffs(check_total_emissions_rate)
   
   # Identify all unique states that have differences ------------
@@ -220,6 +220,6 @@ state_qa_safe_call <- function(emission_type) {
 }
 
 # Run function for emission types -----
-state_qa_safe_call("pm25")
+state_qa_safe_call("pm")
 state_qa_safe_call("nh3")
 state_qa_safe_call("voc")

@@ -50,26 +50,26 @@ plot_subregion_data <- function(emission_type, save_dir) {
   #' Function to plot PM2.5, NH3, or VOC subregion annual generation, emissions, and output rates data combined across all years of data
   #' 
   #' @param emission_type Emission type to produce plots for - either
-  #'                      "pm25", "nh3", or "voc"
+  #'                      "pm", "nh3", or "voc"
   #' @param save_dir Directory to save figures produced
   #' 
   #' @return Saved figures of subregion combined plots for years 2018-current eGRID year
   #'         
   #' @examples 
   #' # Create PM2.5 plots for generation, emissions, and rates
-  #' plot_subregion_data(emission_type = "pm25", save_dir = glue::glue( "data/2a_pm_nh3_voc/outputs/qa/{params$eGRID_year}/plots"))
+  #' plot_subregion_data(emission_type = "pm", save_dir = glue::glue( "data/2a_pm_nh3_voc/outputs/qa/{params$eGRID_year}/plots"))
   
   ## Assign emission type formatting for headers
-  if(emission_type == "pm25") {
-    emission_abbrev <- "pm"
+  if(emission_type == "pm") {
+    emission_label <- "pm25"
   } else {
-    emission_abbrev <- emission_type
+    emission_label <- emission_type
   }
   
   ## Load emissions final formatted subregion data ------
   
   # define excel sheet path
-  emissions_path <- glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions.xlsx")
+  emissions_path <- glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_type}emissions.xlsx")
   
   # collect sheet names
   sheet_names <- c(excel_sheets(emissions_path))
@@ -95,8 +95,8 @@ plot_subregion_data <- function(emission_type, save_dir) {
   # data to plot, main title, and ylabel
   ydata_params <- list(
     data = c(generation = "srngenan",
-             emissions = glue::glue("sr{emission_type}an"),
-             rate = glue::glue("sr{emission_type}rta")),
+             emissions = glue::glue("sr{emission_label}an"),
+             rate = glue::glue("sr{emission_label}rta")),
     title = c(generation = "Annual Generation",
               emissions = "Emissions",
               rate = "Output Rate"),
@@ -157,7 +157,7 @@ plot_subregion_data <- function(emission_type, save_dir) {
     if (!dir.exists(save_dir)) {
       dir.create(save_dir, recursive = TRUE)
     }
-    ggsave(glue::glue("{save_dir}{emission_type}_{ydata}_.png"), plot = plot, width = 8.5, height = 3.2, units = "in")
+    ggsave(glue::glue("{save_dir}{emission_type}_{ydata}.png"), plot = plot, width = 8.5, height = 3.2, units = "in")
     print(glue::glue("{toupper(emission_type)} {ydata} plot saved successfully."))
   }
   
@@ -168,20 +168,20 @@ plot_subregion_data <- function(emission_type, save_dir) {
   
 # Define emissions-specific plotting parameters ------
 plot_params <- list(
-  label = c(pm25 = "PM", nh3 = "NH", voc = "VOC"),
-  subscript = c(pm25 = 2.5, nh3 = 3, voc = ""),
-  ylabel_int_emissions = c(pm25 = 1e4, nh3 = 1e3, voc = 5e3),
-  ylabel_max_emissions = c(pm25 = 7e4, nh3 = 5e3, voc = 3.5e4),
-  yaxis_max_emissions = c(pm25 = 7.2e4, nh3 = 5.5e3, voc = 3.6e4),
-  ylabel_int_rate = c(pm25 = 0.1, nh3 = 0.02, voc = 0.1),
-  ylabel_max_rate = c(pm25 = 1.0, nh3 = 0.18, voc = 0.65),
-  yaxis_max_rate = c(pm25 = 1.05, nh3 = 0.19, voc = 0.68)
+  label = c(pm = "PM", nh3 = "NH", voc = "VOC"),
+  subscript = c(pm = 2.5, nh3 = 3, voc = ""),
+  ylabel_int_emissions = c(pm = 1e4, nh3 = 1e3, voc = 5e3),
+  ylabel_max_emissions = c(pm = 7e4, nh3 = 5e3, voc = 3.5e4),
+  yaxis_max_emissions = c(pm = 7.2e4, nh3 = 5.5e3, voc = 3.6e4),
+  ylabel_int_rate = c(pm = 0.1, nh3 = 0.02, voc = 0.1),
+  ylabel_max_rate = c(pm = 1.0, nh3 = 0.18, voc = 0.65),
+  yaxis_max_rate = c(pm = 1.05, nh3 = 0.19, voc = 0.68)
 )
 
 # Define save directory -----
 save_dir <- glue::glue("data/2a_pm_nh3_voc/outputs/qa/{params$eGRID_year}/subregion_combined_plots/")
 
 # Produce plots for all emission types
-for (emission_type in c("pm25", "nh3", "voc")) {
+for (emission_type in c("pm", "nh3", "voc")) {
   plot_subregion_data(emission_type, save_dir)
 }

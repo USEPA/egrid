@@ -39,6 +39,6 @@ if (exists("params")) {
 
 # Run aggregation data function to produce and save files --------
 source("scripts/functions/function_region_aggregation_pm_nh3_voc.R")
-region_aggregation_pm_nh3_voc("pm25")
+region_aggregation_pm_nh3_voc("pm")
 region_aggregation_pm_nh3_voc("nh3")
 region_aggregation_pm_nh3_voc("voc")

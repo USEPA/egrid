@@ -76,19 +76,19 @@ plant_qa <- function(emission_type) {
   
   # Import Access plant data and match formatting of R ------
   ## Load plant data -------
-  if(emission_type == "pm25") {
-    emission_abbrev <- substr(emission_type, 1, 2)
+  if(emission_type == "pm") {
+    emission_label <- "pm25"
   } else {
-    emission_abbrev <- emission_type
+    emission_label <- emission_type
   }
   
   # check for file presence and load if file exists
-  if(file.exists(glue::glue("data/2a_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_plant.xlsx"))) {
-    plant_access_raw <- read_excel(glue::glue("data/2a_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_abbrev}emissions_plant.xlsx"), 
+  if(file.exists(glue::glue("data/2a_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_type}emissions_plant.xlsx"))) {
+    plant_access_raw <- read_excel(glue::glue("data/2a_pm_nh3_voc/static_tables/qa/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_type}emissions_plant.xlsx"), 
                                    col_names = TRUE) %>%
       rename(PLPM25AN = PLPM25AN2, PLPM25RTA = PLPM25RTA2)
   } else {
-    stop(glue::glue("Access output 'eGRID{params$eGRID_year}_{emission_abbrev}emissions_plant.xlsx' does not exist and is required for QA. \n Skipping {toupper(emission_abbrev)} QA."))
+    stop(glue::glue("Access output 'eGRID{params$eGRID_year}_{emission_type}emissions_plant.xlsx' does not exist and is required for QA. \n Skipping {toupper(emission_type)} QA."))
   }
   
   ## Define updated column names ---------
@@ -96,8 +96,8 @@ plant_qa <- function(emission_type) {
   load("data/1_production_model/static_tables/name_matches.Rdata")
   
   # add additional column names present in plant data
-  additional_names <- setNames(c(paste0(emission_type, "_ann"), paste0(emission_type, "_output_rate"), paste0(emission_type, "_input_rate"), paste0(emission_type, "_source"), paste0("unadj_", emission_type)),
-                               c(paste0("PL", toupper(emission_type), "AN"), paste0("PL", toupper(emission_type), "RTA"), paste0("PL", toupper(emission_type), "RA"), paste0(toupper(emission_type), "SRC"), paste0("UN", toupper(emission_type))))
+  additional_names <- setNames(c(paste0(emission_label, "_ann"), paste0(emission_label, "_output_rate"), paste0(emission_label, "_input_rate"), paste0(emission_label, "_source"), paste0("unadj_", emission_label)),
+                               c(paste0("PL", toupper(emission_label), "AN"), paste0("PL", toupper(emission_label), "RTA"), paste0("PL", toupper(emission_label), "RA"), paste0(toupper(emission_label), "SRC"), paste0("UN", toupper(emission_label))))
   
   # select name matches present in plant data
   plant_new_names <- c(plant_nonmetric[names(plant_nonmetric) %in% colnames(plant_access_raw)], additional_names)
@@ -107,7 +107,7 @@ plant_qa <- function(emission_type) {
     plant_access_raw %>%
     rename(!!!setNames(lapply(names(plant_new_names), sym), plant_new_names)) %>%
     mutate(plant_id = as.character(plant_id), 
-           !!paste0(emission_type, "_source") := if_else(get(paste0(emission_type, "_source")) == "Estimated using an emission factor", "Estimated using an emissions factor", get(paste0(emission_type, "_source"))))
+           !!paste0(emission_label, "_source") := if_else(get(paste0(emission_label, "_source")) == "Estimated using an emission factor", "Estimated using an emissions factor", get(paste0(emission_label, "_source"))))
   
   # add "_access" after each variable to easily identify dataset 
   colnames(plant_access) <- paste0(colnames(plant_access), "_access")
@@ -211,69 +211,69 @@ plant_qa <- function(emission_type) {
   ## Annual emissions -----
   check_emissions_ann <- 
     plant_comparison %>% 
-    filter(mapply(identical, get(paste0(emission_type, "_ann_r")), get(paste0(emission_type, "_ann_access"))) == FALSE) %>% 
-    mutate("diff_{emission_type}_ann" := abs(get(paste0(emission_type, "_ann_r")) - get(paste0(emission_type, "_ann_access")))) %>% 
-    filter(get(paste0("diff_", emission_type, "_ann")) > 1E-5 | is.na(get(paste0(emission_type, "_ann_r"))) & !is.na(get(paste0(emission_type, "_ann_access"))) | 
-             !is.na(get(paste0(emission_type, "_ann_r"))) & is.na(get(paste0(emission_type, "_ann_access")))) %>%
+    filter(mapply(identical, get(paste0(emission_label, "_ann_r")), get(paste0(emission_label, "_ann_access"))) == FALSE) %>% 
+    mutate("diff_{emission_label}_ann" := abs(get(paste0(emission_label, "_ann_r")) - get(paste0(emission_label, "_ann_access")))) %>% 
+    filter(get(paste0("diff_", emission_label, "_ann")) > 1E-5 | is.na(get(paste0(emission_label, "_ann_r"))) & !is.na(get(paste0(emission_label, "_ann_access"))) | 
+             !is.na(get(paste0(emission_label, "_ann_r"))) & is.na(get(paste0(emission_label, "_ann_access")))) %>%
     select(plant_id_r, primary_fuel_type_r, primary_fuel_type_access, 
           combust_heat_input_r, combust_heat_input_access,
-           paste0(emission_type, "_ann_r"), paste0(emission_type, "_ann_access"), paste0("diff_", emission_type, "_ann"), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
+           paste0(emission_label, "_ann_r"), paste0(emission_label, "_ann_access"), paste0("diff_", emission_label, "_ann"), paste0(emission_label, "_source_r"), paste0(emission_label, "_source_access"))
   save_diffs(check_emissions_ann)
   
   check_total_emissions_ann <- 
     plant_comparison %>% 
-    summarize("sum_{emission_type}_ann_r" := sum(get(paste0(emission_type, "_ann_r")), na.rm = TRUE), 
-              "sum_{emission_type}_ann_access" := sum(get(paste0(emission_type, "_ann_access")), na.rm = TRUE)) %>% 
-    mutate("diff_{emission_type}_ann" := abs(get(paste0("sum_", emission_type, "_ann_r")) - get(paste0("sum_", emission_type, "_ann_access")))) %>%
-    filter(get(paste0("diff_", emission_type, "_ann")) > 0)
+    summarize("sum_{emission_label}_ann_r" := sum(get(paste0(emission_label, "_ann_r")), na.rm = TRUE), 
+              "sum_{emission_label}_ann_access" := sum(get(paste0(emission_label, "_ann_access")), na.rm = TRUE)) %>% 
+    mutate("diff_{emission_label}_ann" := abs(get(paste0("sum_", emission_label, "_ann_r")) - get(paste0("sum_", emission_label, "_ann_access")))) %>%
+    filter(get(paste0("diff_", emission_label, "_ann")) > 0)
   save_diffs(check_total_emissions_ann)
   
   ## Emissions output rate ------
   check_emissions_output_rate <- 
     plant_comparison %>% 
-    filter(mapply(identical, get(paste0(emission_type, "_output_rate_r")), get(paste0(emission_type, "_output_rate_access"))) == FALSE) %>% 
-    mutate("diff_{emission_type}_output_rate" := abs(get(paste0(emission_type, "_output_rate_r")) - get(paste0(emission_type, "_output_rate_access")))) %>% 
-    filter(get(paste0("diff_", emission_type, "_output_rate")) > 1E-5 | is.na(get(paste0(emission_type, "_ann_r"))) & !is.na(get(paste0(emission_type, "_ann_access"))) | 
-             !is.na(get(paste0(emission_type, "_ann_r"))) & is.na(get(paste0(emission_type, "_ann_access")))) %>%
+    filter(mapply(identical, get(paste0(emission_label, "_output_rate_r")), get(paste0(emission_label, "_output_rate_access"))) == FALSE) %>% 
+    mutate("diff_{emission_label}_output_rate" := abs(get(paste0(emission_label, "_output_rate_r")) - get(paste0(emission_label, "_output_rate_access")))) %>% 
+    filter(get(paste0("diff_", emission_label, "_output_rate")) > 1E-5 | is.na(get(paste0(emission_label, "_ann_r"))) & !is.na(get(paste0(emission_label, "_ann_access"))) | 
+             !is.na(get(paste0(emission_label, "_ann_r"))) & is.na(get(paste0(emission_label, "_ann_access")))) %>%
     select(plant_id_r, primary_fuel_type_r, primary_fuel_type_access, 
            combust_heat_input_r, combust_heat_input_access,
-           paste0(emission_type, "_output_rate_r"), paste0(emission_type, "_output_rate_access"), paste0("diff_", emission_type, "_output_rate"), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
+           paste0(emission_label, "_output_rate_r"), paste0(emission_label, "_output_rate_access"), paste0("diff_", emission_label, "_output_rate"), paste0(emission_label, "_source_r"), paste0(emission_label, "_source_access"))
   save_diffs(check_emissions_output_rate)
   
   check_total_emissions_output_rate <- 
     plant_comparison %>% 
-    summarize("sum_{emission_type}_output_rate_r" := sum(get(paste0(emission_type, "_output_rate_r")), na.rm = TRUE), 
-              "sum_{emission_type}_output_rate_access" := sum(get(paste0(emission_type, "_output_rate_access")), na.rm = TRUE)) %>% 
-    mutate("diff_{emission_type}_output_rate" := abs(get(paste0("sum_", emission_type, "_output_rate_r")) - get(paste0("sum_", emission_type, "_output_rate_access")))) %>%
-    filter(get(paste0("diff_", emission_type, "_output_rate")) > 0)
+    summarize("sum_{emission_label}_output_rate_r" := sum(get(paste0(emission_label, "_output_rate_r")), na.rm = TRUE), 
+              "sum_{emission_label}_output_rate_access" := sum(get(paste0(emission_label, "_output_rate_access")), na.rm = TRUE)) %>% 
+    mutate("diff_{emission_label}_output_rate" := abs(get(paste0("sum_", emission_label, "_output_rate_r")) - get(paste0("sum_", emission_label, "_output_rate_access")))) %>%
+    filter(get(paste0("diff_", emission_label, "_output_rate")) > 0)
   save_diffs(check_total_emissions_output_rate)
  
    ## Emissions input rate -------
   check_emissions_input_rate <- 
     plant_comparison %>% 
-    filter(mapply(identical, get(paste0(emission_type, "_input_rate_r")), get(paste0(emission_type, "_input_rate_access"))) == FALSE) %>% 
-    mutate("diff_{emission_type}_input_rate" := abs(get(paste0(emission_type, "_input_rate_r")) - get(paste0(emission_type, "_input_rate_access")))) %>% 
-    filter(get(paste0("diff_", emission_type, "_input_rate")) > 1E-5 | is.na(get(paste0(emission_type, "_ann_r"))) & !is.na(get(paste0(emission_type, "_ann_access"))) | 
-             !is.na(get(paste0(emission_type, "_ann_r"))) & is.na(get(paste0(emission_type, "_ann_access")))) %>%
+    filter(mapply(identical, get(paste0(emission_label, "_input_rate_r")), get(paste0(emission_label, "_input_rate_access"))) == FALSE) %>% 
+    mutate("diff_{emission_label}_input_rate" := abs(get(paste0(emission_label, "_input_rate_r")) - get(paste0(emission_label, "_input_rate_access")))) %>% 
+    filter(get(paste0("diff_", emission_label, "_input_rate")) > 1E-5 | is.na(get(paste0(emission_label, "_ann_r"))) & !is.na(get(paste0(emission_label, "_ann_access"))) | 
+             !is.na(get(paste0(emission_label, "_ann_r"))) & is.na(get(paste0(emission_label, "_ann_access")))) %>%
     select(plant_id_r, primary_fuel_type_r, primary_fuel_type_access, 
            combust_heat_input_r, combust_heat_input_access,
-           paste0(emission_type, "_input_rate_r"), paste0(emission_type, "_input_rate_access"), paste0("diff_", emission_type, "_input_rate"), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
+           paste0(emission_label, "_input_rate_r"), paste0(emission_label, "_input_rate_access"), paste0("diff_", emission_label, "_input_rate"), paste0(emission_label, "_source_r"), paste0(emission_label, "_source_access"))
   save_diffs(check_emissions_input_rate)
   
   check_total_emissions_input_rate <- 
     plant_comparison %>% 
-    summarize("sum_{emission_type}_input_rate_r" := sum(get(paste0(emission_type, "_input_rate_r")), na.rm = TRUE), 
-              "sum_{emission_type}_input_rate_access" := sum(get(paste0(emission_type, "_input_rate_access")), na.rm = TRUE)) %>% 
-    mutate("diff_{emission_type}_input_rate" := abs(get(paste0("sum_", emission_type, "_input_rate_r")) - get(paste0("sum_", emission_type, "_input_rate_access")))) %>%
-    filter(get(paste0("diff_", emission_type, "_input_rate")) > 0)
+    summarize("sum_{emission_label}_input_rate_r" := sum(get(paste0(emission_label, "_input_rate_r")), na.rm = TRUE), 
+              "sum_{emission_label}_input_rate_access" := sum(get(paste0(emission_label, "_input_rate_access")), na.rm = TRUE)) %>% 
+    mutate("diff_{emission_label}_input_rate" := abs(get(paste0("sum_", emission_label, "_input_rate_r")) - get(paste0("sum_", emission_label, "_input_rate_access")))) %>%
+    filter(get(paste0("diff_", emission_label, "_input_rate")) > 0)
   save_diffs(check_total_emissions_input_rate)
   
   ## Emissions source -------
   check_emissions_source <- 
     plant_comparison %>% 
-    filter(mapply(identical, get(paste0(emission_type, "_source_r")), get(paste0(emission_type, "_source_access"))) == FALSE) %>%
-    filter(!str_detect(get(paste0(emission_type, "_source_r")), ";") & get(paste0(emission_type, "_source_access")) != "EPA/NEI; Estimated using an emission source") %>%
-    select(plant_id_r, paste0(emission_type, "_ann_r"), paste0(emission_type, "_ann_access"), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
+    filter(mapply(identical, get(paste0(emission_label, "_source_r")), get(paste0(emission_label, "_source_access"))) == FALSE) %>%
+    filter(!str_detect(get(paste0(emission_label, "_source_r")), ";") & get(paste0(emission_label, "_source_access")) != "EPA/NEI; Estimated using an emission source") %>%
+    select(plant_id_r, paste0(emission_label, "_ann_r"), paste0(emission_label, "_ann_access"), paste0(emission_label, "_source_r"), paste0(emission_label, "_source_access"))
   save_diffs(check_emissions_source)
   
   ## Unadjusted combustion heat input -----
@@ -296,20 +296,20 @@ plant_qa <- function(emission_type) {
   ## Unadjusted emissions -----
   check_emissions_unadj <- 
     plant_comparison %>% 
-    filter(mapply(identical, get(paste0("unadj_", emission_type, "_r")), get(paste0("unadj_", emission_type, "_access"))) == FALSE) %>% 
-    mutate("diff_unadj_{emission_type}" := abs(get(paste0("unadj_", emission_type, "_r")) - get(paste0("unadj_", emission_type, "_access")))) %>% 
-    filter(get(paste0("diff_unadj_", emission_type)) > 1E-5| is.na(get(paste0("unadj_", emission_type, "_r"))) & !is.na(get(paste0("unadj_", emission_type, "_access"))) | !is.na(get(paste0("unadj_", emission_type, "_r"))) & is.na(get(paste0("unadj_", emission_type, "_access")))) %>%
+    filter(mapply(identical, get(paste0("unadj_", emission_label, "_r")), get(paste0("unadj_", emission_label, "_access"))) == FALSE) %>% 
+    mutate("diff_unadj_{emission_label}" := abs(get(paste0("unadj_", emission_label, "_r")) - get(paste0("unadj_", emission_label, "_access")))) %>% 
+    filter(get(paste0("diff_unadj_", emission_label)) > 1E-5| is.na(get(paste0("unadj_", emission_label, "_r"))) & !is.na(get(paste0("unadj_", emission_label, "_access"))) | !is.na(get(paste0("unadj_", emission_label, "_r"))) & is.na(get(paste0("unadj_", emission_label, "_access")))) %>%
     select(plant_id_r, primary_fuel_type_r, primary_fuel_type_access, 
            combust_heat_input_r, combust_heat_input_access,
-           paste0("unadj_", emission_type, "_r"), paste0("unadj_", emission_type, "_access"), paste0("diff_unadj_", emission_type), paste0(emission_type, "_source_r"), paste0(emission_type, "_source_access"))
+           paste0("unadj_", emission_label, "_r"), paste0("unadj_", emission_label, "_access"), paste0("diff_unadj_", emission_label), paste0(emission_label, "_source_r"), paste0(emission_label, "_source_access"))
   save_diffs(check_emissions_unadj)
   
   check_total_emissions_unadj <- 
     plant_comparison %>% 
-    summarize("sum_unadj_{emission_type}_r" := sum(get(paste0("unadj_", emission_type, "_r")), na.rm = TRUE), 
-              "sum_unadj_{emission_type}_access" := sum(get(paste0("unadj_", emission_type, "_access")), na.rm = TRUE)) %>% 
-    mutate("diff_unadj_{emission_type}" := abs(get(paste0("sum_unadj_", emission_type, "_r")) - get(paste0("sum_unadj_", emission_type, "_access")))) %>%
-    filter(get(paste0("diff_unadj_", emission_type)) > 0)
+    summarize("sum_unadj_{emission_label}_r" := sum(get(paste0("unadj_", emission_label, "_r")), na.rm = TRUE), 
+              "sum_unadj_{emission_label}_access" := sum(get(paste0("unadj_", emission_label, "_access")), na.rm = TRUE)) %>% 
+    mutate("diff_unadj_{emission_label}" := abs(get(paste0("sum_unadj_", emission_label, "_r")) - get(paste0("sum_unadj_", emission_label, "_access")))) %>%
+    filter(get(paste0("diff_unadj_", emission_label)) > 0)
   save_diffs(check_total_emissions_ann)
 
   # Identify all unique plant and unit IDs that have differences ------------
@@ -344,6 +344,6 @@ plant_qa_safe_call <- function(emission_type) {
 }
 
 # Run function for emission types -----
-plant_qa_safe_call("pm25")
+plant_qa_safe_call("pm")
 plant_qa_safe_call("nh3")
 plant_qa_safe_call("voc")

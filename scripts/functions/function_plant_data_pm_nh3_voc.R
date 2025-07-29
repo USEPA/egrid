@@ -28,13 +28,13 @@ plant_data_pm_nh3_voc <- function(emission_type){
   #' Function to create pm2.5, nh3, or voc plant file data by aggregating unit data
   #' 
   #' @param emission_type Emission type to be calculated - either
-  #'                      "pm25", "nh3", or "voc"
+  #'                      "pm", "nh3", or "voc"
   #' @return Dataset with PM2.5 plant data in the format needed for 
   #'         regional aggregation
   #'         
   #' @examples 
   #' # Create PM2.5 plant data
-  #' pm_plant_data <- plant_data_pm_nh3_voc("pm25")
+  #' pm_plant_data <- plant_data_pm_nh3_voc("pm")
   
   
   # Require libraries ---------

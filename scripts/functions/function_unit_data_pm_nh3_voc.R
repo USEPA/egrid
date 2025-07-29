@@ -29,13 +29,13 @@ unit_data_pm_nh3_voc <- function(emission_type){
   #' Function to create pm2.5, nh3, or voc unit file data using a sequence of methods
   #' 
   #' @param emission_type Emission type to be calculated - either
-  #'                      "pm25", "nh3", or "voc"
+  #'                      "pm", "nh3", or "voc"
   #' @return Dataset with emission unit data in the format needed for 
   #'         plant file computation
   #'         
   #' @examples 
   #' # Create PM2.5 unit data
-  #' pm_unit_data <- unit_data_pm_nh3_voc("pm25")
+  #' pm_unit_data <- unit_data_pm_nh3_voc("pm")
   
   
   # Require libraries ---------
@@ -53,12 +53,12 @@ unit_data_pm_nh3_voc <- function(emission_type){
     }
   
   # NEI emission data
-  if(file.exists(glue::glue("data/2a_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"))) {
-    raw_nei <- read_csv(glue::glue("data/2a_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_{emission_type}_emissions.csv"), 
+  if(file.exists(glue::glue("data/2a_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_emissions_{emission_type}.csv"))) {
+    raw_nei <- read_csv(glue::glue("data/2a_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_emissions_{emission_type}.csv"), 
                         col_types = "cccccccccccccccccdcc") %>%
       janitor::clean_names()
   } else { 
-    stop(glue::glue("nei_{emission_type}_emissions.csv does not exist."))
+    stop(glue::glue("nei_emissions_{emission_type}.csv does not exist."))
     }
   
   # NEI-EIA crosswalk matching NEI and EIA unit ids
@@ -108,8 +108,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
   } else {
     unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
     }
-  
-  
+
   # Calculate PM data -------------
   ## 1) Direct Match - "NEI/EIA" --------------
   # calculate emission data using direct unit match from EIA to NEI
@@ -189,7 +188,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
     select(plant_id, unit_id, prime_mover, emission_ef, emission_source_ef)
   
   # for PM2.5 data, if there is a unit match with EIA-923, adjust emission by control efficiency 
-  if(emission_type == "pm25") {
+  if(emission_type == "pm") {
     removal_efficiencies <-
       eia_923 %>%
       # select plants with removal efficiency rates

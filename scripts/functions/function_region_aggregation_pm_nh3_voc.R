@@ -25,13 +25,13 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
   #' data from the plant data
   #' 
   #' @param emission_type Emission type to be calculated - either
-  #'                      "pm25", "nh3", or "voc"
+  #'                      "pm", "nh3", or "voc"
   #' @return Saved regional aggregation files which include
   #'         state, subregion, and US aggregated files
   #'         
   #' @examples 
   #' # Create PM2.5 subregion, state, and US aggregated files
-  #' region_aggregation_pm_nh3_voc("pm25")
+  #' region_aggregation_pm_nh3_voc("pm")
   
   # Require libraries --------
   require(dplyr)
@@ -48,32 +48,39 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
   # Run plant data creation script ---------
   source("scripts/functions/function_plant_data_pm_nh3_voc.R")
   plant_data <- plant_data_pm_nh3_voc(emission_type)
+  
+  # Set emission type label for data columns ----
+  if (emission_type == "pm") {
+    emission_label <- "pm25"
+  } else {
+    emission_label <- emission_type
+  }
 
   # Sum emission plant data by subregion ---------
   subregion_emissions <-
     plant_data %>%
-    rename_with(~gsub("emission", emission_type, .)) %>%
+    rename_with(~gsub("emission", emission_label, .)) %>%
     group_by(egrid_subregion, egrid_subregion_name) %>%
     summarise(generation_ann_sum = sum(generation_ann, na.rm = TRUE), 
-              "{emission_type}_ann_sum" := sum(get(paste0(emission_type, "_ann")), na.rm = TRUE)) %>%
+              "{emission_label}_ann_sum" := sum(get(paste0(emission_label, "_ann")), na.rm = TRUE)) %>%
     mutate(subregion_generation_ann = round(generation_ann_sum, 0),
-           "{emission_type}_ann" := round(get(paste0(emission_type, "_ann_sum")), 2),
-           "{emission_type}_output_rate" := round(get(paste0(emission_type, "_ann_sum")) * 2000 / generation_ann_sum, 4),
+           "{emission_label}_ann" := round(get(paste0(emission_label, "_ann_sum")), 2),
+           "{emission_label}_output_rate" := round(get(paste0(emission_label, "_ann_sum")) * 2000 / generation_ann_sum, 4),
            year = params$eGRID_year) %>%
     ungroup() %>%
     select(year, 
            subregion = egrid_subregion, 
            subregion_name = egrid_subregion_name, 
            subregion_generation_ann, 
-           paste0(emission_type, "_ann"), 
-           paste0(emission_type, "_output_rate"))
+           paste0(emission_label, "_ann"), 
+           paste0(emission_label, "_output_rate"))
   
   # Sum emission subregion data to US -------
   us_emissions <-
     subregion_emissions %>%
     summarise(generation_ann = sum(subregion_generation_ann, na.rm = TRUE), 
-              "{emission_type}_ann" := sum(get(paste0(emission_type, "_ann")), na.rm = TRUE)) %>%
-    mutate("{emission_type}_output_rate" := round(get(paste0(emission_type, "_ann")) * 2000 / generation_ann, 4),
+              "{emission_label}_ann" := sum(get(paste0(emission_label, "_ann")), na.rm = TRUE)) %>%
+    mutate("{emission_label}_output_rate" := round(get(paste0(emission_label, "_ann")) * 2000 / generation_ann, 4),
            year = params$eGRID_year) %>%
     relocate(year, .before = generation_ann)
   
@@ -82,14 +89,14 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
     plant_file %>%
     group_by(plant_state) %>%
     summarise(state_generation_ann = sum(generation_ann, na.rm = TRUE), 
-              "{emission_type}_ann" := sum(get(paste0(emission_type, "_ann")), na.rm = TRUE),
-              "{emission_type}_output_rate" := get(paste0(emission_type, "_ann")) * 2000 / state_generation_ann) %>%
+              "{emission_label}_ann" := sum(get(paste0(emission_label, "_ann")), na.rm = TRUE),
+              "{emission_label}_output_rate" := get(paste0(emission_label, "_ann")) * 2000 / state_generation_ann) %>%
     mutate(year = params$eGRID_year) %>%
     select(year, 
            state = plant_state, 
            state_generation_ann, 
-           paste0(emission_type, "_ann"), 
-           paste0(emission_type, "_output_rate"))
+           paste0(emission_label, "_ann"), 
+           paste0(emission_label, "_output_rate"))
   
   # Save aggregated data ----------
   source("scripts/functions/function_save_output_data.R")

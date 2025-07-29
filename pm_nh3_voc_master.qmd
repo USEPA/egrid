@@ -11,6 +11,8 @@ format:
     toc-location: left
     html-table-processing: none
     code-fold: true
+    embed-resources: true
+    self-contained-math: true
 execute: 
   message: false
   warning: false
@@ -323,7 +325,7 @@ Below are the column names within the PM~2.5~ emissions factors static table and
 #| label: create-pm-emission-factors-summary
 #| echo: false
 
-ef_pm_path <- glue::glue("data/2a_pm_nh3_voc/static_tables/emission_factors_pm25.csv")
+ef_pm_path <- glue::glue("data/2a_pm_nh3_voc/static_tables/emission_factors_pm.csv")
 
 efs_pm <-
   read.csv(ef_pm_path)
@@ -520,8 +522,8 @@ For full documentation, reference the [Particulate Matter Emissions for eGRID202
 #| label: unit-file-table
 #| include: false
 
-unit_file_pm25 <- readr::read_rds(
-           glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_pm25.RDS"))
+unit_file_pm <- readr::read_rds(
+           glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_pm.RDS"))
 
 unit_file_nh3 <- readr::read_rds(
            glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/unit_file_nh3.RDS"))
@@ -540,9 +542,9 @@ unit_file_voc <- readr::read_rds(
 #### PM~2.5~ Unit File
 
 ```{r}
-#| label: pm25-unit-file-summary
+#| label: pm-unit-file-summary
 
-create_summary_table(unit_file_pm25)
+create_summary_table(unit_file_pm)
 ```
 
 #### NH~3~ Unit File
@@ -576,8 +578,8 @@ The plant file aggregates the unit data at the plant level using the eGRID produ
 #| label: plant-file-table
 #| include: false
 
-plant_file_pm25 <- readr::read_rds(
-           glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/plant_file_pm25.RDS"))
+plant_file_pm <- readr::read_rds(
+           glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/plant_file_pm.RDS"))
 
 plant_file_nh3 <- readr::read_rds(
            glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/plant_file_nh3.RDS"))
@@ -596,9 +598,9 @@ plant_file_voc <- readr::read_rds(
 #### PM~2.5~ Plant File
 
 ```{r}
-#| label: pm25-plant-file-summary
+#| label: pm-plant-file-summary
 
-create_summary_table(plant_file_pm25)
+create_summary_table(plant_file_pm)
 ```
 
 #### NH~3~ Plant File
@@ -633,13 +635,13 @@ The plant file is aggregated to calculate annual net generation, annual emission
 #| echo: false
 
 pm_st_agg  <- read_rds(
-        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/state_aggregation_pm25.RDS"))
+        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/state_aggregation_pm.RDS"))
 
 pm_srl_agg <- read_rds(
-        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_pm25.RDS"))
+        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_pm.RDS"))
 
 pm_us_agg  <- read_rds(
-        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/us_aggregation_pm25.RDS"))
+        glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/us_aggregation_pm.RDS"))
 
 nh3_st_agg  <- read_rds(
         glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/state_aggregation_nh3.RDS"))
@@ -777,29 +779,29 @@ Below are the `r {params$eGRID_year}` PM~2.5~, NH~3~, and VOC graphs included in
 #### PM~2.5~ Annual Generation
 
 ```{r}
-#| label: pm25-annual-generation-plot
+#| label: pm-annual-generation-plot
 #| echo: FALSE
 
-knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/pm25_annual_generation_{params$eGRID_year}.png"))
+knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/pm_annual_generation_{params$eGRID_year}.png"))
 
 ```
 
 #### PM~2.5~ Emissions
 
 ```{r}
-#| label: pm25-emissions-plot
+#| label: pm-emissions-plot
 #| echo: FALSE
 
-knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/pm25_emissions_{params$eGRID_year}.png"))
+knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/pm_emissions_{params$eGRID_year}.png"))
 ```
 
 #### PM~2.5~ Emission Rates
 
 ```{r}
-#| label: pm25-emissions-rate
+#| label: pm-emissions-rate
 #| echo: FALSE
 
-knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/pm25_rate_{params$eGRID_year}.png"))
+knitr::include_graphics(glue::glue("data/2a_pm_nh3_voc/static_tables/formatting/pm_rate_{params$eGRID_year}.png"))
 ```
 
 #### NH~3~ Annual Generation
