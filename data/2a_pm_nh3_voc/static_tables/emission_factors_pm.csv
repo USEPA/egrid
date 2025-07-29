@@ -1,0 +1,176 @@
+﻿PRMVR,FUELU1,BOTFIRTY,EF,EF numerator,EF denominator,Source
+BA,MWH,NA,0,,,
+BT,GEO,NA,0,,,
+CA,DFO,NA,0.011,LB,MMBTU,"Based on sum of PM-FIL and PM-CON EFs. PM-CON EF is 1.3 lbs/E3GAL from AP-42 Table 1.3-2. PMFIL-25 EF is 0.25, based on 12% of total filterable PM EF from AP-42 table 1.3-1. Divided by 140 MMBtu/E3GAL."
+CA,LFG,NA,0.0029,LB,MMBTU,"AP-42 Table 2.4-4, divided by 1020 Btu/scf"
+CA,NG,NA,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+CA,NG,DUCTBURNER,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+CA,NG,OTHER BOILER,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+CA,OBG,NA,0.0029,LB,MMBTU,Based on LFG
+CA,OG,NA,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+CA,OG,DUCTBURNER,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+CA,OG,WALL,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+CA,RFO,NA,0.06719816,LB,MMBTU,EPA ERTAC spreadsheet (divided by 150 MMBtu/E3GAL)
+CC,NG,NA,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+CC,OTH,NA,0.000422,LB,MMBTU,Based on NG
+CE,NG,NA,0,,,
+CE,NG,OTHER TURBINE,0,,,
+CP,SUN,NA,0,,,
+CS,NG,NA,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+CT,DFO,NA,0.31,LB,MMBTU,AP-42 Table 3.3-1
+CT,DFO,CC,0.31,LB,MMBTU,AP-42 Table 3.3-1
+CT,LFG,NA,0.0216,LB,MMBTU,"AP-42 Table 2.4-4, divided by 1020 Btu/scf"
+CT,NG,NA,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+CT,NG,CC,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+CT,NG,DUCTBURNER,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+CT,OBG,NA,0.0216,LB,MMBTU,Based on LFG
+CT,OG,NA,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+CT,OG,CC,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+CT,PRG,CC,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+CT,RFO,NA,0.31,LB,MMBTU,Based on DFO engines/gas turbines
+CT,WO,NA,0.31,LB,MMBTU,Based on DFO engines/gas turbines
+FC,LFG,NA,0,,,
+FC,NG,NA,0,,,
+FC,OBG,NA,0,,,
+FW,MWH,NA,0,,,
+GT,DFO,NA,0.31,LB,MMBTU,AP-42 Table 3.3-1
+GT,DFO,CT,0.31,LB,MMBTU,AP-42 Table 3.3-1
+GT,JF,NA,0.299,LB,MMBTU,Based on KER
+GT,JF,CT,0.299,LB,MMBTU,Based on KER
+GT,KER,NA,0.299,LB,MMBTU,"Based on DFO EF multiplied by ratio 135,000 Btu/gal to 140,000 Btu gal"
+GT,KER,CT,0.299,LB,MMBTU,"Based on DFO EF multiplied by ratio 135,000 Btu/gal to 140,000 Btu gal"
+GT,LFG,NA,0.0216,LB,MMBTU,"AP-42 Table 2.4-4, divided by 1020 Btu/scf"
+GT,NG,NA,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+GT,NG,CT,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+GT,NG,TANGENTIAL,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+GT,OBG,NA,0.0216,LB,MMBTU,Based on LFG
+GT,OBL,NA,0.177,LB,MMBTU,Based on WDS
+GT,OG,NA,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+GT,OG,CT,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+GT,PG,NA,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+GT,PRG,NA,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+GT,WO,NA,0.31,LB,MMBTU,Based on DFO engines/gas turbines
+HY,WAT,NA,0,,,
+IC,DFO,NA,0.31,LB,MMBTU,AP-42 Table 3.3-1
+IC,LFG,NA,0.0147,LB,MMBTU,"AP-42 Table 2.4-4, divided by 1020 Btu/scf"
+IC,NG,NA,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+IC,OBG,NA,0.0147,LB,MMBTU,Based on LFG
+IC,OBL,NA,0.177,LB,MMBTU,Based on WDS
+IC,RFO,NA,0.31,LB,MMBTU,Based on DFO engines/gas turbines
+OT,BFG,NA,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+OT,COG,NA,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+OT,NG,NA,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+OT,OBG,NA,0.0029,LB,MMBTU,Based on LFG
+OT,OG,NA,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+OT,OTH,NA,0.000422,LB,MMBTU,Based on NG
+OT,PC,NA,,,,
+OT,PRG,NA,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+OT,SUN,NA,0,,,
+OT,WDS,NA,0.177,LB,MMBTU,"AP-42 Table 1.6-1, sum of PM-CON and PM25-FIL for dry wood mechanical collector"
+OT,WH,NA,0,,,
+PS,WAT,NA,0,,,
+PV,SUN,NA,0,,,
+ST,AB,NA,1.002,LB,MMBTU,"Webfire, converted to MMBtu by dividng by 7 MMBtu/ton (conversion factor from AP-42)"
+ST,AB,STOKER,1.002,LB,MMBTU,"Webfire, converted to MMBtu by dividng by 7 MMBtu/ton (conversion factor from AP-42)"
+ST,BFG,NA,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+ST,BFG,TANGENTIAL,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+ST,BIT,NA,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,BIT,CELL,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,BIT,CYCLONE,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,BIT,FLUIDIZED,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,BIT,OTHER BOILER,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,BIT,STOKER,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,BIT,TANGENTIAL,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,BIT,TURBO,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,BIT,VERTICAL,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,BIT,VERTICAL/ARCH,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,BIT,WALL,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,BLQ,NA,0.0311,LB,MMBTU,"Webfire for Kraft pulping, converted using 2962 btu/lb"
+ST,BLQ,CYCLONE,0.0311,LB,MMBTU,"Webfire for Kraft pulping, converted using 2962 btu/lb"
+ST,BLQ,FLUIDIZED,0.0311,LB,MMBTU,"Webfire for Kraft pulping, converted using 2962 btu/lb"
+ST,BLQ,OTHER BOILER,0.0311,LB,MMBTU,"Webfire for Kraft pulping, converted using 2962 btu/lb"
+ST,BLQ,TANGENTIAL,0.0311,LB,MMBTU,"Webfire for Kraft pulping, converted using 2962 btu/lb"
+ST,BLQ,WALL,0.0311,LB,MMBTU,"Webfire for Kraft pulping, converted using 2962 btu/lb"
+ST,DFO,NA,0.011,LB,MMBTU,"Based on sum of PM-FIL and PM-CON EFs. PM-CON EF is 1.3 lbs/E3GAL from AP-42 Table 1.3-2. PMFIL-25 EF is 0.25, based on 12% of total filterable PM EF from AP-42 table 1.3-1. Divided by 140 MMBtu/E3GAL."
+ST,DFO,OTHER BOILER,0.011,LB,MMBTU,"Based on sum of PM-FIL and PM-CON EFs. PM-CON EF is 1.3 lbs/E3GAL from AP-42 Table 1.3-2. PMFIL-25 EF is 0.25, based on 12% of total filterable PM EF from AP-42 table 1.3-1. Divided by 140 MMBtu/E3GAL."
+ST,DFO,TANGENTIAL,0.011,LB,MMBTU,"Based on sum of PM-FIL and PM-CON EFs. PM-CON EF is 1.3 lbs/E3GAL from AP-42 Table 1.3-2. PMFIL-25 EF is 0.25, based on 12% of total filterable PM EF from AP-42 table 1.3-1. Divided by 140 MMBtu/E3GAL."
+NA,DFO,WALL,0.011,LB,MMBTU,"Based on sum of PM-FIL and PM-CON EFs. PM-CON EF is 1.3 lbs/E3GAL from AP-42 Table 1.3-2. PMFIL-25 EF is 0.25, based on 12% of total filterable PM EF from AP-42 table 1.3-1. Divided by 140 MMBtu/E3GAL."
+ST,GEO,NA,0,,,
+ST,LFG,NA,0.0029,LB,MMBTU,"AP-42 Table 2.4-4, divided by 1020 Btu/scf"
+ST,LFG,WALL,0.0029,LB,MMBTU,"AP-42 Table 2.4-4, divided by 1020 Btu/scf"
+ST,LIG,NA,,,,
+ST,LIG,CYCLONE,,,,
+ST,LIG,FLUIDIZED,0.03,LB,MMBTU,"AP-42 tables 1.7-4, 1.7-5"
+ST,LIG,TANGENTIAL,,,,
+ST,LIG,WALL,,,,
+ST,MSW,NA,0.156,LB,MMBTU,"Webfire Municipal Incineration, Multiple Chamber, converted using 4500 btu/lb (conversion factor from AP-42)"
+ST,MSW,OTHER BOILER,0.156,LB,MMBTU,"Webfire Municipal Incineration, Multiple Chamber, converted using 4500 btu/lb (conversion factor from AP-42)"
+ST,NG,NA,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+ST,NG,CELL,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+ST,NG,CYCLONE,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+ST,NG,DUCTBURNER,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+ST,NG,FLUIDIZED,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+ST,NG,OTHER BOILER,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+ST,NG,STOKER,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+ST,NG,TANGENTIAL,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+ST,NG,TURBO,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+ST,NG,VERTICAL,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+ST,NG,WALL,0.000422,LB,MMBTU,EPA ERTAC spreadsheet (divided by 1020 Btu/scf)
+ST,NUC,NA,0,,,
+ST,OBG,NA,0.0029,LB,MMBTU,Based on LFG
+ST,OBS,NA,0.177,LB,MMBTU,Based on WDS
+ST,OG,NA,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+ST,OG,CYCLONE,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+ST,OG,IGC,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+ST,OG,OTHER BOILER,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+ST,OG,TANGENTIAL,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+ST,OG,WALL,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+ST,OTH,NA,0.000422,LB,MMBTU,Based on NG
+ST,PC,NA,,,,
+ST,PC,FLUIDIZED,,,,
+ST,PC,WALL,,,,
+ST,PRG,NA,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+ST,PRG,OTHER BOILER,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+ST,PRG,PROCESS,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+ST,PRG,TANGENTIAL,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+ST,PRG,WALL,0.000422,LB,MMBTU,Based on NG (divided by 1020 Btu/scf)
+ST,PUR,NA,0,,,
+ST,RC,NA,0.04,LB,MMBTU,Based on BIT
+ST,RC,CELL,0.04,LB,MMBTU,Based on BIT
+ST,RC,CYCLONE,0.04,LB,MMBTU,Based on BIT
+ST,RC,FLUIDIZED,0.04,LB,MMBTU,Based on BIT
+ST,RC,TANGENTIAL,0.04,LB,MMBTU,Based on BIT
+ST,RC,TURBO,0.04,LB,MMBTU,Based on BIT
+ST,RC,WALL,0.04,LB,MMBTU,Based on BIT
+ST,RFO,NA,0.06719816,LB,MMBTU,EPA ERTAC spreadsheet (divided by 150 MMBtu/E3GAL)
+ST,RFO,TANGENTIAL,0.06719816,LB,MMBTU,EPA ERTAC spreadsheet (divided by 150 MMBtu/E3GAL)
+ST,RFO,WALL,0.06719816,LB,MMBTU,EPA ERTAC spreadsheet (divided by 150 MMBtu/E3GAL)
+ST,SGC,IGC,0.04,LB,MMBTU,Based on BIT
+ST,SLW,NA,1.002,LB,MMBTU,Based on AB
+ST,SUB,NA,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,SUB,CELL,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,SUB,CYCLONE,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,SUB,FLUIDIZED,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,SUB,STOKER,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,SUB,TANGENTIAL,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,SUB,TURBO,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,SUB,VERTICAL/ARCH,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,SUB,WALL,0.04,LB,MMBTU,Sum of AP-42 PM-CON from Table 1.1-5 and PM25-FIL from Table 1.1-9 (divided by 26 MMBtu/ton)
+ST,SUN,NA,0,,,
+ST,TDF,NA,0.04,LB,MMBTU,Based on BIT
+ST,TDF,FLUIDIZED,0.04,LB,MMBTU,Based on BIT
+ST,TDF,STOKER,0.04,LB,MMBTU,Based on BIT
+ST,WC,NA,0.04,LB,MMBTU,Based on BIT
+ST,WC,FLUIDIZED,0.04,LB,MMBTU,Based on BIT
+ST,WDL,NA,0.177,LB,MMBTU,Based on WDS
+ST,WDS,NA,0.177,LB,MMBTU,"AP-42 Table 1.6-1, sum of PM-CON and PM25-FIL for dry wood mechanical collector"
+ST,WDS,FLUIDIZED,0.177,LB,MMBTU,"AP-42 Table 1.6-1, sum of PM-CON and PM25-FIL for dry wood mechanical collector"
+ST,WDS,OTHER BOILER,0.177,LB,MMBTU,"AP-42 Table 1.6-1, sum of PM-CON and PM25-FIL for dry wood mechanical collector"
+ST,WDS,STOKER,0.177,LB,MMBTU,"AP-42 Table 1.6-1, sum of PM-CON and PM25-FIL for dry wood mechanical collector"
+ST,WDS,TANGENTIAL,0.177,LB,MMBTU,"AP-42 Table 1.6-1, sum of PM-CON and PM25-FIL for dry wood mechanical collector"
+ST,WDS,WALL,0.177,LB,MMBTU,"AP-42 Table 1.6-1, sum of PM-CON and PM25-FIL for dry wood mechanical collector"
+ST,WH,NA,0,,,
+ST,WO,NA,,,,
+ST,WO,WALL,,,,
+WS,WND,NA,0,,,
+WT,WND,NA,0,,,
