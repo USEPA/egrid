@@ -43,9 +43,9 @@ plant_data_pm_nh3_voc <- function(emission_type){
   require(readxl)
 
   # Load necessary data --------------------
-  ## eGRID production model data - plant file (2021 & 2022)
-  if(params$eGRID_year %in% c("2021", "2022")) {
-    plant_file_raw <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
+  ## eGRID production model data - plant file (2022)
+  if(params$eGRID_year == "2022") {
+    plant_file_raw <- read_excel(glue::glue("data/2a_pm_nh3_voc/static_tables/historic_egrid/egrid{params$eGRID_year}_data.xlsx"),
                                 sheet = paste0("PLNT", substr(params$eGRID_year, 3, 4)),
                                 skip = 1,
                                 col_names = TRUE) %>%

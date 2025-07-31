@@ -75,9 +75,9 @@ unit_data_pm_nh3_voc <- function(emission_type){
                   col_types = "cccdccc") %>%
     janitor::clean_names()
   
-  # eGRID production model data - unit file (2021 & 2022)
-  if(params$eGRID_year %in% c("2021", "2022")) {
-    unit_file_raw <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"),
+  # eGRID production model data - unit file (2022)
+  if(params$eGRID_year == "2022") {
+    unit_file_raw <- read_excel(glue::glue("data/2a_pm_nh3_voc/static_tables/historic_egrid/egrid{params$eGRID_year}_data.xlsx"),
                                 sheet = paste0("UNT", substr(params$eGRID_year, 3, 4)),
                                 skip = 1,
                                 col_names = TRUE) %>%
