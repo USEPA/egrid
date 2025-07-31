@@ -20,7 +20,8 @@
 ##
 ## -------------------------------
 
-create_subregion_emission_figures <- function(emission_type,
+create_subregion_emission_figures <- function(wb,
+                                              emission_type,
                                               skip_if_exists = TRUE) {
   
   #' create_subregion_emission_figures
@@ -28,6 +29,7 @@ create_subregion_emission_figures <- function(emission_type,
   #' Function to plot PM2.5, NH3, or VOC subregion annual generation, emissions, 
   #' and output rates data
   #' 
+  #' @param wb Workbook with subregion emissions data to load in and plot
   #' @param emission_type Emission type to produce plots for - either
   #'                      "pm", "nh3", or "voc"
   #' @param skip_if_exists If TRUE, checks the presence of figures and skips
@@ -40,12 +42,12 @@ create_subregion_emission_figures <- function(emission_type,
   #'         
   #' @examples 
   #' # Create PM2.5 plots and override previously-saved plots
-  #' pm_annual_generation <- create_subregion_emission_figures(emission_type = "pm",
-  #'                                                             skip_if_exists = FALSE)
+  #' pm_annual_generation <- create_subregion_emission_figures(wb = wb, emission_type = "pm", skip_if_exists = FALSE)
                                                             
   # Require libraries ---------
   require(ggbreak)
   require(ggplot2)
+  require(openxlsx)
   require(readr)
   require(readxl)
   require(scales)
@@ -256,37 +258,48 @@ create_subregion_emission_figures <- function(emission_type,
       print(glue::glue("Producing Plots for {toupper(emission_type)} {year}"))
       
       ## Load Subregion Data -----
-      # collect subregion data from excel sheet for previous years
-      if(year < params$eGRID_year) {
-        emission_prev <- read_xlsx(glue::glue("data/2a_pm_nh3_voc/inputs/pm_nh3_voc_historic/{year_numeric - 1}/eGRID{year_numeric - 1}_{emission_type}emissions.xlsx"),
-                                   skip = 1,
-                                   sheet = glue::glue("{year} {toupper(emission_type)} Subregion-level Data")) %>%
-          # remove U.S. row if present
-          filter(SUBRGN != "U.S.")
+      # collect subregion data from loaded workbook
+      emission_prev <- readWorkbook(wb, 
+                                     sheet = glue::glue("{year} {toupper(emission_type)} Subregion-level Data"),
+                                     startRow = 2,
+                                     colNames = TRUE) %>%
+        # remove U.S. row if present
+        filter(SUBRGN != "U.S.") %>%
+        # set column types
+        mutate(across(c(YEAR, SUBRGN, SRNAME), as.character),
+               across(c(SRNGENAN, paste0("SR", toupper(emission_label), "AN"), paste0("SR", toupper(emission_label), "RTA")), as.numeric))
+               
+      # # collect subregion data from excel sheet for previous years
+      # if(year < params$eGRID_year) {
+      #   emission_prev <- read_xlsx(glue::glue("data/2a_pm_nh3_voc/inputs/pm_nh3_voc_historic/{year_numeric - 1}/eGRID{year_numeric - 1}_{emission_type}emissions.xlsx"),
+      #                              skip = 1,
+      #                              sheet = glue::glue("{year} {toupper(emission_type)} Subregion-level Data")) %>%
+      #     # remove U.S. row if present
+      #     filter(SUBRGN != "U.S.")
         
-        # define new data column names
-        base::load("data/1_production_model/static_tables/name_matches.Rdata")
-        colnames_new <- setNames(c(paste0(emission_label, "_ann"),
-                                   paste0(emission_label, "_output_rate")),
-                                 c(paste0("SR", toupper(emission_label), "AN"), 
-                                   paste0("SR", toupper(emission_label), "RTA")))
+      # define new data column names
+      base::load("data/1_production_model/static_tables/name_matches.Rdata")
+      colnames_new <- setNames(c(paste0(emission_label, "_ann"),
+                                 paste0(emission_label, "_output_rate")),
+                               c(paste0("SR", toupper(emission_label), "AN"), 
+                                 paste0("SR", toupper(emission_label), "RTA")))
+      
+      # reassign column names
+      colnames <- c(subregion_nonmetric[names(subregion_nonmetric) %in% colnames(emission_prev)],
+                    colnames_new[names(colnames_new) %in% colnames(emission_prev)])
+      # rename subregion file column names
+      subregion_file <-
+        emission_prev %>%
+        rename(!!!setNames(lapply(names(colnames), sym), colnames))
         
-        # reassign column names
-        colnames <- c(subregion_nonmetric[names(subregion_nonmetric) %in% colnames(emission_prev)],
-                      colnames_new[names(colnames_new) %in% colnames(emission_prev)])
-        # rename subregion file column names
-        subregion_file <-
-          emission_prev %>%
-          rename(!!!setNames(lapply(names(colnames), sym), colnames))
-        
-        # collect subregion data from .RDS file for current year
-      } else {
-        if(file.exists(glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))) {
-          subregion_file <- read_rds(glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))
-        } else {
-          stop(glue::glue("subregion_aggregation_{emission_type}.RDS does not exist. Run region_aggregation_create_pm_nh3_voc.R to obtain."))
-        }
-      }
+      #   # collect subregion data from .RDS file for current year
+      # } else {
+      #   if(file.exists(glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))) {
+      #     subregion_file <- read_rds(glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))
+      #   } else {
+      #     stop(glue::glue("subregion_aggregation_{emission_type}.RDS does not exist. Run region_aggregation_create_pm_nh3_voc.R to obtain."))
+      #   }
+      # }
       
       ## Plot and Save Subregion Emissions Data -----
       
