@@ -112,9 +112,9 @@ plot_subregion_data <- function(emission_type, save_dir) {
     
     ## Specify yaxis parameters depending on ydata -----
     if (ydata == "generation") {
-      ylabel_max = 6E8
-      ylabel_int = 1E8
-      yaxis_max = 6.2E8
+      ylabel_max <- 6E8
+      ylabel_int <- 1E8
+      yaxis_max <- 6.2E8
     } else {
       ylabel_int <- unname(plot_params[[paste0("ylabel_int_", ydata)]][emission_type])
       ylabel_max <- unname(plot_params[[paste0("ylabel_max_", ydata)]][emission_type])
@@ -124,9 +124,9 @@ plot_subregion_data <- function(emission_type, save_dir) {
     # set legend position
     legendy = 0.8
     if (emission_type == "nh3" & ydata == "emissions") {
-      legendx = 0.08
+      legendx <- 0.08
     } else {
-      legendx = 0.95
+      legendx <- 0.95
     }
 
     ## Plot data -----

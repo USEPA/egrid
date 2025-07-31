@@ -42,6 +42,48 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
+# Create function to update previous data formatting -----
+update_wb_formatting <- function(wb, emission_type) {
+  
+  # rename subregion tabs to fix discrepancy
+  if (emission_type == "pm") {
+    # get sheet names
+    sheet_names <- names(wb)
+    
+    # filter to subregion names
+    subregion_sheets <- sheet_names[grepl("Subregion Rates", sheet_names)]
+    
+    # rename worksheets
+    for (sheet in subregion_sheets) {
+      renameWorksheet(wb, sheet, str_replace(sheet, "Subregion Rates", glue::glue("{toupper(emission_type)} Subregion-Level Data")))
+    }
+    
+  } else if (emission_type == "nh3") {
+    # rename emissions column abbreviations from PM naming to NH3 naming
+    # get sheet names
+    sheet_names <- names(wb)
+    
+    # filter to subregion names
+    emission_level_sheets <- sheet_names[grepl(str_to_sentence(emission_level), sheet_names)]
+    
+    for (sheet in emission_level_sheets) {
+      # update header descriptions and shortforms
+      writeData(wb, sheet, headers_longform, startCol = 1, startRow = 1, colNames = FALSE)
+      writeData(wb, sheet, headers_shortform, startCol = 1, startRow = 2, colNames = FALSE)
+      
+      # add freeze pane
+      if (emission_level == "unit") {
+        freezePane(wb, sheet, firstActiveCol = 6, firstActiveRow = 3)
+      } else if (emission_level == "plant") {
+        freezePane(wb, sheet, firstActiveCol = 5, firstActiveRow = 3)
+      } else {
+        freezePane(wb, sheet, firstActiveRow = 3)
+      }
+    }
+  }
+  return(wb)
+}
+
 # Define selection of style types -----
 headers_long <- createStyle(
   fontName = "Arial",
@@ -85,10 +127,16 @@ level_abbrev <- c("unit" = "",
                   "state" = "ST",
                   "subregion" = "SR")
 
+# Define URLs for previous data -----
+wb_urls <- c(
+  "pm" = "https://www.epa.gov/system/files/documents/2024-06/egrid-draft-pm-emissions.xlsx",
+  "nh3" = "https://www.epa.gov/system/files/documents/2024-06/egrid2021-draft-nh3-emissions.xlsx",
+  "voc" = "https://www.epa.gov/system/files/documents/2024-06/egrid2021-draft-voc-emissions.xlsx")
+
 # Loop through emission types -----
 for (emission_type in c("pm", "nh3", "voc")) {
     # assign emission type formatting for headers
-  if(emission_type == "pm") {
+  if (emission_type == "pm") {
     emission_header <- "PM2.5"
     emission_label <- "pm25"
   } else {
@@ -109,7 +157,7 @@ for (emission_type in c("pm", "nh3", "voc")) {
   
   # import files in filenames list
   for (file in (filenames)){
-    if(grepl("_aggregation", file)) {
+    if (grepl("_aggregation", file)) {
       assign(str_replace(file, glue::glue("aggregation_{emission_type}.RDS"), "file"), read_rds(paste0(data_dir, file)))
     } else {
     assign(str_remove(file,glue::glue("_{emission_type}.RDS")), read_rds(paste0(data_dir, file)))
@@ -128,9 +176,28 @@ for (emission_type in c("pm", "nh3", "voc")) {
     bind_rows(us_formatted)
   
   # Load in previous year workbook -----
+  
+  ## Download previous years' data ----
+  
+  # assign previous year number
   year_prev <- as.numeric(params$eGRID_year) - 1
-  wb_dir <- glue::glue("data/2a_pm_nh3_voc/outputs/{year_prev}/eGRID{year_prev}_{emission_type}emissions.xlsx")
-  wb <- loadWorkbook(wb_dir)
+  # set download url as that assigned by emission type
+  wb_url <- wb_urls[emission_type]
+  # set directory to store previous year's file
+  wb_dir <- glue::glue("data/2a_pm_nh3_voc/inputs/pm_nh3_voc_historic/{year_prev}/")
+  # set name of previous year's file
+  wb_name <- glue::glue("{wb_dir}eGRID{year_prev}_{emission_type}emissions.xlsx")
+  
+  # check for presence of directories and create if doesn't exist
+  if (!dir.exists(wb_dir)) {
+    dir.create(wb_dir, recursive = TRUE)
+  }
+  
+  # download previous year's data and save in desired folder
+  download.file(url = wb_url, destfile = wb_name)
+  
+  # Load workbook -----
+  wb <- loadWorkbook(wb_name)
   
   # set base font
   modifyBaseFont(wb, fontName = "Arial", fontSize = 8.5)
@@ -171,7 +238,11 @@ for (emission_type in c("pm", "nh3", "voc")) {
     source("scripts/functions/function_format_headers_pm_nh3_voc.R")
     headers <- format_headers_pm_nh3_voc(emission_level)
     names(headers) <- colnames(emission_data_formatted)
-    headers_to_write <- matrix(unname(headers), ncol = length(headers))
+    headers_longform <- matrix(unname(headers), ncol = length(headers))
+    headers_shortform <- matrix(names(headers), ncol = length(headers))
+    
+    ## Update formatting errors in previous data ----
+    update_wb_formatting(wb, emission_type)
   
     ## Create new worksheet for emissions level -----
   
@@ -184,7 +255,7 @@ for (emission_type in c("pm", "nh3", "voc")) {
     sheetLength <- nrow(emission_data_formatted) + 2
     
     # full description headers
-    writeData(wb, current_worksheet, headers_to_write, startCol = 1, startRow = 1, colNames = FALSE)
+    writeData(wb, current_worksheet, headers_longform, startCol = 1, startRow = 1, colNames = FALSE)
     
     # emissions data
     writeData(wb, current_worksheet,emission_data_formatted, startCol = 1, startRow = 2)
@@ -194,7 +265,7 @@ for (emission_type in c("pm", "nh3", "voc")) {
     ### Headers -----
     
     # assign column type for color-coding based on variable naming
-    if(emission_level == "unit") {
+    if (emission_level == "unit") {
       annual_cols <- c()
       unadj_annual_cols <- which(grepl("AN$|RT$|SRC$", colnames(emission_data_formatted)))
     } else {
@@ -229,16 +300,16 @@ for (emission_type in c("pm", "nh3", "voc")) {
     setColWidths(wb, current_worksheet, cols = which(grepl("SRC$", colnames(emission_data_formatted))), widths = 30)
     
     ### Freeze pane -----
-    if(emission_level == "unit") {
+    if (emission_level == "unit") {
       freezePane(wb, current_worksheet, firstActiveCol = 6, firstActiveRow = 3)
-    } else if(emission_level == "plant") {
+    } else if (emission_level == "plant") {
       freezePane(wb, current_worksheet, firstActiveCol = 5, firstActiveRow = 3)
     } else {
       freezePane(wb, current_worksheet, firstActiveRow = 3)
     }
     
     ### US data row -----
-    if(emission_level == "subregion") {
+    if (emission_level == "subregion") {
       addStyle(wb, current_worksheet, us_row, rows = sheetLength, cols = 1:sheetWidth)
     }
   

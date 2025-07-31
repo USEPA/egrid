@@ -258,7 +258,7 @@ create_subregion_emission_figures <- function(emission_type,
       ## Load Subregion Data -----
       # collect subregion data from excel sheet for previous years
       if(year < params$eGRID_year) {
-        emission_prev <- read_xlsx(glue::glue("data/2a_pm_nh3_voc/outputs/{year_numeric - 1}/eGRID{year_numeric - 1}_{emission_type}emissions.xlsx"),
+        emission_prev <- read_xlsx(glue::glue("data/2a_pm_nh3_voc/inputs/pm_nh3_voc_historic/{year_numeric - 1}/eGRID{year_numeric - 1}_{emission_type}emissions.xlsx"),
                                    skip = 1,
                                    sheet = glue::glue("{year} {toupper(emission_type)} Subregion-level Data")) %>%
           # remove U.S. row if present
