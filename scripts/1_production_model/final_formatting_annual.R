@@ -46,7 +46,7 @@ ba_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID
 srl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/subregion_aggregation_annual.RDS"))
 nrl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/nerc_aggregation_annual.RDS"))
 us_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/us_aggregation_annual.RDS"))
-ggl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/grid_gross_loss.RDS"))
+ggl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 
 if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   demo_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))
@@ -337,14 +337,14 @@ writeData(wb,
 
 ## add styles to document
 # add description styles
-addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 1:14,  gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = s[['base_desc']],  rows = 1, cols = 1:14,  gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = s[['color2_desc']], rows = 1, cols = 15:28, gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 29:33, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = s[['base_desc']],  rows = 1, cols = 29:33, gridExpand = TRUE)
 
 # add header style
-addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 1:14,  gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = s[['base_header']],  rows = 2, cols = 1:14,  gridExpand = TRUE)
 addStyle(wb, sheet = unt, style = s[['color2_header']], rows = 2, cols = 15:28, gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 29:33, gridExpand = TRUE)
+addStyle(wb, sheet = unt, style = s[['base_header']],  rows = 2, cols = 29:33, gridExpand = TRUE)
 
 # set column widths
 setColWidths(wb, sheet = unt, cols = 1,     widths = 12.43)

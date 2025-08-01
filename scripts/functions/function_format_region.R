@@ -34,7 +34,7 @@ format_region <- function(region, reg_rows) {
   if(as.character(region) != glue::glue("US{year}")) {
     
   ## add style for first row (description)
-  addStyle(wb, sheet = region, style = s[['desc_style']],       rows = 1, cols = 1:4,      gridExpand = TRUE)
+  addStyle(wb, sheet = region, style = s[['base_desc']],        rows = 1, cols = 1:4,      gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['color1_desc']],      rows = 1, cols = 5:19,     gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['color4_desc']],      rows = 1, cols = 20:27,    gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['color5_desc']],      rows = 1, cols = 28:35,    gridExpand = TRUE)
@@ -54,7 +54,7 @@ format_region <- function(region, reg_rows) {
   addStyle(wb, sheet = region, style = s[['color17_desc']],     rows = 1, cols = 159:169,  gridExpand = TRUE)
   
   ## add header style
-  addStyle(wb, sheet = region, style = s[['header_style']],     rows = 2, cols = 1:4,      gridExpand = TRUE)
+  addStyle(wb, sheet = region, style = s[['base_header']],      rows = 2, cols = 1:4,      gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['color1_header']],    rows = 2, cols = 5:19,     gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['color4_header']],    rows = 2, cols = 20:27,    gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['color5_header']],    rows = 2, cols = 28:35,    gridExpand = TRUE)
@@ -192,43 +192,180 @@ format_region <- function(region, reg_rows) {
 }
 
 
-format_headers <- function(df, style_map) {
-  for (colname in names(df)) {
-    if (colname %in% names(style_map)) {
-      col_index <- which(names(df) == colname)
-      addStyle(
-        wb, 
-        sheet = "Data", 
-        style = style_map[[colname]], 
-        cols = col_index, 
-        rows = 2, 
-        gridExpand = TRUE
-      )
-    }
-  }
-}
 
-
-format_cols <- function(df, style_map) {
+format_cols <- function(df, sheet, style_map, start_col = 0) {
+  
+  text_style_map <- c("base"    = "basic",
+                      "color1"  = "integer2",
+                      "color4"  = "decimal1",
+                      "color5"  = "decimal1",
+                      "color15" = "decimal1")
   
   # format names 
   for (colname in names(df)) {
     if (colname %in% names(style_map)) {
-      col_index <- which(names(df) == colname)
+      col_index <- which(names(df) == colname) + start_col
+      
+      color_index <- style_map[[colname]]
+      
+      #  add header style
+      style_header_name <- paste0(color_index,"_header")
+      # print(style_header_name)
       addStyle(
         wb, 
-        sheet = "Data", 
-        style = style_map[[colname]], 
+        sheet = sheet, 
+        style = s[[style_header_name]], 
         cols = col_index, 
         rows = 2, 
         gridExpand = TRUE
       )
+      
+      # add description style
+      style_desc_name <- paste0(color_index,"_desc")
+      # print(style_header_name)
+      addStyle(
+        wb, 
+        sheet = sheet, 
+        style = s[[style_desc_name]], 
+        cols = col_index, 
+        rows = 1, 
+        gridExpand = TRUE
+      )
+      
+      # add text style
+      text_style_name <- text_style_map[[color_index]]
+      addStyle(
+        wb, 
+        sheet = sheet, 
+        style = s[[text_style_name]], 
+        cols = col_index, 
+        rows = 3:(nrow(df)+2), 
+        gridExpand = TRUE
+      )
+      
+      col_width <- if_else(grepl("ANNUAL$", colname), 16.5, 13.14)
+      
+      # set row heights
+      setRowHeights(wb, 
+                    sheet = sheet, 
+                    row = 1, 
+                    heights = 67.5)
+      
+      # set column widths
+      setColWidths(wb, 
+                   sheet = sheet, 
+                   cols = col_index,     
+                   widths = col_width)
+      
     }
   }
+}
+
+# function to modify style_maps in order to match monthly 
+modify_style_name <- function(name_map, old_name, new_name) {
+  names(name_map)[names(name_map) == old_name] <- new_name
+  return(name_map)
+}
+
+
+# function for formatting a sheet
+format_sheet <- function(df_month, df_ann, file_name, temporal_res, default_style_map) {
   
-  # format descriptions
+  # get sheet name from file_name
+  if (file_name %in% c("SR", "NR")) {
+    sheet <- paste0(file_name,"L",year)
+  } else {
+    sheet <- paste0(file_name, year)
+  }
   
-  # format text 
+  # style map for all base columns
+  base_style_map <- c("YEAR" = "base",
+                      "PSTATABB" = "base",
+                      "FIPSST" = "base",
+                      "BANAME" = "base",
+                      "BACODE" = "base",
+                      "SUBRGN" = "base",
+                      "SRNAME" = "base",
+                      "NERC" = "base",
+                      "NERCNAME" = "base",
+                      "PSTATABB" = "base",
+                      "FIPSST" = "base")
+
+  ### Monthly Formatting ###
+  if (temporal_res == "monthly") {
+    
+    # replacement vector for annual columns
+    header_ann_replace <- c("^HTIT$" = "HTIANT",
+                            "^NGEN$" = "NGENAN",
+                            "^NOX$"  = "NOXAN",
+                            "^SO2$"  = "SO2AN",
+                            "^CO2$"  = "CO2AN",
+                            "^CH4$"  = "CH4AN",
+                            "^N2O$"  = "N2OAN",
+                            "^HG$"   = "HGAN",
+                            "^NOXCRTA$" = "NOXCRT")
+    
+    # uppercase month abbreviations
+    month_abbr_upper <- toupper(month.abb)
+    
+    # format monthly columns
+    for (month in month_abbr_upper){
+      style_map <- default_style_map # set up style map
+      
+      for (i in 1:length(style_map)) { 
+        old_name <- names(default_style_map)[i]
+        new_name <- paste0(file_name, old_name, "_", month)
+        style_map <- modify_style_name(style_map, old_name, new_name) # update names from base style map to monthly ver
+      }
+      
+      format_cols(df_month, sheet, style_map) # format
+    }
+    
+    # format annual columns
+    if (!missing(df_ann)) {
+      style_map_ann <- default_style_map
+      for (i in 1:length(style_map)){
+        old_name <- names(default_style_map)[i]
+        
+        # name cleaning 
+        new_name1 <- gsub("RT", "RTA", old_name)
+        new_name2 <- ifelse(endsWith(new_name1, "R"), gsub("R", "RA", new_name1), new_name1)
+        new_name3 <- str_replace_all(new_name2, header_ann_replace)
+        new_name_final <- paste0(file_name, new_name3, "_", "ANNUAL")
+        
+        style_map_ann <- modify_style_name(style_map_ann, old_name, new_name_final)
+      }
+      
+      format_cols(df_ann, sheet, style_map_ann, start_col = length(df_month))
+    }
+
+    # format base identifier columns
+    format_cols(df_month, sheet, base_style_map)
+    
+
+  } else if (temporal_res == "annual") {
+    format_cols(df_ann, sheet, default_style_map)
+    
+    style_map <- default_style_map # set up style map
+    
+    # region formatting
+    if (file_name %in% c("ST","BA","SR","NR","US")) {
+      for (i in 1:length(style_map)) { 
+        old_name <- names(default_style_map)[i]
+        new_name <- paste0(file_name, old_name)
+        style_map <- modify_style_name(style_map, old_name, new_name) # update names from base style map to monthly ver
+      }
+      
+      format_cols(df_ann, sheet, style_map)
+      # format base identifier columns
+      format_cols(df_ann, sheet, base_style_map)
+    
+    # all other sheets formatting
+    } else {
+      format_cols(df_ann, sheet, default_style_map)
+    }
+    
   
-  # format widths and heights 
+  }
+  
 }
