@@ -67,7 +67,10 @@ prev_year_bio_units <-
   mutate(unit_id = tidyr::replace_na(unit_id, "NA"))
 
 # EPA-EIA crosswalk
-xwalk_epa_eia <- read_csv("data/1_production_model/static_tables/xwalk_oris_epa.csv")
+xwalk_epa_eia <- 
+  read_csv("data/1_production_model/static_tables/xwalk_oris_epa.csv") %>% 
+  mutate(eia_plant_id = as.character(eia_plant_id), 
+         epa_plant_id = as.character(epa_plant_id))
 
 # EIA Boiler data --------------------------------
 
@@ -82,8 +85,7 @@ eia_923_boiler_bio_plants <-
   slice_max(total_fuel_consumption_quantity, with_ties = FALSE) %>% 
   ungroup() %>% 
   mutate(id = paste0(plant_id, "_", boiler_id), 
-         id_pm = paste0(plant_id, "_", boiler_id, "_", prime_mover)) %>% 
-  filter(!id %in% unit_file$id) # exclude units already in unit flie
+         id_pm = paste0(plant_id, "_", boiler_id, "_", prime_mover))
 
 count_923_bio_plants <- nrow(eia_923_boiler_bio_plants %>% select(plant_id) %>% distinct())
 
@@ -105,9 +107,8 @@ eia_860_gen_bio_plants <-
   right_join(plants_negative_co2 %>% select(plant_id), by = "plant_id") %>% # only include plants with negative CO2
   mutate(id = paste0(plant_id, "_", generator_id),
          id_pm = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% 
-  filter(!id %in% eia_923_boiler_bio_plants$id, # exclude generators in EIA-923 biomass unit list already
-         !id %in% unit_file$id, # exclude units already in unit file
-         !id %in% eia_860_boil_gen_ids) %>% # exclude generators that match to boilers in EIA-923
+  #filter(#!id %in% eia_923_boiler_bio_plants$id, # exclude generators in EIA-923 biomass unit list already
+  #       #!id %in% eia_860_boil_gen_ids) %>% # exclude generators that match to boilers in EIA-923
   select(plant_id, generator_id, prime_mover, energy_source_1)
 
 count_860_bio_plants <- nrow(eia_860_gen_bio_plants %>% select(plant_id) %>% distinct())
@@ -124,7 +125,6 @@ epa_bio_plants <-
             co2_mass = sum(co2_mass_short_tons, na.rm = TRUE)) %>% 
   ungroup() %>% 
   mutate(id = paste0(plant_id, "_", unit_id)) %>% 
-  filter(!id %in% unit_file$id) %>% 
   tidyr::drop_na(unit_id)
 
 count_epa_bio_plants <- nrow(epa_bio_plants %>% select(plant_id) %>% distinct())
@@ -152,4 +152,13 @@ match_prev_year <-
   prev_year_bio_units %>% 
   mutate(plant_code = as.character(plant_code)) %>% 
   inner_join(plants_negative_co2, by = c("plant_code" = "plant_id"))
+
+# Check if EPA/EIA crosswalk has any matches ------------------ 
+# join crosswalk to EIA and see if any match to EPA
+
+check_xwalk_eia <- 
+  eia_923_boiler_bio_plants %>% 
+  left_join(xwalk_epa_eia, by = c("plant_id" = "eia_plant_id")) %>% 
+  filter(!is.na(epa_plant_id))
+
 
