@@ -69,7 +69,8 @@ source("scripts/functions/function_create_contents_egrid_final.R")
 # create_contents_egrid_final(temporal_res = "annual")
 
 if (!exists(params$version)) {
-  
+  params$version <- readline(prompt = "Input eGRID version: ")
+  params$version <- as.character(params$version)
 }
 create_contents_egrid_final(temporal_res = "monthly")
 
