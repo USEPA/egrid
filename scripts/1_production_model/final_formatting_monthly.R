@@ -68,7 +68,7 @@ wb <- createWorkbook()
 source("scripts/functions/function_create_contents_egrid_final.R")
 # create_contents_egrid_final(temporal_res = "annual")
 
-if (!exists(params$version)) {
+if (!exists("params$version")) {
   params$version <- readline(prompt = "Input eGRID version: ")
   params$version <- as.character(params$version)
 }
@@ -137,8 +137,8 @@ standard_labels <- c(
                      "NOX"    = "NOx emissions (tons)",	
                      "SO2"    = "SO2 emissions (tons)",	
                      "CO2"    = "CO2 emissions (tons)",
-                     "CH4"    = "CH4 emissions (lbs)",	
-                     "N2O"    = "N2O emissions (lbs)",	
+                     "CH4"    = "CH4 emissions (tons)",	
+                     "N2O"    = "N2O emissions (tons)",	
                      "CO2EQA" = "CO2 equivalent emissions (tons)",	
                      "HG"     = "Hg emissions (lbs)",
                      "NOXRT"  = "NOx total output emission rate (lb/MWh)",

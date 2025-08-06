@@ -193,13 +193,13 @@ format_region <- function(region, reg_rows) {
 
 
 
-format_cols <- function(df, sheet, style_map, start_col = 0) {
+format_cols <- function(df, sheet, style_map, text_style_map, start_col = 0) {
   
-  text_style_map <- c("base"    = "basic",
-                      "color1"  = "integer2",
-                      "color4"  = "decimal1",
-                      "color5"  = "decimal1",
-                      "color15" = "decimal1")
+  # text_style_map <- c("base"    = "basic",
+  #                     "color1"  = "integer2",
+  #                     "color4"  = "decimal1",
+  #                     "color5"  = "decimal1",
+  #                     "color15" = "decimal1")
   
   # format names 
   for (colname in names(df)) {
@@ -233,7 +233,7 @@ format_cols <- function(df, sheet, style_map, start_col = 0) {
       )
       
       # add text style
-      text_style_name <- text_style_map[[color_index]]
+      text_style_name <- text_style_map[[colname]]
       addStyle(
         wb, 
         sheet = sheet, 
@@ -269,7 +269,11 @@ modify_style_name <- function(name_map, old_name, new_name) {
 
 
 # function for formatting a sheet
-format_sheet <- function(df_month, df_ann, file_name, temporal_res, default_style_map) {
+format_sheet <- function(df_month = "", df_ann, file_name, temporal_res, default_style_map, text_style_map = c("base"    = "basic",
+                                                                                                              "color1"  = "integer2",
+                                                                                                              "color4"  = "decimal1",
+                                                                                                              "color5"  = "decimal1",
+                                                                                                              "color15" = "decimal1")) {
   
   # get sheet name from file_name
   if (file_name %in% c("SR", "NR")) {
@@ -318,7 +322,7 @@ format_sheet <- function(df_month, df_ann, file_name, temporal_res, default_styl
         style_map <- modify_style_name(style_map, old_name, new_name) # update names from base style map to monthly ver
       }
       
-      format_cols(df_month, sheet, style_map) # format
+      format_cols(df_month, sheet, style_map, text_style_map) # format
     }
     
     # format annual columns
@@ -336,15 +340,15 @@ format_sheet <- function(df_month, df_ann, file_name, temporal_res, default_styl
         style_map_ann <- modify_style_name(style_map_ann, old_name, new_name_final)
       }
       
-      format_cols(df_ann, sheet, style_map_ann, start_col = length(df_month))
+      format_cols(df_ann, sheet, style_map_ann, text_style_map, start_col = length(df_month))
     }
 
     # format base identifier columns
-    format_cols(df_month, sheet, base_style_map)
+    format_cols(df_month, sheet, base_style_map, text_style_map)
     
 
   } else if (temporal_res == "annual") {
-    format_cols(df_ann, sheet, default_style_map)
+    format_cols(df_ann, sheet, default_style_map, text_style_map)
     
     style_map <- default_style_map # set up style map
     
@@ -356,13 +360,13 @@ format_sheet <- function(df_month, df_ann, file_name, temporal_res, default_styl
         style_map <- modify_style_name(style_map, old_name, new_name) # update names from base style map to monthly ver
       }
       
-      format_cols(df_ann, sheet, style_map)
+      format_cols(df_ann, sheet, style_map, text_style_map)
       # format base identifier columns
-      format_cols(df_ann, sheet, base_style_map)
+      format_cols(df_ann, sheet, base_style_map, text_style_map)
     
     # all other sheets formatting
     } else {
-      format_cols(df_ann, sheet, default_style_map)
+      format_cols(df_ann, sheet, default_style_map, text_style_map)
     }
     
   

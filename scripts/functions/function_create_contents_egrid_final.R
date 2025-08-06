@@ -196,7 +196,7 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
     
   # color coding legend categories
   category_names <- c(
-    "Annual Values (generation, emissions, and heat input)",
+    "Total Values (generation, emissions, and heat input)",
     "Unadjusted Annual Values (emissions, and heat input)",						
     "Adjustment Values (emissions, heat input, heat rate)",						
     "Output Emission Rates (emissions per MWh)",						
@@ -216,7 +216,7 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
 
   if (temporal_res == "monthly") {
     category_names <-  c(
-      "Annual Values (generation, emissions, and heat input)",
+      "Total Values (generation, emissions, and heat input)",
       "Output Emission Rates (emissions per MWh)",
       "Input Emission Rates (emissions per MMBtu)",
       "Nonbaseload Output Emission Rates (emissions per MWh)"
@@ -265,22 +265,22 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
   # set section locations
   start_rows <- c(2, 21, 25, 45, 49)
   end_rows <- c(
-    start_rows[1] + 17,
-    start_rows[2] + 2,
-    start_rows[3] + 18,
-    start_rows[4] + 2,
-    start_rows[5] + 6)
+    start_rows[1] + 17, # Table of Contents
+    start_rows[2] + 2,  # Feedback
+    start_rows[3] + 18, # Color Coding Legend
+    start_rows[4] + 2,  # Notes
+    start_rows[5] + 6)  # Conversion Factors
   start_cols <- 2
   sheetWidth <- start_cols + 9
   
   if (temporal_res == "monthly"){
     start_rows <- c(2, 16, 20, 27, 32)
     end_rows <- c(
-      start_rows[1] + 12,
-      start_rows[2] + 2,
-      start_rows[3] + 5,
-      start_rows[4] + 3,
-      start_rows[5] + 6)
+      start_rows[1] + 12, # Table of Contents
+      start_rows[2] + 2,  # Feedback
+      start_rows[3] + 5,  # Color Coding Legend
+      start_rows[4] + 3,  # Notes
+      start_rows[5] + 6)  # Conversion Factors
     start_cols <- 2
     sheetWidth <- start_cols + 9
   }
@@ -362,10 +362,15 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
       }
       # color coding legend  
     } else if (row %in% c(start_rows[3]:end_rows[3])) {
-      format_width <- sheetWidth + 6
+      color_legend_val <- ifelse(temporal_res == "monthly", 3, 6)
+      # format_width <- sheetWidth + 6
+      format_width <- sheetWidth + color_legend_val
+      
       # merging inside rows
       if (row != start_rows[3]) {
         mergeCells(wb, current_worksheet, rows = row, 
+                   # cols = start_cols:format_width)
+                   # cols = start_cols:(start_cols + color_legend_val))
                    cols = start_cols:(start_cols + 6))
       }
       # notes and conversion factors
@@ -435,9 +440,9 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
            gridExpand = TRUE, stack = TRUE)
   addStyle(wb, current_worksheet, title_reg, cols = start_cols:sheetWidth, 
            rows = start_rows[3] + 1, gridExpand = TRUE, stack = TRUE)
-  mergeCells(wb, current_worksheet, cols = (sheetWidth - 1):(sheetWidth + 6), 
+  mergeCells(wb, current_worksheet, cols = (sheetWidth - 1):(sheetWidth + color_legend_val), # flag 
              rows = start_rows[3] + 1)
-  addStyle(wb, current_worksheet, bottom_borders, cols = start_cols:(sheetWidth + 6), 
+  addStyle(wb, current_worksheet, bottom_borders, cols = start_cols:(sheetWidth + color_legend_val), #flag 
            rows = start_rows[3] + 1, gridExpand = TRUE, stack = TRUE)
 
   # color coding fills
@@ -447,7 +452,7 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
   }
   
   # add font formatting
-  addStyle(wb, current_worksheet, createStyle(fontName = "Arial"), cols = start_cols:(sheetWidth + 6),
+  addStyle(wb, current_worksheet, createStyle(fontName = "Arial"), cols = start_cols:(sheetWidth + color_legend_val), #flag
            rows = 1:55, gridExpand = TRUE, stack = TRUE)
   
   ## Add cell sizes -------------
