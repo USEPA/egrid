@@ -1,8 +1,8 @@
 library(plumber)
-library(rstudioapi)
+library(this.path)
 
 # Identify directory path for api.R
-file_path <- getSourceEditorContext()$path
+file_path <- this.path::this.path()
 dir_path <- sub("run_api.R", "", file_path)
 
 # Load and run the Plumber API

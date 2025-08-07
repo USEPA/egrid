@@ -1,10 +1,10 @@
 library(plumber)
-library(rstudioapi)
+library(this.path)
 library(readr)
 library(dplyr)
 
 # Identify directory path egrid repository 
-file_path <- getSourceEditorContext()$path
+file_path <- this.path::this.path()
 egrid_dir_path <- dirname(dirname(dirname(file_path)))
 
 # Load name matching to update to shorthand names
