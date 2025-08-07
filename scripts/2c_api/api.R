@@ -7,16 +7,17 @@ library(dplyr)
 file_path <- getSourceEditorContext()$path
 egrid_dir_path <- dirname(dirname(dirname(file_path)))
 
-# Load name matching 
+# Load name matching to update to shorthand names
 base::load(glue::glue("{egrid_dir_path}/data/1_production_model/static_tables/name_matches.RData"))
  
 #* @get /<year>/plant
 function(year) {
-  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/plant_file.RDS") %>% 
-    rename(any_of(plant_nonmetric)) %>% janitor::clean_names()
+  rds_file <- fglue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/plant_file.RDS") 
  
   tryCatch({
-    plant_data <- read_rds(rds_file)
+    plant_data <- read_rds(rds_file) %>% 
+      rename(any_of(plant_nonmetric)) %>% janitor::clean_names()
+    
     list(success = TRUE, data = plant_data)
   }, error = function(e) {
     list(success = FALSE, error = e$message)
@@ -31,7 +32,7 @@ function(year) {
   tryCatch({
     ba_data <- read_rds(rds_file) %>% 
       rename(any_of(ba_nonmetric)) %>% janitor::clean_names()
-
+    
     list(success = TRUE, data = ba_data)
   }, error = function(e) {
     list(success = FALSE, error = e$message)
@@ -43,10 +44,10 @@ function(year) {
   rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/generator_file.RDS") 
   
   tryCatch({
-    ba_data <- read_rds(rds_file) %>% 
+    generator_data <- read_rds(rds_file) %>% 
       rename(any_of(gen_nonmetric)) %>% janitor::clean_names()
 
-    list(success = TRUE, data = ba_data)
+    list(success = TRUE, data = generator_data)
   }, error = function(e) {
     list(success = FALSE, error = e$message)
   })
@@ -57,10 +58,10 @@ function(year) {
   rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/nerc_aggregation.RDS") 
   
   tryCatch({
-    ba_data <- read_rds(rds_file) %>% 
+    nerc_data <- read_rds(rds_file) %>% 
       rename(any_of(nerc_nonmetric)) %>% janitor::clean_names()
     
-    list(success = TRUE, data = ba_data)
+    list(success = TRUE, data = nerc_data)
   }, error = function(e) {
     list(success = FALSE, error = e$message)
   })
@@ -71,10 +72,10 @@ function(year) {
   rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/state_aggregation.RDS") 
   
   tryCatch({
-    ba_data <- read_rds(rds_file) %>% 
+    state_data <- read_rds(rds_file) %>% 
       rename(any_of(state_nonmetric)) %>% janitor::clean_names()
 
-    list(success = TRUE, data = ba_data)
+    list(success = TRUE, data = state_data)
   }, error = function(e) {
     list(success = FALSE, error = e$message)
   })
@@ -85,10 +86,10 @@ function(year) {
   rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/subregion_file.RDS") 
   
   tryCatch({
-    ba_data <- read_rds(rds_file) %>% 
+    subregion_data <- read_rds(rds_file) %>% 
       rename(any_of(subregion_nonmetric)) %>% janitor::clean_names()
 
-    list(success = TRUE, data = ba_data)
+    list(success = TRUE, data = subregion_data)
   }, error = function(e) {
     list(success = FALSE, error = e$message)
   })
@@ -100,10 +101,10 @@ function(year) {
   rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/unit_file.RDS")
   
   tryCatch({
-    ba_data <- read_rds(rds_file) %>% 
+    unit_data <- read_rds(rds_file) %>% 
       rename(any_of(unit_nonmetric)) %>% janitor::clean_names()
     
-    list(success = TRUE, data = ba_data)
+    list(success = TRUE, data = unit_data)
   }, error = function(e) {
     list(success = FALSE, error = e$message)
   })
@@ -114,10 +115,10 @@ function(year) {
   rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/us_aggregation.RDS") 
   
   tryCatch({
-    ba_data <- read_rds(rds_file) %>% 
+    us_data <- read_rds(rds_file) %>% 
       rename(any_of(us_nonmetric)) %>% janitor::clean_names()
 
-    list(success = TRUE, data = ba_data)
+    list(success = TRUE, data = us_data)
   }, error = function(e) {
     list(success = FALSE, error = e$message)
   })
