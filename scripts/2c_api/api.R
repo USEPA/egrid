@@ -12,7 +12,7 @@ base::load(glue::glue("{egrid_dir_path}/data/1_production_model/static_tables/na
  
 #* @get /<year>/plant
 function(year) {
-  rds_file <- fglue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/plant_file.RDS") 
+  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/plant_file.RDS") 
  
   tryCatch({
     plant_data <- read_rds(rds_file) %>% 
