@@ -118,7 +118,7 @@ format_region <- function(region, reg_rows) {
   # else (for US) 
   
   ## add style for first row (description)
-  addStyle(wb, sheet = region, style = s[['desc_style']],       rows = 1, cols = 1:2,      gridExpand = TRUE)
+  addStyle(wb, sheet = region, style = s[['base_desc']],       rows = 1, cols = 1:2,      gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['color1_desc']],      rows = 1, cols = 3:17,     gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['color4_desc']],      rows = 1, cols = 18:25,    gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['color5_desc']],      rows = 1, cols = 26:33,    gridExpand = TRUE)
@@ -138,7 +138,7 @@ format_region <- function(region, reg_rows) {
   addStyle(wb, sheet = region, style = s[['color17_desc']],     rows = 1, cols = 157:167,  gridExpand = TRUE)
   
   ## add header style
-  addStyle(wb, sheet = region, style = s[['header_style']],     rows = 2, cols = 1:2,      gridExpand = TRUE)
+  addStyle(wb, sheet = region, style = s[['base_header']],     rows = 2, cols = 1:2,      gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['color1_header']],    rows = 2, cols = 3:17,     gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['color4_header']],    rows = 2, cols = 18:25,    gridExpand = TRUE)
   addStyle(wb, sheet = region, style = s[['color5_header']],    rows = 2, cols = 26:33,    gridExpand = TRUE)
@@ -233,7 +233,12 @@ format_cols <- function(df, sheet, style_map, text_style_map, start_col = 0) {
       )
       
       # add text style
-      text_style_name <- text_style_map[[colname]]
+      if (params$temporal_res == "monthly"){
+        text_style_name <- text_style_map[[color_index]]
+      } else {
+        text_style_name <- text_style_map[[colname]]
+      }
+      
       addStyle(
         wb, 
         sheet = sheet, 
@@ -294,6 +299,18 @@ format_sheet <- function(df_month = "", df_ann, file_name, temporal_res, default
                       "NERCNAME" = "base",
                       "PSTATABB" = "base",
                       "FIPSST" = "base")
+  
+  base_text_style_map <- c("YEAR" = "basic",
+                           "PSTATABB" = "basic",
+                           "FIPSST" = "basic",
+                           "BANAME" = "basic",
+                           "BACODE" = "basic",
+                           "SUBRGN" = "basic",
+                           "SRNAME" = "basic",
+                           "NERC" = "basic",
+                           "NERCNAME" = "basic",
+                           "PSTATABB" = "basic",
+                           "FIPSST" = "basic")
 
   ### Monthly Formatting ###
   if (temporal_res == "monthly") {
@@ -348,7 +365,7 @@ format_sheet <- function(df_month = "", df_ann, file_name, temporal_res, default
     
 
   } else if (temporal_res == "annual") {
-    format_cols(df_ann, sheet, default_style_map, text_style_map)
+    # format_cols(df_ann, sheet, default_style_map, text_style_map)
     
     style_map <- default_style_map # set up style map
     
@@ -358,11 +375,14 @@ format_sheet <- function(df_month = "", df_ann, file_name, temporal_res, default
         old_name <- names(default_style_map)[i]
         new_name <- paste0(file_name, old_name)
         style_map <- modify_style_name(style_map, old_name, new_name) # update names from base style map to monthly ver
+        
+        text_style_map <- modify_style_name(text_style_map, old_name, new_name) # update names from base style map to monthly ver
+        
       }
       
       format_cols(df_ann, sheet, style_map, text_style_map)
       # format base identifier columns
-      format_cols(df_ann, sheet, base_style_map, text_style_map)
+      format_cols(df_ann, sheet, base_style_map, base_text_style_map)
     
     # all other sheets formatting
     } else {

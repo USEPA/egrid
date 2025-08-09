@@ -74,6 +74,7 @@ create_contents_egrid_final()
 source("scripts/functions/function_format_styles.R")
 source("scripts/functions/function_format_region.R")
 source("scripts/functions/function_add_hyperlink.R")
+source("scripts/functions/function_create_style_maps.R")
 
 # create eGRID output style list using function
 s <- create_format_styles()
@@ -701,44 +702,50 @@ writeData(wb,
           plnt_file,
           startRow = 2)
 
+format_sheet(df_ann = plnt_file,
+             file_name = "PLNT",
+             temporal_res = params$temporal_res,
+             default_style_map = plnt_style_map,
+             text_style_map = plnt_text_style_map)
+
 ## add styles to document
 # add description styles
-addStyle(wb, sheet = plnt, style = s[['base_desc']],     rows = 1, cols = 1:36,    gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color1_desc']],    rows = 1, cols = 37:51,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color4_desc']],    rows = 1, cols = 52:59,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color5_desc']],    rows = 1, cols = 60:67,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color6_desc']],    rows = 1, cols = 68:75,   gridExpand = TRUE) 
-addStyle(wb, sheet = plnt, style = s[['color2_desc']],    rows = 1, cols = 76:97,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color3_desc']],    rows = 1, cols = 98:113,  gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['desc_style']],     rows = 1, cols = 114,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color7_desc']],    rows = 1, cols = 115:125, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color8_desc']],    rows = 1, cols = 126:128, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9_desc']],    rows = 1, cols = 129,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9v2_desc']],  rows = 1, cols = 130:132, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color10_desc']],   rows = 1, cols = 133:143, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color11_desc']],   rows = 1, cols = 144:146, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12_desc']],   rows = 1, cols = 147,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12v2_desc']], rows = 1, cols = 148:150, gridExpand = TRUE)
-
-# add header styles
-addStyle(wb, sheet = plnt, style = s[['base_header']],     rows = 2, cols = 1:36,    gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color1_header']],    rows = 2, cols = 37:51,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color4_header']],    rows = 2, cols = 52:59,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color5_header']],    rows = 2, cols = 60:67,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color6_header']],    rows = 2, cols = 68:75,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color2_header']],    rows = 2, cols = 76:97,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color3_header']],    rows = 2, cols = 98:113,  gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['header_style']],     rows = 2, cols = 114,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color7_header']],    rows = 2, cols = 115:125, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color8_header']],    rows = 2, cols = 126:128, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9_header']],    rows = 2, cols = 129,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9v2_header']],  rows = 2, cols = 130:132, gridExpand = TRUE) 
-addStyle(wb, sheet = plnt, style = s[['color10_header']],   rows = 2, cols = 133:143, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color11_header']],   rows = 2, cols = 144:146, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12_header']],   rows = 2, cols = 147,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12v2_header']], rows = 2, cols = 148:150, gridExpand = TRUE)
-
-# set column widths
+# addStyle(wb, sheet = plnt, style = s[['base_desc']],     rows = 1, cols = 1:36,    gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color1_desc']],    rows = 1, cols = 37:51,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color4_desc']],    rows = 1, cols = 52:59,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color5_desc']],    rows = 1, cols = 60:67,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color6_desc']],    rows = 1, cols = 68:75,   gridExpand = TRUE) 
+# addStyle(wb, sheet = plnt, style = s[['color2_desc']],    rows = 1, cols = 76:97,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color3_desc']],    rows = 1, cols = 98:113,  gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['desc_style']],     rows = 1, cols = 114,     gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color7_desc']],    rows = 1, cols = 115:125, gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color8_desc']],    rows = 1, cols = 126:128, gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color9_desc']],    rows = 1, cols = 129,     gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color9v2_desc']],  rows = 1, cols = 130:132, gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color10_desc']],   rows = 1, cols = 133:143, gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color11_desc']],   rows = 1, cols = 144:146, gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color12_desc']],   rows = 1, cols = 147,     gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color12v2_desc']], rows = 1, cols = 148:150, gridExpand = TRUE)
+# 
+# # add header styles
+# addStyle(wb, sheet = plnt, style = s[['base_header']],     rows = 2, cols = 1:36,    gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color1_header']],    rows = 2, cols = 37:51,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color4_header']],    rows = 2, cols = 52:59,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color5_header']],    rows = 2, cols = 60:67,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color6_header']],    rows = 2, cols = 68:75,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color2_header']],    rows = 2, cols = 76:97,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color3_header']],    rows = 2, cols = 98:113,  gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['header_style']],     rows = 2, cols = 114,     gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color7_header']],    rows = 2, cols = 115:125, gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color8_header']],    rows = 2, cols = 126:128, gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color9_header']],    rows = 2, cols = 129,     gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color9v2_header']],  rows = 2, cols = 130:132, gridExpand = TRUE) 
+# addStyle(wb, sheet = plnt, style = s[['color10_header']],   rows = 2, cols = 133:143, gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color11_header']],   rows = 2, cols = 144:146, gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color12_header']],   rows = 2, cols = 147,     gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['color12v2_header']], rows = 2, cols = 148:150, gridExpand = TRUE)
+# 
+# # set column widths
 setColWidths(wb, sheet = plnt, cols = 1:2,     widths = 12.71)
 setColWidths(wb, sheet = plnt, cols = 3,       widths = 12.43)
 setColWidths(wb, sheet = plnt, cols = 4,       widths = 34.71)
@@ -788,33 +795,33 @@ setColWidths(wb, sheet = plnt, cols = 146,     widths = 16.29)
 setColWidths(wb, sheet = plnt, cols = 147:149, widths = 12.71)
 setColWidths(wb, sheet = plnt, cols = 150,     widths = 16.29)
 
-# set row heights
-setRowHeights(wb, sheet = plnt, row = 1, heights = 67.5)
-
-# add number styles
-addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 23:24,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['decimal4']], rows = 3:plnt_rows, cols = 28,      gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['decimal2']], rows = 3:plnt_rows, cols = 29,      gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['decimal4']], rows = 3:plnt_rows, cols = 30,      gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 33:34,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['decimal4']], rows = 3:plnt_rows, cols = 35,      gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['integer2']], rows = 3:plnt_rows, cols = 37:50,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['decimal1']], rows = 3:plnt_rows, cols = 51:74,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 75:85,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 95:108,  gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['decimal3']], rows = 3:plnt_rows, cols = 109,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['integer2']], rows = 3:plnt_rows, cols = 110:132, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['percent']],  rows = 3:plnt_rows, cols = 133:150, gridExpand = TRUE)
-
-# add text styles
-addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 1:22,  gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 25:27, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 31:32, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 36,    gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 86:94, gridExpand = TRUE)
-
-# freeze panes
-freezePane(wb, sheet = plnt, firstActiveCol = 6, firstActiveRow = 3)
+# # set row heights
+# setRowHeights(wb, sheet = plnt, row = 1, heights = 67.5)
+# 
+# # add number styles
+# addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 23:24,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['decimal4']], rows = 3:plnt_rows, cols = 28,      gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['decimal2']], rows = 3:plnt_rows, cols = 29,      gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['decimal4']], rows = 3:plnt_rows, cols = 30,      gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 33:34,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['decimal4']], rows = 3:plnt_rows, cols = 35,      gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['integer2']], rows = 3:plnt_rows, cols = 37:50,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['decimal1']], rows = 3:plnt_rows, cols = 51:74,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 75:85,   gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 95:108,  gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['decimal3']], rows = 3:plnt_rows, cols = 109,     gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['integer2']], rows = 3:plnt_rows, cols = 110:132, gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['percent']],  rows = 3:plnt_rows, cols = 133:150, gridExpand = TRUE)
+# 
+# # add text styles
+# addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 1:22,  gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 25:27, gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 31:32, gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 36,    gridExpand = TRUE)
+# addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 86:94, gridExpand = TRUE)
+# 
+# # freeze panes
+# freezePane(wb, sheet = plnt, firstActiveCol = 6, firstActiveRow = 3)
 
 # ST Formatting --------------------------------------
 
@@ -873,7 +880,12 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region(st, st_rows)
+# format_region(st, st_rows)
+format_sheet(df_ann = st_file,
+             file_name = "ST",
+             temporal_res = params$temporal_res,
+             default_style_map = region_style_map,
+             text_style_map = region_text_style_map)
 
 
 # BA Formatting ----------------------------------
@@ -934,7 +946,13 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region(ba, ba_rows)
+# format_region(ba, ba_rows)
+
+format_sheet(df_ann = ba_file,
+             file_name = "BA",
+             temporal_res = params$temporal_res,
+             default_style_map = region_style_map,
+             text_style_map = region_text_style_map)
 
 setColWidths(wb, sheet = ba, cols = 2, widths = 75.55)
 
@@ -996,7 +1014,13 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region(srl, srl_rows)
+# format_region(srl, srl_rows)
+
+format_sheet(df_ann = srl_file,
+             file_name = "SR",
+             temporal_res = params$temporal_res,
+             default_style_map = region_style_map,
+             text_style_map = region_text_style_map)
 
 setColWidths(wb, sheet = srl, cols = 3, widths = 18.45)
 
@@ -1058,7 +1082,13 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region(nrl, nrl_rows)
+# format_region(nrl, nrl_rows)
+
+format_sheet(df_ann = nrl_file,
+             file_name = "NR",
+             temporal_res = params$temporal_res,
+             default_style_map = region_style_map,
+             text_style_map = region_text_style_map)
 
 setColWidths(wb, sheet = nrl, cols = 3, widths = 29.45)
 
@@ -1116,7 +1146,12 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region(us, us_rows)
+# format_region(us, us_rows)
+format_sheet(df_ann = nrl_file,
+             file_name = "NR",
+             temporal_res = params$temporal_res,
+             default_style_map = region_style_map,
+             text_style_map = region_text_style_map)
 
 # GGL Formatting --------------------------------------------
 
@@ -1171,10 +1206,10 @@ writeData(wb,
 
 ## add styles to document
 # add description styles
-addStyle(wb, sheet = ggl, style = s[['desc_style']], rows = 1, cols = 1:6, gridExpand = TRUE)
+# addStyle(wb, sheet = ggl, style = s[['base_desc']], rows = 1, cols = 1:6, gridExpand = TRUE)
 
 # add header style
-addStyle(wb, sheet = ggl, style = s[['header_style']], rows = 2, cols = 1:6, gridExpand = TRUE)
+# addStyle(wb, sheet = ggl, style = s[['base_header']], rows = 2, cols = 1:6, gridExpand = TRUE)
 
 # set column widths
 setColWidths(wb, sheet = ggl, cols = 1,   widths = 10)
@@ -1183,11 +1218,17 @@ setColWidths(wb, sheet = ggl, cols = 3:5, widths = 11.14)
 setColWidths(wb, sheet = ggl, cols = 6,   widths = 23)
 
 # set row heights
-setRowHeights(wb, sheet = ggl, row = 1, heights = 60.75)
+# setRowHeights(wb, sheet = ggl, row = 1, heights = 60.75)
 
 # add number styles
-addStyle(wb, sheet = ggl, style = s[['integer']], rows = 3:7, cols = 3:5, gridExpand = TRUE)
-addStyle(wb, sheet = ggl, style = s[['percent']], rows = 3:7, cols = 6,   gridExpand = TRUE)
+# addStyle(wb, sheet = ggl, style = s[['integer']], rows = 3:7, cols = 3:5, gridExpand = TRUE)
+# addStyle(wb, sheet = ggl, style = s[['percent']], rows = 3:7, cols = 6,   gridExpand = TRUE)
+
+format_sheet(df_ann = ggl_file,
+             file_name = "GGL",
+             temporal_res = params$temporal_res,
+             default_style_map = region_style_map,
+             text_style_map = region_text_style_map)
 
 # add number styles (bold)
 addStyle(wb, sheet = ggl, style = s[['integer_bold']], rows = 8, cols = 3:5, gridExpand = TRUE)
