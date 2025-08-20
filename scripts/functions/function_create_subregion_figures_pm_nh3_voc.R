@@ -8,11 +8,12 @@
 ## and saves figures for the current eGRID year and previous years
 ## to be used in the final .xlsx sheet of data
 ##
-## Resulting figures are saved in the following folder:
+## Resulting figures are temporarily stored in the following folder:
 ## "data/2a_pm_nh3_voc/static_tables/formatting/"
 ##
-## Images are included in the final .xlsx files for emissions data
-## using the final_formatting_pm_nh3_voc.R script
+## Note: Figures will be reproduced each year for the purpose
+##       of including them in the final formatted .xlsx document
+##       using the final_formatting_pm_nh3_voc.R script
 ##
 ## Additional notes
 ##
@@ -21,8 +22,7 @@
 ## -------------------------------
 
 create_subregion_emission_figures <- function(wb,
-                                              emission_type,
-                                              skip_if_exists = TRUE) {
+                                              emission_type) {
   
   #' create_subregion_emission_figures
   #' 
@@ -32,17 +32,14 @@ create_subregion_emission_figures <- function(wb,
   #' @param wb Workbook with subregion emissions data to load in and plot
   #' @param emission_type Emission type to produce plots for - either
   #'                      "pm", "nh3", or "voc"
-  #' @param skip_if_exists If TRUE, checks the presence of figures and skips
-  #'                       plot production if figure already exists.
-  #'                       If FALSE, all plots will be reproduced and resaved
   #' 
   #' @return Saved figures of subregion annual generation, emissions, and output rates 
-  #' for each year from 2018 to current eGRID year - saved in 
+  #' for each year from 2018 to current eGRID year - stored in 
   #' "data/2a_pm_nh3_voc/static_tables/formatting/"
   #'         
   #' @examples 
-  #' # Create PM2.5 plots and override previously-saved plots
-  #' pm_annual_generation <- create_subregion_emission_figures(wb = wb, emission_type = "pm", skip_if_exists = FALSE)
+  #' # Create PM2.5 plots
+  #' pm_annual_generation <- create_subregion_emission_figures(wb = wb, emission_type = "pm")
                                                             
   # Require libraries ---------
   require(ggbreak)
@@ -234,112 +231,72 @@ create_subregion_emission_figures <- function(wb,
   # Loop Through Data Years and Produce Plots -----
   for(year in years) {
     
-    ## Check for the presence of preexisting files -----
+    print(glue::glue("Producing Plots for {toupper(emission_type)} {year}"))
     
-    # set file count
-    test_missing <- 0
+    ## Load Subregion Data -----
+    # collect subregion data from loaded workbook
+    emission_prev <- readWorkbook(wb, 
+                                   sheet = glue::glue("{year} {toupper(emission_type)} Subregion-level Data"),
+                                   startRow = 2,
+                                   colNames = TRUE) %>%
+      # remove U.S. row if present
+      filter(SUBRGN != "U.S.") %>%
+      # set column types
+      mutate(across(c(YEAR, SUBRGN, SRNAME), as.character),
+             across(c(SRNGENAN, paste0("SR", toupper(emission_label), "AN"), paste0("SR", toupper(emission_label), "RTA")), as.numeric))
+      
+    # define new data column names
+    base::load("data/1_production_model/static_tables/name_matches.Rdata")
+    colnames_new <- setNames(c(paste0(emission_label, "_ann"),
+                               paste0(emission_label, "_output_rate")),
+                             c(paste0("SR", toupper(emission_label), "AN"), 
+                               paste0("SR", toupper(emission_label), "RTA")))
     
-    if (skip_if_exists == TRUE) {
-      # check for all three plots for each emissions type
-      test_strings <- c(glue::glue("{emission_type}_emissions_{year}.png"),
-                        glue::glue("{emission_type}_annual_generation_{year}.png"),
-                        glue::glue("{emission_type}_rate_{year}.png"))
-      
-      for (file in test_strings) {
-        if (!file.exists(paste0(save_dir, file))) {
-          # if any of the files don't exist, set counter to 1
-          test_missing <- test_missing + 1
-        }
-      }
-    }
+    # reassign column names
+    colnames <- c(subregion_nonmetric[names(subregion_nonmetric) %in% colnames(emission_prev)],
+                  colnames_new[names(colnames_new) %in% colnames(emission_prev)])
+    # rename subregion file column names
+    subregion_file <-
+      emission_prev %>%
+      rename(!!!setNames(lapply(names(colnames), sym), colnames))
     
-    # produce plots if skip_if_exists == FALSE or files don't already exist
-    if (test_missing > 0 | skip_if_exists == FALSE) {
-      print(glue::glue("Producing Plots for {toupper(emission_type)} {year}"))
-      
-      ## Load Subregion Data -----
-      # collect subregion data from loaded workbook
-      emission_prev <- readWorkbook(wb, 
-                                     sheet = glue::glue("{year} {toupper(emission_type)} Subregion-level Data"),
-                                     startRow = 2,
-                                     colNames = TRUE) %>%
-        # remove U.S. row if present
-        filter(SUBRGN != "U.S.") %>%
-        # set column types
-        mutate(across(c(YEAR, SUBRGN, SRNAME), as.character),
-               across(c(SRNGENAN, paste0("SR", toupper(emission_label), "AN"), paste0("SR", toupper(emission_label), "RTA")), as.numeric))
-               
-      # # collect subregion data from excel sheet for previous years
-      # if(year < params$eGRID_year) {
-      #   emission_prev <- read_xlsx(glue::glue("data/2a_pm_nh3_voc/inputs/pm_nh3_voc_historic/{year_numeric - 1}/eGRID{year_numeric - 1}_{emission_type}emissions.xlsx"),
-      #                              skip = 1,
-      #                              sheet = glue::glue("{year} {toupper(emission_type)} Subregion-level Data")) %>%
-      #     # remove U.S. row if present
-      #     filter(SUBRGN != "U.S.")
-        
-      # define new data column names
-      base::load("data/1_production_model/static_tables/name_matches.Rdata")
-      colnames_new <- setNames(c(paste0(emission_label, "_ann"),
-                                 paste0(emission_label, "_output_rate")),
-                               c(paste0("SR", toupper(emission_label), "AN"), 
-                                 paste0("SR", toupper(emission_label), "RTA")))
-      
-      # reassign column names
-      colnames <- c(subregion_nonmetric[names(subregion_nonmetric) %in% colnames(emission_prev)],
-                    colnames_new[names(colnames_new) %in% colnames(emission_prev)])
-      # rename subregion file column names
-      subregion_file <-
-        emission_prev %>%
-        rename(!!!setNames(lapply(names(colnames), sym), colnames))
-        
-      #   # collect subregion data from .RDS file for current year
-      # } else {
-      #   if(file.exists(glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))) {
-      #     subregion_file <- read_rds(glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/subregion_aggregation_{emission_type}.RDS"))
-      #   } else {
-      #     stop(glue::glue("subregion_aggregation_{emission_type}.RDS does not exist. Run region_aggregation_create_pm_nh3_voc.R to obtain."))
-      #   }
-      # }
-      
-      ## Plot and Save Subregion Emissions Data -----
-      
-      ### Annual Generation -----
-      
-      annual_generation <- plot_subregion_emissions(ydata = "subregion_generation_ann",
-                                                    fill_color = "#5B9BD5",
-                                                    ylabel = bquote(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Annual Generation (MWh)"),
-                                                    annotate_label =  bquote(bold(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Generation")),
-                                                    ylabel_min = 0,
-                                                    ylabel_max = 6E8,
-                                                    ylabel_int = 1E8,
-                                                    yaxis_max = 6.65E8)
-      save_fig(annual_generation)
-      
-      ### Emissions -----
-      
-      emissions <- plot_subregion_emissions(ydata = glue::glue("{emission_label}_ann"),
-                                            fill_color = "#FF0000",
-                                            ylabel = bquote(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Emissions (short tons)"),
-                                            annotate_label = bquote(bold(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Emissions")),
-                                            ylabel_min = 0,
-                                            ylabel_max = plot_params$ylabel_max_emissions[emission_type],
-                                            ylabel_int = plot_params$ylabel_int_emissions[emission_type],
-                                            yaxis_max = plot_params$yaxis_max_emissions[emission_type])
-      save_fig(emissions)
-      
-      ### Emission Rates -----
-      
-      rate <- plot_subregion_emissions(ydata = glue::glue("{emission_label}_output_rate"),
-                                       fill_color = "#70AD47",
-                                       ylabel = bquote(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Emission Rates (lb/MWh)"),
-                                       annotate_label = bquote(bold(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Emission Rates")),
-                                       ylabel_min = 0,
-                                       ylabel_max = plot_params$ylabel_max_rate[emission_type],
-                                       ylabel_int = plot_params$ylabel_int_rate[emission_type],
-                                       yaxis_max = plot_params$yaxis_max_rate[emission_type])
-      save_fig(rate)
-    } else {
-      print(glue::glue("Skipping Plot Production for {toupper(emission_type)} {year} - Figures Already Exist"))
-    }
+    ## Plot and Save Subregion Emissions Data -----
+    
+    ### Annual Generation -----
+    
+    annual_generation <- plot_subregion_emissions(ydata = "subregion_generation_ann",
+                                                  fill_color = "#5B9BD5",
+                                                  ylabel = bquote(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Annual Generation (MWh)"),
+                                                  annotate_label =  bquote(bold(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Generation")),
+                                                  ylabel_min = 0,
+                                                  ylabel_max = 6E8,
+                                                  ylabel_int = 1E8,
+                                                  yaxis_max = 6.65E8)
+    save_fig(annual_generation)
+    
+    ### Emissions -----
+    
+    emissions <- plot_subregion_emissions(ydata = glue::glue("{emission_label}_ann"),
+                                          fill_color = "#FF0000",
+                                          ylabel = bquote(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Emissions (short tons)"),
+                                          annotate_label = bquote(bold(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Emissions")),
+                                          ylabel_min = 0,
+                                          ylabel_max = plot_params$ylabel_max_emissions[emission_type],
+                                          ylabel_int = plot_params$ylabel_int_emissions[emission_type],
+                                          yaxis_max = plot_params$yaxis_max_emissions[emission_type])
+    save_fig(emissions)
+    
+    ### Emission Rates -----
+    
+    rate <- plot_subregion_emissions(ydata = glue::glue("{emission_label}_output_rate"),
+                                     fill_color = "#70AD47",
+                                     ylabel = bquote(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Emission Rates (lb/MWh)"),
+                                     annotate_label = bquote(bold(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Emission Rates")),
+                                     ylabel_min = 0,
+                                     ylabel_max = plot_params$ylabel_max_rate[emission_type],
+                                     ylabel_int = plot_params$ylabel_int_rate[emission_type],
+                                     yaxis_max = plot_params$yaxis_max_rate[emission_type])
+    save_fig(rate)
   }
 }
+
