@@ -43,33 +43,7 @@ if (exists("params")) {
 # Load functions -----
 # function to produce unit emissions data
 source("scripts/functions/function_unit_data_pm_nh3_voc.R")
-
-# Create function to format unit files ---------------
-format_unit <- function(unit_emissions, emission_type) {
-  
-  # Set emission type label for data columns
-  if (emission_type == "pm") {
-    emission_label <- "pm25"
-  } else {
-    emission_label <- emission_type
-  }
-  
-  unit_formatted <-
-    unit_emissions %>%
-    # replace emission with emission label in column names
-    rename_with(~gsub("emission", emission_label, .)) %>%
-    # set  annual emissions to NA for renewable fuel types
-    mutate("{emission_label}_ann" := if_else(primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, get(emission_label)),
-           # set emission source type to NA for renewable fuel types
-           "{emission_label}_source" := if_else(get(paste0(emission_label, "_ann")) >= 0, get(paste0(emission_label, "_source")), NA_character_),
-           # add data column with adjusted emission rate
-           "{emission_label}_rate" := if_else(heat_input != 0, get(paste0(emission_label, "_ann")) * 2000 / heat_input, NA_real_),
-           year = params$eGRID_year) %>%
-    # select desired variables for final version
-    select(year, plant_state, plant_name, plant_id, unit_id, prime_mover, operating_status, botfirty, primary_fuel_type, operating_hours, heat_input, paste0(emission_label, "_ann"), paste0(emission_label, "_rate"), heat_input_source, paste0(emission_label, "_source"), year_online)
-  
-  return(unit_formatted)
-}
+source("scripts/functions/function_save_output_data.R")
 
 # Produce PM2.5, NH3, and VOC unit data using function ---------
 
@@ -84,15 +58,9 @@ pm_unit_data <- unit_data_pm_nh3_voc("pm")
 nh3_unit_data <- unit_data_pm_nh3_voc("nh3")
 voc_unit_data <- unit_data_pm_nh3_voc("voc")
 
-# Format final version of PM2.5, NH3, and VOC unit files ------------
-pm_unit_formatted <- format_unit(pm_unit_data, "pm")
-nh3_unit_formatted <- format_unit(nh3_unit_data, "nh3")
-voc_unit_formatted <- format_unit(voc_unit_data, "voc")
-  
 # Export emission unit files ---------
-source("scripts/functions/function_save_output_data.R")
 output_folder <- "2a_pm_nh3_voc"
-save_output_data(pm_unit_formatted, output_folder, "unit_file_pm.RDS")
-save_output_data(nh3_unit_formatted, output_folder, "unit_file_nh3.RDS")
-save_output_data(voc_unit_formatted, output_folder, "unit_file_voc.RDS")
+save_output_data(pm_unit_data, output_folder, "unit_file_pm.RDS")
+save_output_data(nh3_unit_data, output_folder, "unit_file_nh3.RDS")
+save_output_data(voc_unit_data, output_folder, "unit_file_voc.RDS")
 

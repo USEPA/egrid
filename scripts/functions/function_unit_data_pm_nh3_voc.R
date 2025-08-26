@@ -1,13 +1,10 @@
 ## -------------------------------
 ##
-## Unit data PM NH3 VOC function
+## Unit PM NH3 VOC functions
 ## 
 ## Purpose: 
 ## 
 ## This function creates emission unit data for PM2.5, NH3, and VOC 
-## that is used to compute plant aggregated values. 
-## The output is not the final version used in 
-## the unit files and are formatted in unit_file_create_pm_nh3_voc.R.
 ## 
 ## The method of emission calculations are listed within emission_source.
 ##
@@ -23,7 +20,7 @@
 
 unit_data_pm_nh3_voc <- function(emission_type){
   
-  #' unit_data_pm_nh3_voc
+  #' @name unit_data_pm_nh3_voc
   #' 
   #' Function to create pm2.5, nh3, or voc unit file data using a sequence of methods
   #' 
@@ -106,7 +103,14 @@ unit_data_pm_nh3_voc <- function(emission_type){
   # eGRID production model data - unit file (2023+)
   } else {
     unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
-    }
+  }
+  
+  # Set emission type label for data columns ----
+  if (emission_type == "pm") {
+    emission_label <- "pm25"
+  } else {
+    emission_label <- emission_type
+  }
 
   # Calculate PM data -------------
   ## 1) Direct Match - "NEI/EIA" --------------
@@ -226,12 +230,29 @@ unit_data_pm_nh3_voc <- function(emission_type){
     }
   
   # update unit file with remaining emission rates
-  unit_emissions_final <-
+  unit_emissions_total <-
     unit_emissions_updated %>%
     left_join(emissions_factors, by = join_by(unit_id, plant_id, prime_mover)) %>%
     mutate(emission = if_else(is.na(emission_source), emission_ef, emission),
            emission_source = if_else(is.na(emission_source), emission_source_ef, emission_source)) %>%
     select(-emission_ef, -emission_source_ef)
   
-  return(unit_emissions_final)
+  # Format unit data -----
+  unit_emissions_formatted <-
+    unit_emissions_total %>%
+    # set annual emissions to NA for renewable fuel types
+    mutate(emission_ann = if_else(primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, emission),
+  # set emission source type to NA for renewable fuel types
+  emission_source_unadj = emission_source,
+  emission_source = if_else(emission_ann >= 0, emission_source_unadj, NA_character_),
+  # add data column with adjusted emission rate
+  emission_rate = if_else(heat_input != 0, emission_ann * 2000 / heat_input, NA_real_),
+  year = params$eGRID_year) %>%
+  # select desired variables for final version
+  select(year, plant_state, plant_name, plant_id, unit_id, prime_mover, operating_status, botfirty, primary_fuel_type, operating_hours, heat_input, unadj_emission = emission, emission_ann, emission_rate, heat_input_source, emission_source, emission_source_unadj, year_online) %>%
+  # replace emission with emission label in column names
+  rename_with(~gsub("emission", emission_label, .))
+
+  return(unit_emissions_formatted)
 }
+
