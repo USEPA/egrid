@@ -41,6 +41,9 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
+# Load functions -----
+# function to produce unit emissions data
+source("scripts/functions/function_unit_data_pm_nh3_voc.R")
 
 # Create function to format unit files ---------------
 format_unit <- function(unit_emissions, emission_type) {
@@ -78,7 +81,6 @@ format_unit <- function(unit_emissions, emission_type) {
 #'  4) Use emissions factors from AP-42 - calculate pm2.5 emissions based on emission factors in AP-42 report. If there is a unit match with EIA-923, adjust PM2.5 by control efficiency ("Estimated using an emissions factor")
 
 # run script to produce unit data
-source("scripts/functions/function_unit_data_pm_nh3_voc.R")
 pm_unit_data <- unit_data_pm_nh3_voc("pm")
 nh3_unit_data <- unit_data_pm_nh3_voc("nh3")
 voc_unit_data <- unit_data_pm_nh3_voc("voc")

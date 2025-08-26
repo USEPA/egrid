@@ -42,6 +42,10 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
+# Load functions -----
+source("scripts/functions/function_plant_data_pm_nh3_voc.R")
+source("scripts/functions/function_save_output_data.R")
+
 # Create function to format plant files ---------------
 format_plant <- function(emission_type) {
   
@@ -53,7 +57,6 @@ format_plant <- function(emission_type) {
     }
   
   ## Run plant data creation script ---------
-  source("scripts/functions/function_plant_data_pm_nh3_voc.R")
   plant_data <- plant_data_pm_nh3_voc(emission_type)
   
   ## Set emission type label for data columns ----
@@ -112,7 +115,6 @@ nh3_plant_formatted <- format_plant("nh3")
 voc_plant_formatted <- format_plant("voc")
 
 # Export plant files -----
-source("scripts/functions/function_save_output_data.R")
 output_folder <- "2a_pm_nh3_voc"
 save_output_data(pm_plant_formatted, output_folder, "plant_file_pm.RDS")
 save_output_data(nh3_plant_formatted, output_folder, "plant_file_nh3.RDS")

@@ -37,8 +37,10 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
-# Run aggregation data function to produce and save files --------
+# Load functions -----
 source("scripts/functions/function_region_aggregation_pm_nh3_voc.R")
+
+# Run aggregation data function to produce and save files --------
 region_aggregation_pm_nh3_voc("pm")
 region_aggregation_pm_nh3_voc("nh3")
 region_aggregation_pm_nh3_voc("voc")

@@ -42,6 +42,10 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
+# Load functions -----
+source("scripts/functions/function_format_headers_pm_nh3_voc.R")
+source("scripts/functions/function_create_subregion_figures_pm_nh3_voc.R")
+
 # Create function to update previous data formatting -----
 update_wb_formatting <- function(wb, emission_type) {
   
@@ -235,7 +239,6 @@ for (emission_type in c("pm", "nh3", "voc")) {
       rename(!!!setNames(lapply(colnames, sym), names(colnames)))
     
     ## Gather header names from function -----
-    source("scripts/functions/function_format_headers_pm_nh3_voc.R")
     headers <- format_headers_pm_nh3_voc(emission_level)
     names(headers) <- colnames(emission_data_formatted)
     headers_longform <- matrix(unname(headers), ncol = length(headers))
@@ -340,7 +343,6 @@ for (emission_type in c("pm", "nh3", "voc")) {
   addWorksheet(wb, "Graphs")
   
   # run script to save subregion graphs
-  source(glue::glue("scripts/functions/function_create_subregion_figures_pm_nh3_voc.R"))
   create_subregion_emission_figures(wb, emission_type)
   
   # define graph directory, names, and years
