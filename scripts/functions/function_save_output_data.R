@@ -8,8 +8,7 @@
 ## folder by first checking if directories exist and creating 
 ## them where necessary.
 ##
-## Additional notes
-##
+## Authors:
 ##      Emma Russell, Abt Global
 ##
 ## -------------------------------

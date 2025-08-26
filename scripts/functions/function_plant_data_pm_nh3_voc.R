@@ -15,8 +15,7 @@
 ## EPA's NEI that is not publicly available.
 ##
 ##
-## Additional notes
-##
+## Authors:
 ##      Emma Russell, Abt Global
 ##
 ## -------------------------------

@@ -15,8 +15,7 @@
 ##       of including them in the final formatted .xlsx document
 ##       using the final_formatting_pm_nh3_voc.R script
 ##
-## Additional notes
-##
+## Authors:
 ##      Emma Russell, Abt Global
 ##
 ## -------------------------------

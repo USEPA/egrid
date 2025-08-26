@@ -9,8 +9,7 @@
 ## .xlsx file for PM, NH3, and VOC emissions. 
 ##
 ##
-## Additional notes
-##
+## Authors:
 ##      Emma Russell, Abt Global
 ##
 ## -------------------------------
