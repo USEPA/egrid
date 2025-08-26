@@ -138,7 +138,7 @@ emissions_data_r <-
          month = as.character(month(date)), # extracting month from date
          month = recode(month, !!!month_name_map)) %>% # updating month to name
   select(-date, -facility_name, -nox_controls) %>% # excluding facility_name and nox_controls due to differences in facility names across months
-  mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) %>% # SB 6/4/2024: Temporary fix for issue in API where there are a mix of pipes and commas in some character values
+  mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) %>% # fix for issue in API where there are a mix of pipes and commas in some character values
   group_by(pick(-c(all_of(cols_to_sum)))) %>% 
   summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first
   ungroup() %>% 
