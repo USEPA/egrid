@@ -22,6 +22,9 @@ monthly_qa_region_agg_files/
 data/2c_api/
 data/static_tables/historical_egrid/
 data/1_production_model/static_tables/Thumbs.db
+data/1_production_model/static_tables/formatting/Thumbs.db
+data/2a_pm_nh3_voc/static_tables/formatting/Thumbs.db
+
 Thumbs.db
 styles.css
 data/1_production_model/static_tables/historical_egrid/
