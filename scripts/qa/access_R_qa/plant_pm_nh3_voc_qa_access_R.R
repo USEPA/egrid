@@ -12,8 +12,7 @@
 ## The checks performed will output a CSV file with any differences 
 ## between Access and R plant files. 
 ## 
-## Additional notes
-##      
+## Authors:  
 ##      Teagan Goforth, Abt Global
 ##      Emma Russell, Abt Global
 ##

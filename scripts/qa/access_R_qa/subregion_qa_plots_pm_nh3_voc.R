@@ -13,8 +13,7 @@
 ## Resulting figures are saved in the following folder:
 ## "data/2a_pm_nh3_voc/outputs/qa/{params$eGRID_year}/subregion_combined_plots/"
 ##
-## Additional notes
-##
+## Authors:  
 ##      Emma Russell, Abt Global
 ##
 ## -------------------------------
