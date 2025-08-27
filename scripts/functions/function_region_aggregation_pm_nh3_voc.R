@@ -60,7 +60,7 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
     group_by(egrid_subregion, egrid_subregion_name) %>%
     # sum annual generation and annual emissions data by subregion
     summarise(generation_ann_sum = sum(generation_ann, na.rm = TRUE), 
-              emission_ann_sum = sum(unadj_emission_ann, na.rm = TRUE)) %>%
+              emission_ann_sum = sum(emission_ann_orig, na.rm = TRUE)) %>%
     # round data and compute emissions output rate
     mutate(subregion_generation_ann = round(generation_ann_sum, 0),
            emission_ann = round(emission_ann_sum, 2),

@@ -243,15 +243,12 @@ unit_data_pm_nh3_voc <- function(emission_type){
     # set annual emissions to NA for renewable fuel types
     mutate(emission_ann = if_else(primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, emission),
   # set emission source type to NA for renewable fuel types
-  unadj_emission_source = emission_source,
-  emission_source = if_else(emission_ann >= 0, unadj_emission_source, NA_character_),
+  emission_source = if_else(emission_ann >= 0, emission_source, NA_character_),
   # add data column with adjusted emission rate
   emission_rate = if_else(heat_input != 0, emission_ann * 2000 / heat_input, NA_real_),
   year = params$eGRID_year) %>%
-    # rename emissions data
-    rename(unadj_emission = emission) %>%
   # select desired variables for final version
-  select(year, plant_state, plant_name, plant_id, unit_id, prime_mover, operating_status, botfirty, primary_fuel_type, operating_hours, heat_input, unadj_emission, emission_ann, emission_rate, heat_input_source, emission_source, unadj_emission_source, year_online) %>%
+  select(year, plant_state, plant_name, plant_id, unit_id, prime_mover, operating_status, botfirty, primary_fuel_type, operating_hours, heat_input, emission, emission_ann, emission_rate, heat_input_source, emission_source, year_online) %>%
   # replace emission with emission label in column names
   rename_with(~gsub("emission", emission_label, .))
   

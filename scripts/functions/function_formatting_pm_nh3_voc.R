@@ -4,9 +4,12 @@
 ## 
 ## Purpose: 
 ## 
-## This function creates header description data for the specified
-## emission level (unit, plant, state, subregion) to format the final
-## .xlsx file for PM, NH3, and VOC emissions. 
+## These functions:
+##    1) create header description data for the specified
+##        emission level (unit, plant, state, subregion) to format the final
+##        .xlsx file for PM, NH3, and VOC emissions. 
+##    2) updates formatting of .xlsx file imported to match the current standard
+##        prior to adding the new year's data
 ##
 ##
 ## Authors:
@@ -16,13 +19,13 @@
 
 format_headers_pm_nh3_voc <- function(emission_level) {
   
-  #' format_headers_pm_nh3_voc
+  #' @name format_headers_pm_nh3_voc
   #' 
   #' Function to create header description data for final formatting script of 
   #' pm2.5, nh3, or voc emissions. Headers are the same across emission types
   #' 
   #' @param emission_level Emission level to produce header data - must be the following:
-  #'                       "unit", "plant", "state", "subregion"
+  #'                       "unit", "plant", "state", "subregion" (string)
   #'                       
   #' @return Vector of header descriptors
   #'         
@@ -89,3 +92,63 @@ format_headers_pm_nh3_voc <- function(emission_level) {
   
   return(headers)
 }
+
+update_wb_formatting_pm_nh3_voc <- function(wb, emission_type) {
+  
+  #' @name update_wb_formatting_pm_nh3_voc
+  #' 
+  #' Function to update the formatting of the .xlsx of previous emissions data
+  #' downloaded from EPA to match the current standard. Function is specific to 
+  #' the current formatting discrepancies.
+  #' 
+  #' @param wb Workbook object from .xlsx file to revise 
+  #' @param emission_type Emission type of .xlsx file - either
+  #'                      "pm", "nh3", or "voc" (string)
+  #'                       
+  #' @return Revised workbook object with the appropriate formatting ready to be
+  #'         used for the duration of the final formatting script
+  #'         
+  #' @examples 
+  #' # Update workbook to fix formatting discrepancies and match standard for 
+  #'   PM2.5 .xlsx document downloaded from EPA
+  #' pm_unit_headers <- update_wb_formatting_pm_nh3_voc(wb, "pm")
+  
+  # rename subregion tabs to fix discrepancy
+  if (emission_type == "pm") {
+    # get sheet names
+    sheet_names <- names(wb)
+    
+    # filter to subregion names
+    subregion_sheets <- sheet_names[grepl("Subregion Rates", sheet_names)]
+    
+    # rename worksheets
+    for (sheet in subregion_sheets) {
+      renameWorksheet(wb, sheet, str_replace(sheet, "Subregion Rates", glue::glue("{toupper(emission_type)} Subregion-level Data")))
+    }
+    
+  } else if (emission_type == "nh3") {
+    # rename emissions column abbreviations from PM naming to NH3 naming
+    # get sheet names
+    sheet_names <- names(wb)
+    
+    # filter to subregion names
+    emission_level_sheets <- sheet_names[grepl(str_to_sentence(emission_level), sheet_names)]
+    
+    for (sheet in emission_level_sheets) {
+      # update header descriptions and shortforms
+      writeData(wb, sheet, headers_longform, startCol = 1, startRow = 1, colNames = FALSE)
+      writeData(wb, sheet, headers_shortform, startCol = 1, startRow = 2, colNames = FALSE)
+      
+      # add freeze pane
+      if (emission_level == "unit") {
+        freezePane(wb, sheet, firstActiveCol = 6, firstActiveRow = 3)
+      } else if (emission_level == "plant") {
+        freezePane(wb, sheet, firstActiveCol = 5, firstActiveRow = 3)
+      } else {
+        freezePane(wb, sheet, firstActiveRow = 3)
+      }
+    }
+  }
+  return(wb)
+}
+

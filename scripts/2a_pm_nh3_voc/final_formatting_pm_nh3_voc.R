@@ -43,50 +43,8 @@ if (exists("params")) {
 }
 
 # Load functions -----
-source("scripts/functions/function_format_headers_pm_nh3_voc.R")
+source("scripts/functions/function_formatting_pm_nh3_voc.R")
 source("scripts/functions/function_create_subregion_figures_pm_nh3_voc.R")
-
-# Create function to update previous data formatting -----
-update_wb_formatting <- function(wb, emission_type) {
-  
-  # rename subregion tabs to fix discrepancy
-  if (emission_type == "pm") {
-    # get sheet names
-    sheet_names <- names(wb)
-    
-    # filter to subregion names
-    subregion_sheets <- sheet_names[grepl("Subregion Rates", sheet_names)]
-    
-    # rename worksheets
-    for (sheet in subregion_sheets) {
-      renameWorksheet(wb, sheet, str_replace(sheet, "Subregion Rates", glue::glue("{toupper(emission_type)} Subregion-level Data")))
-    }
-    
-  } else if (emission_type == "nh3") {
-    # rename emissions column abbreviations from PM naming to NH3 naming
-    # get sheet names
-    sheet_names <- names(wb)
-    
-    # filter to subregion names
-    emission_level_sheets <- sheet_names[grepl(str_to_sentence(emission_level), sheet_names)]
-    
-    for (sheet in emission_level_sheets) {
-      # update header descriptions and shortforms
-      writeData(wb, sheet, headers_longform, startCol = 1, startRow = 1, colNames = FALSE)
-      writeData(wb, sheet, headers_shortform, startCol = 1, startRow = 2, colNames = FALSE)
-      
-      # add freeze pane
-      if (emission_level == "unit") {
-        freezePane(wb, sheet, firstActiveCol = 6, firstActiveRow = 3)
-      } else if (emission_level == "plant") {
-        freezePane(wb, sheet, firstActiveCol = 5, firstActiveRow = 3)
-      } else {
-        freezePane(wb, sheet, firstActiveRow = 3)
-      }
-    }
-  }
-  return(wb)
-}
 
 # Define selection of style types -----
 headers_long <- createStyle(
@@ -164,9 +122,20 @@ for (emission_type in c("pm", "nh3", "voc")) {
     if (grepl("_aggregation", file)) {
       assign(str_replace(file, glue::glue("aggregation_{emission_type}.RDS"), "file"), read_rds(paste0(data_dir, file)))
     } else {
-    assign(str_remove(file,glue::glue("_{emission_type}.RDS")), read_rds(paste0(data_dir, file)))
+    assign(str_remove(file, glue::glue("_{emission_type}.RDS")), read_rds(paste0(data_dir, file)))
     }
   }
+  
+  # Select variables to be included in final version -----
+  unit_file <-
+    unit_file %>%
+    # remove unadjusted PM2.5 data (used in plant aggregation)
+    select(-glue::glue("{emission_label}"))
+  
+  plant_file <-
+    plant_file %>%
+    # remove unadjusted annual PM2.5 data (used in regional aggregation)
+    select(-glue::glue("{emission_label}_ann_orig"))
   
   # Add US data to bottom of subregion data -----
   us_formatted <-
@@ -245,7 +214,7 @@ for (emission_type in c("pm", "nh3", "voc")) {
     headers_shortform <- matrix(names(headers), ncol = length(headers))
     
     ## Update formatting errors in previous data ----
-    update_wb_formatting(wb, emission_type)
+    update_wb_formatting_pm_nh3_voc(wb, emission_type)
   
     ## Create new worksheet for emissions level -----
   
@@ -383,7 +352,6 @@ for (emission_type in c("pm", "nh3", "voc")) {
               width = 8.5, height = 6.42, startRow = map_row, startCol = 1)
   
   # Order worksheets and save workbook -----
-  
   
   # order worksheets - move graphs and EIA crosswalk to the end
   wb_order <- worksheetOrder(wb)
