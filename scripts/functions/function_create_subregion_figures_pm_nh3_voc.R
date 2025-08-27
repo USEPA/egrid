@@ -61,22 +61,22 @@ create_subregion_emission_figures <- function(wb,
                                        yaxis_max) {
     
     # Split axis for VOC emissions data
-    if (ydata %in% c("voc_ann", "voc_output_rate")) {
+    if (emission_type == "voc" & ydata %in% c("emission_ann", "emission_output_rate")) {
       
       # define split axis parameters
       scale_params <- list(
         # y-axis lower break
-        break_min = c(voc_ann = 1.3e4, voc_output_rate = 0.2), 
+        break_min = c(emission_ann = 1.3e4, emission_output_rate = 0.2), 
         # y-axis upper break
-        break_max = c(voc_ann = 3.4e4, voc_output_rate = 0.6), 
+        break_max = c(emission_ann = 3.4e4, emission_output_rate = 0.6), 
         # proportion of upper axis to lower axis
-        proportion = c(voc_ann = 0.2, voc_output_rate = 0.3), 
+        proportion = c(emission_ann = 0.2, emission_output_rate = 0.3), 
         # lower bound for title label rectangle
-        annot_min = c(voc_ann = 1e4, voc_output_rate = 0.61),
+        annot_min = c(emission_ann = 1e4, emission_output_rate = 0.61),
         # upper bound for title label rectangle
-        annot_max = c(voc_ann = 1.3e4, voc_output_rate = 0.68),
+        annot_max = c(emission_ann = 1.3e4, emission_output_rate = 0.68),
         # center location for title label text
-        annot_text = c(voc_ann = 1.15e4, voc_output_rate = 0.645)
+        annot_text = c(emission_ann = 1.15e4, emission_output_rate = 0.645)
         )
         
       # Plot VOC emissions data
@@ -234,31 +234,25 @@ create_subregion_emission_figures <- function(wb,
     
     ## Load Subregion Data -----
     # collect subregion data from loaded workbook
-    emission_prev <- readWorkbook(wb, 
+    subregion_file <- readWorkbook(wb, 
                                    sheet = glue::glue("{year} {toupper(emission_type)} Subregion-level Data"),
                                    startRow = 2,
                                    colNames = TRUE) %>%
-      # remove U.S. row if present
-      filter(SUBRGN != "U.S.") %>%
+      janitor::clean_names() %>%
+      # replace emission label with emission for universal computation
+      rename_with(~gsub(emission_label, "emission", .)) %>%
+      # rename data to snake case
+      rename(subregion = subrgn,
+             subregion_name = srname,
+             subregion_generation_ann = srngenan,
+             emission_ann = sremissionan,
+             emission_output_rate = sremissionrta) %>%
       # set column types
-      mutate(across(c(YEAR, SUBRGN, SRNAME), as.character),
-             across(c(SRNGENAN, paste0("SR", toupper(emission_label), "AN"), paste0("SR", toupper(emission_label), "RTA")), as.numeric))
-      
-    # define new data column names
-    base::load("data/1_production_model/static_tables/name_matches.Rdata")
-    colnames_new <- setNames(c(paste0(emission_label, "_ann"),
-                               paste0(emission_label, "_output_rate")),
-                             c(paste0("SR", toupper(emission_label), "AN"), 
-                               paste0("SR", toupper(emission_label), "RTA")))
-    
-    # reassign column names
-    colnames <- c(subregion_nonmetric[names(subregion_nonmetric) %in% colnames(emission_prev)],
-                  colnames_new[names(colnames_new) %in% colnames(emission_prev)])
-    # rename subregion file column names
-    subregion_file <-
-      emission_prev %>%
-      rename(!!!setNames(lapply(names(colnames), sym), colnames))
-    
+      mutate(across(c(year, subregion, subregion_name), as.character),
+             across(c(subregion_generation_ann, emission_ann, emission_output_rate), as.numeric)) %>%
+      # remove U.S. row if present
+      filter(subregion != "U.S.")
+
     ## Plot and Save Subregion Emissions Data -----
     
     ### Annual Generation -----
@@ -275,7 +269,7 @@ create_subregion_emission_figures <- function(wb,
     
     ### Emissions -----
     
-    emissions <- plot_subregion_emissions(ydata = glue::glue("{emission_label}_ann"),
+    emissions <- plot_subregion_emissions(ydata = "emission_ann",
                                           fill_color = "#FF0000",
                                           ylabel = bquote(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Emissions (short tons)"),
                                           annotate_label = bquote(bold(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Emissions")),
@@ -287,7 +281,7 @@ create_subregion_emission_figures <- function(wb,
     
     ### Emission Rates -----
     
-    rate <- plot_subregion_emissions(ydata = glue::glue("{emission_label}_output_rate"),
+    rate <- plot_subregion_emissions(ydata = "emission_output_rate",
                                      fill_color = "#70AD47",
                                      ylabel = bquote(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Emission Rates (lb/MWh)"),
                                      annotate_label = bquote(bold(.(plot_params$label[emission_type])[.(plot_params$subscript[emission_type])] ~ "Emission Rates")),
