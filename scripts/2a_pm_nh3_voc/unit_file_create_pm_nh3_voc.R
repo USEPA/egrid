@@ -46,12 +46,15 @@ source("scripts/functions/function_unit_data_pm_nh3_voc.R")
 source("scripts/functions/function_save_output_data.R")
 
 # Produce PM2.5, NH3, and VOC unit data using function ---------
-
+#' Documentation about emissions estimation methodology is provided by EPA: https://www.epa.gov/system/files/documents/2024-06/egrid2021-draft-pm-memo.pdf
+#' 
 #' Emissions are estimated by the following methods and order:
 #'  1) Direct Match - calculate emissions data using direct unit match from EIA to NEI ("NEI/EIA")
 #'  2) Match by fuel type, unit firing type, and prime mover - calculate emissions using matching of fuel type, prime mover, and firing type ("NEI avg EF - PM, fuel type, firing type")
 #'  3) Match by fuel type and prime mover - calculate emissions using matching of prime mover and fuel type ("NEI avg EF - PM, fuel type")
-#'  4) Use emissions factors from AP-42 - calculate pm2.5 emissions based on emission factors in AP-42 report. If there is a unit match with EIA-923, adjust PM2.5 by control efficiency ("Estimated using an emissions factor")
+#'  4) Use emissions factors from AP-42 - calculate pm2.5 emissions based on emission factors in AP-42 report. If there is a unit match with EIA-923, adjust PM2.5 by control efficiency ("Estimated using an emissions factor") 
+#'  
+#'  *EPA's AP-42: Compilation of Air Emissions Factors from Stationary Sources report provides emissions factors for a variety of air pollution sources (https://www.epa.gov/air-emissions-factors-and-quantification/ap-42-compilation-air-emissions-factors-stationary-sources)
 
 # run script to produce unit data
 pm_unit_data <- unit_data_pm_nh3_voc("pm")

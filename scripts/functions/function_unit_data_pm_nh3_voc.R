@@ -51,7 +51,9 @@ unit_data_pm_nh3_voc <- function(emission_type){
   # NEI emission data
   if(file.exists(glue::glue("data/2a_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_emissions_{emission_type}.csv"))) {
     raw_nei <- read_csv(glue::glue("data/2a_pm_nh3_voc/inputs/nei/{params$eGRID_year}/nei_emissions_{emission_type}.csv"), 
-                        col_types = "cccccccccccccccccdcc") %>%
+                        # set column types to character and double (for total_emissions)
+                        col_types = cols(.default = "c",
+                                         total_emissions = "d")) %>%
       janitor::clean_names()
   } else { 
     stop(glue::glue("nei_emissions_{emission_type}.csv does not exist."))
@@ -60,7 +62,8 @@ unit_data_pm_nh3_voc <- function(emission_type){
   # NEI-EIA crosswalk matching NEI and EIA unit ids
   if(file.exists(glue::glue("data/2a_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv"))) { 
     nei_eia_xwalk <- read_csv(glue::glue("data/2a_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv"), 
-                              col_types = "cccccccccccccccccccc") %>%
+                              # set column data type all to character
+                              col_types = cols(.default = "c")) %>%
       janitor::clean_names()
   } else { 
     stop(glue::glue("data/2a_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eGRID_year}/xwalk_nei_eia.csv does not exist."))
@@ -68,7 +71,9 @@ unit_data_pm_nh3_voc <- function(emission_type){
   
   # Emission factors from EPA AP-42 dataset
   efs <- read_csv(glue::glue("data/2a_pm_nh3_voc/static_tables/emission_factors_{emission_type}.csv"), 
-                  col_types = "cccdccc") %>%
+                  # set ef data type to double and all else as charcter
+                  col_types = cols(.default = "c",
+                                   EF = "d")) %>%
     janitor::clean_names()
   
   # eGRID production model data - unit file (2022)
@@ -179,6 +184,9 @@ unit_data_pm_nh3_voc <- function(emission_type){
   
   
   ## 4) Use emissions factors from AP-42 - "Estimated using an emissions factor" ---------
+  #' AP-42 data provided by EPA and is publicly available at: 
+  #' https://www.epa.gov/air-emissions-factors-and-quantification/ap-42-compilation-air-emissions-factors-stationary-sources
+  #' 
   # calculate emission emissions based on emission factors in AP-42 report
   emissions_factors <-
     unit_emissions %>%
