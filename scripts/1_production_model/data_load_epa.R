@@ -210,14 +210,14 @@ epa_data_combined <-
   
 ## Saving EPA data 
 
-print(glue::glue("Writing file epa_raw.RDS to folder data/raw_data/epa/{params$eGRID_year}."))
+print(glue::glue("Writing file epa_raw.RDS to folder data/1_production_model/raw_data/epa/{params$eGRID_year}."))
 
 readr::write_rds(epa_data_combined, 
                  file = glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))
 
 # check if file is successfully written to folder 
 if(file.exists(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))){
-  print(glue::glue("File epa_raw.RDS successfully written to folder data/raw_data/epa/{params$eGRID_year}"))
+  print(glue::glue("File epa_raw.RDS successfully written to folder data/1_production_model/raw_data/epa/{params$eGRID_year}"))
 } else {
    print("File epa_raw.RDS failed to write to folder.")
 }

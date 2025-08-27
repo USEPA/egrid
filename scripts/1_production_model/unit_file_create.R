@@ -2017,13 +2017,13 @@ if(dir.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))
    dir.create(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))
 }
 
-print(glue::glue("Saving unit file to folder data/outputs/{params$eGRID_year}"))
+print(glue::glue("Saving unit file to folder data/1_production_model/outputs/{params$eGRID_year}"))
 
 write_rds(units_formatted, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
 
 # check if file is successfully written to folder 
 if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))){
-  print(glue::glue("File unit_file.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
+  print(glue::glue("File unit_file.RDS successfully written to folder data/1_production_model/outputs/{params$eGRID_year}"))
 } else {
   print("File unit_file.RDS failed to write to folder.")
 } 

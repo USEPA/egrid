@@ -26,3 +26,6 @@ monthly_qa_plant_subregion_files/
 data/2d_web_updates/
 data/1_production_model/static_tables/historical_egrid/
 data/1_production_model/static_tables/qa/
+data/clean_data/
+data/outputs/
+data/raw_data/

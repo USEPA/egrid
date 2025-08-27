@@ -1530,13 +1530,13 @@ if(dir.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))
 }
 
 # write RDS file 
-print(glue::glue("Saving unit file to folder data/outputs/{params$eGRID_year}"))
+print(glue::glue("Saving plant file to folder data/1_production_model/outputs/{params$eGRID_year}"))
 
 write_rds(plant_formatted, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
 
 # check if file is successfully written to folder 
 if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))){
-  print(glue::glue("File plant_file.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
+  print(glue::glue("File plant_file.RDS successfully written to folder data/1_production_model/outputs/{params$eGRID_year}"))
 } else {
    print("File plant_file.RDS failed to write to folder.")
 } 
