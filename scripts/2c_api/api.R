@@ -83,7 +83,7 @@ function(year) {
 
 #* @get /<year>/subregion
 function(year) {
-  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/subregion_file.RDS") 
+  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/subregion_aggregation.RDS") 
   
   tryCatch({
     subregion_data <- read_rds(rds_file) %>% 
