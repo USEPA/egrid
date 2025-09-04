@@ -79,6 +79,7 @@ metric_conversion <- function(which_file) {
   filename <- filenames_orig[which_file]
   
   # assign ordered name vector for file type
+  # calling name vectors from "name_matching.R"
   if(which_file != "ggl"){ # grid gross loss does not have a monthly version
     assign("ordered_names", get(glue::glue("{which_file}_metric_{params$temporal_res}")))
     column_names <- cbind(read.table(text = names(get(glue::glue("{which_file}_metric_{params$temporal_res}")))), 
@@ -131,6 +132,20 @@ metric_conversion <- function(which_file) {
     filter(!is.na(new_field)) %>% # is a new field
     # remove _metric naming to select original data for conversion
     mutate(var = stringr::str_remove(var, "_metric"))
+  
+  
+  # check if any variables are not being matched 
+  if (any(is.na(vars_convert_new$var)) | any(is.na(vars_to_convert$var)) ) {
+    # drop rows that are missing in the matches
+    vars_convert_new <- vars_convert_new[complete.cases(vars_to_convert_new), ]
+    vars_to_convert <- vars_to_convert[complete.cases(vars_to_convert), ]
+  
+    message("Some variables were not converted. Please check that variable names are matching")
+  } else {
+    
+    message("All variables were converted.")
+  }
+  
   
   # Convert data to new metric units ---------------------------------------------
 

@@ -1,6 +1,7 @@
 
 year <- as.numeric(params$eGRID_year) %% 1000
 
+# Unit File -----
 unt_style_map <-  c(setNames("base", glue::glue("SEQUNT{year}")) ,
                     "YEAR"     = "base",
                     "PSTATABB" = "base",
@@ -70,6 +71,7 @@ unt_text_style_map <-  c(setNames("basic", glue::glue("SEQUNT{year}")) ,
                         "STACKHT"  = "basic")
 
 
+# Gen File -----
 gen_style_map <- c(setNames("base", glue::glue("SEQGEN{year}")),
                    "YEAR"      = "base",
                    "PSTATABB"  = "base", 
@@ -106,6 +108,8 @@ gen_text_style_map <- c(setNames("basic", glue::glue("SEQGEN{year}")),
                         "GENYRONL"  = "basic",
                         "GENYRRET"  = "basic")
 
+
+# Plant File ----
 plnt_style_map <- c(setNames("base", glue::glue("SEQPLT{year}")), 
                   "YEAR"      = "base",
                   "PSTATABB"  = "base",
@@ -408,6 +412,7 @@ plnt_text_style_map <- c(setNames("basic", glue::glue("SEQPLT{year}")),
                         "PLCNPR"    = "percent", 
                         "PLCOPR"    = "percent")
 
+# Region Aggregations ----
 region_style_map <- c("NAMEPCAP" = "base",
                       "HTIAN"    = "color1",	
                       "HTIOZ"    = "color1",	
@@ -741,6 +746,7 @@ region_text_style_map <- c("NAMEPCAP" = "integer2",
                            "NBGTPR"   = "percent",	
                            "NBOFPR"   = "percent",	
                            "NBOPPR"   = "percent")
+# GGL File ----
 
 ggl_style_map <- c("REGION" = "base",
                    "ESTLOSS" = "base",

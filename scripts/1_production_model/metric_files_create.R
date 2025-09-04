@@ -57,4 +57,4 @@ convert_rates <- read_csv(file.path("data/1_production_model/static_tables/conve
 
 for (file in names(filenames_orig)) {
   metric_conversion(file)
-  }
+}

@@ -829,5 +829,5 @@ saveWorkbook(wb, output, overwrite = TRUE)
 print(glue::glue("Saving final formatted file to folder data/1_production_model/outputs/{params$eGRID_year}/monthly/"))
 
 # remove to save space
-# rm(unt_file, gen_file, plnt_file)
+rm(unt_file, gen_file, plnt_file)
 
