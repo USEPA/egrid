@@ -156,7 +156,8 @@ if (bio_units_to_add_flag) {
 ### Note: check for updates or changes each data year ###
 epa_plants_to_delete <- read_csv("data/1_production_model/static_tables/epa_plants_to_delete.csv", 
                                   col_types = "c") %>% 
-                        select("plant_id" = "ORIS Code") 
+                        select("plant_id" = "ORIS Code") %>%
+                        mutate(plant_id = as.character(plant_id))
 
 # Emission factors 
 # physical units emission factors

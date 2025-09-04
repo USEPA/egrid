@@ -64,14 +64,17 @@ year <- as.numeric(params$eGRID_year) %% 1000
 ### Note: check for updates or changes each data year ###
 wb <- createWorkbook()
 
+if (exists("params")){
+  if ("version" %in% names(params)) { # if params(), params$eGRID_year, and params$temporal_res exist, do not re-define
+    print("eGRID year and temporal resolution parameters are already defined.")
+  } else {
+    params$version <- readline(prompt = "Input eGRID version: ")
+    params$version <- as.character(params$version)
+  }
+}
+
 # create contents page
 source("scripts/functions/function_create_contents_egrid_final.R")
-# create_contents_egrid_final(temporal_res = "annual")
-
-if (!exists("params$version")) {
-  params$version <- readline(prompt = "Input eGRID version: ")
-  params$version <- as.character(params$version)
-}
 create_contents_egrid_final(temporal_res = "monthly")
 
 # vector for month names

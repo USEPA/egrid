@@ -37,8 +37,8 @@ check_file_exists <- function(file_path){
   run_options <- c("data_load_eia.R and data_clean_eia.R",
                    "data_load_epa.R and data_clean_epa.R",
                    "generator_file_create.R",
-                   "unit_file_create.R",
                    "plant_file_create.R",
+                   "unit_file_create.R",
                    "grid_gross_loss_create.R",
                    "region_aggregation_create.R")
   

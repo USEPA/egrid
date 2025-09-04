@@ -35,15 +35,15 @@ if (!exists("params")) {
 # Load in data ----------------------------------------
 
 # load files
-unt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file_metric.RDS"))
-gen_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file_metric.RDS"))
-plnt_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_metric.RDS"))
-st_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/state_aggregation_metric.RDS"))
-ba_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/ba_aggregation_metric.RDS"))
-srl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/subregion_aggregation_metric.RDS"))
-nrl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/nerc_aggregation_metric.RDS"))
-us_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/us_aggregation_metric.RDS"))
-ggl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss_metric.RDS"))
+unt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/unit_file_metric.RDS"))
+gen_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}generator_file_metric.RDS"))
+plnt_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/plant_file_metric.RDS"))
+st_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/state_aggregation_metric.RDS"))
+ba_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/ba_aggregation_metric.RDS"))
+srl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/subregion_aggregation_metric.RDS"))
+nrl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/nerc_aggregation_metric.RDS"))
+us_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/us_aggregation_metric.RDS"))
+ggl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}grid_gross_loss_metric.RDS"))
 
 if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   demo_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))

@@ -35,7 +35,7 @@ source("scripts/functions/function_save_output_data.R")
 
 # Define flag whether or not to include biomass_units_to_add table
 # we do this because we need to run a version of the unit and plant file without this table to identify which units need to be added 
-bio_units_to_add_flag <- FALSE
+bio_units_to_add_flag <- TRUE
 
 # check if parameters need to be defined
 if (!exists("params")) {
