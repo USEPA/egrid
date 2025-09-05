@@ -39,19 +39,19 @@ if (!exists("params")) {
 # Load in data ------------------------------
 
 # load files
-st_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/state_aggregation_monthly.RDS"))
-ba_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/ba_aggregation_monthly.RDS"))
-srl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/subregion_aggregation_monthly.RDS"))
-nrl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/nerc_aggregation_monthly.RDS"))
-us_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/us_aggregation_monthly.RDS"))
-ggl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+st_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/state_aggregation_monthly_metric.RDS"))
+ba_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/ba_aggregation_monthly_metric.RDS"))
+srl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/subregion_aggregation_monthly_metric.RDS"))
+nrl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/nerc_aggregation_monthly_metric.RDS"))
+us_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/us_aggregation_monthly_metric.RDS"))
+ggl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss_metric.RDS"))
 
 
-st_file_ann    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/state_aggregation_annual.RDS"))
-ba_file_ann    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/ba_aggregation_annual.RDS"))
-srl_file_ann   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/subregion_aggregation_annual.RDS"))
-nrl_file_ann   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/nerc_aggregation_annual.RDS"))
-us_file_ann    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/us_aggregation_annual.RDS"))
+st_file_ann    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/state_aggregation_annual_metric.RDS"))
+ba_file_ann    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/ba_aggregation_annual_metric.RDS"))
+srl_file_ann   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/subregion_aggregation_annual_metric.RDS"))
+nrl_file_ann   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/nerc_aggregation_annual_metric.RDS"))
+us_file_ann    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/us_aggregation_annual_metric.RDS"))
 
 
 # load in name_matching.R
@@ -94,7 +94,9 @@ s <- create_format_styles()
 style_map <- c(
  "HTIT"   = "color1", 
  "NGEN"   = "color1",
+ "NGEN2"  = "color1", # metric
  "NGENNB" = "color1",
+ "NGENNB2" = "color1", # metric
  "NOX"    = "color1",
  "SO2"    = "color1",
  "CO2"    = "color1",
@@ -103,12 +105,19 @@ style_map <- c(
  "CO2EQA" = "color1",
  "HG"     = "color1",
  "NOXRT"  = "color4",
+ "NOXRT2"  = "color4", # metric
  "SO2RT"  = "color4",
+ "SO2RT2"  = "color4", # metric
  "CO2RT"  = "color4",
+ "CO2RT2"  = "color4", # metric
  "CH4RT"  = "color4",
+ "CH4RT2"  = "color4", # metric
  "N2ORT"  = "color4",
+ "N2ORT2"  = "color4", # metric
  "C2ERT"  = "color4",
+ "C2ERT2"  = "color4", # metric
  "HGRT"   = "color4",
+ "HGRT2"   = "color4", # metric
  "NOXR"   = "color5",
  "SO2R"   = "color5",	
  "CO2R"   = "color5",
@@ -117,12 +126,19 @@ style_map <- c(
  "C2ER"   = "color5",	
  "HGR"    = "color5",	
  "NBNOX"  = "color15",	
+ "NBNOX2"  = "color15", # metric
  "NBSO2"  = "color15",	
+ "NBSO22"  = "color15", # metric
  "NBCO2"  = "color15",
+ "NBCO22"  = "color15", # metric
  "NBCH4"  = "color15",	
+ "NBCH42"  = "color15",	# metric
  "NBN2O"  = "color15",	
+ "NBN2O2"  = "color15",	# metric
  "NBC2E"  = "color15",	
- "NBHG"   = "color15"
+ "NBC2E2"  = "color15", # metric
+ "NBHG"   = "color15",
+ "NBHG2"   = "color15" # metric
 )
 
 # Standard Column Names -----------------------------
@@ -134,37 +150,53 @@ file_names <- c("ST", "BA", "SR", "NR", "US")
 file_names_long <- c("State", "Balancing authority", "eGRID subregion", "NERC region", "U.S.")
 
 standard_labels <- c(
-                     "HTIT"   = "total heat input (MMBtu)",
+                     "HTIT"   = "total heat input (GJ)",
                      "NGEN"   = "net generation (MWh)",
+                     "NGEN2"   = "net generation (GJ)", # metric
                      "NGENNB" = "nonbaseload generation (MWh)",
-                     "NOX"    = "NOx emissions (tons)",	
-                     "SO2"    = "SO2 emissions (tons)",	
-                     "CO2"    = "CO2 emissions (tons)",
-                     "CH4"    = "CH4 emissions (tons)",	
-                     "N2O"    = "N2O emissions (tons)",	
-                     "CO2EQA" = "CO2 equivalent emissions (tons)",	
-                     "HG"     = "Hg emissions (lbs)",
-                     "NOXRT"  = "NOx total output emission rate (lb/MWh)",
-                     "SO2RT"  = "SO2 total output emission rate (lb/MWh)",	
-                     "CO2RT"  = "CO2 total output emission rate (lb/MWh)",	
-                     "CH4RT"  = "CH4 total output emission rate (lb/MWh)",
-                     "N2ORT"  = "N2O total output emission rate (lb/MWh)",
-                     "C2ERT"  = "CO2 equivalent total output emission rate (lb/MWh)",
-                     "HGRT"   = "Hg total output emission rate (lb/MWh)",
-                     "NOXR"   = "NOx input emission rate (lb/MMBtu)",
-                     "SO2R"   = "SO2 input emission rate (lb/MMBtu)",	
-                     "CO2R"   = "CO2 input emission rate (lb/MMBtu)",
-                     "CH4R"   = "CH4 input emission rate (lb/MMBtu)",	
-                     "N2OR"   = "N2O input emission rate (lb/MMBtu)",	
-                     "C2ER"   = "CO2 equivalent input emission rate (lb/MMBtu)",	
-                     "HGR"    = "Hg input emission rate (lb/MMBtu)",	
-                     "NBNOX"  = "NOx non-baseload output emission rate (lb/MWh)",	
-                     "NBSO2"  = "SO2 non-baseload output emission rate (lb/MWh)",	
-                     "NBCO2"  = "CO2 non-baseload output emission rate (lb/MWh)",
-                     "NBCH4"  = "CH4 non-baseload output emission rate (lb/MWh)",	
-                     "NBN2O"  = "N2O non-baseload output emission rate (lb/MWh)",	
-                     "NBC2E"  = "CO2 equivalent non-baseload output emission rate (lb/MWh)",	
-                     "NBHG"   = "Hg non-baseload output emission rate (lb/MWh)")
+                     "NGENNB2" = "nonbaseload generation (GJ)", # metric
+                     "NOX"    = "NOx emissions (metric tons)",	
+                     "SO2"    = "SO2 emissions (metric tons)",	
+                     "CO2"    = "CO2 emissions (metric tons)",
+                     "CH4"    = "CH4 emissions (metric tons)",	
+                     "N2O"    = "N2O emissions (metric tons)",	
+                     "CO2EQ" = "CO2 equivalent emissions (metric tons)",	
+                     "HG"     = "Hg emissions (kg)",
+                     "NOXRT"  = "NOx total output emission rate (kg/MWh)",
+                     "NOXRT2"  = "NOx total output emission rate (kg/GJ)", # metric
+                     "SO2RT"  = "SO2 total output emission rate (kg/MWh)",	
+                     "SO2RT2"  = "SO2 total output emission rate (kg/GJ)",	# metric
+                     "CO2RT"  = "CO2 total output emission rate (kg/MWh)",	
+                     "CO2RT2"  = "CO2 total output emission rate (kg/GJ)",	# metric
+                     "CH4RT"  = "CH4 total output emission rate (kg/MWh)",
+                     "CH4RT2"  = "CH4 total output emission rate (kg/GJ)", # metric
+                     "N2ORT"  = "N2O total output emission rate (kg/MWh)",
+                     "N2ORT2"  = "N2O total output emission rate (kg/GJ)", # metric
+                     "C2ERT"  = "CO2 equivalent total output emission rate (kg/MWh)",
+                     "C2ERT2"  = "CO2 equivalent total output emission rate (kg/GJ)", # metric
+                     "HGRT"   = "Hg total output emission rate (kg/MWh)",
+                     "HGRT2"   = "Hg total output emission rate (kg/GJ)", # metric
+                     "NOXR"   = "NOx input emission rate (kg/GJ)",
+                     "SO2R"   = "SO2 input emission rate (kg/GJ)",	
+                     "CO2R"   = "CO2 input emission rate (kg/GJ)",
+                     "CH4R"   = "CH4 input emission rate (kg/GJ)",	
+                     "N2OR"   = "N2O input emission rate (kg/GJ)",	
+                     "C2ER"   = "CO2 equivalent input emission rate (kg/GJ)",	
+                     "HGR"    = "Hg input emission rate (kg/GJ)",	
+                     "NBNOX"  = "NOx non-baseload output emission rate (kg/MWh)",	
+                     "NBNOX2"  = "NOx non-baseload output emission rate (kg/GJ)", # metric
+                     "NBSO2"  = "SO2 non-baseload output emission rate (kg/MWh)",	
+                     "NBSO22"  = "SO2 non-baseload output emission rate (kg/GJ)",	# metric
+                     "NBCO2"  = "CO2 non-baseload output emission rate (kg/MWh)",
+                     "NBCO22"  = "CO2 non-baseload output emission rate (kg/GJ)", # metric
+                     "NBCH4"  = "CH4 non-baseload output emission rate (kg/MWh)",	
+                     "NBCH42"  = "CH4 non-baseload output emission rate (kg/GJ)",	 # metric
+                     "NBN2O"  = "N2O non-baseload output emission rate (kg/MWh)",	
+                     "NBN2O2"  = "N2O non-baseload output emission rate (kg/GJ)",	 # metric
+                     "NBC2E"  = "CO2 equivalent non-baseload output emission rate (kg/MWh)",
+                     "NBC2E2"  = "CO2 equivalent non-baseload output emission rate (kg/GJ)", # metric
+                     "NBHG"   = "Hg non-baseload output emission rate (kg/MWh)",
+                     "NBHG2"   = "Hg non-baseload output emission rate (kg/GJ)") # metric
 
 
 standard_header <- names(standard_labels)  # column names
@@ -172,6 +204,8 @@ standard_desc   <- unname(standard_labels) # description of column names
 
 header_ann_replace <- c("^HTIT$" = "HTIANT",
                         "^NGEN$" = "NGENAN",
+                        "^NGEN2$" = "NGENAN2",
+                        "^CO2EQ$" = "CO2EQA",
                         "^NOX$"  = "NOXAN",
                         "^SO2$"  = "SO2AN",
                         "^CO2$"  = "CO2AN",
@@ -242,7 +276,7 @@ st_header <- c("YEAR",
                "FIPSST",
                paste0("ST", standard_header))
 # check_var_names(colnames(st_file), state_nonmetric_monthly) # doesnt woprk for monthly ver? creating too many outputs
-st_file <- rename_variables(st_file, state_nonmetric_monthly)
+st_file <- rename_variables(st_file, state_metric_monthly)
 
 st_file_wider_cols <- st_file %>%
                       select(all_of(paste0("ST", standard_header))) %>%
@@ -266,7 +300,7 @@ st_desc <- c("Data Year" = "YEAR",
 st_file_desc <- rename_variables(st_file_formatted, st_desc) %>%
                 colnames()
 
-st_file_ann <- rename_variables(st_file_ann, state_nonmetric_annual)
+st_file_ann <- rename_variables(st_file_ann, state_metric_annual)
 
 st_file_ann_formatted <- st_file_ann %>%
                          select(all_of(paste0("ST", as.matrix(standard_header_ann)))) %>%
@@ -372,7 +406,7 @@ ba_header <- c("YEAR",
                "BACODE",
                paste0("BA", standard_header))
 
-ba_file <- rename_variables(ba_file, ba_nonmetric_monthly)
+ba_file <- rename_variables(ba_file, ba_metric_monthly)
 
 ba_file_wider_cols <- ba_file %>%
   select(all_of(paste0("BA", standard_header))) %>%
@@ -396,7 +430,7 @@ ba_desc <- c("Data Year" = "YEAR",
 
 ba_file_desc <- colnames(rename_variables(ba_file_formatted, ba_desc))
 
-ba_file_ann <- rename_variables(ba_file_ann, ba_nonmetric_annual)
+ba_file_ann <- rename_variables(ba_file_ann, ba_metric_annual)
 
 ba_file_ann_formatted <- ba_file_ann %>%
   select(all_of(paste0("BA", as.matrix(standard_header_ann)))) %>%
@@ -484,7 +518,7 @@ srl_rows <- nrow(srl_file) + 2
 #                 "SRNAME",
 #                 paste0("SR", standard_header))
 
-srl_file <- rename_variables(srl_file, subregion_nonmetric_monthly)
+srl_file <- rename_variables(srl_file, subregion_metric_monthly)
 
 srl_file_wider_cols <- srl_file %>%
                        select(all_of(paste0("SR", standard_header))) %>%
@@ -500,7 +534,7 @@ srl_file_formatted <- srl_file %>%
                        mutate(MONTH = month_abbr_upper[MONTH]) %>%
                        pivot_wider(names_from = MONTH, values_from = all_of(srl_file_wider_cols))
 
-srl_file_ann <- rename_variables(srl_file_ann, subregion_nonmetric_annual)
+srl_file_ann <- rename_variables(srl_file_ann, subregion_metric_annual)
 
 srl_file_ann_formatted <- srl_file_ann %>%
                           select(all_of(paste0("SR", as.matrix(standard_header_ann)))) %>%
@@ -607,7 +641,7 @@ nrl_rows <- nrow(nrl_file) + 2
 #   print("All shorthand columns match name_matching.R nerc_nonmetric_annual.")
 # }
 
-nrl_file <- rename_variables(nrl_file, nerc_nonmetric_monthly)
+nrl_file <- rename_variables(nrl_file, nerc_metric_monthly)
 
 nrl_file_wider_cols <- nrl_file %>%
   select(all_of(paste0("NR", standard_header))) %>%
@@ -636,7 +670,7 @@ nrl_desc <- c("Data Year" = "YEAR",
 
 nrl_file_desc <- colnames(rename_variables(nrl_file_formatted, nrl_desc))
 
-nrl_file_ann <- rename_variables(nrl_file_ann, nerc_nonmetric_annual)
+nrl_file_ann <- rename_variables(nrl_file_ann, nerc_metric_annual)
 
 nrl_file_ann_formatted <- nrl_file_ann %>%
   select(all_of(paste0("NR", as.matrix(standard_header_ann)))) %>%
@@ -714,7 +748,7 @@ us_header <- c("YEAR",
 #   print("All shorthand columns match name_matching.R us_nonmetric_annual.")
 # }
 
-us_file <- rename_variables(us_file, us_nonmetric_monthly)
+us_file <- rename_variables(us_file, us_metric_monthly)
 
 us_file_wider_cols <- us_file %>%
   select(all_of(paste0("US", standard_header))) %>%
@@ -738,7 +772,7 @@ us_desc <- c("Data Year" = "YEAR",
 
 us_file_desc <- colnames(rename_variables(us_file_formatted, us_desc))
 
-us_file_ann <- rename_variables(us_file_ann, us_nonmetric_annual)
+us_file_ann <- rename_variables(us_file_ann, us_metric_annual)
 
 us_file_ann_formatted <- us_file_ann %>%
   select(all_of(paste0("US", as.matrix(standard_header_ann)))) %>%
@@ -823,7 +857,7 @@ add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 290, loc = c(14
 
 
 # Save and export -------------------------------------------
-output <- glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/egrid{params$eGRID_year}_monthly_data.xlsx")
+output <- glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/egrid{params$eGRID_year}_monthly_data_metric.xlsx")
 saveWorkbook(wb, output, overwrite = TRUE)
 
 print(glue::glue("Saving final formatted file to folder data/1_production_model/outputs/{params$eGRID_year}/monthly/"))

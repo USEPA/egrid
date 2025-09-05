@@ -137,7 +137,7 @@ metric_conversion <- function(which_file) {
   # check if any variables are not being matched 
   if (any(is.na(vars_convert_new$var)) | any(is.na(vars_to_convert$var)) ) {
     # drop rows that are missing in the matches
-    vars_convert_new <- vars_convert_new[complete.cases(vars_to_convert_new), ]
+    vars_convert_new <- vars_convert_new[complete.cases(vars_convert_new), ]
     vars_to_convert <- vars_to_convert[complete.cases(vars_to_convert), ]
   
     message("Some variables were not converted. Please check that variable names are matching")

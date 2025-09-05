@@ -4536,7 +4536,7 @@ us_metric_annual <-
     "USNGENOZ"   = "us_generation_oz", 
     "USNGENOZ2"  = "us_generation_oz_metric", 
     "USNGENNB"   = "us_generation_nonbaseload", 
-    "USNGENNB2"  = "us_generation_nonbaseload", 
+    "USNGENNB2"  = "us_generation_nonbaseload_metric", 
     "USNOXAN"    = "us_nox_mass", 
     "USNOXOZ"    = "us_nox_oz_mass", 
     "USSO2AN"    = "us_so2_mass", 

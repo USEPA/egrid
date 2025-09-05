@@ -364,16 +364,16 @@ format_sheet(
 # addStyle(wb, sheet = unt, style = s[['color2_header']], rows = 2, cols = 15:28, gridExpand = TRUE)
 # addStyle(wb, sheet = unt, style = s[['base_header']],  rows = 2, cols = 29:33, gridExpand = TRUE)
 # 
-# # set column widths
-# setColWidths(wb, sheet = unt, cols = 1,     widths = 12.43)
-# setColWidths(wb, sheet = unt, cols = 3,     widths = 12.43)
-# setColWidths(wb, sheet = unt, cols = 4,     widths = 34.71)
-# setColWidths(wb, sheet = unt, cols = 5:9,   widths = 12.43)
-# setColWidths(wb, sheet = unt, cols = 10,    widths = 17)
-# setColWidths(wb, sheet = unt, cols = 11:33, widths = 12.43)
-# 
-# # set row heights
-# setRowHeights(wb, sheet = unt, row = 1, heights = 60.75)
+# set column widths
+setColWidths(wb, sheet = unt, cols = 1,     widths = 12.43)
+setColWidths(wb, sheet = unt, cols = 3,     widths = 12.43)
+setColWidths(wb, sheet = unt, cols = 4,     widths = 34.71)
+setColWidths(wb, sheet = unt, cols = 5:9,   widths = 12.43)
+setColWidths(wb, sheet = unt, cols = 10,    widths = 17)
+setColWidths(wb, sheet = unt, cols = 11:33, widths = 12.43)
+
+# set row heights
+setRowHeights(wb, sheet = unt, row = 1, heights = 60.75)
 # 
 # # add number styles
 # addStyle(wb, sheet = unt, style = s[['integer']],  rows = 3:unt_rows, cols = 15:16, gridExpand = TRUE)
@@ -384,8 +384,8 @@ format_sheet(
 # addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 1:13,  gridExpand = TRUE)
 # addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 22:33, gridExpand = TRUE)
 # 
-# # freeze panes
-# freezePane(wb, sheet = unt, firstActiveCol = 7, firstActiveRow = 3)
+# freeze panes
+freezePane(wb, sheet = unt, firstActiveCol = 7, firstActiveRow = 3)
 
 # GEN Formatting --------------------------------------
 
@@ -1153,8 +1153,8 @@ writeData(wb,
 
 ## add styles to document
 # format_region(us, us_rows)
-format_sheet(df_ann = nrl_file,
-             file_name = "NR",
+format_sheet(df_ann = us_file,
+             file_name = "US",
              temporal_res = params$temporal_res,
              default_style_map = region_style_map,
              text_style_map = region_text_style_map)
