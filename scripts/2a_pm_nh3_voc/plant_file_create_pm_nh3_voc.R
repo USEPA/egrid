@@ -46,6 +46,14 @@ source("scripts/functions/function_plant_data_pm_nh3_voc.R")
 source("scripts/functions/function_save_output_data.R")
 
 # Produce plant data for PM2.5, NH3, and VOC -----
+
+#' Plant-level emissions data is produced from the unit level through the following steps:
+#' 1) Calculate plant-level emissions by totaling unit emissions within each plant.
+#' 2) Adjust plant-level emissions by the plant's electric allocation proportion.
+#' 3) Calculate plant emissions output rate using the adjusted emission value and the plant's annual generation.
+#' 4) Calculate plant emissions input rate using the adjusted emission value and the plant's combustion heat input.
+#' 5) Set annual plant emissions to zero for renewable fuel types.
+
 pm_plant_data <- plant_data_pm_nh3_voc("pm")
 nh3_plant_data <- plant_data_pm_nh3_voc("nh3")
 voc_plant_data <- plant_data_pm_nh3_voc("voc")
