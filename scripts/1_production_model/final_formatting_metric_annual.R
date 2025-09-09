@@ -35,14 +35,14 @@ if (!exists("params")) {
 # Load in data ----------------------------------------
 
 # load files
-unt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/unit_file_annual_metric.RDS"))
-gen_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}generator_file_annual_metric.RDS"))
-plnt_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/plant_file_annual_metric.RDS"))
-st_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/state_aggregation_annual_metric.RDS"))
-ba_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/ba_aggregation_annual_metric.RDS"))
-srl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/subregion_aggregation_annual_metric.RDS"))
-nrl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/nerc_aggregation_annual_metric.RDS"))
-us_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/us_aggregation_annual_metric.RDS"))
+unt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/unit_file_annual_metric.RDS"))
+gen_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/generator_file_annual_metric.RDS"))
+plnt_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/plant_file_annual_metric.RDS"))
+st_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/state_aggregation_annual_metric.RDS"))
+ba_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/ba_aggregation_annual_metric.RDS"))
+srl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/subregion_aggregation_annual_metric.RDS"))
+nrl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/nerc_aggregation_annual_metric.RDS"))
+us_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/us_aggregation_annual_metric.RDS"))
 ggl_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss_metric.RDS"))
 
 if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
@@ -65,8 +65,9 @@ create_contents_egrid_final()
 
 # call helper functions into script
 source("scripts/functions/function_format_styles.R")
-source("scripts/functions/function_format_region_metric.R")
+source("scripts/functions/function_format_region.R")
 source("scripts/functions/function_add_hyperlink.R")
+source("scripts/functions/function_create_style_maps.R")
 
 # create eGRID output style list using function
 s <- create_format_styles()

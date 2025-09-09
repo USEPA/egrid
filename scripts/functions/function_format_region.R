@@ -316,15 +316,15 @@ format_sheet <- function(df_month = "", df_ann, file_name, temporal_res, default
   if (temporal_res == "monthly") {
     
     # replacement vector for annual columns
-    header_ann_replace <- c("^HTIT$" = "HTIANT",
-                            "^NGEN$" = "NGENAN",
-                            "^NOX$"  = "NOXAN",
-                            "^SO2$"  = "SO2AN",
-                            "^CO2$"  = "CO2AN",
-                            "^CH4$"  = "CH4AN",
-                            "^N2O$"  = "N2OAN",
-                            "^HG$"   = "HGAN",
-                            "^NOXCRTA$" = "NOXCRT")
+    # header_ann_replace <- c("^HTIT$" = "HTIANT",
+    #                         "^NGEN$" = "NGENAN",
+    #                         "^NOX$"  = "NOXAN",
+    #                         "^SO2$"  = "SO2AN",
+    #                         "^CO2$"  = "CO2AN",
+    #                         "^CH4$"  = "CH4AN",
+    #                         "^N2O$"  = "N2OAN",
+    #                         "^HG$"   = "HGAN",
+    #                         "^NOXCRTA$" = "NOXCRT")
     
     # uppercase month abbreviations
     month_abbr_upper <- toupper(month.abb)
@@ -349,12 +349,13 @@ format_sheet <- function(df_month = "", df_ann, file_name, temporal_res, default
         old_name <- names(default_style_map)[i]
         
         # name cleaning 
-        new_name1 <- gsub("RT", "RTA", old_name)
-        new_name2 <- ifelse(endsWith(new_name1, "R"), gsub("R", "RA", new_name1), new_name1)
-        new_name3 <- str_replace_all(new_name2, header_ann_replace)
-        new_name_final <- paste0(file_name, new_name3, "_", "ANNUAL")
+        # new_name1 <- gsub("RT", "RTA", old_name)
+        # new_name2 <- ifelse(endsWith(new_name1, "R"), gsub("R", "RA", new_name1), new_name1)
+        # new_name3 <- str_replace_all(new_name2, header_ann_replace)
+        # new_name_final <- paste0(file_name, new_name3, "_", "ANNUAL")
+        new_name <- paste0(file_name, old_name, "_", "ANNUAL")
         
-        style_map_ann <- modify_style_name(style_map_ann, old_name, new_name_final)
+        style_map_ann <- modify_style_name(style_map_ann, old_name, new_name)
       }
       
       format_cols(df_ann, sheet, style_map_ann, text_style_map, start_col = length(df_month))

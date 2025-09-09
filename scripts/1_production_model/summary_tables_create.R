@@ -36,14 +36,14 @@ if (!exists("params")) {
 
 # create a list of files in R directory
 data_dir <- glue::glue("data/1_production_model/outputs/{params$eGRID_year}/")
-filenames <- list(glue::glue("state_aggregation_{params$temporal_res}.RDS"), 
-                  glue::glue("subregion_aggregation_{params$temporal_res}.RDS"), 
+filenames <- list(glue::glue("{params$temporal_res}/state_aggregation_{params$temporal_res}.RDS"), 
+                  glue::glue("{params$temporal_res}/subregion_aggregation_{params$temporal_res}.RDS"), 
                   "grid_gross_loss.RDS", 
-                  glue::glue("us_aggregation_{params$temporal_res}.RDS"))
+                  glue::glue("{params$temporal_res}/us_aggregation_{params$temporal_res}.RDS"))
 
 # import files in list
 for (file in (filenames)){
-  assign(str_remove_all(file, "_annual|_monthly|.RDS"), read_rds(paste0(data_dir, file)))
+  assign(str_remove_all(file, "_annual|_monthly|.RDS|annual/|monthly/"), read_rds(paste0(data_dir, file)))
 }
 
 # Format subregion output emissions rates for TABLE 1   ------------------
@@ -175,5 +175,5 @@ create_summary_tables()
                       
 # Save excel sheet -------------------------------
 
-saveWorkbook(wb, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/summary_tables.xlsx"), 
+saveWorkbook(wb, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/summary_tables_{params$temporal_res}.xlsx"), 
              overwrite = TRUE)

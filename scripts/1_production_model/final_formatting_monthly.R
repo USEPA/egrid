@@ -170,6 +170,7 @@ standard_labels <- c(
 standard_header <- names(standard_labels)  # column names
 standard_desc   <- unname(standard_labels) # description of column names
 
+# text replacement vector
 header_ann_replace <- c("^HTIT$" = "HTIANT",
                         "^NGEN$" = "NGENAN",
                         "^NOX$"  = "NOXAN",
@@ -179,11 +180,44 @@ header_ann_replace <- c("^HTIT$" = "HTIANT",
                         "^N2O$"  = "N2OAN",
                         "^HG$"   = "HGAN")
 
+# convert standard header variables to annual version for ease of indexing
 standard_header_ann <- data.frame(standard_header) %>%
                        mutate(standard_header = gsub("RT", "RTA", standard_header),
                               standard_header = ifelse(endsWith(standard_header, "R"), gsub("R", "RA", standard_header), standard_header),
                               standard_header = str_replace_all(standard_header, header_ann_replace),
                               standard_header = gsub("^NOXCRTA$", "NOXCRT", standard_header)) 
+
+# function to convert back to monthly version
+rename_headers <- function(file, original_header){
+    
+    # reverse text replacement vector
+    header_ann_replace_2 <- c(setNames(glue::glue("{file}HTIT"), glue::glue("^{file}HTIANT$")),
+                              setNames(glue::glue("{file}NGEN"), glue::glue("^{file}NGENAN$")),
+                              setNames(glue::glue("{file}NOX"), glue::glue("^{file}NOXAN$")),
+                              setNames(glue::glue("{file}SO2"), glue::glue("^{file}SO2AN$")),
+                              setNames(glue::glue("{file}CO2"), glue::glue("^{file}CO2AN$")),
+                              setNames(glue::glue("{file}CH4"), glue::glue("^{file}CH4AN$")),
+                              setNames(glue::glue("{file}N2O"), glue::glue("^{file}N2OAN$")),
+                              setNames(glue::glue("{file}HG"), glue::glue("{file}HGAN")))
+    
+    new_header <- original_header
+    
+    # replace RTA with RT
+    new_header <- gsub("RTA", "RT", new_header)
+    
+    # if it ends with RA, replace with R
+    new_header <- ifelse(endsWith(new_header, "RA"),
+                         sub("RA$", "R", new_header),
+                         new_header)
+    
+    # apply pattern replacements
+    new_header <- str_replace_all(new_header, header_ann_replace_2)
+    
+    return(new_header)
+    
+}
+
+
 # initialize lists to store header and description names for each file
 
 all_labels_month_list <- list()
@@ -197,11 +231,12 @@ for (j in 1:length(file_names)){
   
   file_header_annual_list <- list()
   file_desc_annual_list <- list()
+  
 
   
   for (i in 1:length(standard_labels)) {
     file_header_month <- paste0(file_names[j], names(standard_labels)[i], "_", month_abbr_upper)
-    file_header_annual <- paste0(file_names[j], standard_header_ann[i,1], "_ANNUAL")
+    file_header_annual <- paste0(file_names[j], names(standard_labels)[i], "_ANNUAL")
     
     file_desc_month <- paste0(file_names_long[j], " ", unname(standard_labels)[i], " - ", month_abbr_upper)
     file_desc_annual <- paste0(file_names_long[j], " ", unname(standard_labels)[i], " - ANNUAL")
@@ -270,6 +305,7 @@ st_file_ann <- rename_variables(st_file_ann, state_nonmetric_annual)
 
 st_file_ann_formatted <- st_file_ann %>%
                          select(all_of(paste0("ST", as.matrix(standard_header_ann)))) %>%
+                         rename_with(~ rename_headers("ST", .)) %>%
                          rename_with(~ paste0(., "_ANNUAL"))
 
 st_file_ann_desc <- rename_variables(st_file_ann_formatted, all_labels_annual_list[["ST"]]) %>%
@@ -400,6 +436,7 @@ ba_file_ann <- rename_variables(ba_file_ann, ba_nonmetric_annual)
 
 ba_file_ann_formatted <- ba_file_ann %>%
   select(all_of(paste0("BA", as.matrix(standard_header_ann)))) %>%
+  rename_with(~ rename_headers("BA", .)) %>%
   rename_with(~ paste0(., "_ANNUAL"))
 
 ba_file_ann_desc <- rename_variables(ba_file_ann_formatted, all_labels_annual_list[["BA"]]) %>%
@@ -504,6 +541,7 @@ srl_file_ann <- rename_variables(srl_file_ann, subregion_nonmetric_annual)
 
 srl_file_ann_formatted <- srl_file_ann %>%
                           select(all_of(paste0("SR", as.matrix(standard_header_ann)))) %>%
+                          rename_with(~ rename_headers("SR", .)) %>%
                           rename_with(~ paste0(., "_ANNUAL"))
 
 srl_file_ann_desc <- rename_variables(srl_file_ann_formatted, all_labels_annual_list[["SR"]]) %>%
@@ -640,6 +678,7 @@ nrl_file_ann <- rename_variables(nrl_file_ann, nerc_nonmetric_annual)
 
 nrl_file_ann_formatted <- nrl_file_ann %>%
   select(all_of(paste0("NR", as.matrix(standard_header_ann)))) %>%
+  rename_with(~ rename_headers("NR", .)) %>%
   rename_with(~ paste0(., "_ANNUAL"))
 
 nrl_file_ann_desc <- rename_variables(nrl_file_ann_formatted, all_labels_annual_list[["NR"]]) %>%
@@ -742,6 +781,7 @@ us_file_ann <- rename_variables(us_file_ann, us_nonmetric_annual)
 
 us_file_ann_formatted <- us_file_ann %>%
   select(all_of(paste0("US", as.matrix(standard_header_ann)))) %>%
+  rename_with(~ rename_headers("US", .)) %>%
   rename_with(~ paste0(., "_ANNUAL"))
 
 us_file_ann_desc <- rename_variables(us_file_ann_formatted, all_labels_annual_list[["US"]]) %>%
