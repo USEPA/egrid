@@ -109,13 +109,16 @@ The year of eGRID specified as the parameter "eGRID_year" within the YAML of the
 
 There are a set of helper functions used throughout the project. These are defined in the folder `/scripts/functions/`. The `docstring` package is used to provide documentation for functions, similar to typical package documentation. To view the documentation for a given function, run `docstring({function_name})`
 
+Below are the following helper functions specific to the PM~2.5~, NH~3~, and VOC emissions estimates.
+
 ```{r}
 #| label: load-functions
 #| echo: false
 
 # sourcing each file in functions folder
-functions <- list.files("scripts/functions")
-purrr::walk(paste0("scripts/functions/", functions), ~ source(.x))
+functions_all <- list.files(path = "scripts/functions/")
+functions_pm_nh3_voc <- list.files(path = "scripts/functions/", pattern = "*pm_nh3_voc*")
+purrr::walk(paste0("scripts/functions/", functions_all), ~ source(.x))
 ```
 
 ::: panel-tabset
@@ -130,8 +133,8 @@ purrr::walk(paste0("scripts/functions/", functions), ~ source(.x))
 #| echo: false
 
 # listing function names
-kable(stringr::str_remove(stringr::str_remove(functions, ".R"), "function_"),
-      col.names = c("Helper Functions")) %>%
+kable(stringr::str_remove(stringr::str_remove(functions_pm_nh3_voc, ".R"), "function_"),
+      col.names = c("$PM_{2.5}$, $NH_3$, and $VOC$ Helper Functions")) %>%
             kable_styling(full_width = F)
 ```
 :::
