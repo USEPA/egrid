@@ -315,16 +315,6 @@ format_sheet <- function(df_month = "", df_ann, file_name, temporal_res, default
   ### Monthly Formatting ###
   if (temporal_res == "monthly") {
     
-    # replacement vector for annual columns
-    # header_ann_replace <- c("^HTIT$" = "HTIANT",
-    #                         "^NGEN$" = "NGENAN",
-    #                         "^NOX$"  = "NOXAN",
-    #                         "^SO2$"  = "SO2AN",
-    #                         "^CO2$"  = "CO2AN",
-    #                         "^CH4$"  = "CH4AN",
-    #                         "^N2O$"  = "N2OAN",
-    #                         "^HG$"   = "HGAN",
-    #                         "^NOXCRTA$" = "NOXCRT")
     
     # uppercase month abbreviations
     month_abbr_upper <- toupper(month.abb)

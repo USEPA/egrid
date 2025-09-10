@@ -15,16 +15,35 @@
 
 # check if shorthand names match name_matching.R and stop if not.
 # input in header vars, input in variable vars
-check_var_names <- function(header, name_matching_cols) {
+check_var_names <- function(file = "NA", header, header_check, temporal_res) {
   check_cols <- c()
-  for (i in 1:length((header))) {
-    if (header[i] != names(name_matching_cols)[i]) {
-      check_cols <- c(check_cols, header[i]) }}
-  if (!is.null(check_cols)){
-    print(glue::glue("These columns do not match name_matching.R {name_matching_cols}: {glue::glue_collapse(check_cols, sep = ', ')}. Check for errors."))
-  } else {
-    print("All shorthand columns match name_matching.R {name_matching_cols}.")
+  
+  # annual check cols
+  if (temporal_res == "annual"){
+    
+    for (i in 1:length((header))) {
+      if (header[i] != names(header_check)[i]) {
+        check_cols <- c(check_cols, header[i]) }}
+    if (!is.null(check_cols)){
+      print(glue::glue("These columns do not match name_matching.R {header_check}: {glue::glue_collapse(check_cols, sep = ', ')}. Check for errors."))
+    } else {
+      print("All shorthand columns match name_matching.R {header_check}.")
+    }
+    
+  # monthly check cols
+  } else if (temporal_res == "monthly"){
+    
+    for (i in 1:length((header))) {
+      if (header[i] != header_check[i]) {
+        check_cols <- c(check_cols, header[i]) }}
+    
+    if (!is.null(check_cols)){
+      stop(print(glue::glue("These columns do not match {file} monthly columns: {glue::glue_collapse(check_cols, sep = ', ')}. Check for errors.")))
+    } else {
+      print(glue::glue("All shorthand columns match {file} monthly columns."))
+    }
   }
+
 }
 
 
@@ -60,47 +79,4 @@ rename_variables <- function(df, name_map, strict = TRUE, rename = TRUE) {
     return(new_names)
   }
 
-}
-
-# test <- rename_variables(st_file_ann, state_nonmetric_annual)
-
-format_headers <- function(df, style_map) {
-  for (colname in names(df)) {
-    if (colname %in% names(style_map)) {
-      col_index <- which(names(df) == colname)
-      addStyle(
-        wb, 
-        sheet = "Data", 
-        style = style_map[[colname]], 
-        cols = col_index, 
-        rows = 2, 
-        gridExpand = TRUE
-      )
-    }
-  }
-}
-
-
-format_cols <- function(df, style_map) {
-  
-  # format names 
-  for (colname in names(df)) {
-    if (colname %in% names(style_map)) {
-      col_index <- which(names(df) == colname)
-      addStyle(
-        wb, 
-        sheet = "Data", 
-        style = style_map[[colname]], 
-        cols = col_index, 
-        rows = 2, 
-        gridExpand = TRUE
-      )
-    }
-  }
-  
-  # format descriptions
-  
-  # format text 
-  
-  # format widths and heights 
 }
