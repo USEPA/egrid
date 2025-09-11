@@ -30,3 +30,6 @@ data/2d_web_updates/
 data/1_production_model/static_tables/qa/
 styles.css
 Thumbs.db
+data/clean_data/
+data/outputs/
+data/raw_data/
