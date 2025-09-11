@@ -998,7 +998,8 @@ region_text_style_map <- c("NAMEPCAP" = "integer2",
                            "NBOPPR"   = "percent")
 # GGL File ----
 
-ggl_style_map <- c("REGION" = "base",
+ggl_style_map <- c("YEAR"  = "base",
+                   "REGION" = "base",
                    "ESTLOSS" = "base",
                    "ESTLOSS2" = "base", # metric
                    "TOTDISP" = "base", 
@@ -1007,7 +1008,8 @@ ggl_style_map <- c("REGION" = "base",
                    "DIRCTUSE2" = "base", # metric
                    "GGRSLOSS" = "base")
 
-ggl_text_style_map <- c("REGION" = "basic",
+ggl_text_style_map <- c("YEAR" = "basic",
+                        "REGION" = "basic",
                         "ESTLOSS" = "integer",
                         "ESTLOSS2" = "integer", # metric
                         "TOTDISP" = "integer", 

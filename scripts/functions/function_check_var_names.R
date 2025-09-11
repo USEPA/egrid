@@ -25,9 +25,9 @@ check_var_names <- function(file = "NA", header, header_check, temporal_res) {
       if (header[i] != names(header_check)[i]) {
         check_cols <- c(check_cols, header[i]) }}
     if (!is.null(check_cols)){
-      print(glue::glue("These columns do not match name_matching.R {header_check}: {glue::glue_collapse(check_cols, sep = ', ')}. Check for errors."))
+      print(glue::glue("These columns do not match name_matching.R: {glue::glue_collapse(check_cols, sep = ', ')}. Check for errors."))
     } else {
-      print("All shorthand columns match name_matching.R {header_check}.")
+      print(glue::glue("All shorthand columns match name_matching.R."))
     }
     
   # monthly check cols

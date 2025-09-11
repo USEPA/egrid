@@ -405,23 +405,17 @@ unt_labels <-  c(sequnt_label,
                  "UNTYRONL" = "Unit year on-line",
                  "STACKHT"  = "Stack Height (meters)")
 
-# check if shorthand names match name_matching.R and stop if not. 
-unit_check_cols <- c()
-for (i in 2:length(names(unt_labels))) { # skip SEQUNT since this will always be different
-  if (names(unt_labels)[i] != names(unit_metric_annual)[i]) { 
-    unit_check_cols <- c(unit_check_cols, names(unt_labels)[i]) }} 
-
-if (!is.null(unit_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R unit_metric_annual: {glue::glue_collapse(unit_check_cols, sep = ', ')}. Check for errors.")))
-} else {
-  print("All shorthand columns match name_matching.R unit_metric_annual.")
-}
 
 unt_header <- names(unt_labels)  # column names
 unt_desc   <- unname(unt_labels) # description of column names
 
+# check if shorthand names match name_matching.R and stop if not. 
+# skip SEQUNT since this will always be different
+check_var_names("unit", unt_header[-1], unit_metric_annual[-1], "annual")
+
 # add new column names
-colnames(unt_file) <- unt_header
+unit_metric_annual <- modify_style_name(unit_metric_annual, "SEQUNT", names(sequnt_label))
+unt_file <- rename_variables(unt_file, unit_metric_annual)
 
 ## write data
 # write data for first row only
@@ -445,16 +439,6 @@ format_sheet(
       text_style_map = unt_text_style_map)
 
 ## add styles to document
-# add description styles
-# addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 1:14,  gridExpand = TRUE)
-# addStyle(wb, sheet = unt, style = s[['color2_desc']], rows = 1, cols = 15:28, gridExpand = TRUE)
-# addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 29:33, gridExpand = TRUE)
-# 
-# # add header style
-# addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 1:14,  gridExpand = TRUE)
-# addStyle(wb, sheet = unt, style = s[['color2_header']], rows = 2, cols = 15:28, gridExpand = TRUE)
-# addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 29:33, gridExpand = TRUE)
-
 # set column widths
 setColWidths(wb, sheet = unt, cols = 1,     widths = 12.43)
 setColWidths(wb, sheet = unt, cols = 3,     widths = 12.43)
@@ -465,15 +449,6 @@ setColWidths(wb, sheet = unt, cols = 11:33, widths = 12.43)
 
 # set row heights
 setRowHeights(wb, sheet = unt, row = 1, heights = 60.75)
-
-# add number styles
-# addStyle(wb, sheet = unt, style = s[['integer']],  rows = 3:unt_rows, cols = 15:16, gridExpand = TRUE)
-# addStyle(wb, sheet = unt, style = s[['decimal2']], rows = 3:unt_rows, cols = 14,    gridExpand = TRUE)
-# addStyle(wb, sheet = unt, style = s[['decimal2']], rows = 3:unt_rows, cols = 17:21, gridExpand = TRUE)
-# 
-# # add text styles
-# addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 1:13,  gridExpand = TRUE)
-# addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 22:33, gridExpand = TRUE)
 
 # freeze panes
 freezePane(wb, sheet = unt, firstActiveCol = 7, firstActiveRow = 3)
@@ -519,23 +494,16 @@ gen_labels <- c(seqgen_label,
                 "GENYRONL"  = "Generator year on-line",
                 "GENYRRET"  = "Generator planned or actual retirement year")
 
-# check if shorthand names match name_matching.R and stop if not. 
-gen_check_cols <- c()
-for (i in 2:length(names(gen_labels))) { # skip SEQGEN since this will always be different
-  if (names(gen_labels)[i] != names(generator_metric_annual)[i]) { 
-    gen_check_cols <- c(gen_check_cols, names(gen_labels)[i]) }} 
-
-if (!is.null(gen_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R generator_metric_annual: {glue::glue_collapse(gen_check_cols, sep = ', ')}. Check for errors.")))
-} else {
-  print("All shorthand columns match name_matching.R generator_metric_annual.")
-}
-
 gen_header <- names(gen_labels)  # column names
 gen_desc   <- unname(gen_labels) # description of column names
 
+# check if shorthand names match name_matching.R and stop if not. 
+# skip SEQGEN since this will always be different
+check_var_names("generator", colnames(gen_file)[-1], generator_metric_annual[-1], "annual")
+
 # add new column names
-colnames(gen_file) <- gen_header
+generator_metric_annual <- modify_style_name(generator_metric_annual, "SEQGEN", names(seqgen_label))
+gen_file <- rename_variables(gen_file, generator_metric_annual)
 
 ## write data
 # write data for first row only
@@ -551,22 +519,12 @@ writeData(wb,
           gen_file,
           startRow = 2)
 
+## add styles
 format_sheet(df_ann = gen_file,
              file_name = "GEN",
              temporal_res = params$temporal_res,
              default_style_map = gen_style_map,
              text_style_map = gen_text_style_map)
-
-## add styles
-# add description styles
-# addStyle(wb, sheet = gen, style = s[['desc_style']],  rows = 1, cols = 1:12,  gridExpand = TRUE)
-# addStyle(wb, sheet = gen, style = s[['color1_desc']], rows = 1, cols = 13:16, gridExpand = TRUE)
-# addStyle(wb, sheet = gen, style = s[['desc_style']],  rows = 1, cols = 17:19, gridExpand = TRUE)
-# 
-# # add header style
-# addStyle(wb, sheet = gen, style = s[['header_style']],  rows = 2, cols = 1:12,  gridExpand = TRUE)
-# addStyle(wb, sheet = gen, style = s[['color1_header']], rows = 2, cols = 13:16, gridExpand = TRUE)
-# addStyle(wb, sheet = gen, style = s[['header_style']],  rows = 2, cols = 17:19, gridExpand = TRUE)
 
 # set column widths
 setColWidths(wb, sheet = gen, cols = 1,     widths = 12.57)
@@ -582,17 +540,6 @@ setColWidths(wb, sheet = gen, cols = 19,    widths = 15.14)
 
 # set row heights
 setRowHeights(wb, sheet = gen, row = 1, heights = 60.75)
-
-# add number styles
-# addStyle(wb, sheet = gen, style = s[['integer']],  rows = 3:gen_rows, cols = 7,     gridExpand = TRUE)
-# addStyle(wb, sheet = gen, style = s[['decimal2']], rows = 3:gen_rows, cols = 11,    gridExpand = TRUE)
-# addStyle(wb, sheet = gen, style = s[['decimal3']], rows = 3:gen_rows, cols = 12,    gridExpand = TRUE)
-# addStyle(wb, sheet = gen, style = s[['integer2']], rows = 3:gen_rows, cols = 13:16, gridExpand = TRUE)
-# 
-# # add text style
-# addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 1:6,     gridExpand = TRUE)
-# addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 6:10,    gridExpand = TRUE)
-# addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 17:19,   gridExpand = TRUE)
 
 # freeze panes
 freezePane(wb, sheet = gen, firstActiveCol = 7, firstActiveRow = 3)
@@ -821,23 +768,16 @@ plnt_labels <- c(seqplt_label,
                  "PLCNPR"    = "Plant total noncombustion generation percent (resource mix)",
                  "PLCOPR"    = "Plant total noncombustion other unknown/purchased generation percent (resource mix)") 
 
-# check if shorthand names match name_matching.R and stop if not. 
-plnt_check_cols <- c()
-for (i in 2:length(names(plnt_labels))) { # skip SEQPLT since this will always be different
-  if (names(plnt_labels)[i] != names(plant_metric_annual)[i]) { 
-    plnt_check_cols <- c(plnt_check_cols, names(plnt_labels)[i]) }} 
-
-if (!is.null(plnt_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R plant_metric_annual: {glue::glue_collapse(plnt_check_cols, sep = ', ')}. Check for errors.")))
-} else {
-  print("All shorthand columns match name_matching.R plant_metric_annual.")
-}
-
 plnt_header <- names(plnt_labels)  # column names
 plnt_desc   <- unname(plnt_labels) # description of column names
 
-# add new column names                 
-colnames(plnt_file) <- plnt_header
+# check if shorthand names match name_matching.R and stop if not. 
+# skip SEQPLT since this will always be different
+check_var_names("plant", plnt_header[-1], plant_metric_annual[-1], "annual")
+
+# add new column names
+plant_metric_annual <- modify_style_name(plant_metric_annual, "SEQPLT", names(seqplt_label))
+plnt_file <- rename_variables(plnt_file, plant_metric_annual)
 
 ## write data
 # write data for first row only
@@ -853,48 +793,13 @@ writeData(wb,
           plnt_file,
           startRow = 2)
 
+## add styles to document
 format_sheet(df_ann = plnt_file,
              file_name = "PLNT",
              temporal_res = params$temporal_res,
              default_style_map = plnt_style_map,
              text_style_map = plnt_text_style_map)
 
-## add styles to document
-# add description styles
-# addStyle(wb, sheet = plnt, style = s[['desc_style']],     rows = 1, cols = 1:36,    gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color1_desc']],    rows = 1, cols = 37:54,   gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color4_desc']],    rows = 1, cols = 55:70,   gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color5_desc']],    rows = 1, cols = 71:78,   gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color6_desc']],    rows = 1, cols = 79:94,   gridExpand = TRUE) 
-# addStyle(wb, sheet = plnt, style = s[['color2_desc']],    rows = 1, cols = 95:116,  gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color3_desc']],    rows = 1, cols = 117:132, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['desc_style']],     rows = 1, cols = 133,     gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color7_desc']],    rows = 1, cols = 134:155, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color8_desc']],    rows = 1, cols = 156:161, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color9_desc']],    rows = 1, cols = 162:163, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color9v2_desc']],  rows = 1, cols = 164:169, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color10_desc']],   rows = 1, cols = 170:180, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color11_desc']],   rows = 1, cols = 181:183, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color12_desc']],   rows = 1, cols = 184,     gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color12v2_desc']], rows = 1, cols = 185:187, gridExpand = TRUE)
-
-# add header styles
-# addStyle(wb, sheet = plnt, style = s[['header_style']],     rows = 2, cols = 1:36,    gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color1_header']],    rows = 2, cols = 37:54,   gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color4_header']],    rows = 2, cols = 55:70,   gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color5_header']],    rows = 2, cols = 71:78,   gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color6_header']],    rows = 2, cols = 79:94,   gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color2_header']],    rows = 2, cols = 95:116,  gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color3_header']],    rows = 2, cols = 117:132, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['header_style']],     rows = 2, cols = 133,     gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color7_header']],    rows = 2, cols = 134:155, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color8_header']],    rows = 2, cols = 156:161, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color9_header']],    rows = 2, cols = 162:163, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color9v2_header']],  rows = 2, cols = 164:169, gridExpand = TRUE) 
-# addStyle(wb, sheet = plnt, style = s[['color10_header']],   rows = 2, cols = 170:180, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color11_header']],   rows = 2, cols = 181:183, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color12_header']],   rows = 2, cols = 184,     gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['color12v2_header']], rows = 2, cols = 185:187, gridExpand = TRUE)
 
 # set column widths
 setColWidths(wb, sheet = plnt, cols = 1:2,     widths = 12.71)
@@ -940,28 +845,6 @@ setColWidths(wb, sheet = plnt, cols = 116:187, widths = 12.71)
 # set row heights
 setRowHeights(wb, sheet = plnt, row = 1, heights = 67.5)
 
-# add number styles
-# addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 23:24,   gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['decimal4']], rows = 3:plnt_rows, cols = 28,      gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['decimal2']], rows = 3:plnt_rows, cols = 29,      gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['decimal4']], rows = 3:plnt_rows, cols = 30,      gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 33:34,   gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['decimal4']], rows = 3:plnt_rows, cols = 35,      gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['integer2']], rows = 3:plnt_rows, cols = 37:54,   gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['decimal1']], rows = 3:plnt_rows, cols = 55:94,   gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 95:106,  gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 117:132, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['decimal3']], rows = 3:plnt_rows, cols = 133,     gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['integer2']], rows = 3:plnt_rows, cols = 134:169, gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['percent']],  rows = 3:plnt_rows, cols = 170:187, gridExpand = TRUE)
-
-# add text styles
-# addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 1:22,    gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 25:27,   gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 31:32,   gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 36,      gridExpand = TRUE)
-# addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 107:116, gridExpand = TRUE)
-
 # freeze panes
 freezePane(wb, sheet = plnt, firstActiveCol = 6, firstActiveRow = 3)
 
@@ -986,26 +869,16 @@ st_header <- c("YEAR",
                "FIPSST",
                paste0("ST", standard_header))
 
-# check if shorthand names match name_matching.R and stop if not. 
-state_check_cols <- c()
-for (i in 1:length((st_header))) { 
-  if (st_header[i] != names(state_metric_annual)[i]) { 
-    state_check_cols <- c(state_check_cols, st_header[i]) }} 
-
-if (!is.null(state_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R state_nonmetric_annual: {glue::glue_collapse(state_check_cols, sep = ', ')}. Check for errors.")))
-} else {
-  print("All shorthand columns match name_matching.R state_nonmetric_annual.")
-}
-
 # description of column names
 st_desc <- c("Data Year",
              "State abbreviation",
              "FIPS State code",
              paste0("State ", standard_desc))
 
+# check if shorthand names match name_matching.R and stop if not. 
+check_var_names("state", st_header, state_metric_annual, "annual")
 # add new column names
-colnames(st_file) <- st_header
+st_file <- rename_variables(st_file, state_metric_annual)
 
 ## write data
 # write data for first row only
@@ -1052,26 +925,16 @@ ba_header <- c("YEAR",
                "BACODE",
                paste0("BA", standard_header))
 
-# check if shorthand names match name_matching.R and stop if not. 
-ba_check_cols <- c()
-for (i in 1:length((ba_header))) { 
-  if (ba_header[i] != names(ba_metric_annual)[i]) { 
-    ba_check_cols <- c(ba_check_cols, ba_header[i]) }} 
-
-if (!is.null(ba_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R ba_metric_annual: {glue::glue_collapse(ba_check_cols, sep = ', ')}. Check for errors.")))
-} else {
-  print("All shorthand columns match name_matching.R ba_metric_annual.")
-}
-
 # description of column names
 ba_desc <- c("Data Year",
              "Balancing Authority Name",
              "Balancing Authority Code",
              paste0("BA ", standard_desc))
 
+# check if shorthand names match name_matching.R and stop if not. 
+check_var_names("balancing authority", ba_header, ba_metric_annual, "annual")
 # add new column names
-colnames(ba_file) <- ba_header
+ba_file <- rename_variables(ba_file, ba_metric_annual)
 
 ## write data
 # write data for first row only
@@ -1119,26 +982,16 @@ srl_header <- c("YEAR",
                 "SRNAME",
                 paste0("SR", standard_header))
 
-# check if shorthand names match name_matching.R and stop if not. 
-subregion_check_cols <- c()
-for (i in 1:length((srl_header))) { 
-  if (srl_header[i] != names(subregion_metric_annual)[i]) { 
-    subregion_check_cols <- c(subregion_check_cols, srl_header[i]) }} 
-
-if (!is.null(subregion_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R subregion_metric_annual: {glue::glue_collapse(subregion_check_cols, sep = ', ')}. Check for errors.")))
-} else {
-  print("All shorthand columns match name_matching.R subregion_nonmetric_annual.")
-}
-
 # description of column names
 srl_desc <- c("Data Year",
               "eGRID subregion acronym",
               "eGRID subregion name",
               paste0("eGRID subregion ", standard_desc))
 
+# check if shorthand names match name_matching.R and stop if not. 
+check_var_names("subregion", srl_header, subregion_metric_annual, "annual")
 # add new column names
-colnames(srl_file) <- srl_header
+srl_file <- rename_variables(srl_file, subregion_metric_annual)
 
 ## write data
 # write data for first row only
@@ -1186,26 +1039,16 @@ nrl_header <- c("YEAR",
                 "NERCNAME",
                 paste0("NR", standard_header))
 
-# check if shorthand names match name_matching.R and stop if not. 
-nerc_check_cols <- c()
-for (i in 1:length((nrl_header))) { 
-  if (nrl_header[i] != names(nerc_metric_annual)[i]) { 
-    nerc_check_cols <- c(nerc_check_cols, nrl_header[i]) }} 
-
-if (!is.null(nerc_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R nerc_metric_annual: {glue::glue_collapse(nerc_check_cols, sep = ', ')}. Check for errors.")))
-} else {
-  print("All shorthand columns match name_matching.R nerc_metric_annual.")
-}
-
 # description of column names
 nrl_desc <- c("Data Year",
               "NERC region acronym",
               "NERC region name",
               paste0("NERC region ", standard_desc))
 
+# check if shorthand names match name_matching.R and stop if not.
+check_var_names("NERC region", nrl_header, nerc_metric_annual, "annual")
 # add new column names
-colnames(nrl_file) <- nrl_header
+nrl_file <- rename_variables(nrl_file, nerc_metric_annual)
 
 ## write data
 # write data for first row only
@@ -1247,24 +1090,14 @@ us_rows <- nrow(us_file) + 2
 us_header <- c("YEAR",	
                paste0("US", standard_header))
 
-# check if shorthand names match name_matching.R and stop if not. 
-us_check_cols <- c()
-for (i in 1:length((us_header))) { 
-  if (us_header[i] != names(us_metric_annual)[i]) { 
-    us_check_cols <- c(us_check_cols, us_header[i]) }} 
-
-if (!is.null(us_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R us_metric_annual: {glue::glue_collapse(us_check_cols, sep = ', ')}. Check for errors.")))
-} else {
-  print("All shorthand columns match name_matching.R us_metric_annual.")
-}
-
 # description of column names
 us_desc <- c("Data Year",
              paste0("U.S. ", standard_desc))
 
+# check if shorthand names match name_matching.R and stop if not. 
+check_var_names("U.S.", us_header, us_metric_annual, "annual")
 # add new column names
-colnames(us_file) <- us_header
+us_file <- rename_variables(us_file, us_metric_annual)
 
 ## write data
 # write data for first row only
@@ -1310,23 +1143,14 @@ ggl_labels <- c("YEAR"      = "Data Year",
                 "DIRCTUSE2" = "Direct use (GJ)",
                 "GGRSLOSS"  = "Grid gross loss [Estimated losses/(Total disposition without exports - Direct use)]")
 
-# check if shorthand names match name_matching.R and stop if not. 
-ggl_check_cols <- c()
-for (i in 1:length(names(ggl_labels))) { # skip SEQUNT since this will always be different
-  if (names(ggl_labels)[i] != names(ggl_metric)[i]) { 
-    ggl_check_cols <- c(ggl_check_cols, names(ggl_labels)[i]) }} 
-
-if (!is.null(ggl_check_cols)){ 
-  stop(print(glue::glue("These columns do not match name_matching.R ggl_metric: {glue::glue_collapse(ggl_check_cols, sep = ', ')}. Check for errors.")))
-} else {
-  print("All shorthand columns match name_matching.R ggl_metric.")
-}
-
 ggl_header <- names(ggl_labels)  # column names
 ggl_desc   <- unname(ggl_labels) # description of column names
 
+# check if shorthand names match name_matching.R and stop if not. 
+check_var_names("GGL", ggl_header, ggl_metric, "annual")
+
 # add new column names
-colnames(ggl_file) <- ggl_header
+ggl_file <- rename_variables(ggl_file, ggl_metric)
 
 ## write data
 # write data for first row only
@@ -1342,18 +1166,13 @@ writeData(wb,
           ggl_file,
           startRow = 2)
 
+## add styles to document
 format_sheet(df_ann = ggl_file,
              file_name = "GGL",
              temporal_res = params$temporal_res,
              default_style_map = ggl_style_map,
              text_style_map = ggl_text_style_map)
 
-## add styles to document
-# add description styles
-# addStyle(wb, sheet = ggl, style = s[['desc_style']], rows = 1, cols = 1:9, gridExpand = TRUE)
-
-# add header style
-# addStyle(wb, sheet = ggl, style = s[['header_style']], rows = 2, cols = 1:9, gridExpand = TRUE)
 
 # set column widths
 setColWidths(wb, sheet = ggl, cols = 1,   widths = 10)
@@ -1363,10 +1182,6 @@ setColWidths(wb, sheet = ggl, cols = 9,   widths = 23)
 
 # set row heights
 setRowHeights(wb, sheet = ggl, row = 1, heights = 60.75)
-
-# add number styles
-# addStyle(wb, sheet = ggl, style = s[['integer']], rows = 3:7, cols = 3:8, gridExpand = TRUE)
-# addStyle(wb, sheet = ggl, style = s[['percent']], rows = 3:7, cols = 9,   gridExpand = TRUE)
 
 # add number styles (bold)
 addStyle(wb, sheet = ggl, style = s[['integer_bold']], rows = 8, cols = 3:8, gridExpand = TRUE)

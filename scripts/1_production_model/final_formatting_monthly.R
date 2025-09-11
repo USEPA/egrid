@@ -356,6 +356,8 @@ format_sheet(df_month = st_file_formatted,
              temporal_res = params$temporal_res,
              default_style_map = style_map)
 
+freezePane(wb, sheet = st, firstActiveCol = 4, firstActiveRow = 3)
+
 # BA Formatting ----------------------------------
 
 ## create "BA" sheet
@@ -459,7 +461,7 @@ format_sheet(df_month = ba_file_formatted,
 
 
 setColWidths(wb, sheet = ba, cols = 2, widths = 75.55)
-
+freezePane(wb, sheet = ba, firstActiveCol = 4, firstActiveRow = 3)
 
 # SRL Formatting -----------------------------------------
 
@@ -469,7 +471,7 @@ addWorksheet(wb, srl)
 
 # convert variables to numeric value
 srl_file <- srl_file %>%
-  mutate(year = as.numeric(year))
+            mutate(year = as.numeric(year))
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
@@ -555,6 +557,7 @@ format_sheet(df_month = srl_file_formatted,
              default_style_map = style_map)
 
 setColWidths(wb, sheet = srl, cols = 3, widths = 18.45)
+freezePane(wb, sheet = srl, firstActiveCol = 4, firstActiveRow = 3)
 
 # NRL Formatting ----------------------------------------
 
@@ -651,6 +654,7 @@ format_sheet(df_month = nrl_file_formatted,
              default_style_map = style_map)
 
 setColWidths(wb, sheet = nrl, cols = 3, widths = 29.45)
+freezePane(wb, sheet = nrl, firstActiveCol = 4, firstActiveRow = 3)
 
 # US Formatting ---------------------------------------
 
@@ -744,6 +748,8 @@ format_sheet(df_month = us_file_formatted,
              file_name = "US",
              temporal_res = params$temporal_res,
              default_style_map = style_map)
+
+freezePane(wb, sheet = us, firstActiveCol = 2, firstActiveRow = 3)
 
 # Contents Formatting -----------------------------------------
 
