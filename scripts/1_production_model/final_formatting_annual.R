@@ -315,22 +315,8 @@ unt_labels <-  c(sequnt_label,
                  "UNTYRONL" = "Unit year on-line",
                  "STACKHT"  = "Stack height (feet)")
 
-
-# unit_check_cols <- c()
-# for (i in 2:length(names(unt_labels))) { # skip SEQUNT since this will always be different
-#   if (names(unt_labels)[i] != names(unit_nonmetric_annual)[i]) { 
-#     unit_check_cols <- c(unit_check_cols, names(unt_labels)[i]) }} 
-# 
-# if (!is.null(unit_check_cols)){ 
-#   stop(print(glue::glue("These columns do not match name_matching.R unit_nonmetric_annual: {glue::glue_collapse(unit_check_cols, sep = ', ')}. Check for errors.")))
-# } else {
-#   print("All shorthand columns match name_matching.R unit_nonmetric_annual.")
-# }
-
 unt_header <- names(unt_labels)  # column names
 unt_desc   <- unname(unt_labels) # description of column names
-
-
 
 # check if shorthand names match name_matching.R and stop if not. 
 # skip SEQUNT since this will always be different
@@ -416,17 +402,6 @@ gen_labels <- c(seqgen_label,
                 "GENYRRET"  = "Generator planned or actual retirement year")
 
 
-# gen_check_cols <- c()
-# for (i in 2:length(names(gen_labels))) { # skip SEQGEN since this will always be different
-#   if (names(gen_labels)[i] != names(generator_nonmetric_annual)[i]) { 
-#     gen_check_cols <- c(gen_check_cols, names(gen_labels)[i]) }} 
-# 
-# if (!is.null(gen_check_cols)){ 
-#   stop(print(glue::glue("These columns do not match name_matching.R generator_nonmetric_annual: {glue::glue_collapse(gen_check_cols, sep = ', ')}. Check for errors.")))
-# } else {
-#   print("All shorthand columns match name_matching.R generator_nonmetric_annual.")
-# }
-
 gen_header <- names(gen_labels)  # column names
 gen_desc   <- unname(gen_labels) # description of column names
 
@@ -435,10 +410,7 @@ gen_desc   <- unname(gen_labels) # description of column names
 check_var_names("generator", colnames(gen_file)[-1], generator_nonmetric_annual[-1], "annual")
 
 generator_nonmetric_annual <- modify_style_name(generator_nonmetric_annual, "SEQGEN", names(seqgen_label))
-gen_file <- rename_variables(gen_file, generator_nonmetric_annual)
-
-# add new column names
-# colnames(gen_file) <- gen_header
+gen_file <- rename_variables(gen_file, generator_nonmetric_annual) # add new column names
 
 ## write data
 # write data for first row only
@@ -652,18 +624,6 @@ plnt_labels <- c(seqplt_label,
                  "PLCNPR"    = "Plant total noncombustion generation percent (resource mix)", 
                  "PLCOPR"    = "Plant total noncombustion other unknown/purchased generation percent (resource mix)")
 
-
-# plnt_check_cols <- c()
-# for (i in 2:length(names(plnt_labels))) { # skip SEQPLT since this will always be different
-#   if (names(plnt_labels)[i] != names(plant_nonmetric_annual)[i]) { 
-#     plnt_check_cols <- c(plnt_check_cols, names(plnt_labels)[i]) }} 
-# 
-# if (!is.null(plnt_check_cols)){ 
-#   stop(print(glue::glue("These columns do not match name_matching.R plant_nonmetric_annual: {glue::glue_collapse(plant_check_cols, sep = ', ')}. Check for errors.")))
-# } else {
-#   print("All shorthand columns match name_matching.R plant_nonmetric_annual.")
-# }
-
 plnt_header <- names(plnt_labels)  # column names
 plnt_desc   <- unname(plnt_labels) # description of column names
 
@@ -777,17 +737,8 @@ st_header <- c("YEAR",
 
 # check if shorthand names match name_matching.R and stop if not. 
 check_var_names("state", st_header, state_nonmetric_annual, "annual")
-# state_check_cols <- c()
-# for (i in 1:length((st_header))) { 
-#   if (st_header[i] != names(state_nonmetric_annual)[i]) { 
-#     state_check_cols <- c(state_check_cols, st_header[i]) }} 
-# 
-# if (!is.null(state_check_cols)){ 
-#   stop(print(glue::glue("These columns do not match name_matching.R state_nonmetric_annual: {glue::glue_collapse(state_check_cols, sep = ', ')}. Check for errors.")))
-# } else {
-#   print("All shorthand columns match name_matching.R state_nonmetric_annual.")
-# }
 
+# add new column names
 st_file <- rename_variables(st_file, state_nonmetric_annual)
 
 # description of column names
@@ -796,8 +747,6 @@ st_desc <- c("Data Year",
              "FIPS State code",
              paste0("State ", standard_desc))
 
-# add new column names
-# colnames(st_file) <- st_header
 
 ## write data
 # write data for first row only
@@ -846,17 +795,8 @@ ba_header <- c("YEAR",
 
 # check if shorthand names match name_matching.R and stop if not. 
 check_var_names("balancing authority", ba_header, ba_nonmetric_annual, "annual")
-# ba_check_cols <- c()
-# for (i in 1:length((ba_header))) { 
-#   if (ba_header[i] != names(ba_nonmetric_annual)[i]) { 
-#     ba_check_cols <- c(ba_check_cols, ba_header[i]) }} 
-# 
-# if (!is.null(ba_check_cols)){ 
-#   stop(print(glue::glue("These columns do not match name_matching.R ba_nonmetric_annual: {glue::glue_collapse(ba_check_cols, sep = ', ')}. Check for errors.")))
-# } else {
-#   print("All shorthand columns match name_matching.R ba_nonmetric_annual.")
-# }
 
+# add new column names
 ba_file <- rename_variables(ba_file, ba_nonmetric_annual)
 
 # description of column names
@@ -865,8 +805,7 @@ ba_desc <- c("Data Year",
              "Balancing Authority Code",
              paste0("BA ", standard_desc))
 
-# add new column names
-# colnames(ba_file) <- ba_header
+
 
 ## write data
 # write data for first row only
@@ -915,16 +854,6 @@ srl_header <- c("YEAR",
 
 # check if shorthand names match name_matching.R and stop if not. 
 check_var_names("subregion", srl_header, subregion_nonmetric_annual, "annual")
-# subregion_check_cols <- c()
-# for (i in 1:length((srl_header))) { 
-#   if (srl_header[i] != names(subregion_nonmetric_annual)[i]) { 
-#     subregion_check_cols <- c(subregion_check_cols, srl_header[i]) }} 
-# 
-# if (!is.null(subregion_check_cols)){ 
-#   stop(print(glue::glue("These columns do not match name_matching.R subregion_nonmetric_annual: {glue::glue_collapse(subregion_check_cols, sep = ', ')}. Check for errors.")))
-# } else {
-#   print("All shorthand columns match name_matching.R subregion_nonmetric_annual.")
-# }
 
 srl_file <- rename_variables(srl_file, subregion_nonmetric_annual)
 
@@ -952,8 +881,6 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-
-
 format_sheet(df_ann = srl_file,
              file_name = "SR",
              temporal_res = params$temporal_res,

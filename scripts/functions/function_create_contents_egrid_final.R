@@ -337,8 +337,14 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
   ## Add merging, borders, and styling --------
   
   # lines within color coding legend
-  addStyle(wb, current_worksheet, all_borders, cols = start_cols:(sheetWidth + 6), 
-           rows = (start_rows[3] + 2):end_rows[3], gridExpand = TRUE, stack = TRUE)
+  if (temporal_res == "annual") {
+    addStyle(wb, current_worksheet, all_borders, cols = start_cols:(sheetWidth + 6), 
+            rows = (start_rows[3] + 2):end_rows[3], gridExpand = TRUE, stack = TRUE)
+  } else if (temporal_res == "monthly"){
+    addStyle(wb, current_worksheet, all_borders, cols = start_cols:(sheetWidth + 3), 
+             rows = (start_rows[3] + 2):end_rows[3], gridExpand = TRUE, stack = TRUE)
+  }
+
   
   for (row in c(start_rows[1]:end_rows[1],
                 start_rows[2]:end_rows[2],
