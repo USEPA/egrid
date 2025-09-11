@@ -153,13 +153,13 @@ unit_data_pm_nh3_voc <- function(emission_type){
     group_by(prime_mover, botfirty, primary_fuel_type, emission_source) %>% 
     # calculate emissions factor
     summarise(sum_heat_input = if_else(all(is.na(heat_input)), NA_real_, sum(heat_input, na.rm = TRUE)), sum_emission = if_else(all(is.na(emission)), NA_real_, sum(emission, na.rm = TRUE))) %>%
+    ungroup() %>%
     mutate(emission_factors = if_else(sum_heat_input != 0, sum_emission / sum_heat_input, NA_real_)) %>% 
     inner_join(unit_emissions, by = join_by(prime_mover, botfirty, primary_fuel_type)) %>%
     # multiply individual heat inputs by emission factors to estimate emission
     # define method used under source
     mutate(emission = emission_factors * heat_input, 
            emission_source = "NEI avg EF - PM, fuel type, firing type") %>% 
-    ungroup() %>%
     select(plant_id, unit_id, emission, emission_source)
   
   
@@ -174,12 +174,12 @@ unit_data_pm_nh3_voc <- function(emission_type){
     # calculate emissions factor
     summarise(sum_heat_input = if_else(all(is.na(heat_input)), NA_real_, sum(heat_input, na.rm = TRUE)), 
               sum_emission = if_else(all(is.na(emission)), NA_real_, sum(emission, na.rm = TRUE))) %>%
+    ungroup() %>%
     mutate(emission_factors = if_else(sum_heat_input != 0, sum_emission / sum_heat_input, NA_real_)) %>%
     inner_join(unit_emissions, by = join_by(prime_mover, primary_fuel_type)) %>%
     # multiply individual heat inputs by emission factors to estimate emission
     # define method used under source
     mutate(emission = emission_factors * heat_input, emission_source = "NEI avg EF - PM, fuel type") %>%
-    ungroup() %>%
     select(plant_id, unit_id, emission, emission_source)
   
   
@@ -202,11 +202,13 @@ unit_data_pm_nh3_voc <- function(emission_type){
   if(emission_type == "pm") {
     removal_efficiencies <-
       eia_923 %>%
-      # select plants with removal efficiency rates
-      filter(!is.na(max(pm_removal_efficiency_rate_at_annual_operating_factor, na.rm = TRUE))) %>%
+      # group data by plant ID
       group_by(plant_id) %>%
-      # select maximum control efficiency rate
-      summarise(eia_control_efficiency = if_else(all(is.na(pm_removal_efficiency_rate_at_annual_operating_factor)), NA_real_, max(pm_removal_efficiency_rate_at_annual_operating_factor, na.rm = TRUE))) %>%
+      # remove removal efficiency NA values
+      filter(!is.na(pm_removal_efficiency_rate_at_annual_operating_factor)) %>%
+      # compute plant-level maximum control efficiency rate
+      summarise(eia_control_efficiency = max(pm_removal_efficiency_rate_at_annual_operating_factor, na.rm = TRUE)) %>%
+      ungroup() %>%
       # remove any efficiency rates exceeding 100%
       filter(eia_control_efficiency <= 1) %>%
       inner_join(emissions_factors, by = join_by(plant_id == plant_id)) %>%
