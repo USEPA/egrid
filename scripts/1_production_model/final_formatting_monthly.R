@@ -91,6 +91,7 @@ source("scripts/functions/function_add_hyperlink.R")
 # create eGRID output style list using function
 s <- create_format_styles()
 
+# style map for monthly data
 style_map <- c(
  "HTIT"   = "color1", 
  "NGEN"   = "color1",
@@ -219,7 +220,6 @@ rename_headers <- function(file, original_header){
 
 
 # initialize lists to store header and description names for each file
-
 all_labels_month_list <- list()
 all_labels_annual_list <- list()
 
@@ -231,8 +231,6 @@ for (j in 1:length(file_names)){
   
   file_header_annual_list <- list()
   file_desc_annual_list <- list()
-  
-
   
   for (i in 1:length(standard_labels)) {
     file_header_month <- paste0(file_names[j], names(standard_labels)[i], "_", month_abbr_upper)
@@ -276,7 +274,7 @@ st_header <- c("YEAR",
                "PSTATABB",
                "FIPSST",
                paste0("ST", standard_header))
-# check_var_names(colnames(st_file), state_nonmetric_monthly) # doesnt woprk for monthly ver? creating too many outputs
+
 st_file <- rename_variables(st_file, state_nonmetric_monthly)
 
 st_file_wider_cols <- st_file %>%
@@ -312,23 +310,15 @@ st_file_ann_desc <- rename_variables(st_file_ann_formatted, all_labels_annual_li
                     colnames()
                                        
 
-# check if shorthand names match name_matching.R and stop if not. 
-# state_check_cols <- c()
-# for (i in 1:length((st_header))) { 
-#   if (st_header[i] != names(state_nonmetric_annual)[i]) { 
-#     state_check_cols <- c(state_check_cols, st_header[i]) }} 
-# 
-# if (!is.null(state_check_cols)){ 
-#   stop(print(glue::glue("These columns do not match name_matching.R state_nonmetric_annual: {glue::glue_collapse(state_check_cols, sep = ', ')}. Check for errors.")))
-# } else {
-#   print("All shorthand columns match name_matching.R state_nonmetric_annual.")
-# }
+# check if shorthand names match and stop if not. 
+st_header <- c(colnames(st_file_formatted), colnames(st_file_ann_formatted))
+st_header_check <- c("YEAR", 
+                     "PSTATABB", 
+                     "FIPSST", 
+                     unname(all_labels_month_list[["ST"]]), 
+                     unname(all_labels_annual_list[["ST"]]))
 
-# description of column names
-# st_desc <- c("Data Year",
-#              "State abbreviation",
-#              "FIPS State code",
-#              paste0("State ", standard_desc))
+check_var_names("state", st_header, st_header_check, params$temporal_res)
 
 ## write monthly data
 # write monthly descriptions for first row only
@@ -357,26 +347,6 @@ writeData(wb,
           st_file_ann_formatted,
           startRow = 2,
           startCol = length(st_file_formatted)+1)
-# 
-# for (month in month_abbr_upper){
-#   st_style_map <- style_map
-#   
-#   for (i in 1:length(st_style_map)) { # change to style_map in function
-#     old_name <- names(style_map)[i]
-#     new_name <- paste0("ST", old_name, "_", month)
-#     st_style_map <- modify_style_name(st_style_map, old_name, new_name)
-#   }
-#   
-#   format_cols(st_file_formatted, st, st_style_map)
-# }
-# 
-# st_base_style_map <- c("YEAR" = "base",
-#                        "PSTATABB" = "base",
-#                        "FIPSST" = "base")
-# 
-# format_cols(st_file_formatted, st, st_base_style_map)
-
-# num_cols <- length(st_file_formatted) + length(st_file_ann_formatted)
 
 ## add styles to document
 # format_region(st, st_rows)
@@ -385,6 +355,8 @@ format_sheet(df_month = st_file_formatted,
              file_name = "ST",
              temporal_res = params$temporal_res,
              default_style_map = style_map)
+
+freezePane(wb, sheet = st, firstActiveCol = 4, firstActiveRow = 3)
 
 # BA Formatting ----------------------------------
 
@@ -398,8 +370,7 @@ ba_rows <- nrow(ba_file) + 2
 
 # convert variables to numeric value
 ba_file <- ba_file %>%
-  mutate(year = as.numeric(year))
-
+           mutate(year = as.numeric(year))
 
 ## column names and descriptions
 # column names
@@ -411,18 +382,18 @@ ba_header <- c("YEAR",
 ba_file <- rename_variables(ba_file, ba_nonmetric_monthly)
 
 ba_file_wider_cols <- ba_file %>%
-  select(all_of(paste0("BA", standard_header))) %>%
-  colnames()
+                      select(all_of(paste0("BA", standard_header))) %>%
+                      colnames()
 
 # Structure dataframe
 ba_file_formatted <- ba_file %>%
-  select("YEAR",
-         "MONTH",
-         "BANAME",
-         "BACODE",
-         all_of(paste0("BA", standard_header))) %>%
-  mutate(MONTH = month_abbr_upper[MONTH]) %>%
-  pivot_wider(names_from = MONTH, values_from = all_of(ba_file_wider_cols))
+                     select("YEAR",
+                            "MONTH",
+                            "BANAME",
+                            "BACODE",
+                            all_of(paste0("BA", standard_header))) %>%
+                     mutate(MONTH = month_abbr_upper[MONTH]) %>%
+                     pivot_wider(names_from = MONTH, values_from = all_of(ba_file_wider_cols))
 
 
 ba_desc <- c("Data Year" = "YEAR",
@@ -435,30 +406,22 @@ ba_file_desc <- colnames(rename_variables(ba_file_formatted, ba_desc))
 ba_file_ann <- rename_variables(ba_file_ann, ba_nonmetric_annual)
 
 ba_file_ann_formatted <- ba_file_ann %>%
-  select(all_of(paste0("BA", as.matrix(standard_header_ann)))) %>%
-  rename_with(~ rename_headers("BA", .)) %>%
-  rename_with(~ paste0(., "_ANNUAL"))
+                         select(all_of(paste0("BA", as.matrix(standard_header_ann)))) %>%
+                         rename_with(~ rename_headers("BA", .)) %>%
+                         rename_with(~ paste0(., "_ANNUAL"))
 
 ba_file_ann_desc <- rename_variables(ba_file_ann_formatted, all_labels_annual_list[["BA"]]) %>%
-  colnames()
+                    colnames()
 
-# check if shorthand names match name_matching.R and stop if not. 
-# ba_check_cols <- c()
-# for (i in 1:length((ba_header))) { 
-#   if (ba_header[i] != names(ba_nonmetric_annual)[i]) { 
-#     ba_check_cols <- c(ba_check_cols, ba_header[i]) }} 
-# 
-# if (!is.null(ba_check_cols)){ 
-#   stop(print(glue::glue("These columns do not match name_matching.R ba_nonmetric_annual: {glue::glue_collapse(ba_check_cols, sep = ', ')}. Check for errors.")))
-# } else {
-#   print("All shorthand columns match name_matching.R ba_nonmetric_annual.")
-# }
+# check if shorthand names match and stop if not. 
+ba_header <- c(colnames(ba_file_formatted), colnames(ba_file_ann_formatted))
+ba_header_check <- c("YEAR", 
+                     "BANAME", 
+                     "BACODE", 
+                     unname(all_labels_month_list[["BA"]]), 
+                     unname(all_labels_annual_list[["BA"]]))
 
-# description of column names
-# ba_desc <- c("Data Year",
-#              "Balancing Authority Name",
-#              "Balancing Authority Code",
-#              paste0("BA ", standard_desc))
+check_var_names("balancing authority", ba_header, ba_header_check, params$temporal_res)
 
 ## write monthly data
 # write monthly descriptions for first row only
@@ -497,8 +460,8 @@ format_sheet(df_month = ba_file_formatted,
              default_style_map = style_map)
 
 
-# setColWidths(wb, sheet = ba, cols = 2, widths = 75.55)
-
+setColWidths(wb, sheet = ba, cols = 2, widths = 75.55)
+freezePane(wb, sheet = ba, firstActiveCol = 4, firstActiveRow = 3)
 
 # SRL Formatting -----------------------------------------
 
@@ -508,19 +471,13 @@ addWorksheet(wb, srl)
 
 # convert variables to numeric value
 srl_file <- srl_file %>%
-  mutate(year = as.numeric(year))
+            mutate(year = as.numeric(year))
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
 srl_rows <- nrow(srl_file) + 2
 
 ## column names and descriptions
-# column names
-# srl_header <- c("YEAR",	
-#                 "SUBRGN",	
-#                 "SRNAME",
-#                 paste0("SR", standard_header))
-
 srl_file <- rename_variables(srl_file, subregion_nonmetric_monthly)
 
 srl_file_wider_cols <- srl_file %>%
@@ -547,25 +504,6 @@ srl_file_ann_formatted <- srl_file_ann %>%
 srl_file_ann_desc <- rename_variables(srl_file_ann_formatted, all_labels_annual_list[["SR"]]) %>%
                      colnames()
 
-# check if shorthand names match name_matching.R and stop if not. 
-# subregion_check_cols <- c()
-# for (i in 1:length((srl_header))) { 
-#   if (srl_header[i] != names(subregion_nonmetric_annual)[i]) { 
-#     subregion_check_cols <- c(subregion_check_cols, srl_header[i]) }} 
-# 
-# if (!is.null(subregion_check_cols)){ 
-#   stop(print(glue::glue("These columns do not match name_matching.R subregion_nonmetric_annual: {glue::glue_collapse(subregion_check_cols, sep = ', ')}. Check for errors.")))
-# } else {
-#   print("All shorthand columns match name_matching.R subregion_nonmetric_annual.")
-# }
-
-# description of column names
-# srl_desc <- c("Data Year",
-#               "eGRID subregion acronym",
-#               "eGRID subregion name",
-#               paste0("eGRID subregion ", standard_desc))
-
-
 srl_desc <- c("Data Year" = "YEAR",
              "eGRID subregion acronym" = "SUBRGN",
              "eGRID subregion name" = "SRNAME",
@@ -573,8 +511,18 @@ srl_desc <- c("Data Year" = "YEAR",
 
 srl_file_desc <- colnames(rename_variables(srl_file_formatted, srl_desc))
 
+# check if shorthand names match and stop if not. 
+srl_header <- c(colnames(srl_file_formatted), colnames(srl_file_ann_formatted))
+srl_header_check <- c("YEAR", 
+                      "SUBRGN", 
+                      "SRNAME", 
+                      unname(all_labels_month_list[["SR"]]), 
+                      unname(all_labels_annual_list[["SR"]]))
+
+check_var_names("subregion", srl_header, srl_header_check, params$temporal_res)
+
 ## write monthly data
-# write dmonthly ata for first row only
+# write monthly data for first row only
 writeData(wb,
           sheet = srl,
           t(srl_file_desc),
@@ -602,15 +550,14 @@ writeData(wb,
           startCol = length(srl_file_formatted)+1)
 
 ## add styles to document
-# format_region(srl, srl_rows)
-# 
-# setColWidths(wb, sheet = srl, cols = 3, widths = 18.45)
-
 format_sheet(df_month = srl_file_formatted,
              df_ann = srl_file_ann_formatted,
              file_name = "SR",
              temporal_res = params$temporal_res,
              default_style_map = style_map)
+
+setColWidths(wb, sheet = srl, cols = 3, widths = 18.45)
+freezePane(wb, sheet = srl, firstActiveCol = 4, firstActiveRow = 3)
 
 # NRL Formatting ----------------------------------------
 
@@ -620,53 +567,30 @@ addWorksheet(wb, nrl)
 
 # convert variables to numeric value
 nrl_file <- nrl_file %>%
-  mutate(year = as.numeric(year))
+            mutate(year = as.numeric(year))
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
 nrl_rows <- nrow(nrl_file) + 2
 
 ## column names and descriptions
-# column names
-# nrl_header <- c("YEAR",	
-#                 "NERC",	
-#                 "NERCNAME",
-#                 paste0("NR", standard_header))
-
-# check if shorthand names match name_matching.R and stop if not. 
-# nerc_check_cols <- c()
-# for (i in 1:length((nrl_header))) { 
-#   if (nrl_header[i] != names(nerc_nonmetric_annual)[i]) { 
-#     nerc_check_cols <- c(nerc_check_cols, nrl_header[i]) }} 
-# 
-# if (!is.null(nerc_check_cols)){ 
-#   stop(print(glue::glue("These columns do not match name_matching.R nerc_nonmetric_annual: {glue::glue_collapse(nerc_check_cols, sep = ', ')}. Check for errors.")))
-# } else {
-#   print("All shorthand columns match name_matching.R nerc_nonmetric_annual.")
-# }
-
 nrl_file <- rename_variables(nrl_file, nerc_nonmetric_monthly)
 
 nrl_file_wider_cols <- nrl_file %>%
-  select(all_of(paste0("NR", standard_header))) %>%
-  colnames()
+                       select(all_of(paste0("NR", standard_header))) %>%
+                       colnames()
 
 # Structure dataframe
 nrl_file_formatted <- nrl_file %>%
-  select("YEAR",
-         "MONTH",
-         "NERC",
-         "NERCNAME",
-         all_of(paste0("NR", standard_header))) %>%
-  mutate(MONTH = month_abbr_upper[MONTH]) %>%
-  pivot_wider(names_from = MONTH, values_from = all_of(nrl_file_wider_cols))
+                      select("YEAR",
+                             "MONTH",
+                             "NERC",
+                             "NERCNAME",
+                             all_of(paste0("NR", standard_header))) %>%
+                      mutate(MONTH = month_abbr_upper[MONTH]) %>%
+                      pivot_wider(names_from = MONTH, values_from = all_of(nrl_file_wider_cols))
 
 # description of column names
-# nrl_desc <- c("Data Year",
-#               "NERC region acronym",
-#               "NERC region name",
-#               paste0("NERC region ", standard_desc))
-
 nrl_desc <- c("Data Year" = "YEAR",
              "NERC region acronym" = "NERC",
              "NERC region name" = "NERCNAME",
@@ -677,12 +601,22 @@ nrl_file_desc <- colnames(rename_variables(nrl_file_formatted, nrl_desc))
 nrl_file_ann <- rename_variables(nrl_file_ann, nerc_nonmetric_annual)
 
 nrl_file_ann_formatted <- nrl_file_ann %>%
-  select(all_of(paste0("NR", as.matrix(standard_header_ann)))) %>%
-  rename_with(~ rename_headers("NR", .)) %>%
-  rename_with(~ paste0(., "_ANNUAL"))
+                          select(all_of(paste0("NR", as.matrix(standard_header_ann)))) %>%
+                          rename_with(~ rename_headers("NR", .)) %>%
+                          rename_with(~ paste0(., "_ANNUAL"))
 
 nrl_file_ann_desc <- rename_variables(nrl_file_ann_formatted, all_labels_annual_list[["NR"]]) %>%
   colnames()
+
+# check if shorthand names match and stop if not. 
+nrl_header <- c(colnames(nrl_file_formatted), colnames(nrl_file_ann_formatted))
+nrl_header_check <- c("YEAR", 
+                      "NERC", 
+                      "NERCNAME", 
+                      unname(all_labels_month_list[["NR"]]), 
+                      unname(all_labels_annual_list[["NR"]]))
+
+check_var_names("NERC region", nrl_header, nrl_header_check, params$temporal_res)
 
 ## write monthly data
 # write monthly description for first row only
@@ -713,14 +647,14 @@ writeData(wb,
           startCol = length(nrl_file_formatted)+1)
 
 ## add styles to document
-# format_region(nrl, nrl_rows)
-
-# setColWidths(wb, sheet = nrl, cols = 3, widths = 29.45)
 format_sheet(df_month = nrl_file_formatted,
              df_ann = nrl_file_ann_formatted,
              file_name = "NR",
              temporal_res = params$temporal_res,
              default_style_map = style_map)
+
+setColWidths(wb, sheet = nrl, cols = 3, widths = 29.45)
+freezePane(wb, sheet = nrl, firstActiveCol = 4, firstActiveRow = 3)
 
 # US Formatting ---------------------------------------
 
@@ -730,7 +664,7 @@ addWorksheet(wb, us)
 
 # convert variables to numeric value
 us_file <- us_file %>%
-  mutate(year = as.numeric(year))
+           mutate(year = as.numeric(year))
 
 # select number of rows from data frame
 # add two to number of rows (nrows) to account for header + description rows
@@ -741,37 +675,22 @@ us_rows <- nrow(us_file) + 2
 us_header <- c("YEAR",
                paste0("US", standard_header))
 
-# check if shorthand names match name_matching.R and stop if not. 
-# us_check_cols <- c()
-# for (i in 1:length((us_header))) { 
-#   if (us_header[i] != names(us_nonmetric_annual)[i]) { 
-#     us_check_cols <- c(us_check_cols, us_header[i]) }} 
-# 
-# if (!is.null(us_check_cols)){ 
-#   stop(print(glue::glue("These columns do not match name_matching.R us_nonmetric_annual: {glue::glue_collapse(us_check_cols, sep = ', ')}. Check for errors.")))
-# } else {
-#   print("All shorthand columns match name_matching.R us_nonmetric_annual.")
-# }
 
 us_file <- rename_variables(us_file, us_nonmetric_monthly)
 
 us_file_wider_cols <- us_file %>%
-  select(all_of(paste0("US", standard_header))) %>%
-  colnames()
+                      select(all_of(paste0("US", standard_header))) %>%
+                      colnames()
 
 # Structure dataframe
 us_file_formatted <- us_file %>%
-  select("YEAR",
-         "MONTH",
-         all_of(paste0("US", standard_header))) %>%
-  mutate(MONTH = month_abbr_upper[MONTH]) %>%
-  pivot_wider(names_from = MONTH, values_from = all_of(us_file_wider_cols))
+                     select("YEAR",
+                            "MONTH",
+                            all_of(paste0("US", standard_header))) %>%
+                     mutate(MONTH = month_abbr_upper[MONTH]) %>%
+                     pivot_wider(names_from = MONTH, values_from = all_of(us_file_wider_cols))
 
 # description of column names
-# us_desc <- c("Data Year",
-#              paste0("U.S. ", standard_desc))
-
-
 us_desc <- c("Data Year" = "YEAR",
              all_labels_month_list[["US"]])
 
@@ -780,12 +699,20 @@ us_file_desc <- colnames(rename_variables(us_file_formatted, us_desc))
 us_file_ann <- rename_variables(us_file_ann, us_nonmetric_annual)
 
 us_file_ann_formatted <- us_file_ann %>%
-  select(all_of(paste0("US", as.matrix(standard_header_ann)))) %>%
-  rename_with(~ rename_headers("US", .)) %>%
-  rename_with(~ paste0(., "_ANNUAL"))
+                         select(all_of(paste0("US", as.matrix(standard_header_ann)))) %>%
+                         rename_with(~ rename_headers("US", .)) %>%
+                         rename_with(~ paste0(., "_ANNUAL"))
 
 us_file_ann_desc <- rename_variables(us_file_ann_formatted, all_labels_annual_list[["US"]]) %>%
-  colnames()
+                    colnames()
+
+# check if shorthand names match and stop if not. 
+us_header <- c(colnames(us_file_formatted), colnames(us_file_ann_formatted))
+us_header_check <- c("YEAR", 
+                     unname(all_labels_month_list[["US"]]), 
+                     unname(all_labels_annual_list[["US"]]))
+
+check_var_names("U.S.", us_header, us_header_check, params$temporal_res)
 
 ## write monthly data
 # write monthly description for first row only
@@ -816,12 +743,13 @@ writeData(wb,
           startCol = length(us_file_formatted)+1)
 
 ## add styles to document
-# format_region(us, us_rows)
 format_sheet(df_month = us_file_formatted,
              df_ann = us_file_ann_formatted,
              file_name = "US",
              temporal_res = params$temporal_res,
              default_style_map = style_map)
+
+freezePane(wb, sheet = us, firstActiveCol = 2, firstActiveRow = 3)
 
 # Contents Formatting -----------------------------------------
 
