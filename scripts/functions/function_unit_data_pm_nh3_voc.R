@@ -124,9 +124,13 @@ unit_data_pm_nh3_voc <- function(emission_type){
     raw_nei %>%
     # match NEI (EIS codes) to eGRID (plant_id codes) with crosswalk (QAQPS)
     left_join(nei_eia_xwalk, by = join_by(eis_facility_id, eis_unit_id)) %>% 
-    select(oris_facility_code = left_side_of_alternate_id_to_become_oris_facility_code, oris_boiler_id = right_side_of_alternatve_id_to_become_oris_boiler_id, 
-           emission = total_emissions, state = state.y,
-           eis_facility_id, eis_unit_id, agency_unit_id) %>%
+    select(oris_facility_code = left_side_of_alternate_id_to_become_oris_facility_code, 
+           oris_boiler_id = right_side_of_alternatve_id_to_become_oris_boiler_id, 
+           emission = total_emissions, 
+           state = state.y,
+           eis_facility_id, 
+           eis_unit_id, 
+           agency_unit_id) %>%
     group_by(oris_facility_code, oris_boiler_id) %>%
     # calculate the sum of pm emissions for each facility ID and boiler ID combination
     summarise(emission = if_else(all(is.na(emission)), NA_real_, sum(emission, na.rm = TRUE))) %>%
