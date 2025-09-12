@@ -134,7 +134,7 @@ purrr::walk(paste0("scripts/functions/", functions_all), ~ source(.x))
 
 # listing function names
 kable(stringr::str_remove(stringr::str_remove(functions_pm_nh3_voc, ".R"), "function_"),
-      col.names = c("$PM_{2.5}$, $NH_3$, and $VOC$ Helper Functions")) %>%
+      col.names = c("PM2.5, NH3, and VOC Helper Functions")) %>%
             kable_styling(full_width = F)
 ```
 :::
@@ -759,9 +759,9 @@ For each emissions type, the data is formatted and added to the previous year's 
 
 The final output files are:
 
--   `r glue::glue("egrid{params$eGRID_year}_pmemissions.xlsx")`
--   `r glue::glue("egrid{params$eGRID_year}_nh3emissions.xlsx")`
--   `r glue::glue("egrid{params$eGRID_year}_vocemissions.xlsx")`
+-   `r glue::glue("egrid{params$eGRID_year}_pm_emissions.xlsx")`
+-   `r glue::glue("egrid{params$eGRID_year}_nh3_emissions.xlsx")`
+-   `r glue::glue("egrid{params$eGRID_year}_voc_emissions.xlsx")`
 
 ```{r}
 #| label: final-formatting

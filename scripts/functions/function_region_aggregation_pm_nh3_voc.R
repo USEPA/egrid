@@ -89,8 +89,7 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
   subregion_emissions <-
     subregion_emissions_initial %>%
     # replace emission with emission type in column names
-    rename_with(~gsub("emission", emission_label, .)) %>%
-    glimpse()
+    rename_with(~gsub("emission", emission_label, .))
   
   # Sum emission plant data by state ---------
   state_emissions <-

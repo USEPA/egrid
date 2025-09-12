@@ -359,6 +359,6 @@ for (emission_type in c("pm", "nh3", "voc")) {
   worksheetOrder(wb) <-wb_new_order
   
   # save workbook
-  saveWorkbook(wb, glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_type}emissions.xlsx"), 
+  saveWorkbook(wb, glue::glue("data/2a_pm_nh3_voc/outputs/{params$eGRID_year}/eGRID{params$eGRID_year}_{emission_type}_emissions.xlsx"), 
                overwrite = TRUE)
 }
