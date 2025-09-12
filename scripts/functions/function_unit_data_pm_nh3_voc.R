@@ -39,6 +39,9 @@ unit_data_pm_nh3_voc <- function(emission_type){
   require(readr)
   require(readxl)
   
+  # Load functions ------
+  source("scripts/functions/function_download_historical_egrid_pm_nh3_voc.R")
+  
   # Load necessary data --------------------
   
   # EIA-923 - for Schedule C Air Emissions Control information
@@ -78,7 +81,13 @@ unit_data_pm_nh3_voc <- function(emission_type){
   
   # eGRID production model data - unit file (2022)
   if(params$eGRID_year == "2022") {
-    unit_file_raw <- read_excel(glue::glue("data/2a_pm_nh3_voc/static_tables/historic_egrid/egrid{params$eGRID_year}_data.xlsx"),
+    # set url to download eGRID data if not available
+    egrid_url <- "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx"
+    # download eGRID data if doesn't already exist
+    egrid_historic_path <- download_egrid_historic(params$eGRID_year, egrid_url)
+
+    # load eGRID unit data
+    unit_file_raw <- read_excel(egrid_historic_path,
                                 sheet = paste0("UNT", substr(params$eGRID_year, 3, 4)),
                                 skip = 1,
                                 col_names = TRUE) %>%
