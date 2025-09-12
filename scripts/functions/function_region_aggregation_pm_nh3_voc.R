@@ -61,12 +61,12 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
     # sum annual generation and annual emissions data by subregion
     summarise(generation_ann_sum = sum(generation_ann, na.rm = TRUE), 
               emission_ann_sum = sum(emission_ann_orig, na.rm = TRUE)) %>%
+    ungroup() %>%
     # round data and compute emissions output rate
     mutate(subregion_generation_ann = round(generation_ann_sum, 0),
            emission_ann = round(emission_ann_sum, 2),
            emission_output_rate = round(emission_ann_sum * 2000 / generation_ann_sum, 4),
            year = params$eGRID_year) %>%
-    ungroup() %>%
     # rename subregion data columns
     rename(subregion = egrid_subregion, subregion_name = egrid_subregion_name) %>%
     # select desired variables for final version
@@ -100,6 +100,7 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
     summarise(state_generation_ann = sum(generation_ann, na.rm = TRUE), 
               emission_ann = sum(emission_ann, na.rm = TRUE),
               emission_output_rate = emission_ann * 2000 / state_generation_ann) %>%
+    ungroup() %>%
     # replace year data
     mutate(year = params$eGRID_year) %>%
     # rename state variable

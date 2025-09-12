@@ -122,11 +122,11 @@ plant_data_pm_nh3_voc <- function(emission_type){
     group_by(plant_id) %>%
     # concatenate source strings
     summarize(emission_source_combined = str_c(unique(emission_source), collapse = "; "), .groups = "drop") %>%
+    ungroup() %>%
     # replace multiple sources with generalized multiple source assignment
     mutate(emission_source = if_else(grepl(";", emission_source_combined), 
                                                 "EPA/NEI; Estimated using an emission source", 
                                                 emission_source_combined)) %>%
-    ungroup() %>%
     select(plant_id, emission_source)
   
   # update sources in plant file

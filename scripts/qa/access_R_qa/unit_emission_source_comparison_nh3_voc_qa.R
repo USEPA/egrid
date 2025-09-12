@@ -67,6 +67,7 @@ unit_summary <- function(emission_type, year = params$eGRID_year) {
     summarize(count = n(), 
               emission_avg = mean(get(paste0(emission_label, "_ann")), na.rm = TRUE), 
               rate_avg = mean(get(paste0(emission_label, "_rate")), na.rm = TRUE)) %>%
+    ungroup() %>%
     rename("{emission_label}_source" := `get(paste0(emission_label, "_source"))`)
 
   primary_fuel_summary <-  read_rds(glue::glue("data/2a_pm_nh3_voc/outputs/{year}/unit_file_{emission_type}.RDS")) %>%
@@ -75,6 +76,7 @@ unit_summary <- function(emission_type, year = params$eGRID_year) {
     summarize(count = n(), 
               emission_avg = mean(get(paste0(emission_label, "_ann")), na.rm = TRUE), 
               rate_avg = mean(get(paste0(emission_label, "_rate")), na.rm = TRUE)) %>%
+    ungroup() %>%
     rename("{emission_label}_source" := `get(paste0(emission_label, "_source"))`)
   
   total_summary <- 
