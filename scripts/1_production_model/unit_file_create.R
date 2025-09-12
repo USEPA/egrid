@@ -809,7 +809,7 @@ all_units_2 <-
   group_by(month, plant_id) %>% 
   # Plant 52152 has positive heat input in two retired units. This heat input should be allocated to unit 6RB instead
   ### Note: check for updates or changes each data year ###
-  mutate(heat_input = case_when(plant_id == "52152" & unit_id == "6RB" ~ sum(heat_input[plant_id == "52152"], na.rm = TRUE), 
+  mutate(heat_input = case_when(plant_id == "52152" & unit_id == "6RB" ~ sum(heat_input[(plant_id == "52152") & (primary_fuel_type == "BLQ")], na.rm = TRUE), 
                                 plant_id == "52152" & !unit_id == "6RB" & primary_fuel_type == "BLQ" ~ NA_real_, 
                                 TRUE ~ heat_input),
          heat_input_source = case_when(plant_id == "52152" & unit_id == "6RB" ~ "EIA Prime Mover-level Data", # set heat input source for plant 52152 unit 6RB
