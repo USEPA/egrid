@@ -159,7 +159,7 @@ for (emission_type in c("pm", "nh3", "voc")) {
   # set directory to store previous year's file
   wb_dir <- glue::glue("data/2a_pm_nh3_voc/inputs/pm_nh3_voc_historic/{year_prev}/")
   # set name of previous year's file
-  wb_name <- glue::glue("{wb_dir}eGRID{year_prev}_{emission_type}emissions.xlsx")
+  wb_name <- glue::glue("{wb_dir}eGRID{year_prev}_{emission_type}_emissions.xlsx")
   
   # check for presence of directories and create if doesn't exist
   if (!dir.exists(wb_dir)) {
@@ -167,7 +167,7 @@ for (emission_type in c("pm", "nh3", "voc")) {
   }
   
   # download previous year's data and save in desired folder
-  download.file(url = wb_url, destfile = wb_name)
+  download.file(url = wb_url, destfile = wb_name, mode = "wb")
   
   # Load workbook -----
   wb <- loadWorkbook(wb_name)
