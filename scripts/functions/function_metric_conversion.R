@@ -183,6 +183,6 @@ metric_conversion <- function(which_file) {
     write_rds(metric_data, glue::glue("{save_dir}/{params$temporal_res}/{filename}_{params$temporal_res}_metric.RDS"))
   } else {
     print(glue::glue("Saving {filename}_metric.RDS to {save_dir}"))
-    write_rds(metric_data, glue::glue("{save_dir}/{params$temporal_res}/{filename}_metric.RDS"))
+    write_rds(metric_data, glue::glue("{save_dir}/{filename}_metric.RDS"))
   }
 }

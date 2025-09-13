@@ -42,7 +42,7 @@ save_output_data <- function(data, output_folder_path, file_name){
       dir.create(glue::glue("{output_folder_path}/{params$eGRID_year}/annual"))
     }
     
-    print(glue::glue("Saving {file_name} to folder {output_folder_path}/{params$crosswalk_year}/annual"))
+    print(glue::glue("Saving {file_name} to folder {output_folder_path}/{params$eGRID_year}/annual"))
     
     # save file
     write_rds(data, glue::glue("{output_folder_path}/{params$eGRID_year}/annual/{file_name}"))

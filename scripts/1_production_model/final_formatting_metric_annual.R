@@ -24,6 +24,7 @@ library(openxlsx)
 
 # Load necessary functions
 source("scripts/functions/function_check_params.R")
+source("scripts/functions/function_check_var_names.R")
 
 # Create and check parameters 
 if (!exists("params")) {
@@ -1196,18 +1197,18 @@ addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpa
 # only build demographics file if the file exists in outputs
 # this is because pulling data from the EJScreen API to build the demographics file takes several hours
 if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
-  
+
   ## create "DEMO" sheet
   demo <- glue::glue("DEMO{year}")
   addWorksheet(wb, demo)
-  
+
   # convert year to numeric value
-  demo_file <- 
+  demo_file <-
     demo_file %>%
     mutate(year = as.numeric(year))
-  
+
   demo_rows <- nrow(demo_file) + 2
-  
+
   ## column names and descriptions
   demo_labels <- c("SEQPLT"              = "Plant file sequence number",
                    "YEAR"                = "Data Year",
@@ -1216,11 +1217,11 @@ if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/d
                    "ORISPL"              = "DOE/EIA ORIS plant or facility code",
                    "LAT"                 = "Plant latitude",
                    "LON"                 = "Plant longitude",
-                   "PLPRMFL"             = "Plant primary fuel", 
+                   "PLPRMFL"             = "Plant primary fuel",
                    "PLFUELCT"            = "Plant primary fuel category",
                    "NAMEPCAP"            = "Plant nameplate capacity (MW)",
                    "COALFLAG"            = "Flag indicating if the plant burned or generated any amount of coal",
-                   "TOTALPOP"            = "Total Population", 
+                   "TOTALPOP"            = "Total Population",
                    "RAW_D_PEOPCOLOR"     = "People of Color (%)",
                    "RAW_D_INCOME"        = "Low Income (%)",
                    "RAW_D_LESSHS"        = "Less Than High School Education (%)",
@@ -1238,20 +1239,20 @@ if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/d
                    "S_D_LESSHS"          = "State Average of Less Than High School Education (%)",
                    "S_D_LING"            = "State Average of Limited English Speaking (%)",
                    "S_D_UNDER5"          = "State Average of Under Age 5 (%)",
-                   "S_D_OVER64"          = "State Average of Over Age 64 (%)", 
+                   "S_D_OVER64"          = "State Average of Over Age 64 (%)",
                    "S_D_UNEMPLOYED"      = "State Average of Unemployment Rate (%)",
                    "S_D_LIFEEXP"         = "State Average of Limited Life Expectancy (%)",
                    "S_D_DEMOGIDX2ST"     = "State Average of Demographic Index",
                    "S_D_DEMOGIDX5ST"     = "State Average of Supplemental Demographic Index",
-                   "S_D_PEOPCOLOR_PER"   = "State Percentile of People of Color", 
+                   "S_D_PEOPCOLOR_PER"   = "State Percentile of People of Color",
                    "S_D_INCOME_PER"      = "State Percentile of Low Income",
                    "S_D_LESSHS_PER"      = "State Percentile of Less Than High School Education",
                    "S_D_LING_PER"        = "State Percentile of Limited English Speaking",
                    "S_D_UNDER5_PER"      = "State Percentile of Under Age 5",
                    "S_D_OVER64_PER"      = "State Percentile of Over Age 64",
                    "S_D_UNEMPLOYED_PER"  = "State Percentile of Unemployment Rate",
-                   "S_D_LIFEEXP_PER"     = "State Percentile of Limited Life Expectancy",        
-                   "S_D_DEMOGIDX2ST_PER" = "State Percentile of Demographic Index",                                                 
+                   "S_D_LIFEEXP_PER"     = "State Percentile of Limited Life Expectancy",
+                   "S_D_DEMOGIDX2ST_PER" = "State Percentile of Demographic Index",
                    "S_D_DEMOGIDX5ST_PER" = "State Percentile of Supplemental Demographic Index",
                    "N_D_PEOPCOLOR"       = "National Average of People of Color (%)",
                    "N_D_INCOME"          = "National Average of Low Income (%)",
@@ -1274,34 +1275,34 @@ if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/d
                    "N_D_DEMOGIDX2_PER"   = "National Percentile of Demographic Index",
                    "N_D_DEMOGIDX5_PER"   = "National Percentile of Supplemental Demographic Index",
                    "DISTANCE"            = "Distance (miles)")
-  
+
   demo_header <- names(demo_labels)  # column names
   demo_desc   <- unname(demo_labels) # description of column names
-  
+
   # add new column names
   colnames(demo_file) <- demo_header
-  
+
   ## write data
   # write data for first row only
-  writeData(wb, 
-            sheet = demo, 
-            t(demo_desc), 
-            startRow = 1, 
+  writeData(wb,
+            sheet = demo,
+            t(demo_desc),
+            startRow = 1,
             colNames = FALSE)
-  
+
   # write data to sheet
-  writeData(wb, 
-            sheet = demo, 
+  writeData(wb,
+            sheet = demo,
             demo_file,
             startRow = 2)
-  
+
   ## add styles to document
   # add description styles
-  addStyle(wb, sheet = demo, style = s[['desc_style']], rows = 1, cols = 1:65, gridExpand = TRUE)
-  
+  addStyle(wb, sheet = demo, style = s[['base_desc']], rows = 1, cols = 1:65, gridExpand = TRUE)
+
   # add header style
-  addStyle(wb, sheet = demo, style = s[['header_style']], rows = 2, cols = 1:65, gridExpand = TRUE)
-  
+  addStyle(wb, sheet = demo, style = s[['base_header']], rows = 2, cols = 1:65, gridExpand = TRUE)
+
   # set column widths
   setColWidths(wb, sheet = demo, cols = 1:2,     widths = 12.71)
   setColWidths(wb, sheet = demo, cols = 3,       widths = 12.43)
@@ -1327,10 +1328,10 @@ if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/d
   setColWidths(wb, sheet = demo, cols = 62,      widths = 15)
   setColWidths(wb, sheet = demo, cols = 63:64,   widths = 18.29)
   setColWidths(wb, sheet = demo, cols = 65,      widths = 15)
-  
+
   # set row heights
   setRowHeights(wb, sheet = demo, row = 1, heights = 67.5)
-  
+
   # add number styles
   addStyle(wb, sheet = demo, style = s[['integer']],   rows = 3:demo_rows, cols = 12:20,  gridExpand = TRUE)
   addStyle(wb, sheet = demo, style = s[['decimal5']],  rows = 3:demo_rows, cols = 21:24,  gridExpand = TRUE)
@@ -1339,10 +1340,10 @@ if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/d
   addStyle(wb, sheet = demo, style = s[['integer']],   rows = 3:demo_rows, cols = 35:52,  gridExpand = TRUE)
   addStyle(wb, sheet = demo, style = s[['decimal5']],  rows = 3:demo_rows, cols = 53:54,  gridExpand = TRUE)
   addStyle(wb, sheet = demo, style = s[['integer']],   rows = 3:demo_rows, cols = 55:65,  gridExpand = TRUE)
-  
+
   # add text styles
   addStyle(wb, sheet = demo, style = s[['basic']], rows = 3:demo_rows, cols = 1:11, gridExpand = TRUE)
-  
+
   # freeze panes
   freezePane(wb, sheet = demo, firstActiveCol = 6, firstActiveRow = 3)
 }
@@ -1361,9 +1362,9 @@ add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 1
 add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 1, loc = c(3, 16), text_to_show = glue::glue("US{year}"))
 add_hyperlink(glue::glue("GGL{year}"),  row_link = 1, col_link = 1, loc = c(3, 17), text_to_show = glue::glue("GGL{year}"))
 
-if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
-  add_hyperlink(glue::glue("DEMO{year}"),  row_link = 1, col_link = 1, loc = c(3, 18), text_to_show = glue::glue("DEMO{year}"))
-}
+# if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
+#   add_hyperlink(glue::glue("DEMO{year}"),  row_link = 1, col_link = 1, loc = c(3, 18), text_to_show = glue::glue("DEMO{year}"))
+# }
 
 # add hyperlinks to specific columns
 # annual values 
