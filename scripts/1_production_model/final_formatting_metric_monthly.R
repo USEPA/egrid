@@ -26,7 +26,6 @@ library(openxlsx)
 
 # Load necessary functions
 source("scripts/functions/function_check_params.R")
-source("scripts/functions/function_check_var_names.R")
 
 # Create and check parameters 
 if (!exists("params")) {
@@ -85,8 +84,8 @@ month_abbr_upper <- toupper(month.abb)
 
 # call helper functions into script
 source("scripts/functions/function_format_styles.R")
-source("scripts/functions/function_format_region.R")
 source("scripts/functions/function_add_hyperlink.R")
+source("scripts/functions/function_final_formatting.R")
 
 # create eGRID output style list using function
 s <- create_format_styles()
