@@ -160,7 +160,7 @@ standard_labels <- c(
                      "CO2"    = "CO2 emissions (metric tons)",
                      "CH4"    = "CH4 emissions (metric tons)",	
                      "N2O"    = "N2O emissions (metric tons)",	
-                     "CO2EQ" = "CO2 equivalent emissions (metric tons)",	
+                     "CO2EQA" = "CO2 equivalent emissions (metric tons)",	
                      "HG"     = "Hg emissions (kg)",
                      "NOXRT"  = "NOx total output emission rate (kg/MWh)",
                      "NOXRT2"  = "NOx total output emission rate (kg/GJ)", # metric
@@ -226,7 +226,6 @@ rename_headers <- function(file, original_header){
   header_ann_replace_2 <- c(setNames(glue::glue("{file}HTIT"), glue::glue("^{file}HTIANT$")),
                             setNames(glue::glue("{file}NGEN"), glue::glue("^{file}NGENAN$")),
                             setNames(glue::glue("{file}NGEN2"), glue::glue("^{file}NGENAN2$")),
-                            setNames(glue::glue("{file}CO2EQ"), glue::glue("^{file}CO2EQA$")),
                             setNames(glue::glue("{file}NOX"), glue::glue("^{file}NOXAN$")),
                             setNames(glue::glue("{file}SO2"), glue::glue("^{file}SO2AN$")),
                             setNames(glue::glue("{file}CO2"), glue::glue("^{file}CO2AN$")),
