@@ -229,7 +229,9 @@ table_emissions_ozone
 
 The U.S. Energy Information Administration (EIA), a part of the Department of Energy, collects and maintains energy-related data for policy making and for the public. As of 2024, the EIA API does not contain the most detailed data available, which is necessary for the construction of eGRID. More detailed data for the EIA forms used in the eGRID production model - [923](https://www.eia.gov/electricity/data/eia923/), [860](https://www.eia.gov/electricity/data/eia860/), and [861](https://www.eia.gov/electricity/data/eia861/) - are available as zipped excel file downloads on the EIA website.
 
-A portion of the EIA data used in the eGRID production model is used here. If this data has not been downloaded previously, the following code downloads and cleans the necessary EIA data. `data_load_eia.R` downloads and unzips the zip file for each form within `data/1_production_model/raw_data/`. Each excel file contains several sheets that serve as the raw EIA data sources used in producing the eGRID data. EIA-923 is the only form needed to produce the PM~2.5~, NH~3~, and VOC emissions data.
+The EIA-923 form provides control efficiency information used to adjust PM~2.5~, NH~3~, and VOC emission estimates\*. If the EIA has not been previously downloaded during the production model `data_load_eia.R` downloads and unzips the zip file for each form within `data/1_production_model/raw_data/`. Each excel file contains several sheets that serve as the raw EIA data sources used in producing the eGRID data.
+
+*\*Control efficiency data is currently only available for PM~2.5~ emissions*
 
 ```{r}
 #| label: data-load-eia
@@ -238,7 +240,7 @@ A portion of the EIA data used in the eGRID production model is used here. If th
 #| echo: fenced
 ```
 
-The table within EIA Files and Sheets displays each of the unzipped raw files from EIA-923.
+The table within EIA Files and Sheets displays each of the unzipped raw files from EIA-923, the only form needed in PM~2.5~, NH~3~, and VOC emission calculations.
 
 ```{r}
 #| label: custom-gt-print
