@@ -8,9 +8,9 @@
 ##
 ## The resulting output are the following files saved in:
 ##  data/2a_pm_nh3_voc/outputs/{params$eGRID_year}
-##    "eGRID{params$eGRID_year}_pmemissions.xlsx"
-##    "eGRID{params$eGRID_year}_nh3emissions.xlsx"
-##    "eGRID{params$eGRID_year}_vocemissions.xlsx"
+##    "eGRID{params$eGRID_year}_pm_emissions.xlsx"
+##    "eGRID{params$eGRID_year}_nh3_emissions.xlsx"
+##    "eGRID{params$eGRID_year}_voc_emissions.xlsx"
 ##
 ## Authors:  
 ##      Emma Russell, Abt Global

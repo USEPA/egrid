@@ -1,7 +1,9 @@
 ---
 title: "eGRID PM2.5, NH3, and VOC Emission Estimates"
-author: 
+authors: 
   - "Emma Russell, Abt Global"
+  - "Teagan Goforth, Abt Global"
+  - "Claire Lay, Abt Global"
 freeze: true
 format: 
   html:
