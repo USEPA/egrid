@@ -110,6 +110,11 @@ emissions_files <-
 emissions_data <- 
   purrr::map_df(emissions_files$file_path, ~ read_csv(.x))
 
+cols_to_exclude <- names(facility_df)[!names(facility_df) %in% c("year", # exclude columns that are in facility_df already and may be different across months in the emissions data
+                                                                 "facility_id", 
+                                                                 "unit_id", 
+                                                                 "primary_fuel_type", 
+                                                                 "unit_type")]
 
 cols_to_sum <- 
   c("operating_time_count",
@@ -137,7 +142,7 @@ emissions_data_r <-
   mutate(year = as.character(year(date)), # extracting year from date
          month = as.character(month(date)), # extracting month from date
          month = recode(month, !!!month_name_map)) %>% # updating month to name
-  select(-date, -facility_name, -nox_controls) %>% # excluding facility_name and nox_controls due to differences in facility names across months
+  select(-date, -any_of(cols_to_exclude)) %>% # excluding columns in facility_df, since there may be differences across months
   mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) %>% # SB 6/4/2024: Temporary fix for issue in API where there are a mix of pipes and commas in some character values
   group_by(pick(-c(all_of(cols_to_sum)))) %>% 
   summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first
