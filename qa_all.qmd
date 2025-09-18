@@ -410,13 +410,14 @@ Check if any primary fuel rows are blank.
 
 check_unit_primary_fuel <- 
   unit_file %>% 
-  filter(is.na(primary_fuel_type))
+  filter(is.na(primary_fuel_type)) %>%
+  mutate(first_year_reporting = ifelse(year_online == params$year, "Y", "N"))
 
 ifelse(nrow(check_unit_primary_fuel) == 0, "Status: PASS - No units have blank primary fuels.", 
         glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_primary_fuel)} units have blank primary fuels."))
 
 knitr::kable(check_unit_primary_fuel %>% 
-               select(plant_name, plant_id, unit_id, primary_fuel_type, heat_input, heat_input_oz))
+               select(plant_name, plant_id, unit_id, primary_fuel_type, heat_input, heat_input_oz, first_year_reporting))
 
 ```
 
