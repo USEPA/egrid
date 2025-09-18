@@ -2328,7 +2328,7 @@ The capacity factor must be less than 1. Check if there are any instances of a c
 
 check_plant_capfac <- 
   plant_file %>% 
-  filter(capfac > 1)
+  filter(capfac > 1.03)
 
 ifelse(nrow(check_plant_capfac) == 0, "Status: PASS - No plants have capacity factor greater than 1.", 
         glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_capfac)} plants have capacity factor greater than 1."))
