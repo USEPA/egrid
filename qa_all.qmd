@@ -471,7 +471,7 @@ Check if any units have heat input values are missing emission values.
 
 check_unit_emissions <- 
   unit_file %>% 
-  filter((!(primary_fuel_type %in% c("WAT", "WND", "SUN", "NUC", "MWH"))) & 
+  filter((!(primary_fuel_type %in% c("WAT", "WND", "SUN", "NUC", "MWH", "PUR", "WH"))) &
           (!(prime_mover == "FC")) & 
           (is.na(nox_mass) & is.na(nox_oz_mass) & is.na(so2_mass) & is.na(co2_mass)) &
           (heat_input > 0 | heat_input_oz > 0))
