@@ -1,6 +1,6 @@
 # eGRID
 
-This repository includes all necessary scripts and documentation to create the [Emissions & Generation Resource Integrated Database (eGRID)](https://www.epa.gov/egrid) and its accessory features and datsets.
+This repository includes all necessary scripts and documentation to create the [Emissions & Generation Resource Integrated Database (eGRID)](https://www.epa.gov/egrid) and its supplemental features and datasets.
 
 ## Background
 
@@ -12,12 +12,12 @@ but are not limited to, net electric generation; resource mix (the share of gene
 CH<sub>4</sub>, and N<sub>2</sub>O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for 
 heat input and NO<sub>x</sub>) at different levels of geographic aggregation.
 
-### eGRID Components
-The primary eGRID dataset is known as the eGRID production model. Additional supplementary datasets and tools utilize the eGRID production model to provide more information about certain aspects of the U.S. electric grid. eGRID cumulatively consists of the following components:
+### eGRID Repository Components
+The primary eGRID dataset is referred to in this repository as the eGRID production model. Additional supplementary datasets and tools utilize the eGRID production model to provide more information about certain aspects of the U.S. electric grid. The eGRID repository cumulatively consists of the following components:
 
--   **Production model**
+-   Production model
 
--   **PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions**
+-   PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions
 
 ### Production model
 
@@ -46,28 +46,27 @@ Further information on the eGRID methodology can be found in the [eGRID Technica
 
 The dataset that this code produces is publicly available [here](https://www.epa.gov/egrid/download-data).
 
+![Figure 1: eGRID subregions.](egrid_subregion_map.png)
+
 ### PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions
 The eGRID production model does not include PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions as the data used for the production model emissions calculations is not available for those emissions types. Instead, PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions and emissions rates for power plants are estimated using data from the National Emissions Inventory (NEI).
 
-The final emissions dataset for each PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions type includes five of the data aggregation levels present in the production model:
+The final emissions dataset for each PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions type includes five of the data aggregation levels present in the production model (see region descriptions above under Production model):
 
--   **Unit**
+-   Unit
 
--   **Plant**
+-   Plant
 
--   **State**
+-   State
 
--   **eGRID subregion**
+-   eGRID subregion
 
--   **National U.S.**
+-   National U.S.
 
 
 Further information on the eGRID PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC methodology can be found in the [Particulate Matter Emissions for eGRID2021](https://www.epa.gov/system/files/documents/2024-06/egrid2021-draft-pm-memo.pdf).
 
 The dataset that this code produces is publicly available [here](https://www.epa.gov/egrid/egrid-pm25).
-
-
-![Figure 1: eGRID subregions.](egrid_subregion_map.png)
 
 ## Architecture
 
@@ -107,8 +106,6 @@ The data used to create the eGRID production model are EPA and Energy Informatio
 
 Similar to the production model, `pm_nh3_voc_master.qmd` is a master script used to organize all necessary scripts and document the steps taken to produce PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions. PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions calculations utilize the eGRID production model code and build off the final eGRID production model dataset, with a similar code base structure:
 
--   `scripts/1_production_model/`: production model scripts - those that download and clean EPA and EIA data are used in the emissions data production.
-
 -   `scripts/2a_pm_nh3_voc/`: PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions scripts to create each data aggregation level and format final dataset.
 
 -   `scripts/functions/`: all helper functions.
@@ -138,7 +135,7 @@ To create the eGRID production model dataset:
 
 ### PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions
 
-The PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions datasets build off the eGRID production model and require that the production model dataset is already produced for the desired data year.
+The PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions datasets use eGRID production model outputs and require that the production model dataset is already produced for the desired data year.
 
 **Note on data availability:** Emissions data and crosswalks used in these calculations are from a version of EPA's NEI that are not publicly available. Information about the data inputs and the code used to produce the final data are included here to document the process and inform any need for replication as well as inform data production for those with access to the appropriate NEI data.
 
@@ -149,8 +146,8 @@ To create the eGRID PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions datasets
     -   Create folder `api_keys/` within the root of the eGRID.
     -   Create a text file named `epa_api_key.txt` within the folder `api_keys/` and save the API key here on a single line.
 2.  Confirm the eGRID production model data has been produced and is stored in `data/1_production_model/outputs/`.
-2.  Load `eGRID_R.Rproj` within RStudio to enable the project environment.
-3.  Render `pm_nh3_voc_master.qmd`.
+3.  Load `eGRID_R.Rproj` within RStudio to enable the project environment.
+4.  Render `pm_nh3_voc_master.qmd`.
     -   Set data year in `params` (eGRID_year) in the YAML as a string in the format "YYYY" (ex: `"2023"`).
     -   If you do not have access to the NEI data inputs, set evaluation method in `params` (eval) to `false`.
     -   Render `pm_nh3_voc_master.qmd`. If `eval:true`, this will run all scripts and build the PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions datasets. If `eval:false`, this will produce the documentation around dataset production but will not build the datasets themselves.
