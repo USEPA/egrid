@@ -464,8 +464,6 @@ knitr::kable(check_unit_heat_input %>%
 
 Check if any units have heat input values are missing emission values.
 
-<!--# Can some units have only some emission types? Should "WH" and "PUR" be included? -->
-
 ```{r}
 #| label: unit-emissions-missing
 
