@@ -742,6 +742,7 @@ region_aggregation <- function(region, region_cols) {
   
     ### Export region aggregation file -----------
     save_output_data(region_formatted, "data/1_production_model/outputs", glue::glue("{region}_aggregation_{params$temporal_res}.RDS"))
+    return(region_formatted)
     
   } else {
 
@@ -1381,6 +1382,7 @@ region_aggregation <- function(region, region_cols) {
     
     ### Export region aggregation file -----------
     save_output_data(region_formatted, "data/1_production_model/outputs", glue::glue("{region}_aggregation_{params$temporal_res}.RDS"))
+    return(region_formatted)
    }  
   
 }
