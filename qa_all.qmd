@@ -2334,7 +2334,7 @@ ifelse(nrow(check_plant_capfac) == 0, "Status: PASS - No plants have capacity fa
         glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_capfac)} plants have capacity factor greater than 1."))
 
 knitr::kable(check_plant_capfac %>% 
-               select(plant_id, plant_name, primary_fuel_category, primary_fuel_type, capfac))
+               select(plant_id, plant_name, primary_fuel_category, primary_fuel_type, capfac, nameplate_capacity, generation_ann))
 
 
 ```
