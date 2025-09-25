@@ -492,18 +492,27 @@ Check if units have blanks in heat input and emissions.
 ```{r}
 #| label: unit-blanks
 
+heat_input_and_generation <- eia_923$generation_and_fuel_combined %>%
+  group_by(plant_id, prime_mover) %>%
+  summarize(
+    heat_input_ann_923 = sum(total_fuel_consumption_mmbtu, na.rm = TRUE), # consumption in mmbtus is referred to as "heat input"
+    generation_ann = sum(net_generation_megawatthours, na.rm = TRUE)
+    ) %>% ungroup() %>%
+  mutate(plant_id = as.numeric(plant_id))
+
 check_unit_blanks <- 
   unit_file %>% 
   filter((is.na(heat_input) | is.na(heat_input_oz)) & (is.na(nox_mass) | is.na(nox_oz_mass) 
          | is.na(so2_mass) | is.na(co2_mass))) %>%
   group_by(plant_id) %>%
-  mutate(count_units = n_distinct(unit_id))
+  mutate(count_units = n_distinct(unit_id)) %>%
+  left_join(heat_input_and_generation)
 
 ifelse(nrow(check_unit_blanks) == 0, "Status: PASS - No units are missing both heat inputs and emission values.", 
         glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_blanks)} units are missing both heat and emission values."))
 
 knitr::kable(check_unit_blanks %>% 
-               select(plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, operating_status, capd_flag,  heat_input, heat_input_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass))
+               select(plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, operating_status, capd_flag,  heat_input, heat_input_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, heat_input_ann_923, generation_ann))
 
 ```
 
