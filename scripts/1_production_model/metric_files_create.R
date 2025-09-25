@@ -54,10 +54,10 @@ filenames_orig <- c("unit" = "unit_file",
 # Load ordered variable names and conversion factors ---------
 
 # ordered names and abbreviations
-load("data/static_tables/name_matches.Rdata")
+load("data/1_production_model/static_tables/name_matches.Rdata")
 
 # conversion factors
-convert_rates <- read_csv(file.path("data/static_tables/conversion_factors.csv"),
+convert_rates <- read_csv(file.path("data/1_production_model/static_tables/conversion_factors.csv"),
                           col_names=TRUE, col_types="ccn")
 
 # Run metric conversion function for filenames  ----------------------

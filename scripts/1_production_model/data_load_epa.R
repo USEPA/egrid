@@ -40,8 +40,8 @@ if (exists("params")) {
 }
 
 # Check if folder to store raw data exists, if not - create it
-if (!dir.exists(glue::glue("data/raw_data/epa/{params$eGRID_year}"))) {
-  dir.create(glue::glue("data/raw_data/epa/{params$eGRID_year}"), recursive = TRUE)
+if (!dir.exists(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}"))) {
+  dir.create(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}"), recursive = TRUE)
 }
 
 # Load necessary functions
@@ -110,6 +110,11 @@ emissions_files <-
 emissions_data <- 
   purrr::map_df(emissions_files$file_path, ~ read_csv(.x))
 
+cols_to_exclude <- names(facility_df)[!names(facility_df) %in% c("year", # exclude columns that are in facility_df already and may be different across months in the emissions data
+                                                                 "facility_id", 
+                                                                 "unit_id", 
+                                                                 "primary_fuel_type", 
+                                                                 "unit_type")]
 
 cols_to_sum <- 
   c("operating_time_count",
@@ -137,7 +142,7 @@ emissions_data_r <-
   mutate(year = as.character(year(date)), # extracting year from date
          month = as.character(month(date)), # extracting month from date
          month = recode(month, !!!month_name_map)) %>% # updating month to name
-  select(-date) %>%
+  select(-date, -any_of(cols_to_exclude)) %>% # excluding columns in facility_df, since there may be differences across months
   mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) %>% # SB 6/4/2024: Temporary fix for issue in API where there are a mix of pipes and commas in some character values
   group_by(pick(-c(all_of(cols_to_sum)))) %>% 
   summarize(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE))) %>% # aggregating to monthly values first
@@ -146,6 +151,7 @@ emissions_data_r <-
   mutate(reporting_months = paste(month, collapse = ", "), # creating column with list of reporting months 
          reporting_frequency = if_else(grepl("january|february|march|october|november|december", # filtering out non-ozone season reporting months, excluding april
                                              reporting_months), "Q", "OS")) %>% # assigning reporting frequency 
+  ungroup() %>% 
   group_by(pick(-all_of(cols_to_sum), -c(month, reporting_months, reporting_frequency))) %>% 
   mutate(across(all_of(cols_to_sum), ~ sum(.x, na.rm = TRUE), .names = "{.col}_annual"), # calculating annual emissions
          across(all_of(cols_to_sum), ~ sum(.x[month %in% ozone_months], na.rm = TRUE), .names = "{.col}_ozone")) %>% # now calculating ozone month emissions
@@ -209,14 +215,14 @@ epa_data_combined <-
   
 ## Saving EPA data 
 
-print(glue::glue("Writing file epa_raw.RDS to folder data/raw_data/epa/{params$eGRID_year}."))
+print(glue::glue("Writing file epa_raw.RDS to folder data/1_production_model/raw_data/epa/{params$eGRID_year}."))
 
 readr::write_rds(epa_data_combined, 
-                 file = glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))
+                 file = glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))
 
 # check if file is successfully written to folder 
-if(file.exists(glue::glue("data/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))){
-  print(glue::glue("File epa_raw.RDS successfully written to folder data/raw_data/epa/{params$eGRID_year}"))
+if(file.exists(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))){
+  print(glue::glue("File epa_raw.RDS successfully written to folder data/1_production_model/raw_data/epa/{params$eGRID_year}"))
 } else {
    print("File epa_raw.RDS failed to write to folder.")
 }

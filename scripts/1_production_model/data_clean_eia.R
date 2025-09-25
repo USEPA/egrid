@@ -19,7 +19,7 @@ library(readr)
 library(tidyr)
 library(purrr)
 library(readxl)
-
+library(stringr)
 
 # check if parameters for eGRID data year need to be defined
 # this is only necessary when running the script outside of egrid_master.qmd
@@ -41,7 +41,7 @@ if (exists("params")) {
 # Load manual corrections ----------
 
 manual_corrections <- 
-  read_xlsx("data/static_tables/manual_corrections.xlsx", 
+  read_xlsx("data/1_production_model/static_tables/manual_corrections.xlsx", 
             sheet = "eia_clean", 
             col_types = c("text", "text", "text"))
 
@@ -51,9 +51,9 @@ manual_corrections <-
 # for example, some may have a "_Revision" addition if the data has been revised by EIA after initial release
 # to address this issue, we list file names that are extracted from the EIA website and identify file names based on consistent strings across years
 
-eia_923_files <- list.files(glue::glue("data/raw_data/923/{params$eGRID_year}"))
-eia_860_files <- list.files(glue::glue("data/raw_data/860/{params$eGRID_year}"))
-eia_861_files <- list.files(glue::glue("data/raw_data/861/{params$eGRID_year}"))
+eia_923_files <- list.files(glue::glue("data/1_production_model/raw_data/923/{params$eGRID_year}"))
+eia_860_files <- list.files(glue::glue("data/1_production_model/raw_data/860/{params$eGRID_year}"))
+eia_861_files <- list.files(glue::glue("data/1_production_model/raw_data/861/{params$eGRID_year}"))
 
 
 # EIA-923 ------------
@@ -70,7 +70,7 @@ file_name_schedule_2_3_4_5_m_12 <- grep("2_3_4_5_M_12", eia_923_files, value = T
 sched_2_3_4_5_m_12_dfs <- 
   purrr::map2(sheets_923_1, # .x, defining sheets to iterate over
               c(5,6,5,5),   # y, adding second argument to define the number of rows to skip (differs between files)
-             ~ read_excel(paste0(glue::glue("data/raw_data/923/{params$eGRID_year}/"), file_name_schedule_2_3_4_5_m_12), 
+             ~ read_excel(paste0(glue::glue("data/1_production_model/raw_data/923/{params$eGRID_year}/"), file_name_schedule_2_3_4_5_m_12), 
                           sheet = .x,
                           skip = .y,
                           na = ".", # converting "." to NAs
@@ -96,7 +96,7 @@ gen_fuel_combined <-
 file_name_schedule_8 <- grep("Schedule_8", eia_923_files, value = TRUE)
 
 air_emissions_control_info <- 
- read_excel(paste0(glue::glue("data/raw_data/923/{params$eGRID_year}/"), file_name_schedule_8), 
+ read_excel(paste0(glue::glue("data/1_production_model/raw_data/923/{params$eGRID_year}/"), file_name_schedule_8), 
                            sheet = "8C Air Emissions Control Info",
                            skip = 4,
                            na = ".",
@@ -125,22 +125,22 @@ dfs_923 <- c(sched_2_3_4_5_m_12_dfs,
 ## Saving 923 Files --------
 
 # create directory
-if(!dir.exists("data/clean_data/eia")){
-  dir.create("data/clean_data/eia")
+if(!dir.exists("data/1_production_model/clean_data/eia")){
+  dir.create("data/1_production_model/clean_data/eia")
 } else{
-  print("Folder data/clean_data/eia already exists.")
+  print("Folder data/1_production_model/clean_data/eia already exists.")
 }
 
-if(!dir.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}"))){
-  dir.create(glue::glue("data/clean_data/eia/{params$eGRID_year}"))
+if(!dir.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}"))){
+  dir.create(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}"))
 } else{
-  print(glue::glue("Folder data/clean_data/eia/{params$eGRID_year} already exists."))
+  print(glue::glue("Folder data/1_production_model/clean_data/eia/{params$eGRID_year} already exists."))
 }
 
-write_rds(dfs_923, glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+write_rds(dfs_923, glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 
 # printing confirmation message
-print(glue::glue("File eia_923_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_923), sep = ', ', last = ', and ')}, written to folder data/clean_data/eia/{params$eGRID_year}."))
+print(glue::glue("File eia_923_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_923), sep = ', ', last = ', and ')}, written to folder data/1_production_model/clean_data/eia/{params$eGRID_year}."))
 
 
 # EIA-860 ----------------
@@ -155,7 +155,7 @@ file_name_generator <- grep("Generator_Y", eia_860_files, value = TRUE)
 
 generator_dfs <- 
   purrr::map(generator_sheets, 
-             ~ read_excel(paste0(glue::glue("data/raw_data/860/{params$eGRID_year}/"), file_name_generator),
+             ~ read_excel(paste0(glue::glue("data/1_production_model/raw_data/860/{params$eGRID_year}/"), file_name_generator),
                           sheet = .x,
                           skip = 1,
                           na = c(".", "X"),
@@ -167,7 +167,7 @@ generator_dfs <-
 
 ### Modifying 860 generator files ---------
 
-epa_clean <- readr::read_rds(glue::glue("data/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")) # need EPA plants to filter 860 proposed file
+epa_clean <- readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")) # need EPA plants to filter 860 proposed file
 
 generator_dfs_mod <-
   generator_dfs %>% 
@@ -194,7 +194,7 @@ file_name_enviro_assoc <- grep("EnviroAssoc_Y", eia_860_files, value = TRUE)
 
 enviro_assoc_dfs <- 
     purrr::map(enviro_assoc_sheets, 
-      ~ read_excel(paste0(glue::glue("data/raw_data/860/{params$eGRID_year}/"), file_name_enviro_assoc),
+      ~ read_excel(paste0(glue::glue("data/1_production_model/raw_data/860/{params$eGRID_year}/"), file_name_enviro_assoc),
         sheet = .x,
         skip = 1,
         na = ".",
@@ -215,7 +215,7 @@ file_name_enviro_equip <- grep("EnviroEquip_Y", eia_860_files, value = TRUE)
 
 enviro_equip_dfs <- 
   purrr::map(enviro_equip_sheets, 
-           ~ read_excel(paste0(glue::glue("data/raw_data/860/{params$eGRID_year}/"), file_name_enviro_equip),
+           ~ read_excel(paste0(glue::glue("data/1_production_model/raw_data/860/{params$eGRID_year}/"), file_name_enviro_equip),
                         sheet = .x,
                         skip = 1,
                         na = ".",
@@ -231,7 +231,7 @@ enviro_equip_dfs <-
 file_name_plant <- grep("Plant_Y", eia_860_files, value = TRUE)
 
 plant_df <- 
-  read_excel(paste0(glue::glue("data/raw_data/860/{params$eGRID_year}/"), file_name_plant),
+  read_excel(paste0(glue::glue("data/1_production_model/raw_data/860/{params$eGRID_year}/"), file_name_plant),
                         sheet = "Plant",
                         skip = 1,
                         na = ".",
@@ -299,7 +299,7 @@ names_860_PR_ret <-
 
 puerto_rico_dfs <- 
   purrr::map(pr_sheets, 
-             ~ read_excel(glue::glue("data/raw_data/860/{params$eGRID_year}/eia_pr_860m.xlsx"),
+             ~ read_excel(glue::glue("data/1_production_model/raw_data/860/{params$eGRID_year}/eia_pr_860m.xlsx"),
                           sheet = .x,
                           skip = 2,
                           na = c(".", "X"),
@@ -365,10 +365,10 @@ dfs_860_final <-
 
 ## Saving 860 files ----------
 
-write_rds(dfs_860_final, glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+write_rds(dfs_860_final, glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
 
 # printing confirmation message
-print(glue::glue("File eia_860_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_860_final), sep = ', ', last = ', and ')}, written to folder data/clean_data/eia/{params$eGRID_year}."))
+print(glue::glue("File eia_860_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_860_final), sep = ', ', last = ', and ')}, written to folder data/1_production_model/clean_data/eia/{params$eGRID_year}."))
 
 
 # EIA-861 -------------
@@ -381,7 +381,7 @@ rename_cols_861 <- # creating list of variable name mappings
 file_name_ba <- grep("Balancing_Authority", eia_861_files, value = TRUE)
 
 balancing_authority <-  
-  read_excel(paste0(glue::glue("data/raw_data/861/{params$eGRID_year}/"), file_name_ba), 
+  read_excel(paste0(glue::glue("data/1_production_model/raw_data/861/{params$eGRID_year}/"), file_name_ba), 
              sheet = "Balancing Authority",
              guess_max = 4000,
              na = "."
@@ -394,7 +394,7 @@ balancing_authority <-
 file_name_sales_ult_cust <- grep("Sales_Ult_Cust", eia_861_files, value = TRUE)[1]
 
 sales_ult_cust <-
-  read_excel(paste0(glue::glue("data/raw_data/861/{params$eGRID_year}/"), file_name_sales_ult_cust),
+  read_excel(paste0(glue::glue("data/1_production_model/raw_data/861/{params$eGRID_year}/"), file_name_sales_ult_cust),
              sheet = "States",
              skip = 2,
              guess_max = 4000,
@@ -412,7 +412,7 @@ sales_ult_cust <-
 file_name_utility <- grep("Utility_Data", eia_861_files, value = TRUE)
 
 utility_data <-
-  read_excel(glue::glue("data/raw_data/861/{params$eGRID_year}/Utility_Data_{params$eGRID_year}.xlsx"),
+  read_excel(glue::glue("data/1_production_model/raw_data/861/{params$eGRID_year}/Utility_Data_{params$eGRID_year}.xlsx"),
              sheet = "States",
              skip = 1,
              guess_max = 4000,
@@ -441,8 +441,8 @@ dfs_861 <-
 
 ## Saving 861 Files -----------
 
-write_rds(dfs_861, glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
+write_rds(dfs_861, glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
 
 # printing confirmation message
-print(glue::glue("File eia_861_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_861), sep = ', ', last = ', and ')}, written to folder data/clean_data/eia/{params$eGRID_year}."))
+print(glue::glue("File eia_861_clean.RDS, containing dataframes {glue::glue_collapse(names(dfs_861), sep = ', ', last = ', and ')}, written to folder data/1_production_model/clean_data/eia/{params$eGRID_year}."))
 

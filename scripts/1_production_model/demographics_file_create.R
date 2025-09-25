@@ -45,7 +45,7 @@ if (exists("params")) {
 
 # Load in datasets ------
 
-plant_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
+plant_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
 
 # subset data to columns
 
@@ -179,6 +179,6 @@ demo_file <- plant_file %>%
              relocate(N_D_UNEMPLOYED_PER, .before = N_D_LIFEEXP_PER) 
 
 # save output as RDS
-write_rds(demo_file, file = glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
+write_rds(demo_file, file = glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))
 
 

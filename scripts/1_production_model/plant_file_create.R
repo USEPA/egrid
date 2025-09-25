@@ -48,34 +48,34 @@ if (exists("params")) {
 
 # check if each file exists. If they do not, stop the script. 
 # check for and load EIA-860
-if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))) { 
-  eia_860 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
+if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))) { 
+  eia_860 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
 } else { 
    stop("eia_860_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
 # check for and load EIA-861
-if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))) { 
-  eia_861 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
+if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))) { 
+  eia_861 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_861_clean.RDS"))
 } else { 
    stop("eia_861_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
 # check for and load EIA-923
-if(file.exists(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { 
-  eia_923 <- read_rds(glue::glue("data/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
+if(file.exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))) { 
+  eia_923 <- read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 } else { 
    stop("eia_923_clean.RDS does not exist. Run data_load_eia.R and data_clean_eia.R to obtain.")}
 
 ### Load lower-level eGRID files (unit and generator files) ------------
 
 # load generator file
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))) { 
-  generator_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file.RDS"))) { 
+  generator_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file.RDS"))
 } else { 
    stop("generator_file.RDS does not exist. Run generator_file_create.R to obtain.")}
 
 # load unit file
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))) { 
-  unit_file <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))) { 
+  unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
 } else { 
    stop("unit_file.RDS does not exist. Run unit_file_create.R to obtain.")}
 
@@ -88,45 +88,45 @@ source("scripts/functions/function_update_source.R")
 
 # crosswalk for plant IDs between EPA and EIA data
 xwalk_oris_epa <- 
-  read_csv("data/static_tables/xwalk_oris_epa.csv") %>% 
+  read_csv("data/1_production_model/static_tables/xwalk_oris_epa.csv") %>% 
   select(eia_plant_id, epa_plant_id) %>% 
   mutate(eia_plant_id = as.character(eia_plant_id), 
          epa_plant_id = as.character(epa_plant_id))
 
 # emission factors for CO2, CH4, and N2O
 ef_co2_ch4_n2o <- 
-  read_csv("data/static_tables/co2_ch4_n2o_ef.csv") %>% 
+  read_csv("data/1_production_model/static_tables/co2_ch4_n2o_ef.csv") %>% 
   filter(!is.na(eia_fuel_code)) 
 
 # crosswalk that updates county names to match EIA data
-xwalk_county_names <- read_csv("data/static_tables/xwalk_fips_names_update.csv") %>% 
+xwalk_county_names <- read_csv("data/1_production_model/static_tables/xwalk_fips_names_update.csv") %>% 
   janitor::clean_names() 
 
 # OG/OTH fuel types to update
 oth_og_recode <- 
-  read_csv("data/static_tables/og_oth_units_to_change_fuel_type.csv") %>% 
+  read_csv("data/1_production_model/static_tables/og_oth_units_to_change_fuel_type.csv") %>% 
   select(plant_id, "fuel_type" = primary_fuel_type, fuel_code) %>% 
   mutate(plant_id = as.character(plant_id))
 
 # global warming potential values are used to calculate CO2e
 gwp <- 
-  read_csv("data/static_tables/global_warming_potential.csv") %>% 
+  read_csv("data/1_production_model/static_tables/global_warming_potential.csv") %>% 
   janitor::clean_names()
 
 # fuel type categories
 fuel_type_categories <- 
-  read_csv("data/static_tables/fuel_type_categories.csv", 
+  read_csv("data/1_production_model/static_tables/fuel_type_categories.csv", 
            col_types = "cccccccc") 
 
 # manual corrections
 manual_corrections <- 
-  read_xlsx("data/static_tables/manual_corrections.xlsx", 
+  read_xlsx("data/1_production_model/static_tables/manual_corrections.xlsx", 
             sheet = "plant_file", 
             col_types = c("text", "text", "text"))
 
 # previous eGRID year CHP plants
 plant_prev_year <- # plant file of previous year
-  read_csv("data/static_tables/egrid_2022_chp.csv", 
+  read_csv("data/1_production_model/static_tables/egrid_2022_chp.csv", 
            col_types = "cc") %>% 
   janitor::clean_names() %>% 
   rename(plant_id = orispl, 
@@ -134,14 +134,14 @@ plant_prev_year <- # plant file of previous year
 
 # EPA CHP database
 chp_database <- 
-  read_csv("data/static_tables/chp_database.csv", 
+  read_csv("data/1_production_model/static_tables/chp_database.csv", 
            col_types = cols_only(`ORIS Code` = "c")) %>% 
   rename(plant_id = `ORIS Code`)
 
 #### Region crosswalk and tables ------------
 # state and county FIPS codes matched to each state and county name
 state_county_fips <- 
-  read_csv("data/static_tables/state_county_fips.csv") %>% janitor::clean_names() %>%  # load in table and clean names to snake_case
+  read_csv("data/1_production_model/static_tables/state_county_fips.csv") %>% janitor::clean_names() %>%  # load in table and clean names to snake_case
   left_join(xwalk_county_names, by = c("postal_state_code" = "state",
                                        "county_name" = "appendix_6_county_name")) %>%
   mutate(county_name = if_else(is.na(eia_county_name), county_name, eia_county_name)) %>% # update county names to match EIA data if applicable
@@ -152,20 +152,20 @@ state_county_fips <-
 
 # crosswalk to adjust Alaska county names 
 xwalk_alaska_fips <- 
-  read_csv("data/static_tables/xwalk_alaska_fips.csv") %>%
+  read_csv("data/1_production_model/static_tables/xwalk_alaska_fips.csv") %>%
   janitor::clean_names() %>% 
   select("plant_state" = state, "plant_id" = plant_code, county, "new_county" = appendix_6_county_name) %>% 
   mutate(plant_id = as.character(plant_id))
 
 # BA codes to update
 ba_codes <- 
-  read_csv("data/static_tables/ba_codes.csv") %>% janitor::clean_names() %>% 
+  read_csv("data/1_production_model/static_tables/ba_codes.csv") %>% janitor::clean_names() %>% 
   rename("ba_code" = bacode, 
          "ba_name"= baname)
 
 # crosswalk that matches ba_code and ba_name to egrid_subregions
 xwalk_ba <- 
-  read_csv("data/static_tables/xwalk_balancing_authority.csv") %>%
+  read_csv("data/1_production_model/static_tables/xwalk_balancing_authority.csv") %>%
   janitor::clean_names() %>% 
   select(ba_code = "balancing_authority_code",
          ba_name = "balancing_authority_name",
@@ -173,7 +173,7 @@ xwalk_ba <-
 
 # crosswalk that matches BA code and system_owner_id to update egrid_subregions
 xwalk_subregion_transmission <- 
-  read_csv("data/static_tables/xwalk_subregion_transmission.csv") %>% janitor::clean_names() %>% 
+  read_csv("data/1_production_model/static_tables/xwalk_subregion_transmission.csv") %>% janitor::clean_names() %>% 
   rename(nerc = "nerc_region",
          ba_code = "balancing_authority_code",
          system_owner_id = "transmission_or_distribution_system_owner_id",
@@ -182,7 +182,7 @@ xwalk_subregion_transmission <-
 
 # crosswalk that matches ba_code, system_owner_id, and utility_id to update NA egrid_subregions
 xwalk_subregion_utility <- 
-  read_csv("data/static_tables/xwalk_subregion_utility.csv") %>% janitor::clean_names() %>% 
+  read_csv("data/1_production_model/static_tables/xwalk_subregion_utility.csv") %>% janitor::clean_names() %>% 
   rename(nerc = "nerc_region",
          ba_code = "balancing_authority_code",
          system_owner_id = "transmission_or_distribution_system_owner_id",
@@ -193,7 +193,7 @@ xwalk_subregion_utility <-
 
 # crosswalk that matches plant_id and plant_state to plant file to update NA egrid_subregions
 xwalk_oris_subregion <- 
-  read_csv("data/static_tables/xwalk_oris_subregion.csv") %>% janitor::clean_names() %>% 
+  read_csv("data/1_production_model/static_tables/xwalk_oris_subregion.csv") %>% janitor::clean_names() %>% 
   select(plant_state = "pstatabb",
          plant_id = "orispl", 
          egrid_subregion = "subrgn") %>% distinct() %>% 
@@ -201,8 +201,8 @@ xwalk_oris_subregion <-
 
 # crosswalk that matches plant_id to plant file update NA egrid_subregions
 xwalk_nerc_assessment <- 
-  read_csv("data/static_tables/nerc_assessment_areas_grouped_by_plant.csv") %>% janitor::clean_names() %>% 
-  full_join(read_csv("data/static_tables/xwalk_nerc_assessment.csv") %>% janitor::clean_names()) %>% 
+  read_csv("data/1_production_model/static_tables/nerc_assessment_areas_grouped_by_plant.csv") %>% janitor::clean_names() %>% 
+  full_join(read_csv("data/1_production_model/static_tables/xwalk_nerc_assessment.csv") %>% janitor::clean_names()) %>% 
   rename(plant_id = "plant_code",
          egrid_subregion = "subrgn") %>% 
   mutate(plant_id = as.character(plant_id)) %>% 
@@ -212,7 +212,7 @@ xwalk_nerc_assessment <-
 
 # crosswalk that matches egrid_subregions to egrid_subregion_name
 egrid_subregions <-  
-  read_csv("data/static_tables/egrid_nerc_subregions.csv") %>% janitor::clean_names() %>% 
+  read_csv("data/1_production_model/static_tables/egrid_nerc_subregions.csv") %>% janitor::clean_names() %>% 
   rename("egrid_subregion" = "subrgn",
          "egrid_subregion_name" = "srname")
 
@@ -1517,26 +1517,26 @@ plant_formatted <-
 # Export plant file -------------
 
 # check if folders exist 
-if(dir.exists("data/outputs")) {
+if(dir.exists("data/1_production_model/outputs")) {
   print("Folder output already exists.")
 } else {
-   dir.create("data/outputs")
+   dir.create("data/1_production_model/outputs")
 }
 
-if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
+if(dir.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))) {
   print("Folder output already exists.")
 } else {
-   dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
+   dir.create(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))
 }
 
 # write RDS file 
-print(glue::glue("Saving unit file to folder data/outputs/{params$eGRID_year}"))
+print(glue::glue("Saving plant file to folder data/1_production_model/outputs/{params$eGRID_year}"))
 
-write_rds(plant_formatted, glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
+write_rds(plant_formatted, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
 
 # check if file is successfully written to folder 
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))){
-  print(glue::glue("File plant_file.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))){
+  print(glue::glue("File plant_file.RDS successfully written to folder data/1_production_model/outputs/{params$eGRID_year}"))
 } else {
    print("File plant_file.RDS failed to write to folder.")
 } 

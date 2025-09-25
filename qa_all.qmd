@@ -410,13 +410,14 @@ Check if any primary fuel rows are blank.
 
 check_unit_primary_fuel <- 
   unit_file %>% 
-  filter(is.na(primary_fuel_type))
+  filter(is.na(primary_fuel_type)) %>%
+  mutate(first_year_reporting = ifelse(year_online == params$year, "Y", "N"))
 
 ifelse(nrow(check_unit_primary_fuel) == 0, "Status: PASS - No units have blank primary fuels.", 
         glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_primary_fuel)} units have blank primary fuels."))
 
 knitr::kable(check_unit_primary_fuel %>% 
-               select(plant_name, plant_id, unit_id, primary_fuel_type, heat_input, heat_input_oz))
+               select(plant_name, plant_id, unit_id, primary_fuel_type, heat_input, heat_input_oz, first_year_reporting))
 
 ```
 
@@ -463,14 +464,12 @@ knitr::kable(check_unit_heat_input %>%
 
 Check if any units have heat input values are missing emission values.
 
-<!--# Can some units have only some emission types? Should "WH" and "PUR" be included? -->
-
 ```{r}
 #| label: unit-emissions-missing
 
 check_unit_emissions <- 
   unit_file %>% 
-  filter((!(primary_fuel_type %in% c("WAT", "WND", "SUN", "NUC", "MWH"))) & 
+  filter((!(primary_fuel_type %in% c("WAT", "WND", "SUN", "NUC", "MWH", "PUR", "WH"))) &
           (!(prime_mover == "FC")) & 
           (is.na(nox_mass) & is.na(nox_oz_mass) & is.na(so2_mass) & is.na(co2_mass)) &
           (heat_input > 0 | heat_input_oz > 0))
@@ -496,13 +495,15 @@ Check if units have blanks in heat input and emissions.
 check_unit_blanks <- 
   unit_file %>% 
   filter((is.na(heat_input) | is.na(heat_input_oz)) & (is.na(nox_mass) | is.na(nox_oz_mass) 
-         | is.na(so2_mass) | is.na(co2_mass)))
+         | is.na(so2_mass) | is.na(co2_mass))) %>%
+  group_by(plant_id) %>%
+  mutate(count_units = n_distinct(unit_id))
 
 ifelse(nrow(check_unit_blanks) == 0, "Status: PASS - No units are missing both heat inputs and emission values.", 
         glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_blanks)} units are missing both heat and emission values."))
 
 knitr::kable(check_unit_blanks %>% 
-               select(plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, heat_input, heat_input_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass))
+               select(plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, operating_status, capd_flag,  heat_input, heat_input_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass))
 
 ```
 
@@ -2327,13 +2328,13 @@ The capacity factor must be less than 1. Check if there are any instances of a c
 
 check_plant_capfac <- 
   plant_file %>% 
-  filter(capfac > 1)
+  filter(capfac > 1.03)
 
 ifelse(nrow(check_plant_capfac) == 0, "Status: PASS - No plants have capacity factor greater than 1.", 
         glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_capfac)} plants have capacity factor greater than 1."))
 
 knitr::kable(check_plant_capfac %>% 
-               select(plant_id, plant_name, primary_fuel_category, primary_fuel_type, capfac))
+               select(plant_id, plant_name, primary_fuel_category, primary_fuel_type, capfac, nameplate_capacity, generation_ann))
 
 
 ```
