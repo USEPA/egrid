@@ -19,7 +19,7 @@ library(readxl)
 library(stringr)
 library(readr)
 
-# Load functions
+# Load functions ---------
 
 source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_temporal_res_cols.R")
@@ -228,7 +228,6 @@ epa_final <- # removing unnecessary columns and final renames
 # Save clean EPA file ------------
 
 # creating folder if not already present
-
 if(params$temporal_res %in% c("annual", "monthly")) { # annual version uses monthly version of EPA data
   file <- "epa_clean_monthly.RDS"
 } else {

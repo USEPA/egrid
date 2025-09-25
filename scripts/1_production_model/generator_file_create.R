@@ -107,6 +107,8 @@ plant_keep_leading_zeroes <-
   filter(column_to_update == "keep_leading_zeroes") %>% # some plant IDs need to keep leading zeroes to avoid duplicates
   pull(plant_id)
   
+# clean leading zeros except for the plant IDs that are indicated to keep
+# EIA-923
 eia_923_leading_zeroes <- 
   eia_923_gen %>% 
   filter(str_detect(generator_id, "^0+") & !(plant_id %in% plant_keep_leading_zeroes)) %>% 
@@ -117,7 +119,7 @@ eia_923_leading_zeroes <-
 lookup_923_leading_zeroes <- with(eia_923_leading_zeroes, setNames(generator_id, id))
 print(glue::glue("{length(lookup_923_leading_zeroes)} generator IDs have leading zeroes in EIA-923 Generator file. 
                  The leading zeroes are removed for matching purposes and replaced at the end of the script."))
-
+# EIA-860
 eia_860_leading_zeroes <- 
   eia_860_combined %>% 
   filter(str_detect(generator_id, "^0+") & !(plant_id %in% plant_keep_leading_zeroes)) %>%  
@@ -141,7 +143,7 @@ gen_id_pm_corrections <- # update generator IDs for plant with duplicate prime m
   filter(column_to_update == "generator_id" & !is.na(prime_mover)) %>% 
   select(plant_id, generator_id, prime_mover, update)
 
-eia_923_gen_r <- 
+eia_923_gen_r <- # clean EIA-923 generator data 
   eia_923_gen %>% 
   left_join(gen_id_manual_corrections, by = c("plant_id", "generator_id")) %>% 
   left_join(gen_id_pm_corrections, by = c("plant_id", "generator_id", "prime_mover")) %>% 
@@ -174,7 +176,7 @@ eia_923_gen_r_2 <-
   filter(!(paste0(plant_id, "_", generator_id) %in% eia_923_gen_dups$id)) %>% # filter out duplicate plants 
   rbind(eia_923_gen_dups %>% select(-id, -n)) # add back in generators that were duplicated with correct non-duplicated row
 
-eia_860_combined_r <- 
+eia_860_combined_r <- # clean EIA-860 combined data
   eia_860_combined %>% 
   left_join(gen_id_manual_corrections, by = c("plant_id", "generator_id")) %>% 
   mutate(
@@ -363,6 +365,7 @@ december_gen_props <-
          tot_generation_fuel, 
          prop_netgen)
 
+# distribute generation based on Decembre generator proportions
 december_gen <-
   generation_df %>%
   right_join(december_gen_ids) %>%
@@ -450,6 +453,7 @@ print(glue::glue("{length(unique(gen_overwrite$id_pm))} generators have generati
 
 # Form generator file structure ------------
 
+# check if there are any duplicate IDs
 check_dup_ids <-
   gen_overwrite %>%
   select(id_pm) %>%
@@ -508,7 +512,7 @@ if (params$temporal_res == "annual") {
     group_by(pick(-c(month, generation, gen_data_source))) %>%  # group by everything except month and generation
     mutate(generation_oz = sum(generation[month %in% ozone_months], na.rm = TRUE),
            generation = sum(generation, na.rm = TRUE),
-           gen_data_source = paste(unique(gen_data_source), collapse = ", ")) %>%
+           gen_data_source = paste(unique(gen_data_source), collapse = ", ")) %>% # add together data sources from all months 
     ungroup() %>%
     select(-month) %>%
     distinct(plant_id, generator_id, prime_mover, .keep_all = TRUE) %>%

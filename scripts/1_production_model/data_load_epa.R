@@ -1,4 +1,4 @@
-## -------------------------------
+ ## -------------------------------
 ##
 ## Data load EPA
 ## 
@@ -35,11 +35,6 @@ if (!exists("params")) {
   print("eGRID year and version parameters are already defined.")
 }
 
-# Check if folder to store raw data exists, if not - create it
-# if (!dir.exists(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}"))) {
-#   dir.create(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}"), recursive = TRUE)
-# }
-
 # Set your API key here
 api_key <- read_lines("api_keys/epa_api_key.txt")
 
@@ -63,7 +58,6 @@ if (res$status_code > 399){
 
 # converting the content from json format to a data frame
 bulk_files <- fromJSON(rawToChar(res$content))
-
 
 ## Get facility data --------
 
@@ -116,7 +110,6 @@ emissions_files <-
          !is.na(quarter)) %>% # this identifies quarterly aggregations
   mutate(file_path = paste0(bucket_url_base,s3Path)) 
 
-
 # now iterating over each file path and binding into one dataframe
 emissions_data <- 
   purrr::map_df(emissions_files$file_path, ~ read_csv(.x))
@@ -137,7 +130,7 @@ cols_to_sum <-
 
 ozone_months <- c(5:9) # setting ozone months, which are May through September
 
-# # process and clean emissions data for all temporal_res conditions
+# process and clean emissions data for all temporal_res conditions
 emissions_data_r <-
   emissions_data %>%
   rename_with(tolower) %>% # this protects NOx rates from getting split with clean_names()
