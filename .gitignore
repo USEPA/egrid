@@ -19,10 +19,16 @@ monthly_qa_files/
 monthly_qa_region_agg_files/
 data/2c_api/
 data/1_production_model/static_tables/historical_egrid/
-data/2d_web_updates/
 monthly_qa_2_files/
 Thumbs.db
 data/clean_data/
 data/outputs/
 data/raw_data/
 data/static_tables/
+monthly_qa_plant_subregion_files/
+data/2a_pm_nh3_voc/static_tables/formatting/
+data/2b_web_updates/
+data/1_production_model/static_tables/qa/
+styles.css
+data/2a_pm_nh3_voc/inputs/
+data/2a_pm_nh3_voc/outputs/
