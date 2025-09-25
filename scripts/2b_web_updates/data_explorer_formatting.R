@@ -419,15 +419,15 @@ egrid_us <-
 
 # Export data  ---------------------------------
 
-if(!dir.exists(glue::glue("data/2d_web_updates/{params$eGRID_year}"))){
-  dir.create(glue::glue("data/2d_web_updates/{params$eGRID_year}"), recursive = TRUE)
+if(!dir.exists(glue::glue("data/2b_web_updates/{params$eGRID_year}"))){
+  dir.create(glue::glue("data/2b_web_updates/{params$eGRID_year}"), recursive = TRUE)
 }
 
-write.csv(egrid_plant_2, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_plant_file.csv"), na = "", row.names = FALSE)
-write.csv(egrid_state, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_state_file.csv"), na = "", row.names = FALSE)
-write.csv(egrid_ba, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_ba_file.csv"), na = "", row.names = FALSE)
-write.csv(egrid_subregion, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_subregion_file.csv"), na = "", row.names = FALSE)
-write.csv(egrid_nerc, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_nerc_file.csv"), na = "", row.names = FALSE)
-write.csv(egrid_us, glue::glue("data/2d_web_updates/{params$eGRID_year}/data_explorer_us_file.csv"), na = "", row.names = FALSE)
+write.csv(egrid_plant_2, glue::glue("data/2b_web_updates/{params$eGRID_year}/data_explorer_plant_file.csv"), na = "", row.names = FALSE)
+write.csv(egrid_state, glue::glue("data/2b_web_updates/{params$eGRID_year}/data_explorer_state_file.csv"), na = "", row.names = FALSE)
+write.csv(egrid_ba, glue::glue("data/2b_web_updates/{params$eGRID_year}/data_explorer_ba_file.csv"), na = "", row.names = FALSE)
+write.csv(egrid_subregion, glue::glue("data/2b_web_updates/{params$eGRID_year}/data_explorer_subregion_file.csv"), na = "", row.names = FALSE)
+write.csv(egrid_nerc, glue::glue("data/2b_web_updates/{params$eGRID_year}/data_explorer_nerc_file.csv"), na = "", row.names = FALSE)
+write.csv(egrid_us, glue::glue("data/2b_web_updates/{params$eGRID_year}/data_explorer_us_file.csv"), na = "", row.names = FALSE)
 
 

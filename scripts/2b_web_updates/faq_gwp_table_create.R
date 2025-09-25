@@ -134,4 +134,4 @@ subregion_co2e <-
 
 # Export table ----------------------
 
-write_csv(subregion_co2e, glue::glue("data/2d_web_updates/{params$eGRID_year}/faq_gwp_table.csv"))
+write_csv(subregion_co2e, glue::glue("data/2b_web_updates/{params$eGRID_year}/faq_gwp_table.csv"))
