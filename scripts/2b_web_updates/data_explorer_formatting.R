@@ -251,13 +251,13 @@ secondary_fuel_category <- # map fuel category to secondary fuel type
     "OTHF"       = "Unknown")
 
 plant_resource_mix_cols <- 
-  resource_mix_cols[1:18] # do not include nonbaseload columns
-names(plant_resource_mix_cols) <- paste0("PL", names(resource_mix_cols[1:18]))
+  resource_mix_cols[1:11] # do not include nonbaseload columns
+names(plant_resource_mix_cols) <- paste0("PL", names(resource_mix_cols[1:11]))
 
 secondary_fuel <- 
   egrid_plant %>% 
   select(Year, ORISPL, PLPRMFL, FUEL, names(plant_resource_mix_cols)) %>% 
-  tidyr::pivot_longer(cols = paste0("PL", names(resource_mix_cols[1:18])), 
+  tidyr::pivot_longer(cols = paste0("PL", names(resource_mix_cols[1:11])), 
                names_to = "resource_mix_fuel", 
                values_to = "resource_mix") %>% 
   mutate(resource_mix_fuel = recode(resource_mix_fuel, !!!plant_resource_mix_cols)) %>% 
