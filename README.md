@@ -70,7 +70,7 @@ The dataset that this code produces is publicly available [here](https://www.epa
 
 ## Architecture
 
-This year EPA will be releasing the methodology to develop eGRID as an RStudio project. Recently, there has been increased interest from users in understanding the methods used to create the eGRID data. To increase transparency in the eGRID production process, EPA has made the R scripts available for users to view and use. EPA used the RStudio project beginning in 2024 to produce eGRID2023.
+Starting in 2024, EPA has released the methodology to develop eGRID as an RStudio project. Recently, there has been increased interest from users in understanding the methods used to create the eGRID data. To increase transparency in the eGRID production process, EPA has made the R scripts available for users to view and use. EPA used the RStudio project beginning in 2024 to produce eGRID2023.
 
 Figure 2 displays a summary of eGRID architecture, which specifies data sources, inputs, and outputs for creating eGRID.
 
