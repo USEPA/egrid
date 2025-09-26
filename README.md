@@ -49,9 +49,9 @@ The dataset that this code produces is publicly available [here](https://www.epa
 ![Figure 1: eGRID subregions.](egrid_subregion_map.png)
 
 ### PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions
-The eGRID production model does not include PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions as the data used for the production model emissions calculations is not available for those emissions types. Instead, PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions and emissions rates for power plants are estimated using data from the National Emissions Inventory (NEI).
+The eGRID production model does not include fine particulate matter 2.5 microns in diameter or smaller (PM<sub>2.5</sub>), ammonia (NH<sub>3</sub>), and volatile organic compounds (VOC) emissions as the data used for the production model emissions calculations are not available for those pollutants. Instead, PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions and emission rates for power plants are estimated using data from the EPA's National Emissions Inventory (NEI).
 
-The final emissions dataset for each PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions type includes five of the data aggregation levels present in the production model (see region descriptions above under Production model):
+The final dataset for each pollutant (PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC) type includes five of the data aggregation levels present in the production model (see region descriptions above under Production model):
 
 -   Unit
 
@@ -64,7 +64,7 @@ The final emissions dataset for each PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC e
 -   National U.S.
 
 
-Further information on the eGRID PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC methodology can be found in the [Particulate Matter Emissions for eGRID2021](https://www.epa.gov/system/files/documents/2024-06/egrid2021-draft-pm-memo.pdf).
+Further information on the eGRID PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC methodology can be found in the [Particulate Matter Emissions for eGRID2021](https://www.epa.gov/system/files/documents/2024-06/egrid2021-draft-pm-memo.pdf) methodology documentation.
 
 The dataset that this code produces is publicly available [here](https://www.epa.gov/egrid/egrid-pm25).
 
@@ -104,7 +104,7 @@ The data used to create the eGRID production model are EPA and Energy Informatio
 
 ### PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions
 
-Similar to the production model, `pm_nh3_voc_master.qmd` is a master script used to organize all necessary scripts and document the steps taken to produce PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions. PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions calculations utilize the eGRID production model code and build off the final eGRID production model dataset, with a similar code base structure:
+Similar to the production model, `pm_nh3_voc_master.qmd` is a master script used to organize all necessary scripts and document the steps taken to produce PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions and emission rates. PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions and emission rates calculations utilize the eGRID production model code and build off the final eGRID production model dataset, with a similar code base structure:
 
 -   `scripts/2a_pm_nh3_voc/`: PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions scripts to create each data aggregation level and format final dataset.
 
@@ -116,7 +116,7 @@ Similar to the production model, `pm_nh3_voc_master.qmd` is a master script used
 
 -   `data/2a_pm_nh3_voc/static_tables/`: static tables used within the code base. These include emissions factors for PM<sub>2.5</sub>, NH<sub>3</sub>, and VOCs.
 
-The data used to create the emissions data are EPA and EIA electricity data, NEI emissions data, an NEI-EIA crosswalk, and the eGRID production model dataset. EPA and EIA data are acquired in the same way as the production model while NEI emissions data and NEI-EIA crosswalk data are provided directly from the EPA.
+The data used to create the PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions and emission rates data are EPA and EIA electricity data, NEI emissions data, an NEI-EIA facility and unit identifier crosswalk, and the eGRID production model dataset. EPA and EIA data are acquired in the same way as the production model while NEI emissions data and NEI-EIA crosswalk data are provided directly from the EPA.
 
 ## Creating eGRID
 
@@ -135,7 +135,7 @@ To create the eGRID production model dataset:
 
 ### PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions
 
-The PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions datasets use eGRID production model outputs and require that the production model dataset is already produced for the desired data year.
+The PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions and emission rates datasets use eGRID production model outputs and require that the production model dataset is already produced for the desired data year.
 
 **Note on data availability:** Emissions data and crosswalks used in these calculations are from a version of EPA's NEI that are not publicly available. Information about the data inputs and the code used to produce the final data are included here to document the process and inform any need for replication as well as inform data production for those with access to the appropriate NEI data.
 
@@ -160,7 +160,7 @@ The codebase outputs each data aggregation level in the eGRID dataset as an .RDS
 
 ### PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions
 
-For each emissions type (PM<sub>2.5</sub>, NH<sub>3</sub>, VOC), the codebase outputs each data aggregation level as an .RDS file. Additionally, the final data is added to the previous year’s data in an Excel sheet and is stored in `data/2a_pm_nh3_voc/outputs/{params$eGRID_year}`.
+For each pollutant (PM<sub>2.5</sub>, NH<sub>3</sub>, VOC), the codebase outputs each data aggregation level as an .RDS file. Additionally, the final data is added to the previous year’s data in an Excel sheet and is stored in `data/2a_pm_nh3_voc/outputs/{params$eGRID_year}`.
 
 The resulting final outputs include:
 -   `egrid{params$eGRID_year}_pm_emissions.xlsx`
