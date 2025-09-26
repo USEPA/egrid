@@ -658,6 +658,56 @@ knitr::kable(missing_lat_lon %>%
 
 ```
 
+## Historically Different Subregions
+
+Check if any subregions are different from last year and include the subregion for the last two years.
+
+```{r}
+#| label: plant-subregion-hist-diffs
+#| results: false
+
+# read in plant file data from previous year
+plant_file_prev_hist <- 
+  read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{params$year - 1}_data.xlsx"), 
+             sheet = glue::glue("PLNT{params$year_abbrev - 1}"), skip = 1) %>% 
+  janitor::clean_names() %>% 
+  rename("plant_id" = "orispl", 
+         "plant_name" = "pname", 
+         "lat_prev" = "lat", 
+         "lon_prev" = "lon", 
+         "chp_flag_prev" = "chpflag", 
+         "subrgn_prev" = "subrgn",
+         "ba_name_prev" = "baname",
+         "nerc_prev" = "nerc",
+         "utlsrvid_prev" = "utlsrvid")
+
+# read in plant file data from 2 years prior
+plant_file_prev2_hist <- 
+  read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{params$year - 2}_data.xlsx"), 
+             sheet = glue::glue("PLNT{params$year_abbrev - 2}"), skip = 1) %>% 
+  janitor::clean_names() %>% 
+  rename("plant_id" = "orispl", 
+         "subrgn_prev2" = "subrgn") %>%
+  select(plant_id, subrgn_prev2)
+
+plant_subregion_hist <-  plant_file %>% 
+  left_join(plant_file_prev_hist, by = c("plant_id")) %>% 
+  mutate(subrgn_comparison = ifelse(egrid_subregion == subrgn_prev, "Same", 
+                                    "Changed"),
+         ba_comparison = ifelse(ba_name == ba_name_prev, "Y",
+                                "N"),
+         nerc_comparison = ifelse(nerc == nerc_prev, "Y",
+                                  "N"),
+         utility_id_comparison = ifelse(utility_id == utlsrvid_prev, "Y",
+                                      "N")) %>%
+  filter(subrgn_comparison != "Same") %>%
+  left_join(plant_file_prev2_hist, by = c("plant_id"))
+
+knitr::kable(plant_subregion_hist %>% 
+               select(plant_id, egrid_subregion, subrgn_prev, subrgn_prev2, ba_comparison, nerc_comparison, utility_id_comparison))
+
+```
+
 ## Mislabeled subregions
 
 Map plants for each region and fix accordingly if needed.
