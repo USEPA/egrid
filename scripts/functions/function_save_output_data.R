@@ -32,6 +32,8 @@ save_output_data <- function(data, output_folder_path, file_name, file_type="RDS
   #' # Save PM2.5 plant file
   #' save_output_data(pm_plant_formatted, "data/outputs/1_production_model", "pm_plant_file.RDS")
   
+  require(stringr)
+  
   # annual files
   if (str_detect(file_name, "annual") & !str_detect(file_name, "epa")) {
     
@@ -44,7 +46,7 @@ save_output_data <- function(data, output_folder_path, file_name, file_type="RDS
     
     # save file
     if(file_type == "RDS"){
-    write_rds(data, glue::glue("{output_folder_path}/{params$eGRID_year}/annual/{file_name}"))
+      write_rds(data, glue::glue("{output_folder_path}/{params$eGRID_year}/annual/{file_name}"))
     } else if(file_type == "CSV") { 
       write.csv(data, glue::glue("{output_folder_path}/{params$eGRID_year}/annual/{file_name}"), na="", row.names = FALSE)
     }

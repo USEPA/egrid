@@ -19,12 +19,13 @@
 library(dplyr)
 library(readxl)
 library(readr)
+library(stringr)
 
 # Load functions and check parameters -----------------------
 
 source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_save_output_data.R")
-source("scripts/functions/function_check_file_exists.R")
+source("scripts/functions/function_check_valid_url.R")
 
 # Create and check parameters 
 if (!exists("params")) {
@@ -40,31 +41,86 @@ if(!dir.exists("data/1_production_model/static_tables/historical_egrid")) {
 # Download historical eGRID years ------------------------
 
 file_paths <- 
-  c("data/1_production_model/static_tables/historical_egrid/egrid2018_data.xlsx", 
-    "data/1_production_model/static_tables/historical_egrid/egrid2019_data.xlsx",
-    "data/1_production_model/static_tables/historical_egrid/egrid2020_data.xlsx",
-    "data/1_production_model/static_tables/historical_egrid/egrid2021_data.xlsx",
-    "data/1_production_model/static_tables/historical_egrid/egrid2022_data.xlsx") # add previous data year to this list every year 
+  c("2018" = "data/1_production_model/static_tables/historical_egrid/egrid2018_data.xlsx", 
+    "2019" = "data/1_production_model/static_tables/historical_egrid/egrid2019_data.xlsx",
+    "2020" = "data/1_production_model/static_tables/historical_egrid/egrid2020_data.xlsx",
+    "2021" = "data/1_production_model/static_tables/historical_egrid/egrid2021_data.xlsx",
+    "2022" = "data/1_production_model/static_tables/historical_egrid/egrid2022_data.xlsx") # add previous data year to this list every year 
 
 urls <- ### Note: check for updates or changes each data year ###
-  c("https://www.epa.gov/sites/default/files/2020-03/egrid2018_data_v2.xlsx", 
-    "https://www.epa.gov/sites/default/files/2021-02/egrid2019_data.xlsx", 
-    "https://www.epa.gov/system/files/documents/2022-09/eGRID2020_Data_v2.xlsx", 
-    "https://www.epa.gov/system/files/documents/2023-01/eGRID2021_data.xlsx",
-    "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx") # add previous data year to this list every year 
+  c("2018" = "https://www.epa.gov/sites/default/files/2020-03/egrid2018_data_v2.xlsx", 
+    "2019" = "https://www.epa.gov/sites/default/files/2021-02/egrid2019_data.xlsx", 
+    "2020" = "https://www.epa.gov/system/files/documents/2022-09/eGRID2020_Data_v2.xlsx", 
+    "2021" = "https://www.epa.gov/system/files/documents/2023-01/eGRID2021_data.xlsx",
+    "2022" = "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx") # add previous data year to this list every year 
 
 for(i in 1:length(urls)) { # download files online if they have not already been downloaded. 
   if(!file.exists(file_paths[i])) { 
-    download.file(url = urls[i], 
-                  destfile = file_paths[i], 
-                  mode = "wb")
+    if(check_valid_url(urls[i])) {
+      download.file(url = urls[i], 
+                    destfile = file_paths[i], 
+                    mode = "wb")
+    } else {print(glue::glue("URL {urls[i]} is not valid. Check and update URL."))}
     } else {
     print(glue::glue("Stopping. File {file_paths[i]} already downloaded."))
   }}
 
 # Load historical eGRID years --------------------------
 
-for(year in c(2018:(as.numeric(params$eGRID_year) - 1))) { ### Note: check for updates or changes each data year ### Add previous data year here
+years <- 2018:as.numeric(params$eGRID_year) # years to add to data explorer
+
+for(year in years) { ### Note: check for updates or changes each data year ### Add previous data year here
+  if(year %in% names(urls)) { 
+    plant <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
+                        sheet = glue::glue("PLNT{year %% 1000}"),
+                        skip = 1)
+    
+    state <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
+                        sheet = glue::glue("ST{year %% 1000}"),
+                        skip = 1)
+    
+    ba <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
+                     sheet = glue::glue("BA{year %% 1000}"),
+                     skip = 1)
+    
+    subregion <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
+                            sheet = glue::glue("SRL{year %% 1000}"),
+                            skip = 1)
+    
+    nerc <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
+                       sheet = glue::glue("NRL{year %% 1000}"),
+                       skip = 1)
+    
+    us <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
+                     sheet = glue::glue("US{year %% 1000}"),
+                     skip = 1)
+  } else { # if URL does not exist, especially if the current eGRID year has not yet been published, load data from output folder
+    plant <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+                        sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000}"),
+                        skip = 1)
+    
+    state <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+                        sheet = glue::glue("ST{as.numeric(params$eGRID_year) %% 1000}"),
+                        skip = 1)
+    
+    ba <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+                     sheet = glue::glue("BA{as.numeric(params$eGRID_year) %% 1000}"),
+                     skip = 1)
+    
+    subregion <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+                            sheet = glue::glue("SRL{as.numeric(params$eGRID_year) %% 1000}"),
+                            skip = 1)
+    
+    nerc <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+                       sheet = glue::glue("NRL{as.numeric(params$eGRID_year) %% 1000}"),
+                       skip = 1)
+    
+    us <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+                     sheet = glue::glue("US{as.numeric(params$eGRID_year) %% 1000}"),
+                     skip = 1)
+  }
+  
+  # assign names for each eGRID year downloaded 
   name_plant <- glue::glue("egrid_{as.character(year)}_plant")
   name_state <- glue::glue("egrid_{as.character(year)}_state")
   name_ba <- glue::glue("egrid_{as.character(year)}_ba")
@@ -72,76 +128,14 @@ for(year in c(2018:(as.numeric(params$eGRID_year) - 1))) { ### Note: check for u
   name_nerc <- glue::glue("egrid_{as.character(year)}_nerc")
   name_us <- glue::glue("egrid_{as.character(year)}_us")
   
-  plant <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
-                      sheet = glue::glue("PLNT{year %% 1000}"),
-                      skip = 1)
-  
-  state <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
-                      sheet = glue::glue("ST{year %% 1000}"),
-                      skip = 1)
-  
-  ba <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
-                   sheet = glue::glue("BA{year %% 1000}"),
-                   skip = 1)
-  
-  subregion <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
-                          sheet = glue::glue("SRL{year %% 1000}"),
-                          skip = 1)
-  
-  nerc <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
-                     sheet = glue::glue("NRL{year %% 1000}"),
-                     skip = 1)
-  
-  us <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
-                   sheet = glue::glue("US{year %% 1000}"),
-                   skip = 1)
-  
   assign(name_plant, plant)
   assign(name_state, state)
   assign(name_ba, ba)
   assign(name_subregion, subregion)
   assign(name_nerc, nerc)
-  assign(name_us, us)}
-
-# Load current year data ------------------
-
-egrid_current_plant <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
-                                 sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000}"),
-                                 skip = 1)
+  assign(name_us, us)
   
-egrid_current_state <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
-                                 sheet = glue::glue("ST{as.numeric(params$eGRID_year) %% 1000}"),
-                                 skip = 1)
-
-egrid_current_ba <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
-                              sheet = glue::glue("BA{as.numeric(params$eGRID_year) %% 1000}"),
-                              skip = 1)
-
-egrid_current_subregion <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
-                                     sheet = glue::glue("SRL{as.numeric(params$eGRID_year) %% 1000}"),
-                                     skip = 1)
-
-egrid_current_nerc <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
-                                sheet = glue::glue("NRL{as.numeric(params$eGRID_year) %% 1000}"),
-                                skip = 1)
-
-egrid_current_us <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
-                              sheet = glue::glue("US{as.numeric(params$eGRID_year) %% 1000}"),
-                              skip = 1)
-
-name_plant <- glue::glue("egrid_{as.character(params$eGRID_year)}_plant")
-name_state <- glue::glue("egrid_{as.character(params$eGRID_year)}_state")
-name_ba <- glue::glue("egrid_{as.character(params$eGRID_year)}_ba")
-name_subregion <- glue::glue("egrid_{as.character(params$eGRID_year)}_subregion")
-name_nerc <- glue::glue("egrid_{as.character(params$eGRID_year)}_nerc")
-name_us <- glue::glue("egrid_{as.character(params$eGRID_year)}_us")
-
-assign(name_plant, egrid_current_plant)
-assign(name_state, egrid_current_state)
-assign(name_ba, egrid_current_ba)
-assign(name_subregion, egrid_current_subregion)
-assign(name_nerc, egrid_current_nerc)
-assign(name_us, egrid_current_us)
+} 
 
 # Combine all eGRID years --------------------
 
@@ -217,41 +211,29 @@ fuel_type_map <-
     "WND" =	"Wind",
     "WO"  = "Waste oil")
 
+egrid_plant_list <- 
+  lapply(years, function(year) {
+    plant_df <- get(paste0("egrid_", year, "_plant"))
+    
+    plant_df <- 
+      plant_df %>%
+      mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))),
+                    .fns = ~ .x * 100)) %>% 
+      select(-contains("seqplt")) %>% 
+      rename("Year" = YEAR) 
+    
+    if(year == 2023) { 
+      plant_df <- 
+        plant_df %>% 
+        rename("CAMDFLAG" = CAPDFLAG)}
+    
+    plant_df
+  })
+
 egrid_plant <- 
-  bind_rows(# 2018 
-            egrid_2018_plant %>% 
-              mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)) %>% 
-              select(-contains("seqplt")), 
-            # 2019
-            egrid_2019_plant %>% 
-              mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)) %>% 
-              select(-contains("seqplt")), 
-            # 2020 
-            egrid_2020_plant %>% 
-              mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)) %>% 
-              select(-contains("seqplt")),
-            # 2021
-            egrid_2021_plant %>% 
-              mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)) %>% 
-              select(-contains("seqplt")),
-            # 2022
-            egrid_2022_plant %>% 
-              mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)) %>% 
-              select(-contains("seqplt")),
-            # 2023
-            egrid_2023_plant %>% 
-              mutate(across(.cols = any_of(paste0("PL", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)) %>% 
-              rename("CAMDFLAG" = CAPDFLAG) %>% 
-              select(-contains("seqplt"))) %>% 
+  bind_rows(egrid_plant_list) %>% 
   mutate(PLPRMFL2 = recode(PLPRMFL, !!!fuel_type_map, default = PLPRMFL)) %>% # add column with long hand fuel type names
   rename("FUEL" = PLFUELCT,
-         "Year" = YEAR, 
          "PLNAMEPCAP" = NAMEPCAP) 
 
 # identify secondary fuel type for each plant (if exists) 
@@ -301,127 +283,120 @@ egrid_plant_2 <- # merge secondary fuel into plant file
 
 ### State file --------------------
 
-egrid_state <- 
-  bind_rows(egrid_2018_state %>% 
-              mutate(across(.cols = any_of(paste0("ST", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)) %>% 
-              rename("STNAMEPCAP" = NAMEPCAP), 
-            egrid_2019_state %>% 
-              mutate(across(.cols = any_of(paste0("ST", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)), 
-            egrid_2020_state %>% 
-              mutate(across(.cols = any_of(paste0("ST", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2021_state %>% 
-              mutate(across(.cols = any_of(paste0("ST", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2022_state %>% 
-              mutate(across(.cols = any_of(paste0("ST", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2023_state %>% 
-              mutate(across(.cols = any_of(paste0("ST", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100))) %>% 
-  rename("Year" = YEAR)
+egrid_state_list <- 
+  lapply(years, function(year) {
+    state_df <- get(paste0("egrid_", year, "_state"))
+    
+    state_df <- 
+      state_df %>%
+      mutate(across(.cols = any_of(paste0("ST", names(resource_mix_cols))),
+                    .fns = ~ .x * 100)) %>% 
+      rename("Year" = YEAR) 
+    
+    if(year == 2018) {
+      state_df <- 
+        state_df %>% 
+        rename("STNAMEPCAP" = NAMEPCAP)}
+    
+    state_df
+  })
+
+egrid_state <- bind_rows(egrid_state_list)
 
 ### Balancing authority file --------------------
 
-egrid_ba <- 
-  bind_rows(egrid_2018_ba %>% 
-              mutate(across(.cols = any_of(paste0("BA", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)) %>% 
-              rename("BANAMEPCAP" = NAMEPCAP), 
-            egrid_2019_ba %>% 
-              mutate(across(.cols = any_of(paste0("BA", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)), 
-            egrid_2020_ba %>% 
-              mutate(across(.cols = any_of(paste0("BA", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2021_ba %>% 
-              mutate(across(.cols = any_of(paste0("BA", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2022_ba %>% 
-              mutate(across(.cols = any_of(paste0("BA", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2023_ba %>% 
-              mutate(across(.cols = any_of(paste0("BA", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100))) %>% 
-  rename("Year" = YEAR)
+egrid_ba_list <- 
+  lapply(years, function(year) {
+    ba_df <- get(paste0("egrid_", year, "_ba"))
+    
+    ba_df <- 
+      ba_df %>%
+      mutate(across(.cols = any_of(paste0("BA", names(resource_mix_cols))),
+                    .fns = ~ .x * 100)) %>% 
+      rename("Year" = YEAR) 
+    
+    if(year == 2018) {
+      ba_df <- 
+        ba_df %>% 
+        rename("BANAMEPCAP" = NAMEPCAP)}
+    
+    ba_df
+  })
+
+egrid_ba <- bind_rows(egrid_ba_list)
 
 ### Subregion file ----------------------------
 
-egrid_subregion <- 
-  bind_rows(egrid_2018_subregion %>% 
-              mutate(across(.cols = any_of(paste0("SR", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)) %>% 
-              rename("SRNAMEPCAP" = NAMEPCAP), 
-            egrid_2019_subregion %>% 
-              mutate(across(.cols = any_of(paste0("SR", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)), 
-            egrid_2020_subregion %>% 
-              mutate(across(.cols = any_of(paste0("SR", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2021_subregion %>% 
-              mutate(across(.cols = any_of(paste0("SR", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2022_subregion %>% 
-              mutate(across(.cols = any_of(paste0("SR", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2023_subregion %>% 
-              mutate(across(.cols = any_of(paste0("SR", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100))) %>% 
-  rename("Year" = YEAR)
+egrid_subregion_list <- 
+  lapply(years, function(year) {
+    subregion_df <- get(paste0("egrid_", year, "_subregion"))
+    
+    subregion_df <- 
+      subregion_df %>%
+      mutate(across(.cols = any_of(paste0("SR", names(resource_mix_cols))),
+                    .fns = ~ .x * 100)) %>% 
+      rename("Year" = YEAR) 
+    
+    if(year == 2018) {
+      subregion_df <- 
+        subregion_df %>% 
+        rename("SRNAMEPCAP" = NAMEPCAP)}
+    
+    subregion_df
+  })
+
+egrid_subregion <- bind_rows(egrid_subregion_list)
 
 ### NERC file -------------------------------
 
-egrid_nerc <- 
-  bind_rows(egrid_2018_nerc %>% 
-              mutate(across(.cols = any_of(paste0("NR", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)) %>% 
-              rename("NRNAMEPCAP" = NAMEPCAP), 
-            egrid_2019_nerc %>% 
-              mutate(across(.cols = any_of(paste0("NR", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)) %>% 
-              rename("NRGENASO" = NRGENAOP,
-                     "NRGENAOP" = SumOfPLGENAOP), 
-            egrid_2020_nerc %>% 
-              mutate(across(.cols = any_of(paste0("NR", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)) %>% 
-              rename("NRGENASO" = NRGENAOP, 
-                     "NRGENAOP" = SumOfPLGENAOP),
-            egrid_2021_nerc %>% 
-              mutate(across(.cols = any_of(paste0("NR", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2022_nerc %>% 
-              mutate(across(.cols = any_of(paste0("NR", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2023_nerc %>% 
-              mutate(across(.cols = any_of(paste0("NR", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100))) %>% 
-  rename("Year" = YEAR)
+egrid_nerc_list <- 
+  lapply(years, function(year) {
+    nerc_df <- get(paste0("egrid_", year, "_nerc"))
+    
+    nerc_df <- 
+      nerc_df %>%
+      mutate(across(.cols = any_of(paste0("NR", names(resource_mix_cols))),
+                    .fns = ~ .x * 100)) %>% 
+      rename("Year" = YEAR) 
+    
+    if(year == 2018) {
+      nerc_df <- 
+        nerc_df %>% 
+        rename("NRNAMEPCAP" = NAMEPCAP)}
+      
+    if(year %in% 2019:2020) { 
+      nerc_df <- 
+        nerc_df %>% 
+        rename("NRGENASO" = NRGENAOP,
+               "NRGENAOP" = SumOfPLGENAOP)}
+    
+    nerc_df
+  })
+
+egrid_nerc <- bind_rows(egrid_nerc_list)
 
 ### US file -------------------------------------
 
-egrid_us <- 
-  bind_rows(egrid_2018_us %>% 
-              mutate(across(.cols = any_of(paste0("US", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)) %>% 
-              rename("USNAMEPCAP" = NAMEPCAP), 
-            egrid_2019_us %>% 
-              mutate(across(.cols = any_of(paste0("US", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)), 
-            egrid_2020_us %>% 
-              mutate(across(.cols = any_of(paste0("US", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2021_us %>% 
-              mutate(across(.cols = any_of(paste0("US", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2022_us %>% 
-              mutate(across(.cols = any_of(paste0("US", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100)),
-            egrid_2023_us %>% 
-              mutate(across(.cols = any_of(paste0("US", names(resource_mix_cols))), 
-                            .fns = ~ .x * 100))) %>% 
-  rename("Year" = YEAR)
+egrid_us_list <- 
+  lapply(years, function(year) {
+  us_df <- get(paste0("egrid_", year, "_us"))
+  
+  us_df <- 
+    us_df %>%
+    mutate(across(.cols = any_of(paste0("US", names(resource_mix_cols))),
+                  .fns = ~ .x * 100)) %>% 
+    rename("Year" = YEAR) 
+  
+  if(year == 2018) {
+    us_df <- 
+      us_df %>% 
+      rename("USNAMEPCAP" = NAMEPCAP)
+  }
+  
+  us_df
+})
+
+egrid_us <- bind_rows(egrid_us_list)
 
 
 # Export data  ---------------------------------
@@ -431,5 +406,5 @@ save_output_data(egrid_state, "data/2b_web_updates", "data_explorer_state_file.c
 save_output_data(egrid_ba, "data/2b_web_updates", "data_explorer_ba_file.csv", file_type = "CSV")
 save_output_data(egrid_subregion, "data/2b_web_updates", "data_explorer_subregion_file.csv", file_type = "CSV")
 save_output_data(egrid_nerc, "data/2b_web_updates", "data_explorer_nerc_file.csv", file_type = "CSV")
-save_output_data(egrid_us, "data/2b_web_updates", "data_explorer_subregion_file.csv", file_type = "CSV")
+save_output_data(egrid_us, "data/2b_web_updates", "data_explorer_us_file.csv", file_type = "CSV")
 
