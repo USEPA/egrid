@@ -38,20 +38,21 @@ if (exists("params")) {
 # Load necessary data -------------------------
 
 gwp <- 
-  read_csv("data/1_production_model/static_tables/global_warming_potential.csv") %>% 
+  read_csv("data/1_production_model/static_tables/global_warming_potential.csv", 
+           locale=locale(encoding="latin1")) %>% 
   janitor::clean_names()
 
 subregion_table <- 
-  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/subregion_aggregation_annual.RDS")) %>% 
+  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/subregion_aggregation.RDS")) %>% 
   select(subregion, 
-         subregion_generation, 
+         subregion_generation_ann, 
          subregion_generation_nonbaseload,
          subregion_co2_mass,
          subregion_ch4_mass,
          subregion_n2o_mass)
  
 plant_table <- 
-  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_annual.RDS")) %>% 
+  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS")) %>% 
   select(plant_id, 
          subregion = egrid_subregion, 
          nonbaseload, 
@@ -88,7 +89,7 @@ subregion_co2e <-
            (if_else(is.na(co2_mass), 0, co2_mass * 2000) + 
            if_else(is.na(ch4_mass), 0, gwp$ar4[gwp$gas == "CH4"] * ch4_mass) + 
            if_else(is.na(n2o_mass), 0, gwp$ar4[gwp$gas == "N2O"] * n2o_mass)) / 
-              subregion_generation, 
+              subregion_generation_ann, 
          co2e_rate_nonbaseload_ar4 = 
            (if_else(is.na(co2_nonbaseload), 0, co2_nonbaseload * 2000) + 
            if_else(is.na(ch4_nonbaseload), 0, gwp$ar4[gwp$gas == "CH4"] * ch4_nonbaseload) + 
@@ -100,7 +101,7 @@ subregion_co2e <-
            (if_else(is.na(co2_mass), 0, co2_mass * 2000) + 
            if_else(is.na(ch4_mass), 0, gwp$ar5_with_climate_carbon_feedbacks[gwp$gas == "CH4"] * ch4_mass) + 
            if_else(is.na(n2o_mass), 0, gwp$ar5_with_climate_carbon_feedbacks[gwp$gas == "N2O"] * n2o_mass)) / 
-              subregion_generation, 
+              subregion_generation_ann, 
          co2e_nonbaseload_ar5_climate_feedbacks = 
            (if_else(is.na(co2_nonbaseload), 0, co2_nonbaseload * 2000) + 
            if_else(is.na(ch4_nonbaseload), 0, gwp$ar5_with_climate_carbon_feedbacks[gwp$gas == "CH4"] * ch4_nonbaseload) + 
@@ -112,7 +113,7 @@ subregion_co2e <-
            (if_else(is.na(co2_mass), 0, co2_mass * 2000) + 
            if_else(is.na(ch4_mass), 0, gwp$ar5_without_climate_carbon_feedbacks[gwp$gas == "CH4"] * ch4_mass) + 
            if_else(is.na(n2o_mass), 0, gwp$ar5_without_climate_carbon_feedbacks[gwp$gas == "N2O"] * n2o_mass)) / 
-              subregion_generation,
+              subregion_generation_ann,
          co2e_nonbaseload_ar5_no_climate_feedbacks = 
            (if_else(is.na(co2_nonbaseload), 0, co2_nonbaseload * 2000) + 
            if_else(is.na(ch4_nonbaseload), 0, gwp$ar5_without_climate_carbon_feedbacks[gwp$gas == "CH4"] * ch4_nonbaseload) + 
@@ -124,7 +125,7 @@ subregion_co2e <-
            (if_else(is.na(co2_mass), 0, co2_mass * 2000) + 
            if_else(is.na(ch4_mass), 0, gwp$ar6[gwp$gas == "CH4"] * ch4_mass) + 
            if_else(is.na(n2o_mass), 0, gwp$ar6[gwp$gas == "N2O"] * n2o_mass)) / 
-              subregion_generation,
+              subregion_generation_ann,
          co2e_ar6 = 
            (if_else(is.na(co2_nonbaseload), 0, co2_nonbaseload * 2000) + 
            if_else(is.na(ch4_nonbaseload), 0, gwp$ar6[gwp$gas == "CH4"] * ch4_nonbaseload) + 
