@@ -20,16 +20,17 @@ library(dplyr)
 library(readxl)
 library(readr)
 
-# Check for params() --------
+# Load functions and check parameters -----------------------
 
 source("scripts/functions/function_check_params.R")
+source("scripts/functions/function_save_output_data.R")
+source("scripts/functions/function_check_file_exists.R")
 
 # Create and check parameters 
 if (!exists("params")) {
   params <- check_params()
 } else {
-  print("eGRID year and version parameters are already defined.")
-}
+  print("eGRID year and version parameters are already defined.")}
 
 # Check for necessary folders ---------------------
 
@@ -425,15 +426,10 @@ egrid_us <-
 
 # Export data  ---------------------------------
 
-if(!dir.exists(glue::glue("data/2b_web_updates/{params$eGRID_year}"))){
-  dir.create(glue::glue("data/2b_web_updates/{params$eGRID_year}"), recursive = TRUE)
-}
-
-write.csv(egrid_plant_2, glue::glue("data/2b_web_updates/{params$eGRID_year}/data_explorer_plant_file.csv"), na = "", row.names = FALSE)
-write.csv(egrid_state, glue::glue("data/2b_web_updates/{params$eGRID_year}/data_explorer_state_file.csv"), na = "", row.names = FALSE)
-write.csv(egrid_ba, glue::glue("data/2b_web_updates/{params$eGRID_year}/data_explorer_ba_file.csv"), na = "", row.names = FALSE)
-write.csv(egrid_subregion, glue::glue("data/2b_web_updates/{params$eGRID_year}/data_explorer_subregion_file.csv"), na = "", row.names = FALSE)
-write.csv(egrid_nerc, glue::glue("data/2b_web_updates/{params$eGRID_year}/data_explorer_nerc_file.csv"), na = "", row.names = FALSE)
-write.csv(egrid_us, glue::glue("data/2b_web_updates/{params$eGRID_year}/data_explorer_us_file.csv"), na = "", row.names = FALSE)
-
+save_output_data(egrid_plant_2, "data/2b_web_updates", "data_explorer_plant_file.csv", file_type = "CSV")
+save_output_data(egrid_state, "data/2b_web_updates", "data_explorer_state_file.csv", file_type = "CSV")
+save_output_data(egrid_ba, "data/2b_web_updates", "data_explorer_ba_file.csv", file_type = "CSV")
+save_output_data(egrid_subregion, "data/2b_web_updates", "data_explorer_subregion_file.csv", file_type = "CSV")
+save_output_data(egrid_nerc, "data/2b_web_updates", "data_explorer_nerc_file.csv", file_type = "CSV")
+save_output_data(egrid_us, "data/2b_web_updates", "data_explorer_subregion_file.csv", file_type = "CSV")
 
