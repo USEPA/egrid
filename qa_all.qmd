@@ -3068,7 +3068,7 @@ check_plant_gen_sum_ann <- gen_plant_sum %>%
 
 ifelse(nrow(check_plant_gen_sum_ann) == 0, "Status: PASS - All annual generation values between plant and generation files are equal.",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum_ann)} plants do not have the same annual plant generation values between plant and generation files."))
 
-knitr::kable(check_plant_gen_sum_ann %>% select(plant_id, sum_diff))
+knitr::kable(check_plant_gen_sum_ann %>% select(plant_id, sum_diff, generation_ann, plant_ann_sum))
 ```
 
 ### Plant by plant comparison - ozone season generation
