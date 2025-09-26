@@ -84,7 +84,7 @@ To create the eGRID dataset:
 2.  Load `eGRID_R.Rproj` within RStudio to enable the project environment.
 3.  Render `eGRID_master.qmd`.
     -   Set data year in `params$eGRID_year` in the YAML as a string in the format "YYYY" (ex: `"2023"`).
-    -   Set temporal resolution version in `params$temporal_res` in the YAML as a string (options: "annual" or "monthly") eGRID.  
+    -   Set temporal resolution version in `params$temporal_res` in the YAML as a string (options: `"annual"` or `"monthly"`) eGRID.  
     -   Render `eGRID_master.qmd`. This will run all scripts and build the eGRID dataset.
 
 ## Outputs
