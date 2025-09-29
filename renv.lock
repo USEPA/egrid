@@ -662,6 +662,21 @@
       ],
       "Hash": "04291cc45198225444a397606810ac37"
     },
+    "httpuv": {
+      "Package": "httpuv",
+      "Version": "1.6.16",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "R6",
+        "Rcpp",
+        "later",
+        "promises",
+        "utils"
+      ],
+      "Hash": "6c3c8728e40326de6529a5c46e377e5c"
+    },
     "httr": {
       "Package": "httr",
       "Version": "1.4.7",
@@ -1399,6 +1414,39 @@
       ],
       "Hash": "14a8dae2a678fa953907893a9df561c0"
     },
+    "shiny": {
+      "Package": "shiny",
+      "Version": "1.11.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "R6",
+        "bslib",
+        "cachem",
+        "cli",
+        "commonmark",
+        "fastmap",
+        "fontawesome",
+        "glue",
+        "grDevices",
+        "htmltools",
+        "httpuv",
+        "jsonlite",
+        "later",
+        "lifecycle",
+        "methods",
+        "mime",
+        "promises",
+        "rlang",
+        "sourcetools",
+        "tools",
+        "utils",
+        "withr",
+        "xtable"
+      ],
+      "Hash": "1c1a2437351984ff592639ae28cda09e"
+    },
     "snakecase": {
       "Package": "snakecase",
       "Version": "0.11.1",
@@ -1410,6 +1458,16 @@
         "stringr"
       ],
       "Hash": "58767e44739b76965332e8a4fe3f91f1"
+    },
+    "sourcetools": {
+      "Package": "sourcetools",
+      "Version": "0.1.7-1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "5f5a7629f956619d519205ec475fe647"
     },
     "stringi": {
       "Package": "stringi",
@@ -1716,6 +1774,18 @@
         "rlang"
       ],
       "Hash": "3dfd9ffbe221af775cb37f95e7e893ec"
+    },
+    "xtable": {
+      "Package": "xtable",
+      "Version": "1.8-4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "stats",
+        "utils"
+      ],
+      "Hash": "b8acdf8af494d9ec19ccb2481a9b11c2"
     },
     "yaml": {
       "Package": "yaml",
