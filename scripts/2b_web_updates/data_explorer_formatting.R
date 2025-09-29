@@ -4,10 +4,11 @@
 ## 
 ## Purpose: 
 ## 
-## This file creates the input CSV files for the eGRID data explorer.
+## This file creates the input CSV files for the eGRID data explorer (https://www.epa.gov/egrid/data-explorer).
 ##
-## For data or manual changes that need to be checked every year, they are denoted with this note:
+## For data or manual changes that need to be checked every year, they are denoted with this note within the script:
 ## ### Note: check for updates or changes each data year ###
+## The online URL for the most recent previous year of eGRID needs to be added to the URLs vector every year. 
 ##
 ## Authors:  
 ##      Teagan Goforth, Abt Global
@@ -40,13 +41,6 @@ if(!dir.exists("data/1_production_model/static_tables/historical_egrid")) {
 
 # Download historical eGRID years ------------------------
 
-file_paths <- 
-  c("2018" = "data/1_production_model/static_tables/historical_egrid/egrid2018_data.xlsx", 
-    "2019" = "data/1_production_model/static_tables/historical_egrid/egrid2019_data.xlsx",
-    "2020" = "data/1_production_model/static_tables/historical_egrid/egrid2020_data.xlsx",
-    "2021" = "data/1_production_model/static_tables/historical_egrid/egrid2021_data.xlsx",
-    "2022" = "data/1_production_model/static_tables/historical_egrid/egrid2022_data.xlsx") # add previous data year to this list every year 
-
 urls <- ### Note: check for updates or changes each data year ###
   c("2018" = "https://www.epa.gov/sites/default/files/2020-03/egrid2018_data_v2.xlsx", 
     "2019" = "https://www.epa.gov/sites/default/files/2021-02/egrid2019_data.xlsx", 
@@ -55,10 +49,11 @@ urls <- ### Note: check for updates or changes each data year ###
     "2022" = "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx") # add previous data year to this list every year 
 
 for(i in 1:length(urls)) { # download files online if they have not already been downloaded. 
-  if(!file.exists(file_paths[i])) { 
+  file_path = glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{year}_data.xlsx")
+  if(!file.exists(file_path)) { 
     if(check_valid_url(urls[i])) {
       download.file(url = urls[i], 
-                    destfile = file_paths[i], 
+                    destfile = file_path, 
                     mode = "wb")
     } else {print(glue::glue("URL {urls[i]} is not valid. Check and update URL."))}
     } else {

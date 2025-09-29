@@ -4,7 +4,11 @@
 ## 
 ## Purpose: 
 ## 
-## This file creates the GWP table for the FAQ page using different GWP values. 
+## This file creates the GWP table for the Frequently Asked Questions page using different GWP values. 
+## This table is published here: https://www.epa.gov/egrid/frequent-questions-about-egrid#What%20are%20GWPs%20and%20which%20GWPs%20does%20eGRID%20use
+##
+## Abbreviations: 
+## GWP - Global Warming Potential
 ##
 ## Authors:  
 ##      Teagan Goforth, Abt Global
