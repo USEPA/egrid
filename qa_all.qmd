@@ -2216,7 +2216,7 @@ plant_zscore <-
 
 knitr::kable(plant_zscore %>%
                filter(nox_in_emission_rate_zscore > 3 | nox_in_emission_rate_zscore < -3) %>% 
-               arrange(desc(nox_in_emission_rate_zscore)) %>% select(plant_id, plant_name, primary_fuel_type, nox_in_emission_rate_zscore, nox_in_emission_rate))
+               arrange(desc(nox_in_emission_rate_zscore)) %>% select(plant_id, plant_name, primary_fuel_type, heat_input, nox_in_emission_rate_zscore, nox_in_emission_rate))
 
 ```
 
@@ -2228,10 +2228,10 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(nox_oz_in_emission_rate_zscore > 3 | nox_oz_in_emission_rate_zscore < -3) %>% 
                arrange(desc(nox_oz_in_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, nox_oz_in_emission_rate_zscore, nox_oz_in_emission_rate))
+               select(plant_id, plant_name, primary_fuel_type, heat_input_oz, nox_oz_in_emission_rate_zscore, nox_oz_in_emission_rate))
 ```
 
-#### SO2 input rate
+####  SO2 input rate
 
 ```{r}
 #| label: plant-so2-input-outliers
@@ -2239,7 +2239,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(so2_in_emission_rate_zscore > 3 | so2_in_emission_rate_zscore < -3) %>% 
                arrange(desc(so2_in_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, so2_in_emission_rate_zscore, so2_in_emission_rate))
+               select(plant_id, plant_name, primary_fuel_type, heat_input, so2_in_emission_rate_zscore, so2_in_emission_rate))
 ```
 
 #### CO2 input rate
@@ -2250,7 +2250,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(co2_in_emission_rate_zscore > 3 | co2_in_emission_rate_zscore < -3) %>% 
                arrange(desc(co2_in_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, co2_in_emission_rate_zscore, co2_in_emission_rate))
+               select(plant_id, plant_name, primary_fuel_type, heat_input, co2_in_emission_rate_zscore, co2_in_emission_rate))
 
 ```
 
@@ -2262,7 +2262,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(ch4_in_emission_rate_zscore > 3 | ch4_in_emission_rate_zscore < -3) %>% 
                arrange(desc(ch4_in_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, ch4_in_emission_rate_zscore, ch4_in_emission_rate))
+               select(plant_id, plant_name, primary_fuel_type, heat_input, ch4_in_emission_rate_zscore, ch4_in_emission_rate))
 
 ```
 
@@ -2274,7 +2274,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(n2o_in_emission_rate_zscore > 3 | n2o_in_emission_rate_zscore < -3) %>% 
                arrange(desc(n2o_in_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, n2o_in_emission_rate_zscore, n2o_in_emission_rate))
+               select(plant_id, plant_name, primary_fuel_type, heat_input, n2o_in_emission_rate_zscore, n2o_in_emission_rate))
 
 ```
 
@@ -2286,7 +2286,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(co2e_in_emission_rate_zscore > 3 | co2e_in_emission_rate_zscore < -3) %>% 
                arrange(desc(co2e_in_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, co2e_in_emission_rate_zscore, co2e_in_emission_rate))
+               select(plant_id, plant_name, primary_fuel_type, heat_input, co2e_in_emission_rate_zscore, co2e_in_emission_rate))
 
 ```
 :::
