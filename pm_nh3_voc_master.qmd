@@ -34,7 +34,7 @@ This project includes all necessary scripts and documentation to create the Emis
 
 # Background
 
-eGRID is a comprehensive source of data from [EPA's Clean Air and Power Division (CAPD)](https://epa.gov/power-sector) on the environmental characteristics of almost all electric power generated in the United States. Currently, eGRID includes emissions data on carbon dioxide (CO~2~), nitrogen oxides (NO~X~), sulfur dioxide (SO~2~), methane (CH~4~), and nitrous oxide (N~2~O), but does not include PM~2.5~, NH~3~, and VOC emissions. The data used for emission calculations in eGRID is not available for PM~2.5~, NH~3~, and VOCs and is instead collected from the National Emissions Inventory (NEI).
+eGRID is a comprehensive source of data from [EPA's Clean Air and Power Division (CAPD)](https://epa.gov/power-sector) on the environmental characteristics of almost all electric power generated in the United States. Currently, eGRID includes emissions data on carbon dioxide (CO~2~), nitrogen oxides (NO~X~), sulfur dioxide (SO~2~), methane (CH~4~), and nitrous oxide (N~2~O), but does not include fine particulate matter 2.5 microns in diameter or smaller (PM~2.5~), ammonia (NH~3~), and volatile organic compounds(VOC) emissions. The data used for emission calculations in eGRID is not available for PM~2.5~, NH~3~, and VOCs and is instead collected from the National Emissions Inventory (NEI).
 
 Here we use NEI data to determine PM~2.5~, NH~3~, and VOC emissions and emission rates as well as estimations for units that may not report to the NEI.
 
