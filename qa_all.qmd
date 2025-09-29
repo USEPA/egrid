@@ -2176,7 +2176,7 @@ knitr::kable(check_plant_neg_emissions %>%
 plant_rates <- 
   plant_file %>% 
   #select(plant_id, net_gen, heat_input, heat_input_oz, contains("rate")) # filter this way if using R plant file output
-  select(plant_id, plant_name, primary_fuel_type, heat_input, heat_input_oz, generation_ann, generation_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, ch4_mass,
+  select(plant_id, plant_name, primary_fuel_type, capfac, heat_input, heat_input_oz, generation_ann, generation_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, ch4_mass,
          n2o_mass, co2e_mass, contains("ra"), contains("ro")) %>% 
   mutate(nox_output_rate = nox_mass / generation_ann * 2000, 
          nox_oz_output_rate = nox_oz_mass / generation_oz * 2000, 
@@ -2302,7 +2302,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(nox_output_rate_zscore > 3 | nox_output_rate_zscore < -3) %>% 
                arrange(desc(nox_output_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, nox_output_rate_zscore, nox_output_rate))
+               select(plant_id, plant_name, primary_fuel_type, generation_ann, capfac, nox_output_rate_zscore, nox_output_rate))
 
 ```
 
@@ -2313,7 +2313,7 @@ knitr::kable(plant_zscore %>%
 
 knitr::kable(plant_zscore %>% 
                filter(nox_oz_output_rate_zscore > 3 | nox_oz_output_rate_zscore < -3) %>% 
-               arrange(desc(nox_oz_output_rate_zscore)) %>% select(plant_id, plant_name, primary_fuel_type, nox_oz_output_rate_zscore, nox_oz_output_rate))
+               arrange(desc(nox_oz_output_rate_zscore)) %>% select(plant_id, plant_name, primary_fuel_type, generation_oz, capfac, nox_oz_output_rate_zscore, nox_oz_output_rate))
 
 ```
 
@@ -2325,7 +2325,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
                arrange(desc(so2_output_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, so2_output_rate_zscore, so2_output_rate))
+               select(plant_id, plant_name, primary_fuel_type, generation_ann, capfac, so2_output_rate_zscore, so2_output_rate))
 
 ```
 
@@ -2337,7 +2337,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(co2_output_rate_zscore > 3 | co2_output_rate_zscore < -3) %>% 
                arrange(desc(co2_output_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, co2_output_rate_zscore, co2_output_rate))
+               select(plant_id, plant_name, primary_fuel_type, generation_ann, capfac, co2_output_rate_zscore, co2_output_rate))
 
 ```
 
@@ -2349,7 +2349,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
                arrange(desc(so2_output_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, so2_output_rate_zscore, so2_output_rate))
+               select(plant_id, plant_name, primary_fuel_type, generation_ann, capfac, so2_output_rate_zscore, so2_output_rate))
 
 ```
 
@@ -2361,7 +2361,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(n2o_output_rate_zscore > 3 | n2o_output_rate_zscore < -3) %>% 
                arrange(desc(n2o_output_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, n2o_output_rate_zscore, n2o_output_rate))
+               select(plant_id, plant_name, primary_fuel_type, generation_ann, capfac, n2o_output_rate_zscore, n2o_output_rate))
 
 ```
 
@@ -2373,7 +2373,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(co2e_output_rate_zscore > 3 | co2e_output_rate_zscore < -3) %>% 
                arrange(desc(co2e_output_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, co2e_output_rate_zscore, co2e_output_rate))
+               select(plant_id, plant_name, primary_fuel_type, generation_ann, capfac, co2e_output_rate_zscore, co2e_output_rate))
 
 ```
 :::
