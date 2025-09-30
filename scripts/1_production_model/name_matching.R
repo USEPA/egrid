@@ -507,7 +507,7 @@ state_nonmetric <-
    "STCO2CRT" = "state_co2_combustion_rate",  
    "STCH4CRT" = "state_ch4_combustion_rate",  
    "STN2OCRT" = "state_n2o_combustion_rate",  
-   "STC2ERT" = "state_co2e_combustion_rate",  
+   "STC2ECRT" = "state_co2e_combustion_rate",  
    "STHGCRT" = "state_hg_combustion_rate",  
    "STCNOXRT" = "state_nox_output_rate_coal",
    "STONOXRT" = "state_nox_output_rate_oil",
@@ -2661,4 +2661,4 @@ save(unit_nonmetric,
      us_metric,
      ggl_nonmetric,
      ggl_metric,
-     file = 'data/static_tables/name_matches.RData')
+     file = 'data/1_production_model/static_tables/name_matches.RData')

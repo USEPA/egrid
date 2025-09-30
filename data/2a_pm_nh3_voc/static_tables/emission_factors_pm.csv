@@ -1,4 +1,4 @@
-﻿PRMVR,FUELU1,BOTFIRTY,EF,EF numerator,EF denominator,Source
+PRMVR,FUELU1,BOTFIRTY,EF,EF numerator,EF denominator,Source
 BA,MWH,NA,0,,,
 BT,GEO,NA,0,,,
 CA,DFO,NA,0.011,LB,MMBTU,"Based on sum of PM-FIL and PM-CON EFs. PM-CON EF is 1.3 lbs/E3GAL from AP-42 Table 1.3-2. PMFIL-25 EF is 0.25, based on 12% of total filterable PM EF from AP-42 table 1.3-1. Divided by 140 MMBtu/E3GAL."

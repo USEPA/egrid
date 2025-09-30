@@ -14,7 +14,6 @@ qa_all.html
 qa_all_files
 qa_annual_comparison_files
 *.Rprofile
-data/static_tables/Thumbs.db
 README_files/
 monthly_qa_files/
 monthly_qa_region_agg_files/
@@ -30,6 +29,7 @@ data/clean_data/
 data/outputs/
 data/raw_data/
 data/2b_web_updates/
+data/2a_pm_nh3_voc/static_tables/qa/
 data/2a_pm_nh3_voc/static_tables/formatting/
 data/static_tables/
 data/shapefiles/
