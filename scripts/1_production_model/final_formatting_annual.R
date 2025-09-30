@@ -768,7 +768,7 @@ format_sheet(df_ann = st_file,
              default_style_map = region_style_map,
              text_style_map = region_text_style_map)
 
-format_region(st, st_rows)
+format_region(st)
 
 # BA Formatting ----------------------------------
 
@@ -826,7 +826,8 @@ format_sheet(df_ann = ba_file,
              temporal_res = params$temporal_res,
              default_style_map = region_style_map,
              text_style_map = region_text_style_map)
-format_region(ba, ba_rows)
+
+format_region(ba)
 setColWidths(wb, sheet = ba, cols = 2, widths = 75.55)
 
 
@@ -886,7 +887,7 @@ format_sheet(df_ann = srl_file,
              default_style_map = region_style_map,
              text_style_map = region_text_style_map)
 
-format_region(srl, srl_rows)
+format_region(srl)
 setColWidths(wb, sheet = srl, cols = 3, widths = 18.45)
 
 
@@ -945,8 +946,8 @@ format_sheet(df_ann = nrl_file,
              temporal_res = params$temporal_res,
              default_style_map = region_style_map,
              text_style_map = region_text_style_map)
-format_region(nrl, nrl_rows)
 
+format_region(nrl)
 setColWidths(wb, sheet = nrl, cols = 3, widths = 29.45)
 
 
@@ -999,7 +1000,8 @@ format_sheet(df_ann = us_file,
              temporal_res = params$temporal_res,
              default_style_map = region_style_map,
              text_style_map = region_text_style_map)
-format_region(us, us_rows)
+
+format_region(us)
 
 # GGL Formatting --------------------------------------------
 
