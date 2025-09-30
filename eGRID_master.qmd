@@ -637,12 +637,12 @@ create_summary_gt_table(generator_file)
 #| label: gen-file-distributions 
 #| fig-height: 10
 
-plot_gen_ann <- 
+plot_gen <- 
   generator_file %>% 
   ggplot(aes(x = generation)) + 
   geom_histogram() +
   theme_minimal() +
-  labs(title = "Annual Generation")
+  labs(title = "Total Generation")
 
 if (params$temporal_res == "annual") {
   plot_gen_oz <-
@@ -653,19 +653,19 @@ if (params$temporal_res == "annual") {
     labs(title = "Ozone Months Generation")
 }
 
-plot_gen_ann_source <-
+plot_gen_source <-
   generator_file %>%
   ggplot(aes(x = gen_data_source, y = generation)) +
   geom_boxplot() +
   theme_minimal() +
   coord_flip() +
   scale_x_discrete(labels = scales::wrap_format(30)) +
-  labs(title = "Annual Generation by Data Source")
+  labs(title = "Total Generation by Data Source")
 
 if (params$temporal_res == "annual") {
-  (plot_gen_ann + plot_gen_oz) / plot_gen_ann_source
+  (plot_gen_ann + plot_gen_oz) / plot_gen_source
 } else {
-plot_gen_ann / plot_gen_ann_source
+plot_gen_ann / plot_gen_source
 }
   
 ```
@@ -1641,7 +1641,7 @@ direct_use_plot <- ggl_file %>%
 
 # Metric Conversion File
 
-The metric file script produces a metric version of the eGRID datasets by converting certain data from imperial to metric units. The results are the following metric version files:
+The metric file script produces a metric version of the eGRID datasets by converting certain data from imperial to metric units. The output file follows this format: `{file_name}_{params$temporal_res}_metric.RDS` The results are the following metric version files:
 
 -   `generator_file_metric`
 

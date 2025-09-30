@@ -30,6 +30,7 @@ source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_coalesce_join_vars.R")
 source("scripts/functions/function_save_output_data.R")
 source("scripts/functions/function_check_file_exists.R")
+source("scripts/1_production_model/name_matching.R")
 
 # Set parameters ----------------------------------
 
