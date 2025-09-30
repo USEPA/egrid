@@ -54,7 +54,7 @@ if(!file.exists(path_2019)){
 # 2020 data
 path_2020 <- "data/1_production_model/static_tables/qa/egrid2020_data.xlsx"
 
-if(!file.exists(path_2019)){
+if(!file.exists(path_2020)){
   download.file(url = "https://www.epa.gov/system/files/documents/2022-09/eGRID2020_Data_v2.xlsx", 
                 destfile = path_2020, 
                 mode = "wb")
@@ -65,7 +65,7 @@ if(!file.exists(path_2019)){
 # 2021 data
 path_2021 <- "data/1_production_model/static_tables/qa/egrid2021_data.xlsx"
 
-if(!file.exists(path_2019)){
+if(!file.exists(path_2021)){
   download.file(url = "https://www.epa.gov/system/files/documents/2023-01/eGRID2021_data.xlsx", 
                 destfile = path_2021, 
                 mode = "wb")
@@ -76,9 +76,9 @@ if(!file.exists(path_2019)){
 # 2022 data
 path_2022 <- "data/1_production_model/static_tables/qa/egrid2022_data.xlsx"
 
-if(!file.exists(path_2019)){
+if(!file.exists(path_2022)){
   download.file(url = "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx", 
-                destfile = path_2021, 
+                destfile = path_2022, 
                 mode = "wb")
 } else {
   print("Stopping. File egrid2022_data.xlsx already downloaded.")
