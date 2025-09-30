@@ -19,7 +19,8 @@ library(dplyr)
 library(glue)
 library(readr)
 library(readxl)
-
+library(renv)
+detach("package:renv", unload=TRUE)
 # Load necessary functions -----------------------
 
 source("scripts/functions/function_metric_conversion.R")

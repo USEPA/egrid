@@ -1071,7 +1071,7 @@ setColWidths(wb, sheet = ggl, cols = 6,   widths = 23)
 # DEMO Formatting -------------------------------------------
 # only build demographics file if the file exists in outputs
 # this is because pulling data from the EJScreen API to build the demographics file takes several hours
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   
   ## create "DEMO" sheet
   demo <- glue::glue("DEMO{year}")
