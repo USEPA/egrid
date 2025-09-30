@@ -29,6 +29,11 @@ if (exists("params")) {
   params$eGRID_year <- as.character(params$eGRID_year)
 }
 
+# Check if folder to store raw data exists, if not - create it
+if (!dir.exists(glue::glue("data/1_production_model/raw_data"))) {
+  dir.create(glue::glue("data/1_production_model/raw_data"), recursive = TRUE)
+}
+
 # Load necessary functions
 source("scripts/functions/function_download_eia_files.R")
 
