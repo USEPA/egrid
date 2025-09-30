@@ -1639,13 +1639,6 @@ direct_use_plot <- ggl_file %>%
 ```
 :::
 
-<<<<<<< HEAD
-# Demographics File
-
-The demographics file identifies the demographic characteristics of surrounding neighborhoods within a 3-mile radius for each plant. The demographic data is obtained from EPA's EJScreen API data and lat/lon coordinates of each plant. For more information on the EJScreen data, [see EJScreen's methodology](https://www.epa.gov/ejscreen/technical-information-and-data-downloads).
-
-For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
-
 # Metric Conversion File
 
 The metric file script produces a metric version of the eGRID datasets by converting certain data from imperial to metric units. The results are the following metric version files:
