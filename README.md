@@ -89,7 +89,7 @@ To create the eGRID dataset:
 
 ## Outputs
 
-The codebase outputs each data aggregation level in the eGRID dataset as an .RDS file and the final dataset as an Excel sheet in `data/outputs/{params$eGRID_year}`. Rendering `eGRID_master.qmd` also creates an HTML file that summarizes the data, methods, and output files used and created throughout the code base.
+The codebase outputs each data aggregation level in the eGRID dataset as an .RDS file and the final dataset as an Excel sheet in `data/outputs/{params$eGRID_year}/{params$temporal_res}` for each annual and monthly temporal resolution, depending on what is specified by the user. Rendering `eGRID_master.qmd` also creates an HTML file that summarizes the data, methods, and output files used and created throughout the code base.
 
 ## QA
 
