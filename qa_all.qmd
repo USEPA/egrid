@@ -2195,7 +2195,9 @@ plant_stats <-
                 .names =  "{.col}_average"), 
          across(.cols = c(contains("rate"), contains("ra"), contains("ro"), -contains("average")), 
                 .fns = ~ sd(.x, na.rm = TRUE), 
-                .names =  "{.col}_sd"))
+                .names =  "{.col}_sd"),
+         plc2ecrt_average = mean(plc2ecrt, na.rm = TRUE),
+         plc2ecrt_sd = sd(plc2ecrt, na.rm = TRUE))
 
 plant_stats[sapply(plant_stats, is.infinite)] <- NA
 
@@ -2203,7 +2205,8 @@ plant_zscore <-
   plant_stats %>% 
   mutate(across(.cols = c(contains("rate"), contains("ra"), contains("ro"), -contains("average"), -contains("sd")), 
                 .fns = ~ (.x - mean(.x, na.rm = TRUE)) / sd(.x, na.rm = TRUE), 
-                .names =  "{.col}_zscore")) 
+                .names =  "{.col}_zscore"),
+         plc2ecrt_zscore = (plc2ecrt - mean(plc2ecrt, na.rm = TRUE)) / sd(plc2ecrt, na.rm = TRUE)) 
 ```
 
 ### Input rate
@@ -2429,7 +2432,10 @@ knitr::kable(plant_zscore %>%
 ```{r}
 #| label: plant-co2e-combustion-output-outliers
 
-
+knitr::kable(plant_zscore %>%
+               filter(plc2ecrt_zscore > 3 | plc2ecrt_zscore < -3) %>% 
+               arrange(desc(plc2ecrt_zscore)) %>%
+               select(plant_id, plant_name, primary_fuel_type, generation_ann, co2_mass, plc2ecrt_zscore, plc2ecrt, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
 ```
 :::
 
