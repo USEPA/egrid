@@ -1,5 +1,7 @@
 ## -------------------------------
 ##
+## IMPORTANT NOTE: This file is archived as of 2025, and is not included in eGRID 2024. 
+##
 ## Demographics file create 
 ## 
 ## Purpose: 

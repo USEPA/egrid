@@ -77,7 +77,7 @@ s <- create_format_styles()
 # data for region aggregated files contain same columns and information
 # therefore, can assign a standardized list of columns, names, and styles
 
-standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",	
+standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
                      
                      "HTIAN"    = "annual heat input from combustion (GJ)",	
                      "HTIOZ"    = "ozone season heat input from combustion (GJ)",	

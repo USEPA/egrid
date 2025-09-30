@@ -9,6 +9,7 @@
 *.Rprofile
 archive
 eGRID_master_files
+pm_nh3_voc_master_files
 api_keys
 styles.css
 qa_all_files
@@ -27,4 +28,3 @@ pm_nh3_voc_master_files/
 monthly_qa_files/
 monthly_qa_plant_subregion_files/
 monthly_qa_region_agg_files/
-

@@ -1,3 +1,18 @@
+## -------------------------------
+##
+## Name matching
+## 
+## Purpose: 
+## 
+## This file matches all the snake_case column names used in R to the shorthand 
+## names published in eGRID. It also creates name_matches.RData. 
+##
+## Authors:  
+##      Emma Russell, Abt Global
+##      Teagan Goforth, Abt Global
+##
+## -------------------------------
+
 
 # Unit annual --------------
 
@@ -5073,3 +5088,4 @@ save(unit_nonmetric_annual,
      ggl_nonmetric,
      ggl_metric,
      file = 'data/1_production_model/static_tables/name_matches.RData')
+

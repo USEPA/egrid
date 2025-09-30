@@ -22,12 +22,9 @@ execute:
   warning: false
 params:
   eGRID_year: "2023"
-  version: "1.0.1"
+  version: "1.0.2"
   temporal_res: "annual" # temporal resolution of output either: 
                           # "annual" or "monthly"
-  run_demo_file: FALSE # running demographic file takes 4-5 hours
-                       # FALSE = default, do not run
-                       # TRUE = runs script to collect demographic file
 editor: visual
 project: 
   execute_dir: project
@@ -85,6 +82,7 @@ The script `install_libraries.R` detects all necessary libraries within the proj
 #| label: load-packages
 #| echo: false
 
+library(yaml)
 library(docstring)
 library(dplyr)
 library(ggiraph)
@@ -615,6 +613,7 @@ Crosswalks used in this file:
 
 generator_file <- readr::read_rds(
         glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/generator_file_{params$temporal_res}.RDS"))
+
 ```
 
 ## View Generator File Data
@@ -1640,29 +1639,12 @@ direct_use_plot <- ggl_file %>%
 ```
 :::
 
+<<<<<<< HEAD
 # Demographics File
 
 The demographics file identifies the demographic characteristics of surrounding neighborhoods within a 3-mile radius for each plant. The demographic data is obtained from EPA's EJScreen API data and lat/lon coordinates of each plant. For more information on the EJScreen data, [see EJScreen's methodology](https://www.epa.gov/ejscreen/technical-information-and-data-downloads).
 
 For full documentation, reference the [eGRID Technical Guide](https://www.epa.gov/egrid/egrid-technical-guide).
-
-## Produce Demographics File
-
-```{r}
-#| label: demographics-file-create
-#| results: hold
-
-if (params$run_demo_file) {
-
-    source("scripts/1_production_model/demographics_file_create.R")
-    print("demographics_file_create is running because run_script is TRUE. Code will take 4-5 hours to complete.")
-
-} else {
-
-    print("Skipping demographics_file_create.R because run_demo_file is FALSE.")
-
-}
-```
 
 # Metric Conversion File
 
