@@ -464,14 +464,14 @@ if(dir.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))
    dir.create(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))
 }
 
-print(glue::glue("Saving generator file to folder data/outputs/{params$eGRID_year}"))
+print(glue::glue("Saving generator file to folder data/1_production_model/outputs/{params$eGRID_year}"))
 
 write_rds(generators_formatted, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file.RDS"))
   
 
 # check if file is successfully written to folder 
 if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file.RDS"))){
-  print(glue::glue("File generator_file.RDS successfully written to folder data/outputs/{params$eGRID_year}"))
+  print(glue::glue("File generator_file.RDS successfully written to folder data/1_production_model/outputs/{params$eGRID_year}"))
 } else {
    print("File generator_file.RDS failed to write to folder.")
 }  

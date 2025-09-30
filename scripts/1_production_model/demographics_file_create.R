@@ -1,14 +1,13 @@
 ## -------------------------------
 ##
+## IMPORTANT NOTE: This file is archived as of 2025, and is not included in eGRID 2024. 
+##
 ## Demographics file create 
 ## 
 ## Purpose: 
 ## 
 ## This file accesses EPA's EJScreen API to collect information about neighboring demographics
 ## of plants at a 3-mile radius. 
-##
-## Note: This file takes 4-5 hours to download data from the EJScreen API. 
-##       params$run_demo_file in egrid_master.qmd is used as a flag whether to create this file when running eGRID. 
 ##
 ## Authors:  
 ##      Madeline Zhang, Abt Global

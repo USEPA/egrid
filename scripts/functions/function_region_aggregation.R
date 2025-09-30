@@ -508,7 +508,7 @@ region_aggregation <- function(region, region_cols) {
       dir.create(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))
     }
     
-    print(glue::glue("Saving {region} aggregation file to folder data/outputs/{params$eGRID_year}"))
+    print(glue::glue("Saving {region} aggregation file to folder data/1_production_model/outputs/{params$eGRID_year}"))
     
     write_rds(region_formatted, glue::glue("data/1_production_model/outputs//{params$eGRID_year}/{region}_aggregation.RDS")) 
     
@@ -908,7 +908,7 @@ region_aggregation <- function(region, region_cols) {
       dir.create(glue::glue("data/1_production_model/outputs/{params$eGRID_year}"))
     }
     
-    print(glue::glue("Saving {region} aggregation file to folder data/outputs/{params$eGRID_year}"))
+    print(glue::glue("Saving {region} aggregation file to folder data/1_production_model/outputs/{params$eGRID_year}"))
     
     write_rds(region_formatted, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{region}_aggregation.RDS"))
     

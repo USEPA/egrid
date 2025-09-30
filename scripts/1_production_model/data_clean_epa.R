@@ -183,7 +183,7 @@ write_rds(epa_final, glue::glue("data/1_production_model/clean_data/epa/{params$
 
 # check if file is successfully written to folder 
 if(file.exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))){
-  print(glue::glue("File epa_clean.RDS successfully written to folder data/clean_data/epa/{params$eGRID_year}"))
+  print(glue::glue("File epa_clean.RDS successfully written to folder data/1_production_model/clean_data/epa/{params$eGRID_year}"))
 } else {
   print("File epa_clean.RDS failed to write to folder.")
 }
