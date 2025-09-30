@@ -23,6 +23,8 @@ execute:
 params:
   eGRID_year: "2023"
   version: "1.0.2"
+  temporal_res: "annual" # temporal resolution of output either: 
+                          # "annual" or "monthly"
 editor: visual
 project: 
   execute_dir: project
@@ -131,6 +133,15 @@ kable(stringr::str_remove(stringr::str_remove(functions, ".R"), "function_"),
 ```
 :::
 
+## Load column names
+
+```{r}
+#| label: load-names
+#| file: "scripts/1_production_model/name_matching.R"
+#| echo: false
+
+```
+
 # Load Data
 
 ## Load data from raw sources
@@ -158,20 +169,16 @@ Three data tables are downloaded from the the CAPD and stored into one .RDS file
 #| label: create-epa-tables 
 #| echo: false  
 
-source("scripts/functions/function_summary_table.R") 
-
 # function to create summary table  
-epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw.RDS")) 
+epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_monthly.RDS")) 
 
-table_epa_raw <- create_summary_table(epa_raw)  
+table_epa_raw <- create_summary_gt_table(epa_raw)  
 
-epa_facilities      <- epa_raw[1:26] 
-epa_emissions       <- epa_raw[27:46] 
-epa_emissions_ozone <- epa_raw[47:58]  
+epa_facilities  <- epa_raw[1:26] 
+epa_emissions   <- epa_raw[27:46] 
 
-table_facilities      <- create_summary_table(epa_facilities) 
-table_emissions       <- create_summary_table(epa_emissions) 
-table_emissions_ozone <- create_summary_table(epa_emissions_ozone)
+table_facilities  <- create_summary_gt_table(epa_facilities) 
+table_emissions   <- create_summary_gt_table(epa_emissions) 
 ```
 
 ::: panel-tabset
@@ -201,15 +208,6 @@ table_facilities
 #| echo: false  
 
 table_emissions
-```
-
-#### EPA ozone season emissions
-
-```{r}
-#| label: print-epa-tab-emissions-ozone 
-#| echo: false  
-
-table_emissions_ozone
 ```
 :::
 
@@ -278,13 +276,6 @@ sheets_used860m <- c("Operating_PR",
 sheets_used861 <- c("Balancing Authority",
                     "States")
 
-# file_name_schedule_2_3_4_5_m_12 <- grep("2_3_4_5_M_12", eia_923_files, value = TRUE)
-
-
-# tab_923 <- style_sheets_table(sheets_used923, tab_923)
-# tab_860 <- style_sheets_table(sheets_used860, tab_860)
-# tab_860m <- style_sheets_table(sheets_used860m, tab_860m)
-# tab_861 <- style_sheets_table(sheets_used861, tab_861)
 ```
 
 #### EIA Files and Sheets {#eia-files-sheets}
@@ -461,7 +452,7 @@ There are several procedures applied to the raw EPA file:
 #| label: create-epa-summary-table 
 #| echo: false  
 
-create_summary_table(readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")))
+create_summary_gt_table(readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")))
 ```
 :::
 
@@ -520,7 +511,7 @@ eia_861_files <- read_rds(
 
 tabs_923 <- 
   eia_923_files %>% 
-  map(., ~ create_summary_table(.x))
+  map(., ~ create_summary_gt_table(.x))
 
 purrr::iwalk(tabs_923, ~ {
   cat("#### ", .y, "\n\n")
@@ -546,7 +537,7 @@ purrr::iwalk(tabs_923, ~ {
 
 tabs_860 <- 
   eia_860_files %>% 
-  map(., ~ create_summary_table(.x))
+  map(., ~ create_summary_gt_table(.x))
 ```
 
 ```{r}
@@ -578,7 +569,7 @@ purrr::iwalk(tabs_860, ~ {
 
 tabs_861 <- 
   eia_861_files %>% 
-  map(., ~ create_summary_table(.x))
+  map(., ~ create_summary_gt_table(.x))
 
 purrr::iwalk(tabs_861, ~ {
   cat("#### ", .y, "\n\n")
@@ -621,7 +612,8 @@ Crosswalks used in this file:
 #| include: false
 
 generator_file <- readr::read_rds(
-           glue::glue("data/1_production_model/outputs/{params$eGRID_year}/generator_file.RDS"))
+        glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/generator_file_{params$temporal_res}.RDS"))
+
 ```
 
 ## View Generator File Data
@@ -636,7 +628,7 @@ generator_file <- readr::read_rds(
 ```{r}
 #| label: gen-file-summary
 
-create_summary_table(generator_file)
+create_summary_gt_table(generator_file)
 ```
 
 #### Generation Distributions
@@ -645,30 +637,37 @@ create_summary_table(generator_file)
 #| label: gen-file-distributions 
 #| fig-height: 10
 
-plot_gen_ann <- 
+plot_gen <- 
   generator_file %>% 
-  ggplot(aes(x = generation_ann)) + 
+  ggplot(aes(x = generation)) + 
   geom_histogram() +
   theme_minimal() +
-  labs(title = "Annual Generation")
+  labs(title = "Total Generation")
 
-plot_gen_oz <-
-  generator_file %>% 
-  ggplot(aes(x = generation_oz)) +
-  geom_histogram() +
-  theme_minimal() +
-  labs(title = "Ozone Months Generation")
+if (params$temporal_res == "annual") {
+  plot_gen_oz <-
+    generator_file %>% 
+    ggplot(aes(x = generation_oz)) +
+    geom_histogram() +
+    theme_minimal() +
+    labs(title = "Ozone Months Generation")
+}
 
-plot_gen_ann_source <-
+plot_gen_source <-
   generator_file %>%
-  ggplot(aes(x = gen_data_source, y = generation_ann)) +
+  ggplot(aes(x = gen_data_source, y = generation)) +
   geom_boxplot() +
   theme_minimal() +
   coord_flip() +
   scale_x_discrete(labels = scales::wrap_format(30)) +
-  labs(title = "Annual Generation by Data Source")
+  labs(title = "Total Generation by Data Source")
 
-  (plot_gen_ann + plot_gen_oz) / plot_gen_ann_source
+if (params$temporal_res == "annual") {
+  (plot_gen_ann + plot_gen_oz) / plot_gen_source
+} else {
+plot_gen_ann / plot_gen_source
+}
+  
 ```
 
 #### Distribution of Data Sources
@@ -748,7 +747,7 @@ Crosswalks used in this file:
 #| include: false
 
 unit_file <- readr::read_rds(
-           glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
+      glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/unit_file_{params$temporal_res}.RDS"))
 ```
 
 ## View Unit File Data
@@ -763,7 +762,7 @@ unit_file <- readr::read_rds(
 ```{r}
 #| label: unit-file-summary
 
-create_summary_table(unit_file)
+create_summary_gt_table(unit_file)
 ```
 
 #### Heat Input Distributions
@@ -779,12 +778,14 @@ plot_unt_heat_in <-
   theme_minimal() +
   labs(title = "Heat Input")
 
+if (params$temporal_res == "annual") {
 plot_unt_heat_in_oz <-   
   unit_file %>%
   ggplot(aes(x = heat_input_oz)) +
   geom_histogram() +
   theme_minimal() +
   labs(title = "Heat Input Ozone")
+}
 
 plot_unt_heat_in_source_dist <-
   unit_file %>%
@@ -804,6 +805,7 @@ plot_unt_heat_in_source_dist <-
     x = NULL
     )
 
+if (params$temporal_res == "annual") {
 plot_unt_heat_in_oz_source_dist <-
   unit_file %>%
   count(heat_input_oz_source) %>%
@@ -821,8 +823,14 @@ plot_unt_heat_in_oz_source_dist <-
     y = "Share of units",
     x = NULL
     )
+}
 
+if (params$temporal_res == "annual"){
 (plot_unt_heat_in + plot_unt_heat_in_oz) / plot_unt_heat_in_source_dist / plot_unt_heat_in_oz_source_dist
+} else {
+plot_unt_heat_in / plot_unt_heat_in_source_dist
+}
+
 ```
 
 #### NOx Distributions
@@ -838,12 +846,14 @@ plot_unt_nox <-
   theme_minimal() +
   labs(title = "NOx Mass")
 
+if (params$temporal_res == "annual"){
 plot_unt_nox_oz <-   
   unit_file %>%
   ggplot(aes(x = nox_oz_mass)) +
   geom_histogram() +
   theme_minimal() +
   labs(title = "NOx Mass Ozone")
+}
 
 plot_unt_nox_sources_dist <-
   unit_file %>%
@@ -863,6 +873,7 @@ plot_unt_nox_sources_dist <-
     x = NULL
     )
 
+if (params$temporal_res == "annual"){
 plot_unt_nox_oz_source_dist <-
   unit_file %>%
   count(nox_oz_source) %>%
@@ -880,8 +891,14 @@ plot_unt_nox_oz_source_dist <-
     y = "Share of units",
     x = NULL
     )
+}
 
+if (params$temporal_res == "annual"){
 (plot_unt_nox + plot_unt_nox_oz) / (plot_unt_nox_sources_dist) / (plot_unt_nox_oz_source_dist)
+} else {
+plot_unt_nox / plot_unt_nox_sources_dist
+}
+
 ```
 
 #### SO2 Distributions
@@ -1016,7 +1033,7 @@ Crosswalks used in this file:
 #| include: false
 
 plant_file <- readr::read_rds(
-           glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
+        glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/plant_file_{params$temporal_res}.RDS"))
 ```
 
 ## View Plant File Data
@@ -1031,7 +1048,7 @@ plant_file <- readr::read_rds(
 ```{r}
 #| label: plant-file-summary
 
-create_summary_table(plant_file)
+create_summary_gt_table(plant_file)
 ```
 
 #### Heat Input Distributions
@@ -1081,6 +1098,7 @@ plot_plnt_heat_in_dist <-
 #| label: plant-file-heat-in-oz-dist
 #| fig-height: 10
 
+if (params$temporal_res == "annual") {
 plot_plnt_heat_in_oz <-
   plant_file %>%
   ggplot(aes(x = heat_input_oz)) +
@@ -1114,6 +1132,8 @@ plot_plnt_heat_in_oz_dist <-
     )
 
 (plot_plnt_heat_in_oz + plot_plnt_unadj_heat_in_oz) / plot_plnt_heat_in_oz_dist
+}
+
 ```
 
 #### NOx Distributions
@@ -1138,11 +1158,11 @@ plot_plnt_unadj_nox <-
 
 plot_plnt_nox_rate <-
   plant_file %>%
-  ggplot(aes(x = nox_out_emission_rate)) +
+  ggplot(aes(x = nox_output_rate)) +
   geom_histogram() +
   theme_minimal() +
   xlim(c(0, 150)) + # adding in limit to deal with outliers
-  labs(title = "NOx Emission Output Rate")
+  labs(title = "NOx Output Emission Rate")
 
 plot_plnt_nox_dist <-
   plant_file %>%
@@ -1171,6 +1191,7 @@ plot_plnt_nox_dist <-
 #| label: plant-file-nox-oz-dist
 #| fig-height: 10
 
+if (params$temporal_res == "annual") {
 plot_plnt_nox_oz <-
   plant_file %>%
   ggplot(aes(x = nox_oz_mass)) +
@@ -1187,11 +1208,11 @@ plot_plnt_unadj_nox_oz <-
 
 plot_plnt_nox_oz_rate <-
   plant_file %>%
-  ggplot(aes(x = nox_oz_out_emission_rate)) +
+  ggplot(aes(x = nox_oz_output_rate)) +
   geom_histogram() +
   theme_minimal() +
   xlim(c(0, 150)) + # adding in limit to deal with outliers
-  labs(title = "NOx Ozone Emission Output Rate")
+  labs(title = "NOx Ozone Output Emission Rate")
 
 plot_plnt_nox_oz_dist <-
   plant_file %>%
@@ -1212,6 +1233,8 @@ plot_plnt_nox_oz_dist <-
     )
 
 (plot_plnt_nox_oz + plot_plnt_unadj_nox_oz) / plot_plnt_nox_oz_rate / plot_plnt_nox_oz_dist
+}
+
 ```
 
 #### SO2 Distributions
@@ -1236,11 +1259,11 @@ plot_plnt_unadj_so2 <-
 
 plot_plnt_so2_rate <-
   plant_file %>%
-  ggplot(aes(x = so2_out_emission_rate)) +
+  ggplot(aes(x = so2_output_rate)) +
   geom_histogram() +
   theme_minimal() +
   xlim(c(0, 50)) + # adding in limit to deal with outliers
-  labs(title = "SO2 Emission Output Rate")
+  labs(title = "SO2 Output Emission Rate")
 
 plot_plnt_so2_dist <-
   plant_file %>%
@@ -1285,11 +1308,11 @@ plot_plnt_unadj_co2 <-
 
 plot_plnt_co2_rate <-
   plant_file %>%
-  ggplot(aes(x = co2_out_emission_rate)) +
+  ggplot(aes(x = co2_output_rate)) +
   geom_histogram() +
   theme_minimal() +
   xlim(c(0, 30000)) + # adding in limit to deal with outliers
-  labs(title = "CO2 Emission Output Rate")
+  labs(title = "CO2 Output Emission Rate")
 
 plot_plnt_co2_dist <-
   plant_file %>%
@@ -1334,11 +1357,11 @@ plot_plnt_unadj_ch4 <-
 
 plot_plnt_ch4_rate <-
   plant_file %>%
-  ggplot(aes(x = ch4_out_emission_rate)) +
+  ggplot(aes(x = ch4_output_rate)) +
   geom_histogram() +
   theme_minimal() +
   xlim(c(0, 10)) + # adding in limit to deal with outliers
-  labs(title = "CH4 Emission Output Rate")
+  labs(title = "CH4 Output Emission Rate")
 
 plot_plnt_ch4_dist <-
   plant_file %>%
@@ -1383,11 +1406,11 @@ plot_plnt_unadj_n2o <-
 
 plot_plnt_n2o_rate <-
   plant_file %>%
-  ggplot(aes(x = n2o_out_emission_rate)) +
+  ggplot(aes(x = n2o_output_rate)) +
   geom_histogram() +
   theme_minimal() +
   xlim(c(0, 1)) + # adding in limit to deal with outliers
-  labs(title = "N2O Emission Output Rate")
+  labs(title = "N2O Output Emission Rate")
 
 plot_plnt_n2o_dist <-
   plant_file %>%
@@ -1436,15 +1459,19 @@ Crosswalks used in this file:
 #| echo: false
 
 ba_agg  <- read_rds(
-        glue::glue("data/1_production_model/outputs/{params$eGRID_year}/ba_aggregation.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/ba_aggregation_{params$temporal_res}.RDS"))
+
 st_agg  <- read_rds(
-        glue::glue("data/1_production_model/outputs/{params$eGRID_year}/state_aggregation.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/state_aggregation_{params$temporal_res}.RDS"))
+
 srl_agg <- read_rds(
-        glue::glue("data/1_production_model/outputs/{params$eGRID_year}/subregion_aggregation.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/subregion_aggregation_{params$temporal_res}.RDS"))
+
 nrl_agg <- read_rds(
-        glue::glue("data/1_production_model/outputs/{params$eGRID_year}/nerc_aggregation.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/nerc_aggregation_{params$temporal_res}.RDS"))
+
 us_agg  <- read_rds(
-        glue::glue("data/1_production_model/outputs/{params$eGRID_year}/us_aggregation.RDS"))
+    glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/us_aggregation_{params$temporal_res}.RDS"))
 ```
 
 ## View Aggregation Files Data
@@ -1469,7 +1496,7 @@ us_agg  <- read_rds(
 ```{r}
 #| label: ba-agg-summary
 
-create_summary_table(ba_agg)
+create_summary_gt_table(ba_agg)
 ```
 
 #### ST
@@ -1477,7 +1504,7 @@ create_summary_table(ba_agg)
 ```{r}
 #| label: st-agg-summary
 
-create_summary_table(st_agg)
+create_summary_gt_table(st_agg)
 ```
 
 #### SRL
@@ -1485,7 +1512,7 @@ create_summary_table(st_agg)
 ```{r}
 #| label: srl-agg-summary
 
-create_summary_table(srl_agg)
+create_summary_gt_table(srl_agg)
 ```
 
 #### NRL
@@ -1493,7 +1520,7 @@ create_summary_table(srl_agg)
 ```{r}
 #| label: nrl-agg-summary
 
-create_summary_table(nrl_agg)
+create_summary_gt_table(nrl_agg)
 ```
 
 #### US
@@ -1501,7 +1528,7 @@ create_summary_table(nrl_agg)
 ```{r}
 #| label: us-agg-summary
 
-create_summary_table(us_agg)
+create_summary_gt_table(us_agg)
 ```
 :::
 
@@ -1545,7 +1572,7 @@ ggl_file <- readr::read_rds(
 ```{r}
 #| label: ggl-file-summary
 
-create_summary_table(ggl_file)
+create_summary_gt_table(ggl_file)
 ```
 
 #### View Plots
@@ -1614,7 +1641,7 @@ direct_use_plot <- ggl_file %>%
 
 # Metric Conversion File
 
-The metric file script produces a metric version of the eGRID datasets by converting certain data from imperial to metric units. The results are the following metric version files:
+The metric file script produces a metric version of the eGRID datasets by converting certain data from imperial to metric units. The output file follows this format: `{file_name}_{params$temporal_res}_metric.RDS` The results are the following metric version files:
 
 -   `generator_file_metric`
 
@@ -1669,12 +1696,17 @@ The data is formatted into an Excel file that contains all eight levels of data 
 
 ### Imperial Version
 
-The final output file is `r glue::glue("egrid{params$eGRID_year}_data.xlsx")`.
+The final output file is `r glue::glue("egrid{params$eGRID_year}_data.xlsx")` if running annual version and `r glue::glue("egrid{params$eGRID_year}_data_monthly.xlsx")` if running monthly version.
 
 ```{r}
 #| label: final-formatting
-#| file: "scripts/1_production_model/final_formatting.R"
 #| results: hold
+
+if(params$temporal_res == "annual"){
+  source("scripts/1_production_model/final_formatting_annual.R")
+} else if(params$temporal_res == "monthly") { 
+  source("scripts/1_production_model/final_formatting_monthly.R")}
+
 ```
 
 ### Metric Version
@@ -1683,8 +1715,13 @@ The final metric output file is `r glue::glue("egrid{params$eGRID_year}_data_met
 
 ```{r}
 #| label: metric-final-formatting
-#| file: "scripts/1_production_model/final_formatting_metric.R"
 #| results: hold
+
+if(params$temporal_res == "annual"){
+  source("scripts/1_production_model/final_formatting_metric_annual.R")
+} else if(params$temporal_res == "monthly") { 
+  source("scripts/1_production_model/final_formatting_metric_monthly.R")}
+
 ```
 
 # eGRID Summary

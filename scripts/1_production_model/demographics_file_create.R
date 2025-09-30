@@ -9,6 +9,9 @@
 ## This file accesses EPA's EJScreen API to collect information about neighboring demographics
 ## of plants at a 3-mile radius. 
 ##
+## Note: This file takes 4-5 hours to download data from the EJScreen API. 
+##       params$run_demo_file in egrid_master.qmd is used as a flag whether to create this file when running eGRID. 
+##
 ## Authors:  
 ##      Madeline Zhang, Abt Global
 ##
@@ -29,22 +32,16 @@ library(data.table)
 
 # Set parameters ------
 
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
+# Define paramters if necessary and check for valid params()
+if (!exists("params")) {
+  params <- check_params()
+} else {
+  print("eGRID year and version parameters are already defined.")
 }
 
 # Load in datasets ------
 
-plant_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
+plant_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file_annual.RDS"))
 
 # subset data to columns
 

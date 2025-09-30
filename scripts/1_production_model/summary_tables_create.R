@@ -22,34 +22,28 @@ library(stringr)
 library(tidyr)
 
 # Define eGRID year ------------------
+# Load necessary functions
+source("scripts/functions/function_check_params.R")
 
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params) & "version" %in% names(params)) { # if params() and params$eGRID_year, params$version exist, do not re-define
-    print("eGRID year and version parameters are already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-    params$version <- readline(prompt = "Input version (format X.X.X): ")
-    params$version <- as.character(params$version) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
-  params$version <- readline(prompt = "Input version (format X.X.X): ")
-  params$version <- as.character(params$version) 
+# Define parameters if necessary and check for valid params()
+if (!exists("params")) {
+  params <- check_params()
+} else {
+  print("eGRID year and version parameters are already defined.")
 }
 
 # Import .RDS data --------------------------------
 
 # create a list of files in R directory
 data_dir <- glue::glue("data/1_production_model/outputs/{params$eGRID_year}/")
-filenames <- list("state_aggregation.RDS", "subregion_aggregation.RDS", 
-                  "grid_gross_loss.RDS", "us_aggregation.RDS")
+filenames <- list(glue::glue("{params$temporal_res}/state_aggregation_{params$temporal_res}.RDS"), 
+                  glue::glue("{params$temporal_res}/subregion_aggregation_{params$temporal_res}.RDS"), 
+                  "grid_gross_loss.RDS", 
+                  glue::glue("{params$temporal_res}/us_aggregation_{params$temporal_res}.RDS"))
 
 # import files in list
 for (file in (filenames)){
-  assign(str_remove(file, ".RDS"), read_rds(paste0(data_dir, file)))
+  assign(str_remove_all(file, "_annual|_monthly|.RDS|annual/|monthly/"), read_rds(paste0(data_dir, file)))
 }
 
 # Format subregion output emissions rates for TABLE 1   ------------------
@@ -113,13 +107,13 @@ resource_type <- c(
 # US emissions data
 us_resource_mix <-
   us_aggregation %>%
-  select(us_nameplate_capacity, us_generation_ann, any_of(paste0("us_ann_resource_mix_", resource_type))) %>%
+  select(us_nameplate_capacity, us_generation, any_of(paste0("us_ann_resource_mix_", resource_type))) %>%
   rename_with(~str_c(str_remove(., "us_")))
 
 # subregion resource mix
 subregion_resource_mix <-
   subregion_aggregation %>%
-  select(subregion, subregion_name, subregion_nameplate_capacity, subregion_generation_ann, 
+  select(subregion, subregion_name, subregion_nameplate_capacity, subregion_generation, 
          any_of(paste0("subregion_ann_resource_mix_", resource_type))) %>%
   rename_with(~str_c(str_remove(., "subregion_"))) %>%
   # add US data to bottom row
@@ -143,7 +137,7 @@ state_output_emissions <-
 # state resource mix
 state_resource_mix <-
   state_aggregation %>%
-  select(state, state_nameplate_capacity, state_generation_ann, 
+  select(state, state_nameplate_capacity, state_generation, 
          any_of(paste0("state_ann_resource_mix_", resource_type))) %>%
   rename_with(~str_c(str_remove(., "state_"))) %>%
   # add US data to bottom row
@@ -181,5 +175,5 @@ create_summary_tables()
                       
 # Save excel sheet -------------------------------
 
-saveWorkbook(wb, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/summary_tables.xlsx"), 
+saveWorkbook(wb, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/summary_tables_{params$temporal_res}.xlsx"), 
              overwrite = TRUE)

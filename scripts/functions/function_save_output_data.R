@@ -73,7 +73,7 @@ save_output_data <- function(data, output_folder_path, file_name, file_type="RDS
     } else if(file_type == "CSV") { 
       write.csv(data, glue::glue("{output_folder_path}/{params$eGRID_year}/monthly/{file_name}"), na="", row.names = FALSE)
     }
-    
+
     # check if file is successfully written to folder
     if(file.exists(glue::glue("{output_folder_path}/{params$eGRID_year}/monthly/{file_name}"))){
       print(glue::glue("File {file_name} successfully written to folder {output_folder_path}/{params$eGRID_year}/monthly"))
@@ -97,7 +97,7 @@ save_output_data <- function(data, output_folder_path, file_name, file_type="RDS
     } else if(file_type == "CSV") { 
       write.csv(data, glue::glue("{output_folder_path}/{params$eGRID_year}/{file_name}"), na="", row.names = FALSE)
     }
-    
+
     # check if file is successfully written to folder
     if(file.exists(glue::glue("{output_folder_path}/{params$eGRID_year}/{file_name}"))){
       print(glue::glue("File {file_name} successfully written to folder {output_folder_path}/{params$eGRID_year}"))

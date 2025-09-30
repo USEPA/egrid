@@ -27,8 +27,6 @@ This file compares the final output of eGRID to previous year outputs.
 ```{r}
 #| label: read-qa-file
 #| file: "scripts/qa/annual_qa/qa_egrid_annual_comparison.R"
-
-
 #| results: False
 ```
 
@@ -51,7 +49,7 @@ Compare subregion emission rates from `r prev_yr3` to `r params$eGRID_year` and 
 nox_output <- 
   subregion_rate_comparison %>% 
   select(subregion, contains("nox_output_rate_2"), nox_output_rate_pct,  
-         generation_notes)
+         generation_notes, -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_output_rate, 
@@ -85,8 +83,10 @@ knitr::kable(nox_output,
 #| label: nox-oz-output-rate-subregion
 
 nox_oz_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("nox_oz_output_rate_2"),
-                                       nox_oz_output_rate_pct, generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_oz_output_rate_2"),
+        nox_oz_output_rate_pct, generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_oz_output_rate, 
@@ -120,8 +120,10 @@ knitr::kable(nox_oz_output,
 #| label: so2-output-rate-subregion
 
 so2_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("so2_output_rate_2"),
-                                       so2_output_rate_pct, generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("so2_output_rate_2"),
+         so2_output_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = so2_output_rate, 
@@ -155,8 +157,10 @@ knitr::kable(so2_output,
 #| label: co2-output-rate-subregion
 
 co2_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("co2_output_rate_2"),
-                                       co2_output_rate_pct, generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2_output_rate_2"),
+         co2_output_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = co2_output_rate, 
@@ -190,8 +194,10 @@ knitr::kable(co2_output,
 #| label: ch4-output-rate-subregion
 
 ch4_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("ch4_output_rate_2"),
-                                      ch4_output_rate_pct, generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("ch4_output_rate_2"),
+         ch4_output_rate_pct, generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                                                 y = ch4_output_rate, 
@@ -225,8 +231,10 @@ knitr::kable(ch4_output,
 #| label: n2o-output-rate-subregion
 
 n2o_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("n2o_output_rate_2"),
-                                       n2o_output_rate_pct, generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("n2o_output_rate_2"),
+         n2o_output_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                                                 y = n2o_output_rate, 
@@ -260,8 +268,10 @@ knitr::kable(n2o_output,
 #| label: co2e-output-rate-subregion
 
 co2e_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("co2e_output_rate_2"),
-                                       co2e_output_rate_pct, generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2e_output_rate_2"),
+         co2e_output_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = co2e_output_rate, 
@@ -302,10 +312,10 @@ knitr::kable(co2e_output,
 
 nox_output_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_output_rate_coal"), generation_notes)
+  select(subregion, contains("coal_nox_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_output_rate_coal, 
+                                                y = coal_nox_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -337,10 +347,10 @@ knitr::kable(nox_output_coal,
 
 nox_output_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_output_rate_oil"), generation_notes)
+  select(subregion, contains("oil_nox_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_output_rate_oil, 
+                                                y = oil_nox_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -372,10 +382,10 @@ knitr::kable(nox_output_oil,
 
 nox_output_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_output_rate_gas"), generation_notes)
+  select(subregion, contains("gas_nox_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_output_rate_gas, 
+                                                y = gas_nox_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -407,10 +417,10 @@ knitr::kable(nox_output_gas,
 
 nox_output_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_output_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_nox_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_output_rate_fossil, 
+                                                y = fossil_nox_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -446,10 +456,10 @@ knitr::kable(nox_output_fossil,
 
 nox_oz_output_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_oz_output_rate_coal"), generation_notes)
+  select(subregion, contains("coal_nox_oz_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_oz_output_rate_coal, 
+                                                y = coal_nox_oz_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -481,10 +491,10 @@ knitr::kable(nox_oz_output_coal,
 
 nox_oz_output_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_oz_output_rate_oil"), generation_notes)
+  select(subregion, contains("oil_nox_oz_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_oz_output_rate_oil, 
+                                                y = oil_nox_oz_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -516,10 +526,10 @@ knitr::kable(nox_oz_output_oil,
 
 nox_oz_output_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_oz_output_rate_gas"), generation_notes)
+  select(subregion, contains("gas_nox_oz_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_oz_output_rate_gas, 
+                                                y = gas_nox_oz_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -551,10 +561,10 @@ knitr::kable(nox_oz_output_gas,
 
 nox_oz_output_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_oz_output_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_nox_oz_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_oz_output_rate_fossil, 
+                                                y = fossil_nox_oz_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -590,10 +600,10 @@ knitr::kable(nox_oz_output_fossil,
 
 so2_output_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("so2_output_rate_coal"), generation_notes)
+  select(subregion, contains("coal_so2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = so2_output_rate_coal, 
+                                                y = coal_so2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -625,10 +635,10 @@ knitr::kable(so2_output_coal,
 
 so2_output_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("so2_output_rate_oil"), generation_notes)
+  select(subregion, contains("oil_so2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = so2_output_rate_oil, 
+                                                y = oil_so2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -660,10 +670,10 @@ knitr::kable(so2_output_oil,
 
 so2_output_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("so2_output_rate_gas"), generation_notes)
+  select(subregion, contains("gas_so2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = so2_output_rate_gas, 
+                                                y = gas_so2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -695,10 +705,10 @@ knitr::kable(so2_output_gas,
 
 so2_output_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("so2_output_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_so2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = so2_output_rate_fossil, 
+                                                y = fossil_so2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -734,10 +744,10 @@ knitr::kable(so2_output_fossil,
 
 co2_output_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2_output_rate_coal"), generation_notes)
+  select(subregion, contains("coal_co2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2_output_rate_coal, 
+                                                y = coal_co2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -769,10 +779,10 @@ knitr::kable(co2_output_coal,
 
 co2_output_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2_output_rate_oil"), generation_notes)
+  select(subregion, contains("oil_co2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2_output_rate_oil, 
+                                                y = oil_co2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -804,10 +814,10 @@ knitr::kable(co2_output_oil,
 
 co2_output_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2_output_rate_gas"), generation_notes)
+  select(subregion, contains("gas_co2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2_output_rate_gas, 
+                                                y = gas_co2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -839,10 +849,10 @@ knitr::kable(co2_output_gas,
 
 co2_output_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2_output_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_co2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2_output_rate_fossil, 
+                                                y = fossil_co2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -878,10 +888,10 @@ knitr::kable(co2_output_fossil,
 
 ch4_output_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("ch4_output_rate_coal"), generation_notes)
+  select(subregion, contains("coal_ch4_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = ch4_output_rate_coal, 
+                                                y = coal_ch4_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -913,10 +923,10 @@ knitr::kable(ch4_output_coal,
 
 ch4_output_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("ch4_output_rate_oil"), generation_notes)
+  select(subregion, contains("oil_ch4_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = ch4_output_rate_oil, 
+                                                y = oil_ch4_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -941,17 +951,17 @@ knitr::kable(ch4_output_oil,
                            "Notes"))
 ```
 
-###### CH4 gas output rate
+###### CH4 gas output rat
 
 ```{r}
 #| label: ch4-output-rate-gas-subregion
 
 ch4_output_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("ch4_output_rate_gas"), generation_notes)
+  select(subregion, contains("gas_ch4_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = ch4_output_rate_gas, 
+                                                y = gas_ch4_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -983,10 +993,10 @@ knitr::kable(ch4_output_gas,
 
 ch4_output_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("ch4_output_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_ch4_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = ch4_output_rate_fossil, 
+                                                y = fossil_ch4_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1022,10 +1032,10 @@ knitr::kable(ch4_output_fossil,
 
 n2o_output_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("n2o_output_rate_coal"), generation_notes)
+  select(subregion, contains("coal_n2o_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = n2o_output_rate_coal, 
+                                                y = coal_n2o_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1057,10 +1067,10 @@ knitr::kable(n2o_output_coal,
 
 n2o_output_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("n2o_output_rate_oil"), generation_notes)
+  select(subregion, contains("oil_n2o_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = n2o_output_rate_oil, 
+                                                y = oil_n2o_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1092,10 +1102,10 @@ knitr::kable(n2o_output_oil,
 
 n2o_output_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("n2o_output_rate_gas"), generation_notes)
+  select(subregion, contains("gas_n2o_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = n2o_output_rate_gas, 
+                                                y = gas_n2o_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1127,10 +1137,10 @@ knitr::kable(n2o_output_gas,
 
 n2o_output_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("n2o_output_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_n2o_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = n2o_output_rate_fossil, 
+                                                y = fossil_n2o_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1166,10 +1176,10 @@ knitr::kable(n2o_output_fossil,
 
 co2e_output_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2e_output_rate_coal"), generation_notes)
+  select(subregion, contains("coal_co2e_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2e_output_rate_coal, 
+                                                y = coal_co2e_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1201,10 +1211,10 @@ knitr::kable(co2e_output_coal,
 
 co2e_output_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2e_output_rate_oil"), generation_notes)
+  select(subregion, contains("oil_co2e_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2e_output_rate_oil, 
+                                                y = oil_co2e_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1236,10 +1246,10 @@ knitr::kable(co2e_output_oil,
 
 co2e_output_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2e_output_rate_gas"), generation_notes)
+  select(subregion, contains("gas_co2e_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2e_output_rate_gas, 
+                                                y = gas_co2e_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1271,10 +1281,10 @@ knitr::kable(co2e_output_gas,
 
 co2e_output_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2e_output_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_co2e_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2e_output_rate_fossil, 
+                                                y = fossil_co2e_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1311,8 +1321,10 @@ knitr::kable(co2e_output_fossil,
 #| label: nox-input-rate-subregion
 
 nox_input <- 
-  subregion_rate_comparison %>% select(subregion, contains("nox_input_rate_2"),
-                                      nox_input_rate_pct, generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_input_rate_2"),
+         nox_input_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_input_rate,
@@ -1346,8 +1358,10 @@ knitr::kable(nox_input,
 #| label: nox-input-oz-rate-subregion
 
 nox_oz_input <- 
-  subregion_rate_comparison %>% select(subregion, contains("nox_oz_input_rate_2"),
-                                      nox_oz_input_rate_pct, generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_oz_input_rate_2"),
+         nox_oz_input_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_oz_input_rate, 
@@ -1381,8 +1395,10 @@ knitr::kable(nox_oz_input,
 #| label: so2-input-rate-subregion
 
 so2_input <- 
-  subregion_rate_comparison %>% select(subregion, contains("so2_input_rate_2"),
-                                       so2_input_rate_pct, generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("so2_input_rate_2"),
+         so2_input_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = so2_input_rate, 
@@ -1416,8 +1432,10 @@ knitr::kable(so2_output,
 #| label: co2-input-rate-subregion
 
 co2_input <- 
-  subregion_rate_comparison %>% select(subregion, contains("co2_input_rate_2"),
-                                       co2_input_rate_pct, generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2_input_rate_2"),
+         co2_input_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                                                 y = co2_input_rate, 
@@ -1451,8 +1469,10 @@ knitr::kable(co2_input,
 #| label: ch4-input-rate-subregion
 
 ch4_output <- 
-  subregion_rate_comparison %>% select(subregion, contains("ch4_output_rate_2"),
-                                       ch4_input_rate_pct, generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("ch4_output_rate_2"),
+         ch4_input_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = ch4_input_rate, 
@@ -1486,8 +1506,10 @@ knitr::kable(ch4_output,
 #| label: n2o-input-rate-subregion
 
 n2o_input <- 
-  subregion_rate_comparison %>% select(subregion, contains("n2o_input_rate_2"),
-                                       n2o_input_rate_pct, generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("n2o_input_rate_2"),
+         n2o_input_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = n2o_input_rate, 
@@ -1521,8 +1543,10 @@ knitr::kable(n2o_input,
 #| label: co2e-input-rate-subregion
 
 co2e_input <- 
-  subregion_rate_comparison %>% select(subregion, contains("co2e_input_rate_2"),
-                                       co2e_input_rate_pct, generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2e_input_rate_2"),
+         co2e_input_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = co2e_input_rate, 
@@ -1563,10 +1587,10 @@ knitr::kable(co2e_input,
 
 nox_input_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_input_rate_coal"), generation_notes)
+  select(subregion, contains("coal_nox_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_input_rate_coal, 
+                                                y = coal_nox_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1598,10 +1622,10 @@ knitr::kable(nox_input_coal,
 
 nox_input_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_input_rate_oil"), generation_notes)
+  select(subregion, contains("oil_nox_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_input_rate_oil, 
+                                                y = oil_nox_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1633,10 +1657,10 @@ knitr::kable(nox_input_oil,
 
 nox_input_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_input_rate_gas"), generation_notes)
+  select(subregion, contains("gas_nox_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_input_rate_gas, 
+                                                y = gas_nox_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1668,10 +1692,10 @@ knitr::kable(nox_input_gas,
 
 nox_input_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_input_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_nox_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_input_rate_fossil, 
+                                                y = fossil_nox_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1707,10 +1731,10 @@ knitr::kable(nox_input_fossil,
 
 nox_oz_input_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_oz_input_rate_coal"), generation_notes)
+  select(subregion, contains("coal_nox_oz_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_oz_input_rate_coal, 
+                                                y = coal_nox_oz_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1742,10 +1766,10 @@ knitr::kable(nox_oz_input_coal,
 
 nox_oz_input_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_oz_input_rate_oil"), generation_notes)
+  select(subregion, contains("oil_nox_oz_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_oz_input_rate_oil, 
+                                                y = oil_nox_oz_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1777,10 +1801,10 @@ knitr::kable(nox_oz_input_oil,
 
 nox_oz_input_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_oz_input_rate_gas"), generation_notes)
+  select(subregion, contains("gas_nox_oz_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_oz_input_rate_gas, 
+                                                y = gas_nox_oz_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1812,10 +1836,10 @@ knitr::kable(nox_oz_input_gas,
 
 nox_oz_input_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("nox_oz_input_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_nox_oz_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = nox_oz_input_rate_fossil, 
+                                                y = fossil_nox_oz_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1851,10 +1875,10 @@ knitr::kable(nox_oz_input_fossil,
 
 so2_input_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("so2_input_rate_coal"), generation_notes)
+  select(subregion, contains("coal_so2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = so2_input_rate_coal, 
+                                                y = coal_so2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1886,10 +1910,10 @@ knitr::kable(so2_input_coal,
 
 so2_input_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("so2_input_rate_oil"), generation_notes)
+  select(subregion, contains("oil_so2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = so2_input_rate_oil, 
+                                                y = oil_so2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1921,10 +1945,10 @@ knitr::kable(so2_input_oil,
 
 so2_input_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("so2_input_rate_gas"), generation_notes)
+  select(subregion, contains("gas_so2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = so2_input_rate_gas, 
+                                                y = gas_so2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1956,10 +1980,10 @@ knitr::kable(so2_input_gas,
 
 so2_input_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("so2_input_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_so2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = so2_input_rate_fossil, 
+                                                y = fossil_so2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -1995,10 +2019,10 @@ knitr::kable(so2_input_fossil,
 
 co2_input_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2_input_rate_coal"), generation_notes)
+  select(subregion, contains("coal_co2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2_input_rate_coal, 
+                                                y = coal_co2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2030,10 +2054,10 @@ knitr::kable(co2_input_coal,
 
 co2_input_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2_input_rate_oil"), generation_notes)
+  select(subregion, contains("oil_co2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2_input_rate_oil, 
+                                                y = coal_co2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2065,10 +2089,10 @@ knitr::kable(co2_input_oil,
 
 co2_input_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2_input_rate_gas"), generation_notes)
+  select(subregion, contains("gas_co2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2_input_rate_gas, 
+                                                y = gas_co2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2100,10 +2124,10 @@ knitr::kable(co2_input_gas,
 
 co2_input_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2_input_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_co2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2_input_rate_fossil, 
+                                                y = fossil_co2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2139,10 +2163,10 @@ knitr::kable(co2_input_fossil,
 
 ch4_input_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("ch4_input_rate_coal"), generation_notes)
+  select(subregion, contains("coal_ch4_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = ch4_input_rate_coal, 
+                                                y = coal_ch4_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2174,10 +2198,10 @@ knitr::kable(ch4_input_coal,
 
 ch4_input_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("ch4_input_rate_oil"), generation_notes)
+  select(subregion, contains("oil_ch4_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = ch4_input_rate_oil, 
+                                                y = oil_ch4_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2209,10 +2233,10 @@ knitr::kable(ch4_input_oil,
 
 ch4_input_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("ch4_input_rate_gas"), generation_notes)
+  select(subregion, contains("gas_ch4_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = ch4_input_rate_gas, 
+                                                y = gas_ch4_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2244,10 +2268,10 @@ knitr::kable(ch4_input_gas,
 
 ch4_input_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("ch4_input_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_ch4_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = ch4_input_rate_fossil, 
+                                                y = fossil_ch4_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2283,10 +2307,10 @@ knitr::kable(ch4_input_fossil,
 
 n2o_input_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("n2o_input_rate_coal"), generation_notes)
+  select(subregion, contains("coal_n2o_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = n2o_input_rate_coal, 
+                                                y = coal_n2o_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2318,10 +2342,10 @@ knitr::kable(n2o_input_coal,
 
 n2o_input_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("n2o_input_rate_oil"), generation_notes)
+  select(subregion, contains("oil_n2o_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = n2o_input_rate_oil, 
+                                                y = oil_n2o_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2353,10 +2377,10 @@ knitr::kable(n2o_input_oil,
 
 n2o_input_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("n2o_input_rate_gas"), generation_notes)
+  select(subregion, contains("gas_n2o_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = n2o_input_rate_gas, 
+                                                y = gas_n2o_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2388,10 +2412,10 @@ knitr::kable(n2o_input_gas,
 
 n2o_input_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("n2o_input_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_n2o_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = n2o_input_rate_fossil, 
+                                                y = fossil_n2o_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2427,10 +2451,10 @@ knitr::kable(n2o_input_fossil,
 
 co2e_input_coal <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2e_input_rate_coal"), generation_notes)
+  select(subregion, contains("coal_co2e_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2e_input_rate_coal, 
+                                                y = coal_co2e_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2462,10 +2486,10 @@ knitr::kable(co2e_input_coal,
 
 co2e_input_oil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2e_input_rate_oil"), generation_notes)
+  select(subregion, contains("oil_co2e_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2e_input_rate_oil, 
+                                                y = oil_co2e_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2497,10 +2521,10 @@ knitr::kable(co2e_input_oil,
 
 co2e_input_gas <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2e_input_rate_gas"), generation_notes)
+  select(subregion, contains("gas_co2e_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2e_input_rate_gas, 
+                                                y = gas_co2e_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2532,10 +2556,10 @@ knitr::kable(co2e_input_gas,
 
 co2e_input_fossil <- 
   subregion_rate_comparison %>% 
-  select(subregion, contains("co2e_input_rate_fossil"), generation_notes)
+  select(subregion, contains("fossil_co2e_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
-                                                y = co2e_input_rate_fossil, 
+                                                y = fossil_co2e_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2570,8 +2594,10 @@ knitr::kable(co2e_input_fossil,
 #| label: nox-combustion-rate-subregion
 
 nox_combustion <- 
-  subregion_rate_comparison %>% select(subregion, contains("nox_combustion"),
-                                      generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_combustion"),
+         generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = nox_combustion_rate, 
@@ -2605,7 +2631,9 @@ knitr::kable(nox_combustion,
 #| label: nox-oz-combustion-rate-subregion
 
 nox_oz_combustion <- 
-  subregion_rate_comparison %>% select(subregion, contains("nox_oz_combustion"), generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_oz_combustion"), generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion,
                                                 y = nox_oz_combustion_rate, 
@@ -2639,7 +2667,9 @@ knitr::kable(nox_oz_combustion,
 #| label: so2-combustion-rate-subregion
 
 so2_combustion <- 
-  subregion_rate_comparison %>% select(subregion, contains("so2_combustion"), generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("so2_combustion"), generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = so2_combustion_rate, 
@@ -2673,7 +2703,9 @@ knitr::kable(so2_combustion,
 #| label: co2-combustion-rate-subregion
 
 co2_combustion <- 
-  subregion_rate_comparison %>% select(subregion, contains("co2_combustion"), generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2_combustion"), generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = co2_combustion_rate, 
@@ -2707,7 +2739,9 @@ knitr::kable(co2_combustion,
 #| label: ch4-combustion-rate-subregion
 
 ch4_combustion <- 
-  subregion_rate_comparison %>% select(subregion, contains("ch4_combustion"), generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("ch4_combustion"), generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = ch4_combustion_rate, 
@@ -2741,7 +2775,9 @@ knitr::kable(ch4_combustion,
 #| label: n2o-combustion-rate-subregion
 
 n2o_combustion <- 
-  subregion_rate_comparison %>% select(subregion, contains("n2o_combustion"), generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("n2o_combustion"), generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = n2o_combustion_rate, 
@@ -2775,7 +2811,9 @@ knitr::kable(n2o_combustion,
 #| label: co2e-combustion-rate-subregion
 
 co2e_combustion <- 
-  subregion_rate_comparison %>% select(subregion, contains("co2e_combustion"), generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2e_combustion"), generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(subregion_us_comparison, aes(x = subregion, 
                                                 y = co2e_combustion_rate, 
@@ -2813,10 +2851,16 @@ knitr::kable(co2e_combustion,
 #| label: nox-nonbaseload-rate-subregion
 
 nox_nonbaseload <- 
-  subregion_rate_comparison %>% select(subregion, contains("nox_nonbaseload"), generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_output_rate_nonbaseload"), generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil"))) %>% 
+  mutate(pct_diff = (nox_output_rate_nonbaseload_2023 -
+                       nox_output_rate_nonbaseload_2022) /
+           nox_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(subregion_comparison, aes(x = subregion, 
-                                                y = nox_nonbaseload_rate, 
+                                                y = nox_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2847,10 +2891,16 @@ knitr::kable(nox_nonbaseload,
 #| label: nox-oz-nonbaseload-rate-subregion
 
 nox_oz_nonbaseload <- 
-  subregion_rate_comparison %>% select(subregion, contains("nox_oz_nonbaseload"), generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("nox_oz_output_rate_nonbaseload"), 
+         generation_notes) %>% 
+  mutate(pct_diff = (nox_oz_output_rate_nonbaseload_2023 -
+                       nox_oz_output_rate_nonbaseload_2022) /
+           nox_oz_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(subregion_comparison, aes(x = subregion,
-                                                y = nox_oz_nonbaseload_rate, 
+                                                y = nox_oz_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2881,10 +2931,16 @@ knitr::kable(nox_oz_nonbaseload,
 #| label: so2-nonbaseload-rate-subregion
 
 so2_nonbaseload <- 
-  subregion_rate_comparison %>% select(subregion, contains("so2_nonbaseload"), generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("so2_output_rate_nonbaseload"), generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))%>% 
+  mutate(pct_diff = (so2_output_rate_nonbaseload_2023 -
+                       so2_output_rate_nonbaseload_2022) /
+           so2_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(subregion_comparison, aes(x = subregion, 
-                                                y = so2_nonbaseload_rate, 
+                                                y = so2_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2915,10 +2971,16 @@ knitr::kable(so2_nonbaseload,
 #| label: co2-nonbaseload-rate-subregion
 
 co2_nonbaseload <- 
-  subregion_rate_comparison %>% select(subregion, contains("co2_nonbaseload"), generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2_output_rate_nonbaseload"), generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil"))) %>% 
+  mutate(pct_diff = (co2_output_rate_nonbaseload_2023 -
+                       co2_output_rate_nonbaseload_2022) /
+           co2_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(subregion_comparison, aes(x = subregion, 
-                                                y = co2_nonbaseload_rate, 
+                                                y = co2_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2949,10 +3011,16 @@ knitr::kable(co2_nonbaseload,
 #| label: ch4-nonbaseload-rate-subregion
 
 ch4_nonbaseload <- 
-  subregion_rate_comparison %>% select(subregion, contains("ch4_nonbaseload"), generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("ch4_output_rate_nonbaseload"), generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil"))) %>% 
+  mutate(pct_diff = (ch4_output_rate_nonbaseload_2023 -
+                       ch4_output_rate_nonbaseload_2022) /
+           ch4_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(subregion_comparison, aes(x = subregion, 
-                                                y = ch4_nonbaseload_rate, 
+                                                y = ch4_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -2983,10 +3051,16 @@ knitr::kable(ch4_nonbaseload,
 #| label: n2o-nonbaseload-rate-subregion
 
 n2o_nonbaseload <- 
-  subregion_rate_comparison %>% select(subregion, contains("n2o_nonbaseload"), generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("n2o_output_rate_nonbaseload"), generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil"))) %>% 
+  mutate(pct_diff = (n2o_output_rate_nonbaseload_2023 -
+                       n2o_output_rate_nonbaseload_2022) /
+           n2o_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(subregion_comparison, aes(x = subregion, 
-                                                y = n2o_nonbaseload_rate, 
+                                                y = n2o_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3017,10 +3091,16 @@ knitr::kable(n2o_nonbaseload,
 #| label: co2e-nonbaseload-rate-subregion
 
 co2e_nonbaseload <- 
-  subregion_rate_comparison %>% select(subregion, contains("co2e_nonbaseload"), generation_notes)
+  subregion_rate_comparison %>% 
+  select(subregion, contains("co2e_output_rate_nonbaseload"), generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil"))) %>% 
+  mutate(pct_diff = (co2e_output_rate_nonbaseload_2023 -
+                       co2e_output_rate_nonbaseload_2022) /
+           co2e_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(subregion_comparison, aes(x = subregion, 
-                                                y = co2e_nonbaseload_rate, 
+                                                y = co2e_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3062,7 +3142,9 @@ Compare state emission rates from `r prev_yr3` to `r params$eGRID_year` and perc
 
 nox_output <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_output_rate_2"), nox_output_rate_pct, generation_notes)
+  select(state, contains("nox_output_rate_2"), 
+         nox_output_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = nox_output_rate, 
@@ -3097,8 +3179,10 @@ knitr::kable(nox_output,
 #| label: nox-oz-output-rate-state
 
 nox_oz_output <- 
-  state_rate_comparison %>% select(state, contains("nox_oz_output_rate_2"),
-                                   nox_oz_output_rate_pct, generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("nox_oz_output_rate_2"),
+         nox_oz_output_rate_pct, generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = nox_oz_output_rate, 
@@ -3132,8 +3216,10 @@ knitr::kable(nox_oz_output,
 #| label: so2-output-rate-state
 
 so2_output <- 
-  state_rate_comparison %>% select(state, contains("so2_output_rate_2"),
-                                   so2_output_rate_pct, generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("so2_output_rate_2"),
+         so2_output_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = so2_output_rate, 
@@ -3167,8 +3253,10 @@ knitr::kable(so2_output,
 #| label: co2-output-rate-state
 
 co2_output <- 
-  state_rate_comparison %>% select(state, contains("co2_output_rate_2"),
-                                   co2_output_rate_pct, generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("co2_output_rate_2"),
+         co2_output_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = co2_output_rate, 
@@ -3202,8 +3290,10 @@ knitr::kable(co2_output,
 #| label: ch4-output-rate-state
 
 ch4_output <- 
-  state_rate_comparison %>% select(state, contains("ch4_output_rate_2"),
-                                   ch4_output_rate_pct, generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("ch4_output_rate_2"),
+         ch4_output_rate_pct, generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state,
                                                 y = ch4_output_rate, 
@@ -3237,8 +3327,10 @@ knitr::kable(ch4_output,
 #| label: n2o-output-rate-state
 
 n2o_output <- 
-  state_rate_comparison %>% select(state, contains("n2o_output_rate_2"),
-                                   n2o_output_rate_pct, generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("n2o_output_rate_2"),
+         n2o_output_rate_pct, generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state,
                                                 y = n2o_output_rate, 
@@ -3272,8 +3364,10 @@ knitr::kable(n2o_output,
 #| label: co2e-output-rate-state
 
 co2e_output <- 
-  state_rate_comparison %>% select(state, contains("co2e_output_rate_2"),
-                                   co2e_output_rate_pct, generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("co2e_output_rate_2"),
+         co2e_output_rate_pct, generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state,
                                                 y = co2e_output_rate,
@@ -3314,10 +3408,10 @@ knitr::kable(co2e_output,
 
 nox_output_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_output_rate_coal"), generation_notes)
+  select(state, contains("coal_nox_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_output_rate_coal, 
+                                                y = coal_nox_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3349,10 +3443,10 @@ knitr::kable(nox_output_coal,
 
 nox_output_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_output_rate_oil"), generation_notes)
+  select(state, contains("oil_nox_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_output_rate_oil, 
+                                                y = oil_nox_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3384,10 +3478,10 @@ knitr::kable(nox_output_oil,
 
 nox_output_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_output_rate_gas"), generation_notes)
+  select(state, contains("gas_nox_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_output_rate_gas, 
+                                                y = gas_nox_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3419,10 +3513,10 @@ knitr::kable(nox_output_gas,
 
 nox_output_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_output_rate_fossil"), generation_notes)
+  select(state, contains("fossil_nox_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_output_rate_fossil, 
+                                                y = fossil_nox_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3458,10 +3552,10 @@ knitr::kable(nox_output_fossil,
 
 nox_oz_output_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_oz_output_rate_coal"), generation_notes)
+  select(state, contains("coal_nox_oz_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_oz_output_rate_coal, 
+                                                y = coal_nox_oz_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3493,10 +3587,10 @@ knitr::kable(nox_oz_output_coal,
 
 nox_oz_output_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_oz_output_rate_oil"), generation_notes)
+  select(state, contains("oil_nox_oz_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_oz_output_rate_oil, 
+                                                y = oil_nox_oz_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3528,10 +3622,10 @@ knitr::kable(nox_oz_output_oil,
 
 nox_oz_output_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_oz_output_rate_gas"), generation_notes)
+  select(state, contains("gas_nox_oz_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_oz_output_rate_gas, 
+                                                y = gas_nox_oz_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3563,10 +3657,10 @@ knitr::kable(nox_oz_output_gas,
 
 nox_oz_output_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_oz_output_rate_fossil"), generation_notes)
+  select(state, contains("fossil_nox_oz_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_oz_output_rate_fossil, 
+                                                y = fossil_nox_oz_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3602,10 +3696,10 @@ knitr::kable(nox_oz_output_fossil,
 
 so2_output_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("so2_output_rate_coal"), generation_notes)
+  select(state, contains("coal_so2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = so2_output_rate_coal, 
+                                                y = coal_so2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3637,10 +3731,10 @@ knitr::kable(so2_output_coal,
 
 so2_output_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("so2_output_rate_oil"), generation_notes)
+  select(state, contains("oil_so2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = so2_output_rate_oil, 
+                                                y = oil_so2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3672,10 +3766,10 @@ knitr::kable(so2_output_oil,
 
 so2_output_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("so2_output_rate_gas"), generation_notes)
+  select(state, contains("gas_so2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = so2_output_rate_gas, 
+                                                y = gas_so2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3707,10 +3801,10 @@ knitr::kable(so2_output_gas,
 
 so2_output_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("so2_output_rate_fossil"), generation_notes)
+  select(state, contains("fossil_so2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = so2_output_rate_fossil, 
+                                                y = fossil_so2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3746,10 +3840,10 @@ knitr::kable(so2_output_fossil,
 
 co2_output_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("co2_output_rate_coal"), generation_notes)
+  select(state, contains("coal_co2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2_output_rate_coal, 
+                                                y = coal_co2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3781,10 +3875,10 @@ knitr::kable(co2_output_coal,
 
 co2_output_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("co2_output_rate_oil"), generation_notes)
+  select(state, contains("oil_co2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2_output_rate_oil, 
+                                                y = oil_co2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3816,10 +3910,10 @@ knitr::kable(co2_output_oil,
 
 co2_output_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("co2_output_rate_gas"), generation_notes)
+  select(state, contains("gas_co2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2_output_rate_gas, 
+                                                y = gas_co2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3851,10 +3945,10 @@ knitr::kable(co2_output_gas,
 
 co2_output_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("co2_output_rate_fossil"), generation_notes)
+  select(state, contains("fossil_co2_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2_output_rate_fossil, 
+                                                y = fossil_co2_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3890,10 +3984,10 @@ knitr::kable(co2_output_fossil,
 
 ch4_output_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("ch4_output_rate_coal"), generation_notes)
+  select(state, contains("coal_ch4_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = ch4_output_rate_coal, 
+                                                y = coal_ch4_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3925,10 +4019,10 @@ knitr::kable(ch4_output_coal,
 
 ch4_output_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("ch4_output_rate_oil"), generation_notes)
+  select(state, contains("oil_ch4_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = ch4_output_rate_oil, 
+                                                y = oil_ch4_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3960,10 +4054,10 @@ knitr::kable(ch4_output_oil,
 
 ch4_output_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("ch4_output_rate_gas"), generation_notes)
+  select(state, contains("gas_ch4_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = ch4_output_rate_gas, 
+                                                y = gas_ch4_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -3995,10 +4089,10 @@ knitr::kable(ch4_output_gas,
 
 ch4_output_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("ch4_output_rate_fossil"), generation_notes)
+  select(state, contains("fossil_ch4_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = ch4_output_rate_fossil, 
+                                                y = fossil_ch4_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4034,10 +4128,10 @@ knitr::kable(ch4_output_fossil,
 
 n2o_output_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("n2o_output_rate_coal"), generation_notes)
+  select(state, contains("coal_n2o_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = n2o_output_rate_coal, 
+                                                y = coal_n2o_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4069,10 +4163,10 @@ knitr::kable(n2o_output_coal,
 
 n2o_output_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("n2o_output_rate_oil"), generation_notes)
+  select(state, contains("oil_n2o_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = n2o_output_rate_oil, 
+                                                y = oil_n2o_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4104,10 +4198,10 @@ knitr::kable(n2o_output_oil,
 
 n2o_output_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("n2o_output_rate_gas"), generation_notes)
+  select(state, contains("gas_n2o_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = n2o_output_rate_gas, 
+                                                y = gas_n2o_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4139,10 +4233,10 @@ knitr::kable(n2o_output_gas,
 
 n2o_output_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("n2o_output_rate_fossil"), generation_notes)
+  select(state, contains("fossil_n2o_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = n2o_output_rate_fossil, 
+                                                y = fossil_n2o_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4178,10 +4272,10 @@ knitr::kable(n2o_output_fossil,
 
 co2e_output_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("co2e_output_rate_coal"), generation_notes)
+  select(state, contains("coal_co2e_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2e_output_rate_coal, 
+                                                y = coal_co2e_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4213,10 +4307,10 @@ knitr::kable(co2e_output_coal,
 
 co2e_output_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("co2e_output_rate_oil"), generation_notes)
+  select(state, contains("oil_co2e_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2e_output_rate_oil, 
+                                                y = oil_co2e_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4248,10 +4342,10 @@ knitr::kable(co2e_output_oil,
 
 co2e_output_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("co2e_output_rate_gas"), generation_notes)
+  select(state, contains("gas_co2e_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2e_output_rate_gas, 
+                                                y = gas_co2e_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4283,10 +4377,10 @@ knitr::kable(co2e_output_gas,
 
 co2e_output_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("co2e_output_rate_fossil"), generation_notes)
+  select(state, contains("fossil_co2e_output_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2e_output_rate_fossil, 
+                                                y = fossil_co2e_output_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4323,8 +4417,10 @@ knitr::kable(co2e_output_fossil,
 #| label: nox-input-rate-state
 
 nox_input <- 
-  state_rate_comparison %>% select(state, contains("nox_input_rate_2"),
-                                   nox_input_rate_pct, generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("nox_input_rate_2"),
+         nox_input_rate_pct, generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = nox_input_rate,
@@ -4358,8 +4454,10 @@ knitr::kable(nox_input,
 #| label: nox-input-oz-rate-state
 
 nox_oz_input <- 
-  state_rate_comparison %>% select(state, contains("nox_oz_input_rate_2"),
-                                   nox_oz_input_rate_pct, generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("nox_oz_input_rate_2"),
+         nox_oz_input_rate_pct, generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = nox_oz_input_rate, 
@@ -4393,8 +4491,10 @@ knitr::kable(nox_oz_input,
 #| label: so2-input-rate-state
 
 so2_input <- 
-  state_rate_comparison %>% select(state, contains("so2_input_rate_2"),
-                                   so2_input_rate_pct, generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("so2_input_rate_2"),
+         so2_input_rate_pct, generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = so2_input_rate, 
@@ -4428,8 +4528,10 @@ knitr::kable(so2_output,
 #| label: co2-input-rate-state
 
 co2_input <- 
-  state_rate_comparison %>% select(state, contains("co2_input_rate_2"),
-                                   co2_input_rate_pct, generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("co2_input_rate_2"),
+         co2_input_rate_pct, generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state,
                                                 y = co2_input_rate, 
@@ -4463,8 +4565,10 @@ knitr::kable(co2_input,
 #| label: ch4-input-rate-state
 
 ch4_output <- 
-  state_rate_comparison %>% select(state, contains("ch4_output_rate_2"),
-                                   ch4_input_rate_pct, generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("ch4_output_rate_2"),
+         ch4_input_rate_pct, generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = ch4_input_rate, 
@@ -4498,8 +4602,10 @@ knitr::kable(ch4_output,
 #| label: n2o-input-rate-state
 
 n2o_input <- 
-  state_rate_comparison %>% select(state, contains("n2o_input_rate_2"),
-                                   n2o_input_rate_pct, generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("n2o_input_rate_2"),
+         n2o_input_rate_pct, generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = n2o_input_rate, 
@@ -4533,8 +4639,10 @@ knitr::kable(n2o_input,
 #| label: co2e-input-rate-state
 
 co2e_input <- 
-  state_rate_comparison %>% select(state, contains("co2e_input_rate_2"),
-                                   co2e_input_rate_pct, generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("co2e_input_rate_2"),
+        co2e_input_rate_pct, generation_notes, 
+        -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = co2e_input_rate, 
@@ -4575,10 +4683,10 @@ knitr::kable(co2e_input,
 
 nox_input_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_input_rate_coal"), generation_notes)
+  select(state, contains("coal_nox_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_input_rate_coal, 
+                                                y = coal_nox_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4610,10 +4718,10 @@ knitr::kable(nox_input_coal,
 
 nox_input_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_input_rate_oil"), generation_notes)
+  select(state, contains("oil_nox_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_input_rate_oil, 
+                                                y = oil_nox_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4645,10 +4753,10 @@ knitr::kable(nox_input_oil,
 
 nox_input_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_input_rate_gas"), generation_notes)
+  select(state, contains("gas_nox_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_input_rate_gas, 
+                                                y = gas_nox_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4680,10 +4788,10 @@ knitr::kable(nox_input_gas,
 
 nox_input_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_input_rate_fossil"), generation_notes)
+  select(state, contains("fossil_nox_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_input_rate_fossil, 
+                                                y = fossil_nox_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4719,10 +4827,10 @@ knitr::kable(nox_input_fossil,
 
 nox_oz_input_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_oz_input_rate_coal"), generation_notes)
+  select(state, contains("coal_nox_oz_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_oz_input_rate_coal, 
+                                                y = coal_nox_oz_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4754,10 +4862,10 @@ knitr::kable(nox_oz_input_coal,
 
 nox_oz_input_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_oz_input_rate_oil"), generation_notes)
+  select(state, contains("oil_nox_oz_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_oz_input_rate_oil, 
+                                                y = oil_nox_oz_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4789,10 +4897,10 @@ knitr::kable(nox_oz_input_oil,
 
 nox_oz_input_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_oz_input_rate_gas"), generation_notes)
+  select(state, contains("gas_nox_oz_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_oz_input_rate_gas, 
+                                                y = gas_nox_oz_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4824,10 +4932,10 @@ knitr::kable(nox_oz_input_gas,
 
 nox_oz_input_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("nox_oz_input_rate_fossil"), generation_notes)
+  select(state, contains("fossil_nox_oz_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_oz_input_rate_fossil, 
+                                                y = fossil_nox_oz_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4863,10 +4971,10 @@ knitr::kable(nox_oz_input_fossil,
 
 so2_input_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("so2_input_rate_coal"), generation_notes)
+  select(state, contains("coal_so2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = so2_input_rate_coal, 
+                                                y = coal_so2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4898,10 +5006,10 @@ knitr::kable(so2_input_coal,
 
 so2_input_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("so2_input_rate_oil"), generation_notes)
+  select(state, contains("oil_so2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = so2_input_rate_oil, 
+                                                y = oil_so2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4933,10 +5041,10 @@ knitr::kable(so2_input_oil,
 
 so2_input_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("so2_input_rate_gas"), generation_notes)
+  select(state, contains("gas_so2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = so2_input_rate_gas, 
+                                                y = gas_so2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -4968,10 +5076,10 @@ knitr::kable(so2_input_gas,
 
 so2_input_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("so2_input_rate_fossil"), generation_notes)
+  select(state, contains("fossil_so2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = so2_input_rate_fossil, 
+                                                y = fossil_so2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5007,10 +5115,10 @@ knitr::kable(so2_input_fossil,
 
 co2_input_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("co2_input_rate_coal"), generation_notes)
+  select(state, contains("coal_co2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2_input_rate_coal, 
+                                                y = coal_co2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5042,10 +5150,10 @@ knitr::kable(co2_input_coal,
 
 co2_input_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("co2_input_rate_oil"), generation_notes)
+  select(state, contains("oil_co2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2_input_rate_oil, 
+                                                y = oil_co2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5077,10 +5185,10 @@ knitr::kable(co2_input_oil,
 
 co2_input_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("co2_input_rate_gas"), generation_notes)
+  select(state, contains("gas_co2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2_input_rate_gas, 
+                                                y = gas_co2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5112,10 +5220,10 @@ knitr::kable(co2_input_gas,
 
 co2_input_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("co2_input_rate_fossil"), generation_notes)
+  select(state, contains("fossil_co2_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2_input_rate_fossil, 
+                                                y = fossil_co2_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5151,10 +5259,10 @@ knitr::kable(co2_input_fossil,
 
 ch4_input_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("ch4_input_rate_coal"), generation_notes)
+  select(state, contains("coal_ch4_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = ch4_input_rate_coal, 
+                                                y = coal_ch4_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5186,10 +5294,10 @@ knitr::kable(ch4_input_coal,
 
 ch4_input_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("ch4_input_rate_oil"), generation_notes)
+  select(state, contains("oil_ch4_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = ch4_input_rate_oil, 
+                                                y = oil_ch4_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5221,10 +5329,10 @@ knitr::kable(ch4_input_oil,
 
 ch4_input_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("ch4_input_rate_gas"), generation_notes)
+  select(state, contains("gas_ch4_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = ch4_input_rate_gas, 
+                                                y = gas_ch4_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5256,10 +5364,10 @@ knitr::kable(ch4_input_gas,
 
 ch4_input_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("ch4_input_rate_fossil"), generation_notes)
+  select(state, contains("fossil_ch4_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = ch4_input_rate_fossil, 
+                                                y = fossil_ch4_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5295,10 +5403,10 @@ knitr::kable(ch4_input_fossil,
 
 n2o_input_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("n2o_input_rate_coal"), generation_notes)
+  select(state, contains("coal_n2o_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = n2o_input_rate_coal, 
+                                                y = coal_n2o_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5330,10 +5438,10 @@ knitr::kable(n2o_input_coal,
 
 n2o_input_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("n2o_input_rate_oil"), generation_notes)
+  select(state, contains("oil_n2o_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = n2o_input_rate_oil, 
+                                                y = oil_n2o_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5365,10 +5473,10 @@ knitr::kable(n2o_input_oil,
 
 n2o_input_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("n2o_input_rate_gas"), generation_notes)
+  select(state, contains("gas_n2o_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = n2o_input_rate_gas, 
+                                                y = gas_n2o_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5400,10 +5508,10 @@ knitr::kable(n2o_input_gas,
 
 n2o_input_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("n2o_input_rate_fossil"), generation_notes)
+  select(state, contains("fossil_n2o_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = n2o_input_rate_fossil, 
+                                                y = fossil_n2o_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5439,10 +5547,10 @@ knitr::kable(n2o_input_fossil,
 
 co2e_input_coal <- 
   state_rate_comparison %>% 
-  select(state, contains("co2e_input_rate_coal"), generation_notes)
+  select(state, contains("coal_co2e_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2e_input_rate_coal, 
+                                                y = coal_co2e_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5474,10 +5582,10 @@ knitr::kable(co2e_input_coal,
 
 co2e_input_oil <- 
   state_rate_comparison %>% 
-  select(state, contains("co2e_input_rate_oil"), generation_notes)
+  select(state, contains("oil_co2e_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2e_input_rate_oil, 
+                                                y = oil_co2e_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5509,10 +5617,10 @@ knitr::kable(co2e_input_oil,
 
 co2e_input_gas <- 
   state_rate_comparison %>% 
-  select(state, contains("co2e_input_rate_gas"), generation_notes)
+  select(state, contains("gas_co2e_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2e_input_rate_gas, 
+                                                y = gas_co2e_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5544,10 +5652,10 @@ knitr::kable(co2e_input_gas,
 
 co2e_input_fossil <- 
   state_rate_comparison %>% 
-  select(state, contains("co2e_input_rate_fossil"), generation_notes)
+  select(state, contains("fossil_co2e_input_rate"), generation_notes)
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2e_input_rate_fossil, 
+                                                y = fossil_co2e_input_rate, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5582,7 +5690,9 @@ knitr::kable(co2e_input_fossil,
 #| label: nox-combustion-rate-state
 
 nox_combustion <- 
-  state_rate_comparison %>% select(state, contains("nox_combustion"), generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("nox_combustion"), generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = nox_combustion_rate, 
@@ -5616,7 +5726,9 @@ knitr::kable(nox_combustion,
 #| label: nox-oz-combustion-rate-state
 
 nox_oz_combustion <- 
-  state_rate_comparison %>% select(state, contains("nox_oz_combustion"), generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("nox_oz_combustion"), generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state,
                                                 y = nox_oz_combustion_rate, 
@@ -5650,7 +5762,9 @@ knitr::kable(nox_oz_combustion,
 #| label: so2-combustion-rate-state
 
 so2_combustion <- 
-  state_rate_comparison %>% select(state, contains("so2_combustion"), generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("so2_combustion"), generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = so2_combustion_rate, 
@@ -5684,7 +5798,9 @@ knitr::kable(so2_combustion,
 #| label: co2-combustion-rate-state
 
 co2_combustion <- 
-  state_rate_comparison %>% select(state, contains("co2_combustion"), generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("co2_combustion"), generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = co2_combustion_rate, 
@@ -5718,7 +5834,9 @@ knitr::kable(co2_combustion,
 #| label: ch4-combustion-rate-state
 
 ch4_combustion <- 
-  state_rate_comparison %>% select(state, contains("ch4_combustion"), generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("ch4_combustion"), generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = ch4_combustion_rate, 
@@ -5752,7 +5870,9 @@ knitr::kable(ch4_combustion,
 #| label: n2o-combustion-rate-state
 
 n2o_combustion <- 
-  state_rate_comparison %>% select(state, contains("n2o_combustion"), generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("n2o_combustion"), generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = n2o_combustion_rate, 
@@ -5786,7 +5906,9 @@ knitr::kable(n2o_combustion,
 #| label: co2e-combustion-rate-state
 
 co2e_combustion <- 
-  state_rate_comparison %>% select(state, contains("co2e_combustion"), generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("co2e_combustion"), generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil")))
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
                                                 y = co2e_combustion_rate, 
@@ -5824,10 +5946,16 @@ knitr::kable(co2e_combustion,
 #| label: nox-nonbaseload-rate-state
 
 nox_nonbaseload <- 
-  state_rate_comparison %>% select(state, contains("nox_nonbaseload"), generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("nox_output_rate_nonbaseload"), generation_notes, 
+         -contains(c("coal", "oil", "gas", "fossil"))) %>% 
+  mutate(pct_diff = (nox_output_rate_nonbaseload_2023 -
+                       nox_output_rate_nonbaseload_2022) /
+           nox_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = nox_nonbaseload_rate, 
+                                                y = nox_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5858,10 +5986,15 @@ knitr::kable(nox_nonbaseload,
 #| label: nox-oz-nonbaseload-rate-state
 
 nox_oz_nonbaseload <- 
-  state_rate_comparison %>% select(state, contains("nox_oz_nonbaseload"), generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("nox_oz_output_rate_nonbaseload"), generation_notes) %>% 
+  mutate(pct_diff = (nox_oz_output_rate_nonbaseload_2023 -
+                       nox_oz_output_rate_nonbaseload_2022) /
+           nox_oz_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(state_comparison, aes(x = state,
-                                                y = nox_oz_nonbaseload_rate, 
+                                                y = nox_oz_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5892,10 +6025,15 @@ knitr::kable(nox_oz_nonbaseload,
 #| label: so2-nonbaseload-rate-state
 
 so2_nonbaseload <- 
-  state_rate_comparison %>% select(state, contains("so2_nonbaseload"), generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("so2_output_rate_nonbaseload"), generation_notes) %>% 
+  mutate(pct_diff = (so2_output_rate_nonbaseload_2023 -
+                       so2_output_rate_nonbaseload_2022) /
+           so2_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = so2_nonbaseload_rate, 
+                                                y = so2_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5926,10 +6064,15 @@ knitr::kable(so2_nonbaseload,
 #| label: co2-nonbaseload-rate-state
 
 co2_nonbaseload <- 
-  state_rate_comparison %>% select(state, contains("co2_nonbaseload"), generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("co2_output_rate_nonbaseload"), generation_notes) %>% 
+  mutate(pct_diff = (co2_output_rate_nonbaseload_2023 -
+                       co2_output_rate_nonbaseload_2022) /
+           co2_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2_nonbaseload_rate, 
+                                                y = co2_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5960,11 +6103,15 @@ knitr::kable(co2_nonbaseload,
 #| label: ch4-nonbaseload-rate-state
 
 ch4_nonbaseload <- 
-  state_rate_comparison %>% select(state, contains("ch4_nonbaseload"), 
-                                   generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("ch4_output_rate_nonbaseload"), generation_notes) %>% 
+  mutate(pct_diff = (ch4_output_rate_nonbaseload_2023 -
+                       ch4_output_rate_nonbaseload_2022) /
+           ch4_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = ch4_nonbaseload_rate, 
+                                                y = ch4_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -5995,11 +6142,15 @@ knitr::kable(ch4_nonbaseload,
 #| label: n2o-nonbaseload-rate-state
 
 n2o_nonbaseload <- 
-  state_rate_comparison %>% select(state, contains("n2o_nonbaseload"), 
-                                   generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("n2o_output_rate_nonbaseload"), generation_notes) %>% 
+  mutate(pct_diff = (n2o_output_rate_nonbaseload_2023 -
+                       n2o_output_rate_nonbaseload_2022) /
+           n2o_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = n2o_nonbaseload_rate, 
+                                                y = n2o_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,
@@ -6030,11 +6181,15 @@ knitr::kable(n2o_nonbaseload,
 #| label: co2e-nonbaseload-rate-state
 
 co2e_nonbaseload <- 
-  state_rate_comparison %>% select(state, contains("co2e_nonbaseload"), 
-                                   generation_notes)
+  state_rate_comparison %>% 
+  select(state, contains("co2e_output_rate_nonbaseload"), generation_notes) %>% 
+  mutate(pct_diff = (co2e_output_rate_nonbaseload_2023 -
+                       co2e_output_rate_nonbaseload_2022) /
+           co2e_output_rate_nonbaseload_2023 * 100) %>% 
+  relocate(pct_diff, .before = "generation_notes")
 
 rate_comparison <- ggplot(state_comparison, aes(x = state, 
-                                                y = co2e_nonbaseload_rate, 
+                                                y = co2e_output_rate_nonbaseload, 
                                                 fill = year)) +
                     geom_bar(stat = "identity", 
                              width = 0.75,

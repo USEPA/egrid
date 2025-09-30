@@ -20,7 +20,7 @@ metric_conversion <- function(which_file) {
   #' 
   #' @param which_file The shorthand name of original file 
   #'                   used for creation of metric counterpart -
-  #'                   Limited to ("unit","gen","plant","state",
+  #'                   Limited to ("unit","generator","plant","state",
   #'                   "ba","subregion","nerc","us","ggl")
   #' 
   #' @return A new .RDS file with metric structure
@@ -79,17 +79,32 @@ metric_conversion <- function(which_file) {
   filename <- filenames_orig[which_file]
   
   # assign ordered name vector for file type
-  assign("ordered_names", get(glue::glue("{which_file}_metric")))
+  # calling name vectors from "name_matching.R"
+  if(which_file != "ggl"){ # grid gross loss does not have a monthly version
+    assign("ordered_names", get(glue::glue("{which_file}_metric_{params$temporal_res}")))
+    column_names <- cbind(read.table(text = names(get(glue::glue("{which_file}_metric_{params$temporal_res}")))), 
+                          var = get(glue::glue("{which_file}_metric_{params$temporal_res}"))) %>% 
+      rename("name" = V1)
+  } else { 
+    assign("ordered_names", get(glue::glue("{which_file}_metric")))
+    column_names <- cbind(read.table(text = names(get(glue::glue("{which_file}_metric")))), 
+                          var = get(glue::glue("{which_file}_metric"))) %>% 
+      rename("name" = V1)
+  }
   
   # Load original data and metric structure ------------------
   
   # original output data
-  orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{filename}.RDS")) 
+  if(which_file != "ggl") { # grid gross loss does not have a monthly version
+    orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/{filename}_{params$temporal_res}.RDS")) 
+  } else {
+    orig_data <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{filename}.RDS")) 
+  }
   
   # metric file structure
   metric_struct <- read_excel("data/1_production_model/static_tables/metric_structure.xlsx",
-                                 # sheet index is same index in list of data files
-                                 sheet = which(filenames_orig == filename),
+                                 # sheet name depends on which_file and temporal_res parameter
+                                 sheet = glue::glue("{which_file}_{params$temporal_res}"),
                                  # keep column names to include NA fields
                                  col_names = TRUE) 
                   
@@ -100,8 +115,9 @@ metric_conversion <- function(which_file) {
   
   metric_struct_named <- 
     metric_struct %>%
-    mutate(var = ordered_names, .after=name)
-  
+    left_join(column_names, by = "name") %>% 
+    relocate(var, .after = name)
+
   # Define variables to convert  -------------------------------------------
   
   # all variables to change units
@@ -116,6 +132,20 @@ metric_conversion <- function(which_file) {
     filter(!is.na(new_field)) %>% # is a new field
     # remove _metric naming to select original data for conversion
     mutate(var = stringr::str_remove(var, "_metric"))
+  
+  
+  # check if any variables are not being matched 
+  if (any(is.na(vars_convert_new$var)) | any(is.na(vars_to_convert$var)) ) {
+    # drop rows that are missing in the matches
+    vars_convert_new <- vars_convert_new[complete.cases(vars_convert_new), ]
+    vars_to_convert <- vars_to_convert[complete.cases(vars_to_convert), ]
+  
+    message("Some variables were not converted. Please check that variable names are matching")
+  } else {
+    
+    message("All variables were converted.")
+  }
+  
   
   # Convert data to new metric units ---------------------------------------------
 
@@ -143,11 +173,16 @@ metric_conversion <- function(which_file) {
   # check if data output folder exists, if not make folder
   save_dir <- glue::glue("data/1_production_model/outputs/{params$eGRID_year}")
   if(!dir.exists(save_dir)) {
-    dir.create(save_dir)
+    dir.create(save_dir, recursive = TRUE)
     print(glue::glue("Folder {save_dir} created."))
   }
   
   # save folder to outputs file
-  print(glue::glue("Saving {filename}_metric.RDS to {save_dir}"))
-  write_rds(metric_data, glue::glue("{save_dir}/{filename}_metric.RDS"))
+  if(which_file != "ggl") { 
+    print(glue::glue("Saving {filename}_{params$temporal_res}_metric.RDS to {save_dir}/{params$temporal_res}"))
+    write_rds(metric_data, glue::glue("{save_dir}/{params$temporal_res}/{filename}_{params$temporal_res}_metric.RDS"))
+  } else {
+    print(glue::glue("Saving {filename}_metric.RDS to {save_dir}"))
+    write_rds(metric_data, glue::glue("{save_dir}/{filename}_metric.RDS"))
+  }
 }

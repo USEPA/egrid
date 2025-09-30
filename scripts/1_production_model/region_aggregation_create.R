@@ -21,28 +21,26 @@ library(readr)
 library(readxl)
 library(stringr)
 
+# Load necessary functions -----------------------
+
+source("scripts/functions/function_check_params.R")
+source("scripts/functions/function_temporal_res_cols.R")
+source("scripts/functions/function_region_aggregation.R")
+source("scripts/functions/function_save_output_data.R")
+
 # Check for params() --------
-
-# check if parameters for eGRID data year need to be defined
-# this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input eGRID year in the console if params does not exist
-
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
+if (!exists("params")) {
+  params <- check_params()
+} else {
+  print("eGRID year, temporal resolution, and version parameters are already defined.")
 }
 
-# Load aggregation function -------------
+# Create temporal_res_cols --------------------
+temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
 
-source("scripts/functions/function_region_aggregation.R")
+# Load ordered names and abbreviations -------------
+# load in name matches for shorthand to snake_case
+source("scripts/1_production_model/name_matching.R")
 
 # Call aggregation function for each region ------------
 

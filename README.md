@@ -4,13 +4,7 @@ This repository includes all necessary scripts and documentation to create the [
 
 ## Background
 
-eGRID is a comprehensive source of data from [EPA's Clean Air and Power Division (CAPD)](https://epa.gov/power-sector) on the environmental 
-characteristics of almost all electric power generated in the United States. eGRID is based on available plant-specific data for all 
-U.S. electricity generating plants that provide power to the electric grid and report emissions and electricity data to the U.S. government. Data reported include, 
-but are not limited to, net electric generation; resource mix (the share of generation by resource or fuel type); mass emissions of carbon dioxide 
-(CO<sub>2</sub>), nitrogen oxides (NO<sub>x</sub>), sulfur dioxide (SO<sub>2</sub>), methane (CH<sub>4</sub>), and nitrous oxide (N<sub>2</sub>O); emission rates for CO<sub>2</sub>, NO<sub>x</sub>, SO<sub>2</sub>, 
-CH<sub>4</sub>, and N<sub>2</sub>O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for 
-heat input and NO<sub>x</sub>) at different levels of geographic aggregation.
+eGRID is a comprehensive source of data from [EPA's Clean Air and Power Division (CAPD)](https://epa.gov/power-sector) on the environmental characteristics of almost all electric power generated in the United States. eGRID is based on available plant-specific data for all U.S. electricity generating plants that provide power to the electric grid and report emissions and electricity data to the U.S. government. Data reported include, but are not limited to, net electric generation; resource mix (the share of generation by resource or fuel type); mass emissions of carbon dioxide (CO<sub>2</sub>), nitrogen oxides (NO<sub>x</sub>), sulfur dioxide (SO<sub>2</sub>), methane (CH<sub>4</sub>), and nitrous oxide (N<sub>2</sub>O); emission rates for CO<sub>2</sub>, NO<sub>x</sub>, SO<sub>2</sub>, CH<sub>4</sub>, and N<sub>2</sub>O; heat input; and nameplate capacity. eGRID reports this information on an annual basis (as well as by ozone season for heat input and NO<sub>x</sub>) at different levels of geographic aggregation.
 
 ### eGRID Repository Components
 The primary eGRID dataset is referred to in this repository as the eGRID production model. Additional supplementary datasets and tools utilize the eGRID production model to provide more information about certain aspects of the U.S. electric grid. The eGRID repository cumulatively consists of the following components:
@@ -23,10 +17,9 @@ The primary eGRID dataset is referred to in this repository as the eGRID product
 
 The final eGRID production model dataset includes eight levels of data aggregation:
 
--   **Generator**: A set of equipment that produces electricity and is connected to the U.S. electricity grid. 
+-   **Generator**: A set of equipment that produces electricity and is connected to the U.S. electricity grid.
 
--   **Unit**: A set of equipment that either produces electricity and is connected to the U.S electricity grid or 
-a set of equipment that is connected to a generator which produces electricity and is connected to the U.S. electricity grid.
+-   **Unit**: A set of equipment that either produces electricity and is connected to the U.S electricity grid or a set of equipment that is connected to a generator which produces electricity and is connected to the U.S. electricity grid.
 
 -   **Plant**: A facility with one or more units and/or generators that provide power to the electric grid.
 
@@ -36,9 +29,7 @@ a set of equipment that is connected to a generator which produces electricity a
 
 -   **eGRID subregion**: EPA defined subregions designed to limit the impacts of the import and export of electricity (shown in Figure 1).
 
--   **NERC (North American Electric Reliability Corporation) regions**: Each NERC region listed in eGRID represents one of nine regional 
-portions of the North American electricity transmission grid: six in the contiguous United States, plus Alaska, Hawaii, and 
-Puerto Rico (which are not part of the formal NERC regions but are considered so in eGRID).
+-   **NERC (North American Electric Reliability Corporation) regions**: Each NERC region listed in eGRID represents one of nine regional portions of the North American electricity transmission grid: six in the contiguous United States, plus Alaska, Hawaii, and Puerto Rico (which are not part of the formal NERC regions but are considered so in eGRID).
 
 -   **National U.S.**: Contains all 50 states, Puerto Rico (PR), and the District of Columbia (DC).
 
@@ -46,7 +37,9 @@ Further information on the eGRID methodology can be found in the [eGRID Technica
 
 The dataset that this code produces is publicly available [here](https://www.epa.gov/egrid/download-data).
 
-![Figure 1: eGRID subregions.](egrid_subregion_map.png)
+![Figure 1: eGRID subregions.](data/1_production_model/static_tables/formatting/egrid_subregion_map.png)
+
+Figure 1: eGRID subregions.
 
 ### PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions
 The eGRID production model does not include fine particulate matter 2.5 microns in diameter or smaller (PM<sub>2.5</sub>), ammonia (NH<sub>3</sub>), and volatile organic compounds (VOC) emissions as the data used for the production model emissions calculations are not available for those pollutants. Instead, PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions and emission rates for power plants are estimated using data from the EPA's National Emissions Inventory (NEI).
@@ -70,13 +63,13 @@ The dataset that this code produces is publicly available [here](https://www.epa
 
 ## Architecture
 
-Starting in 2024, EPA has released the methodology to develop eGRID as an RStudio project. Recently, there has been increased interest from users in understanding the methods used to create the eGRID data. To increase transparency in the eGRID production process, EPA has made the R scripts available for users to view and use. EPA used the RStudio project beginning in 2024 to produce eGRID2023.
+Starting in 2024, EPA released the methodology to develop eGRID as an RStudio project. Recently, there has been increased interest from users in understanding the methods used to create the eGRID data. To increase transparency in the eGRID production process, EPA has made the R scripts available for users to view and use. EPA used the RStudio project beginning in 2024 to produce eGRID2023.
 
 ### Production model
 
-Figure 2 displays a summary of the eGRID production model architecture, which specifies data sources, inputs, and outputs for creating the eGRID production model.
-
 A data dictionary is provided in `eGRID Production Model Data Dictionary.xlsx`. This file provides the row number, name, description, imperial units, metric units, source, and calculation method for each column reported in the final eGRID production model dataset.
+
+Figure 2 displays a summary of the eGRID production model architecture, which specifies data sources, inputs, and outputs for creating the eGRID production model.
 
 ![Figure 2: eGRID production model architecture.](egrid_architecture.png)
 
@@ -138,8 +131,9 @@ To create the eGRID production model dataset:
     -   Create a text file named `epa_api_key.txt` within the folder `api_keys/` and save the API key here on a single line.
 2.  Load `eGRID_R.Rproj` within RStudio to enable the project environment.
 3.  Render `eGRID_master.qmd`.
-    -   Set data year in `params` (eGRID_year) in the YAML as a string in the format "YYYY" (ex: `"2023"`).
-    -   Render `eGRID_master.qmd`. This will run all scripts and build the eGRID production model dataset.
+    -   Set data year in `params$eGRID_year` in the YAML as a string in the format "YYYY" (ex: `"2023"`).
+    -   Set temporal resolution version in `params$temporal_res` in the YAML as a string (options: `"annual"` or `"monthly"`) eGRID.
+    -   Render `eGRID_master.qmd`. This will run all scripts and build the eGRID dataset.
 
 ### PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions
 
@@ -164,7 +158,7 @@ To create the eGRID PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions datasets
 
 ### Production model
 
-The codebase outputs each data aggregation level in the eGRID dataset as an .RDS file and the final dataset as an Excel sheet in `data/1_production_model/outputs/{params$eGRID_year}`. Rendering `eGRID_master.qmd` also creates an HTML file that summarizes the data, methods, and output files used and created throughout the code base.
+The codebase outputs each data aggregation level in the eGRID dataset as an .RDS file and the final dataset as an Excel sheet in `data/outputs/{params$eGRID_year}/{params$temporal_res}` for each annual and monthly temporal resolution, depending on what is specified by the user. Rendering `eGRID_master.qmd` also creates an HTML file that summarizes the data, methods, and output files used and created throughout the code base.
 
 ### PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions
 
@@ -184,7 +178,7 @@ The codebase contains two QA files as Quarto documents:
 
 -   `qa_all.qmd`: Annual checks to confirm results are as expected for each file created in the codebase.
 
--   `qa_annual_comparison.qmd`: Comparison of output data to previous eGRID years.
+-   `qa_annual_comparison.qmd`: Comparison of data year outputs to previous eGRID years.
 
 ## Contributing to eGRID
 
