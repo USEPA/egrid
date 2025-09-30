@@ -39,6 +39,7 @@ save_output_data <- function(data, output_folder_path, file_name){
     if(dir.exists(glue::glue("{output_folder_path}/{params$eGRID_year}/annual"))) {
       print(glue::glue("Folder {output_folder_path}/{params$eGRID_year}/annual already exists."))
     } else {
+      dir.create(glue::glue("{output_folder_path}/{params$eGRID_year}"))
       dir.create(glue::glue("{output_folder_path}/{params$eGRID_year}/annual"))
     }
     
@@ -61,6 +62,7 @@ save_output_data <- function(data, output_folder_path, file_name){
     if(dir.exists(glue::glue("{output_folder_path}/{params$eGRID_year}/monthly"))) {
       print(glue::glue("Folder {output_folder_path}/{params$eGRID_year} already exists."))
     } else {
+      dir.create(glue::glue("{output_folder_path}/{params$eGRID_year}"))
       dir.create(glue::glue("{output_folder_path}/{params$eGRID_year}/monthly"))
     }
     
