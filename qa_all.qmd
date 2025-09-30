@@ -520,11 +520,7 @@ ifelse(nrow(check_unit_primary_fuel) == 0, "Status: PASS - No units have blank p
         glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_primary_fuel)} units have blank primary fuels."))
 
 knitr::kable(check_unit_primary_fuel %>% 
-<<<<<<< HEAD
-               select(plant_name, plant_id, unit_id, primary_fuel_type, heat_input))
-=======
                select(plant_name, plant_id, unit_id, primary_fuel_type, heat_input, heat_input_oz, first_year_reporting))
->>>>>>> development
 
 ```
 
@@ -587,7 +583,6 @@ Check if any units have heat input values are missing emission values.
 ```{r}
 #| label: unit-emissions-missing
 
-<<<<<<< HEAD
 if (params$temporal_res == "annual") { 
   check_unit_emissions <- 
     unit_file %>% 
@@ -616,21 +611,6 @@ if (params$temporal_res == "annual") {
   
   knitr::kable(check_unit_emissions %>% 
                  select(month, plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, heat_input, nox_mass, so2_mass, co2_mass, hg_mass))}
-=======
-check_unit_emissions <- 
-  unit_file %>% 
-  filter((!(primary_fuel_type %in% c("WAT", "WND", "SUN", "NUC", "MWH", "PUR", "WH"))) &
-          (!(prime_mover == "FC")) & 
-          (is.na(nox_mass) & is.na(nox_oz_mass) & is.na(so2_mass) & is.na(co2_mass)) &
-          (heat_input > 0 | heat_input_oz > 0))
-
-ifelse(nrow(check_unit_emissions) == 0, "Status: PASS - All units with heat inputs 
-       have emission values.", 
-        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_emissions)} units with heat inputs are missing emission values."))
-
-knitr::kable(check_unit_emissions %>% 
-               select(plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, heat_input, heat_input_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, hg_mass))
->>>>>>> development
 
 ```
 
@@ -643,30 +623,6 @@ Check if units have blanks in heat input and emissions.
 ```{r}
 #| label: unit-blanks
 
-<<<<<<< HEAD
-if (params$temporal_res == "annual") { 
-  check_unit_blanks <- 
-    unit_file %>% 
-    filter((is.na(heat_input) | is.na(heat_input_oz)) & (is.na(nox_mass) | is.na(nox_oz_mass) 
-           | is.na(so2_mass) | is.na(co2_mass)))
-  
-  ifelse(nrow(check_unit_blanks) == 0, "Status: PASS - No units are missing both heat inputs and emission values.", 
-          glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_blanks)} units are missing both heat and emission values."))
-  
-  knitr::kable(check_unit_blanks %>% 
-                 select(plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, heat_input, heat_input_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass))
-} else { 
-  check_unit_blanks <- 
-    unit_file %>% 
-    filter((is.na(heat_input)) & (is.na(nox_mass) 
-           | is.na(so2_mass) | is.na(co2_mass)))
-  
-  ifelse(nrow(check_unit_blanks) == 0, "Status: PASS - No units are missing both heat inputs and emission values.", 
-          glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_blanks)} units are missing both heat and emission values."))
-  
-  knitr::kable(check_unit_blanks %>% 
-                 select(month, plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, heat_input, nox_mass, so2_mass, co2_mass))}
-=======
 heat_input_and_generation <- eia_923$generation_and_fuel_combined %>%
   group_by(plant_id, prime_mover) %>%
   summarize(
@@ -688,7 +644,6 @@ ifelse(nrow(check_unit_blanks) == 0, "Status: PASS - No units are missing both h
 
 knitr::kable(check_unit_blanks %>% 
                select(plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, operating_status, capd_flag,  heat_input, heat_input_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, heat_input_ann_923, generation_ann))
->>>>>>> development
 
 ```
 
@@ -2393,35 +2348,6 @@ if (params$temporal_res == "annual") {
 # output rates that are negative are typically zeroed out 
 # here, we recalculate them and keep the negatives to identify outliers 
 
-<<<<<<< HEAD
-if (params$temporal_res == "annual") { 
-  plant_rates <- 
-    plant_file %>% 
-    #select(plant_id, net_gen, heat_input, heat_input_oz, contains("rate")) # filter this way if using R plant file output
-    select(plant_id, plant_name, heat_input, heat_input_oz, generation, generation_oz, 
-           nox_mass, nox_oz_mass, so2_mass, co2_mass, ch4_mass,
-           n2o_mass, co2e_mass, contains("ra"), contains("ro")) %>% 
-    mutate(nox_output_rate = nox_mass / generation * 2000, 
-           nox_oz_output_rate = nox_oz_mass / generation_oz * 2000, 
-           so2_output_rate = so2_mass / generation * 2000, 
-           co2_output_rate = co2_mass/ generation * 2000, 
-           ch4_output_rate = ch4_mass / generation, 
-           n2o_output_rate = n2o_mass / generation,
-           co2e_output_rate = co2e_mass / generation * 2000) 
-} else { 
-  plant_rates <- 
-    plant_file %>% 
-    #select(plant_id, net_gen, heat_input, heat_input_oz, contains("rate")) # filter this way if using R plant file output
-    select(all_of(temporal_res_cols), plant_id, plant_name, heat_input, generation, 
-           nox_mass, so2_mass, co2_mass, ch4_mass,
-           n2o_mass, co2e_mass, contains("ra"), contains("ro")) %>% 
-    mutate(nox_output_rate = nox_mass / generation * 2000, 
-           so2_output_rate = so2_mass / generation * 2000, 
-           co2_output_rate = co2_mass/ generation * 2000, 
-           ch4_output_rate = ch4_mass / generation, 
-           n2o_output_rate = n2o_mass / generation,
-           co2e_output_rate = co2e_mass / generation * 2000)}
-=======
 plant_rates <- 
   plant_file %>% 
   #select(plant_id, net_gen, heat_input, heat_input_oz, contains("rate")) # filter this way if using R plant file output
@@ -2434,7 +2360,6 @@ plant_rates <-
          ch4_output_rate = ch4_mass / generation_ann, 
          n2o_output_rate = n2o_mass / generation_ann,
          co2e_output_rate = co2e_mass / generation_ann * 2000) 
->>>>>>> development
 
 plant_rates[sapply(plant_rates, is.infinite)] <- NA
 
@@ -2465,15 +2390,9 @@ plant_zscore <-
 #| label: plant-nox-input-outliers
 
 knitr::kable(plant_zscore %>%
-<<<<<<< HEAD
-               filter(nox_input_rate_zscore > 3 | nox_input_rate_zscore < -3) %>% 
-               arrange(desc(nox_input_rate_zscore)) %>% 
-               select(all_of(temporal_res_cols), plant_id, plant_name, nox_input_rate_zscore, nox_input_rate))
-=======
                filter(nox_in_emission_rate_zscore > 3 | nox_in_emission_rate_zscore < -3) %>% 
                arrange(desc(nox_in_emission_rate_zscore)) %>% 
                select(plant_id, plant_name, primary_fuel_type, heat_input, nox_mass, nox_in_emission_rate_zscore, nox_in_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
->>>>>>> development
 
 ```
 
@@ -2486,13 +2405,8 @@ if (params$temporal_res == "annual") {
 knitr::kable(plant_zscore %>% 
                filter(nox_oz_in_emission_rate_zscore > 3 | nox_oz_in_emission_rate_zscore < -3) %>% 
                arrange(desc(nox_oz_in_emission_rate_zscore)) %>% 
-<<<<<<< HEAD
-               select(plant_id, plant_name, nox_oz_in_emission_rate_zscore, nox_oz_in_emission_rate))
-} else { 
-  print("Running monthly version so this does not apply.")}
-=======
                select(plant_id, plant_name, primary_fuel_type, heat_input_oz, nox_oz_mass, nox_oz_in_emission_rate_zscore, nox_oz_in_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
->>>>>>> development
+}
 ```
 
 #### SO2 input rate
@@ -2501,15 +2415,10 @@ knitr::kable(plant_zscore %>%
 #| label: plant-so2-input-outliers
 
 knitr::kable(plant_zscore %>% 
-<<<<<<< HEAD
-               filter(so2_input_rate_zscore > 3 | so2_input_rate_zscore < -3) %>% 
-               arrange(desc(so2_input_rate_zscore)) %>% 
-               select(all_of(temporal_res_cols), plant_id, plant_name, so2_input_rate_zscore, so2_input_rate))
-=======
                filter(so2_in_emission_rate_zscore > 3 | so2_in_emission_rate_zscore < -3) %>% 
                arrange(desc(so2_in_emission_rate_zscore)) %>% 
                select(plant_id, plant_name, primary_fuel_type, heat_input, so2_mass, so2_in_emission_rate_zscore, so2_in_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
->>>>>>> development
+
 ```
 
 #### CO2 input rate
@@ -2518,40 +2427,9 @@ knitr::kable(plant_zscore %>%
 #| label: plant-co2-input-outliers
 
 knitr::kable(plant_zscore %>% 
-<<<<<<< HEAD
-               filter(co2_input_rate_zscore > 3 | co2_input_rate_zscore < -3) %>% 
-               arrange(desc(co2_input_rate_zscore)) %>% 
-               select(plant_id, plant_name, co2_input_rate_zscore, co2_input_rate))
-
-```
-
-#### CH4 input rate
-
-```{r}
-#| label: plant-ch4-input-outliers
-
-knitr::kable(plant_zscore %>% 
-               filter(ch4_input_rate_zscore > 3 | ch4_input_rate_zscore < -3) %>% 
-               arrange(desc(ch4_input_rate_zscore)) %>% 
-               select(plant_id, plant_name, ch4_input_rate_zscore, ch4_input_rate))
-
-```
-
-#### N2O input rate
-
-```{r}
-#| label: plant-n2o-input-outliers
-
-knitr::kable(plant_zscore %>% 
-               filter(n2o_input_rate_zscore > 3 | n2o_input_rate_zscore < -3) %>% 
-               arrange(desc(n2o_input_rate_zscore)) %>% 
-               select(plant_id, plant_name, n2o_input_rate_zscore, n2o_input_rate))
-
-=======
                filter(co2_in_emission_rate_zscore > 3 | co2_in_emission_rate_zscore < -3) %>% 
                arrange(desc(co2_in_emission_rate_zscore)) %>% 
                select(plant_id, plant_name, primary_fuel_type, heat_input, co2_mass, co2_in_emission_rate_zscore, co2_in_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
->>>>>>> development
 ```
 
 #### CO2e input rate
@@ -2560,15 +2438,9 @@ knitr::kable(plant_zscore %>%
 #| label: plant-co2e-input-outliers
 
 knitr::kable(plant_zscore %>% 
-<<<<<<< HEAD
-               filter(co2e_input_rate_zscore > 3 | co2e_input_rate_zscore < -3) %>% 
-               arrange(desc(co2e_input_rate_zscore)) %>% 
-               select(plant_id, plant_name, co2e_input_rate_zscore, co2e_input_rate))
-=======
                filter(co2e_in_emission_rate_zscore > 3 | co2e_in_emission_rate_zscore < -3) %>% 
                arrange(desc(co2e_in_emission_rate_zscore)) %>% 
                select(plant_id, plant_name, primary_fuel_type, heat_input, co2e_mass, co2e_in_emission_rate_zscore, co2e_in_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
->>>>>>> development
 
 ```
 :::
@@ -2593,18 +2465,9 @@ knitr::kable(plant_zscore %>%
 ```{r}
 #| label: plant-nox_oz_mass-output-outliers
 
-<<<<<<< HEAD
-if (params$temporal_res == "annual") { 
-  knitr::kable(plant_zscore %>% 
-                 filter(nox_oz_output_rate_zscore > 3 | nox_oz_output_rate_zscore < -3) %>% 
-                 arrange(desc(nox_oz_output_rate_zscore)) %>% select(plant_id, plant_name, nox_oz_output_rate_zscore, nox_oz_output_rate))
-} else { 
-  print("Running monthly version so this does not apply.")}
-=======
 knitr::kable(plant_zscore %>% 
                filter(nox_oz_output_rate_zscore > 3 | nox_oz_output_rate_zscore < -3) %>% 
                arrange(desc(nox_oz_output_rate_zscore)) %>% select(plant_id, plant_name, primary_fuel_type, generation_oz, nox_oz_mass, capfac, nox_oz_output_rate_zscore, nox_oz_output_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
->>>>>>> development
 
 ```
 
@@ -4349,17 +4212,11 @@ if (params$temporal_res == "annual") {
     ungroup()}
 
 check_plant_gen_sum_ann <- gen_plant_sum %>%
-<<<<<<< HEAD
-  full_join(plant_file %>% select(plant_id, generation), join_by("plant_id")) %>%
-  mutate(sum_diff = round(generation - plant_ann_sum, 5)) %>%
-  filter(sum_diff != 0)
-=======
   full_join(plant_file %>% select("plant_id", "generation_ann"), join_by("plant_id")) %>%
   mutate(sum_diff = round(generation_ann - plant_ann_sum, 5),
          perc_diff = (sum_diff)/((generation_ann + plant_ann_sum)/2)*100) %>%
   filter(sum_diff != 0) %>%
   arrange(desc(sum_diff))
->>>>>>> development
 
 ifelse(nrow(check_plant_gen_sum_ann) == 0, "Status: PASS - All annual generation values between plant and generation files are equal.",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum_ann)} plants do not have the same annual plant generation values between plant and generation files."))
 
