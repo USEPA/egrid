@@ -2370,7 +2370,9 @@ plant_stats <-
                 .names =  "{.col}_average"), 
          across(.cols = c(contains("rate"), contains("ra"), contains("ro"), -contains("average")), 
                 .fns = ~ sd(.x, na.rm = TRUE), 
-                .names =  "{.col}_sd"))
+                .names =  "{.col}_sd"),
+         plc2ecrt_average = mean(plc2ecrt, na.rm = TRUE),
+         plc2ecrt_sd = sd(plc2ecrt, na.rm = TRUE))
 
 plant_stats[sapply(plant_stats, is.infinite)] <- NA
 
@@ -2378,7 +2380,8 @@ plant_zscore <-
   plant_stats %>% 
   mutate(across(.cols = c(contains("rate"), contains("ra"), contains("ro"), -contains("average"), -contains("sd")), 
                 .fns = ~ (.x - mean(.x, na.rm = TRUE)) / sd(.x, na.rm = TRUE), 
-                .names =  "{.col}_zscore")) 
+                .names =  "{.col}_zscore"),
+         plc2ecrt_zscore = (plc2ecrt - mean(plc2ecrt, na.rm = TRUE)) / sd(plc2ecrt, na.rm = TRUE)) 
 ```
 
 ### Input rate
@@ -2607,7 +2610,10 @@ knitr::kable(plant_zscore %>%
 ```{r}
 #| label: plant-co2e-combustion-output-outliers
 
-
+knitr::kable(plant_zscore %>%
+               filter(plc2ecrt_zscore > 3 | plc2ecrt_zscore < -3) %>% 
+               arrange(desc(plc2ecrt_zscore)) %>%
+               select(plant_id, plant_name, primary_fuel_type, generation_ann, co2_mass, plc2ecrt_zscore, plc2ecrt, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
 ```
 :::
 
@@ -4145,6 +4151,545 @@ knitr::kable(state_zscore %>%
                filter(n2o_input_zscore > 3 | n2o_input_zscore < -3) %>%         
                select(state, state_n2o_input_rate, n2o_input_zscore) %>%    
                arrange(desc(n2o_input_zscore))) 
+```
+:::
+
+# Subregion File Fuel Specific QA
+
+## Outlier check for fuel emission rates
+
+```{r}
+#| label: calculate-subregion-fuel-outliers
+
+plant_stats_summary <- 
+  plant_stats %>% 
+  select(contains("average"), contains("sd")) %>% distinct() 
+
+subregion_stats <- 
+  subrgn_agg %>% 
+  mutate(across(.cols = contains("rate") & where(is.numeric), 
+                .fns = ~ mean(.x, na.rm = TRUE), 
+                .names =  "{.col}_average"), 
+         across(.cols = c(contains("rate") & where(is.numeric),
+                          -contains("average") & where(is.numeric)), 
+                .fns = ~ sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_sd")) %>% 
+  select(contains("average") & where(is.numeric), 
+         contains("sd") & where(is.numeric)) %>% distinct()
+
+stats_summary <- bind_cols(plant_stats_summary, subregion_stats) 
+
+subregion_fuel_zscore <- 
+  subrgn_agg %>% 
+  mutate(nox_output_coal_zscore = (subregion_nox_output_rate_coal - 
+                             subregion_stats$subregion_nox_output_rate_coal_average)/ 
+          subregion_stats$subregion_nox_output_rate_coal_sd, 
+         
+         nox_oz_output_coal_zscore = (subregion_nox_oz_output_rate_coal - 
+                                   subregion_stats$subregion_nox_oz_output_rate_coal_average)/ 
+           subregion_stats$subregion_nox_oz_output_rate_coal_sd, 
+         
+         so2_output_coal_zscore = (subregion_so2_output_rate_coal - 
+                                subregion_stats$subregion_so2_output_rate_coal_average)/ 
+           subregion_stats$subregion_so2_output_rate_coal_sd,
+         
+         co2_output_coal_zscore = (subregion_co2_output_rate_coal - 
+                                subregion_stats$subregion_co2_output_rate_coal_average)/ 
+           subregion_stats$subregion_co2_output_rate_coal_sd,
+         
+         ch4_output_coal_zscore = (subregion_ch4_output_rate_coal - 
+                                subregion_stats$subregion_ch4_output_rate_coal_average)/ 
+           subregion_stats$subregion_ch4_output_rate_coal_sd,
+         
+         n2o_output_coal_zscore = (subregion_n2o_output_rate_coal - 
+                                subregion_stats$subregion_n2o_output_rate_coal_average)/ 
+           subregion_stats$subregion_n2o_output_rate_coal_sd,
+         
+         co2e_output_coal_zscore = (subregion_co2e_output_rate_coal - 
+                                 subregion_stats$subregion_co2e_output_rate_coal_average)/ 
+           subregion_stats$subregion_co2e_output_rate_coal_sd,
+         
+         nox_input_coal_zscore = (subregion_nox_input_rate_coal - 
+                                subregion_stats$subregion_nox_input_rate_coal_average)/ 
+           subregion_stats$subregion_nox_input_rate_coal_sd, 
+         
+         nox_oz_input_coal_zscore = (subregion_nox_oz_input_rate_coal - 
+                                   subregion_stats$subregion_nox_oz_input_rate_coal_average)/ 
+           subregion_stats$subregion_nox_oz_input_rate_coal_sd, 
+         
+         so2_input_coal_zscore = (subregion_so2_input_rate_coal - 
+                                subregion_stats$subregion_so2_input_rate_coal_average)/ 
+            subregion_stats$subregion_so2_input_rate_coal_sd,
+         
+         co2_input_coal_zscore = (subregion_co2_input_rate_coal - 
+                                subregion_stats$subregion_co2_input_rate_coal_average)/ 
+           subregion_stats$subregion_co2_input_rate_coal_sd,
+         
+         ch4_input_coal_zscore = (subregion_ch4_input_rate_coal - 
+                                subregion_stats$subregion_ch4_input_rate_coal_average)/ 
+           subregion_stats$subregion_ch4_input_rate_coal_sd,
+         
+         n2o_input_coal_zscore = (subregion_n2o_input_rate_coal - 
+                                subregion_stats$subregion_n2o_input_rate_coal_average)/ 
+           subregion_stats$subregion_n2o_input_rate_coal_sd,
+         
+         co2e_input_coal_zscore = (subregion_co2e_input_rate_coal - 
+                                 subregion_stats$subregion_co2e_input_rate_coal_average)/ 
+           subregion_stats$subregion_co2e_input_rate_coal_sd, 
+         
+         # oil calculations for z score
+  
+        nox_output_oil_zscore = (subregion_nox_output_rate_oil - 
+                                    subregion_stats$subregion_nox_output_rate_oil_average)/ 
+          subregion_stats$subregion_nox_output_rate_oil_sd, 
+        
+        nox_oz_output_oil_zscore = (subregion_nox_oz_output_rate_oil - 
+                                       subregion_stats$subregion_nox_oz_output_rate_oil_average)/ 
+          subregion_stats$subregion_nox_oz_output_rate_oil_sd, 
+        
+        so2_output_oil_zscore = (subregion_so2_output_rate_oil - 
+                                    subregion_stats$subregion_so2_output_rate_oil_average)/ 
+          subregion_stats$subregion_so2_output_rate_oil_sd,
+        
+        co2_output_oil_zscore = (subregion_co2_output_rate_oil - 
+                                    subregion_stats$subregion_co2_output_rate_oil_average)/ 
+          subregion_stats$subregion_co2_output_rate_oil_sd,
+        
+        ch4_output_oil_zscore = (subregion_ch4_output_rate_oil - 
+                                    subregion_stats$subregion_ch4_output_rate_oil_average)/ 
+          subregion_stats$subregion_ch4_output_rate_oil_sd,
+        
+        n2o_output_oil_zscore = (subregion_n2o_output_rate_oil - 
+                                    subregion_stats$subregion_n2o_output_rate_oil_average)/ 
+          subregion_stats$subregion_n2o_output_rate_oil_sd,
+        
+        co2e_output_oil_zscore = (subregion_co2e_output_rate_oil - 
+                                     subregion_stats$subregion_co2e_output_rate_oil_average)/ 
+          subregion_stats$subregion_co2e_output_rate_oil_sd,
+        
+        nox_input_oil_zscore = (subregion_nox_input_rate_oil - 
+                                   subregion_stats$subregion_nox_input_rate_oil_average)/ 
+          subregion_stats$subregion_nox_input_rate_oil_sd, 
+        
+        nox_oz_input_oil_zscore = (subregion_nox_oz_input_rate_oil - 
+                                      subregion_stats$subregion_nox_oz_input_rate_oil_average)/ 
+          subregion_stats$subregion_nox_oz_input_rate_oil_sd, 
+        
+        so2_input_oil_zscore = (subregion_so2_input_rate_oil - 
+                                   subregion_stats$subregion_so2_input_rate_oil_average)/ 
+          subregion_stats$subregion_so2_input_rate_oil_sd,
+        
+        co2_input_oil_zscore = (subregion_co2_input_rate_oil - 
+                                   subregion_stats$subregion_co2_input_rate_oil_average)/ 
+          subregion_stats$subregion_co2_input_rate_oil_sd,
+        
+        ch4_input_oil_zscore = (subregion_ch4_input_rate_oil - 
+                                   subregion_stats$subregion_ch4_input_rate_oil_average)/ 
+          subregion_stats$subregion_ch4_input_rate_oil_sd,
+        
+        n2o_input_oil_zscore = (subregion_n2o_input_rate_oil - 
+                                   subregion_stats$subregion_n2o_input_rate_oil_average)/ 
+          subregion_stats$subregion_n2o_input_rate_oil_sd,
+        
+        co2e_input_oil_zscore = (subregion_co2e_input_rate_oil - 
+                                    subregion_stats$subregion_co2e_input_rate_oil_average)/ 
+          subregion_stats$subregion_co2e_input_rate_oil_sd,
+        
+        nox_output_gas_zscore = (subregion_nox_output_rate_gas - 
+                            subregion_stats$subregion_nox_output_rate_gas_average)/ 
+         subregion_stats$subregion_nox_output_rate_gas_sd, 
+        
+        # gas calculations for z score
+
+        nox_oz_output_gas_zscore = (subregion_nox_oz_output_rate_gas - 
+                                       subregion_stats$subregion_nox_oz_output_rate_gas_average)/ 
+          subregion_stats$subregion_nox_oz_output_rate_gas_sd, 
+        
+        so2_output_gas_zscore = (subregion_so2_output_rate_gas - 
+                                    subregion_stats$subregion_so2_output_rate_gas_average)/ 
+          subregion_stats$subregion_so2_output_rate_gas_sd,
+        
+        co2_output_gas_zscore = (subregion_co2_output_rate_gas - 
+                                    subregion_stats$subregion_co2_output_rate_gas_average)/ 
+          subregion_stats$subregion_co2_output_rate_gas_sd,
+        
+        ch4_output_gas_zscore = (subregion_ch4_output_rate_gas - 
+                                    subregion_stats$subregion_ch4_output_rate_gas_average)/ 
+          subregion_stats$subregion_ch4_output_rate_gas_sd,
+        
+        n2o_output_gas_zscore = (subregion_n2o_output_rate_gas - 
+                                    subregion_stats$subregion_n2o_output_rate_gas_average)/ 
+          subregion_stats$subregion_n2o_output_rate_gas_sd,
+        
+        co2e_output_gas_zscore = (subregion_co2e_output_rate_gas - 
+                                     subregion_stats$subregion_co2e_output_rate_gas_average)/ 
+          subregion_stats$subregion_co2e_output_rate_gas_sd,
+        
+        nox_input_gas_zscore = (subregion_nox_input_rate_gas - 
+                                   subregion_stats$subregion_nox_input_rate_gas_average)/ 
+          subregion_stats$subregion_nox_input_rate_gas_sd, 
+        
+        nox_oz_input_gas_zscore = (subregion_nox_oz_input_rate_gas - 
+                                      subregion_stats$subregion_nox_oz_input_rate_gas_average)/ 
+          subregion_stats$subregion_nox_oz_input_rate_gas_sd, 
+        
+        so2_input_gas_zscore = (subregion_so2_input_rate_gas - 
+                                   subregion_stats$subregion_so2_input_rate_gas_average)/ 
+          subregion_stats$subregion_so2_input_rate_gas_sd,
+        
+        co2_input_gas_zscore = (subregion_co2_input_rate_gas - 
+                                   subregion_stats$subregion_co2_input_rate_gas_average)/ 
+          subregion_stats$subregion_co2_input_rate_gas_sd,
+        
+        ch4_input_gas_zscore = (subregion_ch4_input_rate_gas - 
+                                   subregion_stats$subregion_ch4_input_rate_gas_average)/ 
+          subregion_stats$subregion_ch4_input_rate_gas_sd,
+        
+        n2o_input_gas_zscore = (subregion_n2o_input_rate_gas - 
+                                   subregion_stats$subregion_n2o_input_rate_gas_average)/ 
+          subregion_stats$subregion_n2o_input_rate_gas_sd,
+        
+        co2e_input_gas_zscore = (subregion_co2e_input_rate_gas - 
+                                    subregion_stats$subregion_co2e_input_rate_gas_average)/ 
+          subregion_stats$subregion_co2e_input_rate_gas_sd,
+        
+        # calculations for fossil fuel z score
+        
+        nox_output_fossil_zscore = (subregion_nox_output_rate_fossil - 
+                            subregion_stats$subregion_nox_output_rate_fossil_average)/ 
+          subregion_stats$subregion_nox_output_rate_fossil_sd, 
+
+        nox_oz_output_fossil_zscore = (subregion_nox_oz_output_rate_fossil - 
+                                       subregion_stats$subregion_nox_oz_output_rate_fossil_average)/ 
+          subregion_stats$subregion_nox_oz_output_rate_fossil_sd, 
+        
+        so2_output_fossil_zscore = (subregion_so2_output_rate_fossil - 
+                                    subregion_stats$subregion_so2_output_rate_fossil_average)/ 
+          subregion_stats$subregion_so2_output_rate_fossil_sd,
+        
+        co2_output_fossil_zscore = (subregion_co2_output_rate_fossil - 
+                                    subregion_stats$subregion_co2_output_rate_fossil_average)/ 
+          subregion_stats$subregion_co2_output_rate_fossil_sd,
+        
+        ch4_output_fossil_zscore = (subregion_ch4_output_rate_fossil - 
+                                    subregion_stats$subregion_ch4_output_rate_fossil_average)/ 
+          subregion_stats$subregion_ch4_output_rate_fossil_sd,
+        
+        n2o_output_fossil_zscore = (subregion_n2o_output_rate_fossil - 
+                                    subregion_stats$subregion_n2o_output_rate_fossil_average)/ 
+          subregion_stats$subregion_n2o_output_rate_fossil_sd,
+        
+        co2e_output_fossil_zscore = (subregion_co2e_output_rate_fossil - 
+                                     subregion_stats$subregion_co2e_output_rate_fossil_average)/ 
+          subregion_stats$subregion_co2e_output_rate_fossil_sd,
+        
+        nox_input_fossil_zscore = (subregion_nox_input_rate_fossil - 
+                                   subregion_stats$subregion_nox_input_rate_fossil_average)/ 
+          subregion_stats$subregion_nox_input_rate_fossil_sd, 
+        
+        nox_oz_input_fossil_zscore = (subregion_nox_oz_input_rate_fossil - 
+                                      subregion_stats$subregion_nox_oz_input_rate_fossil_average)/ 
+          subregion_stats$subregion_nox_oz_input_rate_fossil_sd, 
+        
+        so2_input_fossil_zscore = (subregion_so2_input_rate_fossil - 
+                                   subregion_stats$subregion_so2_input_rate_fossil_average)/ 
+          subregion_stats$subregion_so2_input_rate_fossil_sd,
+        
+        co2_input_fossil_zscore = (subregion_co2_input_rate_fossil - 
+                                   subregion_stats$subregion_co2_input_rate_fossil_average)/ 
+          subregion_stats$subregion_co2_input_rate_fossil_sd,
+        
+        ch4_input_fossil_zscore = (subregion_ch4_input_rate_fossil - 
+                                   subregion_stats$subregion_ch4_input_rate_fossil_average)/ 
+          subregion_stats$subregion_ch4_input_rate_fossil_sd,
+        
+        n2o_input_fossil_zscore = (subregion_n2o_input_rate_fossil - 
+                                   subregion_stats$subregion_n2o_input_rate_fossil_average)/ 
+          subregion_stats$subregion_n2o_input_rate_fossil_sd,
+        
+        co2e_input_fossil_zscore = (subregion_co2e_input_rate_fossil - 
+                                    subregion_stats$subregion_co2e_input_rate_fossil_average)/ 
+          subregion_stats$subregion_co2e_input_rate_fossil_sd) %>%
+  select(subregion, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+```
+
+### Coal input rates
+
+::: panel-tabset
+#### NOx input rate
+
+```{r}
+#| label: subregion-nox-input-coal-outliers      
+
+knitr::kable(subregion_fuel_zscore %>% 
+               filter(nox_input_coal_zscore > 3 | nox_input_coal_zscore < -3) %>%             
+               select(subregion, subregion_nox_input_rate_coal, nox_input_coal_zscore) %>%
+               arrange(desc(nox_input_coal_zscore)))
+```
+
+#### NOx ozone input rate
+
+```{r}
+#| label: subregion-nox-oz-input-coal-outliers        
+
+knitr::kable(subregion_fuel_zscore %>% 
+               filter(nox_oz_input_coal_zscore > 3 | nox_oz_input_coal_zscore < -3) %>%             
+               select(subregion, subregion_nox_oz_input_rate_coal, nox_oz_input_coal_zscore) %>%
+               arrange(desc(nox_oz_input_coal_zscore)))
+```
+
+#### SO2 input rate
+
+```{r}
+#| label: subregion-so2-input-coal-outliers    
+
+knitr::kable(subregion_fuel_zscore %>% 
+               filter(so2_input_coal_zscore > 3 | so2_input_coal_zscore < -3) %>%             
+               select(subregion, subregion_so2_input_rate_coal, so2_input_coal_zscore) %>%
+               arrange(desc(so2_input_coal_zscore)))
+```
+
+#### CO2 input rate
+
+```{r}
+#| label: subregion-co2-input-coal-outliers          
+
+knitr::kable(subregion_fuel_zscore %>%              
+               filter(co2_input_coal_zscore > 3 | co2_input_coal_zscore < -3) %>%           
+               select(subregion, subregion_co2_input_rate_coal, co2_input_coal_zscore) %>%    
+               arrange(desc(co2_input_coal_zscore))) 
+```
+
+#### CH4 input rate
+
+```{r}
+#| label: subregion-ch4-input-coal-outliers        
+
+knitr::kable(subregion_fuel_zscore %>%              
+               filter(ch4_input_coal_zscore > 3 | ch4_input_coal_zscore < -3) %>%             
+               select(subregion, subregion_ch4_input_rate_coal, ch4_input_coal_zscore) %>%        
+               arrange(desc(ch4_input__coal_zscore))) 
+```
+
+#### N2O input rate
+
+```{r}
+#| label: subregion-n2o-input-coal-outliers
+
+knitr::kable(subregion_fuel_zscore %>%
+               filter(n2o_input_coal_zscore > 3 | n2o_input_coal_zscore < -3) %>%
+               select(subregion, subregion_n2o_input_rate_coal, n2o_input_coal_zscore) %>%
+               arrange(desc(n2o_input_coal_zscore)))
+```
+:::
+
+### Coal output rates
+
+::: panel-tabset
+#### NOx output rate
+
+```{r}
+#| label: subregion-nox-output-coal-outliers        
+
+knitr::kable(subregion_fuel_zscore %>%                 
+               filter(nox_output_coal_zscore > 3 | nox_output_coal_zscore < -3) %>%                             
+               select(subregion, subregion_nox_output_rate_coal, nox_output_coal_zscore) %>%                
+               arrange(desc(nox_output_coal_zscore)))
+```
+
+#### NOx ozone output rate
+
+```{r}
+#| label: subregion-nox-oz-output-coal-outliers        
+
+knitr::kable(subregion_fuel_zscore %>%                 
+               filter(nox_oz_output_coal_zscore > 3 | nox_oz_output_coal_zscore < -3) %>%                             
+               select(subregion, subregion_nox_oz_output_rate_coal, nox_oz_output_coal_zscore) %>%                
+               arrange(desc(nox_oz_output_coal_zscore)))
+```
+
+#### SO2 output rate
+
+```{r}
+#| label: subregion-so2-output-coal-outliers      
+
+knitr::kable(subregion_fuel_zscore %>%                 
+               filter(so2_output_coal_zscore > 3 | so2_output_coal_zscore < -3) %>%                             
+               select(subregion, subregion_so2_output_rate_coal, so2_output_coal_zscore) %>%                
+               arrange(desc(so2_output_coal_zscore)))
+```
+
+#### CO2 output rate
+
+```{r}
+#| label: subregion-co2-output-coal-outliers            
+
+knitr::kable(subregion_fuel_zscore %>%                              
+               filter(co2_output_coal_zscore > 3 | co2_output_coal_zscore < -3) %>%                           
+               select(subregion, subregion_co2_output_rate_coal, co2_output_coal_zscore) %>%                    
+               arrange(desc(co2_output_coal_zscore))) 
+```
+
+#### CH4 output rate
+
+```{r}
+#| label: subregion-ch4-output-coal-outliers          
+
+knitr::kable(subregion_fuel_zscore %>%                              
+               filter(ch4_output_coal_zscore > 3 | ch4_output_coal_zscore < -3) %>%                             
+               select(subregion, subregion_ch4_output_rate_coal, ch4_output_coal_zscore) %>%                        
+               arrange(desc(ch4_output__coal_zscore))) 
+```
+
+#### N2O output rate
+
+```{r}
+#| label: subregion-n2o-output-coal-outliers  
+
+knitr::kable(subregion_fuel_zscore %>%                
+               filter(n2o_output_coal_zscore > 3 | n2o_output_coal_zscore < -3) %>%                
+               select(subregion, subregion_n2o_output_rate_coal, n2o_output_coal_zscore) %>%                
+               arrange(desc(n2o_output_coal_zscore)))
+```
+:::
+
+### Oil input rates
+
+::: panel-tabset
+#### NOx input rate
+
+```{r}
+#| label: subregion-nox-input-oil-outliers      
+
+knitr::kable(subregion_fuel_zscore %>% 
+               filter(nox_input_oil_zscore > 3 | nox_input_oil_zscore < -3) %>%             
+               select(subregion, subregion_nox_input_rate_oil, nox_input_oil_zscore) %>%
+               arrange(desc(nox_input_oil_zscore)))
+```
+
+#### NOx ozone input rate
+
+```{r}
+#| label: subregion-nox-oz-input-oil-outliers        
+
+knitr::kable(subregion_fuel_zscore %>% 
+               filter(nox_oz_input_oil_zscore > 3 | nox_oz_input_oil_zscore < -3) %>%             
+               select(subregion, subregion_nox_oz_input_rate_oil, nox_oz_input_oil_zscore) %>%
+               arrange(desc(nox_oz_input_oil_zscore)))
+```
+
+#### SO2 input rate
+
+```{r}
+#| label: subregion-so2-input-oil-outliers    
+
+knitr::kable(subregion_fuel_zscore %>% 
+               filter(so2_input_oil_zscore > 3 | so2_input_oil_zscore < -3) %>%             
+               select(subregion, subregion_so2_input_rate_oil, so2_input_oil_zscore) %>%
+               arrange(desc(so2_input_oil_zscore)))
+```
+
+#### CO2 input rate
+
+```{r}
+#| label: subregion-co2-input-oil-outliers          
+
+knitr::kable(subregion_fuel_zscore %>%              
+               filter(co2_input_oil_zscore > 3 | co2_input_oil_zscore < -3) %>%           
+               select(subregion, subregion_co2_input_rate_oil, co2_input_oil_zscore) %>%    
+               arrange(desc(co2_input_oil_zscore)))
+```
+
+#### CH4 input rate
+
+```{r}
+#| label: subregion-ch4-input-oil-outliers        
+
+knitr::kable(subregion_fuel_zscore %>%              
+               filter(ch4_input_oil_zscore > 3 | ch4_input_oil_zscore < -3) %>%             
+               select(subregion, subregion_ch4_input_rate_oil, ch4_input_oil_zscore) %>%        
+               arrange(desc(ch4_input_oil_zscore))) 
+```
+
+#### N2O input rate
+
+```{r}
+#| label: subregion-n2o-input-oil-outliers
+
+knitr::kable(subregion_fuel_zscore %>%
+               filter(n2o_input_oil_zscore > 3 | n2o_input_oil_zscore < -3) %>%
+               select(subregion, subregion_n2o_input_rate_oil, n2o_input_oil_zscore) %>%
+               arrange(desc(n2o_input_oil_zscore)))
+```
+:::
+
+### Oil Output rates
+
+::: panel-tabset
+#### NOx output rate
+
+```{r}
+#| label: subregion-nox-output-oil-outliers        
+
+knitr::kable(subregion_fuel_zscore %>%                                 
+               filter(nox_output_oil_zscore > 3 | nox_output_oil_zscore < -3) %>%                                             
+               select(subregion, subregion_nox_output_rate_oil, nox_output_oil_zscore) %>%                                
+               arrange(desc(nox_output_oil_zscore)))
+```
+
+#### NOx ozone output rate
+
+```{r}
+#| label: subregion-nox-oz-output-oil-outliers          
+
+knitr::kable(subregion_fuel_zscore %>%                                 
+               filter(nox_oz_output_oil_zscore > 3 | nox_oz_output_oil_zscore < -3) %>%                                             
+               select(subregion, subregion_nox_oz_output_rate_oil, nox_oz_output_oil_zscore) %>%                                
+               arrange(desc(nox_oz_output_oil_zscore)))
+```
+
+#### SO2 output rate
+
+```{r}
+#| label: subregion-so2-output-oil-outliers        
+
+knitr::kable(subregion_fuel_zscore %>%                                 
+               filter(so2_output_oil_zscore > 3 | so2_output_oil_zscore < -3) %>%                                             
+               select(subregion, subregion_so2_output_rate_oil, so2_output_oil_zscore) %>%                               
+               arrange(desc(so2_output_oil_zscore)))
+```
+
+#### CO2 output rate
+
+```{r}
+#| label: subregion-co2-output-oil-outliers              
+
+knitr::kable(subregion_fuel_zscore %>%                                              
+               filter(co2_output_oil_zscore > 3 | co2_output_oil_zscore < -3) %>%                                           
+               select(subregion, subregion_co2_output_rate_oil, co2_output_oil_zscore) %>%                                    
+               arrange(desc(co2_output_oil_zscore)))
+```
+
+#### CH4 output rate
+
+```{r}
+#| label: subregion-ch4-output-oil-outliers            
+
+knitr::kable(subregion_fuel_zscore %>%                                              
+               filter(ch4_output_oil_zscore > 3 | ch4_output_oil_zscore < -3) %>%                                            
+               select(subregion, subregion_ch4_output_rate_oil, ch4_output_oil_zscore) %>%                                       
+               arrange(desc(ch4_output_oil_zscore))) 
+```
+
+#### N2O output rate
+
+```{r}
+#| label: subregion-n2o-output-oil-outliers    
+
+knitr::kable(subregion_fuel_zscore %>%                                
+               filter(n2o_output_oil_zscore > 3 | n2o_output_oil_zscore < -3) %>%                                
+               select(subregion, subregion_n2o_output_rate_oil, n2o_output_oil_zscore) %>%                                
+               arrange(desc(n2o_output_oil_zscore)))
 ```
 :::
 

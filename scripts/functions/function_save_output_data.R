@@ -8,13 +8,12 @@
 ## folder by first checking if directories exist and creating 
 ## them where necessary.
 ##
-## Additional notes
-##
+## Authors:
 ##      Emma Russell, Abt Global
 ##
 ## -------------------------------
 
-save_output_data <- function(data, output_folder_path, file_name){
+save_output_data <- function(data, output_folder_path, file_name, file_type="RDS"){
   
   #' save_output_data
   #' 
@@ -32,21 +31,24 @@ save_output_data <- function(data, output_folder_path, file_name){
   #' # Save PM2.5 plant file
   #' save_output_data(pm_plant_formatted, "data/outputs/1_production_model", "pm_plant_file.RDS")
   
+  require(stringr)
+  
   # annual files
   if (str_detect(file_name, "annual") & !str_detect(file_name, "epa")) {
     
     # create save directories if they don't exist
-    if(dir.exists(glue::glue("{output_folder_path}/{params$eGRID_year}/annual"))) {
-      print(glue::glue("Folder {output_folder_path}/{params$eGRID_year}/annual already exists."))
-    } else {
-      dir.create(glue::glue("{output_folder_path}/{params$eGRID_year}"))
-      dir.create(glue::glue("{output_folder_path}/{params$eGRID_year}/annual"))
+    if(!dir.exists(glue::glue("{output_folder_path}/{params$eGRID_year}/annual"))) {
+      dir.create(glue::glue("{output_folder_path}/{params$eGRID_year}/annual"), recursive = TRUE)
     }
     
     print(glue::glue("Saving {file_name} to folder {output_folder_path}/{params$eGRID_year}/annual"))
     
     # save file
-    write_rds(data, glue::glue("{output_folder_path}/{params$eGRID_year}/annual/{file_name}"))
+    if(file_type == "RDS"){
+      write_rds(data, glue::glue("{output_folder_path}/{params$eGRID_year}/annual/{file_name}"))
+    } else if(file_type == "CSV") { 
+      write.csv(data, glue::glue("{output_folder_path}/{params$eGRID_year}/annual/{file_name}"), na="", row.names = FALSE)
+    }
     
     # check if file is successfully written to folder
     if(file.exists(glue::glue("{output_folder_path}/{params$eGRID_year}/annual/{file_name}"))){
@@ -59,18 +61,19 @@ save_output_data <- function(data, output_folder_path, file_name){
   } else if (str_detect(file_name, "monthly") & !str_detect(file_name, "epa")) {
     
     # create save directories if they don't exist
-    if(dir.exists(glue::glue("{output_folder_path}/{params$eGRID_year}/monthly"))) {
-      print(glue::glue("Folder {output_folder_path}/{params$eGRID_year} already exists."))
-    } else {
-      dir.create(glue::glue("{output_folder_path}/{params$eGRID_year}"))
-      dir.create(glue::glue("{output_folder_path}/{params$eGRID_year}/monthly"))
+    if(!dir.exists(glue::glue("{output_folder_path}/{params$eGRID_year}/monthly"))) {
+      dir.create(glue::glue("{output_folder_path}/{params$eGRID_year}/monthly"), recursive = TRUE)
     }
     
     print(glue::glue("Saving {file_name} to folder {output_folder_path}/{params$eGRID_year}/monthly"))
     
     # save file
-    write_rds(data, glue::glue("{output_folder_path}/{params$eGRID_year}/monthly/{file_name}"))
-    
+    if(file_type == "RDS"){
+      write_rds(data, glue::glue("{output_folder_path}/{params$eGRID_year}/monthly/{file_name}"))
+    } else if(file_type == "CSV") { 
+      write.csv(data, glue::glue("{output_folder_path}/{params$eGRID_year}/monthly/{file_name}"), na="", row.names = FALSE)
+    }
+
     # check if file is successfully written to folder
     if(file.exists(glue::glue("{output_folder_path}/{params$eGRID_year}/monthly/{file_name}"))){
       print(glue::glue("File {file_name} successfully written to folder {output_folder_path}/{params$eGRID_year}/monthly"))
@@ -82,17 +85,19 @@ save_output_data <- function(data, output_folder_path, file_name){
   } else {
     
     # create save directories if they don't exist
-    if(dir.exists(glue::glue("{output_folder_path}/{params$eGRID_year}"))) {
-      print(glue::glue("Folder {output_folder_path}/{params$eGRID_year} already exists."))
-    } else {
-      dir.create(glue::glue("{output_folder_path}/{params$eGRID_year}"))
+    if(!dir.exists(glue::glue("{output_folder_path}/{params$eGRID_year}"))) {
+      dir.create(glue::glue("{output_folder_path}/{params$eGRID_year}"), recursive = TRUE)
     }
     
     print(glue::glue("Saving {file_name} to folder {output_folder_path}/{params$eGRID_year}"))
     
     # save file
-    write_rds(data, glue::glue("{output_folder_path}/{params$eGRID_year}/{file_name}"))
-    
+    if(file_type == "RDS"){
+      write_rds(data, glue::glue("{output_folder_path}/{params$eGRID_year}/{file_name}"))
+    } else if(file_type == "CSV") { 
+      write.csv(data, glue::glue("{output_folder_path}/{params$eGRID_year}/{file_name}"), na="", row.names = FALSE)
+    }
+
     # check if file is successfully written to folder
     if(file.exists(glue::glue("{output_folder_path}/{params$eGRID_year}/{file_name}"))){
       print(glue::glue("File {file_name} successfully written to folder {output_folder_path}/{params$eGRID_year}"))
@@ -101,6 +106,4 @@ save_output_data <- function(data, output_folder_path, file_name){
     }
     
   }
-  
-  
 }
