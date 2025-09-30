@@ -13,6 +13,8 @@ The primary eGRID dataset is referred to in this repository as the eGRID product
 
 -   PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions
 
+-   Web updates
+
 ### Production model
 
 The final eGRID production model dataset includes eight levels of data aggregation:
@@ -60,6 +62,10 @@ The final dataset for each pollutant (PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC)
 Further information on the eGRID PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC methodology can be found in the [Particulate Matter Emissions for eGRID2021](https://www.epa.gov/system/files/documents/2024-06/egrid2021-draft-pm-memo.pdf) methodology documentation.
 
 The dataset that this code produces is publicly available [here](https://www.epa.gov/egrid/egrid-pm25).
+
+### Web updates 
+
+There are eGRID websites that use underlying data from the production model. The [eGRID Data Explorer](https://www.epa.gov/egrid/data-explorer) file inputs and [Frequently Asked Questions Global Warming Potential table](https://www.epa.gov/egrid/frequent-questions-about-egrid#What%20are%20GWPs%20and%20which%20GWPs%20does%20eGRID%20use) are calculated as post-processing steps in this codebase. 
 
 ## Architecture
 
@@ -119,6 +125,15 @@ Similar to the production model, `pm_nh3_voc_master.qmd` is a master script used
 
 The data used to create the PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions and emission rates data are EPA and EIA electricity data, NEI emissions data, an NEI-EIA facility and unit identifier crosswalk, and the eGRID production model dataset. EPA and EIA data are acquired in the same way as the production model while NEI emissions data and NEI-EIA crosswalk data are provided directly from the EPA.
 
+### Web updates 
+
+The web updates are structured as follows: 
+
+-   `scripts/2b_web_updates`: scripts to create the eGRID Data Explorer files and 
+
+-   `data/2b_web_updates`: outputs from each of the scripts for the eGRID Data Explorer files and the Frequently Asked Questions Global Warming Potential table. 
+
+
 ## Creating eGRID
 
 ### Production model
@@ -154,6 +169,13 @@ To create the eGRID PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions datasets
     -   If you do not have access to the NEI data inputs, set evaluation method in `params` (eval) to `false`.
     -   Render `pm_nh3_voc_master.qmd`. If `eval:true`, this will run all scripts and build the PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions datasets. If `eval:false`, this will produce the documentation around dataset production but will not build the datasets themselves.
 
+### Web updates
+
+To create the web updates: 
+1.	Confirm the eGRID production model data has been produced and is stored in `data/1_production_model/outputs/`.
+2.	Run the scripts `scripts/2b_web_updates/data_explorer_formatting.R` and `scripts/2b_web_updates/faq_gwp_table_create.R`. 
+
+
 ## Outputs
 
 ### Production model
@@ -171,6 +193,25 @@ The resulting final outputs include:
 
 
 Rendering `pm_nh3_voc_master.qmd` also creates an HTML file that summarizes the data, methods, and output files used and created throughout the code base.
+
+### Web updates
+
+For the eGRID Data Explorer, the codebase outputs a group of CSV files. These files contain eGRID data from 2018 to the current `params$eGRID_year`, formatted as needed for the Data Explorer. For the Frequently Asked Questions Global Warming Potential table, the codebase outputs a single CSV file. These outputs are stored in `data/2b_web_updates/outputs/{params$eGRID_year}`.
+The resulting final outputs include: 
+
+-   `data_explorer_ba_file.csv`
+
+-   `data_explorer_nerc_file.csv`
+
+-   `data_explorer_plant_file.csv`
+
+-   `data_explorer_state_file.csv`
+
+-   `data_explorer_subregion_file.csv`
+
+-   `data_explorer_us_file.csv`
+
+-   `faq_gwp_table.csv`
 
 ## QA
 
