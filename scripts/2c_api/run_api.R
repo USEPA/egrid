@@ -1,3 +1,17 @@
+## -------------------------------
+##
+## Run plumber API
+## 
+## Purpose: 
+## 
+## This file runs plumber API to connect RDS output files to the ETL process, and ultimately populate the eGRID API database. 
+## 
+## Authors:  
+##      Elisabeth Ashley, Abt Global
+##      Teagan Goforth, Abt Global
+##
+## -------------------------------
+
 library(plumber)
 library(this.path)
 

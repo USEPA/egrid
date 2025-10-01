@@ -1,3 +1,17 @@
+## -------------------------------
+##
+## Plumber API set-up 
+## 
+## Purpose: 
+## 
+## This file connects the RDS outputs for the plumber API to recognize, and connect to the ETL.
+## 
+## Authors:  
+##      Elisabeth Ashley, Abt Global
+##      Teagan Goforth, Abt Global
+##
+## -------------------------------
+
 library(plumber)
 library(this.path)
 library(readr)
@@ -12,7 +26,7 @@ base::load(glue::glue("{egrid_dir_path}/data/1_production_model/static_tables/na
  
 #* @get /<year>/plant
 function(year) {
-  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/plant_file.RDS") 
+  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/annual/plant_file_annual.RDS") 
  
   tryCatch({
     plant_data <- read_rds(rds_file) %>% 
@@ -27,7 +41,7 @@ function(year) {
 
 #* @get /<year>/balancingauthority
 function(year) {
-  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/ba_aggregation.RDS") 
+  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/annual/ba_aggregation_annual.RDS") 
   
   tryCatch({
     ba_data <- read_rds(rds_file) %>% 
@@ -41,7 +55,7 @@ function(year) {
 
 #* @get /<year>/generator
 function(year) {
-  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/generator_file.RDS") 
+  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/annual/generator_file_annual.RDS") 
   
   tryCatch({
     generator_data <- read_rds(rds_file) %>% 
@@ -55,7 +69,7 @@ function(year) {
 
 #* @get /<year>/nerc
 function(year) {
-  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/nerc_aggregation.RDS") 
+  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/annual/nerc_aggregation_annual.RDS") 
   
   tryCatch({
     nerc_data <- read_rds(rds_file) %>% 
@@ -69,7 +83,7 @@ function(year) {
 
 #* @get /<year>/state
 function(year) {
-  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/state_aggregation.RDS") 
+  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/annual/state_aggregation_annual.RDS") 
   
   tryCatch({
     state_data <- read_rds(rds_file) %>% 
@@ -83,7 +97,7 @@ function(year) {
 
 #* @get /<year>/subregion
 function(year) {
-  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/subregion_aggregation.RDS") 
+  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/annual/subregion_aggregation_annual.RDS") 
   
   tryCatch({
     subregion_data <- read_rds(rds_file) %>% 
@@ -98,7 +112,7 @@ function(year) {
 
 #* @get /<year>/unit
 function(year) {
-  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/unit_file.RDS")
+  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/annual/unit_file_annual.RDS")
   
   tryCatch({
     unit_data <- read_rds(rds_file) %>% 
@@ -112,7 +126,7 @@ function(year) {
 
 #* @get /<year>/us
 function(year) {
-  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/us_aggregation.RDS") 
+  rds_file <- glue::glue("{egrid_dir_path}/data/1_production_model/outputs/{year}/annual/us_aggregation_annual.RDS") 
   
   tryCatch({
     us_data <- read_rds(rds_file) %>% 
