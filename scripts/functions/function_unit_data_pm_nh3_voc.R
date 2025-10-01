@@ -102,7 +102,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
     base::load("data/1_production_model/static_tables/name_matches.Rdata")
     
     # select names present in unit file column names
-    unit_new_names <- unit_nonmetric[names(unit_nonmetric) %in% colnames(unit_file_raw)]
+    unit_new_names <- unit_nonmetric_annual[names(unit_nonmetric_annual) %in% colnames(unit_file_raw)]
     
     # rename data columns to prepare for computation
     unit_file <- 
@@ -116,7 +116,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
     
   # eGRID production model data - unit file (2023+)
   } else {
-    unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
+    unit_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/unit_file_annual.RDS"))
   }
   
   # Set emission type label for data columns ----

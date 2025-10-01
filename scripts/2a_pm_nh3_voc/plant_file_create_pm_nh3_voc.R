@@ -61,7 +61,7 @@ nh3_plant_data <- plant_data_pm_nh3_voc("nh3")
 voc_plant_data <- plant_data_pm_nh3_voc("voc")
 
 # Export plant files -----
-output_folder <- "2a_pm_nh3_voc"
+output_folder <- "data/2a_pm_nh3_voc/outputs"
 save_output_data(pm_plant_data, output_folder, "plant_file_pm.RDS")
 save_output_data(nh3_plant_data, output_folder, "plant_file_nh3.RDS")
 save_output_data(voc_plant_data, output_folder, "plant_file_voc.RDS")

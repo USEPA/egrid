@@ -62,7 +62,7 @@ nh3_unit_data <- unit_data_pm_nh3_voc("nh3")
 voc_unit_data <- unit_data_pm_nh3_voc("voc")
 
 # Export emission unit files ---------
-output_folder <- "2a_pm_nh3_voc"
+output_folder <- "data/2a_pm_nh3_voc/outputs"
 save_output_data(pm_unit_data, output_folder, "unit_file_pm.RDS")
 save_output_data(nh3_unit_data, output_folder, "unit_file_nh3.RDS")
 save_output_data(voc_unit_data, output_folder, "unit_file_voc.RDS")

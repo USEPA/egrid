@@ -22,6 +22,7 @@ execute:
   eval: true
 params:
   eGRID_year: "2022"
+  temporal_res: "annual" # this is used to download data, should remain annual 
 
 editor: visual
 project: 
@@ -172,20 +173,20 @@ Three data tables are downloaded from the the CAPD and stored into one .RDS file
 #| label: create-epa-tables 
 #| echo: false  
 
-source("scripts/functions/function_summary_table.R") 
+source("scripts/functions/function_summarize_quarto.R") 
 
 # function to create summary table  
 epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw.RDS")) 
 
-table_epa_raw <- create_summary_table(epa_raw)  
+table_epa_raw <- create_summary_gt_table(epa_raw)  
 
 epa_facilities      <- epa_raw[1:26] 
 epa_emissions       <- epa_raw[27:46] 
 epa_emissions_ozone <- epa_raw[47:58]  
 
-table_facilities      <- create_summary_table(epa_facilities) 
-table_emissions       <- create_summary_table(epa_emissions) 
-table_emissions_ozone <- create_summary_table(epa_emissions_ozone)
+table_facilities      <- create_summary_gt_table(epa_facilities) 
+table_emissions       <- create_summary_gt_table(epa_emissions) 
+table_emissions_ozone <- create_summary_gt_table(epa_emissions_ozone)
 ```
 
 ::: panel-tabset
@@ -311,7 +312,7 @@ xwalk_path <- glue::glue("data/2a_pm_nh3_voc/inputs/nei_eia_crosswalk/{params$eG
 nei_eia_xwalk <-
   read.csv(xwalk_path)
 
-create_summary_table(nei_eia_xwalk)
+create_summary_gt_table(nei_eia_xwalk)
 ```
 :::
 
@@ -337,7 +338,7 @@ ef_pm_path <- glue::glue("data/2a_pm_nh3_voc/static_tables/emission_factors_pm.c
 efs_pm <-
   read.csv(ef_pm_path)
 
-create_summary_table(efs_pm)
+create_summary_gt_table(efs_pm)
 ```
 
 #### NH~3~ EFs
@@ -351,7 +352,7 @@ ef_nh3_path <- glue::glue("data/2a_pm_nh3_voc/static_tables/emission_factors_nh3
 efs_nh3 <-
   read.csv(ef_nh3_path)
 
-create_summary_table(efs_nh3)
+create_summary_gt_table(efs_nh3)
 ```
 
 #### VOC EFs
@@ -365,7 +366,7 @@ ef_voc_path <- glue::glue("data/2a_pm_nh3_voc/static_tables/emission_factors_voc
 efs_voc <-
   read.csv(ef_voc_path)
 
-create_summary_table(efs_voc)
+create_summary_gt_table(efs_voc)
 ```
 :::
 
@@ -442,7 +443,7 @@ There are several procedures applied to the raw EPA file:
 #| label: create-epa-summary-table 
 #| echo: false  
 
-create_summary_table(readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")))
+create_summary_gt_table(readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")))
 ```
 :::
 
@@ -499,7 +500,7 @@ EIA-923 is the only form needed to produce PM~2.5~, NH~3~, and VOC emissions dat
 
 tabs_923 <- 
   eia_923_files %>% 
-  map(., ~ create_summary_table(.x))
+  map(., ~ create_summary_gt_table(.x))
 
 purrr::iwalk(tabs_923, ~ {
   cat("#### ", .y, "\n\n")
@@ -551,7 +552,7 @@ unit_file_voc <- readr::read_rds(
 ```{r}
 #| label: pm-unit-file-summary
 
-create_summary_table(unit_file_pm)
+create_summary_gt_table(unit_file_pm)
 ```
 
 #### NH~3~ Unit File
@@ -559,7 +560,7 @@ create_summary_table(unit_file_pm)
 ```{r}
 #| label: nh3-unit-file-summary
 
-create_summary_table(unit_file_nh3)
+create_summary_gt_table(unit_file_nh3)
 ```
 
 #### VOC Unit File
@@ -567,7 +568,7 @@ create_summary_table(unit_file_nh3)
 ```{r}
 #| label: voc-unit-file-summary
 
-create_summary_table(unit_file_voc)
+create_summary_gt_table(unit_file_voc)
 ```
 :::
 
@@ -607,7 +608,7 @@ plant_file_voc <- readr::read_rds(
 ```{r}
 #| label: pm-plant-file-summary
 
-create_summary_table(plant_file_pm)
+create_summary_gt_table(plant_file_pm)
 ```
 
 #### NH~3~ Plant File
@@ -615,7 +616,7 @@ create_summary_table(plant_file_pm)
 ```{r}
 #| label: nh3-plant-file-summary
 
-create_summary_table(plant_file_nh3)
+create_summary_gt_table(plant_file_nh3)
 ```
 
 #### VOC Plant File
@@ -623,7 +624,7 @@ create_summary_table(plant_file_nh3)
 ```{r}
 #| label: voc-plant-file-summary
 
-create_summary_table(plant_file_voc)
+create_summary_gt_table(plant_file_voc)
 ```
 :::
 
@@ -689,7 +690,7 @@ Below are summary tables for the state, subregion, and U.S. aggregated data for 
 ```{r}
 #| label: pm-st-agg-summary
 
-create_summary_table(pm_st_agg)
+create_summary_gt_table(pm_st_agg)
 ```
 
 #### PM~2.5~ SRL
@@ -697,7 +698,7 @@ create_summary_table(pm_st_agg)
 ```{r}
 #| label: pm-srl-agg-summary
 
-create_summary_table(pm_srl_agg)
+create_summary_gt_table(pm_srl_agg)
 ```
 
 #### PM~2.5~ US
@@ -705,7 +706,7 @@ create_summary_table(pm_srl_agg)
 ```{r}
 #| label: pm-us-agg-summary
 
-create_summary_table(pm_us_agg)
+create_summary_gt_table(pm_us_agg)
 ```
 
 #### NH~3~ ST
@@ -713,7 +714,7 @@ create_summary_table(pm_us_agg)
 ```{r}
 #| label: nh3-st-agg-summary
 
-create_summary_table(nh3_st_agg)
+create_summary_gt_table(nh3_st_agg)
 ```
 
 #### NH~3~ SRL
@@ -721,7 +722,7 @@ create_summary_table(nh3_st_agg)
 ```{r}
 #| label: nh3-srl-agg-summary
 
-create_summary_table(nh3_srl_agg)
+create_summary_gt_table(nh3_srl_agg)
 ```
 
 #### NH~3~ US
@@ -729,7 +730,7 @@ create_summary_table(nh3_srl_agg)
 ```{r}
 #| label: nh3-us-agg-summary
 
-create_summary_table(nh3_us_agg)
+create_summary_gt_table(nh3_us_agg)
 ```
 
 #### VOC ST
@@ -737,7 +738,7 @@ create_summary_table(nh3_us_agg)
 ```{r}
 #| label: voc-st-agg-summary
 
-create_summary_table(voc_st_agg)
+create_summary_gt_table(voc_st_agg)
 ```
 
 #### VOC SRL
@@ -745,7 +746,7 @@ create_summary_table(voc_st_agg)
 ```{r}
 #| label: voc-srl-agg-summary
 
-create_summary_table(voc_srl_agg)
+create_summary_gt_table(voc_srl_agg)
 ```
 
 #### VOC US
@@ -753,7 +754,7 @@ create_summary_table(voc_srl_agg)
 ```{r}
 #| label: voc-us-agg-summary
 
-create_summary_table(voc_us_agg)
+create_summary_gt_table(voc_us_agg)
 ```
 :::
 

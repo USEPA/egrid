@@ -59,29 +59,29 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
     # group data by subregion
     group_by(egrid_subregion, egrid_subregion_name) %>%
     # sum annual generation and annual emissions data by subregion
-    summarise(generation_ann_sum = sum(generation_ann, na.rm = TRUE), 
+    summarise(generation_sum = sum(generation, na.rm = TRUE), 
               emission_ann_sum = sum(emission_ann_orig, na.rm = TRUE)) %>%
     ungroup() %>%
     # round data and compute emissions output rate
-    mutate(subregion_generation_ann = round(generation_ann_sum, 0),
+    mutate(subregion_generation = round(generation_sum, 0),
            emission_ann = round(emission_ann_sum, 2),
-           emission_output_rate = round(emission_ann_sum * 2000 / generation_ann_sum, 4),
+           emission_output_rate = round(emission_ann_sum * 2000 / generation_sum, 4),
            year = params$eGRID_year) %>%
     # rename subregion data columns
     rename(subregion = egrid_subregion, subregion_name = egrid_subregion_name) %>%
     # select desired variables for final version
-    select(year, subregion, subregion_name, subregion_generation_ann, emission_ann, emission_output_rate)
+    select(year, subregion, subregion_name, subregion_generation, emission_ann, emission_output_rate)
   
   # Sum emission subregion data to US -------
   us_emissions <-
     subregion_emissions_initial %>%
     # sum annual generation and annual emissions across all subregions
-    summarise(generation_ann = sum(subregion_generation_ann, na.rm = TRUE), 
+    summarise(generation = sum(subregion_generation, na.rm = TRUE), 
               emission_ann = sum(emission_ann, na.rm = TRUE)) %>%
     # compute output rates from annual emissions and annual generation
-    mutate(emission_output_rate = round(emission_ann * 2000 / generation_ann, 4),
+    mutate(emission_output_rate = round(emission_ann * 2000 / generation, 4),
            year = params$eGRID_year) %>%
-    relocate(year, .before = generation_ann) %>%
+    relocate(year, .before = generation) %>%
     # replace emission with emission type in column names
     rename_with(~gsub("emission", emission_label, .))
   
@@ -96,22 +96,22 @@ region_aggregation_pm_nh3_voc <- function(emission_type) {
     plant_data %>%
     group_by(plant_state) %>%
     # sum generation, annual emissions, and output rates by state
-    summarise(state_generation_ann = sum(generation_ann, na.rm = TRUE), 
+    summarise(state_generation = sum(generation, na.rm = TRUE), 
               emission_ann = sum(emission_ann, na.rm = TRUE),
-              emission_output_rate = emission_ann * 2000 / state_generation_ann) %>%
+              emission_output_rate = emission_ann * 2000 / state_generation) %>%
     ungroup() %>%
     # replace year data
     mutate(year = params$eGRID_year) %>%
     # rename state variable
     rename(state = plant_state) %>%
     # select variables for final version
-    select(year, state, state_generation_ann, emission_ann, emission_output_rate) %>%
+    select(year, state, state_generation, emission_ann, emission_output_rate) %>%
     # replace emission with emission type in column names
     rename_with(~gsub("emission", emission_label, .))
   
   # Save aggregated data ----------
   source("scripts/functions/function_save_output_data.R")
-  output_folder <- "2a_pm_nh3_voc"
+  output_folder <- "data/2a_pm_nh3_voc/outputs"
   save_output_data(subregion_emissions, output_folder, glue::glue("subregion_aggregation_{emission_type}.RDS"))
   save_output_data(us_emissions, output_folder, glue::glue("us_aggregation_{emission_type}.RDS"))
   save_output_data(state_emissions, output_folder, glue::glue("state_aggregation_{emission_type}.RDS"))

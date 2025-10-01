@@ -142,7 +142,7 @@ for (emission_type in c("pm", "nh3", "voc")) {
     us_file %>%
     mutate(subregion = "U.S.", 
            subregion_name = "") %>%
-    rename(subregion_generation_ann = generation_ann)
+    rename(subregion_generation = generation)
   
   subregion_file <-
     subregion_file %>%
@@ -181,7 +181,7 @@ for (emission_type in c("pm", "nh3", "voc")) {
     ## Rename and format level data -----
     
     # define names of name match and emissions data variables
-    name_matches <- paste0(emission_level, "_nonmetric")
+    name_matches <- paste0(emission_level, "_nonmetric_annual")
     emission_data <- paste0(emission_level, "_file")
     
     # match additional column names present in emissions data not in name_matches
@@ -312,6 +312,7 @@ for (emission_type in c("pm", "nh3", "voc")) {
   addWorksheet(wb, "Graphs")
   
   # run script to save subregion graphs
+  
   create_subregion_emission_figures(wb, emission_type)
   
   # define graph directory, names, and years
