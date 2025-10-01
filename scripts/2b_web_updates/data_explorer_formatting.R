@@ -49,7 +49,7 @@ urls <- ### Note: check for updates or changes each data year ###
     "2022" = "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx") # add previous data year to this list every year 
 
 for(i in 1:length(urls)) { # download files online if they have not already been downloaded. 
-  file_path = glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{year}_data.xlsx")
+  file_path = glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{names(urls[i])}_data.xlsx")
   if(!file.exists(file_path)) { 
     if(check_valid_url(urls[i])) {
       download.file(url = urls[i], 
@@ -57,7 +57,7 @@ for(i in 1:length(urls)) { # download files online if they have not already been
                     mode = "wb")
     } else {print(glue::glue("URL {urls[i]} is not valid. Check and update URL."))}
     } else {
-    print(glue::glue("Stopping. File {file_paths[i]} already downloaded."))
+    print(glue::glue("Stopping. File {file_path} already downloaded."))
   }}
 
 # Load historical eGRID years --------------------------
@@ -90,27 +90,27 @@ for(year in years) { ### Note: check for updates or changes each data year ### A
                      sheet = glue::glue("US{year %% 1000}"),
                      skip = 1)
   } else { # if URL does not exist, especially if the current eGRID year has not yet been published, load data from output folder
-    plant <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+    plant <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/egrid{params$eGRID_year}_data.xlsx"), 
                         sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000}"),
                         skip = 1)
     
-    state <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+    state <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/egrid{params$eGRID_year}_data.xlsx"), 
                         sheet = glue::glue("ST{as.numeric(params$eGRID_year) %% 1000}"),
                         skip = 1)
     
-    ba <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+    ba <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/egrid{params$eGRID_year}_data.xlsx"), 
                      sheet = glue::glue("BA{as.numeric(params$eGRID_year) %% 1000}"),
                      skip = 1)
     
-    subregion <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+    subregion <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/egrid{params$eGRID_year}_data.xlsx"), 
                             sheet = glue::glue("SRL{as.numeric(params$eGRID_year) %% 1000}"),
                             skip = 1)
     
-    nerc <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+    nerc <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/egrid{params$eGRID_year}_data.xlsx"), 
                        sheet = glue::glue("NRL{as.numeric(params$eGRID_year) %% 1000}"),
                        skip = 1)
     
-    us <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+    us <- read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/egrid{params$eGRID_year}_data.xlsx"), 
                      sheet = glue::glue("US{as.numeric(params$eGRID_year) %% 1000}"),
                      skip = 1)
   }
