@@ -29,9 +29,17 @@ source("scripts/functions/function_check_params.R")
 if (!exists("params")) {
   params <- check_params()
 } else {
-  print("eGRID year and version parameters are already defined.")
+  print("eGRID year and temporal resolution parameters are already defined.")
 }
 
+if (exists("params")){
+  if ("version" %in% names(params)) { # if params(), params$eGRID_year, and params$temporal_res exist, do not re-define
+    print("eGRID version parameter is already defined.")
+  } else {
+    params$version <- readline(prompt = "Input eGRID version: ")
+    params$version <- as.character(params$version)
+  }
+}
 # Load in data ----------------------------------------
 
 # load files
