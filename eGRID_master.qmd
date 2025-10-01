@@ -663,9 +663,9 @@ plot_gen_source <-
   labs(title = "Total Generation by Data Source")
 
 if (params$temporal_res == "annual") {
-  (plot_gen_ann + plot_gen_oz) / plot_gen_source
+  (plot_gen + plot_gen_oz) / plot_gen_source
 } else {
-plot_gen_ann / plot_gen_source
+plot_gen / plot_gen_source
 }
   
 ```
