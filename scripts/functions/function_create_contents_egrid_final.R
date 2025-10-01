@@ -111,7 +111,7 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
   title <- c(
     "for",
     glue::glue("eGRID{year}_data.xlsx"),
-    glue::glue("eGRID{year} Unit, Generator, Plant, State, Balancing Authority Area, eGRID Subregion, NERC Region, U.S., Grid Gross Loss (%), and Demographic Data Files"),
+    glue::glue("eGRID{year} Unit, Generator, Plant, State, Balancing Authority Area, eGRID Subregion, NERC Region, U.S., and Grid Gross Loss (%)"),
     format(Sys.Date(), "%B %d, %Y"))
 
   if (temporal_res == "monthly") {
@@ -170,17 +170,10 @@ create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res =
       "U.S."
     )
   }
-  
-  if (temporal_res == "annual") {
-    table_of_contents_descrip <- append(
-      paste(sheet_names, glue::glue("year {year} data")),
-      glue::glue("Surrounding demographic data for eGRID{year} plants"))
-  } else if (temporal_res == "monthly") {
-    table_of_contents_descrip <-
-      paste(sheet_names, glue::glue("year {year} data"))
-  }
 
-  
+  table_of_contents_descrip <-
+    paste(sheet_names, glue::glue("year {year} data"))
+
   # table of contents production model note
   production_link <- c("https://github.com/USEPA/egrid")
   names(production_link) <- c(glue::glue("eGRID R production model {params$version}."))

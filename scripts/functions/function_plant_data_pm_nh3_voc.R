@@ -69,7 +69,7 @@ plant_data_pm_nh3_voc <- function(emission_type){
     base::load("data/1_production_model/static_tables/name_matches.Rdata")
     
     # Select names present in unit file column names
-    plant_new_names <- plant_nonmetric[names(plant_nonmetric) %in% colnames(plant_file_raw)]
+    plant_new_names <- plant_nonmetric_annual[names(plant_nonmetric_annual) %in% colnames(plant_file_raw)]
     
     # rename data columns to prepare for computation
     plant_file <- 
@@ -81,7 +81,7 @@ plant_data_pm_nh3_voc <- function(emission_type){
     
     # eGRID production model data - plant file (2023+)
   } else {
-    plant_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
+    plant_file <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/plant_file_annual.RDS"))
   }
   
   # Load unit file -----
@@ -107,12 +107,12 @@ plant_data_pm_nh3_voc <- function(emission_type){
     # multiply emissions by electric allocation if available (not NA) 
     mutate(emission_ann = emission * if_else(is.na(elec_allocation), 1, elec_allocation),
            # calculate total output emission rate
-           emission_output_rate = if_else(generation_ann != 0, emission_ann * 2000 / generation_ann, NA_real_),
+           emission_output_rate = if_else(generation != 0, emission_ann * 2000 / generation, NA_real_),
            # calculate total input emisseion rate
            emission_input_rate = if_else(combust_heat_input != 0, emission_ann * 2000 / combust_heat_input, NA_real_)) %>%
     # rename unadjusted emissions data and annual emissions before updating
     rename(unadj_emission = emission, emission_ann_orig = emission_ann) %>%
-    select(plant_state, plant_name, plant_id, egrid_subregion_name, egrid_subregion, primary_fuel_type, nameplate_capacity, elec_allocation, combust_heat_input, generation_ann, emission_ann_orig, emission_output_rate, emission_input_rate, unadj_combust_heat_input, unadj_emission)
+    select(plant_state, plant_name, plant_id, egrid_subregion_name, egrid_subregion, primary_fuel_type, nameplate_capacity, elec_allocation, combust_heat_input, generation, emission_ann_orig, emission_output_rate, emission_input_rate, unadj_combust_heat_input, unadj_emission)
 
   ## Adjust emissions for renewable fuel types and select desired columns -----
   plant_adjusted <-
@@ -120,7 +120,7 @@ plant_data_pm_nh3_voc <- function(emission_type){
     # set annual emissions to NA for renewable fuel types
     mutate(emission_ann = if_else(emission_ann_orig == 0 & primary_fuel_type %in% c("WAT", "SUN", "MWH", "WND", "WH", "PUR", "GEO", "NUC"), NA_real_, emission_ann_orig),
            # set output rate to 0 if annual net generation is less than 0
-           emission_output_rate = if_else(generation_ann < 0, 0, emission_output_rate),
+           emission_output_rate = if_else(generation < 0, 0, emission_output_rate),
            year = params$eGRID_year)
   
   ## Assign emission sources to plant file -------
@@ -144,7 +144,7 @@ plant_data_pm_nh3_voc <- function(emission_type){
     left_join(plant_sources, by = join_by(plant_id)) %>%
     # rename emissions input rate
     # select desired variables for final version
-    select(year, plant_state, plant_name, plant_id, egrid_subregion, egrid_subregion_name, primary_fuel_type, nameplate_capacity, elec_allocation, generation_ann, combust_heat_input, emission_ann_orig, emission_ann, emission_output_rate, emission_input_rate, emission_source, unadj_combust_heat_input, unadj_emission) %>%
+    select(year, plant_state, plant_name, plant_id, egrid_subregion, egrid_subregion_name, primary_fuel_type, nameplate_capacity, elec_allocation, generation, combust_heat_input, emission_ann_orig, emission_ann, emission_output_rate, emission_input_rate, emission_source, unadj_combust_heat_input, unadj_emission) %>%
     # replace emission with emission type in column names
     rename_with(~gsub("emission", emission_label, .)) %>%
     # order by plant state abbreviation and plant name

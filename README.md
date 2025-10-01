@@ -87,7 +87,7 @@ Figure 3 displays a summary of eGRID PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC e
 
 ## Code base organization
 
-This project is structured as an RStudio project. To ensure that all scripts run correctly, load the `eGRID_R.Rproj` within RStudio to enable the project environment. 
+This project is structured as an RStudio project. To ensure that all scripts run correctly, load the `eGRID_R.Rproj` within RStudio to enable the project environment. Within the project, the codebase uses the `renv` to allow users to replicate the package environment. This will automatically load upon opening the project.
 
 ### Production model
 
@@ -144,7 +144,7 @@ To create the eGRID production model dataset:
     -   Request an API key from <https://www.epa.gov/power-sector/cam-api-portal>.
     -   Create folder `api_keys/` within the root of the eGRID.
     -   Create a text file named `epa_api_key.txt` within the folder `api_keys/` and save the API key here on a single line.
-2.  Load `eGRID_R.Rproj` within RStudio to enable the project environment.
+2.  Load `eGRID_R.Rproj` within RStudio to enable the project environment. 
 3.  Render `eGRID_master.qmd`.
     -   Set data year in `params$eGRID_year` in the YAML as a string in the format "YYYY" (ex: `"2023"`).
     -   Set temporal resolution version in `params$temporal_res` in the YAML as a string (options: `"annual"` or `"monthly"`) eGRID.
