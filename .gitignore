@@ -32,3 +32,5 @@ data/1_production_model/outputs/
 data/1_production_model/raw_data/
 data/1_production_model/shapefiles/
 data/1_production_model/clean_data/
+data/2a_pm_nh3_voc/static_tables/formatting/
+!data/2a_pm_nh3_voc/static_tables/formatting/egrid_pm_nh3_voc_architecture.png
