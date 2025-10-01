@@ -77,13 +77,13 @@ A data dictionary is provided in `eGRID Production Model Data Dictionary.xlsx`. 
 
 Figure 2 displays a summary of the eGRID production model architecture, which specifies data sources, inputs, and outputs for creating the eGRID production model.
 
-![Figure 2: eGRID production model architecture.](egrid_architecture.png)
+![Figure 2: eGRID production model architecture.](data/1_production_model/static_tables/formatting/egrid_architecture.png)
 
 ### PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions
 
 Figure 3 displays a summary of eGRID PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions architecture, which specifies data sources, inputs, and outputs for creating the eGRID PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions and emission rates datasets.
 
-![Figure 3: eGRID PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions architecture.](egrid_pm_nh3_voc_architecture.png)
+![Figure 3: eGRID PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC emissions architecture.](data/2a_pm_nh3_voc/static_tables/formatting/egrid_pm_nh3_voc_architecture.png)
 
 ## Code base organization
 

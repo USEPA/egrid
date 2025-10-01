@@ -101,6 +101,25 @@
       ],
       "Hash": "031fcc75f23e88e0be1bebcad1c442e7"
     },
+    "aplot": {
+      "Package": "aplot",
+      "Version": "0.2.9",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "ggfun",
+        "ggplot2",
+        "ggplotify",
+        "magrittr",
+        "methods",
+        "patchwork",
+        "pillar",
+        "utils",
+        "yulab.utils"
+      ],
+      "Hash": "978ea89ae82ac2193485d04e5a1e2f33"
+    },
     "askpass": {
       "Package": "askpass",
       "Version": "1.2.1",
@@ -474,6 +493,41 @@
       ],
       "Hash": "4b29bf698d0c7bdb9f1e4976e7ade41d"
     },
+    "ggbreak": {
+      "Package": "ggbreak",
+      "Version": "0.1.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "aplot",
+        "ggfun",
+        "ggplot2",
+        "ggplotify",
+        "grid",
+        "rlang",
+        "stats",
+        "yulab.utils"
+      ],
+      "Hash": "5259b7285e4b174ece85cd1b1a4048cc"
+    },
+    "ggfun": {
+      "Package": "ggfun",
+      "Version": "0.2.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "cli",
+        "dplyr",
+        "ggplot2",
+        "grid",
+        "rlang",
+        "scales",
+        "utils",
+        "yulab.utils"
+      ],
+      "Hash": "cb11d1ab6c781eeecfd1fa2889c6d4bc"
+    },
     "ggiraph": {
       "Package": "ggiraph",
       "Version": "0.9.1",
@@ -517,6 +571,23 @@
       ],
       "Hash": "3b4625a157bcbd82b937fcb3acdd2d85"
     },
+    "ggplotify": {
+      "Package": "ggplotify",
+      "Version": "0.1.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "ggplot2",
+        "grDevices",
+        "graphics",
+        "grid",
+        "gridGraphics",
+        "rlang",
+        "yulab.utils"
+      ],
+      "Hash": "febee2dbf87ca40c4618f82be656c1a2"
+    },
     "glue": {
       "Package": "glue",
       "Version": "1.8.0",
@@ -527,6 +598,18 @@
         "methods"
       ],
       "Hash": "5899f1eaa825580172bb56c08266f37c"
+    },
+    "gridGraphics": {
+      "Package": "gridGraphics",
+      "Version": "0.5-1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "grDevices",
+        "graphics",
+        "grid"
+      ],
+      "Hash": "5b79228594f02385d4df4979284879ae"
     },
     "gt": {
       "Package": "gt",
@@ -1793,6 +1876,23 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "51dab85c6c98e50a18d7551e9d49f76c"
+    },
+    "yulab.utils": {
+      "Package": "yulab.utils",
+      "Version": "0.2.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "cli",
+        "digest",
+        "fs",
+        "rappdirs",
+        "rlang",
+        "tools",
+        "utils"
+      ],
+      "Hash": "43b1f7e7347a7040384d14f31b866868"
     },
     "zip": {
       "Package": "zip",
