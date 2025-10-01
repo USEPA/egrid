@@ -29,23 +29,23 @@ create_format_styles <- function(font = "Arial", size = 8.5) {
   ### header & description style ###
   
   # header style
-  header_style <- createStyle(textDecoration = "bold",
-                              fgFill = "#F2F2F2", 
-                              wrapText = TRUE,
-                              fontName = font,
-                              fontSize = size,
-                              border = "TopBottomLeftRight",
-                              borderStyle = "thin")
+  base_header <- createStyle(textDecoration = "bold",
+                             fgFill = "#F2F2F2", 
+                             wrapText = TRUE,
+                             fontName = font,
+                             fontSize = size,
+                             border = "TopBottomLeftRight",
+                             borderStyle = "thin")
   # description style
-  desc_style <- createStyle(wrapText = TRUE,
-                            halign = "center",
-                            valign = "center",
-                            textDecoration = "bold",
-                            fgFill = "#F2F2F2", 
-                            fontName = font,
-                            fontSize = size,
-                            border = "TopBottomLeftRight",
-                            borderStyle = "thin")
+  base_desc <- createStyle(wrapText = TRUE,
+                           halign = "center",
+                           valign = "center",
+                           textDecoration = "bold",
+                           fgFill = "#F2F2F2", 
+                           fontName = font,
+                           fontSize = size,
+                           border = "TopBottomLeftRight",
+                           borderStyle = "thin")
   ### text styles ###
   
   # bold style (for text/characters)
@@ -477,8 +477,8 @@ create_format_styles <- function(font = "Arial", size = 8.5) {
   
   ### Return List of Styles -----
   # naming each style for easier indexing in script
-  list(header_style = header_style,
-       desc_style = desc_style,
+  list(base_header = base_header,
+       base_desc = base_desc,
        
        bold = bold,
        basic = basic,

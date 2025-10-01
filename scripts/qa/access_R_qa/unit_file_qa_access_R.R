@@ -27,29 +27,29 @@ library(stringr)
 
 # create save directory 
 
-if(dir.exists("data/outputs/qa")) {
+if(dir.exists("data/1_production_model/outputs/qa")) {
   print("Folder qa already exists.")
 }else{
-  dir.create("data/outputs/qa")
+  dir.create("data/1_production_model/outputs/qa")
 }
 
-if(dir.exists("data/outputs/qa/unit_file_differences")) {
+if(dir.exists("data/1_production_model/outputs/qa/unit_file_differences")) {
   print("Folder unit_file_differences already exists.")
 }else{
-  dir.create("data/outputs/qa/unit_file_differences")
+  dir.create("data/1_production_model/outputs/qa/unit_file_differences")
 }
 
-if(dir.exists(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}"))) {
+if(dir.exists(glue::glue("data/1_production_model/outputs/qa/unit_file_differences/{params$eGRID_year}"))) {
   print(glue::glue("Folder unit_file_differences/{params$eGRID_year} already exists."))
 }else{
-  dir.create(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}"))
+  dir.create(glue::glue("data/1_production_model/outputs/qa/unit_file_differences/{params$eGRID_year}"))
 }
 
 # set directory for saving files 
-save_dir <- glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}/")
+save_dir <- glue::glue("data/1_production_model/outputs/qa/unit_file_differences/{params$eGRID_year}/")
 
 # load unit file R
-unit_r <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
+unit_r <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/unit_file.RDS"))
 
 # add "_r" after each variable to easily identify dataset 
 colnames(unit_r) <- paste0(colnames(unit_r), "_r")
@@ -62,11 +62,11 @@ unit_r <- unit_r %>%
          year_online_r = as.character(year_online_r))
 
 unit_access <- 
-  read_excel("data/raw_data/unit file 12_18_24.xlsx",
+  read_excel("data/1_production_model/raw_data/unit file 12_18_24.xlsx",
              sheet = "Sheet2", 
              skip = 1, 
              guess_max = 4000) %>% janitor::clean_names() %>% 
-  #read_excel(glue::glue("data/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
+  #read_excel(glue::glue("data/1_production_model/raw_data/eGRID_Data{params$eGRID_year}.xlsx"), 
   #                        sheet = glue::glue("UNT{as.numeric(params$eGRID_year) %% 1000}"), 
   #                        skip = 1, 
   #                        guess_max = 4000) %>% janitor::clean_names() %>% 
@@ -457,14 +457,14 @@ if(nrow(check_co2_source) > 0) {
 
 # Identify all unique plant and unit IDs that have differences ------------
 
-files <- grep("check", dir(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}")), value = TRUE)
+files <- grep("check", dir(glue::glue("data/1_production_model/outputs/qa/unit_file_differences/{params$eGRID_year}")), value = TRUE)
 
 plant_unit_diffs <- 
-  purrr::map_df(paste0(glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}/"), files), 
+  purrr::map_df(paste0(glue::glue("data/1_production_model/outputs/qa/unit_file_differences/{params$eGRID_year}/"), files), 
                 ~read_csv(.x, col_types = "ccccccccccccccccccccccccccccccccccccc")) %>% 
   select(plant_id, unit_id, prime_mover) %>% 
   distinct() %>% 
   mutate(source_diff = "unit_file")
 
-write_csv(plant_unit_diffs, glue::glue("data/outputs/qa/unit_file_differences/{params$eGRID_year}/plant_unit_difference_ids.csv"))
+write_csv(plant_unit_diffs, glue::glue("data/1_production_model/outputs/qa/unit_file_differences/{params$eGRID_year}/plant_unit_difference_ids.csv"))
 

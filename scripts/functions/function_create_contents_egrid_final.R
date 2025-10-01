@@ -11,13 +11,14 @@
 ##
 ## -------------------------------
 
-create_contents_egrid_final <- function(year = params$eGRID_year) {
+create_contents_egrid_final <- function(year = params$eGRID_year, temporal_res = params$temporal_res) {
   
   #' create_contents_egrid_final
   #' 
   #' Function to create and format contents sheet for final excel file.
   #' 
   #' @param year The year of eGRID data used for formatting. 
+  #' @param temporal_res The temporal resolution for formatting mode. 
   #' 
   #' @return One new excel sheet added to the preexisting workbook with a table 
   #'         of contents, feedback, color coding legend, notes, and conversion
@@ -94,15 +95,32 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
     "#B1A0C7",
     "#60497A")
   
+  if (temporal_res == "monthly") {
+    color_coding <- c(
+      "#F2DCDB",
+      "#EBF1DE",
+      "#C4D79B",
+      "#E4DFEC"
+    )
+  }
+  
   # Write data for sections -----------
   
   ## Main title ---------
   
   title <- c(
     "for",
-    glue::glue("eGRID{year}_Data.xlsx"),
+    glue::glue("eGRID{year}_data.xlsx"),
     glue::glue("eGRID{year} Unit, Generator, Plant, State, Balancing Authority Area, eGRID Subregion, NERC Region, U.S., Grid Gross Loss (%), and Demographic Data Files"),
     format(Sys.Date(), "%B %d, %Y"))
+
+  if (temporal_res == "monthly") {
+    title <- c(
+      "for",
+      glue::glue("eGRID{year}_monthly_data.xlsx"),
+      glue::glue("eGRID{year} State, Balancing Authority Area, eGRID Subregion, NERC Region, and U.S. Files"),
+      format(Sys.Date(), "%B %d, %Y"))
+  }
   
   ## Subsection titles -----------
 
@@ -143,9 +161,25 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
     "U.S.",
     "Grid Gross Loss (%)")
   
-  table_of_contents_descrip <- append(
-    paste(sheet_names, glue::glue("year {year} data")),
-    glue::glue("Surrounding demographic data for eGRID{year} plants"))
+  if (temporal_res == "monthly") {
+    sheet_names <- c(
+      "State",
+      "Balancing authority area",
+      "eGRID subregion",
+      "NERC region",
+      "U.S."
+    )
+  }
+  
+  if (temporal_res == "annual") {
+    table_of_contents_descrip <- append(
+      paste(sheet_names, glue::glue("year {year} data")),
+      glue::glue("Surrounding demographic data for eGRID{year} plants"))
+  } else if (temporal_res == "monthly") {
+    table_of_contents_descrip <-
+      paste(sheet_names, glue::glue("year {year} data"))
+  }
+
   
   # table of contents production model note
   production_link <- c("https://github.com/USEPA/egrid")
@@ -162,11 +196,11 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
     
   # color coding legend categories
   category_names <- c(
-    "Annual Values (generation, emissions, and heat input)",
+    "Total Values (generation, emissions, and heat input)",
     "Unadjusted Annual Values (emissions, and heat input)",						
     "Adjustment Values (emissions, heat input, heat rate)",						
     "Output Emission Rates (emissions per MWh)",						
-    "Input Emission rates (emissions per MMBtu)",						
+    "Input Emission Rates (emissions per MMBtu)",						
     "Combustion Output Rates (emissions per MWh)",						
     "Generation by Fuel Type (MWh)",						
     "Renewable and Non-Renewable Generation (MWh)",						
@@ -179,14 +213,30 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
     "Nonbaseload Output Emission Rates (emissions per MWh)",						
     "Nonbaseload Generation by Fuel Type (MWh)",						
     "Nonbaseload Resource Mix (percentages)")
+
+  if (temporal_res == "monthly") {
+    category_names <-  c(
+      "Total Values (generation, emissions, and heat input)",
+      "Output Emission Rates (emissions per MWh)",
+      "Input Emission Rates (emissions per MMBtu)",
+      "Nonbaseload Output Emission Rates (emissions per MWh)"
+    )
+  }
   
   category_labeled <- paste0(1:length(category_names), paste(")", category_names))
   
   ## Notes ------------
-  
-  notes <- c(
-    "Values in parentheses are negative numbers.",
-    "Dashes (-) are zeroes.")
+  if (temporal_res == "annual") {
+    notes <- c(
+      "Values in parentheses are negative numbers.",
+      "Dashes (-) are zeroes.")
+  } else if (temporal_res == "monthly") {
+    notes <- c(
+      "Values in parentheses are negative numbers.",
+      "Dashes (-) are zeroes.",
+      "* denotes months that fall within the ozone season (May through September).")
+  }
+
   
   ## Conversion factors ---------------
   
@@ -215,13 +265,25 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   # set section locations
   start_rows <- c(2, 21, 25, 45, 49)
   end_rows <- c(
-    start_rows[1] + 17,
-    start_rows[2] + 2,
-    start_rows[3] + 18,
-    start_rows[4] + 2,
-    start_rows[5] + 6)
+    start_rows[1] + 17, # Table of Contents
+    start_rows[2] + 2,  # Feedback
+    start_rows[3] + 18, # Color Coding Legend
+    start_rows[4] + 2,  # Notes
+    start_rows[5] + 6)  # Conversion Factors
   start_cols <- 2
   sheetWidth <- start_cols + 9
+  
+  if (temporal_res == "monthly"){
+    start_rows <- c(2, 16, 20, 27, 32)
+    end_rows <- c(
+      start_rows[1] + 12, # Table of Contents
+      start_rows[2] + 2,  # Feedback
+      start_rows[3] + 5,  # Color Coding Legend
+      start_rows[4] + 3,  # Notes
+      start_rows[5] + 6)  # Conversion Factors
+    start_cols <- 2
+    sheetWidth <- start_cols + 9
+  }
 
   ## Add data ----------------
 
@@ -275,8 +337,14 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   ## Add merging, borders, and styling --------
   
   # lines within color coding legend
-  addStyle(wb, current_worksheet, all_borders, cols = start_cols:(sheetWidth + 6), 
-           rows = (start_rows[3] + 2):end_rows[3], gridExpand = TRUE, stack = TRUE)
+  if (temporal_res == "annual") {
+    addStyle(wb, current_worksheet, all_borders, cols = start_cols:(sheetWidth + 6), 
+            rows = (start_rows[3] + 2):end_rows[3], gridExpand = TRUE, stack = TRUE)
+  } else if (temporal_res == "monthly"){
+    addStyle(wb, current_worksheet, all_borders, cols = start_cols:(sheetWidth + 3), 
+             rows = (start_rows[3] + 2):end_rows[3], gridExpand = TRUE, stack = TRUE)
+  }
+
   
   for (row in c(start_rows[1]:end_rows[1],
                 start_rows[2]:end_rows[2],
@@ -300,10 +368,15 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
       }
       # color coding legend  
     } else if (row %in% c(start_rows[3]:end_rows[3])) {
-      format_width <- sheetWidth + 6
+      color_legend_val <- ifelse(temporal_res == "monthly", 3, 6)
+      # format_width <- sheetWidth + 6
+      format_width <- sheetWidth + color_legend_val
+      
       # merging inside rows
       if (row != start_rows[3]) {
         mergeCells(wb, current_worksheet, rows = row, 
+                   # cols = start_cols:format_width)
+                   # cols = start_cols:(start_cols + color_legend_val))
                    cols = start_cols:(start_cols + 6))
       }
       # notes and conversion factors
@@ -373,9 +446,9 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
            gridExpand = TRUE, stack = TRUE)
   addStyle(wb, current_worksheet, title_reg, cols = start_cols:sheetWidth, 
            rows = start_rows[3] + 1, gridExpand = TRUE, stack = TRUE)
-  mergeCells(wb, current_worksheet, cols = (sheetWidth - 1):(sheetWidth + 6), 
+  mergeCells(wb, current_worksheet, cols = (sheetWidth - 1):(sheetWidth + color_legend_val), # flag 
              rows = start_rows[3] + 1)
-  addStyle(wb, current_worksheet, bottom_borders, cols = start_cols:(sheetWidth + 6), 
+  addStyle(wb, current_worksheet, bottom_borders, cols = start_cols:(sheetWidth + color_legend_val), #flag 
            rows = start_rows[3] + 1, gridExpand = TRUE, stack = TRUE)
 
   # color coding fills
@@ -385,15 +458,25 @@ create_contents_egrid_final <- function(year = params$eGRID_year) {
   }
   
   # add font formatting
-  addStyle(wb, current_worksheet, createStyle(fontName = "Arial"), cols = start_cols:(sheetWidth + 6),
+  addStyle(wb, current_worksheet, createStyle(fontName = "Arial"), cols = start_cols:(sheetWidth + color_legend_val), #flag
            rows = 1:55, gridExpand = TRUE, stack = TRUE)
   
   ## Add cell sizes -------------
 
-  setRowHeights(wb, current_worksheet, rows = 2:4, heights = 17.4)
-  setRowHeights(wb, current_worksheet, rows = c(7, 18, 20, 24), heights = 15.6)
-  setRowHeights(wb, current_worksheet, rows = c(5:7, 25), heights = c(43.8, 25.8, 25.8, 16.2))
-  setColWidths(wb, current_worksheet, cols = 1:12, widths = 10.33)
-  setColWidths(wb, current_worksheet, cols = c(1:2, 5:6), widths = c(1, 14.33, 8.33, 18))
-  setColWidths(wb, current_worksheet, cols = 10:19, widths = 5)
+  if (temporal_res == "annual") {
+    setRowHeights(wb, current_worksheet, rows = 2:4, heights = 17.4)
+    setRowHeights(wb, current_worksheet, rows = c(7, 18, 20, 24), heights = 15.6)
+    setRowHeights(wb, current_worksheet, rows = c(5:7, 25), heights = c(43.8, 25.8, 25.8, 16.2))
+    setColWidths(wb, current_worksheet, cols = 1:12, widths = 10.33)
+    setColWidths(wb, current_worksheet, cols = c(1:2, 5:6), widths = c(1, 14.33, 8.33, 18))
+    setColWidths(wb, current_worksheet, cols = 10:19, widths = 5)
+  } else if (temporal_res == "monthly") {
+    setRowHeights(wb, current_worksheet, rows = 2:4, heights = 17.4)
+    setRowHeights(wb, current_worksheet, rows = c(7, 15, 19), heights = 15.6)
+    setRowHeights(wb, current_worksheet, rows = c(5:7, 20), heights = c(43.8, 25.8, 25.8, 16.2))
+    setColWidths(wb, current_worksheet, cols = 1:12, widths = 10.33)
+    setColWidths(wb, current_worksheet, cols = c(1:2, 5:6), widths = c(1, 14.33, 8.33, 18))
+    setColWidths(wb, current_worksheet, cols = 10:19, widths = 5)
+  }
+
 }

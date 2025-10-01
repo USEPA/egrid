@@ -1,0 +1,1972 @@
+---
+title: "Monthly Production Model QA"
+format: html
+editor: source
+table-of-contents: true
+---
+
+```{r}
+#| label: load-libraries
+#| echo: false
+#| message: false
+
+library(dplyr)
+library(ggplot2)
+library(kableExtra)
+library(readr)
+library(tidyr)
+library(patchwork)
+library(stringr)
+
+```
+
+```{r}
+#| label: load-functions
+#| echo: false
+#| message: false
+
+source("scripts/qa/monthly_qa/function_plot_monthly_comparison.R")
+base::load("data/1_production_model/static_tables/name_matches.RData")
+```
+
+```{r}
+#| label: read-format-data
+#| echo: false
+#| message: false
+
+# load in unit data, format, and merge
+unit_monthly <- 
+  read_rds("data/1_production_model/outputs/2023/monthly/unit_file_monthly.RDS")
+
+colnames(unit_monthly) <- paste0(colnames(unit_monthly), "_monthly")
+unit_monthly <- unit_monthly %>% 
+  rename("plant_id" = "plant_id_monthly",
+         "unit_id" = "unit_id_monthly", 
+         "prime_mover" = "prime_mover_monthly",
+         "year" = "year_monthly",
+         "month" = "month_monthly") %>% 
+  mutate(month = as.character(month))
+
+unit_annual <- 
+  read_rds("data/1_production_model/outputs/2023/unit_file.RDS")
+
+colnames(unit_annual) <- paste0(colnames(unit_annual), "_annual")
+unit_annual <- unit_annual %>% 
+  rename("plant_id" = "plant_id_annual",
+         "unit_id" = "unit_id_annual", 
+         "prime_mover" = "prime_mover_annual",  
+         "year" = "year_annual") %>% 
+  mutate(month = "annual")
+
+# load in generator data, format, and merge
+generator_monthly <- 
+  read_rds("data/1_production_model/outputs/2023/monthly/generator_file_monthly.RDS")
+
+colnames(generator_monthly) <- paste0(colnames(generator_monthly), "_monthly")
+generator_monthly <- generator_monthly %>% 
+  rename("plant_id" = "plant_id_monthly",
+         "generator_id" = "generator_id_monthly", 
+         "prime_mover" = "prime_mover_monthly",
+         "year" = "year_monthly",
+         "month" = "month_monthly") %>% 
+  mutate(month = as.character(month))
+
+generator_annual <- 
+  read_rds("data/1_production_model/outputs/2023/generator_file.RDS")
+
+colnames(generator_annual) <- paste0(colnames(generator_annual), "_annual")
+generator_annual <- generator_annual %>% 
+  rename("plant_id" = "plant_id_annual",
+         "generator_id" = "generator_id_annual", 
+         "prime_mover" = "prime_mover_annual",  
+         "generation_annual" = "generation_ann_annual",
+         "year" = "year_annual") %>% 
+  mutate(month = "annual")
+
+# load in plant data, format, and merge
+plant_monthly <- 
+  read_rds("data/1_production_model/outputs/2023/monthly/plant_file_monthly.RDS") %>% 
+  mutate(month = as.character(month))
+
+plant_monthly_2 <- plant_monthly
+colnames(plant_monthly_2) <- paste0(colnames(plant_monthly_2), "_monthly")
+plant_monthly_2 <- 
+  plant_monthly_2 %>% 
+  rename("plant_id" = "plant_id_monthly",
+         "year" = "year_monthly",
+         "month" = "month_monthly") %>% 
+  mutate(month = as.character(month))
+
+plant_annual <- 
+  read_rds("data/1_production_model/outputs/2023/plant_file.RDS") 
+
+# rename to new version of column names
+new_vars <- 
+  plant_nonmetric_annual
+colnames(plant_annual) <- new_vars
+  
+plant_annual_2 <- plant_annual
+colnames(plant_annual_2) <- paste0(colnames(plant_annual_2), "_annual")
+plant_annual_2 <- 
+  plant_annual_2 %>% 
+  rename("plant_id" = "plant_id_annual",
+         "year" = "year_annual") 
+
+plant_merged <-
+  plant_monthly %>% 
+  full_join(plant_annual %>% mutate(month = "annual"))
+
+plant_merged$month <- factor(plant_merged$month, 
+                             levels = c("1", "2", "3", "4", "5", "6", 
+                                        "7", "8", "9", "10", "11", "12", "annual"))
+
+```
+
+## Unit file comparison
+
+The differences between the totals of heat input and emission masses of the monthly and annual unit files are shown here. The monthly version is aggregated to the annual resolution to compare.
+
+In the tabset below, we list what units have a difference greater than 0.01 for heat input and emission masses. We note which units are ozone reporters, since the methodology for filling non-ozone months is different between annual (non-ozone distributed) and monthly (non-ozone filled via EIA and summed to annual) versions for heat input and annual NOx mass. We also note the respondent frequency of units in EIA, since Annual reporters under the monthly version have heat input filled from EIA-923 Generation and Fuel. 
+
+```{r}
+#| label: unit-comparison
+#| echo: false
+#| message: false
+
+# read in EPA data to identify OS reporters
+epa <- 
+  read_rds("data/1_production_model/clean_data/epa/2023/epa_clean_monthly.RDS") %>% 
+  select(plant_id, unit_id, reporting_frequency) %>% 
+  distinct() %>% 
+  tidyr::drop_na()
+
+# read in EIA data to identify Annual reporters (which may not represent monthly version well)
+eia_923 <- 
+  read_rds("data/1_production_model/clean_data/eia/2023/eia_923_clean.RDS") 
+
+annual_reporters <-
+  eia_923$boiler_fuel_data %>% 
+  select(plant_id, boiler_id, prime_mover, respondent_frequency) %>% 
+  distinct() %>% 
+  group_by(plant_id, boiler_id, prime_mover) %>% 
+  summarize(respondent_frequency = paste(respondent_frequency, collapse = ", ")) %>% 
+  ungroup()
+
+# sum monthly version to annual values
+unit_monthly_sum <- 
+  unit_monthly %>% 
+  group_by(plant_id, unit_id, prime_mover) %>% 
+  summarize(heat_input_monthly = sum(heat_input_monthly, na.rm = TRUE), 
+            nox_mass_monthly = sum(nox_mass_monthly, na.rm = TRUE), 
+            so2_mass_monthly = sum(so2_mass_monthly, na.rm = TRUE), 
+            co2_mass_monthly = sum(co2_mass_monthly, na.rm = TRUE)) %>% 
+  ungroup()
+
+# total monthly version 
+unit_total_monthly_sum <- 
+  unit_monthly_sum %>% 
+  summarize(heat_input = sum(heat_input_monthly, na.rm = TRUE), 
+            nox_mass = sum(nox_mass_monthly, na.rm = TRUE),
+            so2_mass = sum(so2_mass_monthly, na.rm = TRUE), 
+            co2_mass = sum(co2_mass_monthly, na.rm = TRUE)) %>% 
+  mutate(agg = "monthly") 
+
+# total annual version to totals
+unit_total_annual_sum <- 
+  unit_annual %>% 
+  summarize(heat_input = sum(heat_input_annual, na.rm = TRUE), 
+            nox_mass = sum(nox_mass_annual, na.rm = TRUE), 
+            so2_mass = sum(so2_mass_annual, na.rm = TRUE), 
+            co2_mass = sum(co2_mass_annual, na.rm = TRUE)) %>% 
+  mutate(agg = "annual") 
+
+# calculate difference of total values
+unit_total_sum_comp <- 
+  rbind(unit_total_monthly_sum, 
+        unit_total_annual_sum) %>% 
+  relocate(agg) %>% 
+  pivot_longer(-c(agg), names_to = "column", values_to = "value") %>% 
+  arrange(column) %>% 
+  group_by(column) %>% 
+  mutate(difference = value - lag(value)) %>% 
+  ungroup() %>% 
+  mutate(percent_diff = difference / value * 100) 
+
+# produce tale of differences of total values
+knitr::kable(unit_total_sum_comp,
+             digits = c(0, 0, 0, 0, 2), 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(unit_total_sum_comp)), 
+             caption = "Unit file totals comparison") 
+
+# calculate differences at the unit level
+check_unit_diff <- 
+  unit_annual %>% 
+  full_join(unit_monthly_sum, by = c("plant_id", "unit_id", "prime_mover")) %>% 
+  mutate(heat_input_diff = abs(heat_input_annual - heat_input_monthly), 
+         heat_input_pct_diff = abs(heat_input_diff / heat_input_monthly) * 100,
+         nox_diff = abs(nox_mass_annual - nox_mass_monthly),
+         nox_pct_diff = abs(nox_diff / nox_mass_monthly) * 100,
+         so2_diff = abs(so2_mass_annual - so2_mass_monthly), 
+         so2_pct_diff = abs(so2_diff / so2_mass_monthly) * 100,
+         co2_diff = abs(co2_mass_annual - co2_mass_monthly),
+         co2_pct_diff = abs(co2_diff / co2_mass_monthly) * 100) %>% 
+  left_join(epa, by = c("plant_id", "unit_id")) %>% 
+  left_join(annual_reporters, by = c("plant_id", "unit_id" = "boiler_id", "prime_mover"))
+```
+
+::: panel-tabset
+### Heat input
+
+```{r}
+#| label: heat-input-unit-comp
+#| echo: false
+#| message: false
+
+unit_heat_input_check <- 
+  check_unit_diff %>% 
+  select(plant_id, 
+         unit_id, 
+         prime_mover, 
+         heat_input_annual,
+         heat_input_monthly,
+         heat_input_diff,
+         heat_input_pct_diff,
+         reporting_frequency,
+         respondent_frequency) %>% 
+   filter(heat_input_diff > 0.01) %>% 
+   arrange(-heat_input_pct_diff)
+
+print(glue::glue("Heat Input Differences > 0.01: {nrow(unit_heat_input_check)}"))
+```
+
+Notes:
+
+-   Some differences are attributable to differences in EIA Annual reporters, this needs to be addressed.
+
+-   Some differences are attributable to differences in ozone methodology.
+
+-   Some differences are from EIA-923 Boilers where we updated the EIA Boiler file to sum boilers (and ignore NAs, which updated some heat input to be positive values here and not filled during the NA heat input steps). This applies to about 60 units and are likely the monthly reporters in the list. Teagan has a list of what units were affected. 
+
+```{r}
+#| label: heat-input-unit-table
+#| echo: false
+#| message: false
+
+knitr::kable(unit_heat_input_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unit ID", 
+                           "Prime Mover",
+                           "Heat Input Annual",
+                           "Heat Input Monthly",
+                           "Heat Input Diff",
+                           "Percent Diff",
+                           "EPA Reporting Frequency", 
+                           "EIA Respondent Frequency"), 
+             caption = "Unit file heat input comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+### NOx mass
+
+```{r}
+#| label: nox-unit-comp
+#| echo: false
+#| message: false
+
+unit_nox_check <- 
+  check_unit_diff %>% 
+  select(plant_id, 
+         unit_id, 
+         prime_mover, 
+         nox_mass_annual,
+         nox_mass_monthly,
+         nox_diff,
+         nox_pct_diff,
+         reporting_frequency,
+         respondent_frequency) %>% 
+   filter(nox_diff > 0.01) %>% 
+   arrange(-nox_pct_diff)
+
+print(glue::glue("NOx mass differences > 0.01: {nrow(unit_nox_check)}"))
+```
+
+Notes:
+
+-   Some differences are attributable to differences in EIA Annual reporters, this needs to be addressed. 
+
+-   Some differences are attributable to differences in ozone methodology.
+
+-   Plant 54950 missing matching NOx EF factor for DFO, CT unit. 
+
+-   Some differences are due to the monthly version using ozone NOx rates for ozone season months, and annual NOx rates for all other months. 
+
+```{r}
+#| label: nox-unit-table
+#| echo: false
+#| message: false
+
+knitr::kable(unit_nox_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unit ID", 
+                           "Prime Mover",
+                           "NOx Mass Annual", 
+                           "NOx Mass Monthly", 
+                           "Annual NOx Diff",
+                           "Percent Diff",
+                           "EPA Reporting Frequency",
+                           "EIA Respondent Frequency"), 
+             caption = "Unit file NOx mass comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+
+```
+
+### SO2 mass
+
+```{r}
+#| label: so2-unit-comp
+#| echo: false
+#| message: false
+
+unit_so2_check <- 
+  check_unit_diff %>% 
+  select(plant_id, 
+         unit_id, 
+         prime_mover, 
+         so2_mass_annual,
+         so2_mass_monthly,
+         so2_diff,
+         so2_pct_diff,
+         reporting_frequency,
+         respondent_frequency) %>% 
+  filter(so2_diff > 0.01) %>% 
+  arrange(-so2_pct_diff)
+
+print(glue::glue("SO2 mass differences > 0.01: {nrow(unit_so2_check)}"))
+```
+
+Notes:
+
+-   Some differences are due to differences across sulfur content since annual is an average of all monthly sulfur contents, but we use monthly level sulfur contents for the monthly version.
+
+-   15 differences attributable to differences in ozone season methodology.
+
+-   Some differences are attributable to differences in EIA Annual reporters, this needs to be addressed. 
+
+```{r}
+#| label: so2-unit-table
+#| echo: false
+#| message: false
+
+knitr::kable(unit_so2_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unit ID", 
+                           "Prime Mover",
+                           "SO2 Mass Annual", 
+                           "SO2 Mass Monthly", 
+                           "Annual SO2 Diff",
+                           "Percent Diff",
+                           "EPA Reporting Frequency", 
+                           "EIA Respondent Frequency"), 
+             caption = "Unit file SO2 mass comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+
+```
+
+### CO2 mass
+
+```{r}
+#| label: co2-unit-comp
+#| echo: false
+#| message: false
+
+unit_co2_check <- 
+  check_unit_diff %>% 
+  select(plant_id, 
+         unit_id, 
+         prime_mover, 
+         co2_mass_annual, 
+         co2_mass_monthly, 
+         co2_diff,
+         co2_pct_diff,
+         reporting_frequency, 
+         respondent_frequency) %>% 
+  filter(co2_diff > 0.01) %>% 
+  arrange(-co2_pct_diff) 
+
+print(glue::glue("CO2 mass differences > 0.01: {nrow(unit_co2_check)}"))
+```
+
+Notes:
+
+-   21 unit differences attributable to differences in ozone season methodology differences.
+
+-   Some differences are attributable to differences in EIA Annual reporters, this needs to be addressed. 
+
+```{r}
+#| label: co2-unit-table
+#| echo: false
+#| message: false
+
+knitr::kable(unit_co2_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unit ID", 
+                           "Prime Mover",
+                           "CO2 Mass Annual", 
+                           "CO2 Mass Monthly", 
+                           "Annual CO2 Diff",
+                           "Percent Diff", 
+                           "EPA Reporting Frequency",
+                           "EIA Respondent Frequency"), 
+             caption = "Unit file CO2 mass comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+
+```
+:::
+
+
+## Generator file comparison
+
+The differences between the totals of generation of the monthly and annual unit files are shown here. The monthly version is aggregated to the annual resolution to compare.
+
+In the tabset below, we list what units have a difference greater than 0.01 for generation. We also note which units are ozone reporters, since the methodology for filling non-ozone months is different between annual (non-ozone distributed) and monthly (non-ozone filled via EIA and summed to annual) versions for heat input and annual NOx mass. [flag to correct for generator file information]
+
+```{r}
+#| label: generator-comparison
+#| echo: false
+#| message: false
+
+# read in EPA data to identify OS reporters
+# epa <- 
+#   read_rds("data/clean_data/epa/2023/epa_clean_annual.RDS") %>% 
+#   select(plant_id, unit_id, reporting_frequency) %>% 
+#   distinct()
+
+# read in EIA data to identify Annual reporters (which may not represent monthly version well)
+eia_923 <- 
+  read_rds("data/clean_data/eia/2023/eia_923_clean.RDS") 
+
+annual_reporters <-
+  eia_923$boiler_fuel_data %>% 
+  select(plant_id, boiler_id, prime_mover, respondent_frequency) %>% 
+  distinct() %>% 
+  group_by(plant_id, boiler_id, prime_mover) %>% 
+  summarize(respondent_frequency = paste(respondent_frequency, collapse = ", ")) %>% 
+  ungroup()
+
+# sum monthly version to annual values
+generator_monthly_sum <- 
+  generator_monthly %>% 
+  group_by(year, plant_id, generator_id, prime_mover) %>% 
+  summarize(generation_monthly = sum(generation_monthly, na.rm = TRUE)) %>% 
+  ungroup()
+
+# total monthly version 
+generator_total_monthly_sum <- 
+  generator_monthly_sum %>% 
+  summarize(generation = sum(generation_monthly, na.rm = TRUE)
+            ) %>% 
+  mutate(agg = "monthly") 
+
+# total annual version to totals
+generator_total_annual_sum <- 
+  generator_annual %>% 
+  summarize(generation = sum(generation_annual, na.rm = TRUE)) %>% 
+  mutate(agg = "annual") 
+
+# calculate difference of total values
+generator_total_sum_comp <- 
+  rbind(generator_total_monthly_sum, 
+        generator_total_annual_sum) %>% 
+  relocate(agg) %>% 
+  pivot_longer(-c(agg), names_to = "column", values_to = "value") %>% 
+  arrange(column) %>% 
+  group_by(column) %>% 
+  mutate(difference = value - lag(value)) 
+
+# produce tale of differences of total values
+knitr::kable(generator_total_sum_comp,
+             digits = 0, 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(generator_total_sum_comp)), 
+             caption = "Generator file totals comparison") 
+
+# calculate differences at the unit level
+check_generation_diff <- 
+  generator_annual %>% 
+  full_join(generator_monthly_sum, by = c("plant_id", "generator_id", "prime_mover")) %>% 
+  mutate(generation_diff = abs(generation_annual - generation_monthly), 
+         generation_pct_diff = abs(generation_diff / generation_monthly) * 100) 
+```
+
+::: panel-tabset
+### Generation
+
+```{r}
+#| label: generation-generator-comp
+#| echo: false
+#| message: false
+
+generator_generation_check <- 
+  check_generation_diff %>% 
+  left_join(generator_monthly %>% 
+              select(plant_id, generator_id, prime_mover, gen_data_source_monthly) %>%
+              distinct(paste0(plant_id, "_", generator_id, "_", prime_mover), .keep_all = TRUE)) %>%
+  select(plant_id, 
+         generator_id, 
+         prime_mover, 
+         gen_data_source_annual,
+         gen_data_source_monthly,
+         generation_annual,
+         generation_monthly,
+         generation_diff,
+         generation_pct_diff) %>% # ,
+         # reporting_frequency,
+         # respondent_frequency) %>% 
+   filter(generation_diff > 0.01) %>% 
+   arrange(-generation_pct_diff)
+
+print(glue::glue("Generation Differences > 0.01: {nrow(generator_generation_check)}"))
+```
+::: 
+
+## Plant file comparison
+
+The differences between the totals of heat input, emission masses, and generation of the monthly and annual unit files are shown here. The monthly version is aggregated to the annual resolution to compare.
+
+In the tabset below, we list what units have a difference greater than 1 for heat input, emission masses, and generation. 
+
+```{r}
+#| label: plant-comparison
+#| echo: false
+#| message: false
+
+# sum monthly version to annual values
+plant_monthly_sum <- 
+  plant_monthly_2 %>% 
+  group_by(plant_id) %>% 
+  summarize(across(.cols = c(contains("heat_input"),
+                             contains("generation"), 
+                             contains("_mass"), 
+                             contains("netgen"), 
+                             -contains("source"), 
+                             -contains("hg"),
+                             -contains("chp")), 
+                   .fns = ~ sum(.x, na.rm = TRUE))) %>% 
+  ungroup()
+
+# total monthly version 
+plant_total_monthly_sum <- 
+  plant_monthly_sum %>% 
+  summarize(across(.cols = c(contains("heat_input"),
+                             contains("generation"), 
+                             contains("_mass"), 
+                             contains("netgen"), 
+                             -contains("source"),
+                             -contains("hg"),
+                             -contains("chp")), 
+                   .fns = ~ sum(.x, na.rm = TRUE), 
+                   .names = "{str_replace(.col, '_monthly', '')}")) %>% 
+  mutate(agg = "monthly") 
+
+# total annual version to totals
+plant_total_annual_sum <- 
+  plant_annual %>% 
+  summarize(across(.cols = c(contains("heat_input"),
+                             contains("generation"), 
+                             contains("_mass"), 
+                             contains("netgen"), 
+                             -contains("source"),
+                             -contains("hg"), 
+                             -contains("oz"), 
+                             -contains("chp"),
+                             -contains("sqplt")), 
+                   .fns = ~ sum(.x, na.rm = TRUE))) %>% 
+  mutate(agg = "annual") 
+
+# calculate difference of total values
+plant_total_sum_comp <- 
+  rbind(plant_total_monthly_sum, 
+        plant_total_annual_sum) %>% 
+  relocate(agg) %>% 
+  pivot_longer(-c(agg), names_to = "column", values_to = "value") %>% 
+  arrange(column) %>% 
+  group_by(column) %>% 
+  mutate(difference = value - lag(value)) %>% 
+  ungroup() %>% 
+  mutate(percent_diff = difference / value * 100)
+
+# produce tale of differences of total values
+knitr::kable(plant_total_sum_comp,
+             digits = c(0, 0, 0, 0, 2), 
+             format.args = list(big.mark = ","), 
+             col.names = gsub("[_]", " ", names(plant_total_sum_comp)), 
+             caption = "Plant file totals comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+
+# calculate differences at the unit level
+check_plant_diff <- 
+  plant_annual_2 %>% 
+  full_join(plant_monthly_sum, by = c("plant_id")) %>% 
+  mutate(across(.cols = c(contains("heat_input_annual"),
+                          "generation_annual",
+                          "generation_nonbaseload_annual", 
+                          contains("_mass_annual"), 
+                          contains("netgen_annual"), 
+                          -contains("chp"), 
+                          -contains("source"), 
+                          -contains("hg"), 
+                          -contains("oz")), 
+                .fns = ~ abs(.x - get(str_replace(cur_column(), "annual", "monthly"))), 
+                .names = "{str_replace(.col, 'annual', 'diff')}"), 
+         across(.cols = contains("diff"), 
+                .fns = ~ abs(.x / get(str_replace(cur_column(), "diff", "monthly"))) * 100, 
+                .names = "{str_replace(.col, 'diff', 'pct_diff')}")) 
+```
+
+### Emission rate outliers
+
+```{r}
+#| label: calculate-outliers
+#| echo: false
+#| message: false
+
+# output rates that are negative are typically zeroed out 
+# here, we recalculate them and keep the negatives to identify outliers 
+
+plant_rates <- 
+  plant_monthly %>% 
+  select(month, plant_id, plant_name, generation, heat_input, contains("mass"), contains("rate")) %>%  
+  mutate(nox_output_rate = nox_mass / generation * 2000, 
+         so2_output_rate = so2_mass / generation * 2000, 
+         co2_output_rate = co2_mass/ generation * 2000, 
+         ch4_output_rate = ch4_mass / generation, 
+         n2o_output_rate = n2o_mass / generation,
+         co2e_output_rate = co2e_mass / generation * 2000) 
+
+plant_rates[sapply(plant_rates, is.infinite)] <- NA_real_
+
+plant_stats <- 
+  plant_rates %>% 
+  mutate(across(.cols = c(contains("rate")), 
+                .fns = ~ mean(.x, na.rm = TRUE), 
+                .names =  "{.col}_average"), 
+         across(.cols = c(contains("rate"), -contains("average")), 
+                .fns = ~ sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_sd"))
+
+plant_stats[sapply(plant_stats, is.infinite)] <- NA_real_
+
+plant_zscore <- 
+  plant_stats %>% 
+  mutate(across(.cols = c(contains("rate"), -contains("average"), -contains("sd")), 
+                .fns = ~ (.x - mean(.x, na.rm = TRUE)) / sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_zscore")) 
+```
+
+#### Input rate
+
+::: panel-tabset
+##### NOx input rate
+
+```{r}
+#| label: plant-nox-input-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(nox_input_rate_zscore > 3 | nox_input_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>%
+               filter(nox_input_rate_zscore > 3 | nox_input_rate_zscore < -3) %>% 
+               arrange(desc(nox_input_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, nox_input_rate_zscore, nox_input_rate))
+
+```
+
+##### SO2 input rate
+
+```{r}
+#| label: plant-so2-input-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(so2_input_rate_zscore > 3 | so2_input_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(so2_input_rate_zscore > 3 | so2_input_rate_zscore < -3) %>% 
+               arrange(desc(so2_input_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, so2_input_rate_zscore, so2_input_rate))
+```
+
+##### CO2 input rate
+
+```{r}
+#| label: plant-co2-input-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(co2_input_rate_zscore > 3 | co2_input_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(co2_input_rate_zscore > 3 | co2_input_rate_zscore < -3) %>% 
+               arrange(desc(co2_input_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, co2_input_rate_zscore, co2_input_rate))
+
+```
+
+##### CH4 input rate
+
+```{r}
+#| label: plant-ch4-input-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(ch4_input_rate_zscore > 3 | ch4_input_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(ch4_input_rate_zscore > 3 | ch4_input_rate_zscore < -3) %>% 
+               arrange(desc(ch4_input_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, ch4_input_rate_zscore, ch4_input_rate))
+
+```
+
+##### N2O input rate
+
+```{r}
+#| label: plant-n2o-input-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(n2o_input_rate_zscore > 3 | n2o_input_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(n2o_input_rate_zscore > 3 | n2o_input_rate_zscore < -3) %>% 
+               arrange(desc(n2o_input_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, n2o_input_rate_zscore, n2o_input_rate))
+
+```
+
+##### CO2e input rate
+
+```{r}
+#| label: plant-co2e-input-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(co2e_input_rate_zscore > 3 | co2e_input_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(co2e_input_rate_zscore > 3 | co2e_input_rate_zscore < -3) %>% 
+               arrange(desc(co2e_input_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, co2e_input_rate_zscore, co2e_input_rate))
+
+```
+:::
+
+#### Output rates
+
+::: panel-tabset
+##### NOx output rate
+
+```{r}
+#| label: plant-nox-output-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(nox_output_rate_zscore > 3 | nox_output_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(nox_output_rate_zscore > 3 | nox_output_rate_zscore < -3) %>% 
+               arrange(desc(nox_output_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, nox_output_rate_zscore, nox_output_rate))
+
+```
+
+##### SO2 output rate
+
+```{r}
+#| label: plant-so2-output-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
+               arrange(desc(so2_output_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, so2_output_rate_zscore, so2_output_rate))
+
+```
+
+##### CO2 output rate
+
+```{r}
+#| label: plant-co2-output-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(co2_output_rate_zscore > 3 | co2_output_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(co2_output_rate_zscore > 3 | co2_output_rate_zscore < -3) %>% 
+               arrange(desc(co2_output_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, co2_output_rate_zscore, co2_output_rate))
+
+```
+
+##### CH4 output rate
+
+```{r}
+#| label: plant-ch4-output-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(ch4_output_rate_zscore > 3 | ch4_output_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
+               arrange(desc(so2_output_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, so2_output_rate_zscore, so2_output_rate))
+
+```
+
+##### N2O output rate
+
+```{r}
+#| label: plant_n2o_output_outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(n2o_output_rate_zscore > 3 | n2o_output_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(n2o_output_rate_zscore > 3 | n2o_output_rate_zscore < -3) %>% 
+               arrange(desc(n2o_output_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, n2o_output_rate_zscore, n2o_output_rate))
+
+```
+
+##### CO2e output rate
+
+```{r}
+#| label: plant-co2e-output-outliers
+#| echo: false
+#| message: false
+
+print(glue::glue("z-scores > +/-3: {nrow(plant_zscore %>% 
+                 filter(co2e_output_rate_zscore > 3 | co2e_output_rate_zscore < -3))}"))
+
+knitr::kable(plant_zscore %>% 
+               filter(co2e_output_rate_zscore > 3 | co2e_output_rate_zscore < -3) %>% 
+               arrange(desc(co2e_output_rate_zscore)) %>% 
+               select(month, plant_id, plant_name, co2e_output_rate_zscore, co2e_output_rate))
+
+```
+:::
+
+### Differences
+
+::: panel-tabset
+#### Unadjusted heat input
+
+```{r}
+#| label: unadj-heat-input-plant-comp
+#| echo: false
+#| message: false
+
+options(scipen = 999)
+
+plant_unadj_heat_input_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         unadj_heat_input_annual, 
+         unadj_heat_input_monthly,
+         unadj_heat_input_diff,
+         unadj_heat_input_pct_diff) %>% 
+   filter(unadj_heat_input_diff > 1) %>% 
+   arrange(-unadj_heat_input_pct_diff)
+
+print(glue::glue("Unadjusted Heat Input Differences > 1: {nrow(plant_unadj_heat_input_check)}"))
+```
+
+```{r}
+#| label: unadj-heat-input-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_unadj_heat_input_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unadjusted Heat Input Annual", 
+                           "Unadjusted Heat Input Monthly", 
+                           "Unadjusted Heat Input Diff",
+                           "Percent Diff"), 
+             caption = "Plant file unadjusted heat input comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Unadjusted combustion heat input
+
+```{r}
+#| label: unadj-combust-heat-input-plant-comp
+#| echo: false
+#| message: false
+
+plant_unadj_combust_heat_input_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         unadj_combust_heat_input_annual, 
+         unadj_combust_heat_input_monthly,
+         unadj_combust_heat_input_diff,
+         unadj_combust_heat_input_pct_diff) %>% 
+   filter(unadj_combust_heat_input_diff > 1) %>% 
+   arrange(-unadj_combust_heat_input_pct_diff)
+
+print(glue::glue("Unadjusted Combustion Heat Input Differences > 1: {nrow(plant_unadj_combust_heat_input_check)}"))
+```
+
+```{r}
+#| label: unadj-combust-heat-input-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_unadj_combust_heat_input_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unadjusted Combustion Heat Input Annual", 
+                           "Unadjusted Combustion Heat Input Monthly", 
+                           "Unadjusted Combustion Heat Input Diff",
+                           "Percent Diff"), 
+             caption = "Plant file unadjusted combustion heat input comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Unadjusted NOx mass
+
+```{r}
+#| label: unadj-nox-plant-comp
+#| echo: false
+#| message: false
+
+plant_unadj_nox_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         unadj_nox_mass_annual, 
+         unadj_nox_mass_monthly,
+         unadj_nox_mass_diff,
+         unadj_nox_mass_pct_diff) %>% 
+   filter(unadj_nox_mass_diff > 1) %>% 
+   arrange(-unadj_nox_mass_pct_diff)
+
+print(glue::glue("Unadjusted NOx Differences > 1: {nrow(plant_unadj_nox_check)}"))
+```
+
+```{r}
+#| label: unadj-nox-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_unadj_nox_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unadjusted NOx Annual", 
+                           "Unadjusted NOx Monthly", 
+                           "Unadjusted NOx Diff",
+                           "Percent Diff"), 
+             caption = "Plant file unadjusted NOx comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Unadjusted SO2 mass
+
+```{r}
+#| label: unadj-so2-plant-comp
+#| echo: false
+#| message: false
+
+plant_unadj_so2_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         unadj_so2_mass_annual, 
+         unadj_so2_mass_monthly,
+         unadj_so2_mass_diff,
+         unadj_so2_mass_pct_diff) %>% 
+   filter(unadj_so2_mass_diff > 1) %>% 
+   arrange(-unadj_so2_mass_pct_diff)
+
+print(glue::glue("Unadjusted SO2 Differences > 1: {nrow(plant_unadj_so2_check)}"))
+```
+
+```{r}
+#| label: unadj-so2-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_unadj_so2_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unadjusted SO2 Annual", 
+                           "Unadjusted SO2 Monthly", 
+                           "Unadjusted SO2 Diff",
+                           "Percent Diff"), 
+             caption = "Plant file unadjusted SO2 comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Unadjusted CO2 mass
+
+```{r}
+#| label: unadj-co2-plant-comp
+#| echo: false
+#| message: false
+
+plant_unadj_co2_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         unadj_co2_mass_annual, 
+         unadj_co2_mass_monthly,
+         unadj_co2_mass_diff,
+         unadj_co2_mass_pct_diff) %>% 
+   filter(unadj_co2_mass_diff > 1) %>% 
+   arrange(-unadj_co2_mass_pct_diff)
+
+print(glue::glue("Unadjusted CO2 Differences > 1: {nrow(plant_unadj_co2_check)}"))
+```
+
+```{r}
+#| label: unadj-co2-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_unadj_co2_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unadjusted CO2 Annual", 
+                           "Unadjusted CO2 Monthly", 
+                           "Unadjusted CO2 Diff",
+                           "Percent Diff"), 
+             caption = "Plant file unadjusted CO2 comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Unadjusted CH4 mass
+
+```{r}
+#| label: unadj-ch4-plant-comp
+#| echo: false
+#| message: false
+
+plant_unadj_ch4_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         unadj_ch4_mass_annual, 
+         unadj_ch4_mass_monthly,
+         unadj_ch4_mass_diff,
+         unadj_ch4_mass_pct_diff) %>% 
+   filter(unadj_ch4_mass_diff > 1) %>% 
+   arrange(-unadj_ch4_mass_pct_diff)
+
+print(glue::glue("Unadjusted CH4 Differences > 1: {nrow(plant_unadj_ch4_check)}"))
+```
+
+```{r}
+#| label: unadj-ch4-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_unadj_ch4_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unadjusted CH4 Annual", 
+                           "Unadjusted CH4 Monthly", 
+                           "Unadjusted CH4 Diff",
+                           "Percent Diff"), 
+             caption = "Plant file unadjusted CH4 comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Unadjusted N2O mass
+
+```{r}
+#| label: unadj-n2o-plant-comp
+#| echo: false
+#| message: false
+
+plant_unadj_n2o_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         unadj_n2o_mass_annual, 
+         unadj_n2o_mass_monthly,
+         unadj_n2o_mass_diff,
+         unadj_n2o_mass_pct_diff) %>% 
+   filter(unadj_n2o_mass_diff > 1) %>% 
+   arrange(-unadj_n2o_mass_pct_diff)
+
+print(glue::glue("Unadjusted N2O Differences > 1: {nrow(plant_unadj_n2o_check)}"))
+```
+
+```{r}
+#| label: unadj-n2o-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_unadj_n2o_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unadjusted N2O Annual", 
+                           "Unadjusted N2O Monthly", 
+                           "Unadjusted N2O Diff",
+                           "Percent Diff"), 
+             caption = "Plant file unadjusted N2O comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Unadjusted CO2e mass
+
+```{r}
+#| label: unadj-co2e-plant-comp
+#| echo: false
+#| message: false
+
+plant_unadj_co2e_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         unadj_co2e_mass_annual, 
+         unadj_co2e_mass_monthly,
+         unadj_co2e_mass_diff,
+         unadj_co2e_mass_pct_diff) %>% 
+   filter(unadj_co2e_mass_diff > 1) %>% 
+   arrange(-unadj_co2e_mass_pct_diff)
+
+print(glue::glue("Unadjusted CO2e Differences > 1: {nrow(plant_unadj_co2e_check)}"))
+```
+
+```{r}
+#| label: unadj-co2e-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_unadj_co2e_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Unadjusted CO2e Annual", 
+                           "Unadjusted CO2e Monthly", 
+                           "Unadjusted CO2e Diff",
+                           "Percent Diff"), 
+             caption = "Plant file unadjusted CO2e comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Heat input
+
+```{r}
+#| label: heat-input-plant-comp
+#| echo: false
+#| message: false
+
+plant_heat_input_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         heat_input_annual, 
+         heat_input_monthly,
+         heat_input_diff,
+         heat_input_pct_diff) %>% 
+   filter(heat_input_diff > 1) %>% 
+   arrange(-heat_input_pct_diff)
+
+print(glue::glue("Heat Input Differences > 1: {nrow(plant_heat_input_check)}"))
+```
+
+```{r}
+#| label: heat-input-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_heat_input_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Heat Input Annual", 
+                           "Heat Input Monthly", 
+                           "Heat Input Diff",
+                           "Percent Diff"), 
+             caption = "Plant file heat input comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Combustion heat input
+
+```{r}
+#| label: combust-heat-plant-comp
+#| echo: false
+#| message: false
+
+plant_combust_heat_input_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         combust_heat_input_annual, 
+         combust_heat_input_monthly,
+         combust_heat_input_diff,
+         combust_heat_input_pct_diff) %>% 
+   filter(combust_heat_input_diff > 1) %>% 
+   arrange(-combust_heat_input_pct_diff)
+
+print(glue::glue("Combustion Heat Input Differences > 1: {nrow(plant_combust_heat_input_check)}"))
+```
+
+Notes:
+
+-   Plant 52152 is manually updated in the annual version and needs to be updated at the monthly level.
+
+-   Plant 54638 has 0 generation during months with positive heat input, need to check this. This results in an electric allocation of 0, and a combust heat input of 0. Need to check if cascading issues from generator file.
+
+-   The monthly version of Plant 4005 is correct. This is an EPA plant, so the data may have been updated recently?
+
+```{r}
+#| label: combust-heat-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_combust_heat_input_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Combustion Heat Input Annual", 
+                           "Combustion Heat Input Monthly", 
+                           "Combust Heat Input Diff",
+                           "Percent Diff"), 
+             caption = "Plant file combustion heat input comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Generation
+
+```{r}
+#| label: gen-plant-comp
+#| echo: false
+#| message: false
+
+plant_gen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         generation_annual, 
+         generation_monthly,
+         generation_diff,
+         generation_pct_diff) %>% 
+   filter(generation_diff > 1) %>% 
+   arrange(-generation_pct_diff)
+
+print(glue::glue("Generation Differences > 1: {nrow(plant_gen_check)}"))
+```
+
+```{r}
+#| label: gen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_gen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Generation Annual", 
+                           "Generation Monthly", 
+                           "Generation Diff",
+                           "Percent Diff"), 
+             caption = "Plant file generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Generation nonbaseload
+
+```{r}
+#| label: gen-nbsld-plant-comp
+#| echo: false
+#| message: false
+
+plant_gen_nbsld_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         generation_nonbaseload_annual, 
+         generation_nonbaseload_monthly,
+         generation_nonbaseload_diff,
+         generation_nonbaseload_pct_diff) %>% 
+   filter(generation_nonbaseload_diff > 1) %>% 
+   arrange(-generation_nonbaseload_pct_diff)
+
+print(glue::glue("Generation Nonbaseload Differences > 1: {nrow(plant_gen_nbsld_check)}"))
+```
+
+```{r}
+#| label: gen-nbsld-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_gen_nbsld_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Generation Nonbaseload Annual", 
+                           "Generation Nonbaseload Monthly", 
+                           "Generation Nonbaseload Diff",
+                           "Percent Diff"), 
+             caption = "Plant file generation nonbaseload comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### NOx mass
+
+```{r}
+#| label: nox-mass-plant-comp
+#| echo: false
+#| message: false
+
+plant_nox_mass_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         nox_mass_annual, 
+         nox_mass_monthly,
+         nox_mass_diff,
+         nox_mass_pct_diff) %>% 
+   filter(nox_mass_diff > 1) %>% 
+   arrange(-nox_mass_pct_diff)
+
+print(glue::glue("NOx Mass Differences > 1: {nrow(plant_nox_mass_check)}"))
+```
+
+```{r}
+#| label: nox-mass-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_nox_mass_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "NOx Mass Annual", 
+                           "NOx Mass Monthly", 
+                           "NOx Mass Diff",
+                           "Percent Diff"), 
+             caption = "Plant file NOx mass comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### SO2 mass
+
+```{r}
+#| label: so2-mass-plant-comp
+#| echo: false
+#| message: false
+
+plant_so2_mass_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         so2_mass_annual, 
+         so2_mass_monthly,
+         so2_mass_diff,
+         so2_mass_pct_diff) %>% 
+   filter(so2_mass_diff > 1) %>% 
+   arrange(-so2_mass_pct_diff)
+
+print(glue::glue("SO2 Mass Differences > 1: {nrow(plant_so2_mass_check)}"))
+```
+
+```{r}
+#| label: so2-mass-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_so2_mass_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "SO2 Mass Annual", 
+                           "SO2 Mass Monthly", 
+                           "SO2 Mass Diff",
+                           "Percent Diff"), 
+             caption = "Plant file SO2 mass comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### CO2 mass
+
+```{r}
+#| label: co2-mass-plant-comp
+#| echo: false
+#| message: false
+
+plant_co2_mass_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         co2_mass_annual, 
+         co2_mass_monthly,
+         co2_mass_diff,
+         co2_mass_pct_diff) %>% 
+   filter(co2_mass_diff > 1) %>% 
+   arrange(-co2_mass_pct_diff)
+
+print(glue::glue("CO2 Mass Differences > 1: {nrow(plant_co2_mass_check)}"))
+```
+
+```{r}
+#| label: co2-mass-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_co2_mass_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "CO2 Mass Annual", 
+                           "CO2 Mass Monthly", 
+                           "CO2 Mass Diff",
+                           "Percent Diff"), 
+             caption = "Plant file CO2 mass comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### CH4 mass
+
+```{r}
+#| label: ch4-mass-plant-comp
+#| echo: false
+#| message: false
+
+plant_ch4_mass_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         ch4_mass_annual, 
+         ch4_mass_monthly,
+         ch4_mass_diff,
+         ch4_mass_pct_diff) %>% 
+   filter(ch4_mass_diff > 1) %>% 
+   arrange(-ch4_mass_pct_diff)
+
+print(glue::glue("CH4 Mass Differences > 1: {nrow(plant_ch4_mass_check)}"))
+```
+
+```{r}
+#| label: ch4-mass-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_ch4_mass_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "CH4 Mass Annual", 
+                           "CH4 Mass Monthly", 
+                           "CH4 Mass Diff",
+                           "Percent Diff"), 
+             caption = "Plant file CH4 mass comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### N2O mass
+
+```{r}
+#| label: n2o-mass-plant-comp
+#| echo: false
+#| message: false
+
+plant_n2o_mass_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         n2o_mass_annual, 
+         n2o_mass_monthly,
+         n2o_mass_diff,
+         n2o_mass_pct_diff) %>% 
+   filter(n2o_mass_diff > 1) %>% 
+   arrange(-n2o_mass_pct_diff)
+
+print(glue::glue("N2O Mass Differences > 1: {nrow(plant_n2o_mass_check)}"))
+```
+
+```{r}
+#| label: n2o-mass-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_n2o_mass_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "N2O Mass Annual", 
+                           "N2O Mass Monthly", 
+                           "N2O Mass Diff",
+                           "Percent Diff"), 
+             caption = "Plant file N2O mass comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### CO2e mass
+
+```{r}
+#| label: co2e-mass-plant-comp
+#| echo: false
+#| message: false
+
+plant_co2e_mass_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         co2e_mass_annual, 
+         co2e_mass_monthly,
+         co2e_mass_diff,
+         co2e_mass_pct_diff) %>% 
+   filter(co2e_mass_diff > 1) %>% 
+   arrange(-co2e_mass_pct_diff)
+
+print(glue::glue("CO2e Mass Differences > 1: {nrow(plant_co2e_mass_check)}"))
+```
+
+```{r}
+#| label: co2e-mass-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_co2e_mass_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "CO2e Mass Annual", 
+                           "CO2e Mass Monthly", 
+                           "CO2e Mass Diff",
+                           "Percent Diff"), 
+             caption = "Plant file CO2e mass comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Coal generation
+
+```{r}
+#| label: coal-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_coal_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         coal_netgen_annual, 
+         coal_netgen_monthly,
+         coal_netgen_diff,
+         coal_netgen_pct_diff) %>% 
+   filter(coal_netgen_diff > 1) %>% 
+   arrange(-coal_netgen_pct_diff)
+
+print(glue::glue("Coal Net Gen Differences > 1: {nrow(plant_coal_netgen_check)}"))
+```
+
+```{r}
+#| label: coal-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_coal_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Coal Gen Annual", 
+                           "Coal Gen Monthly", 
+                           "Coal Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file coal generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Oil generation
+
+```{r}
+#| label: oil-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_oil_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         oil_netgen_annual, 
+         oil_netgen_monthly,
+         oil_netgen_diff,
+         oil_netgen_pct_diff) %>% 
+   filter(oil_netgen_diff > 1) %>% 
+   arrange(-oil_netgen_pct_diff)
+
+print(glue::glue("Oil Net Gen Differences > 1: {nrow(plant_oil_netgen_check)}"))
+```
+
+```{r}
+#| label: oil-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_oil_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Oil Gen Annual", 
+                           "Oil Gen Monthly", 
+                           "Oil Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file oil generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Gas generation
+
+```{r}
+#| label: gas-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_gas_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         gas_netgen_annual, 
+         gas_netgen_monthly,
+         gas_netgen_diff,
+         gas_netgen_pct_diff) %>% 
+   filter(gas_netgen_diff > 1) %>% 
+   arrange(-gas_netgen_pct_diff)
+
+print(glue::glue("Gas Net Gen Differences > 1: {nrow(plant_gas_netgen_check)}"))
+```
+
+```{r}
+#| label: gas-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_gas_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Gas Gen Annual", 
+                           "Gas Gen Monthly", 
+                           "Gas Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file gas generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Nuclear generation
+
+```{r}
+#| label: nuclear-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_nuclear_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         nuclear_netgen_annual, 
+         nuclear_netgen_monthly,
+         nuclear_netgen_diff,
+         nuclear_netgen_pct_diff) %>% 
+   filter(nuclear_netgen_diff > 1) %>% 
+   arrange(-nuclear_netgen_pct_diff)
+
+print(glue::glue("Nuclear Net Gen Differences > 1: {nrow(plant_nuclear_netgen_check)}"))
+```
+
+```{r}
+#| label: nuclear-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_nuclear_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Nuclear Gen Annual", 
+                           "Nuclear Gen Monthly", 
+                           "Nuclear Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file nuclear generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Hydro generation
+
+```{r}
+#| label: hydro-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_hydro_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         hydro_netgen_annual, 
+         hydro_netgen_monthly,
+         hydro_netgen_diff,
+         hydro_netgen_pct_diff) %>% 
+   filter(hydro_netgen_diff > 1) %>% 
+   arrange(-hydro_netgen_pct_diff)
+
+print(glue::glue("Hydro Net Gen Differences > 1: {nrow(plant_hydro_netgen_check)}"))
+```
+
+```{r}
+#| label: hydro-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_hydro_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Hydro Gen Annual", 
+                           "Hydro Gen Monthly", 
+                           "Hydro Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file hydro generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Biomass generation
+
+```{r}
+#| label: biomass-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_biomass_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         biomass_netgen_annual, 
+         biomass_netgen_monthly,
+         biomass_netgen_diff,
+         biomass_netgen_pct_diff) %>% 
+   filter(biomass_netgen_diff > 1) %>% 
+   arrange(-biomass_netgen_pct_diff)
+
+print(glue::glue("Biomass Net Gen Differences > 1: {nrow(plant_biomass_netgen_check)}"))
+```
+
+```{r}
+#| label: biomass-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_biomass_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Biomass Gen Annual", 
+                           "Biomass Gen Monthly", 
+                           "Biomass Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file biomass generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Wind generation
+
+```{r}
+#| label: wind-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_wind_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         wind_netgen_annual, 
+         wind_netgen_monthly,
+         wind_netgen_diff,
+         wind_netgen_pct_diff) %>% 
+   filter(wind_netgen_diff > 1) %>% 
+   arrange(-wind_netgen_pct_diff)
+
+print(glue::glue("Wind Net Gen Differences > 1: {nrow(plant_wind_netgen_check)}"))
+```
+
+```{r}
+#| label: wind-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_wind_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Wind Gen Annual", 
+                           "Wind Gen Monthly", 
+                           "Wind Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file wind generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Solar generation
+
+```{r}
+#| label: solar-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_solar_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         solar_netgen_annual, 
+         solar_netgen_monthly,
+         solar_netgen_diff,
+         solar_netgen_pct_diff) %>% 
+   filter(solar_netgen_diff > 1) %>% 
+   arrange(-solar_netgen_pct_diff)
+
+print(glue::glue("Solar Net Gen Differences > 1: {nrow(plant_solar_netgen_check)}"))
+```
+
+```{r}
+#| label: solar-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_solar_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Solar Gen Annual", 
+                           "Solar Gen Monthly", 
+                           "Solar Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file solar generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Geothermal generation
+
+```{r}
+#| label: geothermal-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_geothermal_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         geothermal_netgen_annual, 
+         geothermal_netgen_monthly,
+         geothermal_netgen_diff,
+         geothermal_netgen_pct_diff) %>% 
+   filter(geothermal_netgen_diff > 1) %>% 
+   arrange(-geothermal_netgen_pct_diff)
+
+print(glue::glue("Geothermal Net Gen Differences > 1: {nrow(plant_geothermal_netgen_check)}"))
+```
+
+```{r}
+#| label: geothermal-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_geothermal_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Geothermal Gen Annual", 
+                           "Geothermal Gen Monthly", 
+                           "Geothermal Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file geothermal generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Other fossil fuels
+
+```{r}
+#| label: other-ff-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_other_ff_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         other_ff_netgen_annual, 
+         other_ff_netgen_monthly,
+         other_ff_netgen_diff,
+         other_ff_netgen_pct_diff) %>% 
+   filter(other_ff_netgen_diff > 1) %>% 
+   arrange(-other_ff_netgen_pct_diff)
+
+print(glue::glue("Other Fossil Net Gen Differences > 1: {nrow(plant_other_ff_netgen_check)}"))
+```
+
+```{r}
+#| label: other-ff-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_other_ff_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Other Fossil Gen Annual", 
+                           "Other Fossil Gen Monthly", 
+                           "Other Fossil Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file other fossil generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+#### Other generation
+
+```{r}
+#| label: other-netgen-plant-comp
+#| echo: false
+#| message: false
+
+plant_other_netgen_check <- 
+  check_plant_diff %>% 
+  select(plant_id, 
+         other_netgen_annual, 
+         other_netgen_monthly,
+         other_netgen_diff,
+         other_netgen_pct_diff) %>% 
+   filter(other_netgen_diff > 1) %>% 
+   arrange(-other_netgen_pct_diff)
+
+print(glue::glue("Other Net Gen Differences > 1: {nrow(plant_other_netgen_check)}"))
+```
+
+```{r}
+#| label: other-netgen-plant-table
+#| echo: false
+#| message: false
+
+knitr::kable(plant_other_netgen_check,
+             digits = 2, 
+             format.args = list(big.mark = ","), 
+             col.names = c("Plant ID", 
+                           "Other Gen Annual", 
+                           "Other Gen Monthly", 
+                           "Other Gen Diff",
+                           "Percent Diff"), 
+             caption = "Plant file other generation comparison") %>% 
+  scroll_box(width = "100%", height = "500px")
+```
+
+:::
