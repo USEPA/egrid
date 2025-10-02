@@ -3602,32 +3602,32 @@ nerc_zscore <-
            nerc_stats_summary$co2e_output_rate_sd,
          
          nox_input_zscore = (nerc_nox_input_rate - 
-                               nerc_stats_summary$nox_in_emission_rate_average)/ 
-           nerc_stats_summary$nox_in_emission_rate_sd, 
+                               nerc_stats_summary$nox_input_rate_average)/ 
+           nerc_stats_summary$nox_input_rate_sd, 
          
          nox_oz_input_zscore = (nerc_nox_oz_input_rate - 
-                                  nerc_stats_summary$nox_oz_in_emission_rate_average)/ 
-           nerc_stats_summary$nox_oz_in_emission_rate_sd, 
+                                  nerc_stats_summary$nox_oz_input_rate_average)/ 
+           nerc_stats_summary$nox_oz_input_rate_sd, 
          
          so2_input_zscore = (nerc_so2_input_rate - 
-                               nerc_stats_summary$so2_in_emission_rate_average)/ 
-           nerc_stats_summary$so2_in_emission_rate_sd,
+                               nerc_stats_summary$so2_input_rate_average)/ 
+           nerc_stats_summary$so2_input_rate_sd,
          
          co2_input_zscore = (nerc_co2_input_rate - 
-                               nerc_stats_summary$co2_in_emission_rate_average)/ 
-           nerc_stats_summary$co2_in_emission_rate_sd,
+                               nerc_stats_summary$co2_input_rate_average)/ 
+           nerc_stats_summary$co2_input_rate_sd,
          
          ch4_input_zscore = (nerc_ch4_input_rate - 
-                               nerc_stats_summary$ch4_in_emission_rate_average)/ 
-           nerc_stats_summary$ch4_in_emission_rate_sd,
+                               nerc_stats_summary$ch4_input_rate_average)/ 
+           nerc_stats_summary$ch4_input_rate_sd,
          
          n2o_input_zscore = (nerc_n2o_input_rate - 
-                               nerc_stats_summary$n2o_in_emission_rate_average)/ 
-           nerc_stats_summary$n2o_in_emission_rate_sd,
+                               nerc_stats_summary$n2o_input_rate_average)/ 
+           nerc_stats_summary$n2o_input_rate_sd,
          
          co2e_input_zscore = (nerc_co2e_input_rate - 
-                                nerc_stats_summary$co2e_in_emission_rate_average)/ 
-           nerc_stats_summary$co2e_in_emission_rate_sd) %>% 
+                                nerc_stats_summary$co2e_input_rate_average)/ 
+           nerc_stats_summary$co2e_input_rate_sd) %>% 
   select(nerc, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 ```
 
@@ -3833,32 +3833,32 @@ us_zscore <-
            us_stats_summary$co2e_output_rate_sd,
          
          nox_input_zscore = (us_nox_input_rate - 
-                               us_stats_summary$nox_in_emission_rate_average)/ 
-           us_stats_summary$nox_in_emission_rate_sd, 
+                               us_stats_summary$nox_input_rate_average)/ 
+           us_stats_summary$nox_input_rate_sd, 
          
          nox_oz_input_zscore = (us_nox_oz_input_rate - 
-                                  us_stats_summary$nox_oz_in_emission_rate_average)/ 
-           us_stats_summary$nox_oz_in_emission_rate_sd, 
+                                  us_stats_summary$nox_oz_input_rate_average)/ 
+           us_stats_summary$nox_oz_input_rate_sd, 
          
          so2_input_zscore = (us_so2_input_rate - 
-                               us_stats_summary$so2_in_emission_rate_average)/ 
-           us_stats_summary$so2_in_emission_rate_sd,
+                               us_stats_summary$so2_input_rate_average)/ 
+           us_stats_summary$so2_input_rate_sd,
          
          co2_input_zscore = (us_co2_input_rate - 
-                               us_stats_summary$co2_in_emission_rate_average)/ 
-           us_stats_summary$co2_in_emission_rate_sd,
+                               us_stats_summary$co2_input_rate_average)/ 
+           us_stats_summary$co2_input_rate_sd,
          
          ch4_input_zscore = (us_ch4_input_rate - 
-                               us_stats_summary$ch4_in_emission_rate_average)/ 
-           us_stats_summary$ch4_in_emission_rate_sd,
+                               us_stats_summary$ch4_input_rate_average)/ 
+           us_stats_summary$ch4_input_rate_sd,
          
          n2o_input_zscore = (us_n2o_input_rate - 
-                               us_stats_summary$n2o_in_emission_rate_average)/ 
-           us_stats_summary$n2o_in_emission_rate_sd,
+                               us_stats_summary$n2o_input_rate_average)/ 
+           us_stats_summary$n2o_input_rate_sd,
          
          co2e_input_zscore = (us_co2e_input_rate - 
-                                us_stats_summary$co2e_in_emission_rate_average)/ 
-           us_stats_summary$co2e_in_emission_rate_sd) %>% 
+                                us_stats_summary$co2e_input_rate_average)/ 
+           us_stats_summary$co2e_input_rate_sd) %>% 
   select(contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 ```
 
@@ -4064,32 +4064,32 @@ state_zscore <-
            state_stats_summary$co2e_output_rate_sd,
          
          nox_input_zscore = (state_nox_input_rate - 
-                               state_stats_summary$nox_in_emission_rate_average)/ 
-           state_stats_summary$nox_in_emission_rate_sd, 
+                               state_stats_summary$nox_input_rate_average)/ 
+           state_stats_summary$nox_input_rate_sd, 
          
          nox_oz_input_zscore = (state_nox_oz_input_rate - 
-                                  state_stats_summary$nox_oz_in_emission_rate_average)/ 
-           state_stats_summary$nox_oz_in_emission_rate_sd, 
+                                  state_stats_summary$nox_oz_input_rate_average)/ 
+           state_stats_summary$nox_oz_input_rate_sd, 
          
          so2_input_zscore = (state_so2_input_rate - 
-                               state_stats_summary$so2_in_emission_rate_average)/ 
-           state_stats_summary$so2_in_emission_rate_sd,
+                               state_stats_summary$so2_input_rate_average)/ 
+           state_stats_summary$so2_input_rate_sd,
          
          co2_input_zscore = (state_co2_input_rate - 
-                               state_stats_summary$co2_in_emission_rate_average)/ 
-           state_stats_summary$co2_in_emission_rate_sd,
+                               state_stats_summary$co2_input_rate_average)/ 
+           state_stats_summary$co2_input_rate_sd,
          
          ch4_input_zscore = (state_ch4_input_rate - 
-                               state_stats_summary$ch4_in_emission_rate_average)/ 
-           state_stats_summary$ch4_in_emission_rate_sd,
+                               state_stats_summary$ch4_input_rate_average)/ 
+           state_stats_summary$ch4_input_rate_sd,
          
          n2o_input_zscore = (state_n2o_input_rate - 
-                               state_stats_summary$n2o_in_emission_rate_average)/ 
-           state_stats_summary$n2o_in_emission_rate_sd,
+                               state_stats_summary$n2o_input_rate_average)/ 
+           state_stats_summary$n2o_input_rate_sd,
          
          co2e_input_zscore = (state_co2e_input_rate - 
-                                state_stats_summary$co2e_in_emission_rate_average)/ 
-           state_stats_summary$co2e_in_emission_rate_sd) %>% 
+                                state_stats_summary$co2e_input_rate_average)/ 
+           state_stats_summary$co2e_input_rate_sd) %>% 
   select(state, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 ```
 
