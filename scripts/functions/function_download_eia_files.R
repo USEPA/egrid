@@ -95,6 +95,7 @@ download_eia_files <- function(form, year) {
         
         if (!download_and_unzip(url, dest_file, new_folder)) {
           print(paste("Failed to download or unzip:", dest_file)) }
+        
       } else {print(paste("Failed to download or unzip:", dest_file))}
     } 
   }

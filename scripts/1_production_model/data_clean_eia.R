@@ -367,17 +367,27 @@ print(glue::glue("File eia_860_clean.RDS, containing dataframes {glue::glue_coll
 
 # EIA-861 -------------
 
-## 861 Balancing authority  ----------
-
 rename_cols_861 <- # creating list of variable name mappings
   c("year" = "data_year")
 
 file_name_ba <- grep("Balancing_Authority", eia_861_files, value = TRUE)
+file_name_sales_ult_cust <- grep("Sales_Ult_Cust", eia_861_files, value = TRUE)[1]
+file_name_utility <- grep("Utility_Data", eia_861_files, value = TRUE)
+
+# if the data is from Early Release, skip an additional row to prevent column naming errors
+if (any(grepl("Early_Release", c(file_name_ba, file_name_sales_ult_cust, file_name_utility)))) {
+  er_skip_row <- 1
+} else {
+  er_skip_row <- 0
+}
+
+## 861 Balancing authority  ----------
 
 balancing_authority <-  
   read_excel(paste0(glue::glue("data/1_production_model/raw_data/861/{params$eGRID_year}/"), file_name_ba), 
              sheet = "Balancing Authority",
              guess_max = 4000,
+             skip = 0 + er_skip_row,
              na = "."
              ) %>% 
   rename_with(tolower) %>%
@@ -385,12 +395,10 @@ balancing_authority <-
 
 ## 861 Sales Ult Cust --------
 
-file_name_sales_ult_cust <- grep("Sales_Ult_Cust", eia_861_files, value = TRUE)[1]
-
 sales_ult_cust <-
   read_excel(paste0(glue::glue("data/1_production_model/raw_data/861/{params$eGRID_year}/"), file_name_sales_ult_cust),
              sheet = "States",
-             skip = 2,
+             skip = 2 + er_skip_row,
              guess_max = 4000,
              na = "."
              ) %>% 
@@ -403,12 +411,10 @@ sales_ult_cust <-
   
 ## 861 Utility Data ---------
 
-file_name_utility <- grep("Utility_Data", eia_861_files, value = TRUE)
-
 utility_data <-
-  read_excel(glue::glue("data/1_production_model/raw_data/861/{params$eGRID_year}/Utility_Data_{params$eGRID_year}.xlsx"),
+  read_excel(glue::glue("data/1_production_model/raw_data/861/{params$eGRID_year}/{file_name_utility}"),
              sheet = "States",
-             skip = 1,
+             skip = 1 + er_skip_row,
              guess_max = 4000,
              na = "."
   ) %>% 
