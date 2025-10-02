@@ -47,10 +47,10 @@ check_params <- function() {
   }
   
   # valid eGRID years (update this every eGRID year to include latest year)
-  eGRID_year_inputs <- c(1996:2023)
+  eGRID_year_inputs <- c(1996:2024)
   
   if(!(params$eGRID_year %in% eGRID_year_inputs)) {
-    print("The input for params$eGRID_year is not one of the valid responses. Please input a year within the range of 1996-2023.")
+    print("The input for params$eGRID_year is not one of the valid responses. Please input a year within the range of 1996-2024.")
     return(check_params()) # restart function for new inputs
   }
   
