@@ -29,7 +29,16 @@ source("scripts/functions/function_check_params.R")
 if (!exists("params")) {
   params <- check_params()
 } else {
-  print("eGRID year and version parameters are already defined.")
+  print("eGRID year and temporal resolution parameters are already defined.")
+}
+
+if (exists("params")){
+  if ("version" %in% names(params)) { # if params(), params$eGRID_year, and params$temporal_res exist, do not re-define
+    print("eGRID version parameter is already defined.")
+  } else {
+    params$version <- readline(prompt = "Input eGRID version: ")
+    params$version <- as.character(params$version)
+  }
 }
 
 # Import .RDS data --------------------------------
@@ -107,14 +116,14 @@ resource_type <- c(
 # US emissions data
 us_resource_mix <-
   us_aggregation %>%
-  select(us_nameplate_capacity, us_generation, any_of(paste0("us_ann_resource_mix_", resource_type))) %>%
+  select(us_nameplate_capacity, us_generation, any_of(paste0("us_", resource_type, "_resource_mix"))) %>%
   rename_with(~str_c(str_remove(., "us_")))
 
 # subregion resource mix
 subregion_resource_mix <-
   subregion_aggregation %>%
   select(subregion, subregion_name, subregion_nameplate_capacity, subregion_generation, 
-         any_of(paste0("subregion_ann_resource_mix_", resource_type))) %>%
+         any_of(paste0("subregion_", resource_type, "_resource_mix"))) %>%
   rename_with(~str_c(str_remove(., "subregion_"))) %>%
   # add US data to bottom row
   bind_rows(us_resource_mix) %>%
@@ -138,7 +147,7 @@ state_output_emissions <-
 state_resource_mix <-
   state_aggregation %>%
   select(state, state_nameplate_capacity, state_generation, 
-         any_of(paste0("state_ann_resource_mix_", resource_type))) %>%
+         any_of(paste0("state_", resource_type, "_resource_mix"))) %>%
   rename_with(~str_c(str_remove(., "state_"))) %>%
   # add US data to bottom row
   bind_rows(us_resource_mix) %>%
@@ -175,5 +184,5 @@ create_summary_tables()
                       
 # Save excel sheet -------------------------------
 
-saveWorkbook(wb, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/summary_tables_{params$temporal_res}.xlsx"), 
+saveWorkbook(wb, glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/egrid{params$eGRID_year}_summary_tables_{params$temporal_res}.xlsx"), 
              overwrite = TRUE)

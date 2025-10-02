@@ -1594,7 +1594,6 @@ ggl_plot <- ggl_file %>%
 est_losses_plot <- ggl_file %>%
                     ggplot(aes(x = interconnect, y = est_losses_sum)) +
                     geom_bar(stat="identity") +
-                    #geom_text(aes(label = sprintf("%.2f", est_losses_sum)), vjust = -0.5) + 
                     theme_minimal() +
                     theme(
                       axis.text.x = element_text(angle = 45, hjust = 1)
@@ -1608,7 +1607,6 @@ est_losses_plot <- ggl_file %>%
 tot_disp_sub_ex_plot <- ggl_file %>%
                           ggplot(aes(x = interconnect, y = tot_disp_sub_ex_sum)) +
                           geom_bar(stat = "identity") +
-                          #geom_text(aes(label = sprintf("%.2f", tot_disp_sub_ex_sum)), vjust = -0.5) + 
                           theme_minimal() +
                           theme(
                             axis.text.x = element_text(angle = 45, hjust = 1)
@@ -1622,7 +1620,6 @@ tot_disp_sub_ex_plot <- ggl_file %>%
 
 direct_use_plot <- ggl_file %>%
                     ggplot(aes(x = interconnect, y = direct_use_sum)) +
-                    # geom_text(aes(label = sprintf("%.2f", direct_use_sum)), vjust = -0.5) + 
                     geom_bar(stat = "identity") +
                     theme_minimal() +
                     theme(
@@ -1734,8 +1731,11 @@ A summary tables document is produced to provide a synopsis of the eGRID informa
 
 ```{r}
 #| label: summary-tables-create
-#| file: "scripts/1_production_model/summary_tables_create.R"
 #| results: false
+
+if(params$temporal_res == "annual"){
+  source("scripts/1_production_model/summary_tables_create.R")
+} 
 ```
 
 ### Summary Tables Data
@@ -1746,8 +1746,13 @@ Below are the names of the summary tables included in the document.
 #| label: summary-tables-list
 #| echo: false
 
+if(params$temporal_res == "annual"){
 kbl(names(table_data), col.names = "Summary Table Names") %>%
   kable_styling()
+} else if(params$temporal_res == "monthly"){
+  print(glue::glue("No summary tables produced for eGRID monthly version. View egrid{params$eGRID_year}_monthly.xlsx for a data summary."))
+}
+
 ```
 
 ## Number of Records
