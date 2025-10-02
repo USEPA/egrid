@@ -19,7 +19,6 @@ library(jsonlite)
 library(stringr)
 library(readr)
 library(dplyr)
-library(lubridate)
 library(tidyr)
 
 # Load necessary functions
@@ -69,13 +68,8 @@ facility_path <-
   pull(s3Path)
 
 # annual version will use monthly version of EPA data 
-if(params$temporal_res %in% c("annual", "monthly")) { 
-  temporal_res_cols_to_add <- cols_to_add("monthly")
-  temporal_res_cols <- create_temporal_res_cols("monthly")
-} else { 
-  temporal_res_cols_to_add <- cols_to_add(params$temporal_res)
-  temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
-  }
+temporal_res_cols_to_add <- cols_to_add("monthly")
+temporal_res_cols <- create_temporal_res_cols("monthly")
 
 facility_df <- 
   read_csv(paste0(bucket_url_base,facility_path)) %>% 
@@ -93,12 +87,9 @@ facility_df <-
 ## Get emissions data -------
 
 # specify different endpoints for Emissions data based on temporal_res parameter
-# this is done to reduce run time and memory for non-hourly aggregation resolutions
 temporal_res_api_endpoint <- 
   c("annual"  = "Daily", 
-    "monthly" = "Daily", 
-    "daily"   = "Daily", 
-    "hourly"  = "Hourly")
+    "monthly" = "Daily")
 
 # select respective file paths based on temporal_res
 emissions_files <-
@@ -135,12 +126,12 @@ emissions_data_r <-
   emissions_data %>%
   rename_with(tolower) %>% # this protects NOx rates from getting split with clean_names()
   janitor::clean_names() %>%
-  mutate(year = as.character(year(date)), # extracting year from date
-         month = month(date), # extracting month from date (needed for ozone)
-         day = day(date) # extracting day from date
+  mutate(year = as.character(lubridate::year(date)), # extracting year from date
+         month = lubridate::month(date), # extracting month from date (needed for ozone)
+         day = lubridate::day(date) # extracting day from date
        ) %>%
   select(-date) %>%
-  mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) %>% # SB 6/4/2024: Temporary fix for issue in API where there are a mix of pipes and commas in some character values
+  mutate(across(where(is.character), ~ str_replace_all(.x, "\\|", ","))) %>% # fix for issue in API where there are a mix of pipes and commas in some character values
   group_by(year, facility_id, unit_id, primary_fuel_type, unit_type) %>% # group by year, identify ozone reporters and aggregate data to monthly level
   mutate(reporting_months = paste(unique(month), collapse = ", "), # creating column with list of reporting months
          reporting_frequency = if_else(grepl("1|2|3|10|11|12", # filtering out non-ozone season reporting months, excluding april
@@ -196,9 +187,9 @@ mats_data_r <-
   select(c(date, hour, all_of(cols), hg_mass_lbs)) %>% # specifying columns to keep
   mutate(hg_mass_lbs = as.numeric(hg_mass_lbs),
          facility_id = as.numeric(facility_id), # change to numeric to match for joins  
-         year = as.character(year(date)),
-         month = month(date),
-         day = as.character(day(date))
+         year = as.character(lubridate::year(date)),
+         month = lubridate::month(date),
+         day = as.character(lubridate::day(date))
          ) %>%
   select(-date) %>% # remove date for easier group/summation
   group_by(pick(all_of(c(temporal_res_cols, cols)))) %>% # group by depending on temporal_res
@@ -218,13 +209,9 @@ epa_data_combined <-
   
 ## Saving EPA data 
 
-print(glue::glue("Writing file epa_raw_{params$temporal_res}.RDS to folder data/1_production_model/raw_data/epa/{params$eGRID_year}."))
+print(glue::glue("Writing file epa_raw.RDS to folder data/1_production_model/raw_data/epa/{params$eGRID_year}."))
 
-if(params$temporal_res %in% c("annual", "monthly")) { # annual version uses monthly version of EPA data
-      file <- "epa_raw_monthly.RDS"
-} else {
-      file <- glue::glue("epa_raw_{params$temporal_res}.RDS")
-  }
+file <- "epa_raw.RDS"
 
 save_output_data(epa_data_combined, "data/1_production_model/raw_data/epa", file)
 

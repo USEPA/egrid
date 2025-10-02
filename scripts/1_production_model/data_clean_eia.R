@@ -162,7 +162,7 @@ generator_dfs <-
 
 ### Modifying 860 generator files ---------
 
-epa_clean <- readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")) # need EPA plants to filter 860 proposed file
+epa_clean <- readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")) # need EPA plants to filter 860 proposed file
 
 generator_dfs_mod <-
   generator_dfs %>% 
