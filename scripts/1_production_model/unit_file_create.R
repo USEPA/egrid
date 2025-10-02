@@ -72,17 +72,12 @@ epa_vars_to_keep <-
     "unit_type" = "unit_type_abb",
     "operating_hours" = "operating_time_count",
     "heat_input" = "heat_input_mmbtu",
-    "heat_input_oz" = "heat_input_mmbtu_ozone",
     "nox_mass" = "nox_mass_short_tons",
-    "nox_oz_mass" = "nox_mass_short_tons_ozone",
     "so2_mass" = "so2_mass_short_tons",
-    "so2_mass_oz" = "so2_mass_short_tons_ozone",
     "co2_mass" = "co2_mass_short_tons",
     "hg_mass" = "hg_mass_lbs",
     "heat_input_source",
-    "heat_input_oz_source",
     "nox_source",
-    "nox_oz_source",
     "so2_source",
     "co2_source",
     "hg_source",
@@ -92,7 +87,7 @@ epa_vars_to_keep <-
     "year_online"
   ) 
 
-epa <- check_file_exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")) %>%
+epa <- check_file_exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")) %>%
        select(all_of(temporal_res_cols), any_of(epa_vars_to_keep)) # keeping only necessary variables
 
 ## EIA ------------
@@ -544,6 +539,7 @@ am_annual_responders <-
 # we fill these using the distribution of heat input in EIA-923 Generation and Fuel file
 eia_923_annual_props <- 
   eia_923$generation_and_fuel_combined %>% 
+  filter(!(plant_id == 54808 & combined_heat_and_power_plant == "N")) %>%  # Temporary fix: excluding due to a duplication issue 
   inner_join(eia_923_boilers %>% filter(respondent_frequency == "A", 
                                         !id %in% check_gen_units)) %>% 
   mutate(prop_heat = if_else(total_fuel_consumption_mmbtu == 0, 0, tot_mmbtu / total_fuel_consumption_mmbtu), 

@@ -33,19 +33,12 @@ if (!exists("params")) {
 
 # Specify grouping columns based on temporal_res parameter
 # annual version will use monthly version of EPA data 
-if(params$temporal_res %in% c("annual", "monthly")) { 
-  temporal_res_cols <- create_temporal_res_cols("monthly")
-} else { 
-  temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
-}
+temporal_res_cols <- create_temporal_res_cols("monthly")
 
 # Read raw EPA files -------
 
 # annual version will use monthly version of EPA data 
-if(params$temporal_res %in% c("annual", "monthly")) { 
-  epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_monthly.RDS"))
-} else { 
-  epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_{params$temporal_res}.RDS"))}
+epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw.RDS"))
 
 # standardizing variables names to match eia data and removing retired and inactive plants
 
@@ -227,11 +220,6 @@ epa_final <- # removing unnecessary columns and final renames
 
 # Save clean EPA file ------------
 
-# creating folder if not already present
-if(params$temporal_res %in% c("annual", "monthly")) { # annual version uses monthly version of EPA data
-  file <- "epa_clean_monthly.RDS"
-} else {
-  file <- glue::glue("epa_clean_{params$temporal_res}.RDS")
-}
+file <- "epa_clean.RDS"
 
 save_output_data(epa_final, "data/1_production_model/clean_data/epa", file)

@@ -90,7 +90,7 @@ manual_corrections <- # manual corrections needed for generator file
             col_types = c("text", "text", "text", "text", "text"))
 
 # Load EPA data to update plant names to EPA versions
-epa <- check_file_exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")) %>%
+epa <- check_file_exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")) %>%
        select(plant_id, plant_name) %>% 
        distinct()
 

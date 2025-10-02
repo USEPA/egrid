@@ -170,7 +170,7 @@ Three data tables are downloaded from the the CAPD and stored into one .RDS file
 #| echo: false  
 
 # function to create summary table  
-epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw_monthly.RDS")) 
+epa_raw <- read_rds(glue::glue("data/1_production_model/raw_data/epa/{params$eGRID_year}/epa_raw.RDS")) 
 
 table_epa_raw <- create_summary_gt_table(epa_raw)  
 
@@ -452,7 +452,7 @@ There are several procedures applied to the raw EPA file:
 #| label: create-epa-summary-table 
 #| echo: false  
 
-create_summary_gt_table(readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS")))
+create_summary_gt_table(readr::read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")))
 ```
 :::
 
