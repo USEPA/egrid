@@ -2352,7 +2352,7 @@ plant_rates <-
   plant_file %>% 
   #select(plant_id, net_gen, heat_input, heat_input_oz, contains("rate")) # filter this way if using R plant file output
   select(plant_id, plant_name, primary_fuel_type, capfac, heat_input, heat_input_oz, generation, generation_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, ch4_mass,
-         n2o_mass, co2e_mass, contains("ra"), contains("ro"), contains("perc_ann_gen"), co2e_combust_out_rate) %>% 
+         n2o_mass, co2e_mass, contains("ra"), contains("ro"), contains("perc_gen"), co2e_combust_out_rate) %>% 
   mutate(nox_output_rate = nox_mass / generation * 2000, 
          nox_oz_output_rate = nox_oz_mass / generation_oz * 2000, 
          so2_output_rate = so2_mass / generation * 2000, 
@@ -2393,9 +2393,9 @@ plant_zscore <-
 #| label: plant-nox-input-outliers
 
 knitr::kable(plant_zscore %>%
-               filter(nox_in_emission_rate_zscore > 3 | nox_in_emission_rate_zscore < -3) %>% 
-               arrange(desc(nox_in_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, heat_input, nox_mass, nox_in_emission_rate_zscore, nox_in_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               filter(nox_input_rate_zscore > 3 | nox_input_rate_zscore < -3) %>% 
+               arrange(desc(nox_input_rate_zscore)) %>% 
+               select(plant_id, plant_name, primary_fuel_type, heat_input, nox_mass, nox_input_rate_zscore, nox_input_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 
 ```
 
@@ -2406,9 +2406,9 @@ knitr::kable(plant_zscore %>%
 
 if (params$temporal_res == "annual") { 
 knitr::kable(plant_zscore %>% 
-               filter(nox_oz_in_emission_rate_zscore > 3 | nox_oz_in_emission_rate_zscore < -3) %>% 
-               arrange(desc(nox_oz_in_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, heat_input_oz, nox_oz_mass, nox_oz_in_emission_rate_zscore, nox_oz_in_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               filter(nox_oz_input_rate_zscore > 3 | nox_oz_input_rate_zscore < -3) %>% 
+               arrange(desc(nox_oz_input_rate_zscore)) %>% 
+               select(plant_id, plant_name, primary_fuel_type, heat_input_oz, nox_oz_mass, nox_oz_input_rate_zscore, nox_oz_input_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 }
 ```
 
@@ -2418,9 +2418,9 @@ knitr::kable(plant_zscore %>%
 #| label: plant-so2-input-outliers
 
 knitr::kable(plant_zscore %>% 
-               filter(so2_in_emission_rate_zscore > 3 | so2_in_emission_rate_zscore < -3) %>% 
-               arrange(desc(so2_in_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, heat_input, so2_mass, so2_in_emission_rate_zscore, so2_in_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               filter(so2_input_rate_zscore > 3 | so2_input_rate_zscore < -3) %>% 
+               arrange(desc(so2_input_rate_zscore)) %>% 
+               select(plant_id, plant_name, primary_fuel_type, heat_input, so2_mass, so2_input_rate_zscore, so2_input_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 
 ```
 
@@ -2430,9 +2430,9 @@ knitr::kable(plant_zscore %>%
 #| label: plant-co2-input-outliers
 
 knitr::kable(plant_zscore %>% 
-               filter(co2_in_emission_rate_zscore > 3 | co2_in_emission_rate_zscore < -3) %>% 
-               arrange(desc(co2_in_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, heat_input, co2_mass, co2_in_emission_rate_zscore, co2_in_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               filter(co2_input_rate_zscore > 3 | co2_input_rate_zscore < -3) %>% 
+               arrange(desc(co2_input_rate_zscore)) %>% 
+               select(plant_id, plant_name, primary_fuel_type, heat_input, co2_mass, co2_input_rate_zscore, co2_input_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 ```
 
 #### CO2e input rate
@@ -2441,9 +2441,9 @@ knitr::kable(plant_zscore %>%
 #| label: plant-co2e-input-outliers
 
 knitr::kable(plant_zscore %>% 
-               filter(co2e_in_emission_rate_zscore > 3 | co2e_in_emission_rate_zscore < -3) %>% 
-               arrange(desc(co2e_in_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, heat_input, co2e_mass, co2e_in_emission_rate_zscore, co2e_in_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               filter(co2e_input_rate_zscore > 3 | co2e_input_rate_zscore < -3) %>% 
+               arrange(desc(co2e_input_rate_zscore)) %>% 
+               select(plant_id, plant_name, primary_fuel_type, heat_input, co2e_mass, co2e_input_rate_zscore, co2e_input_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 
 ```
 :::
@@ -2459,7 +2459,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                 filter(nox_output_rate_zscore > 3 | nox_output_rate_zscore < -3) %>% 
                arrange(desc(nox_output_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, generation_ann, nox_mass, capfac, nox_output_rate_zscore, nox_output_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               select(plant_id, plant_name, primary_fuel_type, generation, nox_mass, capfac, nox_output_rate_zscore, nox_output_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 
 ```
 
@@ -2470,7 +2470,8 @@ knitr::kable(plant_zscore %>%
 
 knitr::kable(plant_zscore %>% 
                filter(nox_oz_output_rate_zscore > 3 | nox_oz_output_rate_zscore < -3) %>% 
-               arrange(desc(nox_oz_output_rate_zscore)) %>% select(plant_id, plant_name, primary_fuel_type, generation_oz, nox_oz_mass, capfac, nox_oz_output_rate_zscore, nox_oz_output_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               arrange(desc(nox_oz_output_rate_zscore)) %>% 
+               select(plant_id, plant_name, primary_fuel_type, generation_oz, nox_oz_mass, capfac, nox_oz_output_rate_zscore, nox_oz_output_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 
 ```
 
@@ -2482,7 +2483,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(so2_output_rate_zscore > 3 | so2_output_rate_zscore < -3) %>% 
                arrange(desc(so2_output_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, generation_ann, so2_mass, capfac, so2_output_rate_zscore, so2_output_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               select(plant_id, plant_name, primary_fuel_type, generation, so2_mass, capfac, so2_output_rate_zscore, so2_output_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 
 ```
 
@@ -2494,7 +2495,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(co2_output_rate_zscore > 3 | co2_output_rate_zscore < -3) %>% 
                arrange(desc(co2_output_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, generation_ann, co2_mass, capfac, co2_output_rate_zscore, co2_output_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               select(plant_id, plant_name, primary_fuel_type, generation, co2_mass, capfac, co2_output_rate_zscore, co2_output_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 
 ```
 
@@ -2506,7 +2507,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(ch4_output_rate_zscore > 3 | ch4_output_rate_zscore < -3) %>% 
                arrange(desc(ch4_output_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, generation_ann, ch4_mass, capfac, ch4_output_rate_zscore, ch4_output_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               select(plant_id, plant_name, primary_fuel_type, generation, ch4_mass, capfac, ch4_output_rate_zscore, ch4_output_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 
 ```
 
@@ -2518,7 +2519,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(n2o_output_rate_zscore > 3 | n2o_output_rate_zscore < -3) %>% 
                arrange(desc(n2o_output_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, generation_ann, n2o_mass, capfac, n2o_output_rate_zscore, n2o_output_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               select(plant_id, plant_name, primary_fuel_type, generation, n2o_mass, capfac, n2o_output_rate_zscore, n2o_output_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 
 ```
 
@@ -2530,7 +2531,7 @@ knitr::kable(plant_zscore %>%
 knitr::kable(plant_zscore %>% 
                filter(co2e_output_rate_zscore > 3 | co2e_output_rate_zscore < -3) %>% 
                arrange(desc(co2e_output_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, generation_ann, co2e_mass, capfac, co2e_output_rate_zscore, co2e_output_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               select(plant_id, plant_name, primary_fuel_type, generation, co2e_mass, capfac, co2e_output_rate_zscore, co2e_output_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 
 ```
 :::
@@ -2544,9 +2545,9 @@ knitr::kable(plant_zscore %>%
 #| label: plant-nox-combustion-output-outliers
 
 knitr::kable(plant_zscore %>% 
-               filter(nox_combust_out_emission_rate_zscore > 3 | nox_combust_out_emission_rate_zscore < -3) %>% 
-               arrange(desc(nox_combust_out_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, generation_ann, nox_mass, capfac, nox_combust_out_emission_rate_zscore, nox_combust_out_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               filter(nox_combust_out_rate_zscore > 3 | nox_combust_out_rate_zscore < -3) %>% 
+               arrange(desc(nox_combust_out_rate_zscore)) %>% 
+               select(plant_id, plant_name, primary_fuel_type, generation, nox_mass, capfac, nox_combust_out_rate_zscore, nox_combust_out_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 ```
 
 #### NOx combustion ozone output rate
@@ -2555,9 +2556,9 @@ knitr::kable(plant_zscore %>%
 #| label: plant-nox_oz_combustion-output-outliers
 
 knitr::kable(plant_zscore %>% 
-               filter(nox_oz_combust_out_emission_rate_zscore > 3 | nox_oz_combust_out_emission_rate_zscore < -3) %>% 
-               arrange(desc(nox_oz_combust_out_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, generation_oz, nox_oz_mass, capfac, nox_oz_combust_out_emission_rate_zscore, nox_oz_combust_out_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               filter(nox_oz_combust_out_rate_zscore > 3 | nox_oz_combust_out_rate_zscore < -3) %>% 
+               arrange(desc(nox_oz_combust_out_rate_zscore)) %>% 
+               select(plant_id, plant_name, primary_fuel_type, generation_oz, nox_oz_mass, capfac, nox_oz_combust_out_rate_zscore, nox_oz_combust_out_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 
 ```
 
@@ -2567,9 +2568,9 @@ knitr::kable(plant_zscore %>%
 #| label: plant-so2-combustion-output-outliers
 
 knitr::kable(plant_zscore %>% 
-               filter(so2_combust_out_emission_rate_zscore > 3 | so2_combust_out_emission_rate_zscore < -3) %>% 
-               arrange(desc(so2_combust_out_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, generation_ann, so2_mass, capfac, so2_combust_out_emission_rate_zscore, so2_combust_out_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               filter(so2_combust_out_rate_zscore > 3 | so2_combust_out_rate_zscore < -3) %>% 
+               arrange(desc(so2_combust_out_rate_zscore)) %>% 
+               select(plant_id, plant_name, primary_fuel_type, generation, so2_mass, capfac, so2_combust_out_rate_zscore, so2_combust_out_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 ```
 
 #### CO2 combustion output rate
@@ -2578,9 +2579,9 @@ knitr::kable(plant_zscore %>%
 #| label: plant-co2-combustion-output-outliers
 
 knitr::kable(plant_zscore %>% 
-               filter(co2_combust_out_emission_rate_zscore > 3 | co2_combust_out_emission_rate_zscore < -3) %>% 
-               arrange(desc(co2_combust_out_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, generation_ann, co2_mass, capfac, co2_combust_out_emission_rate_zscore, co2_combust_out_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               filter(co2_combust_out_rate_zscore > 3 | co2_combust_out_rate_zscore < -3) %>% 
+               arrange(desc(co2_combust_out_rate_zscore)) %>% 
+               select(plant_id, plant_name, primary_fuel_type, generation, co2_mass, capfac, co2_combust_out_rate_zscore, co2_combust_out_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 ```
 
 #### CH4 combustion output rate
@@ -2589,9 +2590,9 @@ knitr::kable(plant_zscore %>%
 #| label: plant-ch4-combustion-output-outliers
 
 knitr::kable(plant_zscore %>% 
-               filter(ch4_combust_out_emission_rate_zscore > 3 | ch4_combust_out_emission_rate_zscore < -3) %>% 
-               arrange(desc(ch4_combust_out_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, generation_ann, ch4_mass, capfac, ch4_combust_out_emission_rate_zscore, ch4_combust_out_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               filter(ch4_combust_out_rate_zscore > 3 | ch4_combust_out_rate_zscore < -3) %>% 
+               arrange(desc(ch4_combust_out_rate_zscore)) %>% 
+               select(plant_id, plant_name, primary_fuel_type, generation, ch4_mass, capfac, ch4_combust_out_rate_zscore, ch4_combust_out_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 ```
 
 #### N2O combustion output rate
@@ -2600,9 +2601,9 @@ knitr::kable(plant_zscore %>%
 #| label: plant-n2o-combustion-output-outliers
 
 knitr::kable(plant_zscore %>% 
-               filter(n2o_combust_out_emission_rate_zscore > 3 | n2o_combust_out_emission_rate_zscore < -3) %>% 
-               arrange(desc(n2o_combust_out_emission_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, generation_ann, n2o_mass, capfac, n2o_combust_out_emission_rate_zscore, n2o_combust_out_emission_rate, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               filter(n2o_combust_out_rate_zscore > 3 | n2o_combust_out_rate_zscore < -3) %>% 
+               arrange(desc(n2o_combust_out_rate_zscore)) %>% 
+               select(plant_id, plant_name, primary_fuel_type, generation, n2o_mass, capfac, n2o_combust_out_rate_zscore, n2o_combust_out_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 ```
 
 #### CO2e combustion output rate
@@ -2611,9 +2612,9 @@ knitr::kable(plant_zscore %>%
 #| label: plant-co2e-combustion-output-outliers
 
 knitr::kable(plant_zscore %>%
-               filter(plc2ecrt_zscore > 3 | plc2ecrt_zscore < -3) %>% 
-               arrange(desc(plc2ecrt_zscore)) %>%
-               select(plant_id, plant_name, primary_fuel_type, generation_ann, co2_mass, plc2ecrt_zscore, plc2ecrt, perc_ann_gen_coal, perc_ann_gen_oil, perc_ann_gen_gas, perc_ann_gen_biomass, perc_ann_gen_other_ff))
+               filter(co2e_combust_out_rate_zscore > 3 | co2e_combust_out_rate_zscore < -3) %>% 
+               arrange(desc(co2e_combust_out_rate_zscore)) %>%
+               select(plant_id, plant_name, primary_fuel_type, generation, co2_mass, co2e_combust_out_rate_zscore, co2e_combust_out_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen))
 ```
 :::
 
