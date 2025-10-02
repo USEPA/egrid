@@ -87,7 +87,7 @@ Figure 3 displays a summary of eGRID PM<sub>2.5</sub>, NH<sub>3</sub>, and VOC e
 
 ## Code base organization
 
-This project is structured as an RStudio project. To ensure that all scripts run correctly, load the `eGRID_R.Rproj` within RStudio to enable the project environment. Within the project, the codebase uses the `renv` to allow users to replicate the package environment. This will automatically load upon opening the project.
+This project is structured as an RStudio project. To ensure that all scripts run correctly, load the `eGRID_R.Rproj` within RStudio to enable the project environment. Within the project, the codebase uses the `renv` to allow users to replicate the package environment. This will automatically load upon opening the project or a user can use the command `renv::load()`.
 
 ### Production model
 
