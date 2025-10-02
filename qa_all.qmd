@@ -16,7 +16,7 @@ project:
 params:
   year: 2023
   year_abbrev: 23
-  temporal_res: "monthly" # annual or monthly
+  temporal_res: "annual" # annual or monthly
 ---
 
 Execution time for annual: (as of 7/2/2025)
@@ -2351,15 +2351,15 @@ if (params$temporal_res == "annual") {
 plant_rates <- 
   plant_file %>% 
   #select(plant_id, net_gen, heat_input, heat_input_oz, contains("rate")) # filter this way if using R plant file output
-  select(plant_id, plant_name, primary_fuel_type, capfac, heat_input, heat_input_oz, generation_ann, generation_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, ch4_mass,
-         n2o_mass, co2e_mass, contains("ra"), contains("ro"), contains("perc_ann_gen"), plc2ecrt) %>% 
-  mutate(nox_output_rate = nox_mass / generation_ann * 2000, 
+  select(plant_id, plant_name, primary_fuel_type, capfac, heat_input, heat_input_oz, generation, generation_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, ch4_mass,
+         n2o_mass, co2e_mass, contains("ra"), contains("ro"), contains("perc_ann_gen"), co2e_combust_out_rate) %>% 
+  mutate(nox_output_rate = nox_mass / generation * 2000, 
          nox_oz_output_rate = nox_oz_mass / generation_oz * 2000, 
-         so2_output_rate = so2_mass / generation_ann * 2000, 
-         co2_output_rate = co2_mass/ generation_ann * 2000, 
-         ch4_output_rate = ch4_mass / generation_ann, 
-         n2o_output_rate = n2o_mass / generation_ann,
-         co2e_output_rate = co2e_mass / generation_ann * 2000) 
+         so2_output_rate = so2_mass / generation * 2000, 
+         co2_output_rate = co2_mass/ generation * 2000, 
+         ch4_output_rate = ch4_mass / generation, 
+         n2o_output_rate = n2o_mass / generation,
+         co2e_output_rate = co2e_mass / generation * 2000) 
 
 plant_rates[sapply(plant_rates, is.infinite)] <- NA
 
@@ -2371,8 +2371,8 @@ plant_stats <-
          across(.cols = c(contains("rate"), contains("ra"), contains("ro"), -contains("average")), 
                 .fns = ~ sd(.x, na.rm = TRUE), 
                 .names =  "{.col}_sd"),
-         plc2ecrt_average = mean(plc2ecrt, na.rm = TRUE),
-         plc2ecrt_sd = sd(plc2ecrt, na.rm = TRUE))
+         co2e_combust_out_rate_average = mean(co2e_combust_out_rate, na.rm = TRUE),
+         co2e_combust_out_rate_sd = sd(co2e_combust_out_rate, na.rm = TRUE))
 
 plant_stats[sapply(plant_stats, is.infinite)] <- NA
 
@@ -2381,7 +2381,7 @@ plant_zscore <-
   mutate(across(.cols = c(contains("rate"), contains("ra"), contains("ro"), -contains("average"), -contains("sd")), 
                 .fns = ~ (.x - mean(.x, na.rm = TRUE)) / sd(.x, na.rm = TRUE), 
                 .names =  "{.col}_zscore"),
-         plc2ecrt_zscore = (plc2ecrt - mean(plc2ecrt, na.rm = TRUE)) / sd(plc2ecrt, na.rm = TRUE)) 
+         co2e_combust_out_rate_zscore = (co2e_combust_out_rate - mean(co2e_combust_out_rate, na.rm = TRUE)) / sd(co2e_combust_out_rate, na.rm = TRUE)) 
 ```
 
 ### Input rate
