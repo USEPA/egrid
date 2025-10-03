@@ -135,24 +135,39 @@ if(file.exists(glue::glue("data/1_production_model/static_tables/historical_egri
             "2021" = "https://www.epa.gov/system/files/documents/2023-01/eGRID2021_data.xlsx",
             "2022" = "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx")
   
-  download.file(url = urls[as.character(as.numeric(params$eGRID_year) - 1)], 
-                destfile = glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.numeric(params$eGRID_year) - 1}_data.xlsx"), 
-                mode = "wb")
- 
-  plant_chp_prev_year <- # plant file of previous year
-    read_xlsx(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.numeric(params$eGRID_year) - 1}_data.xlsx"),
-              sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000 - 1}"),
-              skip = 1) %>% 
-    janitor::clean_names() %>% 
-    mutate(orispl = as.character(orispl)) %>%
-    select(plant_id = as.character(orispl), 
-           prev_egrid_chp = chpflag) %>% 
-    filter(prev_egrid_chp == "Yes")
+  # check if eGRID year data is in urls 
+  if (any(grepl(params$eGRID_year, names(url), ignore.case = TRUE))) {
+    download.file(url = urls[as.character(as.numeric(params$eGRID_year) - 1)], 
+                  destfile = glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.numeric(params$eGRID_year) - 1}_data.xlsx"), 
+                  mode = "wb")
+    
+    plant_chp_prev_year <- # plant file of previous year
+      read_xlsx(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.numeric(params$eGRID_year) - 1}_data.xlsx"),
+                sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000 - 1}"),
+                skip = 1) %>% 
+      janitor::clean_names() %>% 
+      mutate(orispl = as.character(orispl)) %>%
+      select(plant_id = as.character(orispl), 
+             prev_egrid_chp = chpflag) %>% 
+      filter(prev_egrid_chp == "Yes")
+    
+  } else {
+    # if not, stop to check script or manually add previous data
+    stop(glue::glue("Check script or data to add required historical eGRID data for {params$eGRID_year}."))
+  }
+
 }
 
 # EPA CHP database
+chp_file <- glue::glue("data/1_production_model/static_tables/chp_database_{params$eGRID_year}.csv")
+
+# default to 2023 CHP database if eGRID year CHP database does not exist
+if (!file.exists(chp_file)){
+  chp_file <- glue::glue("data/1_production_model/static_tables/chp_database_2023.csv")
+}
+
 chp_database <- 
-  read_csv(glue::glue("data/1_production_model/static_tables/chp_database_{params$eGRID_year}.csv"), 
+  read_csv(chp_file, 
            col_types = cols_only(`ORIS Code` = "c")) %>% 
   rename(plant_id = `ORIS Code`)
 
