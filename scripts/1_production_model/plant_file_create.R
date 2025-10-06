@@ -116,10 +116,12 @@ manual_corrections <-
             col_types = c("text", "text", "text"))
 
 # previous eGRID year CHP plants
-if(file.exists(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.numeric(params$eGRID_year) - 1}_data.xlsx"))) { 
+prev_egrid_year <- as.numeric(params$eGRID_year) - 1
+
+if(file.exists(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{prev_egrid_year}_data.xlsx"))) { 
   plant_chp_prev_year <- # plant file of previous year
-    read_xlsx(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.numeric(params$eGRID_year) - 1}_data.xlsx"),
-              sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000 - 1}"),
+    read_xlsx(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{prev_egrid_year}_data.xlsx"),
+              sheet = glue::glue("PLNT{prev_egrid_year %% 1000}"),
               skip = 1) %>% 
     janitor::clean_names() %>% 
     mutate(orispl = as.character(orispl)) %>%
@@ -135,15 +137,15 @@ if(file.exists(glue::glue("data/1_production_model/static_tables/historical_egri
             "2021" = "https://www.epa.gov/system/files/documents/2023-01/eGRID2021_data.xlsx",
             "2022" = "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx")
   
-  # check if eGRID year data is in urls 
-  if (any(grepl(params$eGRID_year, names(url), ignore.case = TRUE))) {
-    download.file(url = urls[as.character(as.numeric(params$eGRID_year) - 1)], 
-                  destfile = glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.numeric(params$eGRID_year) - 1}_data.xlsx"), 
+  # check if previous year is in urls 
+  if (any(grepl(prev_egrid_year, names(url), ignore.case = TRUE))) {
+    download.file(url = urls[as.character(prev_egrid_year)], 
+                  destfile = glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{prev_egrid_year}_data.xlsx"), 
                   mode = "wb")
     
     plant_chp_prev_year <- # plant file of previous year
-      read_xlsx(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.numeric(params$eGRID_year) - 1}_data.xlsx"),
-                sheet = glue::glue("PLNT{as.numeric(params$eGRID_year) %% 1000 - 1}"),
+      read_xlsx(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{prev_egrid_year}_data.xlsx"),
+                sheet = glue::glue("PLNT{prev_egrid_year %% 1000}"),
                 skip = 1) %>% 
       janitor::clean_names() %>% 
       mutate(orispl = as.character(orispl)) %>%
@@ -153,7 +155,7 @@ if(file.exists(glue::glue("data/1_production_model/static_tables/historical_egri
     
   } else {
     # if not, stop to check script or manually add previous data
-    stop(glue::glue("Check script or data to add required historical eGRID data for {params$eGRID_year}."))
+    stop(glue::glue("Check script or add data for required {prev_egrid_year} historical eGRID data."))
   }
 
 }
