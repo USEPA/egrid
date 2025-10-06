@@ -29,9 +29,9 @@ region_aggregation <- function(region, region_cols) {
   # Load and clean necessary data ------
   
   # columns to keep from plant file
-  
   columns_to_keep <- 
     c("year", 
+      "month", 
       "state" = "plant_state",
       "fips_state_code",
       "plant_name",
@@ -51,7 +51,7 @@ region_aggregation <- function(region, region_cols) {
       "combust_heat_input_oz",
       "heat_input",
       "heat_input_oz",
-      "generation_ann",
+      "generation",
       "generation_oz",
       "generation_nonbaseload",
       "nox_mass",
@@ -62,34 +62,34 @@ region_aggregation <- function(region, region_cols) {
       "n2o_mass",
       "co2e_mass",
       "hg_mass",
-      "ann_gen_coal",
-      "ann_gen_oil",
-      "ann_gen_gas",
-      "ann_gen_nuclear",
-      "ann_gen_hydro",
-      "ann_gen_biomass",
-      "ann_gen_wind",
-      "ann_gen_solar",
-      "ann_gen_geothermal",
-      "ann_gen_other_ff",
-      "ann_gen_other",
-      "ann_gen_non_renew",
-      "ann_gen_renew",
-      "ann_gen_non_renew_other", 
-      "ann_gen_renew_nonhydro",
-      "ann_gen_combust",
-      "ann_gen_non_combust",
-      "ann_gen_non_combust_other"
+      "coal_netgen",
+      "oil_netgen",
+      "gas_netgen",
+      "nuclear_netgen",
+      "hydro_netgen",
+      "biomass_netgen",
+      "wind_netgen",
+      "solar_netgen",
+      "geothermal_netgen",
+      "other_ff_netgen",
+      "other_netgen",
+      "nonrenew_netgen",
+      "renew_netgen",
+      "nonrenew_other_netgen", 
+      "renew_nonhydro_netgen",
+      "combust_netgen",
+      "noncombust_netgen",
+      "noncombust_other_netgen"
     )
   
   # read in NERC names to add to plant file
   
-  nerc_names <- read_csv("data/static_tables/nerc_region_names.csv") %>% janitor::clean_names()
+  nerc_names <- read_csv("data/1_production_model/static_tables/nerc_region_names.csv") %>% janitor::clean_names()
   
   # read in plant file 
   
   plant_file <- 
-    read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS")) %>% 
+    read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/plant_file_{params$temporal_res}.RDS")) %>% 
     left_join(nerc_names, by = c("nerc")) %>% 
     select(any_of(columns_to_keep))
   
@@ -111,25 +111,23 @@ region_aggregation <- function(region, region_cols) {
   
   if(as.character(region) != "us") { # US level does not have any relevant regional columns, so we remove that for US version
   
-    # aggregate plant file to region level ------
+    # Aggregate plant file to region level -----------
     
     # sum capacity, generation, emissions mass to region level 
     
     region_agg <- 
       plant_file %>% 
-      group_by(pick({{ region_cols }})) %>% 
+      group_by(pick(all_of(temporal_res_cols), {{ region_cols }})) %>% 
       summarize(across(.cols = c("nameplate_capacity", 
                                  contains("heat_input"), 
-                                 "generation_ann", 
-                                 "generation_oz", 
-                                 "generation_nonbaseload",
+                                 starts_with("generation"),
                                  contains("_mass"), 
-                                 contains("ann_gen")), 
+                                 contains("netgen")), 
                        .fns = ~ sum(.x, na.rm = TRUE),
                        .names = "region_{.col}")) %>% 
-      mutate(region_hg_mass = "--") %>% 
-      ungroup()
-  
+      ungroup() %>% 
+      mutate(across(.cols = starts_with("region_hg_mass"), 
+                    .fns = ~ "--")) 
     
     ## Calculate emission rates ------
     
@@ -139,22 +137,46 @@ region_aggregation <- function(region, region_cols) {
       region_agg %>% 
       mutate(
         # calculate output emissions rates (lb/MWh)
-        across(.cols = c("region_nox_mass",  
+        # output rates for NOx, SO2, CO2, and CO2e
+        across(.cols = c("region_nox_mass", 
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_),
-               .names = "{str_replace(.col, '_mass', '')}_output_rate"), 
-        region_nox_oz_output_rate = if_else(region_generation_oz != 0, 
-                                            2000 * region_nox_oz_mass / region_generation_oz, NA_real_),
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "generation", 
+                                                                    "so2_mass" = "generation", 
+                                                                    "co2_mass" = "generation", 
+                                                                    "co2e_mass" = "generation"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "generation", 
+                                                                                "so2_mass" = "generation", 
+                                                                                "co2_mass" = "generation", 
+                                                                                "co2e_mass" = "generation"))), 
+                                NA_real_),
+               .names = "{str_replace(.col, '_mass', '_output_rate')}"), 
+        # output rates for CH4 and N2O
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_output_rate"),
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "generation", 
+                                                                    "n2o_mass" = "generation"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "generation", 
+                                                                         "n2o_mass" = "generation"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_output_rate')}"),
+        # assign "--" to Hg output rates
         region_hg_output_rate = "--") %>% 
-      relocate(region_nox_oz_output_rate, .after = region_nox_output_rate) %>%  
-      relocate(region_co2e_output_rate, .after = region_n2o_output_rate) %>% 
-      select({{ region_cols }}, contains("rate"))
+      select(all_of(temporal_res_cols), {{ region_cols }}, contains("rate"))
+    
+    if(params$temporal_res == "annual") { 
+      region_oz_output_rates <- 
+        region_agg %>% 
+        mutate(
+          # output rate for NOx ozone
+          region_nox_oz_output_rate = if_else(region_generation_oz != 0, 
+                                              2000 * region_nox_oz_mass / region_generation_oz, NA_real_)) %>% 
+        select(all_of(temporal_res_cols), {{ region_cols }}, contains("rate"))
+      
+      region_output_rates <- 
+        region_output_rates %>% 
+        left_join(region_oz_output_rates)}
 
     
     ### Input emission rates (lb/MMBtu) -----
@@ -163,22 +185,46 @@ region_aggregation <- function(region, region_cols) {
       region_agg %>% 
       mutate(
         # calculate input emission rates (lb/MMBtu)
-        across(.cols = c("region_nox_mass",  
+        # input rates for NOx, SO2, CO2, and CO2e
+        across(.cols = c("region_nox_mass", 
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ if_else(region_combust_heat_input != 0, 2000 * . / region_combust_heat_input, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-        region_nox_oz_input_rate = if_else(region_combust_heat_input_oz != 0, 
-                                           2000 * region_nox_oz_mass / region_combust_heat_input_oz, NA_real_),  
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "combust_heat_input", 
+                                                                    "so2_mass" = "combust_heat_input", 
+                                                                    "co2_mass" = "combust_heat_input", 
+                                                                    "co2e_mass" = "combust_heat_input"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "combust_heat_input", 
+                                                                               "so2_mass" = "combust_heat_input", 
+                                                                               "co2_mass" = "combust_heat_input", 
+                                                                               "co2e_mass" = "combust_heat_input"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_input_rate')}"), 
+        # input rates for CH4 and N2O
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ if_else(region_combust_heat_input != 0, . / region_combust_heat_input, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "combust_heat_input", 
+                                                                    "n2o_mass" = "combust_heat_input"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "combust_heat_input", 
+                                                                         "n2o_mass" = "combust_heat_input"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_input_rate')}"), 
+        # assign "--" for Hg input rate
         region_hg_input_rate = "--") %>% 
-      relocate(region_nox_oz_input_rate, .after = region_nox_input_rate) %>%  
-      relocate(region_co2e_input_rate, .after = region_n2o_input_rate) %>% 
-      select({{ region_cols }}, contains("rate"))
+      select(all_of(temporal_res_cols), {{ region_cols }}, contains("rate"))
+    
+    if(params$temporal_res == "annual") { 
+      region_oz_input_rates <- 
+        region_agg %>% 
+        mutate(
+          # input rate for NOx ozone
+          region_nox_oz_input_rate = if_else(region_combust_heat_input_oz != 0, 
+                                             2000 * region_nox_oz_mass / region_combust_heat_input_oz, NA_real_)) %>%   
+        select(all_of(temporal_res_cols), {{ region_cols }}, contains("rate"))
+      
+      region_input_rates <- 
+        region_input_rates %>% 
+        left_join(region_oz_input_rates)}
     
     
     ### Combustion emission rates (lb/MWh) -----
@@ -187,25 +233,49 @@ region_aggregation <- function(region, region_cols) {
       region_agg %>% 
       mutate(
         # calculate combustion emissions rates (lb/MWh)
-        across(.cols = c("region_nox_mass",  
+        # combustion rates for NOx, SO2, CO2, and CO2e 
+        across(.cols = c("region_nox_mass", 
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ if_else(region_ann_gen_combust != 0, 2000 * . / region_ann_gen_combust, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
-        region_nox_oz_combustion_rate = if_else(region_generation_oz != 0 & 
-                                                  region_ann_gen_combust != 0 &
-                                                  region_generation_ann != 0, 
-                                                2000 * region_nox_oz_mass / 
-          (region_ann_gen_combust * (region_generation_oz / region_generation_ann)), NA_real_), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "combust_netgen", 
+                                                                    "so2_mass" = "combust_netgen", 
+                                                                    "co2_mass" = "combust_netgen", 
+                                                                    "co2e_mass" = "combust_netgen"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "combust_netgen", 
+                                                                                "so2_mass" = "combust_netgen", 
+                                                                                "co2_mass" = "combust_netgen", 
+                                                                                "co2e_mass" = "combust_netgen"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_combustion_rate')}"), 
+        # combustion rate for CH4 and N2O
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ if_else(region_ann_gen_combust != 0, . / region_ann_gen_combust, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "combust_netgen", 
+                                                                    "n2o_mass" = "combust_netgen"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "combust_netgen", 
+                                                                         "n2o_mass" = "combust_netgen"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_combustion_rate')}"), 
+        # assign "--" to Hg combustion rate 
         region_hg_combustion_rate = "--") %>% 
-      relocate(region_nox_oz_combustion_rate, .after = region_nox_combustion_rate) %>%  
-      relocate(region_co2e_combustion_rate, .after = region_n2o_combustion_rate) %>% 
-      select({{ region_cols }}, contains("rate")) 
+      select(all_of(temporal_res_cols), {{ region_cols }}, contains("rate")) 
+    
+    if(params$temporal_res == "annual") { 
+      region_oz_combustion_rates <- 
+        region_agg %>% 
+        mutate(
+          # combustion rate for NOx ozone
+          region_nox_oz_combustion_rate = if_else(region_generation_oz != 0 & 
+                                                  region_combust_netgen != 0 &
+                                                  region_generation != 0, 
+                                                  2000 * region_nox_oz_mass / 
+            (region_combust_netgen * (region_generation_oz / region_generation)), NA_real_)) %>%  
+        select(all_of(temporal_res_cols), {{ region_cols }}, contains("rate"))
+      
+      region_combustion_rates <- 
+        region_combustion_rates %>% 
+        left_join(region_oz_combustion_rates)}
     
     
     ### Fuel type output emission rates (lb/MWh) and input emission rates (lb/MMBtu)  -----
@@ -219,146 +289,264 @@ region_aggregation <- function(region, region_cols) {
     
     region_fuel_rates <-
       plant_file %>% 
-      group_by(pick({{ region_cols }}), primary_fuel_category) %>% 
+      group_by(pick(all_of(temporal_res_cols), {{ region_cols }}), primary_fuel_category) %>% 
       filter(primary_fuel_category %in% fossil_fuels, 
              !primary_fuel_category == 'OSFL') %>% # do not include other fossil in individual fuel rate calculations
       summarize(across(.cols = c(contains("heat_input"), 
-                                 "generation_ann", 
-                                 "generation_oz", 
-                                 contains("mass"), 
-                                 "ann_gen_coal", 
-                                 "ann_gen_oil", 
-                                 "ann_gen_gas"), 
-                       .fns = ~ sum(.x, na.rm = TRUE),
-                       .names = "region_{.col}")) %>% 
+                                 generation, 
+                                 contains("_mass")), 
+                       .fns = ~ sum(.x, na.rm = TRUE))) %>% 
+      ungroup() %>% 
       mutate(
-        # output emission rates (lb/MWh)
-        across(.cols = c("region_nox_mass",  
-                         "region_so2_mass", 
-                         "region_co2_mass", 
-                         "region_co2e_mass"), 
-               .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_output_rate"), 
-        region_nox_oz_output_rate = if_else(region_generation_oz != 0, 
-                                            2000 * region_nox_oz_mass / region_generation_oz, NA_real_), 
-        across(.cols = c("region_ch4_mass", 
-                         "region_n2o_mass"),
-               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_output_rate"),
+        # fuel specific output emission rates (lb/MWh)
+        # fuel specific output rates for NOx, SO2, CO2, and CO2e
+        across(.cols = c("nox_mass",  
+                         "so2_mass", 
+                         "co2_mass", 
+                         "co2e_mass"), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "generation", 
+                                                                    "so2_mass" = "generation", 
+                                                                    "co2_mass" = "generation", 
+                                                                    "co2e_mass" = "generation"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "generation", 
+                                                                                "so2_mass" = "generation", 
+                                                                                "co2_mass" = "generation", 
+                                                                                "co2e_mass" = "generation"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_output_rate')}"), 
+        # fuel specific output rates for CH4 and N2O
+        across(.cols = c("ch4_mass", 
+                         "n2o_mass"),
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "generation", 
+                                                                    "n2o_mass" = "generation"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "generation", 
+                                                                         "n2o_mass" = "generation"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_output_rate')}"),
         
-        # input emission rates (lb/MMBtu)
-        across(.cols = c("region_nox_mass",  
-                         "region_so2_mass", 
-                         "region_co2_mass", 
-                         "region_co2e_mass"), 
-               .fns = ~ if_else(region_combust_heat_input != 0, 2000 * . / region_combust_heat_input, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-        region_nox_oz_input_rate = if_else(region_combust_heat_input_oz != 0, 
-                                           2000 * region_nox_oz_mass / region_combust_heat_input_oz, NA_real_),  
-        across(.cols = c("region_ch4_mass", 
-                         "region_n2o_mass"),
-               .fns = ~ if_else(region_combust_heat_input != 0, . / region_combust_heat_input, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
-      select({{ region_cols }}, primary_fuel_category, contains("rate")) %>% 
-      relocate(region_nox_oz_output_rate, .after = region_nox_output_rate) %>% 
-      relocate(region_co2e_output_rate, .after = region_n2o_output_rate) %>% 
-      relocate(region_nox_oz_input_rate, .after = region_nox_input_rate) %>% 
-      relocate(region_co2e_input_rate, .after = region_n2o_input_rate) %>% 
+        # fuel specific input emission rates (lb/MMBtu)
+        # fuel specific input ratees for NOx, SO2, CO2, CO2e
+        across(.cols = c("nox_mass",  
+                         "so2_mass", 
+                         "co2_mass", 
+                         "co2e_mass"), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "combust_heat_input", 
+                                                                    "so2_mass" = "combust_heat_input", 
+                                                                    "co2_mass" = "combust_heat_input", 
+                                                                    "co2e_mass" = "combust_heat_input"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "combust_heat_input", 
+                                                                                "so2_mass" = "combust_heat_input", 
+                                                                                "co2_mass" = "combust_heat_input", 
+                                                                                "co2e_mass" = "combust_heat_input"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_input_rate')}"), 
+        # fuel specific input rates for CH4 and N2O 
+        across(.cols = c("ch4_mass", 
+                         "n2o_mass"),
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "combust_heat_input", 
+                                                                    "n2o_mass" = "combust_heat_input"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "combust_heat_input", 
+                                                                         "n2o_mass" = "combust_heat_input"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_input_rate')}")) %>% 
+      select(all_of(temporal_res_cols), {{ region_cols }}, primary_fuel_category, contains("rate"), contains("hg")) %>% 
       arrange(primary_fuel_category) %>% 
-      pivot_wider(names_from = primary_fuel_category, 
-                  values_from = contains("rate")) %>% 
+      pivot_wider(names_from = primary_fuel_category, # create columns for each fuel 
+                  values_from = contains("rate"),
+                  names_glue = "region_{primary_fuel_category}_{.value}") %>% 
       janitor::clean_names() %>% 
-      mutate(across(where(is.numeric), ~ replace_na(., 0)), 
-             region_hg_output_rate_coal = "--", 
-             region_hg_output_rate_fossil = "--", 
-             region_hg_input_rate_coal = "--", 
-             region_hg_input_rate_fossil = "--") %>% 
-      ungroup()
+      mutate(across(where(is.numeric), ~ replace_na(.x, 0)), 
+             # assign Hg coal and fossil output and input emissions rates to "--"
+             region_coal_hg_output_rate = "--", 
+             region_fossil_hg_output_rate = "--",
+             region_coal_hg_input_rate = "--", 
+             region_fossil_hg_input_rate = "--") %>% 
+      select(all_of(temporal_res_cols), {{ region_cols }}, contains("rate"))
     
+    if(params$temporal_res == "annual") { 
+      region_oz_fuel_rates <- 
+        plant_file %>% 
+        group_by(pick(all_of(temporal_res_cols), {{ region_cols }}), primary_fuel_category) %>% 
+        filter(primary_fuel_category %in% fossil_fuels, 
+               !primary_fuel_category == 'OSFL') %>% # do not include other fossil in individual fuel rate calculations
+        summarize(across(.cols = c(combust_heat_input_oz, 
+                                   generation_oz, 
+                                   nox_oz_mass), 
+                         .fns = ~ sum(.x, na.rm = TRUE))) %>% 
+        ungroup() %>% 
+        mutate(
+          # fuel specific output rates for NOx ozone
+          nox_oz_output_rate = if_else(generation_oz != 0, 
+                                       2000 * nox_oz_mass / generation_oz, NA_real_), 
+          # fuel specific input rate for NOx ozone
+          nox_oz_input_rate = if_else(combust_heat_input_oz != 0, 
+                                      2000 * nox_oz_mass / combust_heat_input_oz, NA_real_)) %>%  
+        select(all_of(temporal_res_cols), {{ region_cols }}, primary_fuel_category, contains("rate"), contains("hg")) %>% 
+        arrange(primary_fuel_category) %>% 
+        pivot_wider(names_from = primary_fuel_category, # create columns for each fuel 
+                    values_from = contains("rate"),
+                    names_glue = "region_{primary_fuel_category}_{.value}") %>% 
+        janitor::clean_names() 
+      
+      region_fuel_rates <- 
+        region_fuel_rates %>% 
+        left_join(region_oz_fuel_rates)}
     
     # calculate all fossil fuel output and input emission rates 
     
     region_fossil_rates <-
       plant_file %>% 
-      group_by(pick({{ region_cols }})) %>% 
+      group_by(pick(all_of(temporal_res_cols), {{ region_cols }})) %>% 
       filter(primary_fuel_category %in% fossil_fuels) %>% 
-      summarize(across(.cols = c(contains("heat_input"), 
-                                 "generation_ann", 
-                                 "generation_oz", 
-                                 contains("mass"), 
-                                 "ann_gen_coal", 
-                                 "ann_gen_oil", 
-                                 "ann_gen_gas", 
-                                 "ann_gen_other_ff"), 
+      summarize(across(.cols = c(starts_with("combust_heat_input"), 
+                                 starts_with("generation"), -contains("nonbaseload"), 
+                                 contains("mass")), 
                        .fns = ~ sum(.x, na.rm = TRUE),
                        .names = "region_{.col}")) %>% 
+      ungroup() %>% 
       mutate(# output emission rates (lb/MWh)
+        # fossil output rates for NOx, SO2, CO2, CO2e 
         across(.cols = c("region_nox_mass",  
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_output_rate_fossil"), 
-        region_nox_oz_output_rate_fossil = if_else(region_generation_oz != 0, 
-                                                   2000 * region_nox_oz_mass / region_generation_oz, NA_real_), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "generation", 
+                                                                    "so2_mass" = "generation", 
+                                                                    "co2_mass" = "generation", 
+                                                                    "co2e_mass" = "generation"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "generation", 
+                                                                                "so2_mass" = "generation", 
+                                                                                "co2_mass" = "generation", 
+                                                                                "co2e_mass" = "generation"))), 
+                                NA_real_), 
+               .names = "{str_replace_all(.col, c('region' = 'region_fossil', '_mass' = '_output_rate'))}"), 
+        # fossil output rates for CH4 and N2O
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_output_rate_fossil"),
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "generation", 
+                                                                    "n2o_mass" = "generation"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "generation", 
+                                                                         "n2o_mass" = "generation"))), 
+                                NA_real_), 
+               .names = "{str_replace_all(.col, c('region' = 'region_fossil', '_mass' = '_output_rate'))}"),
         
         # input emission rates (lb/MMBtu)
+        # fossil input emission rates for NOx, SO2, CO2, CO2e
         across(.cols = c("region_nox_mass",  
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ if_else(region_combust_heat_input != 0, 2000 * . / region_combust_heat_input, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
-        region_nox_oz_input_rate_fossil = if_else(region_combust_heat_input_oz != 0, 
-                                                  2000 * region_nox_oz_mass / region_combust_heat_input_oz, 
-                                                  NA_real_), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "combust_heat_input", 
+                                                                    "so2_mass" = "combust_heat_input", 
+                                                                    "co2_mass" = "combust_heat_input", 
+                                                                    "co2e_mass" = "combust_heat_input"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "combust_heat_input", 
+                                                                                "so2_mass" = "combust_heat_input", 
+                                                                                "co2_mass" = "combust_heat_input", 
+                                                                                "co2e_mass" = "combust_heat_input"))), 
+                                NA_real_), 
+               .names = "{str_replace_all(.col, c('region' = 'region_fossil', '_mass' = '_input_rate'))}"), 
+        # fossil input emission rates for CH4 and N2O
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ if_else(region_combust_heat_input != 0, . / region_combust_heat_input, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
-        across(where(is.numeric), ~ replace_na(., 0))) %>% 
-      relocate(region_co2e_input_rate_fossil, .after = region_n2o_input_rate_fossil) %>%  
-      relocate(region_nox_oz_input_rate_fossil, .after = region_nox_input_rate_fossil) %>% 
-      relocate(region_nox_oz_output_rate_fossil, .after = region_nox_output_rate_fossil) %>% 
-      relocate(region_co2e_output_rate_fossil, .after = region_n2o_output_rate_fossil) %>% 
-      select({{ region_cols }}, contains("rate")) %>% 
-      ungroup()
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "combust_heat_input", 
+                                                                    "n2o_mass" = "combust_heat_input"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "combust_heat_input", 
+                                                                         "n2o_mass" = "combust_heat_input"))), 
+                                NA_real_), 
+               .names = "{str_replace_all(.col, c('region' = 'region_fossil', '_mass' = '_input_rate'))}"), 
+        across(where(is.numeric), ~ replace_na(.x, 0))) %>% 
+      select(all_of(temporal_res_cols), {{ region_cols }}, contains("rate")) 
+    
+    if(params$temporal_res == "annual") { 
+      region_oz_fossil_rates <- 
+        plant_file %>% 
+        group_by(pick(all_of(temporal_res_cols), {{ region_cols }})) %>% 
+        filter(primary_fuel_category %in% fossil_fuels) %>% 
+        summarize(across(.cols = c("combust_heat_input_oz", 
+                                   "generation_oz", 
+                                   "nox_oz_mass"), 
+                         .fns = ~ sum(.x, na.rm = TRUE),
+                         .names = "region_{.col}")) %>% 
+        ungroup() %>% 
+        mutate(
+          # fossil output rate for NOx ozone
+          region_fossil_nox_oz_output_rate = if_else(region_generation_oz != 0, 
+                                                     2000 * region_nox_oz_mass / region_generation_oz, NA_real_),
+          # fossil input emission rates for NOx ozone 
+          region_fossil_nox_oz_input_rate = if_else(region_combust_heat_input_oz != 0, 
+                                                    2000 * region_nox_oz_mass / region_combust_heat_input_oz, 
+                                                    NA_real_)) %>%  
+        select(all_of(temporal_res_cols), {{ region_cols }}, contains("rate"))
+      
+      region_fossil_rates <- 
+        region_fossil_rates %>% 
+        left_join(region_oz_fossil_rates)}
     
     
-    
-    ### Non-baseload output emission rates (lb/MWh) -----
+    ### Nonbaseload output emission rates (lb/MWh) -----
     
     region_nonbaseload_rates <- 
       plant_file %>% 
-      group_by(pick({{ region_cols }})) %>% 
-      summarize(across(.cols = c("generation_ann", 
-                                 "generation_oz", 
-                                 contains("mass")), 
-                       .fns = ~ sum(. * nonbaseload, na.rm = TRUE), 
-                       .names = "region_{.col}")) %>% 
-      mutate(across(.cols = c("region_nox_mass",  
+      group_by(pick(all_of(temporal_res_cols), {{ region_cols }})) %>% 
+      summarize(across(.cols = c(contains("_mass")), 
+                       .fns = ~ sum(.x * get(str_replace_all(cur_column(), c("nox_mass" = "nonbaseload", 
+                                                                             "nox_oz_mass" = "nonbaseload", 
+                                                                             "so2_mass" = "nonbaseload", 
+                                                                             "co2_mass" = "nonbaseload", 
+                                                                             "ch4_mass" = "nonbaseload", 
+                                                                             "n2o_mass" = "nonbaseload", 
+                                                                             "co2e_mass" = "nonbaseload"))), na.rm = TRUE), 
+                       .names = "region_{.col}"), 
+                across(.cols = starts_with("generation_nonbaseload"), 
+                       .fns = ~ sum(.x, na.rm = TRUE), 
+                       .names = "region_{.col}")) %>%  
+      ungroup() %>% 
+      mutate(# nonbaseload output rate for NOx, SO2, CO2, CO2e 
+             across(.cols = c("region_nox_mass",  
                               "region_so2_mass", 
                               "region_co2_mass", 
                               "region_co2e_mass"), 
-                    .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
-                    .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"), 
-             region_nox_oz_output_rate_nonbaseload = if_else(region_generation_oz != 0, 
-                                                             2000 * region_nox_oz_mass / region_generation_oz, 
-                                                             NA_real_), 
+                    .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "generation_nonbaseload", 
+                                                                         "so2_mass" = "generation_nonbaseload", 
+                                                                         "co2_mass" = "generation_nonbaseload", 
+                                                                         "co2e_mass" = "generation_nonbaseload"))) != 0, 
+                                     2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "generation_nonbaseload", 
+                                                                                     "so2_mass" = "generation_nonbaseload", 
+                                                                                     "co2_mass" = "generation_nonbaseload", 
+                                                                                     "co2e_mass" = "generation_nonbaseload"))), 
+                                     NA_real_), 
+                    .names = "{str_replace(.col, '_mass', '_output_rate_nonbaseload')}"), 
+             # nonbaseload output rate for CH4 and N2O 
              across(.cols = c("region_ch4_mass", 
                               "region_n2o_mass"),
-                    .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
-                    .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"),
+                    .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "generation_nonbaseload", 
+                                                                         "n2o_mass" = "generation_nonbaseload"))) != 0, 
+                                     .x / get(str_replace_all(cur_column(), c("ch4_mass" = "generation_nonbaseload", 
+                                                                              "n2o_mass" = "generation_nonbaseload"))), 
+                                     NA_real_), 
+                    .names = "{str_replace(.col, '_mass', '_output_rate_nonbaseload')}"),
+             # assign "--" to nonbaseload Hg output rate 
              region_hg_output_rate_nonbaseload = "--") %>% 
-      relocate(region_nox_oz_output_rate_nonbaseload, .after = region_nox_output_rate_nonbaseload) %>% 
-      relocate(region_co2e_output_rate_nonbaseload, .after = region_n2o_output_rate_nonbaseload) %>%
-      select({{ region_cols }}, contains("rate")) %>% 
-      ungroup()
+      select(all_of(temporal_res_cols), {{ region_cols }}, contains("rate")) 
     
+    if(params$temporal_res == "annual") { 
+      region_oz_nonbaseload_rates <- 
+        plant_file %>% 
+        group_by(pick(all_of(temporal_res_cols), {{ region_cols }})) %>% 
+        summarize(region_nox_oz_mass = sum(nox_oz_mass * nonbaseload, na.rm = TRUE),
+                  region_generation_oz_nonbaseload = sum(nonbaseload * generation_oz, na.rm = TRUE)) %>% 
+        ungroup() %>% 
+        mutate( 
+          # nonbaseload output rate for ozone NOx 
+          region_nox_oz_output_rate_nonbaseload = if_else(region_generation_oz_nonbaseload != 0, 
+                                                          2000 * region_nox_oz_mass / region_generation_oz_nonbaseload, 
+                                                          NA_real_)) %>% 
+        select(all_of(temporal_res_cols), {{ region_cols }}, contains("rate")) 
+      
+      region_nonbaseload_rates <- 
+        region_nonbaseload_rates %>% 
+        left_join(region_oz_nonbaseload_rates)}
     
     ## Calculate net generation and resource mix -----
     
@@ -366,50 +554,122 @@ region_aggregation <- function(region, region_cols) {
     
     region_gen <- 
       region_agg %>% 
-      select({{ region_cols }}, contains("gen"))
+      select(all_of(temporal_res_cols), {{ region_cols }}, contains("gen")) 
     
     region_gen_2 <- 
       region_gen %>% 
-      select(-region_generation_ann, -region_generation_oz, -region_generation_nonbaseload) # remove duplicate columns for final formatting
+      select(-region_generation) # remove duplicate columns for final formatting
     
     ### Resource mix by fuel category (%) -----
     
     region_resource_mix <- 
       region_gen %>% 
-      select(-region_generation_oz, -region_generation_nonbaseload) %>%   
-      mutate(across(.cols = -c({{ region_cols }}, "region_generation_ann"), 
-                    .fns = ~ if_else(region_generation_ann != 0, 
-                                     . / region_generation_ann, NA_real_), # convert to percentage 
-                    .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
+      select(-region_generation_nonbaseload) %>% 
+      mutate(#calculate resource mix percentage for each fuel type
+             across(.cols = contains("netgen"), 
+                    .fns = ~ if_else(get(str_replace_all(cur_column(), c("coal_netgen" = "generation", 
+                                                                         "oil_netgen" = "generation", 
+                                                                         "gas_netgen" = "generation", 
+                                                                         "nuclear_netgen" = "generation",
+                                                                         "biomass_netgen" = "generation", 
+                                                                         "wind_netgen" = "generation", 
+                                                                         "solar_netgen" = "generation",
+                                                                         "geothermal_netgen" = "generation",
+                                                                         "other_ff_netgen" = "generation",
+                                                                         "nonrenew_other_netgen" = "generation",
+                                                                         "nonrenew_netgen" = "generation",
+                                                                         "renew_netgen" = "generation",
+                                                                         "renew_nonhydro_netgen" = "generation",
+                                                                         "noncombust_netgen" = "generation",
+                                                                         "noncombust_other_netgen" = "generation",
+                                                                         "combust_netgen" = "generation",
+                                                                         "other_netgen" = "generation",
+                                                                         "hydro_netgen" = "generation"))) != 0, 
+                                     .x / get(str_replace_all(cur_column(), c("coal_netgen" = "generation", 
+                                                                              "oil_netgen" = "generation", 
+                                                                              "gas_netgen" = "generation", 
+                                                                              "nuclear_netgen" = "generation",
+                                                                              "biomass_netgen" = "generation", 
+                                                                              "wind_netgen" = "generation", 
+                                                                              "solar_netgen" = "generation",
+                                                                              "geothermal_netgen" = "generation",
+                                                                              "other_ff_netgen" = "generation",
+                                                                              "nonrenew_other_netgen" = "generation",
+                                                                              "nonrenew_netgen" = "generation",
+                                                                              "renew_netgen" = "generation",
+                                                                              "renew_nonhydro_netgen" = "generation",
+                                                                              "noncombust_netgen" = "generation",
+                                                                              "noncombust_other_netgen" = "generation",
+                                                                              "combust_netgen" = "generation",
+                                                                              "other_netgen" = "generation",
+                                                                              "hydro_netgen" = "generation"))), 
+                                     NA_real_), # convert to percentage 
+                    .names = "{str_replace(.col, 'netgen', 'resource_mix')}")) %>% 
       mutate(across(contains("resource_mix"), ~ if_else(.x < 0, 0, .x))) %>% 
-      select({{ region_cols }}, contains("resource_mix"))
+      select(all_of(temporal_res_cols), {{ region_cols }}, contains("resource_mix"))
     
     
     ### Nonbaseload generation (MWh) -----
     
     region_nonbaseload_gen <- 
       plant_file %>% 
-      group_by(pick({{ region_cols }}), primary_fuel_category) %>% 
-      summarize(region_nonbaseload_gen = sum(generation_ann * nonbaseload, na.rm = TRUE)) %>% 
+      group_by(pick(all_of(temporal_res_cols), {{ region_cols }}), primary_fuel_category) %>% 
+      summarize(generation_nonbaseload = sum(generation_nonbaseload, na.rm = TRUE)) %>% 
       arrange(primary_fuel_category) %>% 
       pivot_wider(names_from = primary_fuel_category, 
-                  values_from = region_nonbaseload_gen, 
-                  names_prefix = "region_nonbaseload_gen_") %>% 
+                  values_from = starts_with("generation_nonbaseload"),
+                  names_glue = "region_{primary_fuel_category}_{.value}") %>% 
       janitor::clean_names() %>% 
-      mutate(across(where(is.numeric), ~ replace_na(., 0))) %>% 
+      mutate(across(where(is.numeric), ~ replace_na(.x, 0))) %>% 
       ungroup() %>% 
-      select({{ region_cols }}, contains("nonbaseload_gen"))
-    
+      select(all_of(temporal_res_cols), {{ region_cols }}, contains("generation_nonbaseload"))
     
     ### Nonbaseload resource mix (%) -----
     
     region_nonbaseload_resource_mix <- 
       region_nonbaseload_gen %>% 
-      mutate(region_nonbaseload_gen = rowSums(pick(contains("nonbaseload"))), 
-             across(.cols = -c({{ region_cols }}, "region_nonbaseload_gen"), 
-                    .fns = ~ if_else(region_nonbaseload_gen != 0, . / region_nonbaseload_gen, NA_real_), 
-                    .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
-      select({{ region_cols }}, contains("resource_mix"))
+      left_join(region_agg %>% select(all_of(temporal_res_cols), {{ region_cols }}, region_generation_nonbaseload)) %>% 
+      mutate(# calculate nonbaseload resource mix for each fuel type 
+             across(.cols = c(contains("nonbaseload"), -"region_generation_nonbaseload"), 
+                    .fns = ~ if_else(get(str_replace_all(cur_column(), c("_coal" = "", 
+                                                                         "_oil" = "", 
+                                                                         "_gas" = "", 
+                                                                         "_nuclear" = "",
+                                                                         "_hydro" = "", 
+                                                                         "_biomass" = "", 
+                                                                         "_wind" = "", 
+                                                                         "_solar" = "",
+                                                                         "_geothermal" = "",
+                                                                         "_other_ff" = "",
+                                                                         "_other" = "",
+                                                                         "_nonrenew" = "",
+                                                                         "_renew" = "",
+                                                                         "_nonrenew_other" = "",
+                                                                         "_renew_nonhydro" = "",
+                                                                         "_combust" = "",
+                                                                         "_noncombust" = "",
+                                                                         "_noncombust_other" = ""))) != 0, 
+                                     .x / get(str_replace_all(cur_column(), c("_coal" = "", 
+                                                                              "_oil" = "", 
+                                                                              "_gas" = "", 
+                                                                              "_nuclear" = "",
+                                                                              "_hydro" = "", 
+                                                                              "_biomass" = "", 
+                                                                              "_wind" = "", 
+                                                                              "_solar" = "",
+                                                                              "_geothermal" = "",
+                                                                              "_other_ff" = "",
+                                                                              "_other" = "",
+                                                                              "_nonrenew" = "",
+                                                                              "_renew" = "",
+                                                                              "_nonrenew_other" = "",
+                                                                              "_renew_nonhydro" = "",
+                                                                              "_combust" = "",
+                                                                              "_noncombust" = "",
+                                                                              "_noncombust_other" = ""))), 
+                                     NA_real_), 
+                    .names = "{str_replace(.col, 'generation', 'resource_mix')}")) %>% 
+      select(all_of(temporal_res_cols), {{ region_cols }}, contains("resource_mix"))
     
     
     ## Create final data frame -----
@@ -417,7 +677,7 @@ region_aggregation <- function(region, region_cols) {
     ### Join necessary data -----
     
     region_merged <- 
-      region_agg %>% select(-contains("ann_gen")) %>% 
+      region_agg %>% select(-contains("netgen")) %>% 
       left_join(region_output_rates) %>% # output emission rates
       left_join(region_input_rates) %>% # input emission rates
       left_join(region_combustion_rates) %>% # combustion emission rates
@@ -427,13 +687,15 @@ region_aggregation <- function(region, region_cols) {
       left_join(region_gen_2) %>% # generation by fuel category
       left_join(region_resource_mix) %>% # resource mix by fuel category
       left_join(region_nonbaseload_gen) %>% # nonbaseload generation by fuel category
-      left_join(region_nonbaseload_resource_mix) %>% 
-      mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
-             across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
-      select(-contains("gen_na"),
-             -contains("mix_na")) %>% # remove unnecessary columns 
+      left_join(region_nonbaseload_resource_mix) %>% # nonbaseload resource mix by fuel category
+      mutate(across(contains("Hg"), ~ replace_na(.x, "--")), # fill NAs in Hg with "--"
+             across(where(is.numeric), ~ replace_na(.x, 0))) %>% # fill NAs with 0
       drop_na({{ region_cols }})
     
+    if(params$temporal_res == "monthly") { 
+      region_merged <- 
+        region_merged %>% 
+        drop_na(month)} # an NA month appears from this function, drop it here
     
     ### Round data ----
     
@@ -457,161 +719,198 @@ region_aggregation <- function(region, region_cols) {
     region_rounded <- 
       region_merged %>% 
       mutate(across(c(where(is.numeric), -contains(n2o_ch4_fuel_rates)), 
-                    \(x) round(x, 3)), # round to three decimals
+                    ~ round(.x, 3)), # round to three decimals
              across(contains(n2o_ch4_fuel_rates), 
-                    \(x) round(x, 4))) # round N2O and CH4 fuel specific rates to 4 decimal points
+                    ~ round(.x, 4))) # round N2O and CH4 fuel specific rates to 4 decimal points
     
     
     ### Format to regional output -------
-    
+    if(params$temporal_res == "annual") { 
+      final_vars <- get(glue::glue("{region}_nonmetric_annual"))
+    } else if(params$temporal_res == "monthly") { 
+       final_vars <- get(glue::glue("{region}_nonmetric_monthly"))}
+      
     region_formatted <- 
       region_rounded %>% 
-      mutate(year = params$eGRID_year) %>% # set year as params$eGRID_year
-      relocate(year) %>% # relocate to left most column 
-      relocate(region_nox_output_rate_fossil, .after = region_nox_output_rate_gas) %>% 
-      relocate(region_nox_oz_output_rate_fossil, .after = region_nox_oz_output_rate_gas) %>% 
-      relocate(region_so2_output_rate_fossil, .after = region_so2_output_rate_gas) %>% 
-      relocate(region_co2_output_rate_fossil, .after = region_co2_output_rate_gas) %>% 
-      relocate(region_co2e_output_rate_fossil, .after = region_co2e_output_rate_gas) %>% 
-      relocate(region_ch4_output_rate_fossil, .after = region_ch4_output_rate_gas) %>% 
-      relocate(region_n2o_output_rate_fossil, .after = region_n2o_output_rate_gas) %>% 
-      relocate(region_hg_output_rate_coal, .after = region_co2e_output_rate_fossil) %>% 
-      relocate(region_hg_output_rate_fossil, .after = region_hg_output_rate_coal) %>% 
-      relocate(region_nox_input_rate_fossil, .after = region_nox_input_rate_gas) %>% 
-      relocate(region_nox_oz_input_rate_fossil, .after = region_nox_oz_input_rate_gas) %>% 
-      relocate(region_so2_input_rate_fossil, .after = region_so2_input_rate_gas) %>% 
-      relocate(region_co2_input_rate_fossil, .after = region_co2_input_rate_gas) %>% 
-      relocate(region_co2e_input_rate_fossil, .after = region_co2e_input_rate_gas) %>% 
-      relocate(region_ch4_input_rate_fossil, .after = region_ch4_input_rate_gas) %>% 
-      relocate(region_n2o_input_rate_fossil, .after = region_n2o_input_rate_gas) %>% 
-      relocate(region_hg_output_rate_coal, .after = region_co2e_output_rate_fossil) %>% 
-      relocate(region_hg_input_rate_fossil, .after = region_hg_input_rate_coal) %>% 
-      mutate(across(.cols = starts_with("region_"), # replace region with specific region name
-                    .fns = ~ ., 
-                    .names = "{str_replace(.col, 'region', {region})}")) %>% 
-      select(-starts_with("region_"))
-    
+      arrange(pick({{ region_cols }})) %>% 
+      mutate(year = params$eGRID_year,
+             across(.cols = starts_with("region_"), # replace region with specific region name
+                    .fns = ~ .x, 
+                    .names = "{str_replace(.col, 'region', {region})}")) %>% # set year as params$eGRID_year
+      select(as_tibble(final_vars)$value) # order final vars with snake_case_names
+      
   
-    
     ### Export region aggregation file -----------
-    
-    if(dir.exists("data/outputs")) {
-      print("Folder output already exists.")
-    } else {
-      dir.create("data/outputs")
-    }
-    
-    if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
-      print("Folder output already exists.")
-    } else {
-      dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
-    }
-    
-    print(glue::glue("Saving {region} aggregation file to folder data/outputs/{params$eGRID_year}"))
-    
-    write_rds(region_formatted, glue::glue("data/outputs//{params$eGRID_year}/{region}_aggregation.RDS")) 
+    save_output_data(region_formatted, "data/1_production_model/outputs", glue::glue("{region}_aggregation_{params$temporal_res}.RDS"))
+    return(region_formatted)
     
   } else {
 
-    ### aggregate plant file to US level ------
+    # Aggregate plant file to region level -----------
     
-    # sum capacity, generation, emissions mass to US level 
+    # sum capacity, generation, emissions mass to region level 
     
     region_agg <- 
       plant_file %>% 
+      group_by(pick(all_of(temporal_res_cols))) %>% 
       summarize(across(.cols = c("nameplate_capacity", 
                                  contains("heat_input"), 
-                                 "generation_ann", 
-                                 "generation_oz", 
-                                 "generation_nonbaseload",
-                                 contains("_mass")), 
+                                 starts_with("generation"),
+                                 contains("_mass"), 
+                                 contains("netgen")), 
                        .fns = ~ sum(.x, na.rm = TRUE),
                        .names = "region_{.col}")) %>% 
-      mutate(region_hg_mass = "--") %>% 
       ungroup() %>% 
-      distinct()
-    
+      mutate(across(.cols = starts_with("region_hg_mass"), 
+                    .fns = ~ "--")) 
     
     ## Calculate emission rates ------
     
-    #### Output emission rates (lb/MWh) -----
+    ### Output emission rates (lb/MWh) -----
     
     region_output_rates <- 
       region_agg %>% 
-      mutate(# calculating output emissions rates (lb/MWh)
-        across(.cols = c("region_nox_mass",  
+      mutate(
+        # calculate output emissions rates (lb/MWh)
+        # output rates for NOx, SO2, CO2, and CO2e
+        across(.cols = c("region_nox_mass", 
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_output_rate"), 
-        region_nox_oz_output_rate = if_else(region_generation_oz != 0, 
-                                            2000 * region_nox_oz_mass / region_generation_oz, NA_real_), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "generation", 
+                                                                    "so2_mass" = "generation", 
+                                                                    "co2_mass" = "generation", 
+                                                                    "co2e_mass" = "generation"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "generation", 
+                                                                                "so2_mass" = "generation", 
+                                                                                "co2_mass" = "generation", 
+                                                                                "co2e_mass" = "generation"))), 
+                                NA_real_),
+               .names = "{str_replace(.col, '_mass', '_output_rate')}"), 
+        # output rates for CH4 and N2O
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_output_rate"),
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "generation", 
+                                                                    "n2o_mass" = "generation"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "generation", 
+                                                                         "n2o_mass" = "generation"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_output_rate')}"),
+        # assign "--" to Hg output rates
         region_hg_output_rate = "--") %>% 
-      relocate(region_nox_oz_output_rate, .after = region_nox_output_rate) %>%  
-      relocate(region_co2e_output_rate, .after = region_n2o_output_rate) %>% 
-      select(contains("rate")) %>% 
-      distinct()
+      select(all_of(temporal_res_cols), contains("rate"))
     
+    if(params$temporal_res == "annual") { 
+      region_oz_output_rates <- 
+        region_agg %>% 
+        mutate(
+          # output rate for NOx ozone
+          region_nox_oz_output_rate = if_else(region_generation_oz != 0, 
+                                              2000 * region_nox_oz_mass / region_generation_oz, NA_real_)) %>% 
+        select(all_of(temporal_res_cols), contains("rate"))
+      
+      region_output_rates <- 
+        region_output_rates %>% 
+        left_join(region_oz_output_rates)}
     
-    #### Input emission rates (lb/MMBtu) -----
+    ### Input emission rates (lb/MMBtu) -----
     
     region_input_rates <- 
       region_agg %>% 
-      mutate(# calculating input emission rates (lb/MMBtu)
-        across(.cols = c("region_nox_mass",  
+      mutate(
+        # calculate input emission rates (lb/MMBtu)
+        # input rates for NOx, SO2, CO2, and CO2e
+        across(.cols = c("region_nox_mass", 
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ if_else(region_combust_heat_input != 0, 2000 * . / region_combust_heat_input, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-        region_nox_oz_input_rate = if_else(region_combust_heat_input_oz != 0, 
-                                           2000 * region_nox_oz_mass / region_combust_heat_input_oz, NA_real_), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "combust_heat_input", 
+                                                                    "so2_mass" = "combust_heat_input", 
+                                                                    "co2_mass" = "combust_heat_input", 
+                                                                    "co2e_mass" = "combust_heat_input"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "combust_heat_input", 
+                                                                                "so2_mass" = "combust_heat_input", 
+                                                                                "co2_mass" = "combust_heat_input", 
+                                                                                "co2e_mass" = "combust_heat_input"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_input_rate')}"), 
+        # input rates for CH4 and N2O
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ if_else(region_combust_heat_input != 0, . / region_combust_heat_input, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "combust_heat_input", 
+                                                                    "n2o_mass" = "combust_heat_input"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "combust_heat_input", 
+                                                                         "n2o_mass" = "combust_heat_input"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_input_rate')}"), 
+        # assign "--" for Hg input rate
         region_hg_input_rate = "--") %>% 
-      relocate(region_nox_oz_input_rate, .after = region_nox_input_rate) %>%  
-      relocate(region_co2e_input_rate, .after = region_n2o_input_rate) %>% 
-      select(contains("rate")) %>% 
-      distinct()
+      select(all_of(temporal_res_cols), contains("rate"))
     
+    if(params$temporal_res == "annual") { 
+      region_oz_input_rates <- 
+        region_agg %>% 
+        mutate(
+          # input rate for NOx ozone
+          region_nox_oz_input_rate = if_else(region_combust_heat_input_oz != 0, 
+                                             2000 * region_nox_oz_mass / region_combust_heat_input_oz, NA_real_)) %>%   
+        select(all_of(temporal_res_cols), contains("rate"))
+      
+      region_input_rates <- 
+        region_input_rates %>% 
+        left_join(region_oz_input_rates)}
     
-    #### Combustion emission rates (lb/MWh) -----
+    ### Combustion emission rates (lb/MWh) -----
     
     region_combustion_rates <- 
-      plant_file %>% 
-      summarize(region_combustion_gen = sum(ann_gen_combust, na.rm = TRUE)) %>% 
-      cbind(plant_file, region_agg) %>% 
-      mutate(# calculating combustion emissions rates (lb/MWh)
-        across(.cols = c("region_nox_mass",  
+      region_agg %>% 
+      mutate(
+        # calculate combustion emissions rates (lb/MWh)
+        # combustion rates for NOx, SO2, CO2, and CO2e 
+        across(.cols = c("region_nox_mass", 
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ if_else(region_combustion_gen != 0, 2000 * . / region_combustion_gen, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
-        region_nox_oz_combustion_rate = if_else(region_combustion_gen != 0 & 
-                                                  region_generation_oz != 0 & 
-                                                  region_generation_ann != 0, 
-                                                2000 * region_nox_oz_mass / 
-          (region_combustion_gen * (region_generation_oz / region_generation_ann)), NA_real_),  
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "combust_netgen", 
+                                                                    "so2_mass" = "combust_netgen", 
+                                                                    "co2_mass" = "combust_netgen", 
+                                                                    "co2e_mass" = "combust_netgen"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "combust_netgen", 
+                                                                                "so2_mass" = "combust_netgen", 
+                                                                                "co2_mass" = "combust_netgen", 
+                                                                                "co2e_mass" = "combust_netgen"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_combustion_rate')}"), 
+        # combustion rate for CH4 and N2O
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_combustion_rate"), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "combust_netgen", 
+                                                                    "n2o_mass" = "combust_netgen"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "combust_netgen", 
+                                                                         "n2o_mass" = "combust_netgen"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_combustion_rate')}"), 
+        # assign "--" to Hg combustion rate 
         region_hg_combustion_rate = "--") %>% 
-      relocate(region_nox_oz_combustion_rate, .after = region_nox_combustion_rate) %>%  
-      relocate(region_co2e_combustion_rate, .after = region_n2o_combustion_rate) %>% 
-      select(contains("rate")) %>% 
-      distinct()
+      select(all_of(temporal_res_cols), contains("rate")) 
     
+    if(params$temporal_res == "annual") { 
+      region_oz_combustion_rates <- 
+        region_agg %>% 
+        mutate(
+          # combustion rate for NOx ozone
+          region_nox_oz_combustion_rate = if_else(region_generation_oz != 0 & 
+                                                    region_combust_netgen != 0 &
+                                                    region_generation != 0, 
+                                                  2000 * region_nox_oz_mass / 
+                                                    (region_combust_netgen * (region_generation_oz / region_generation)), NA_real_)) %>%  
+        select(all_of(temporal_res_cols), contains("rate"))
+      
+      region_combustion_rates <- 
+        region_combustion_rates %>% 
+        left_join(region_oz_combustion_rates)}
     
-    #### Fuel type output emission rates (lb/MWh) and input emission rates (lb/MMBtu)  -----
+    ### Fuel type output emission rates (lb/MWh) and input emission rates (lb/MMBtu)  -----
     
     # calculate emission rates by fossil fuel types 
     
@@ -622,221 +921,424 @@ region_aggregation <- function(region, region_cols) {
     
     region_fuel_rates <-
       plant_file %>% 
-      group_by(primary_fuel_category) %>% 
+      group_by(pick(all_of(temporal_res_cols)), primary_fuel_category) %>% 
       filter(primary_fuel_category %in% fossil_fuels, 
              !primary_fuel_category == 'OSFL') %>% # do not include other fossil in individual fuel rate calculations
       summarize(across(.cols = c(contains("heat_input"), 
-                                 "generation_ann", 
-                                 "generation_oz", 
-                                 contains("mass"), 
-                                 "ann_gen_coal", 
-                                 "ann_gen_oil", 
-                                 "ann_gen_gas"), 
-                       .fns = ~ sum(.x, na.rm = TRUE),
-                       .names = "region_{.col}")) %>% 
-      mutate(# output emission rates (lb/MWh)
-        across(.cols = c("region_nox_mass",  
-                         "region_so2_mass", 
-                         "region_co2_mass", 
-                         "region_co2e_mass"), 
-               .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_output_rate"), 
-        region_nox_oz_output_rate = if_else(region_generation_oz != 0, 
-                                            2000 * region_nox_oz_mass / region_generation_oz, NA_real_), 
-        across(.cols = c("region_ch4_mass", 
-                         "region_n2o_mass"),
-               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_output_rate"),
+                                 starts_with("generation"), 
+                                 -contains("nonbaseload"), 
+                                 contains("_mass"), 
+                                 coal_netgen, 
+                                 oil_netgen, 
+                                 gas_netgen), 
+                       .fns = ~ sum(.x, na.rm = TRUE))) %>% 
+      ungroup() %>% 
+      mutate(
+        # fuel specific output emission rates (lb/MWh)
+        # fuel specific output rates for NOx, SO2, CO2, and CO2e
+        across(.cols = c("nox_mass",  
+                         "so2_mass", 
+                         "co2_mass", 
+                         "co2e_mass"), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "generation", 
+                                                                    "so2_mass" = "generation", 
+                                                                    "co2_mass" = "generation", 
+                                                                    "co2e_mass" = "generation"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "generation", 
+                                                                                "so2_mass" = "generation", 
+                                                                                "co2_mass" = "generation", 
+                                                                                "co2e_mass" = "generation"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_output_rate')}"), 
+        # fuel specific output rates for CH4 and N2O
+        across(.cols = c("ch4_mass", 
+                         "n2o_mass"),
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "generation", 
+                                                                    "n2o_mass" = "generation"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "generation", 
+                                                                         "n2o_mass" = "generation"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_output_rate')}"),
         
-        # input emission rates (lb/MMBtu)
-        across(.cols = c("region_nox_mass",  
-                         "region_so2_mass", 
-                         "region_co2_mass", 
-                         "region_co2e_mass"), 
-               .fns = ~ if_else(region_combust_heat_input != 0, 2000 * . / region_combust_heat_input, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_input_rate"), 
-        region_nox_oz_input_rate = if_else(region_combust_heat_input_oz != 0, 
-                                           2000 * region_nox_oz_mass / region_combust_heat_input_oz, NA_real_), 
-        across(.cols = c("region_ch4_mass", 
-                         "region_n2o_mass"),
-               .fns = ~ if_else(region_combust_heat_input != 0, . / region_combust_heat_input, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_input_rate")) %>% 
-      select(primary_fuel_category, contains("rate")) %>% 
-      relocate(region_nox_oz_output_rate, .after = region_nox_output_rate) %>% 
-      relocate(region_co2e_output_rate, .after = region_n2o_output_rate) %>% 
-      relocate(region_nox_oz_input_rate, .after = region_nox_input_rate) %>% 
-      relocate(region_co2e_input_rate, .after = region_n2o_input_rate) %>% 
+        # fuel specific input emission rates (lb/MMBtu)
+        # fuel specific input ratees for NOx, SO2, CO2, CO2e
+        across(.cols = c("nox_mass",  
+                         "so2_mass", 
+                         "co2_mass", 
+                         "co2e_mass"), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "combust_heat_input", 
+                                                                    "so2_mass" = "combust_heat_input", 
+                                                                    "co2_mass" = "combust_heat_input", 
+                                                                    "co2e_mass" = "combust_heat_input"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "combust_heat_input", 
+                                                                                "so2_mass" = "combust_heat_input", 
+                                                                                "co2_mass" = "combust_heat_input", 
+                                                                                "co2e_mass" = "combust_heat_input"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_input_rate')}"), 
+        # fuel specific input rates for CH4 and N2O 
+        across(.cols = c("ch4_mass", 
+                         "n2o_mass"),
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "combust_heat_input", 
+                                                                    "n2o_mass" = "combust_heat_input"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "combust_heat_input", 
+                                                                         "n2o_mass" = "combust_heat_input"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_input_rate')}")) %>% 
+      select(all_of(temporal_res_cols), primary_fuel_category, contains("rate"), contains("hg")) %>% 
       arrange(primary_fuel_category) %>% 
-      pivot_wider(names_from = primary_fuel_category, 
-                  values_from = contains("rate")) %>% 
+      pivot_wider(names_from = primary_fuel_category, # create columns for each fuel 
+                  values_from = contains("rate"),
+                  names_glue = "region_{primary_fuel_category}_{.value}") %>% 
       janitor::clean_names() %>% 
-      mutate(across(where(is.numeric), ~ replace_na(., 0)), 
-             region_hg_output_rate_coal = "--", 
-             region_hg_output_rate_fossil = "--", 
-             region_hg_input_rate_coal = "--", 
-             region_hg_input_rate_fossil = "--") %>% 
-      distinct()
+      mutate(across(where(is.numeric), ~ replace_na(.x, 0)), 
+             # assign Hg coal and fossil output and input emissions rates to "--"
+             region_coal_hg_output_rate = "--", 
+             region_fossil_hg_output_rate = "--",
+             region_coal_hg_input_rate = "--", 
+             region_fossil_hg_input_rate = "--") %>% 
+      select(all_of(temporal_res_cols), contains("rate"))
+    
+    if(params$temporal_res == "annual") { 
+      region_oz_fuel_rates <- 
+        plant_file %>% 
+        group_by(pick(all_of(temporal_res_cols)), primary_fuel_category) %>% 
+        filter(primary_fuel_category %in% fossil_fuels, 
+               !primary_fuel_category == 'OSFL') %>% # do not include other fossil in individual fuel rate calculations
+        summarize(across(.cols = c(contains("heat_input"), 
+                                   starts_with("generation"), 
+                                   -contains("nonbaseload"), 
+                                   contains("_mass"), 
+                                   coal_netgen, 
+                                   oil_netgen, 
+                                   gas_netgen), 
+                         .fns = ~ sum(.x, na.rm = TRUE))) %>% 
+        ungroup() %>% 
+        mutate(
+          # fuel specific output rates for NOx ozone
+          nox_oz_output_rate = if_else(generation_oz != 0, 
+                                       2000 * nox_oz_mass / generation_oz, NA_real_), 
+          # fuel specific input rate for NOx ozone
+          nox_oz_input_rate = if_else(combust_heat_input_oz != 0, 
+                                      2000 * nox_oz_mass / combust_heat_input_oz, NA_real_)) %>%  
+        select(all_of(temporal_res_cols), primary_fuel_category, contains("rate"), contains("hg")) %>% 
+        arrange(primary_fuel_category) %>% 
+        pivot_wider(names_from = primary_fuel_category, # create columns for each fuel 
+                    values_from = contains("rate"),
+                    names_glue = "region_{primary_fuel_category}_{.value}") %>% 
+        janitor::clean_names()
+      
+      region_fuel_rates <- 
+        region_fuel_rates %>% 
+        left_join(region_oz_fuel_rates)}
     
     
     # calculate all fossil fuel output and input emission rates 
     
     region_fossil_rates <-
       plant_file %>% 
+      group_by(pick(all_of(temporal_res_cols))) %>% 
       filter(primary_fuel_category %in% fossil_fuels) %>% 
-      summarize(across(.cols = c(contains("heat_input"), 
-                                 "generation_ann", 
-                                 "generation_oz", 
-                                 contains("mass"), 
-                                 "ann_gen_coal", 
-                                 "ann_gen_oil", 
-                                 "ann_gen_gas", 
-                                 "ann_gen_other_ff"), 
+      summarize(across(.cols = c(starts_with("combust_heat_input"), 
+                                 starts_with("generation"), -contains("nonbaseload"), 
+                                 contains("mass")), 
                        .fns = ~ sum(.x, na.rm = TRUE),
                        .names = "region_{.col}")) %>% 
+      ungroup() %>% 
       mutate(# output emission rates (lb/MWh)
+        # fossil output rates for NOx, SO2, CO2, CO2e 
         across(.cols = c("region_nox_mass",  
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_output_rate_fossil"), 
-        region_nox_oz_output_rate_fossil = if_else(region_generation_oz != 0, 
-                                                   2000 * region_nox_oz_mass / region_generation_oz, NA_real_), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "generation", 
+                                                                    "so2_mass" = "generation", 
+                                                                    "co2_mass" = "generation", 
+                                                                    "co2e_mass" = "generation"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "generation", 
+                                                                                "so2_mass" = "generation", 
+                                                                                "co2_mass" = "generation", 
+                                                                                "co2e_mass" = "generation"))), 
+                                NA_real_), 
+               .names = "{str_replace_all(.col, c('region' = 'region_fossil', '_mass' = '_output_rate'))}"), 
+        # fossil output rates for CH4 and N2O
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_output_rate_fossil"),
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "generation", 
+                                                                    "n2o_mass" = "generation"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "generation", 
+                                                                         "n2o_mass" = "generation"))), 
+                                NA_real_), 
+               .names = "{str_replace_all(.col, c('region' = 'region_fossil', '_mass' = '_output_rate'))}"),
         
         # input emission rates (lb/MMBtu)
+        # fossil input emission rates for NOx, SO2, CO2, CO2e
         across(.cols = c("region_nox_mass",  
                          "region_so2_mass", 
                          "region_co2_mass", 
                          "region_co2e_mass"), 
-               .fns = ~ if_else(region_combust_heat_input != 0, 2000 * . / region_combust_heat_input, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
-        region_nox_oz_input_rate_fossil = if_else(region_combust_heat_input_oz != 0, 
-                                                  2000 * region_nox_oz_mass / region_combust_heat_input_oz, 
-                                                  NA_real_), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "combust_heat_input", 
+                                                                    "so2_mass" = "combust_heat_input", 
+                                                                    "co2_mass" = "combust_heat_input", 
+                                                                    "co2e_mass" = "combust_heat_input"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "combust_heat_input", 
+                                                                                "so2_mass" = "combust_heat_input", 
+                                                                                "co2_mass" = "combust_heat_input", 
+                                                                                "co2e_mass" = "combust_heat_input"))), 
+                                NA_real_), 
+               .names = "{str_replace_all(.col, c('region' = 'region_fossil', '_mass' = '_input_rate'))}"), 
+        # fossil input emission rates for CH4 and N2O
         across(.cols = c("region_ch4_mass", 
                          "region_n2o_mass"),
-               .fns = ~ if_else(region_combust_heat_input != 0, . / region_combust_heat_input, NA_real_), 
-               .names = "{str_replace(.col, '_mass', '')}_input_rate_fossil"), 
-        across(where(is.numeric), ~ replace_na(., 0))) %>% 
-      relocate(region_co2e_input_rate_fossil, .after = region_n2o_input_rate_fossil) %>%  
-      relocate(region_nox_oz_input_rate_fossil, .after = region_nox_input_rate_fossil) %>% 
-      relocate(region_nox_oz_output_rate_fossil, .after = region_nox_output_rate_fossil) %>% 
-      relocate(region_co2e_output_rate_fossil, .after = region_n2o_output_rate_fossil) %>% 
-      select(contains("rate")) %>% 
-      distinct()
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "combust_heat_input", 
+                                                                    "n2o_mass" = "combust_heat_input"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "combust_heat_input", 
+                                                                         "n2o_mass" = "combust_heat_input"))), 
+                                NA_real_), 
+               .names = "{str_replace_all(.col, c('region' = 'region_fossil', '_mass' = '_input_rate'))}"), 
+        across(where(is.numeric), ~ replace_na(.x, 0))) %>% 
+      select(all_of(temporal_res_cols), contains("rate")) 
+    
+    if(params$temporal_res == "annual") { 
+      region_oz_fossil_rates <- 
+        plant_file %>% 
+        group_by(pick(all_of(temporal_res_cols))) %>% 
+        filter(primary_fuel_category %in% fossil_fuels) %>% 
+        summarize(across(.cols = c("combust_heat_input_oz", 
+                                   "generation_oz", 
+                                   "nox_oz_mass"), 
+                         .fns = ~ sum(.x, na.rm = TRUE),
+                         .names = "region_{.col}")) %>% 
+        ungroup() %>% 
+        mutate(
+          # fossil output rate for NOx ozone
+          region_fossil_nox_oz_output_rate = if_else(region_generation_oz != 0, 
+                                                     2000 * region_nox_oz_mass / region_generation_oz, NA_real_),
+          # fossil input emission rates for NOx ozone 
+          region_fossil_nox_oz_input_rate = if_else(region_combust_heat_input_oz != 0, 
+                                                    2000 * region_nox_oz_mass / region_combust_heat_input_oz, 
+                                                    NA_real_)) %>%  
+        select(all_of(temporal_res_cols), contains("rate"))
+      
+      region_fossil_rates <- 
+        region_fossil_rates %>%  
+        left_join(region_oz_fossil_rates)}
     
     
-    
-    #### Non-baseload output emission rates (lb/MWh) -----
+    ### Nonbaseload output emission rates (lb/MWh) -----
     
     region_nonbaseload_rates <- 
       plant_file %>% 
-      summarize(across(.cols = c("generation_ann", 
-                                 "generation_oz", 
-                                 contains("mass")), 
-                       .fns = ~ sum(. * nonbaseload, na.rm = TRUE), 
+      group_by(pick(all_of(temporal_res_cols))) %>% 
+      summarize(across(.cols = c(contains("_mass")), 
+                       .fns = ~ sum(.x * get(str_replace_all(cur_column(), c("nox_mass" = "nonbaseload", 
+                                                                             "nox_oz_mass" = "nonbaseload", 
+                                                                             "so2_mass" = "nonbaseload", 
+                                                                             "co2_mass" = "nonbaseload", 
+                                                                             "ch4_mass" = "nonbaseload", 
+                                                                             "n2o_mass" = "nonbaseload", 
+                                                                             "co2e_mass" = "nonbaseload"))), na.rm = TRUE), 
+                       .names = "region_{.col}"), 
+                across(.cols = starts_with("generation_nonbaseload"), 
+                       .fns = ~ sum(.x, na.rm = TRUE), 
                        .names = "region_{.col}")) %>% 
-      mutate(across(.cols = c("region_nox_mass",  
-                              "region_so2_mass", 
-                              "region_co2_mass", 
-                              "region_co2e_mass"), 
-                    .fns = ~ if_else(region_generation_ann != 0, 2000 * . / region_generation_ann, NA_real_), 
-                    .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"), 
-             region_nox_oz_output_rate_nonbaseload = if_else(region_generation_oz != 0, 
-                                                             2000 * region_nox_oz_mass / region_generation_oz, 
-                                                             NA_real_), 
-             across(.cols = c("region_ch4_mass", 
-                              "region_n2o_mass"),
-                    .fns = ~ if_else(region_generation_ann != 0, . / region_generation_ann, NA_real_), 
-                    .names = "{str_replace(.col, '_mass', '')}_output_rate_nonbaseload"),
-             region_hg_output_rate_nonbaseload = "--") %>% 
-      relocate(region_nox_oz_output_rate_nonbaseload, .after = region_nox_output_rate_nonbaseload) %>% 
-      relocate(region_co2e_output_rate_nonbaseload, .after = region_n2o_output_rate_nonbaseload) %>%
-      select(contains("rate")) %>% 
-      distinct()
+      ungroup() %>% 
+      mutate(# nonbaseload output rate for NOx, SO2, CO2, CO2e 
+        across(.cols = c("region_nox_mass",  
+                         "region_so2_mass", 
+                         "region_co2_mass", 
+                         "region_co2e_mass"), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("nox_mass" = "generation_nonbaseload", 
+                                                                    "so2_mass" = "generation_nonbaseload", 
+                                                                    "co2_mass" = "generation_nonbaseload", 
+                                                                    "co2e_mass" = "generation_nonbaseload"))) != 0, 
+                                2000 * .x / get(str_replace_all(cur_column(), c("nox_mass" = "generation_nonbaseload", 
+                                                                                "so2_mass" = "generation_nonbaseload", 
+                                                                                "co2_mass" = "generation_nonbaseload", 
+                                                                                "co2e_mass" = "generation_nonbaseload"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_output_rate_nonbaseload')}"), 
+        # nonbaseload output rate for CH4 and N2O 
+        across(.cols = c("region_ch4_mass", 
+                         "region_n2o_mass"),
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("ch4_mass" = "generation_nonbaseload", 
+                                                                    "n2o_mass" = "generation_nonbaseload"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("ch4_mass" = "generation_nonbaseload", 
+                                                                         "n2o_mass" = "generation_nonbaseload"))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, '_mass', '_output_rate_nonbaseload')}"),
+        # assign "--" to nonbaseload Hg output rate 
+        region_hg_output_rate_nonbaseload = "--") %>% 
+      select(all_of(temporal_res_cols), contains("rate")) 
     
+    if(params$temporal_res == "annual") { 
+      region_oz_nonbaseload_rates <- 
+        plant_file %>% 
+        group_by(pick(all_of(temporal_res_cols))) %>% 
+        summarize(region_nox_oz_mass = sum(nox_oz_mass * nonbaseload, na.rm = TRUE),
+                  region_generation_oz_nonbaseload = sum(nonbaseload * generation_oz, na.rm = TRUE)) %>% 
+        ungroup() %>% 
+        mutate( 
+          # nonbaseload output rate for ozone NOx 
+          region_nox_oz_output_rate_nonbaseload = if_else(region_generation_oz_nonbaseload != 0, 
+                                                          2000 * region_nox_oz_mass / region_generation_oz_nonbaseload, 
+                                                          NA_real_)) %>% 
+        select(all_of(temporal_res_cols), contains("rate")) 
+      
+      region_nonbaseload_rates <- 
+        region_nonbaseload_rates %>% 
+        left_join(region_oz_nonbaseload_rates)}
     
     ## Calculate net generation and resource mix -----
     
-    #### Generation by fuel category (MWh) -----
+    ### Generation by fuel category (MWh) -----
     
     region_gen <- 
-      plant_file %>% 
-      summarize(across(.cols = c(contains("gen")), 
-                       .fns = ~ sum(.x, na.rm = TRUE),
-                       .names = "region_{.col}")) %>% 
-      distinct()
+      region_agg %>% 
+      select(all_of(temporal_res_cols), contains("gen")) 
     
     region_gen_2 <- 
       region_gen %>% 
-      select(-region_generation_ann, -region_generation_oz, -region_generation_nonbaseload) # remove duplicate columns for final formatting
+      select(-region_generation) # remove duplicate columns for final formatting
     
-    #### Resource mix by fuel category (%) -----
+    ### Resource mix by fuel category (%) -----
     
     region_resource_mix <- 
       region_gen %>% 
-      select(-region_generation_oz, -region_generation_nonbaseload) %>%   
-      mutate(across(.cols = -c("region_generation_ann"), 
-                    .fns = ~ if_else(region_generation_ann != 0, 
-                                     . / region_generation_ann, NA_real_), # convert to percentage 
-                    .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
-      select(contains("resource_mix")) %>% 
-      distinct()
+      select(-region_generation_nonbaseload) %>% 
+      mutate(#calculate resource mix percentage for each fuel type
+        across(.cols = contains("netgen"), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("coal_netgen" = "generation", 
+                                                                    "oil_netgen" = "generation", 
+                                                                    "gas_netgen" = "generation", 
+                                                                    "nuclear_netgen" = "generation",
+                                                                    "biomass_netgen" = "generation", 
+                                                                    "wind_netgen" = "generation", 
+                                                                    "solar_netgen" = "generation",
+                                                                    "geothermal_netgen" = "generation",
+                                                                    "other_ff_netgen" = "generation",
+                                                                    "nonrenew_other_netgen" = "generation",
+                                                                    "nonrenew_netgen" = "generation",
+                                                                    "renew_netgen" = "generation",
+                                                                    "renew_nonhydro_netgen" = "generation",
+                                                                    "noncombust_netgen" = "generation",
+                                                                    "noncombust_other_netgen" = "generation",
+                                                                    "combust_netgen" = "generation",
+                                                                    "other_netgen" = "generation",
+                                                                    "hydro_netgen" = "generation"))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("coal_netgen" = "generation", 
+                                                                         "oil_netgen" = "generation", 
+                                                                         "gas_netgen" = "generation", 
+                                                                         "nuclear_netgen" = "generation",
+                                                                         "biomass_netgen" = "generation", 
+                                                                         "wind_netgen" = "generation", 
+                                                                         "solar_netgen" = "generation",
+                                                                         "geothermal_netgen" = "generation",
+                                                                         "other_ff_netgen" = "generation",
+                                                                         "nonrenew_other_netgen" = "generation",
+                                                                         "nonrenew_netgen" = "generation",
+                                                                         "renew_netgen" = "generation",
+                                                                         "renew_nonhydro_netgen" = "generation",
+                                                                         "noncombust_netgen" = "generation",
+                                                                         "noncombust_other_netgen" = "generation",
+                                                                         "combust_netgen" = "generation",
+                                                                         "other_netgen" = "generation",
+                                                                         "hydro_netgen" = "generation"))), 
+                                NA_real_), # convert to percentage 
+               .names = "{str_replace(.col, 'netgen', 'resource_mix')}")) %>% 
+      mutate(across(contains("resource_mix"), ~ if_else(.x < 0, 0, .x))) %>% 
+      select(all_of(temporal_res_cols), contains("resource_mix"))
     
     
-    #### Nonbaseload generation (MWh) -----
+    ### Nonbaseload generation (MWh) -----
     
     region_nonbaseload_gen <- 
       plant_file %>% 
-      group_by(primary_fuel_category) %>% 
-      summarize(region_nonbaseload_gen = sum(generation_ann * nonbaseload, na.rm = TRUE)) %>% 
+      group_by(pick(all_of(temporal_res_cols)), primary_fuel_category) %>% 
+      summarize(generation_nonbaseload = sum(generation_nonbaseload, na.rm = TRUE)) %>% 
       arrange(primary_fuel_category) %>% 
       pivot_wider(names_from = primary_fuel_category, 
-                  values_from = region_nonbaseload_gen, 
-                  names_prefix = "region_nonbaseload_gen_") %>% 
+                  values_from = starts_with("generation_nonbaseload"),
+                  names_glue = "region_{primary_fuel_category}_{.value}") %>% 
       janitor::clean_names() %>% 
-      mutate(across(where(is.numeric), ~ replace_na(., 0))) 
+      mutate(across(where(is.numeric), ~ replace_na(.x, 0))) %>% 
+      ungroup() %>% 
+      select(all_of(temporal_res_cols), contains("generation_nonbaseload"))
     
-    
-    #### Nonbaseload resource mix (%) -----
+    ### Nonbaseload resource mix (%) -----
     
     region_nonbaseload_resource_mix <- 
       region_nonbaseload_gen %>% 
-      mutate(region_nonbaseload_gen = rowSums(pick(contains("nonbaseload"))), 
-             across(.cols = -c("region_nonbaseload_gen"), 
-                    .fns = ~ if_else(region_nonbaseload_gen != 0, . / region_nonbaseload_gen, NA_real_), 
-                    .names = "{str_replace(.col, 'gen', 'resource_mix')}")) %>% 
-      select(contains("resource_mix")) %>% 
-      distinct()
+      left_join(region_agg %>% select(all_of(temporal_res_cols), region_generation_nonbaseload)) %>% 
+      mutate(# calculate nonbaseload resource mix for each fuel type 
+        across(.cols = -any_of(c(temporal_res_cols, 
+                                 "region_generation_nonbaseload")), 
+               .fns = ~ if_else(get(str_replace_all(cur_column(), c("_coal" = "", 
+                                                                    "_oil" = "", 
+                                                                    "_gas" = "", 
+                                                                    "_nuclear" = "",
+                                                                    "_hydro" = "", 
+                                                                    "_biomass" = "", 
+                                                                    "_wind" = "", 
+                                                                    "_solar" = "",
+                                                                    "_geothermal" = "",
+                                                                    "_other_ff" = "",
+                                                                    "_other" = "",
+                                                                    "_nonrenew" = "",
+                                                                    "_renew" = "",
+                                                                    "_nonrenew_other" = "",
+                                                                    "_renew_nonhydro" = "",
+                                                                    "_combust" = "",
+                                                                    "_noncombust" = "",
+                                                                    "_noncombust_other" = ""))) != 0, 
+                                .x / get(str_replace_all(cur_column(), c("_coal" = "", 
+                                                                         "_oil" = "", 
+                                                                         "_gas" = "", 
+                                                                         "_nuclear" = "",
+                                                                         "_hydro" = "", 
+                                                                         "_biomass" = "", 
+                                                                         "_wind" = "", 
+                                                                         "_solar" = "",
+                                                                         "_geothermal" = "",
+                                                                         "_other_ff" = "",
+                                                                         "_other" = "",
+                                                                         "_nonrenew" = "",
+                                                                         "_renew" = "",
+                                                                         "_nonrenew_other" = "",
+                                                                         "_renew_nonhydro" = "",
+                                                                         "_combust" = "",
+                                                                         "_noncombust" = "",
+                                                                         "_noncombust_other" = ""))), 
+                                NA_real_), 
+               .names = "{str_replace(.col, 'generation', 'resource_mix')}")) %>% 
+      select(all_of(temporal_res_cols), contains("resource_mix"))
     
     
     ## Create final data frame -----
     
-    #### Join necessary data -----
+    ### Join necessary data -----
     
     region_merged <- 
-      cbind(region_agg, 
-            region_output_rates, # output emission rates
-            region_input_rates, # input emission rates
-            region_combustion_rates, # combustion emission rates
-            region_fuel_rates, # output and input emission rates by fuel type
-            region_fossil_rates, # output and input emission rates for all fossil fuels
-            region_nonbaseload_rates, # output emission rates for nonbaseload generation
-            region_gen_2, # generation by fuel category
-            region_resource_mix, # resource mix by fuel category
-            region_nonbaseload_gen, # nonbaseload generation by fuel category
-            region_nonbaseload_resource_mix) %>% # nonbaseload resource mix
-      mutate(across(contains("Hg"), ~replace_na(., "--")), # fill NAs in Hg with "--"
-             across(where(is.numeric), ~replace_na(., 0))) %>% # fill NAs with 0
-      select(-contains("gen_na"),
-             -contains("mix_na")) # remove unnecessary columns
+      region_agg %>% select(-contains("netgen")) %>% 
+      left_join(region_output_rates) %>% # output emission rates
+      left_join(region_input_rates) %>% # input emission rates
+      left_join(region_combustion_rates) %>% # combustion emission rates
+      left_join(region_fuel_rates) %>% # output and input emission rates by fuel type
+      left_join(region_fossil_rates) %>% # output and input emission rates for all fossil fuels
+      left_join(region_nonbaseload_rates) %>% # output emission rates for nonbaseload generation
+      left_join(region_gen_2) %>% # generation by fuel category
+      left_join(region_resource_mix) %>% # resource mix by fuel category
+      left_join(region_nonbaseload_gen) %>% # nonbaseload generation by fuel category
+      left_join(region_nonbaseload_resource_mix) %>% # nonbaseload resource mix by fuel category
+      mutate(across(contains("Hg"), ~ replace_na(.x, "--")), # fill NAs in Hg with "--"
+             across(where(is.numeric), ~ replace_na(.x, 0))) # fill NAs with 0
     
+    if(params$temporal_res == "monthly") { 
+      region_merged <- 
+        region_merged %>% 
+        drop_na(month)} # an NA month appears from this function, drop it here
     
-    #### Round data ----
+    ### Round data ----
     
     n2o_ch4_fuel_rates <- c("n2o_input_rate_coal", 
                             "n2o_input_rate_oil", 
@@ -858,60 +1360,30 @@ region_aggregation <- function(region, region_cols) {
     region_rounded <- 
       region_merged %>% 
       mutate(across(c(where(is.numeric), -contains(n2o_ch4_fuel_rates)), 
-                    \(x) round(x, 3)), # round to three decimals
+                    ~ round(.x, 3)), # round to three decimals
              across(contains(n2o_ch4_fuel_rates), 
-                    \(x) round(x, 4))) # round N2O and CH4 fuel specific rates to 4 decimal points
+                    ~ round(.x, 4))) # round N2O and CH4 fuel specific rates to 4 decimal points
     
     
-    #### Format to regional output -------
+    ### Format to regional output -------
+    if(params$temporal_res == "annual") { 
+      final_vars <- get(glue::glue("{region}_nonmetric_annual"))
+    } else if(params$temporal_res == "monthly") { 
+       final_vars <- get(glue::glue("{region}_nonmetric_monthly"))}
     
     region_formatted <- 
       region_rounded %>% 
-      mutate(year = params$eGRID_year) %>% # set year as params$eGRID_year
-      relocate(year) %>% # relocate to left most column 
-      relocate(region_nox_output_rate_fossil, .after = region_nox_output_rate_gas) %>% 
-      relocate(region_nox_oz_output_rate_fossil, .after = region_nox_oz_output_rate_gas) %>% 
-      relocate(region_so2_output_rate_fossil, .after = region_so2_output_rate_gas) %>% 
-      relocate(region_co2_output_rate_fossil, .after = region_co2_output_rate_gas) %>% 
-      relocate(region_co2e_output_rate_fossil, .after = region_co2e_output_rate_gas) %>% 
-      relocate(region_ch4_output_rate_fossil, .after = region_ch4_output_rate_gas) %>% 
-      relocate(region_n2o_output_rate_fossil, .after = region_n2o_output_rate_gas) %>% 
-      relocate(region_hg_output_rate_coal, .after = region_co2e_output_rate_fossil) %>% 
-      relocate(region_hg_output_rate_fossil, .after = region_hg_output_rate_coal) %>% 
-      relocate(region_nox_input_rate_fossil, .after = region_nox_input_rate_gas) %>% 
-      relocate(region_nox_oz_input_rate_fossil, .after = region_nox_oz_input_rate_gas) %>% 
-      relocate(region_so2_input_rate_fossil, .after = region_so2_input_rate_gas) %>% 
-      relocate(region_co2_input_rate_fossil, .after = region_co2_input_rate_gas) %>% 
-      relocate(region_co2e_input_rate_fossil, .after = region_co2e_input_rate_gas) %>% 
-      relocate(region_ch4_input_rate_fossil, .after = region_ch4_input_rate_gas) %>% 
-      relocate(region_n2o_input_rate_fossil, .after = region_n2o_input_rate_gas) %>% 
-      relocate(region_hg_output_rate_coal, .after = region_co2e_output_rate_fossil) %>% 
-      relocate(region_hg_input_rate_fossil, .after = region_hg_input_rate_coal) %>% 
-      mutate(across(.cols = starts_with("region"), 
-                    .fns = ~ .,
-                    .names = "{str_replace(.col, 'region', {region})}")) %>% 
-      select(-starts_with("region"))
+      mutate(year = params$eGRID_year,
+             across(.cols = starts_with("region_"), # replace region with specific region name
+                    .fns = ~ .x, 
+                    .names = "{str_replace(.col, 'region', {region})}")) %>% # set year as params$eGRID_year
+      select(as_tibble(final_vars)$value) # order final vars with snake_case_names
     
     
-    ## Export region aggregation file -----------
-    
-    if(dir.exists("data/outputs")) {
-      print("Folder output already exists.")
-    } else {
-      dir.create("data/outputs")
-    }
-    
-    if(dir.exists(glue::glue("data/outputs/{params$eGRID_year}"))) {
-      print("Folder output already exists.")
-    } else {
-      dir.create(glue::glue("data/outputs/{params$eGRID_year}"))
-    }
-    
-    print(glue::glue("Saving {region} aggregation file to folder data/outputs/{params$eGRID_year}"))
-    
-    write_rds(region_formatted, glue::glue("data/outputs/{params$eGRID_year}/{region}_aggregation.RDS"))
-    
-  }
+    ### Export region aggregation file -----------
+    save_output_data(region_formatted, "data/1_production_model/outputs", glue::glue("{region}_aggregation_{params$temporal_res}.RDS"))
+    return(region_formatted)
+   }  
   
 }
   

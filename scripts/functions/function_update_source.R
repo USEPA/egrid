@@ -31,8 +31,8 @@ update_source <- function(x, unit_f) {
   # update sources in unit file
   unit_source <- 
     unit_f %>% 
-    select(plant_id, !!x) %>% 
-    group_by(plant_id, !!x) %>% 
+    select(all_of(temporal_res_cols), plant_id, !!x) %>% 
+    group_by(pick(all_of(temporal_res_cols)), plant_id, !!x) %>% 
     filter(!is.na(!!x)) %>%
     mutate(source_update = case_when(!!x == "EIA Unit-level Data" ~ "EIA",
                                      !!x == "EIA Unit-Level Data" ~ "EIA",
@@ -45,7 +45,7 @@ update_source <- function(x, unit_f) {
   unit_source <- 
     unit_source %>% 
     ungroup() %>%
-    select(plant_id, source_update) %>%
+    select(all_of(temporal_res_cols), plant_id, source_update) %>%
     unique()
   
   # identify which plant_ids have multiple sources and pull their plant ID
@@ -57,7 +57,7 @@ update_source <- function(x, unit_f) {
     mutate(source_update = if_else(plant_id %in% ids, "EPA/CAPD; EIA", source_update)) %>% 
     unique() # take unique again to remove duplicates
   
-  colnames(unit_source) <- c("plant_id", str_col)
+  colnames(unit_source) <- c(temporal_res_cols, "plant_id", str_col)
   
   return(unique(unit_source))
 }

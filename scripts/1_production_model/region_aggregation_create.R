@@ -1,0 +1,61 @@
+## -------------------------------
+##
+## Create region aggregation files. 
+## Call function region_aggregation to create region aggregation files. 
+## 
+## Purpose: 
+## 
+## This file creates the state, balance authority, NERC, eGRID subregion, and US 
+## aggregation files for eGRID. 
+##
+## Authors:  
+##      Teagan Goforth, Abt Global
+##
+## -------------------------------
+
+# Load libraries --------
+
+library(dplyr)
+library(tidyr)
+library(readr)
+library(readxl)
+library(stringr)
+
+# Load necessary functions -----------------------
+
+source("scripts/functions/function_check_params.R")
+source("scripts/functions/function_temporal_res_cols.R")
+source("scripts/functions/function_region_aggregation.R")
+source("scripts/functions/function_save_output_data.R")
+
+# Check for params() --------
+if (!exists("params")) {
+  params <- check_params()
+} else {
+  print("eGRID year, temporal resolution, and version parameters are already defined.")
+}
+
+# Create temporal_res_cols --------------------
+temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
+
+# Load ordered names and abbreviations -------------
+# load in name matches for shorthand to snake_case
+source("scripts/1_production_model/name_matching.R")
+
+# Call aggregation function for each region ------------
+
+# state regional aggregation
+state_agg <- region_aggregation(region = "state", region_cols = c(state, fips_state_code))
+
+# balance authority regional aggregation
+ba_agg <- region_aggregation(region = "ba", region_cols = c(ba_name, ba_code))
+
+# NERC regional aggregation
+nerc_agg <- region_aggregation(region = "nerc", region_cols = c(nerc, nerc_name))
+
+# subgregion regional aggregation
+subregion_agg <- region_aggregation(region = "subregion", region_cols = c(subregion, subregion_name))
+
+# US aggregation
+us_agg <- region_aggregation(region = "us", region_cols = NA)
+
