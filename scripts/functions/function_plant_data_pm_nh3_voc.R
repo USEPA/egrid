@@ -39,7 +39,7 @@ plant_data_pm_nh3_voc <- function(emission_type){
   require(readxl)
   
   # Load functions ------
-  source("scripts/functions/function_download_historical_egrid_pm_nh3_voc.R")
+  source("scripts/functions/function_download_historic_egrid.R")
   
   # Set emission type label for data columns ----
   if (emission_type == "pm") {
@@ -54,7 +54,9 @@ plant_data_pm_nh3_voc <- function(emission_type){
     # set url to download eGRID data if not available
     egrid_url <- "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx"
     # download eGRID data if doesn't already exist
-    egrid_historic_path <- download_egrid_historic(params$eGRID_year, egrid_url)
+    
+    egrid_historic_path <- download_historic_egrid(params$eGRID_year, glue::glue("data/2a_pm_nh3_voc/inputs/egrid_historic/{params$eGRID_year}/"))
+    # egrid_historic_path <- download_historic_egrid(params$eGRID_year, egrid_url)
     
     # load eGRID plant data
     plant_file_raw <- read_excel(egrid_historic_path,
