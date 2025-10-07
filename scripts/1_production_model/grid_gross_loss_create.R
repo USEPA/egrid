@@ -56,13 +56,21 @@ eia_923_generation_and_fuel <- eia_923$generation_and_fuel_data
 # load necessary function
 source("scripts/functions/function_download_eia_ggl.R") 
 
-# downloads and/or aggregates data needed for GGL calculations
-download_eia_ggl(params$eGRID_year)
+# downloads and aggregates data needed for GGL calculations
+ggl_file <- glue::glue("data/1_production_model/clean_data/eia_ggl/ggl_{params$eGRID_year}.xlsx") # data file name
+try(download_eia_ggl(params$eGRID_year)) # try function to download
+
+# if data is not available, try next most recent year 
+if (!file.exists(ggl_file)) {
+  prev_year <- as.numeric(params$eGRID_year) - 1
+  download_eia_ggl(prev_year)
+  ggl_file <- glue::glue("data/1_production_model/clean_data/eia_ggl/ggl_{prev_year}.xlsx")
+}
 
 ### Load in datasets ----
 
 # ggl_r = Table 10: State supply and disposition data (from EIA website) compiled into a summary sheet
-ggl_r <- read_xlsx(glue::glue("data/1_production_model/clean_data/eia_ggl/ggl_{params$eGRID_year}.xlsx")) 
+ggl_r <- read_xlsx(ggl_file) 
 
 # state_and_interconnection = states and their interconnections
 state_interconnect <- read_csv("data/1_production_model/static_tables/state_and_interconnection.csv")
