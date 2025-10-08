@@ -51,12 +51,10 @@ plant_data_pm_nh3_voc <- function(emission_type){
   # Load necessary data --------------------
   ## eGRID production model data - plant file (2022)
   if(params$eGRID_year == "2022") {
-    # set url to download eGRID data if not available
-    egrid_url <- "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx"
-    # download eGRID data if doesn't already exist
     
-    egrid_historic_path <- download_historic_egrid(params$eGRID_year, glue::glue("data/2a_pm_nh3_voc/inputs/egrid_historic/{params$eGRID_year}/"))
-    # egrid_historic_path <- download_historic_egrid(params$eGRID_year, egrid_url)
+    # download eGRID data if doesn't already exist
+    egrid_historic_path <- download_historic_egrid(params$eGRID_year, 
+                                                   glue::glue("data/2a_pm_nh3_voc/inputs/egrid_historic/{params$eGRID_year}/"))
     
     # load eGRID plant data
     plant_file_raw <- read_excel(egrid_historic_path,
