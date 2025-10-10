@@ -8256,7 +8256,7 @@ knitr::kable(state_fuel_zscore %>%
 ```
 :::
 
-# Subrgion Nonbaseload QA
+# Subregion Nonbaseload QA
 
 ## Outlier check for nonbaseload emisisons
 
@@ -8430,6 +8430,184 @@ knitr::kable(subregion_nonbaseload_zscore %>%
 knitr::kable(subregion_nonbaseload_zscore %>%
                filter(co2e_nonbaseload_output_zscore > 3 | co2e_nonbaseload_output_zscore < -3) %>%
                select(subregion, subregion_co2e_output_rate_nonbaseload, co2e_nonbaseload_output_zscore) %>%
+               arrange(desc(co2e_nonbaseload_output_zscore)))
+
+```
+
+# BA Nonbaseload QA
+
+## Outlier check for nonbaseload emisisons
+
+```{r}
+#| label: calculate-ba-nonbaseload-outliers
+
+plant_stats_summary <-
+  plant_stats %>%
+  select(contains("average"), contains("sd")) %>% distinct()
+
+ba_stats <- 
+  ba_agg %>% 
+  mutate(across(.cols = contains("rate") & where(is.numeric), 
+                .fns = ~ mean(.x, na.rm = TRUE), 
+                .names =  "{.col}_average"), 
+         across(.cols = c(contains("rate") & where(is.numeric),
+                          -contains("average") & where(is.numeric)), 
+                .fns = ~ sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_sd")) %>% 
+  select(contains("average") & where(is.numeric), 
+         contains("sd") & where(is.numeric)) %>% distinct()
+
+ba_stats_summary <- bind_cols(plant_stats_summary, ba_stats) 
+
+if (params$temporal_res == "annual") { 
+  
+  ba_nonbaseload_zscore <- 
+    ba_agg %>% 
+    mutate(nox_nonbaseload_output_zscore = (ba_nox_output_rate_nonbaseload -
+                                              ba_stats_summary$ba_nox_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_nox_output_rate_nonbaseload_sd,
+           
+           nox_oz_nonbaseload_output_zscore = (ba_nox_output_rate_nonbaseload - 
+                                                 ba_stats_summary$ba_nox_oz_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_nox_oz_output_rate_nonbaseload_sd,
+           
+           so2_nonbaseload_output_zscore = (ba_so2_output_rate_nonbaseload -
+                                              ba_stats_summary$ba_so2_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_so2_output_rate_nonbaseload_sd,
+           
+           co2_nonbaseload_output_zscore = (ba_co2_output_rate_nonbaseload -
+                                              ba_stats_summary$ba_co2_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_co2_output_rate_nonbaseload_sd,
+           
+           ch4_nonbaseload_output_zscore = (ba_ch4_output_rate_nonbaseload -
+                                              ba_stats_summary$ba_ch4_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_ch4_output_rate_nonbaseload_sd,
+           
+           n2o_nonbaseload_output_zscore = (ba_n2o_output_rate_nonbaseload -
+                                              ba_stats_summary$ba_n2o_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_n2o_output_rate_nonbaseload_sd,
+           
+           co2e_nonbaseload_output_zscore = (ba_co2e_output_rate_nonbaseload -
+                                               ba_stats_summary$ba_co2e_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_co2e_output_rate_nonbaseload_sd) %>%
+    select(ba_code, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+} else { 
+  ba_nonbaseload_zscore <- 
+    subrgn_agg %>% 
+    mutate(nox_nonbaseload_output_zscore = (ba_nox_output_rate_nonbaseload -
+                                              ba_stats_summary$ba_nox_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_nox_output_rate_nonbaseload_sd,
+           
+           nox_oz_nonbaseload_output_zscore = (ba_nox_output_rate_nonbaseload - 
+                                                 ba_stats_summary$ba_nox_oz_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_nox_oz_output_rate_nonbaseload_sd,
+           
+           so2_nonbaseload_output_zscore = (ba_so2_output_rate_nonbaseload -
+                                              ba_stats_summary$ba_so2_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_so2_output_rate_nonbaseload_sd,
+           
+           co2_nonbaseload_output_zscore = (ba_co2_output_rate_nonbaseload -
+                                              ba_stats_summary$ba_co2_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_co2_output_rate_nonbaseload_sd,
+           
+           ch4_nonbaseload_output_zscore = (ba_ch4_output_rate_nonbaseload -
+                                              ba_stats_summary$ba_ch4_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_ch4_output_rate_nonbaseload_sd,
+           
+           n2o_nonbaseload_output_zscore = (ba_n2o_output_rate_nonbaseload -
+                                              ba_stats_summary$ba_n2o_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_n2o_output_rate_nonbaseload_sd,
+           
+           co2e_nonbaseload_output_zscore = (ba_co2e_output_rate_nonbaseload -
+                                               ba_stats_summary$ba_co2e_output_rate_nonbaseload_average)/
+             ba_stats_summary$ba_co2e_output_rate_nonbaseload_sd) %>%
+    select(ba_code, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))}
+
+```
+
+### Nonbaseload output rates
+
+::: panel-tabset
+#### NOx output rate
+
+```{r}
+#| label: ba-nox-nonbaseload-outlier    
+
+knitr::kable(ba_nonbaseload_zscore %>%
+               filter(nox_nonbaseload_output_zscore > 3 | nox_nonbaseload_output_zscore < -3) %>%
+               select(ba_code, ba_nox_output_rate_nonbaseload, nox_nonbaseload_output_zscore) %>%
+               arrange(desc(nox_nonbaseload_output_zscore)))
+
+```
+
+#### NOx ozone output rate
+
+```{r}
+#| label: ba-nox_oz-nonbaseload-outlier    
+
+knitr::kable(ba_nonbaseload_zscore %>%
+               filter(nox_oz_nonbaseload_output_zscore > 3 | nox_oz_nonbaseload_output_zscore < -3) %>%
+               select(ba_code, ba_nox_oz_output_rate_nonbaseload, nox_oz_nonbaseload_output_zscore) %>%
+               arrange(desc(nox_oz_nonbaseload_output_zscore)))
+
+```
+
+#### SO2 output rate
+
+```{r}
+#| label: ba-so2-nonbaseload-outlier    
+
+knitr::kable(ba_nonbaseload_zscore %>%
+               filter(so2_nonbaseload_output_zscore > 3 | so2_nonbaseload_output_zscore < -3) %>%
+               select(ba_code, ba_so2_output_rate_nonbaseload, so2_nonbaseload_output_zscore) %>%
+               arrange(desc(so2_nonbaseload_output_zscore)))
+
+```
+
+#### CO2 output rate
+
+```{r}
+#| label: ba-co2-nonbaseload-outlier    
+
+knitr::kable(ba_nonbaseload_zscore %>%
+               filter(co2_nonbaseload_output_zscore > 3 | co2_nonbaseload_output_zscore < -3) %>%
+               select(ba_code, ba_co2_output_rate_nonbaseload, co2_nonbaseload_output_zscore) %>%
+               arrange(desc(co2_nonbaseload_output_zscore)))
+
+```
+
+#### CH4 output rate
+
+```{r}
+#| label: ba-ch4-nonbaseload-outlier    
+
+knitr::kable(ba_nonbaseload_zscore %>%
+               filter(ch4_nonbaseload_output_zscore > 3 | ch4_nonbaseload_output_zscore < -3) %>%
+               select(ba_code, ba_ch4_output_rate_nonbaseload, ch4_nonbaseload_output_zscore) %>%
+               arrange(desc(ch4_nonbaseload_output_zscore)))
+
+```
+
+#### N2O output rate
+
+```{r}
+#| label: ba-n2o-nonbaseload-outlier    
+
+knitr::kable(ba_nonbaseload_zscore %>%
+               filter(n2o_nonbaseload_output_zscore > 3 | n2o_nonbaseload_output_zscore < -3) %>%
+               select(ba_code, ba_n2o_output_rate_nonbaseload, n2o_nonbaseload_output_zscore) %>%
+               arrange(desc(n2o_nonbaseload_output_zscore)))
+
+```
+
+#### CO2e output rate
+
+```{r}
+#| label: ba-co2e-nonbaseload-outlier    
+
+knitr::kable(ba_nonbaseload_zscore %>%
+               filter(co2e_nonbaseload_output_zscore > 3 | co2e_nonbaseload_output_zscore < -3) %>%
+               select(ba_code, ba_co2e_output_rate_nonbaseload, co2e_nonbaseload_output_zscore) %>%
                arrange(desc(co2e_nonbaseload_output_zscore)))
 
 ```
