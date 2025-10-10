@@ -121,12 +121,6 @@ xwalk_missing_utilityid <-
            col_types = "cccc") %>%
   janitor::clean_names()
 
-# Manual subregion updates
-utility_subregion_manual_updates <-
-  read_csv(glue::glue("data/2b_power_profiler/inputs/{params$eGRID_year}/access/manual_updates_utility_subregion.csv"),
-           col_types = "ccc") %>%
-  janitor::clean_names()
-
 # Manual predominant utility updates
 predominant_utility_manual_updates <-
   read_csv(glue::glue("data/2b_power_profiler/inputs/{params$eGRID_year}/access/manual_updates_predominant_utility.csv"),
@@ -134,12 +128,6 @@ predominant_utility_manual_updates <-
   janitor::clean_names() %>%
   select(zip, first_ofeiaid) %>%
   mutate(predominant_utility = "0")
-
-# Manual primary subregion updates
-primary_subregion_manual_updates <-
-  read_csv(glue::glue("data/2b_power_profiler/inputs/{params$eGRID_year}/access/manual_updates_primary_subregion.csv"),
-           col_types = "ccc") %>%
-  janitor::clean_names()
 
 # Create zipcode dataset ------
 
@@ -351,13 +339,21 @@ zip_utility_subregion_10 <- #16
 
 ### Old power profiler updates --------
 
-#' THIS STEP NEEDS TO BE UPDATED ##
-zip_utility_subregion_11 <- #42
+# exclude the following eiaids from overriding
+different_eiaids <- c("11292", "16196", "17585", "17683", "19579")
+#
+# override subregion assignments from old power profiler
+zip_utility_subregion_11 <- #42 - updated
   zip_utility_subregion_10 %>%
-  left_join(utility_subregion_manual_updates, by = c("state", "eiaid" = "utility_id")) %>%
-  mutate(method = if_else(!is.na(subregion.y), "manual override", method),
-         subregion = if_else(!is.na(subregion.y), subregion.y, subregion.x)) %>%
-  select(-contains("."))
+  left_join(power_profiler_old %>%
+              filter(!eiaid %in% different_eiaids) %>%
+              select(zip, eiaid, subregion),
+            by = c("zip", "eiaid")) %>%
+  mutate(method = if_else(!is.na(subregion.y), "from old power profiler", method),
+         subregion = if_else(!is.na(subregion.x) & !is.na(subregion.y), subregion.y, subregion.x)) %>%
+  select(-contains(".")) %>%
+  glimpse()
+
 
 # Update Predominant Utilities-----
 
@@ -453,6 +449,8 @@ zip_utility_subregion_17 <- #59
 
 # Create Subregion Assignments Data -----
 
+# Create Subregion Assignments Data -----
+
 ### Primary subregion for zips assigned as predominant utility -----
 subregions_primary <- #53
   zip_utility_subregion_17 %>%
@@ -480,12 +478,12 @@ zip_primary_subregion_1 <- #57
   select(-contains("."))
 
 ### Old power profiler updates ----
-## THIS STEP NEEDS TO BE UPDATED ##
 zip_primary_subregion_2 <- #60
   zip_primary_subregion_1 %>%
-  left_join(primary_subregion_manual_updates, by = "zip") %>%
-  mutate(subregion = if_else(!is.na(change), change, subregion)) %>%
-  select(-current, -change) %>% distinct()
+  left_join(power_profiler_old_primary_subregion %>%
+              filter(subregion_1 != "MROE"), by = "zip") %>%
+  mutate(subregion = if_else(!is.na(subregion_1), subregion_1, subregion)) %>%
+  select(-contains("_")) %>% distinct()
 
 ### Fill missing subregions with those from old profiler -----
 
@@ -547,7 +545,7 @@ zip_subregion_assignments <- #64
 
 # reset predominant utility assignments
 zip_website_1 <- #65
-  zip_utility_subregion_17 %>%
+  zip_utility_subregion_18 %>%
   # account for capitalization and dashes when alphabetizing
   mutate(utility_name_clean = tolower(str_replace_all(utility_name, "-", "")),
          predominant_utility = "0") %>%
@@ -598,5 +596,5 @@ zip_subregion_assignments_final <-
 # Export data -----
 source("scripts/functions/function_save_output_data.R")
 output_folder <- "2b_power_profiler"
-save_output_data(zip_utility_subregion_final, output_folder, "zip_utility_subregion.RDS")
-save_output_data(zip_subregion_assignments_final, output_folder, "zip_subregion_assignments.RDS")
+save_output_data(zip_utility_subregion_final, output_folder, "zip_utility_subregion_new.RDS")
+save_output_data(zip_subregion_assignments_final, output_folder, "zip_subregion_assignments_new.RDS")
