@@ -15,7 +15,7 @@
 ##
 ## -------------------------------
 
-### Load libraries ------
+# Load libraries ----------------------------------
 
 library(dplyr)
 library(tidyr)
@@ -24,45 +24,45 @@ library(readxl)
 library(stringr)
 library(openxlsx)
 
-### Load in data ------ 
+# Load necessary functions
+source("scripts/functions/function_check_params.R")
 
-# check if parameters for eGRID data year need to be defined
-# this is only necessary when running the script outside of egrid_master.qmd
-# user will be prompted to input eGRID year in the console if params does not exist
-
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params) & "version" %in% names(params)) { # if params() and params$eGRID_year, params$version exist, do not re-define
-    print("eGRID year and version parameters are already defined.") 
-  } else { # if params() is defined, but eGRID_year is not, define it here 
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year) 
-    params$version <- readline(prompt = "Input version (format X.X.X): ")
-    params$version <- as.character(params$version) 
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
-  params$version <- readline(prompt = "Input version (format X.X.X): ")
-  params$version <- as.character(params$version) 
+# Create and check parameters 
+if (!exists("params")) {
+  params <- check_params()
+} else {
+  print("eGRID year and temporal resolution parameters are already defined.")
 }
 
+if (exists("params")){
+  if ("version" %in% names(params)) { # if params(), params$eGRID_year, and params$temporal_res exist, do not re-define
+    print("eGRID version parameter is already defined.")
+  } else {
+    params$version <- readline(prompt = "Input eGRID version: ")
+    params$version <- as.character(params$version)
+  }
+}
+
+
+# Load in data ------------------------------
 
 # load files
-unt_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/unit_file.RDS"))
-gen_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/generator_file.RDS"))
-plnt_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/plant_file.RDS"))
-st_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/state_aggregation.RDS"))
-ba_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/ba_aggregation.RDS"))
-srl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/subregion_aggregation.RDS"))
-nrl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/nerc_aggregation.RDS"))
-us_file    <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/us_aggregation.RDS"))
-ggl_file   <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+unt_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/unit_file_annual.RDS"))
+gen_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/generator_file_annual.RDS"))
+plnt_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/plant_file_annual.RDS"))
+st_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/state_aggregation_annual.RDS"))
+ba_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/ba_aggregation_annual.RDS"))
+srl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/subregion_aggregation_annual.RDS"))
+nrl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/nerc_aggregation_annual.RDS"))
+us_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/us_aggregation_annual.RDS"))
+ggl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
-  demo_file  <- read_rds(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
+  demo_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))
 }
 
+# load in name_matching.R
+source("scripts/1_production_model/name_matching.R")
 
 # extract last two digits of year for universal labeling
 year <- as.numeric(params$eGRID_year) %% 1000
@@ -70,28 +70,29 @@ year <- as.numeric(params$eGRID_year) %% 1000
 # set up output file
 ### Note: check for updates or changes each data year ###
 wb <- createWorkbook()
+
 source("scripts/functions/function_create_contents_egrid_final.R")
 create_contents_egrid_final()
 
-
-### Create styles ------
+# Create styles ------------------------------
 
 # call helper functions into script
 source("scripts/functions/function_format_styles.R")
-source("scripts/functions/function_format_region.R")
+source("scripts/functions/function_final_formatting.R")
 source("scripts/functions/function_add_hyperlink.R")
+source("scripts/functions/function_create_style_maps.R")
 
 # create eGRID output style list using function
 s <- create_format_styles()
 
-### Standard Column Names -----
+# Standard Column Names -----------------------------
 # names for data sets: ST, BA, SRL, NRL, US
 # data for region aggregated files contain same columns and information
 # therefore, can assign a standardized list of columns, names, and styles
 
 standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",	
                      "HTIAN"    = "annual heat input from combustion (MMBtu)",	
-                     "HTIOZ"    = "annual heat input from combustion (MMBtu)",	
+                     "HTIOZ"    = "ozone season heat input from combustion (MMBtu)",	
                      "HTIANT"   = "total annual heat input (MMBtu)",
                      "HTIOZT"   = "total ozone season heat input (MMBtu)",	
                      "NGENAN"   = "annual net generation (MWh)",	
@@ -128,7 +129,7 @@ standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
                      "CH4CRT"   = "annual CH4 combustion output emission rate (lb/MWh)",	
                      "N2OCRT"   = "annual N2O combustion output emission rate (lb/MWh)",	
                      "C2ECRT"   = "annual CO2 equivalent combustion output emission rate (lb/MWh)",
-                     "HGCRT"    = "Hg combustion output emission rate (lb/MWh)",	
+                     "HGCRT"    = "annual Hg combustion output emission rate (lb/MWh)",	
                      "CNOXRT"   = "annual NOx coal output emission rate (lb/MWh)",	
                      "ONOXRT"   = "annual NOx oil output emission rate (lb/MWh)",	
                      "GNOXRT"   = "annual NOx gas output emission rate (lb/MWh)",	
@@ -260,8 +261,7 @@ standard_labels <- c("NAMEPCAP" = "nameplate capacity (MW)",
 standard_header <- names(standard_labels)  # column names
 standard_desc   <- unname(standard_labels) # description of column names
 
-
-### UNT Formatting -----
+# UNT Formatting --------------------------------
 
 ## create "UNT" sheet
 unt <- glue::glue("UNT{year}")
@@ -288,7 +288,7 @@ unt_labels <-  c(sequnt_label,
                  "UNITID"   = "Unit ID",
                  "PRMVR"    = "Prime Mover",
                  "UNTOPST"  = "Unit Operational Status",
-                 "CAMDFLAG" = "CAMD program flag",
+                 "CAPDFLAG" = "CAPD program flag",
                  "PRGCODE"  = "Program code(s)",
                  "BOTFIRTY" = "Unit bottom and firing type",
                  "NUMGEN"   = "Number of associated generators",
@@ -317,8 +317,13 @@ unt_labels <-  c(sequnt_label,
 unt_header <- names(unt_labels)  # column names
 unt_desc   <- unname(unt_labels) # description of column names
 
+# check if shorthand names match name_matching.R and stop if not. 
+# skip SEQUNT since this will always be different
+check_var_names("unit", unt_header[-1], unit_nonmetric_annual[-1], "annual")
+
 # add new column names
-colnames(unt_file) <- unt_header
+unit_nonmetric_annual <- modify_style_name(unit_nonmetric_annual, "SEQUNT", names(sequnt_label))
+unt_file <- rename_variables(unt_file, unit_nonmetric_annual)
 
 ## write data
 # write data for first row only
@@ -335,15 +340,12 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-# add description styles
-addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 1:14,  gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['color2_desc']], rows = 1, cols = 15:28, gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['desc_style']],  rows = 1, cols = 29:33, gridExpand = TRUE)
-
-# add header style
-addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 1:14,  gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['color2_header']], rows = 2, cols = 15:28, gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['header_style']],  rows = 2, cols = 29:33, gridExpand = TRUE)
+format_sheet(
+             df_ann = unt_file,
+             file_name = "UNT",
+             temporal_res = params$temporal_res,
+             default_style_map = unt_style_map,
+             text_style_map = unt_text_style_map)
 
 # set column widths
 setColWidths(wb, sheet = unt, cols = 1,     widths = 12.43)
@@ -356,19 +358,10 @@ setColWidths(wb, sheet = unt, cols = 11:33, widths = 12.43)
 # set row heights
 setRowHeights(wb, sheet = unt, row = 1, heights = 60.75)
 
-# add number styles
-addStyle(wb, sheet = unt, style = s[['integer']],  rows = 3:unt_rows, cols = 15:16, gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['decimal2']], rows = 3:unt_rows, cols = 14,    gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['decimal2']], rows = 3:unt_rows, cols = 17:21, gridExpand = TRUE)
-
-# add text styles
-addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 1:13,  gridExpand = TRUE)
-addStyle(wb, sheet = unt, style = s[['basic']], rows = 3:unt_rows, cols = 22:33, gridExpand = TRUE)
-
 # freeze panes
 freezePane(wb, sheet = unt, firstActiveCol = 7, firstActiveRow = 3)
 
-### GEN Formatting -----
+# GEN Formatting --------------------------------------
 
 ## create "GEN" sheet
 gen <- glue::glue("GEN{year}")
@@ -391,7 +384,7 @@ gen_rows <- nrow(gen_file) + 2
 ## column names and descriptions
 gen_labels <- c(seqgen_label,
                 "YEAR"      = "Data Year",
-                "PSTATEABB" = "Plant state abbreviation", 
+                "PSTATABB"  = "Plant state abbreviation", 
                 "PNAME"     = "Plant name",
                 "ORISPL"    = "DOE/EIA ORIS plant or facility code",
                 "GENID"     = "Generator ID",
@@ -407,11 +400,16 @@ gen_labels <- c(seqgen_label,
                 "GENYRONL"  = "Generator year on-line",
                 "GENYRRET"  = "Generator planned or actual retirement year")
 
+
 gen_header <- names(gen_labels)  # column names
 gen_desc   <- unname(gen_labels) # description of column names
 
-# add new column names
-colnames(gen_file) <- gen_header
+# check if shorthand names match name_matching.R and stop if not. 
+# skip SEQGEN since this will always be different
+check_var_names("generator", colnames(gen_file)[-1], generator_nonmetric_annual[-1], "annual")
+
+generator_nonmetric_annual <- modify_style_name(generator_nonmetric_annual, "SEQGEN", names(seqgen_label))
+gen_file <- rename_variables(gen_file, generator_nonmetric_annual) # add new column names
 
 ## write data
 # write data for first row only
@@ -428,15 +426,12 @@ writeData(wb,
           startRow = 2)
 
 ## add styles
-# add description styles
-addStyle(wb, sheet = gen, style = s[['desc_style']],  rows = 1, cols = 1:12,  gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = s[['color1_desc']], rows = 1, cols = 13:14, gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = s[['desc_style']],  rows = 1, cols = 15:17, gridExpand = TRUE)
+format_sheet(df_ann = gen_file,
+            file_name = "GEN",
+            temporal_res = params$temporal_res,
+            default_style_map = gen_style_map,
+            text_style_map = gen_text_style_map)
 
-# add header style
-addStyle(wb, sheet = gen, style = s[['header_style']],  rows = 2, cols = 1:12,  gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = s[['color1_header']], rows = 2, cols = 13:14, gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = s[['header_style']],  rows = 2, cols = 15:17, gridExpand = TRUE)
 
 # set column widths
 setColWidths(wb, sheet = gen, cols = 1,     widths = 12.57)
@@ -453,21 +448,10 @@ setColWidths(wb, sheet = gen, cols = 17,    widths = 15.14)
 # set row heights
 setRowHeights(wb, sheet = gen, row = 1, heights = 60.75)
 
-# add number styles
-addStyle(wb, sheet = gen, style = s[['integer']],  rows = 3:gen_rows, cols = 7,     gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = s[['decimal2']], rows = 3:gen_rows, cols = 11,    gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = s[['decimal3']], rows = 3:gen_rows, cols = 12,    gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = s[['integer2']], rows = 3:gen_rows, cols = 13:14, gridExpand = TRUE)
-
-# add text style
-addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 1:6,     gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 6:10,    gridExpand = TRUE)
-addStyle(wb, sheet = gen, style = s[['basic']], rows = 3:gen_rows, cols = 14:17,   gridExpand = TRUE)
-
 # freeze panes
 freezePane(wb, sheet = gen, firstActiveCol = 7, firstActiveRow = 3)
 
-### PLNT Formatting -----
+# PLNT Formatting ------------------------------
 
 ## create "PLNT" sheet
 plnt <- glue::glue("PLNT{year}")
@@ -509,7 +493,7 @@ plnt_labels <- c(seqplt_label,
                  "CNTYNAME"  = "Plant county name",
                  "LAT"       = "Plant latitude",
                  "LON"       = "Plant longitude",
-                 "CAMDFLAG"  = "CAMD Program Flag",
+                 "CAPDFLAG"  = "CAPD Program Flag",
                  "NUMUNT"    = "Number of units",
                  "NUMGEN"    = "Number of generators",
                  "PLPRMFL"   = "Plant primary fuel",
@@ -642,8 +626,15 @@ plnt_labels <- c(seqplt_label,
 plnt_header <- names(plnt_labels)  # column names
 plnt_desc   <- unname(plnt_labels) # description of column names
 
+# check if shorthand names match name_matching.R and stop if not. 
+# skip SEQPLT since this will always be different
+check_var_names("plant", plnt_header[-1], plant_nonmetric_annual[-1], "annual")
+
+plant_nonmetric_annual <- modify_style_name(plant_nonmetric_annual, "SEQPLT", names(seqplt_label))
+plnt_file <- rename_variables(plnt_file, plant_nonmetric_annual)
+
 # add new column names                 
-colnames(plnt_file) <- plnt_header
+# colnames(plnt_file) <- plnt_header
 
 ## write data
 # write data for first row only
@@ -660,41 +651,11 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-# add description styles
-addStyle(wb, sheet = plnt, style = s[['desc_style']],     rows = 1, cols = 1:36,    gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color1_desc']],    rows = 1, cols = 37:51,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color4_desc']],    rows = 1, cols = 52:59,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color5_desc']],    rows = 1, cols = 60:67,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color6_desc']],    rows = 1, cols = 68:75,   gridExpand = TRUE) 
-addStyle(wb, sheet = plnt, style = s[['color2_desc']],    rows = 1, cols = 76:97,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color3_desc']],    rows = 1, cols = 98:113,  gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['desc_style']],     rows = 1, cols = 114,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color7_desc']],    rows = 1, cols = 115:125, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color8_desc']],    rows = 1, cols = 126:128, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9_desc']],    rows = 1, cols = 129,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9v2_desc']],  rows = 1, cols = 130:132, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color10_desc']],   rows = 1, cols = 133:143, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color11_desc']],   rows = 1, cols = 144:146, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12_desc']],   rows = 1, cols = 147,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12v2_desc']], rows = 1, cols = 148:150, gridExpand = TRUE)
-
-# add header styles
-addStyle(wb, sheet = plnt, style = s[['header_style']],     rows = 2, cols = 1:36,    gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color1_header']],    rows = 2, cols = 37:51,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color4_header']],    rows = 2, cols = 52:59,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color5_header']],    rows = 2, cols = 60:67,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color6_header']],    rows = 2, cols = 68:75,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color2_header']],    rows = 2, cols = 76:97,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color3_header']],    rows = 2, cols = 98:113,  gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['header_style']],     rows = 2, cols = 114,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color7_header']],    rows = 2, cols = 115:125, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color8_header']],    rows = 2, cols = 126:128, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9_header']],    rows = 2, cols = 129,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color9v2_header']],  rows = 2, cols = 130:132, gridExpand = TRUE) 
-addStyle(wb, sheet = plnt, style = s[['color10_header']],   rows = 2, cols = 133:143, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color11_header']],   rows = 2, cols = 144:146, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12_header']],   rows = 2, cols = 147,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['color12v2_header']], rows = 2, cols = 148:150, gridExpand = TRUE)
+format_sheet(df_ann = plnt_file,
+             file_name = "PLNT",
+             temporal_res = params$temporal_res,
+             default_style_map = plnt_style_map,
+             text_style_map = plnt_text_style_map)
 
 # set column widths
 setColWidths(wb, sheet = plnt, cols = 1:2,     widths = 12.71)
@@ -749,32 +710,10 @@ setColWidths(wb, sheet = plnt, cols = 150,     widths = 16.29)
 # set row heights
 setRowHeights(wb, sheet = plnt, row = 1, heights = 67.5)
 
-# add number styles
-addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 23:24,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['decimal4']], rows = 3:plnt_rows, cols = 28,      gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['decimal2']], rows = 3:plnt_rows, cols = 29,      gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['decimal4']], rows = 3:plnt_rows, cols = 30,      gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 33:34,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['decimal4']], rows = 3:plnt_rows, cols = 35,      gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['integer2']], rows = 3:plnt_rows, cols = 37:50,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['decimal1']], rows = 3:plnt_rows, cols = 51:74,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 75:85,   gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['integer']],  rows = 3:plnt_rows, cols = 95:108,  gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['decimal3']], rows = 3:plnt_rows, cols = 109,     gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['integer2']], rows = 3:plnt_rows, cols = 110:132, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['percent']],  rows = 3:plnt_rows, cols = 133:150, gridExpand = TRUE)
-
-# add text styles
-addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 1:22,  gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 25:27, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 31:32, gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 36,    gridExpand = TRUE)
-addStyle(wb, sheet = plnt, style = s[['basic']], rows = 3:plnt_rows, cols = 86:94, gridExpand = TRUE)
-
 # freeze panes
 freezePane(wb, sheet = plnt, firstActiveCol = 6, firstActiveRow = 3)
 
-### ST Formatting -----
+# ST Formatting --------------------------------------
 
 ## create "ST" sheet
 st <- glue::glue("ST{year}")
@@ -795,14 +734,18 @@ st_header <- c("YEAR",
                "FIPSST",
                paste0("ST", standard_header))
 
+# check if shorthand names match name_matching.R and stop if not. 
+check_var_names("state", st_header, state_nonmetric_annual, "annual")
+
+# add new column names
+st_file <- rename_variables(st_file, state_nonmetric_annual)
+
 # description of column names
 st_desc <- c("Data Year",
              "State abbreviation",
              "FIPS State code",
              paste0("State ", standard_desc))
 
-# add new column names
-colnames(st_file) <- st_header
 
 ## write data
 # write data for first row only
@@ -819,10 +762,15 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region(st, st_rows)
+format_sheet(df_ann = st_file,
+             file_name = "ST",
+             temporal_res = params$temporal_res,
+             default_style_map = region_style_map,
+             text_style_map = region_text_style_map)
 
+format_region(st)
 
-### BA Formatting -----
+# BA Formatting ----------------------------------
 
 ## create "BA" sheet
 ba <- glue::glue("BA{year}")
@@ -844,14 +792,19 @@ ba_header <- c("YEAR",
                "BACODE",
                paste0("BA", standard_header))
 
+# check if shorthand names match name_matching.R and stop if not. 
+check_var_names("balancing authority", ba_header, ba_nonmetric_annual, "annual")
+
+# add new column names
+ba_file <- rename_variables(ba_file, ba_nonmetric_annual)
+
 # description of column names
 ba_desc <- c("Data Year",
              "Balancing Authority Name",
              "Balancing Authority Code",
              paste0("BA ", standard_desc))
 
-# add new column names
-colnames(ba_file) <- ba_header
+
 
 ## write data
 # write data for first row only
@@ -868,12 +821,17 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region(ba, ba_rows)
+format_sheet(df_ann = ba_file,
+             file_name = "BA",
+             temporal_res = params$temporal_res,
+             default_style_map = region_style_map,
+             text_style_map = region_text_style_map)
 
+format_region(ba)
 setColWidths(wb, sheet = ba, cols = 2, widths = 75.55)
 
 
-### SRL Formatting -----
+# SRL Formatting -----------------------------------------
 
 ## create "SRL" sheet
 srl <- glue::glue("SRL{year}")
@@ -893,6 +851,11 @@ srl_header <- c("YEAR",
                "SUBRGN",	
                "SRNAME",
                paste0("SR", standard_header))
+
+# check if shorthand names match name_matching.R and stop if not. 
+check_var_names("subregion", srl_header, subregion_nonmetric_annual, "annual")
+
+srl_file <- rename_variables(srl_file, subregion_nonmetric_annual)
 
 # description of column names
 srl_desc <- c("Data Year",
@@ -918,12 +881,17 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region(srl, srl_rows)
+format_sheet(df_ann = srl_file,
+             file_name = "SR",
+             temporal_res = params$temporal_res,
+             default_style_map = region_style_map,
+             text_style_map = region_text_style_map)
 
+format_region(srl)
 setColWidths(wb, sheet = srl, cols = 3, widths = 18.45)
 
 
-### NRL Formatting -----
+# NRL Formatting ----------------------------------------
 
 ## create "NRL" sheet
 nrl <- glue::glue("NRL{year}")
@@ -943,6 +911,11 @@ nrl_header <- c("YEAR",
                 "NERC",	
                 "NERCNAME",
                 paste0("NR", standard_header))
+
+# check if shorthand names match name_matching.R and stop if not.
+check_var_names("NERC region", nrl_header, nerc_nonmetric_annual, "annual")
+
+nrl_file <- rename_variables(nrl_file, nerc_nonmetric_annual)
 
 # description of column names
 nrl_desc <- c("Data Year",
@@ -968,12 +941,17 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region(nrl, nrl_rows)
+format_sheet(df_ann = nrl_file,
+             file_name = "NR",
+             temporal_res = params$temporal_res,
+             default_style_map = region_style_map,
+             text_style_map = region_text_style_map)
 
+format_region(nrl)
 setColWidths(wb, sheet = nrl, cols = 3, widths = 29.45)
 
 
-### US Formatting -----
+# US Formatting ---------------------------------------
 
 ## create "US" sheet
 us <- glue::glue("US{year}")
@@ -992,12 +970,15 @@ us_rows <- nrow(us_file) + 2
 us_header <- c("YEAR",
                paste0("US", standard_header))
 
+# check if shorthand names match name_matching.R and stop if not. 
+check_var_names("U.S.", us_header, us_nonmetric_annual, "annual")
+
+# add new column names
+us_file <- rename_variables(us_file, us_nonmetric_annual)
+
 # description of column names
 us_desc <- c("Data Year",
               paste0("U.S. ", standard_desc))
-
-# add new column names
-colnames(us_file) <- us_header
 
 ## write data
 # write data for first row only
@@ -1014,9 +995,15 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-format_region(us, us_rows)
+format_sheet(df_ann = us_file,
+             file_name = "US",
+             temporal_res = params$temporal_res,
+             default_style_map = region_style_map,
+             text_style_map = region_text_style_map)
 
-### GGL Formatting -----
+format_region(us)
+
+# GGL Formatting --------------------------------------------
 
 ## create "GGL" sheet
 ggl <- glue::glue("GGL{year}")
@@ -1024,7 +1011,7 @@ addWorksheet(wb, ggl)
 
 # convert year to numeric value
 ggl_file <- ggl_file %>%
-            mutate(data_year = as.numeric(data_year))
+            mutate(year = as.numeric(year))
 
 
 ## column names and descriptions
@@ -1035,11 +1022,15 @@ ggl_labels <- c("YEAR"     = "Data Year",
                 "DIRCTUSE" = "Direct use (MWh)",
                 "GGRSLOSS" = "Grid gross loss [Estimated losses/(Total disposition without exports - Direct use)]")
 
+
 ggl_header <- names(ggl_labels)  # column names
 ggl_desc   <- unname(ggl_labels) # description of column names
 
+# check if shorthand names match name_matching.R and stop if not. 
+check_var_names("GGL", ggl_header, ggl_nonmetric, "annual")
+
 # add new column names
-colnames(ggl_file) <- ggl_header
+ggl_file <- rename_variables(ggl_file, ggl_nonmetric)
 
 ## write data
 # write data for first row only
@@ -1056,24 +1047,11 @@ writeData(wb,
           startRow = 2)
 
 ## add styles to document
-# add description styles
-addStyle(wb, sheet = ggl, style = s[['desc_style']], rows = 1, cols = 1:6, gridExpand = TRUE)
-
-# add header style
-addStyle(wb, sheet = ggl, style = s[['header_style']], rows = 2, cols = 1:6, gridExpand = TRUE)
-
-# set column widths
-setColWidths(wb, sheet = ggl, cols = 1,   widths = 10)
-setColWidths(wb, sheet = ggl, cols = 2,   widths = 21.29)
-setColWidths(wb, sheet = ggl, cols = 3:5, widths = 11.14)
-setColWidths(wb, sheet = ggl, cols = 6,   widths = 23)
-
-# set row heights
-setRowHeights(wb, sheet = ggl, row = 1, heights = 60.75)
-
-# add number styles
-addStyle(wb, sheet = ggl, style = s[['integer']], rows = 3:7, cols = 3:5, gridExpand = TRUE)
-addStyle(wb, sheet = ggl, style = s[['percent']], rows = 3:7, cols = 6,   gridExpand = TRUE)
+format_sheet(df_ann = ggl_file,
+             file_name = "GGL",
+             temporal_res = params$temporal_res,
+             default_style_map = ggl_style_map,
+             text_style_map = ggl_text_style_map)
 
 # add number styles (bold)
 addStyle(wb, sheet = ggl, style = s[['integer_bold']], rows = 8, cols = 3:5, gridExpand = TRUE)
@@ -1083,10 +1061,17 @@ addStyle(wb, sheet = ggl, style = s[['percent_bold']], rows = 8, cols = 6,   gri
 addStyle(wb, sheet = ggl, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpand = TRUE)
 addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
 
-### DEMO Formatting -----
+# set column widths
+setColWidths(wb, sheet = ggl, cols = 1,   widths = 10)
+setColWidths(wb, sheet = ggl, cols = 2,   widths = 21.29)
+setColWidths(wb, sheet = ggl, cols = 3:5, widths = 11.14)
+setColWidths(wb, sheet = ggl, cols = 6,   widths = 23)
+
+
+# DEMO Formatting -------------------------------------------
 # only build demographics file if the file exists in outputs
 # this is because pulling data from the EJScreen API to build the demographics file takes several hours
-if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   
   ## create "DEMO" sheet
   demo <- glue::glue("DEMO{year}")
@@ -1188,10 +1173,10 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RD
   
   ## add styles to document
   # add description styles
-  addStyle(wb, sheet = demo, style = s[['desc_style']], rows = 1, cols = 1:65, gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['base_desc']], rows = 1, cols = 1:65, gridExpand = TRUE)
   
   # add header style
-  addStyle(wb, sheet = demo, style = s[['header_style']], rows = 2, cols = 1:65, gridExpand = TRUE)
+  addStyle(wb, sheet = demo, style = s[['base_header']], rows = 2, cols = 1:65, gridExpand = TRUE)
   
   # set column widths
   setColWidths(wb, sheet = demo, cols = 1:2,     widths = 12.71)
@@ -1239,7 +1224,7 @@ if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RD
 }
 
 
-### Contents Formatting -------------
+# Contents Formatting -----------------------------------------
 
 # add link to sheets 
 add_hyperlink(glue::glue("UNT{year}"),  row_link = 1, col_link = 1, loc = c(3, 9), text_to_show = glue::glue("UNT{year}"))
@@ -1380,13 +1365,10 @@ add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 159, loc = c(15
 add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 159, loc = c(16, 43), text_to_show = "NRL")
 add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 157, loc = c(17, 43), text_to_show = "US")
 
-### Save and export -----
-output <- glue::glue("data/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx")
+# Save and export -------------------------------------------
+output <- glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/egrid{params$eGRID_year}_data.xlsx")
 saveWorkbook(wb, output, overwrite = TRUE)
 
-print(glue::glue("Saving final formatted file to folder data/outputs/{params$eGRID_year}/"))
-
-# remove to save space
-rm(unt_file, gen_file, plnt_file)
+print(glue::glue("Saving final formatted file to folder data/1_production_model/outputs/{params$eGRID_year}/annual"))
 
 
