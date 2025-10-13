@@ -43,26 +43,13 @@ if (exists("params")) {
 
 # Create save directory for QA outputs -----
 
-if(dir.exists("data/2a_power_profiler/outputs/qa")) {
-  print("Folder qa already exists.")
-}else{
-  dir.create("data/2a_power_profiler/outputs/qa")
-}
+save_dir <- glue::glue("data/2b_power_profiler/outputs/qa/new/{params$eGRID_year}/power_profiler_differences/")
 
-if(dir.exists(glue::glue("data/2a_power_profiler/outputs/qa/{params$eGRID_year}"))) {
-  print(glue::glue("Folder qa/{params$eGRID_year} already exists."))
+if(dir.exists(save_dir)) {
+  print(glue::glue("Folder {save_dir} already exists."))
 }else{
-  dir.create(glue::glue("data/2a_power_profiler/outputs/qa/{params$eGRID_year}"))
+  dir.create(save_dir, recursive = TRUE)
 }
-
-if(dir.exists(glue::glue("data/2a_power_profiler/outputs/qa/{params$eGRID_year}/power_profiler_differences"))) {
-  print(glue::glue("Folder qa/{params$eGRID_year}/power_profiler_differences already exists."))
-}else{
-  dir.create(glue::glue("data/2a_power_profiler/outputs/qa/{params$eGRID_year}/power_profiler_differences"))
-}
-
-# set directory for saving files 
-save_dir <- glue::glue("data/2a_power_profiler/outputs/qa/{params$eGRID_year}/power_profiler_differences/")
 
 ## Create function to save file differences -----
 save_diffs <- function(datacheck) {
@@ -74,12 +61,11 @@ print("POWER PROFILER QA IN PROGRESS")
 
 # ZIPCODE UTILITY SUBREGION DATA -----
 ## Import Access data ------
-access_zip_utility <- read_excel(glue::glue("data/2a_power_profiler/static_tables/qa/{params$eGRID_year}/ZipSubregion{params$eGRID_year}.xlsx"), 
+access_zip_utility <- read_excel(glue::glue("data/2b_power_profiler/static_tables/qa/{params$eGRID_year}/ZipSubregion{params$eGRID_year}.xlsx"), 
                          sheet = "ZipSubregion for Website",
                          col_names = TRUE,
                          col_types = c("text", "text", "text", "text", "text", "numeric")) %>%
-  janitor::clean_names() %>%
-  glimpse()
+  janitor::clean_names()
 
 # add "_access" after each variable to easily identify dataset 
 colnames(access_zip_utility) <- paste0(colnames(access_zip_utility), "_access")
@@ -89,8 +75,7 @@ access_zip_utility[access_zip_utility == "NA"] <- NA_character_
 
 
 ## Import R data ------
-r_zip_utility <- read_rds(glue::glue("data/2a_power_profiler/outputs/{params$eGRID_year}/zip_utility_subregion.RDS")) %>%
-  glimpse()
+r_zip_utility <- read_rds(glue::glue("data/2b_power_profiler/outputs/{params$eGRID_year}/zip_utility_subregion_new.RDS"))
 
 # add "_r" after each variable to easily identify dataset 
 colnames(r_zip_utility) <- paste0(colnames(r_zip_utility), "_r")
@@ -100,8 +85,7 @@ colnames(r_zip_utility) <- paste0(colnames(r_zip_utility), "_r")
 zip_utility_comparison <-
   r_zip_utility %>%
   full_join(access_zip_utility, by = c("zip_r" = "zip_access", 
-                                       "eiaid_r" = "eiaid_access")) %>%
-  glimpse()
+                                       "eiaid_r" = "eiaid_access"))
 
 ## Difference checks ------
 ### Plant presence ------
@@ -206,7 +190,7 @@ if(length(missing_r_files) != 0) {
 
 # ZIPCODE SUBREGION ASSIGNMENTS -----
 ## Import Access data ------
-access_subregion_assign <- read_excel(glue::glue("data/2a_power_profiler/static_tables/qa/{params$eGRID_year}/ZipSubregion{params$eGRID_year}.xlsx"), 
+access_subregion_assign <- read_excel(glue::glue("data/2b_power_profiler/static_tables/qa/{params$eGRID_year}/ZipSubregion{params$eGRID_year}.xlsx"), 
                               sheet = "ZipSubregion for Excel Tool",
                               col_names = TRUE,
                               col_types = c("text", "text", "text", "text", "text", "text")) %>%
@@ -214,8 +198,7 @@ access_subregion_assign <- read_excel(glue::glue("data/2a_power_profiler/static_
   rename(zip = zip_character,
          subregion_1 = e_grid_subregion_number_1,
          subregion_2 = e_grid_subregion_number_2,
-         subregion_3 = e_grid_subregion_number_3) %>%
-  glimpse()
+         subregion_3 = e_grid_subregion_number_3)
 
 # add "_access" after each variable to easily identify dataset 
 colnames(access_subregion_assign) <- paste0(colnames(access_subregion_assign), "_access")
@@ -224,8 +207,7 @@ colnames(access_subregion_assign) <- paste0(colnames(access_subregion_assign), "
 access_subregion_assign[access_subregion_assign == "NA"] <- NA_character_
 
 ## Import R data ------
-r_subregion_assign <- read_rds(glue::glue("data/2a_power_profiler/outputs/{params$eGRID_year}/zip_subregion_assignments.RDS")) %>%
-  glimpse()
+r_subregion_assign <- read_rds(glue::glue("data/2b_power_profiler/outputs/{params$eGRID_year}/zip_subregion_assignments_new.RDS")) 
 
 # add "_r" after each variable to easily identify dataset 
 colnames(r_subregion_assign) <- paste0(colnames(r_subregion_assign), "_r")
@@ -233,8 +215,7 @@ colnames(r_subregion_assign) <- paste0(colnames(r_subregion_assign), "_r")
 ## Combine two datasets for comparison -----
 subregion_assign_comparison <-
   r_subregion_assign %>%
-  full_join(access_subregion_assign, by = c("zip_r" = "zip_access", "subregion_1_r" = "subregion_1_access")) %>%
-  print()
+  full_join(access_subregion_assign, by = c("zip_r" = "zip_access"))
 
 ## Difference checks ------
 ### Plant presence ------
@@ -262,6 +243,14 @@ check_subregion_assign_state <-
   select(zip_r, state_r, state_access) %>%
   print()
 save_diffs(check_subregion_assign_state)
+
+### Subregion primary assignment -----
+check_subregion_assign_primary_subregion <-
+  subregion_assign_comparison %>%
+  filter(subregion_1_r != subregion_1_access) %>%
+  select(zip_r, subregion_1_r, subregion_1_access) %>%
+  print()
+save_diffs(check_subregion_assign_secondary_subregion)
 
 ### Subregion secondary assignment -----
 check_subregion_assign_secondary_subregion <-

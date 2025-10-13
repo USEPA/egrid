@@ -98,7 +98,7 @@ eia_861_sales_ult_cust <-
   eia_861$sales_ult_cust %>%
   mutate(year = as.character(year),
          utility_number = as.character(utility_number)) %>%
-  filter(year == "2023") # remove note for calculations
+  filter(year == params$eGRID_year)
 
 # Load necessary crosswalks -----
 
@@ -341,7 +341,7 @@ zip_utility_subregion_10 <- #16
 
 # exclude the following eiaids from overriding
 different_eiaids <- c("11292", "16196", "17585", "17683", "19579")
-#
+
 # override subregion assignments from old power profiler
 zip_utility_subregion_11 <- #42 - updated
   zip_utility_subregion_10 %>%
@@ -351,8 +351,7 @@ zip_utility_subregion_11 <- #42 - updated
             by = c("zip", "eiaid")) %>%
   mutate(method = if_else(!is.na(subregion.y), "from old power profiler", method),
          subregion = if_else(!is.na(subregion.x) & !is.na(subregion.y), subregion.y, subregion.x)) %>%
-  select(-contains(".")) %>%
-  glimpse()
+  select(-contains("."))
 
 
 # Update Predominant Utilities-----
@@ -366,7 +365,7 @@ zip_utility_subregion_12 <- #46/47
   group_by(zip) %>%
   filter(n_distinct(eiaid) == 1) %>%
   mutate(predominant_utility = "1",
-         predominant_utility_method = 'one utility') %>%
+         predominant_utility_method = "one utility") %>%
   ungroup()
 
 # assign zipcodes with one utility to predominant utility
@@ -471,19 +470,11 @@ subregions_secondary <- #55/56
   mutate(secondary = "1")
 
 # update primary subregion table
-zip_primary_subregion_1 <- #57
+zip_primary_subregion <- #57
   subregions_primary %>%
   left_join(subregions_secondary, by = "zip") %>%
   mutate(secondary = if_else(!is.na(secondary.y), secondary.y, secondary.x)) %>%
   select(-contains("."))
-
-### Old power profiler updates ----
-zip_primary_subregion_2 <- #60
-  zip_primary_subregion_1 %>%
-  left_join(power_profiler_old_primary_subregion %>%
-              filter(subregion_1 != "MROE"), by = "zip") %>%
-  mutate(subregion = if_else(!is.na(subregion_1), subregion_1, subregion)) %>%
-  select(-contains("_")) %>% distinct()
 
 ### Fill missing subregions with those from old profiler -----
 
@@ -510,7 +501,7 @@ zip_utility_subregion_18 <- #76
 zip_additional_subregion <- #62
   zip_utility_subregion_18 %>%
   select(zip, subregion) %>% distinct() %>%
-  anti_join(zip_primary_subregion_2, by = c("zip", "subregion"))
+  anti_join(zip_primary_subregion, by = c("zip", "subregion"))
 
 # assign first alphabetical subregion as secondary
 zip_secondary_subregion <- #62
@@ -536,7 +527,7 @@ zip_secondary_tertiary_subregion <- #63
 
 # join secondary and tertiary assignments to primary assignments
 zip_subregion_assignments <- #64
-  zip_primary_subregion_2 %>%
+  zip_primary_subregion %>%
   left_join(zip_secondary_tertiary_subregion, by = "zip")
 
 # Create Website Data - assign predominant utilities ------
