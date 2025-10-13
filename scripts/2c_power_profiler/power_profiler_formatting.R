@@ -37,14 +37,14 @@ if (exists("params")) {
 }
 
 # load in data
-sheet1 <- read_rds(glue::glue("data/2b_power_profiler/outputs/{params$eGRID_year}/zip_utility_subregion.RDS")) %>%
+sheet1 <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_utility_subregion.RDS")) %>%
           rename("Zip" = "zip",
                  "State" = "state",
                  "EIA_ID" = "eiaid",
                  "Utility_Name" = "utility_name",
                  "Subregion" = "subregion",
                  "Predominant_Utility" = "predominant_utility") 
-sheet2 <- read_rds(glue::glue("data/2b_power_profiler/outputs/{params$eGRID_year}/zip_subregion_assignments.RDS")) %>%
+sheet2 <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_subregion_assignments.RDS")) %>%
           rename("ZIP_Character" = "zip",
                  "ZIP_Numeric" = "zip_numeric",
                  "State" = "state",
@@ -79,5 +79,5 @@ addStyle(wb, sheet = 2, style = header_style,  rows = 1, cols = 1:6, gridExpand 
 setColWidths(wb, sheet = 1, cols = 4, widths = 59.43)
 
 
-output <- glue::glue("data/2b_power_profiler/outputs/{params$eGRID_year}/ZipSubregion2023.xlsx")
+output <- glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/ZipSubregion2023.xlsx")
 saveWorkbook(wb, output, overwrite = TRUE)

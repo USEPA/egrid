@@ -50,7 +50,7 @@ if (exists("params")) {
 #   readRDS(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
 
 plant_file <-
-  read_csv(glue::glue("data/2b_power_profiler/static_tables/qa/{params$eGRID_year}/plant_access.csv")) %>%
+  read_csv(glue::glue("data/2c_power_profiler/static_tables/qa/{params$eGRID_year}/plant_access.csv")) %>%
   janitor::clean_names() %>%
   mutate(transmission_or_distribution_system_owner_id = as.character(transmission_or_distribution_system_owner_id),
          utility_id = as.character(utility_id)) %>%
@@ -60,7 +60,7 @@ plant_file <-
 
 # load in previous power profiler data which has zip, utility code, predominant utility, etc. 
 power_profiler_old <-
-  read_csv(glue::glue("data/2b_power_profiler/inputs/{params$eGRID_year}/power_profiler_old.csv"),
+  read_csv(glue::glue("data/2c_power_profiler/inputs/{params$eGRID_year}/power_profiler_old.csv"),
            col_types = "cccccc") %>%
   janitor::clean_names() %>%
   rename(utility_name = util_name,
@@ -69,13 +69,13 @@ power_profiler_old <-
 
 # load in previous power profiler subregion assignments
 power_profiler_old_primary_subregion <-
-  read_csv(glue::glue("data/2b_power_profiler/inputs/{params$eGRID_year}/power_profiler_old_primary_subregion.csv"),
+  read_csv(glue::glue("data/2c_power_profiler/inputs/{params$eGRID_year}/power_profiler_old_primary_subregion.csv"),
            col_types = "cccc") %>%
   janitor::clean_names() %>%
   select(zip, subregion_1, subregion_2, subregion_3)
 
 utility_zipcodes <-
-  read_csv(glue::glue("data/2b_power_profiler/inputs/{params$eGRID_year}/utility_zipcodes.csv"),
+  read_csv(glue::glue("data/2c_power_profiler/inputs/{params$eGRID_year}/utility_zipcodes.csv"),
            col_types = "ccccccddd") %>%
   janitor::clean_names()
 
@@ -98,7 +98,7 @@ eia_861_sales_ult_cust <-
   eia_861$sales_ult_cust %>%
   mutate(year = as.character(year),
          utility_number = as.character(utility_number)) %>%
-  filter(year == params$eGRID_year)
+  filter(year == "2023") # remove note for calculations
 
 # Load necessary crosswalks -----
 
@@ -117,17 +117,9 @@ xwalk_ba_transmission <- # 1204(1160)
 
 # Crosswalk for missing utility ids
 xwalk_missing_utilityid <-
-  read_csv(glue::glue("data/2b_power_profiler/static_tables/xwalk_missing_utilityid.csv"),
+  read_csv(glue::glue("data/2c_power_profiler/static_tables/xwalk_missing_utilityid.csv"),
            col_types = "cccc") %>%
   janitor::clean_names()
-
-# Manual predominant utility updates
-predominant_utility_manual_updates <-
-  read_csv(glue::glue("data/2b_power_profiler/inputs/{params$eGRID_year}/access/manual_updates_predominant_utility.csv"),
-           col_types = "ccccc") %>%
-  janitor::clean_names() %>%
-  select(zip, first_ofeiaid) %>%
-  mutate(predominant_utility = "0")
 
 # Create zipcode dataset ------
 
@@ -339,20 +331,149 @@ zip_utility_subregion_10 <- #16
 
 ### Old power profiler updates --------
 
-# exclude the following eiaids from overriding
-different_eiaids <- c("11292", "16196", "17585", "17683", "19579")
-
-# override subregion assignments from old power profiler
-zip_utility_subregion_11 <- #42 - updated
+#' THIS STEP NEEDS TO BE UPDATED ##
+#' Utility Subregion- Manual Table
+#' 
+#' in this step, we used the utility subregion- manual table to manually updates
+#' the utility subregion assignment by joining by utility and state and then
+#' manually overriding. The question here is can we just pull this data from 
+#' the old power profiler? Are they the same? are the manual updates different
+#' than those from the old power profiler?
+#' 
+#' OLD CODE
+zip_utility_subregion_11 <- #42
   zip_utility_subregion_10 %>%
-  left_join(power_profiler_old %>%
-              filter(!eiaid %in% different_eiaids) %>%
-              select(zip, eiaid, subregion),
-            by = c("zip", "eiaid")) %>%
-  mutate(method = if_else(!is.na(subregion.y), "from old power profiler", method),
-         subregion = if_else(!is.na(subregion.x) & !is.na(subregion.y), subregion.y, subregion.x)) %>%
+  left_join(utility_subregion_manual_updates, by = c("state", "eiaid" = "utility_id")) %>%
+  mutate(method = if_else(!is.na(subregion.y), "manual override", method),
+         subregion = if_else(!is.na(subregion.y), subregion.y, subregion.x)) %>%
   select(-contains("."))
 
+#' NEW CODE
+#' here instead of using a manual table, we are pulling the data directly from
+#' the old power profiler and assigning subregions in this way
+#' there are 160 differences in subregion assignment when done this way
+
+# # override subregion assignments from old power profiler
+# zip_utility_subregion_11 <- #42 - updated
+#   zip_utility_subregion_10 %>%
+#   left_join(power_profiler_old %>%
+#               select(zip, eiaid, subregion),
+#             by = c("zip", "eiaid")) %>%
+#   mutate(method = if_else(!is.na(subregion.y), "from old power profiler", method),
+#          subregion = if_else(!is.na(subregion.x) & !is.na(subregion.y), subregion.y, subregion.x)) %>%
+#   select(-contains("."))
+
+#' QA OF STEP
+
+#' what does the manual updates look like?
+#' 117 entries assigning utility id to subregion and state
+#' overrides these subregion assignments for these 117 entries
+
+#' utility_subregion_manual_updates <-
+#'   read_csv(glue::glue("data/2c_power_profiler/inputs/2023/access/manual_updates_utility_subregion.csv"),
+#'            col_types = "cccc") %>%
+#'   janitor::clean_names()
+#' glimpse(utility_subregion_manual_updates)
+#' 
+#' #' all values are not na
+#' utility_subregion_manual_updates_filtered <-
+#'   utility_subregion_manual_updates %>%
+#'   filter(!is.na(subregion)) %>%
+#'   glimpse()
+#' 
+#' # how many of these values align with those in the old power profiler?
+#' crossover <-
+#'   utility_subregion_manual_updates %>%
+#'   inner_join(power_profiler_old, by = c("utility_id" = "eiaid"), suffix = c("_manual", "_old")) %>%
+#'   distinct() %>%
+#'   filter(subregion_manual != subregion_old) %>%
+#'   select(utility_id, zip, subregion_manual, subregion_old, state_manual, state_old, predominant_utility) %>%
+#'   count(utility_id) %>%
+#'   glimpse()
+#' # 3 utility ids with different states, subregions
+#' 
+#' 
+#' #' # currently 160 differences in subregion assignment between original (manual) and new method
+#' compare_subregion_assignment <-
+#'   zip_utility_subregion_11 %>%
+#'   inner_join(zip_utility_subregion_12_old, by = c("zip", "eiaid"), suffix = c("_new", "_manual")) %>%
+#'   filter(subregion_new != subregion_manual) %>%
+#'   select(eiaid, zip, state = state_new, subregion_new, subregion_manual, method_new, method_manual) %>%
+#'   arrange(eiaid, zip) %>%
+#'   # select(-zip) %>%
+#'   # distinct() %>%
+#'   # count(eiaid) %>%
+#'   glimpse()
+#' 
+#' # save QA COMPARISON
+#' save_dir = glue::glue("data/2c_power_profiler/outputs/qa/{params$eGRID_year}/")
+#' write_csv(compare_subregion_assignment, paste0(save_dir, "subregion_assignment_comparison.csv"))
+#' # 5 eiaids that are different
+#' 
+#' # 281 changes to subregion assignment in new method during this step
+#' compare_differences_from_prev <-
+#'   zip_utility_subregion_11 %>%
+#'   inner_join(zip_utility_subregion_10, by = c("zip", "eiaid"), suffix = c("", "_old")) %>%
+#'   filter(subregion != subregion_old) %>%
+#'   select(zip, state, eiaid, subregion, subregion_old, method, method_old) %>%
+#'   # count(eiaid) %>%
+#'   glimpse()
+#' # 12 eiaids were updated 
+#' 
+# 121 changes to subregion assignment in old method during this step
+# compare_differences_from_prev_old_all <-
+#   zip_utility_subregion_12_old %>%
+#   inner_join(zip_utility_subregion_11_old, by = c("zip", "eiaid"), suffix = c("", "_old")) %>%
+#   filter(subregion != subregion_old) %>%
+#   select(zip, state, eiaid, subregion, subregion_old, method, method_old) %>%
+#   # select(-zip) %>%
+#   # distinct() %>%
+#   # count(eiaid) %>%
+#   glimpse()
+  # 7 eiaids were updated
+
+# compare_differences_from_prev_old <-
+#   zip_utility_subregion_12_old %>%
+#   inner_join(zip_utility_subregion_11_old, by = c("zip", "eiaid"), suffix = c("", "_old")) %>%
+#   filter(subregion != subregion_old) %>%
+#   select(zip, state, eiaid, subregion, subregion_old, method, method_old) %>%
+#   select(-zip) %>%
+#   distinct() %>%
+#   # count(eiaid) %>%
+#   glimpse()
+#' 
+#' # 160 additional differences
+#' compare_differences_in_differences_new <- 
+#'   compare_differences_from_prev %>%
+#'   anti_join(compare_differences_from_prev_old, by = c("zip", "eiaid")) %>%
+#'   count(eiaid) %>%
+#'   print()
+#' # 5 eiaids are different between the two methods leading to 160 zips that are different
+#'   glimpse()
+#' 
+#' # includes all those that were updated in the manual table
+#' compare_differences_in_differences_old <- 
+#'   compare_differences_from_prev_old %>%
+#'   anti_join(compare_differences_from_prev, by = c("zip", "eiaid")) %>%
+#'   glimpse()
+
+#' RESULT
+#' 5 additional EIAIDs were updated in this new method
+#' resulting in 160 differences in zip -> subregion assignment
+# # 
+# different_eiaids <- c("11292", "16196", "17585", "17683", "19579")
+# #
+# # this would result in the same outcome here
+# zip_utility_subregion_11 <- #42 - updated
+#   zip_utility_subregion_10 %>%
+#   left_join(power_profiler_old %>%
+#               filter(!eiaid %in% different_eiaids) %>%
+#               select(zip, eiaid, subregion),
+#             by = c("zip", "eiaid")) %>%
+#   mutate(method = if_else(!is.na(subregion.y), "from old power profiler", method),
+#          subregion = if_else(!is.na(subregion.x) & !is.na(subregion.y), subregion.y, subregion.x)) %>%
+#   select(-contains(".")) %>%
+#   glimpse()
 
 # Update Predominant Utilities-----
 
@@ -365,7 +486,7 @@ zip_utility_subregion_12 <- #46/47
   group_by(zip) %>%
   filter(n_distinct(eiaid) == 1) %>%
   mutate(predominant_utility = "1",
-         predominant_utility_method = "one utility") %>%
+         predominant_utility_method = 'one utility') %>%
   ungroup()
 
 # assign zipcodes with one utility to predominant utility
@@ -373,7 +494,8 @@ zip_utility_subregion_13 <- #48
   zip_utility_subregion_11 %>%
   left_join(zip_utility_subregion_12, by = c("zip", "eiaid")) %>%
   mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
-  select(-contains("."))
+  select(-contains(".")) %>%
+  glimpse()
 
 ### Update zips with no utility assignment to old profiler assignments ------
 
@@ -427,59 +549,299 @@ zip_utility_subregion_15 <- #52
          predominant_utility_method = if_else(!is.na(predominant_utility_method.y), predominant_utility_method.y, predominant_utility_method.x)) %>%
   select(-contains("."))
 
+zip_utility_subregion_16 <- zip_utility_subregion_15 
+
+
 #' THIS STEP NEEDS TO BE UPDATED ##
+#' ZipSubregion – updates for predominant utility
+#' 
+#' 
+#' in this step, we used the updates for predominant utility to reassign predominant
+#' utilities using this manual table. This reassigns predominant utilities for those
+#' in the manual table
+#' 
+#' OLD CODE
 #override predominant utility assignment for zipcodes in manual updates table
-zip_utility_subregion_16 <- #58
-  zip_utility_subregion_15 %>%
+zip_utility_subregion_17 <- #58
+  zip_utility_subregion_16 %>%
   left_join(predominant_utility_manual_updates, by = "zip") %>%
   mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
   select(-contains("."), -first_ofeiaid)
-
+#'
 # override predominant utility assignment for zipcodes that match first eiaid in manual updates table
-zip_utility_subregion_17 <- #59
-  zip_utility_subregion_16 %>%
+zip_utility_subregion_18 <- #59
+  zip_utility_subregion_17 %>%
   left_join(predominant_utility_manual_updates %>%
-              mutate(predominant_utility = "1",
+              mutate(predominant_utility = as.factor("1"),
                      predominant_utility_method = "manual override"),
             by = c("zip", "eiaid" = "first_ofeiaid")) %>%
   mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x),
          predominant_utility_method = if_else(!is.na(predominant_utility_method.y), predominant_utility_method.y, predominant_utility_method.x)) %>%
   select(-contains("."))
 
-# Create Subregion Assignments Data -----
+#' NEW CODE
+#' here the new code would pull the predominant utility assignments directly from 
+#' the old power profiler. Is there a reason why this isn't occurring? 33 differences
+#' between the current predominant utility assignments and the old power profiler
+#'  assignments that were updated
+# zip_utility_subregion_17 <- #58 - updated
+#   zip_utility_subregion_16 %>%
+#   left_join(power_profiler_old %>%
+#               select(zip, eiaid, predominant_utility) %>%
+#               mutate(predominant_utility_method = "power profiler old (test)"),
+#             by = c("zip", "eiaid"),
+#             suffix = c(".orig", ".new")) %>%
+#   mutate(predominant_utility = if_else(!is.na(predominant_utility.orig) & !is.na(predominant_utility.new), predominant_utility.new, predominant_utility.orig),
+#          predominant_utility_method = if_else(!is.na(predominant_utility_method.orig) & !is.na(predominant_utility_method.new), predominant_utility_method.new, predominant_utility_method.orig)) %>%
+#   select(-contains(".")) %>%
+#   count(predominant_utility_method) %>%
+#   print()
+  # glimpse()
+
+# zip_utility_subregion_17 <- #58 - updated
+  # zip_utility_subregion_16
+
+#' let's check to see what the current assignment is for these values
+
+# test <-
+#   zip_utility_subregion_16 %>%
+#   inner_join(predominant_utility_manual_updates, by = c('zip', 'eiaid' = 'first_ofeiaid')) %>%
+#   mutate(predominant_utility.y = '1') %>%
+#   filter(predominant_utility.x != predominant_utility.y) %>%
+#   rename(first_ofeiaid = eiaid) %>%
+#   glimpse()
+# 
+# test_count <-
+#   test %>%
+#   count(predominant_utility_method) %>%
+#   print()
+# 
+# test_oneutil <-
+#   test %>%
+#   filter(predominant_utility_method == 'one utility') %>%
+#   glimpse()
+# 
+# isoneutil <-
+#   zip_utility_subregion_16 %>%
+#   filter(zip %in% test_oneutil$zip) %>%
+#   glimpse()
+# 
+# isupdated <-
+#   zip_utility_subregion_16 %>%
+#   inner_join(test, by = 'zip') %>%
+#   group_by(zip) %>%
+#   glimpse() %>%
+#   select(zip, eiaid, predominant_utility, predominant_utility_method.x, first_ofeiaid, predominant_utility.y)
+
+# these values are in fact one utility - don't necessarily need to be reassigned (are they reassigning properly?)
+
+# check and see if this is doing what it needs to do
+
+#' QA
+#' # 33 updates to predominant utility with new method
+#' compare_differences_from_prev_old <-
+#'   zip_utility_subregion_17 %>%
+#'   inner_join(zip_utility_subregion_16, by = c("zip", "eiaid"), suffix = c("", "_old")) %>%
+#'   filter(predominant_utility != predominant_utility_old) %>%
+#'   select(zip, state, eiaid, predominant_utility, predominant_utility_old) %>%
+#'   glimpse()
+#' 
+# 184 differences in zipcode predominant utility from new to old method
+# compare_predominant_utility <-
+#   zip_utility_subregion_17 %>%
+#   inner_join(zip_utility_subregion_18_old, by = c("zip", "eiaid"), suffix = c("_newmethod", "_oldmethod")) %>%
+#   filter(predominant_utility_newmethod!= predominant_utility_oldmethod) %>%
+#   select(zip, state_newmethod, eiaid, subregion_newmethod, subregion_oldmethod, predominant_utility_newmethod, predominant_utility_oldmethod) %>%
+#   glimpse()
+# the manual updates have these values assigned at 0 while the new method assigns them as 1's (swapped predominant)
+#' 
+#' # old method currently updates 203 (in step 1) and 368 (in step 2) subregions to not be the predominant utility
+#' # sets all values to 0 in manual tables
+#' compare_pred_utility_old_1 <- 
+#'   # some of these are for the manual override section but many arent
+#'   full_join(zip_utility_subregion_17_old, zip_utility_subregion_16_old, 
+#'             by = c("eiaid", "zip"),
+#'             suffix = c("", "_old")) %>%
+#'   filter(predominant_utility != predominant_utility_old) %>%
+#'   select(zip, eiaid, predominant_utility, predominant_utility_old) %>%
+#'   glimpse()
+#' 
+#' # then updates the firstofeiaids to 1
+#' compare_pred_utility <-
+#'   left_join(zip_utility_subregion_18, zip_utility_subregion_16,
+#'             by = c("eiaid", "zip"),
+#'             suffix = c("_manualupdate", "_original")) %>%
+#'   filter(predominant_utility_original != predominant_utility_manualupdate) %>%
+#'   select(zip, eiaid, predominant_utility_original, predominant_utility_manualupdate, predominant_utility_method_original) %>%
+#'   arrange(zip, eiaid) %>%
+#'   glimpse()
+#' 
+#' write_csv(compare_pred_utility, paste0(save_dir, "predominant_utility_assignment_comparison.csv"))
+#' 
+#' 
+#' #' 
+#' # there are the correct number of predominant utility assignments in the old method
+#' check_pred_util_count <-
+#'   compare_pred_utility_old_2 %>%
+#'   group_by(zip) %>%
+#'   summarize(sum_new = sum(as.numeric(predominant_utility)), sum_old = sum(as.numeric(predominant_utility_old))) %>%
+#'   filter(sum_new != 1, sum_old != 1) %>%
+#'   glimpse()
+#' 
+#' # none of the old power profiler assignments match the updates of the manual table
+#' test <-
+#'   left_join(predominant_utility_manual_updates %>%
+#'               mutate(predominant_utility = as.factor("1")), power_profiler_old, by = c("first_ofeiaid" = "eiaid", "zip"), suffix = c("_manual", "_ppold")) %>%
+#'   filter(as.numeric(predominant_utility_manual) != as.numeric(predominant_utility_ppold)) %>%
+#'   glimpse()
+#' # 184 differences in power profiler assignment and the use of the manual tables assignment
+#' 
+#' 
+#' # what does this look like as far as power profiler assignment when grouped by zip?
+#' check_pred_util_count_new <-
+#'   zip_utility_subregion_16 %>%
+#'   group_by(zip) %>%
+#'   summarize(sum_new = sum(as.numeric(predominant_utility))) %>%
+#'   filter(sum_new != 1) %>%
+#'   glimpse()
+#' # 33 zipcodes do not have predominant utility assignments
+#' check_pred_util_count_old <-
+#'   zip_utility_subregion_18_old %>%
+#'   group_by(zip) %>%
+#'   summarize(sum_new = sum(as.numeric(predominant_utility))) %>%
+#'   filter(sum_new != 1) %>%
+#'   glimpse()
+#' 
+#' #' RESULT
+#' # doesn't properly assign the 184 differences in the manual updates and instead assigns 33 additional ones incorrectly
 
 # Create Subregion Assignments Data -----
 
 ### Primary subregion for zips assigned as predominant utility -----
 subregions_primary <- #53
-  zip_utility_subregion_17 %>%
+  zip_utility_subregion_18 %>%
   filter(predominant_utility == "1") %>%
   select(zip, state, subregion) %>% distinct() %>%
-  mutate(secondary = "0")
+  mutate(secondary = "0",
+         subregion_1_method = "predominant utility")
 
 ### Zips with multiple subregion assignments -----
 
 ### Secondary subregions for zips with multiple assignments -----
 subregions_secondary <- #55/56
-  zip_utility_subregion_17 %>%
+  zip_utility_subregion_18 %>%
   filter(!is.na(subregion)) %>%
   group_by(zip) %>%
   filter(n_distinct(subregion) > 1) %>%
   ungroup() %>%
   select(zip) %>% distinct() %>%
-  mutate(secondary = "1")
+  mutate(secondary = "1",
+         subregion_2_method = "multiple assignments")
 
 # update primary subregion table
-zip_primary_subregion <- #57
+zip_primary_subregion_1 <- #57
   subregions_primary %>%
   left_join(subregions_secondary, by = "zip") %>%
   mutate(secondary = if_else(!is.na(secondary.y), secondary.y, secondary.x)) %>%
   select(-contains("."))
 
+### Old power profiler updates ----
+## THIS STEP NEEDS TO BE UPDATED ##
+zip_primary_subregion_2_test <- #60
+  zip_primary_subregion_1 %>%
+  left_join(primary_subregion_manual_updates %>%
+              mutate(subregion_1_method = "manual update"), by = "zip") %>%
+  mutate(subregion_1_method = if_else(!is.na(subregion_1_method.y) & change != subregion, subregion_1_method.y, subregion_1_method.x),
+         subregion = if_else(!is.na(change), change, subregion)) %>%
+  select(zip, state, subregion, secondary, subregion_1_method, subregion_2_method) %>% distinct()
+
+test2 <-
+  inner_join(zip_primary_subregion_1, zip_primary_subregion_2, by = 'zip') %>%
+  filter(subregion.x != subregion.y) %>%
+  glimpse()
+
+# 60 updates to subregion assignment 
+# how many of these are predominant utility? 
+
+test <-
+  inner_join(zip_utility_subregion_18, test2, by = 'zip') %>%
+  filter(predominant_utility == "1") %>%
+  select(zip, eiaid, predominant_utility, predominant_utility_method, subregion.x, subregion.y) %>%
+  glimpse()
+
+# trying out the old power profiler
+power_profiler_old_primary_subregion <-
+  read_csv(glue::glue("data/2c_power_profiler/inputs/{params$eGRID_year}/power_profiler_old_primary_subregion.csv"),
+           col_types = "cccc") %>%
+  janitor::clean_names() %>%
+  select(zip, subregion_1, subregion_2, subregion_3)
+
+test <-
+  full_join(power_profiler_old_primary_subregion, zip_primary_subregion_2, by = 'zip') %>%
+  filter(subregion_1 != subregion) %>%
+  glimpse()
+
+zip_primary_subregion_2_test <- #60
+  zip_primary_subregion_1 %>%
+  left_join(power_profiler_old_primary_subregion %>%
+              mutate(subregion_1_method = "old power profiler"), by = "zip") %>%
+  mutate(subregion_1_method = if_else(!is.na(subregion_1_method.y) & subregion_1 != subregion, subregion_1_method.y, subregion_1_method.x),
+         subregion = if_else(!is.na(subregion_1), subregion_1, subregion)) %>%
+  select(zip, state, subregion, secondary, subregion_1_method, subregion_2_method) %>% distinct() #%>%
+  # count(subregion_1_method) %>%
+  # print()
+
+compare_primary_subregion <-
+  inner_join(zip_primary_subregion_2, zip_primary_subregion_2_test, by = 'zip') %>%
+  filter(subregion.x != subregion.y) %>%
+  select(zip, state = state.y, subregion_manual = subregion.x, subregion_new = subregion.y, secondary = secondary.y) %>% distinct() %>%
+  arrange(zip) %>%
+  glimpse()
+
+test <- 
+  zip_primary_subregion_1 %>% 
+  filter(state == "WI" & subregion == "MROE") %>%
+  glimpse()
+
+
+
+save_dir = glue::glue("data/2c_power_profiler/outputs/qa/{params$eGRID_year}/")
+write_csv(compare_primary_subregion, paste0(save_dir, "primary_subregion_comparison.csv"))
+
+
+# compare the updates to those in the old power profiler
+# test <-
+#   primary_subregion_manual_updates %>%
+#   inner_join(power_profiler_old, by = "zip") %>%
+#   filter(change != subregion) %>%
+#   glimpse()
+
+# are these matching the predominant utility assignments?
+# check if we can just use the one from zip_18 or something?
+
+# test <-
+#   inner_join(predominant_utility_manual_updates, primary_subregion_manual_updates, by = 'zip') %>%
+#   glimpse()
+
+# can we compare these to the subregion assignment of last year?
+
+test3 <-
+  inner_join(power_profiler_old_primary_subregion, test, by = 'zip') %>%
+  filter(subregion_1 != subregion.y) %>%
+  glimpse()
+
+# let's see if the overwriting is aligned with the old power profiler assignments
+# perhaps by using the same methods option
+# what are these overriding?
+# if we use old power profiler data, can we then produce this data again?
+# would we be overriding anything else?
+
+
+
 ### Fill missing subregions with those from old profiler -----
 
 subregions_to_update_from_old_pp <- #71/72/73/74/75
-  zip_utility_subregion_17 %>%
+  zip_utility_subregion_16 %>%
   filter(is.na(subregion)) %>%
   select(zip, subregion) %>% distinct() %>%
   inner_join(power_profiler_old, by = "zip") %>%
@@ -488,8 +850,8 @@ subregions_to_update_from_old_pp <- #71/72/73/74/75
   select(zip, subregion = subregion.y) %>% distinct()
 
 # update zipsubregion
-zip_utility_subregion_18 <- #76
-  zip_utility_subregion_17 %>%
+zip_utility_subregion_17 <- #76
+  zip_utility_subregion_16 %>%
   left_join(subregions_to_update_from_old_pp, 
             by = "zip") %>%
   mutate(subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
@@ -499,9 +861,9 @@ zip_utility_subregion_18 <- #76
 
 # identify secondary and tertiary subregions - those not listed in primary zipcode data
 zip_additional_subregion <- #62
-  zip_utility_subregion_18 %>%
+  zip_utility_subregion_17 %>%
   select(zip, subregion) %>% distinct() %>%
-  anti_join(zip_primary_subregion, by = c("zip", "subregion"))
+  anti_join(zip_primary_subregion_2, by = c("zip", "subregion"))
 
 # assign first alphabetical subregion as secondary
 zip_secondary_subregion <- #62
@@ -527,8 +889,55 @@ zip_secondary_tertiary_subregion <- #63
 
 # join secondary and tertiary assignments to primary assignments
 zip_subregion_assignments <- #64
-  zip_primary_subregion %>%
-  left_join(zip_secondary_tertiary_subregion, by = "zip")
+  zip_primary_subregion_2 %>%
+  left_join(zip_secondary_tertiary_subregion, by = "zip") %>%
+  glimpse()
+
+zip_subregion_assignments_new <- #64
+  zip_primary_subregion_2_test %>%
+  left_join(zip_secondary_tertiary_subregion, by = "zip") %>%
+  glimpse()
+
+compare_final_subregions_1 <-
+  full_join(zip_subregion_assignments, zip_subregion_assignments_new, by = 'zip') %>%
+  filter(subregion.x != subregion.y) %>%
+  glimpse()
+
+compare_final_subregions_2 <-
+  full_join(zip_subregion_assignments, zip_subregion_assignments_new, by = 'zip') %>%
+  filter(subregion_2.x != subregion_2.y) %>%
+  glimpse()
+
+compare_final_subregions_3 <-
+  full_join(zip_subregion_assignments, zip_subregion_assignments_new, by = 'zip') %>%
+  filter(subregion_3.x != subregion_3.y) %>%
+  glimpse()
+
+# 
+# compare_primary_subregion <-
+#   zip_subregion_assignments %>%
+#   mutate(across(contains("subregion"), 
+#                 ~ replace_na(as.character(.), "missing"))) %>%
+#   inner_join(zip_subregion_assignments_old %>%
+#                mutate(across(all_of(columns_to_compare), ~ replace_na(as.character(.), "missing"))), 
+#              by = "zip", 
+#              suffix = c("", "_old")) %>%
+#   mutate(across(contains("subregion") & !contains("old"),
+#          ~ . != get(paste0(cur_column(), "_old")),
+#          .names = "{.col}_diff")) %>%
+#   filter(if_any(ends_with("_diff"), ~ .)) %>%
+#   select(zip, subregion, subregion_2, subregion_old, subregion_2_old) %>%
+#   filter(subregion != subregion_old & 
+#            subregion != subregion_2_old |
+#            subregion_2 != subregion_2_old &
+#            subregion_2 != subregion_old) %>%
+#   mutate(across(everything(), ~ na_if(., "missing"))) %>%
+#   glimpse()
+# 
+# # the differences here are due to the subregion differences
+# compare_comparisons <-
+#   inner_join(compare_subregion_assignment, compare_primary_subregion, by = "zip") %>%
+#   glimpse()
 
 # Create Website Data - assign predominant utilities ------
 
@@ -536,7 +945,7 @@ zip_subregion_assignments <- #64
 
 # reset predominant utility assignments
 zip_website_1 <- #65
-  zip_utility_subregion_18 %>%
+  zip_utility_subregion_16 %>%
   # account for capitalization and dashes when alphabetizing
   mutate(utility_name_clean = tolower(str_replace_all(utility_name, "-", "")),
          predominant_utility = "0") %>%
@@ -573,7 +982,7 @@ zip_website_3 <- #67b
 # Format final data  -----
 # all utility zipcodes and subregions
 zip_utility_subregion_final <-
-  zip_utility_subregion_18 %>%
+  zip_utility_subregion_17 %>%
   select(zip, state, eiaid, utility_name, subregion, predominant_utility) %>%
   arrange(as.numeric(zip), as.numeric(eiaid))
 
@@ -586,6 +995,29 @@ zip_subregion_assignments_final <-
 
 # Export data -----
 source("scripts/functions/function_save_output_data.R")
-output_folder <- "2b_power_profiler"
-save_output_data(zip_utility_subregion_final, output_folder, "zip_utility_subregion_new.RDS")
-save_output_data(zip_subregion_assignments_final, output_folder, "zip_subregion_assignments_new.RDS")
+output_folder <- "2c_power_profiler"
+# save_output_data(zip_utility_subregion_final, output_folder, "zip_utility_subregion.RDS")
+# save_output_data(zip_subregion_assignments_final, output_folder, "zip_subregion_assignments.RDS")
+
+compare(zip_utility_subregion_final, zip_utility_subregion_final_old)
+comparison <-
+  zip_utility_subregion_final %>%
+  full_join(zip_utility_subregion_final_old, by = c("zip", "eiaid"), suffix = c("_new", "_old")) %>%
+  filter(predominant_utility_new != predominant_utility_old) %>%
+  select(zip, eiaid, predominant_utility_new, predominant_utility_old) %>%
+  glimpse()
+
+# there are 160 zipcodes with different subregions (5 eiaids)
+# 368 differences in predominant utility assignments
+
+comparison <-
+  zip_subregion_assignments_final %>%
+  full_join(zip_subregion_assignments_final_old, by = "zip", suffix = c("_new", "_old")) %>%
+  filter(subregion_3 != subregion_tertiary) %>%
+  select(zip, subregion_1, subregion_2, subregion, subregion_secondary, subregion_3, subregion_tertiary) %>%
+  glimpse()
+  glimpse()
+  filter(predominant_utility_new != predominant_utility_old) %>%
+  select(zip, eiaid, predominant_utility_new, predominant_utility_old) %>%
+  glimpse()
+
