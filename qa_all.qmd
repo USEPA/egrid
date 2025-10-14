@@ -9146,6 +9146,897 @@ knitr::kable(us_nonbaseload_zscore %>%
 
 ```
 
+# Subregion Combustion QA
+
+## Outlier check for combustion emisisons
+
+```{r}
+#| label: calculate-subregion-combustion-outliers
+
+plant_stats_summary <-
+  plant_stats %>%
+  select(contains("average"), contains("sd")) %>% distinct()
+
+subregion_combustion_stats <- 
+  subrgn_agg %>% 
+  mutate(across(.cols = contains("rate") & where(is.numeric), 
+                .fns = ~ mean(.x, na.rm = TRUE), 
+                .names =  "{.col}_average"), 
+         across(.cols = c(contains("rate") & where(is.numeric),
+                          -contains("average") & where(is.numeric)), 
+                .fns = ~ sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_sd")) %>% 
+  select(contains("average") & where(is.numeric), 
+         contains("sd") & where(is.numeric)) %>% distinct()
+
+subregion_combustion_stats_summary <- bind_cols(plant_stats_summary, subregion_combustion_stats) 
+
+if (params$temporal_res == "annual") { 
+  
+  subregion_combustion_zscore <- 
+    subrgn_agg %>% 
+    mutate(nox_combustion_output_zscore = (subregion_nox_combustion_rate -
+                                             subregion_combustion_stats_summary$subregion_nox_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_nox_combustion_rate_sd,
+           
+           nox_oz_combustion_output_zscore = (subregion_nox_combustion_rate - 
+                                                 subregion_combustion_stats_summary$subregion_nox_oz_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_nox_oz_combustion_rate_sd,
+           
+           so2_combustion_output_zscore = (subregion_so2_combustion_rate -
+                                             subregion_combustion_stats_summary$subregion_so2_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_so2_combustion_rate_sd,
+           
+           co2_combustion_output_zscore = (subregion_co2_combustion_rate -
+                                             subregion_combustion_stats_summary$subregion_co2_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_co2_combustion_rate_sd,
+           
+           ch4_combustion_output_zscore = (subregion_ch4_combustion_rate -
+                                             subregion_combustion_stats_summary$subregion_ch4_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_ch4_combustion_rate_sd,
+           
+           n2o_combustion_output_zscore = (subregion_n2o_combustion_rate -
+                                             subregion_combustion_stats_summary$subregion_n2o_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_n2o_combustion_rate_sd,
+           
+           co2e_combustion_output_zscore = (subregion_co2e_combustion_rate -
+                                              subregion_combustion_stats_summary$subregion_co2e_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_co2e_combustion_rate_sd) %>%
+    select(subregion, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+} else { 
+  subregion_nonbaseload_zscore <- 
+    subrgn_agg %>% 
+    mutate(nox_combustion_output_zscore = (subregion_nox_combustion_rate -
+                                             subregion_combustion_stats_summary$subregion_nox_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_nox_combustion_rate_sd,
+           
+           nox_oz_combustion_output_zscore = (subregion_nox_combustion_rate - 
+                                                subregion_combustion_stats_summary$subregion_nox_oz_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_nox_oz_combustion_rate_sd,
+           
+           so2_combustion_output_zscore = (subregion_so2_combustion_rate -
+                                             subregion_combustion_stats_summary$subregion_so2_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_so2_combustion_rate_sd,
+           
+           co2_combustion_output_zscore = (subregion_co2_combustion_rate -
+                                             subregion_combustion_stats_summary$subregion_co2_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_co2_combustion_rate_sd,
+           
+           ch4_combustion_output_zscore = (subregion_ch4_combustion_rate -
+                                             subregion_combustion_stats_summary$subregion_ch4_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_ch4_combustion_rate_sd,
+           
+           n2o_combustion_output_zscore = (subregion_n2o_combustion_rate -
+                                             subregion_combustion_stats_summary$subregion_n2o_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_n2o_combustion_rate_sd,
+           
+           co2e_combustion_output_zscore = (subregion_co2e_combustion_rate -
+                                              subregion_combustion_stats_summary$subregion_co2e_combustion_rate_average)/
+             subregion_combustion_stats_summary$subregion_co2e_combustion_rate_sd) %>%
+    select(subregion, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))}
+
+```
+
+### Combustion output rates
+
+::: panel-tabset
+#### NOx output rate
+
+```{r}
+#| label: subregion-nox-combustion-outlier    
+
+knitr::kable(subregion_combustion_zscore %>%
+               filter(nox_combustion_output_zscore > 3 | nox_combustion_output_zscore < -3) %>%
+               select(subregion, subregion_nox_combustion_rate, nox_combustion_output_zscore) %>%
+               arrange(desc(nox_combustion_output_zscore)))
+
+```
+
+#### NOx ozone output rate
+
+```{r}
+#| label: subregion-nox_oz-combustion-outlier    
+
+knitr::kable(subregion_combustion_zscore %>%
+               filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
+               select(subregion, subregion_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
+               arrange(desc(nox_oz_combustion_output_zscore)))
+
+```
+
+#### SO2 output rate
+
+```{r}
+#| label: subregion-so2-combustion-outlier    
+
+knitr::kable(subregion_combustion_zscore %>%
+               filter(so2_combustion_output_zscore > 3 | so2_combustion_output_zscore < -3) %>%
+               select(subregion, subregion_so2_combustion_rate, so2_combustion_output_zscore) %>%
+               arrange(desc(so2_combustion_output_zscore)))
+
+```
+
+#### CO2 output rate
+
+```{r}
+#| label: subregion-co2-combustion-outlier    
+
+knitr::kable(subregion_combustion_zscore %>%
+               filter(co2_combustion_output_zscore > 3 | co2_combustion_output_zscore < -3) %>%
+               select(subregion, subregion_co2_combustion_rate, co2_combustion_output_zscore) %>%
+               arrange(desc(co2_combustion_output_zscore)))
+
+```
+
+#### CH4 output rate
+
+```{r}
+#| label: subregion-ch4-combustion-outlier    
+
+knitr::kable(subregion_combustion_zscore %>%
+               filter(ch4_combustion_output_zscore > 3 | ch4_combustion_output_zscore < -3) %>%
+               select(subregion, subregion_ch4_combustion_rate, ch4_combustion_output_zscore) %>%
+               arrange(desc(ch4_combustion_output_zscore)))
+
+```
+
+#### N2O output rate
+
+```{r}
+#| label: subregion-n2o-combustion-outlier    
+
+knitr::kable(subregion_combustion_zscore %>%
+               filter(n2o_combustion_output_zscore > 3 | n2o_combustion_output_zscore < -3) %>%
+               select(subregion, subregion_n2o_combustion_rate, n2o_combustion_output_zscore) %>%
+               arrange(desc(n2o_combustion_output_zscore)))
+
+```
+
+#### CO2e output rate
+
+```{r}
+#| label: subregion-co2e-combustion-outlier    
+
+knitr::kable(subregion_combustion_zscore %>%
+               filter(co2e_combustion_output_zscore > 3 | co2e_combustion_output_zscore < -3) %>%
+               select(subregion, subregion_co2e_combustion_rate, co2e_combustion_output_zscore) %>%
+               arrange(desc(co2e_combustion_output_zscore)))
+
+```
+
+
+# BA Combustion QA
+
+## Outlier check for combustion emisisons
+
+```{r}
+#| label: calculate-ba-combustion-outliers
+
+plant_stats_summary <-
+  plant_stats %>%
+  select(contains("average"), contains("sd")) %>% distinct()
+
+ba_combustion_stats <- 
+  ba_agg %>% 
+  mutate(across(.cols = contains("rate") & where(is.numeric), 
+                .fns = ~ mean(.x, na.rm = TRUE), 
+                .names =  "{.col}_average"), 
+         across(.cols = c(contains("rate") & where(is.numeric),
+                          -contains("average") & where(is.numeric)), 
+                .fns = ~ sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_sd")) %>% 
+  select(contains("average") & where(is.numeric), 
+         contains("sd") & where(is.numeric)) %>% distinct()
+
+ba_combustion_stats_summary <- bind_cols(plant_stats_summary, ba_combustion_stats) 
+
+if (params$temporal_res == "annual") { 
+  
+  ba_combustion_zscore <- 
+    ba_agg %>% 
+    mutate(nox_combustion_output_zscore = (ba_nox_combustion_rate -
+                                             ba_combustion_stats_summary$ba_nox_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_nox_combustion_rate_sd,
+           
+           nox_oz_combustion_output_zscore = (ba_nox_combustion_rate - 
+                                                ba_combustion_stats_summary$ba_nox_oz_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_nox_oz_combustion_rate_sd,
+           
+           so2_combustion_output_zscore = (ba_so2_combustion_rate -
+                                             ba_combustion_stats_summary$ba_so2_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_so2_combustion_rate_sd,
+           
+           co2_combustion_output_zscore = (ba_co2_combustion_rate -
+                                             ba_combustion_stats_summary$ba_co2_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_co2_combustion_rate_sd,
+           
+           ch4_combustion_output_zscore = (ba_ch4_combustion_rate -
+                                             ba_combustion_stats_summary$ba_ch4_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_ch4_combustion_rate_sd,
+           
+           n2o_combustion_output_zscore = (ba_n2o_combustion_rate -
+                                             ba_combustion_stats_summary$ba_n2o_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_n2o_combustion_rate_sd,
+           
+           co2e_combustion_output_zscore = (ba_co2e_combustion_rate -
+                                              ba_combustion_stats_summary$ba_co2e_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_co2e_combustion_rate_sd) %>%
+    select(ba_code, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+} else { 
+  ba_nonbaseload_zscore <- 
+    subrgn_agg %>% 
+    mutate(nox_combustion_output_zscore = (ba_nox_combustion_rate -
+                                             ba_combustion_stats_summary$ba_nox_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_nox_combustion_rate_sd,
+           
+           nox_oz_combustion_output_zscore = (ba_nox_combustion_rate - 
+                                                ba_combustion_stats_summary$ba_nox_oz_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_nox_oz_combustion_rate_sd,
+           
+           so2_combustion_output_zscore = (ba_so2_combustion_rate -
+                                             ba_combustion_stats_summary$ba_so2_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_so2_combustion_rate_sd,
+           
+           co2_combustion_output_zscore = (ba_co2_combustion_rate -
+                                             ba_combustion_stats_summary$ba_co2_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_co2_combustion_rate_sd,
+           
+           ch4_combustion_output_zscore = (ba_ch4_combustion_rate -
+                                             ba_combustion_stats_summary$ba_ch4_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_ch4_combustion_rate_sd,
+           
+           n2o_combustion_output_zscore = (ba_n2o_combustion_rate -
+                                             ba_combustion_stats_summary$ba_n2o_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_n2o_combustion_rate_sd,
+           
+           co2e_combustion_output_zscore = (ba_co2e_combustion_rate -
+                                              ba_combustion_stats_summary$ba_co2e_combustion_rate_average)/
+             ba_combustion_stats_summary$ba_co2e_combustion_rate_sd) %>%
+    select(ba_code, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))}
+
+```
+
+### Combustion output rates
+
+::: panel-tabset
+#### NOx output rate
+
+```{r}
+#| label: ba-nox-combustion-outlier    
+
+knitr::kable(ba_combustion_zscore %>%
+               filter(nox_combustion_output_zscore > 3 | nox_combustion_output_zscore < -3) %>%
+               select(ba_code, ba_nox_combustion_rate, nox_combustion_output_zscore) %>%
+               arrange(desc(nox_combustion_output_zscore)))
+
+```
+
+#### NOx ozone output rate
+
+```{r}
+#| label: ba-nox_oz-combustion-outlier    
+
+knitr::kable(ba_combustion_zscore %>%
+               filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
+               select(ba_code, ba_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
+               arrange(desc(nox_oz_combustion_output_zscore)))
+
+```
+
+#### SO2 output rate
+
+```{r}
+#| label: ba-so2-combustion-outlier    
+
+knitr::kable(ba_combustion_zscore %>%
+               filter(so2_combustion_output_zscore > 3 | so2_combustion_output_zscore < -3) %>%
+               select(ba_code, ba_so2_combustion_rate, so2_combustion_output_zscore) %>%
+               arrange(desc(so2_combustion_output_zscore)))
+
+```
+
+#### CO2 output rate
+
+```{r}
+#| label: ba-co2-combustion-outlier    
+
+knitr::kable(ba_combustion_zscore %>%
+               filter(co2_combustion_output_zscore > 3 | co2_combustion_output_zscore < -3) %>%
+               select(ba_code, ba_co2_combustion_rate, co2_combustion_output_zscore) %>%
+               arrange(desc(co2_combustion_output_zscore)))
+
+```
+
+#### CH4 output rate
+
+```{r}
+#| label: ba-ch4-combustion-outlier    
+
+knitr::kable(ba_combustion_zscore %>%
+               filter(ch4_combustion_output_zscore > 3 | ch4_combustion_output_zscore < -3) %>%
+               select(ba_code, ba_ch4_combustion_rate, ch4_combustion_output_zscore) %>%
+               arrange(desc(ch4_combustion_output_zscore)))
+
+```
+
+#### N2O output rate
+
+```{r}
+#| label: ba-n2o-combustion-outlier    
+
+knitr::kable(ba_combustion_zscore %>%
+               filter(n2o_combustion_output_zscore > 3 | n2o_combustion_output_zscore < -3) %>%
+               select(ba_code, ba_n2o_combustion_rate, n2o_combustion_output_zscore) %>%
+               arrange(desc(n2o_combustion_output_zscore)))
+
+```
+
+#### CO2e output rate
+
+```{r}
+#| label: ba-co2e-combustion-outlier    
+
+knitr::kable(ba_combustion_zscore %>%
+               filter(co2e_combustion_output_zscore > 3 | co2e_combustion_output_zscore < -3) %>%
+               select(ba_code, ba_co2e_combustion_rate, co2e_combustion_output_zscore) %>%
+               arrange(desc(co2e_combustion_output_zscore)))
+
+```
+
+# NERC Combustion QA
+
+## Outlier check for combustion emisisons
+
+```{r}
+#| label: calculate-nerc-combustion-outliers
+
+plant_stats_summary <-
+  plant_stats %>%
+  select(contains("average"), contains("sd")) %>% distinct()
+
+nerc_combustion_stats <- 
+  nerc_agg %>% 
+  mutate(across(.cols = contains("rate") & where(is.numeric), 
+                .fns = ~ mean(.x, na.rm = TRUE), 
+                .names =  "{.col}_average"), 
+         across(.cols = c(contains("rate") & where(is.numeric),
+                          -contains("average") & where(is.numeric)), 
+                .fns = ~ sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_sd")) %>% 
+  select(contains("average") & where(is.numeric), 
+         contains("sd") & where(is.numeric)) %>% distinct()
+
+nerc_combustion_stats_summary <- bind_cols(plant_stats_summary, nerc_combustion_stats) 
+
+if (params$temporal_res == "annual") { 
+  
+  nerc_combustion_zscore <- 
+    nerc_agg %>% 
+    mutate(nox_combustion_output_zscore = (nerc_nox_combustion_rate -
+                                             nerc_combustion_stats_summary$nerc_nox_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_nox_combustion_rate_sd,
+           
+           nox_oz_combustion_output_zscore = (nerc_nox_combustion_rate - 
+                                                nerc_combustion_stats_summary$nerc_nox_oz_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_nox_oz_combustion_rate_sd,
+           
+           so2_combustion_output_zscore = (nerc_so2_combustion_rate -
+                                             nerc_combustion_stats_summary$nerc_so2_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_so2_combustion_rate_sd,
+           
+           co2_combustion_output_zscore = (nerc_co2_combustion_rate -
+                                             nerc_combustion_stats_summary$nerc_co2_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_co2_combustion_rate_sd,
+           
+           ch4_combustion_output_zscore = (nerc_ch4_combustion_rate -
+                                             nerc_combustion_stats_summary$nerc_ch4_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_ch4_combustion_rate_sd,
+           
+           n2o_combustion_output_zscore = (nerc_n2o_combustion_rate -
+                                             nerc_combustion_stats_summary$nerc_n2o_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_n2o_combustion_rate_sd,
+           
+           co2e_combustion_output_zscore = (nerc_co2e_combustion_rate -
+                                              nerc_combustion_stats_summary$nerc_co2e_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_co2e_combustion_rate_sd) %>%
+    select(nerc, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+} else { 
+  nerc_nonbaseload_zscore <- 
+    subrgn_agg %>% 
+    mutate(nox_combustion_output_zscore = (nerc_nox_combustion_rate -
+                                             nerc_combustion_stats_summary$nerc_nox_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_nox_combustion_rate_sd,
+           
+           nox_oz_combustion_output_zscore = (nerc_nox_combustion_rate - 
+                                                nerc_combustion_stats_summary$nerc_nox_oz_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_nox_oz_combustion_rate_sd,
+           
+           so2_combustion_output_zscore = (nerc_so2_combustion_rate -
+                                             nerc_combustion_stats_summary$nerc_so2_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_so2_combustion_rate_sd,
+           
+           co2_combustion_output_zscore = (nerc_co2_combustion_rate -
+                                             nerc_combustion_stats_summary$nerc_co2_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_co2_combustion_rate_sd,
+           
+           ch4_combustion_output_zscore = (nerc_ch4_combustion_rate -
+                                             nerc_combustion_stats_summary$nerc_ch4_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_ch4_combustion_rate_sd,
+           
+           n2o_combustion_output_zscore = (nerc_n2o_combustion_rate -
+                                             nerc_combustion_stats_summary$nerc_n2o_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_n2o_combustion_rate_sd,
+           
+           co2e_combustion_output_zscore = (nerc_co2e_combustion_rate -
+                                              nerc_combustion_stats_summary$nerc_co2e_combustion_rate_average)/
+             nerc_combustion_stats_summary$nerc_co2e_combustion_rate_sd) %>%
+    select(nerc, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))}
+
+```
+
+### Combustion output rates
+
+::: panel-tabset
+#### NOx output rate
+
+```{r}
+#| label: nerc-nox-combustion-outlier    
+
+knitr::kable(nerc_combustion_zscore %>%
+               filter(nox_combustion_output_zscore > 3 | nox_combustion_output_zscore < -3) %>%
+               select(nerc, nerc_nox_combustion_rate, nox_combustion_output_zscore) %>%
+               arrange(desc(nox_combustion_output_zscore)))
+
+```
+
+#### NOx ozone output rate
+
+```{r}
+#| label: nerc-nox_oz-combustion-outlier    
+
+knitr::kable(nerc_combustion_zscore %>%
+               filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
+               select(nerc, nerc_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
+               arrange(desc(nox_oz_combustion_output_zscore)))
+
+```
+
+#### SO2 output rate
+
+```{r}
+#| label: nerc-so2-combustion-outlier    
+
+knitr::kable(nerc_combustion_zscore %>%
+               filter(so2_combustion_output_zscore > 3 | so2_combustion_output_zscore < -3) %>%
+               select(nerc, nerc_so2_combustion_rate, so2_combustion_output_zscore) %>%
+               arrange(desc(so2_combustion_output_zscore)))
+
+```
+
+#### CO2 output rate
+
+```{r}
+#| label: nerc-co2-combustion-outlier    
+
+knitr::kable(nerc_combustion_zscore %>%
+               filter(co2_combustion_output_zscore > 3 | co2_combustion_output_zscore < -3) %>%
+               select(nerc, nerc_co2_combustion_rate, co2_combustion_output_zscore) %>%
+               arrange(desc(co2_combustion_output_zscore)))
+
+```
+
+#### CH4 output rate
+
+```{r}
+#| label: nerc-ch4-combustion-outlier    
+
+knitr::kable(nerc_combustion_zscore %>%
+               filter(ch4_combustion_output_zscore > 3 | ch4_combustion_output_zscore < -3) %>%
+               select(nerc, nerc_ch4_combustion_rate, ch4_combustion_output_zscore) %>%
+               arrange(desc(ch4_combustion_output_zscore)))
+
+```
+
+#### N2O output rate
+
+```{r}
+#| label: nerc-n2o-combustion-outlier    
+
+knitr::kable(nerc_combustion_zscore %>%
+               filter(n2o_combustion_output_zscore > 3 | n2o_combustion_output_zscore < -3) %>%
+               select(nerc, nerc_n2o_combustion_rate, n2o_combustion_output_zscore) %>%
+               arrange(desc(n2o_combustion_output_zscore)))
+
+```
+
+#### CO2e output rate
+
+```{r}
+#| label: nerc-co2e-combustion-outlier    
+
+knitr::kable(nerc_combustion_zscore %>%
+               filter(co2e_combustion_output_zscore > 3 | co2e_combustion_output_zscore < -3) %>%
+               select(nerc, nerc_co2e_combustion_rate, co2e_combustion_output_zscore) %>%
+               arrange(desc(co2e_combustion_output_zscore)))
+
+```
+
+# State Combustion QA
+
+## Outlier check for combustion emisisons
+
+```{r}
+#| label: calculate-state-combustion-outliers
+
+plant_stats_summary <-
+  plant_stats %>%
+  select(contains("average"), contains("sd")) %>% distinct()
+
+state_combustion_stats <- 
+  state_agg %>% 
+  mutate(across(.cols = contains("rate") & where(is.numeric), 
+                .fns = ~ mean(.x, na.rm = TRUE), 
+                .names =  "{.col}_average"), 
+         across(.cols = c(contains("rate") & where(is.numeric),
+                          -contains("average") & where(is.numeric)), 
+                .fns = ~ sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_sd")) %>% 
+  select(contains("average") & where(is.numeric), 
+         contains("sd") & where(is.numeric)) %>% distinct()
+
+state_combustion_stats_summary <- bind_cols(plant_stats_summary, state_combustion_stats) 
+
+if (params$temporal_res == "annual") { 
+  
+  state_combustion_zscore <- 
+    state_agg %>% 
+    mutate(nox_combustion_output_zscore = (state_nox_combustion_rate -
+                                             state_combustion_stats_summary$state_nox_combustion_rate_average)/
+             state_combustion_stats_summary$state_nox_combustion_rate_sd,
+           
+           nox_oz_combustion_output_zscore = (state_nox_combustion_rate - 
+                                                state_combustion_stats_summary$state_nox_oz_combustion_rate_average)/
+             state_combustion_stats_summary$state_nox_oz_combustion_rate_sd,
+           
+           so2_combustion_output_zscore = (state_so2_combustion_rate -
+                                             state_combustion_stats_summary$state_so2_combustion_rate_average)/
+             state_combustion_stats_summary$state_so2_combustion_rate_sd,
+           
+           co2_combustion_output_zscore = (state_co2_combustion_rate -
+                                             state_combustion_stats_summary$state_co2_combustion_rate_average)/
+             state_combustion_stats_summary$state_co2_combustion_rate_sd,
+           
+           ch4_combustion_output_zscore = (state_ch4_combustion_rate -
+                                             state_combustion_stats_summary$state_ch4_combustion_rate_average)/
+             state_combustion_stats_summary$state_ch4_combustion_rate_sd,
+           
+           n2o_combustion_output_zscore = (state_n2o_combustion_rate -
+                                             state_combustion_stats_summary$state_n2o_combustion_rate_average)/
+             state_combustion_stats_summary$state_n2o_combustion_rate_sd,
+           
+           co2e_combustion_output_zscore = (state_co2e_combustion_rate -
+                                              state_combustion_stats_summary$state_co2e_combustion_rate_average)/
+             state_combustion_stats_summary$state_co2e_combustion_rate_sd) %>%
+    select(state, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+} else { 
+  state_nonbaseload_zscore <- 
+    subrgn_agg %>% 
+    mutate(nox_combustion_output_zscore = (state_nox_combustion_rate -
+                                             state_combustion_stats_summary$state_nox_combustion_rate_average)/
+             state_combustion_stats_summary$state_nox_combustion_rate_sd,
+           
+           nox_oz_combustion_output_zscore = (state_nox_combustion_rate - 
+                                                state_combustion_stats_summary$state_nox_oz_combustion_rate_average)/
+             state_combustion_stats_summary$state_nox_oz_combustion_rate_sd,
+           
+           so2_combustion_output_zscore = (state_so2_combustion_rate -
+                                             state_combustion_stats_summary$state_so2_combustion_rate_average)/
+             state_combustion_stats_summary$state_so2_combustion_rate_sd,
+           
+           co2_combustion_output_zscore = (state_co2_combustion_rate -
+                                             state_combustion_stats_summary$state_co2_combustion_rate_average)/
+             state_combustion_stats_summary$state_co2_combustion_rate_sd,
+           
+           ch4_combustion_output_zscore = (state_ch4_combustion_rate -
+                                             state_combustion_stats_summary$state_ch4_combustion_rate_average)/
+             state_combustion_stats_summary$state_ch4_combustion_rate_sd,
+           
+           n2o_combustion_output_zscore = (state_n2o_combustion_rate -
+                                             state_combustion_stats_summary$state_n2o_combustion_rate_average)/
+             state_combustion_stats_summary$state_n2o_combustion_rate_sd,
+           
+           co2e_combustion_output_zscore = (state_co2e_combustion_rate -
+                                              state_combustion_stats_summary$state_co2e_combustion_rate_average)/
+             state_combustion_stats_summary$state_co2e_combustion_rate_sd) %>%
+    select(state, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))}
+
+```
+
+### Combustion output rates
+
+::: panel-tabset
+#### NOx output rate
+
+```{r}
+#| label: state-nox-combustion-outlier    
+
+knitr::kable(state_combustion_zscore %>%
+               filter(nox_combustion_output_zscore > 3 | nox_combustion_output_zscore < -3) %>%
+               select(state, state_nox_combustion_rate, nox_combustion_output_zscore) %>%
+               arrange(desc(nox_combustion_output_zscore)))
+
+```
+
+#### NOx ozone output rate
+
+```{r}
+#| label: state-nox_oz-combustion-outlier    
+
+knitr::kable(state_combustion_zscore %>%
+               filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
+               select(state, state_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
+               arrange(desc(nox_oz_combustion_output_zscore)))
+
+```
+
+#### SO2 output rate
+
+```{r}
+#| label: state-so2-combustion-outlier    
+
+knitr::kable(state_combustion_zscore %>%
+               filter(so2_combustion_output_zscore > 3 | so2_combustion_output_zscore < -3) %>%
+               select(state, state_so2_combustion_rate, so2_combustion_output_zscore) %>%
+               arrange(desc(so2_combustion_output_zscore)))
+
+```
+
+#### CO2 output rate
+
+```{r}
+#| label: state-co2-combustion-outlier    
+
+knitr::kable(state_combustion_zscore %>%
+               filter(co2_combustion_output_zscore > 3 | co2_combustion_output_zscore < -3) %>%
+               select(state, state_co2_combustion_rate, co2_combustion_output_zscore) %>%
+               arrange(desc(co2_combustion_output_zscore)))
+
+```
+
+#### CH4 output rate
+
+```{r}
+#| label: state-ch4-combustion-outlier    
+
+knitr::kable(state_combustion_zscore %>%
+               filter(ch4_combustion_output_zscore > 3 | ch4_combustion_output_zscore < -3) %>%
+               select(state, state_ch4_combustion_rate, ch4_combustion_output_zscore) %>%
+               arrange(desc(ch4_combustion_output_zscore)))
+
+```
+
+#### N2O output rate
+
+```{r}
+#| label: state-n2o-combustion-outlier    
+
+knitr::kable(state_combustion_zscore %>%
+               filter(n2o_combustion_output_zscore > 3 | n2o_combustion_output_zscore < -3) %>%
+               select(state, state_n2o_combustion_rate, n2o_combustion_output_zscore) %>%
+               arrange(desc(n2o_combustion_output_zscore)))
+
+```
+
+#### CO2e output rate
+
+```{r}
+#| label: state-co2e-combustion-outlier    
+
+knitr::kable(state_combustion_zscore %>%
+               filter(co2e_combustion_output_zscore > 3 | co2e_combustion_output_zscore < -3) %>%
+               select(state, state_co2e_combustion_rate, co2e_combustion_output_zscore) %>%
+               arrange(desc(co2e_combustion_output_zscore)))
+
+```
+
+# US Combustion QA
+
+## Outlier check for combustion emisisons
+
+```{r}
+#| label: calculate-us-combustion-outliers
+
+plant_stats_summary <-
+  plant_stats %>%
+  select(contains("average"), contains("sd")) %>% distinct()
+
+us_combustion_stats <- 
+  us_agg %>% 
+  mutate(across(.cols = contains("rate") & where(is.numeric), 
+                .fns = ~ mean(.x, na.rm = TRUE), 
+                .names =  "{.col}_average"), 
+         across(.cols = c(contains("rate") & where(is.numeric),
+                          -contains("average") & where(is.numeric)), 
+                .fns = ~ sd(.x, na.rm = TRUE), 
+                .names =  "{.col}_sd")) %>% 
+  select(contains("average") & where(is.numeric), 
+         contains("sd") & where(is.numeric)) %>% distinct()
+
+us_combustion_stats_summary <- bind_cols(plant_stats_summary, us_combustion_stats) 
+
+if (params$temporal_res == "annual") { 
+  
+  us_combustion_zscore <- 
+    us_agg %>% 
+    mutate(nox_combustion_output_zscore = (us_nox_combustion_rate -
+                                             us_combustion_stats_summary$us_nox_combustion_rate_average)/
+             us_combustion_stats_summary$us_nox_combustion_rate_sd,
+           
+           nox_oz_combustion_output_zscore = (us_nox_combustion_rate - 
+                                                us_combustion_stats_summary$us_nox_oz_combustion_rate_average)/
+             us_combustion_stats_summary$us_nox_oz_combustion_rate_sd,
+           
+           so2_combustion_output_zscore = (us_so2_combustion_rate -
+                                             us_combustion_stats_summary$us_so2_combustion_rate_average)/
+             us_combustion_stats_summary$us_so2_combustion_rate_sd,
+           
+           co2_combustion_output_zscore = (us_co2_combustion_rate -
+                                             us_combustion_stats_summary$us_co2_combustion_rate_average)/
+             us_combustion_stats_summary$us_co2_combustion_rate_sd,
+           
+           ch4_combustion_output_zscore = (us_ch4_combustion_rate -
+                                             us_combustion_stats_summary$us_ch4_combustion_rate_average)/
+             us_combustion_stats_summary$us_ch4_combustion_rate_sd,
+           
+           n2o_combustion_output_zscore = (us_n2o_combustion_rate -
+                                             us_combustion_stats_summary$us_n2o_combustion_rate_average)/
+             us_combustion_stats_summary$us_n2o_combustion_rate_sd,
+           
+           co2e_combustion_output_zscore = (us_co2e_combustion_rate -
+                                              us_combustion_stats_summary$us_co2e_combustion_rate_average)/
+             us_combustion_stats_summary$us_co2e_combustion_rate_sd) %>%
+    select(contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+} else { 
+  us_nonbaseload_zscore <- 
+    subrgn_agg %>% 
+    mutate(nox_combustion_output_zscore = (us_nox_combustion_rate -
+                                             us_combustion_stats_summary$us_nox_combustion_rate_average)/
+             us_combustion_stats_summary$us_nox_combustion_rate_sd,
+           
+           nox_oz_combustion_output_zscore = (us_nox_combustion_rate - 
+                                                us_combustion_stats_summary$us_nox_oz_combustion_rate_average)/
+             us_combustion_stats_summary$us_nox_oz_combustion_rate_sd,
+           
+           so2_combustion_output_zscore = (us_so2_combustion_rate -
+                                             us_combustion_stats_summary$us_so2_combustion_rate_average)/
+             us_combustion_stats_summary$us_so2_combustion_rate_sd,
+           
+           co2_combustion_output_zscore = (us_co2_combustion_rate -
+                                             us_combustion_stats_summary$us_co2_combustion_rate_average)/
+             us_combustion_stats_summary$us_co2_combustion_rate_sd,
+           
+           ch4_combustion_output_zscore = (us_ch4_combustion_rate -
+                                             us_combustion_stats_summary$us_ch4_combustion_rate_average)/
+             us_combustion_stats_summary$us_ch4_combustion_rate_sd,
+           
+           n2o_combustion_output_zscore = (us_n2o_combustion_rate -
+                                             us_combustion_stats_summary$us_n2o_combustion_rate_average)/
+             us_combustion_stats_summary$us_n2o_combustion_rate_sd,
+           
+           co2e_combustion_output_zscore = (us_co2e_combustion_rate -
+                                              us_combustion_stats_summary$us_co2e_combustion_rate_average)/
+             us_combustion_stats_summary$us_co2e_combustion_rate_sd) %>%
+    select(contains("rate"), contains("ra"), contains("ro"), contains("zscore"))}
+
+```
+
+### Combustion output rates
+
+::: panel-tabset
+#### NOx output rate
+
+```{r}
+#| label: us-nox-combustion-outlier    
+
+knitr::kable(us_combustion_zscore %>%
+               filter(nox_combustion_output_zscore > 3 | nox_combustion_output_zscore < -3) %>%
+               select(us_nox_combustion_rate, nox_combustion_output_zscore) %>%
+               arrange(desc(nox_combustion_output_zscore)))
+
+```
+
+#### NOx ozone output rate
+
+```{r}
+#| label: us-nox_oz-combustion-outlier    
+
+knitr::kable(us_combustion_zscore %>%
+               filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
+               select(us_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
+               arrange(desc(nox_oz_combustion_output_zscore)))
+
+```
+
+#### SO2 output rate
+
+```{r}
+#| label: us-so2-combustion-outlier    
+
+knitr::kable(us_combustion_zscore %>%
+               filter(so2_combustion_output_zscore > 3 | so2_combustion_output_zscore < -3) %>%
+               select(us_so2_combustion_rate, so2_combustion_output_zscore) %>%
+               arrange(desc(so2_combustion_output_zscore)))
+
+```
+
+#### CO2 output rate
+
+```{r}
+#| label: us-co2-combustion-outlier    
+
+knitr::kable(us_combustion_zscore %>%
+               filter(co2_combustion_output_zscore > 3 | co2_combustion_output_zscore < -3) %>%
+               select(us_co2_combustion_rate, co2_combustion_output_zscore) %>%
+               arrange(desc(co2_combustion_output_zscore)))
+
+```
+
+#### CH4 output rate
+
+```{r}
+#| label: us-ch4-combustion-outlier    
+
+knitr::kable(us_combustion_zscore %>%
+               filter(ch4_combustion_output_zscore > 3 | ch4_combustion_output_zscore < -3) %>%
+               select(us_ch4_combustion_rate, ch4_combustion_output_zscore) %>%
+               arrange(desc(ch4_combustion_output_zscore)))
+
+```
+
+#### N2O output rate
+
+```{r}
+#| label: us-n2o-combustion-outlier    
+
+knitr::kable(us_combustion_zscore %>%
+               filter(n2o_combustion_output_zscore > 3 | n2o_combustion_output_zscore < -3) %>%
+               select(us_n2o_combustion_rate, n2o_combustion_output_zscore) %>%
+               arrange(desc(n2o_combustion_output_zscore)))
+
+```
+
+#### CO2e output rate
+
+```{r}
+#| label: us-co2e-combustion-outlier    
+
+knitr::kable(us_combustion_zscore %>%
+               filter(co2e_combustion_output_zscore > 3 | co2e_combustion_output_zscore < -3) %>%
+               select(us_co2e_combustion_rate, co2e_combustion_output_zscore) %>%
+               arrange(desc(co2e_combustion_output_zscore)))
+
+```
+
 # All file QA
 
 ## Count of plants in generator, unit, and plant file are equivalent
