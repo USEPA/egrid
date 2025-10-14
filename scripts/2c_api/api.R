@@ -16,6 +16,7 @@ library(plumber)
 library(this.path)
 library(readr)
 library(dplyr)
+library(janitor)
 
 # Identify directory path egrid repository 
 file_path <- this.path::this.path()
@@ -30,7 +31,7 @@ function(year) {
  
   tryCatch({
     plant_data <- read_rds(rds_file) %>% 
-      rename(any_of(plant_nonmetric)) %>% janitor::clean_names()
+      rename(any_of(plant_nonmetric_annual)) %>% janitor::clean_names()
     
     list(success = TRUE, data = plant_data)
   }, error = function(e) {
@@ -45,7 +46,7 @@ function(year) {
   
   tryCatch({
     ba_data <- read_rds(rds_file) %>% 
-      rename(any_of(ba_nonmetric)) %>% janitor::clean_names()
+      rename(any_of(ba_nonmetric_annual)) %>% janitor::clean_names()
     
     list(success = TRUE, data = ba_data)
   }, error = function(e) {
@@ -59,7 +60,7 @@ function(year) {
   
   tryCatch({
     generator_data <- read_rds(rds_file) %>% 
-      rename(any_of(gen_nonmetric)) %>% janitor::clean_names()
+      rename(any_of(gen_nonmetric_annual)) %>% janitor::clean_names()
 
     list(success = TRUE, data = generator_data)
   }, error = function(e) {
@@ -73,7 +74,7 @@ function(year) {
   
   tryCatch({
     nerc_data <- read_rds(rds_file) %>% 
-      rename(any_of(nerc_nonmetric)) %>% janitor::clean_names()
+      rename(any_of(nerc_nonmetric_annual)) %>% janitor::clean_names()
     
     list(success = TRUE, data = nerc_data)
   }, error = function(e) {
@@ -87,7 +88,7 @@ function(year) {
   
   tryCatch({
     state_data <- read_rds(rds_file) %>% 
-      rename(any_of(state_nonmetric)) %>% janitor::clean_names()
+      rename(any_of(state_nonmetric_annual)) %>% janitor::clean_names()
 
     list(success = TRUE, data = state_data)
   }, error = function(e) {
@@ -101,7 +102,7 @@ function(year) {
   
   tryCatch({
     subregion_data <- read_rds(rds_file) %>% 
-      rename(any_of(subregion_nonmetric)) %>% janitor::clean_names()
+      rename(any_of(subregion_nonmetric_annual)) %>% janitor::clean_names()
 
     list(success = TRUE, data = subregion_data)
   }, error = function(e) {
