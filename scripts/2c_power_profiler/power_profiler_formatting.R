@@ -4,11 +4,15 @@
 ## 
 ## Purpose: 
 ## 
-## This file 
+## This file formats the power profiler output data
+## as an Excel file with two sheets:
+## 1) ZipSubregion for Website (zipcode subregion and predominant utility assignments)
+## 2) ZipSubregion for Excel Tool (zipcode primary, secondary, and tertiary assignments)
 ##
-## Additional notes
+## Authors:
 ##      
 ##      Madeline Zhang, Abt Global
+##      Emma Russell, Abt Global
 ##
 ## -------------------------------
 
@@ -90,5 +94,5 @@ setColWidths(wb, sheet = 2, cols = 1, widths = 13)
 setColWidths(wb, sheet = 2, cols = 3:5, widths = 20)
 
 # Save output
-output <- glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/ZipSubregion2023.xlsx")
+output <- glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/ZipSubregion{params$eGRID_year}.xlsx")
 saveWorkbook(wb, output, overwrite = TRUE)

@@ -261,7 +261,7 @@ save_diffs(check_subregion_assign_primary_subregion)
 check_subregion_assign_secondary_subregion <-
   subregion_assign_comparison %>%
   filter(subregion_2_r != subregion_2_access) %>%
-  select(zip_r, subregion_2_r, subregion_2_access) %>%
+  select(zip_r, subregion_1_r, subregion_1_access, subregion_2_r, subregion_2_access) %>%
   print()
 save_diffs(check_subregion_assign_secondary_subregion)
 
