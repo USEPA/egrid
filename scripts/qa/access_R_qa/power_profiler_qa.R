@@ -43,7 +43,7 @@ if (exists("params")) {
 
 # Create save directory for QA outputs -----
 
-save_dir <- glue::glue("data/2b_power_profiler/outputs/qa/new/{params$eGRID_year}/power_profiler_differences/")
+save_dir <- glue::glue("data/2c_power_profiler/outputs/qa/new/{params$eGRID_year}/power_profiler_differences/")
 
 if(dir.exists(save_dir)) {
   print(glue::glue("Folder {save_dir} already exists."))
@@ -61,7 +61,7 @@ print("POWER PROFILER QA IN PROGRESS")
 
 # ZIPCODE UTILITY SUBREGION DATA -----
 ## Import Access data ------
-access_zip_utility <- read_excel(glue::glue("data/2b_power_profiler/static_tables/qa/{params$eGRID_year}/ZipSubregion{params$eGRID_year}.xlsx"), 
+access_zip_utility <- read_excel(glue::glue("data/2c_power_profiler/static_tables/qa/{params$eGRID_year}/ZipSubregion{params$eGRID_year}.xlsx"), 
                          sheet = "ZipSubregion for Website",
                          col_names = TRUE,
                          col_types = c("text", "text", "text", "text", "text", "numeric")) %>%
@@ -75,7 +75,7 @@ access_zip_utility[access_zip_utility == "NA"] <- NA_character_
 
 
 ## Import R data ------
-r_zip_utility <- read_rds(glue::glue("data/2b_power_profiler/outputs/{params$eGRID_year}/zip_utility_subregion_new.RDS"))
+r_zip_utility <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_utility_subregion_new.RDS"))
 
 # add "_r" after each variable to easily identify dataset 
 colnames(r_zip_utility) <- paste0(colnames(r_zip_utility), "_r")
@@ -190,7 +190,7 @@ if(length(missing_r_files) != 0) {
 
 # ZIPCODE SUBREGION ASSIGNMENTS -----
 ## Import Access data ------
-access_subregion_assign <- read_excel(glue::glue("data/2b_power_profiler/static_tables/qa/{params$eGRID_year}/ZipSubregion{params$eGRID_year}.xlsx"), 
+access_subregion_assign <- read_excel(glue::glue("data/2c_power_profiler/static_tables/qa/{params$eGRID_year}/ZipSubregion{params$eGRID_year}.xlsx"), 
                               sheet = "ZipSubregion for Excel Tool",
                               col_names = TRUE,
                               col_types = c("text", "text", "text", "text", "text", "text")) %>%
@@ -207,7 +207,7 @@ colnames(access_subregion_assign) <- paste0(colnames(access_subregion_assign), "
 access_subregion_assign[access_subregion_assign == "NA"] <- NA_character_
 
 ## Import R data ------
-r_subregion_assign <- read_rds(glue::glue("data/2b_power_profiler/outputs/{params$eGRID_year}/zip_subregion_assignments_new.RDS")) 
+r_subregion_assign <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_subregion_assignments_new.RDS")) 
 
 # add "_r" after each variable to easily identify dataset 
 colnames(r_subregion_assign) <- paste0(colnames(r_subregion_assign), "_r")
@@ -248,9 +248,9 @@ save_diffs(check_subregion_assign_state)
 check_subregion_assign_primary_subregion <-
   subregion_assign_comparison %>%
   filter(subregion_1_r != subregion_1_access) %>%
-  select(zip_r, subregion_1_r, subregion_1_access) %>%
+  select(zip_r, subregion_1_r, subregion_1_access, subregion_2_r, subregion_2_access) %>%
   print()
-save_diffs(check_subregion_assign_secondary_subregion)
+save_diffs(check_subregion_assign_primary_subregion)
 
 ### Subregion secondary assignment -----
 check_subregion_assign_secondary_subregion <-
