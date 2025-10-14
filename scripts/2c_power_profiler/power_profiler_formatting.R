@@ -42,12 +42,11 @@ sheet1 <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year
                  "Predominant utility" = "predominant_utility") 
 
 sheet2 <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_subregion_assignments.RDS")) %>%
-          rename("Zip code (character)" = "zip",
+          rename("Zip code" = "zip",
                  "State" = "state",
                  "Subregion 1" = "subregion_1",
                  "Subregion 2" = "subregion_2",
-                 "Subregion 3" = "subregion_3") %>%
-          select(-zip_numeric)
+                 "Subregion 3" = "subregion_3")
 
 # Create format styles
 header_style <- createStyle(fgFill = "#BFBFBF", 
@@ -62,8 +61,8 @@ border_style <- createStyle(border = "TopBottomLeftRight",
 
 # Create workbook
 wb <- createWorkbook()
-addWorksheet(wb, "ZipRegion for Website")
-addWorksheet(wb, "ZipRegion for Excel Tool")
+addWorksheet(wb, "ZipSubregion for Website")
+addWorksheet(wb, "ZipSubregion for Excel Tool")
 
 # Write data
 writeData(wb, 

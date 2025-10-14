@@ -316,8 +316,6 @@ zip_utility_subregion_10 <- #16
 
 ### Old power profiler updates --------
 
-# exclude the following eiaids from overriding
-
 # override subregion assignments from old power profiler
 zip_utility_subregion_11 <- #42 - updated
   zip_utility_subregion_10 %>%
@@ -404,8 +402,6 @@ zip_utility_subregion_15 <- #52
 
 # Create Subregion Assignments Data -----
 
-# Create Subregion Assignments Data -----
-
 ### Primary subregion for zips assigned as predominant utility -----
 subregions_primary <- #53
   zip_utility_subregion_15 %>%
@@ -485,46 +481,6 @@ zip_secondary_tertiary_subregion <- #63
 zip_subregion_assignments <- #64
   zip_primary_subregion %>%
   left_join(zip_secondary_tertiary_subregion, by = "zip")
-
-# Create Website Data - assign predominant utilities ------
-
-# ### Assign predominant utility using first utility name for each zip -----
-# 
-# # reset predominant utility assignments
-# zip_website_1 <- #65
-#   zip_utility_subregion_16 %>%
-#   # account for capitalization and dashes when alphabetizing
-#   mutate(utility_name_clean = tolower(str_replace_all(utility_name, "-", "")),
-#          predominant_utility = "0") %>%
-#   arrange(zip, utility_name_clean) %>%
-#   select(zip, state, utility_name, trim_util_code = eiaid, subregion,  predominant_utility)
-# 
-# # identify first utility name for each zipcode (alphabetical)
-# first_of_utility_name <- #66
-#   zip_website_1 %>%
-#   group_by(zip, state) %>%
-#   summarize(first_of_utility_name = first(utility_name)) %>%
-#   filter(!is.na(first_of_utility_name)) %>%
-#   mutate(predominant_utility = "1") %>%
-#   ungroup()
-# 
-# # update predominant utility in zipcodes for website
-# zip_website_2 <- #67
-#   zip_website_1 %>%
-#   left_join(first_of_utility_name, by = c("utility_name" = "first_of_utility_name", "state", "zip")) %>%
-#   mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
-#   select(-contains("."))
-# 
-# ### Assign remaining zips' predominant utility using old power plant assignment -----
-# 
-# zip_website_3 <- #67b
-#   zip_website_2 %>%
-#   left_join(zip_codes_from_old_power_profiler_to_add %>%
-#               filter(is.na(eiaid)) %>%
-#               select(zip, eiaid, predominant_utility),
-#             by = "zip") %>%
-#   mutate(predominant_utility = if_else(!is.na(predominant_utility.y), predominant_utility.y, predominant_utility.x)) %>%
-#   select(-contains("."), -eiaid, eiaid = trim_util_code)
 
 # Format final data  -----
 # all utility zipcodes and subregions

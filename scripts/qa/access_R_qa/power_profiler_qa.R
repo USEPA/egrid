@@ -43,7 +43,7 @@ if (exists("params")) {
 
 # Create save directory for QA outputs -----
 
-save_dir <- glue::glue("data/2c_power_profiler/outputs/qa/new/{params$eGRID_year}/power_profiler_differences/")
+save_dir <- glue::glue("data/2c_power_profiler/outputs/qa/{params$eGRID_year}/power_profiler_differences/")
 
 if(dir.exists(save_dir)) {
   print(glue::glue("Folder {save_dir} already exists."))
@@ -75,7 +75,7 @@ access_zip_utility[access_zip_utility == "NA"] <- NA_character_
 
 
 ## Import R data ------
-r_zip_utility <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_utility_subregion_new.RDS"))
+r_zip_utility <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_utility_subregion.RDS"))
 
 # add "_r" after each variable to easily identify dataset 
 colnames(r_zip_utility) <- paste0(colnames(r_zip_utility), "_r")
@@ -98,6 +98,11 @@ check_zip_utility_records_missing_from_r <- #61
   filter(!is.na(eiaid_access)) %>%
   print()
 save_diffs(check_zip_utility_records_missing_from_r)
+
+check_missing_r_values <-
+  inner_join(check_zip_utility_records_missing_from_r, r_zip_utility, by = c('zip_access' = 'zip_r')) %>%
+  glimpse()
+save_diffs(check_missing_r_values)
 
 # Records in R not in Access
 check_zip_utility_records_missing_from_access <-
@@ -137,7 +142,7 @@ save_diffs(check_zip_utility_subregion)
 check_zip_utility_predominant_utility <-
   zip_utility_comparison %>%
   filter(predominant_utility_r != predominant_utility_access) %>%
-  select(zip_r, predominant_utility_r, predominant_utility_access) %>%
+  select(zip_r, eiaid_r, predominant_utility_r, predominant_utility_access) %>%
   print()
 save_diffs(check_zip_utility_predominant_utility)
 
@@ -207,7 +212,7 @@ colnames(access_subregion_assign) <- paste0(colnames(access_subregion_assign), "
 access_subregion_assign[access_subregion_assign == "NA"] <- NA_character_
 
 ## Import R data ------
-r_subregion_assign <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_subregion_assignments_new.RDS")) 
+r_subregion_assign <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_subregion_assignments.RDS")) 
 
 # add "_r" after each variable to easily identify dataset 
 colnames(r_subregion_assign) <- paste0(colnames(r_subregion_assign), "_r")
