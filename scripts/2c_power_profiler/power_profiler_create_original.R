@@ -597,6 +597,6 @@ zip_subregion_assignments_final <-
 
 # Export data -----
 source("scripts/functions/function_save_output_data.R")
-output_folder <- "2c_power_profiler"
+output_folder <- "data/2c_power_profiler/outputs"
 save_output_data(zip_utility_subregion_final, output_folder, "zip_utility_subregion.RDS")
 save_output_data(zip_subregion_assignments_final, output_folder, "zip_subregion_assignments.RDS")
