@@ -34,20 +34,20 @@ if (!exists("params")) {
 
 # Load in data
 sheet1 <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_utility_subregion.RDS")) %>%
-          rename("Zip" = "zip",
+          rename("Zip code" = "zip",
                  "State" = "state",
-                 "EIA_ID" = "eiaid",
-                 "Utility_Name" = "utility_name",
+                 "Utility ID " = "eiaid",
+                 "Utility name" = "utility_name",
                  "Subregion" = "subregion",
-                 "Predominant_Utility" = "predominant_utility") 
+                 "Predominant utility" = "predominant_utility") 
 
 sheet2 <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_subregion_assignments.RDS")) %>%
-          rename("ZIP_Character" = "zip",
-                 "ZIP_Numeric" = "zip_numeric",
+          rename("Zip code (character)" = "zip",
                  "State" = "state",
-                 "eGRID_Subregion_1" = "subregion_1",
-                 "eGRID_Subregion_2" = "subregion_2",
-                 "eGRID_Subregion_3" = "subregion_3")
+                 "Subregion 1" = "subregion_1",
+                 "Subregion 2" = "subregion_2",
+                 "Subregion 3" = "subregion_3") %>%
+          select(-zip_numeric)
 
 # Create format styles
 header_style <- createStyle(fgFill = "#BFBFBF", 
@@ -78,17 +78,17 @@ writeData(wb,
 
 # Add header styles
 addStyle(wb, sheet = 1, style = header_style,  rows = 1, cols = 1:6, gridExpand = TRUE)
-addStyle(wb, sheet = 2, style = header_style,  rows = 1, cols = 1:6, gridExpand = TRUE)
+addStyle(wb, sheet = 2, style = header_style,  rows = 1, cols = 1:5, gridExpand = TRUE)
 
 # Add border styles
 addStyle(wb, sheet = 1, style = border_style,  rows = 2:nrow(sheet1), cols = 1:6, gridExpand = TRUE)
-addStyle(wb, sheet = 2, style = border_style,  rows = 2:nrow(sheet2), cols = 1:6, gridExpand = TRUE)
+addStyle(wb, sheet = 2, style = border_style,  rows = 2:nrow(sheet2), cols = 1:5, gridExpand = TRUE)
 
 # Set column widths
 setColWidths(wb, sheet = 1, cols = 4, widths = 59.43)
 setColWidths(wb, sheet = 1, cols = 6, widths = 20)
-setColWidths(wb, sheet = 2, cols = 1:2, widths = 13)
-setColWidths(wb, sheet = 2, cols = 4:6, widths = 20)
+setColWidths(wb, sheet = 2, cols = 1, widths = 13)
+setColWidths(wb, sheet = 2, cols = 3:5, widths = 20)
 
 # Save output
 output <- glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/ZipSubregion2023.xlsx")
