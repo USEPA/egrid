@@ -21,7 +21,7 @@ save_output_data <- function(data, output_folder_path, file_name, file_type="RDS
   #' create directories when necessary
   #' 
   #' @param data Dataset variable name to save
-  #' @param output_folder String name of output folder to save to
+  #' @param output_folder_path String name of output folder to save to
   #' @param file_name String name of new file being saved
   #' 
   #' @return Saves the RDS dataset in {output_folder_path}/{params$eGRID_year}
