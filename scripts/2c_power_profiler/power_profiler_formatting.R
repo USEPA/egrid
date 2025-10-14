@@ -22,21 +22,17 @@ library(openxlsx)
 
 # Define eGRID year parameter ----------------
 
-# define parameter year if no one is currently assigned using prompted user input
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.")
-  } else { # if params() is defined, but eGRID_year is not, define it here
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year)
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
+# Load necessary functions
+source("scripts/functions/function_check_params.R")
+
+# Create and check parameters 
+if (!exists("params")) {
+  params <- check_params()
+} else {
+  print("eGRID year and temporal resolution parameters are already defined.")
 }
 
-# load in data
+# Load in data
 sheet1 <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_utility_subregion.RDS")) %>%
           rename("Zip" = "zip",
                  "State" = "state",
@@ -44,6 +40,7 @@ sheet1 <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year
                  "Utility_Name" = "utility_name",
                  "Subregion" = "subregion",
                  "Predominant_Utility" = "predominant_utility") 
+
 sheet2 <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_subregion_assignments.RDS")) %>%
           rename("ZIP_Character" = "zip",
                  "ZIP_Numeric" = "zip_numeric",
@@ -52,18 +49,23 @@ sheet2 <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year
                  "eGRID_Subregion_2" = "subregion_2",
                  "eGRID_Subregion_3" = "subregion_3")
 
-# create format styles
+# Create format styles
 header_style <- createStyle(fgFill = "#BFBFBF", 
                             wrapText = TRUE,
                             halign = "center",
                             border = "TopBottomLeftRight",
                             borderStyle = "thin")
 
+border_style <- createStyle(border = "TopBottomLeftRight",
+                          borderStyle = "thin",
+                          borderColour = "gray")
+
+# Create workbook
 wb <- createWorkbook()
 addWorksheet(wb, "ZipRegion for Website")
 addWorksheet(wb, "ZipRegion for Excel Tool")
 
-# write data
+# Write data
 writeData(wb, 
           sheet = 1, 
           sheet1, 
@@ -74,10 +76,20 @@ writeData(wb,
           sheet2, 
           startRow = 1)
 
+# Add header styles
 addStyle(wb, sheet = 1, style = header_style,  rows = 1, cols = 1:6, gridExpand = TRUE)
 addStyle(wb, sheet = 2, style = header_style,  rows = 1, cols = 1:6, gridExpand = TRUE)
+
+# Add border styles
+addStyle(wb, sheet = 1, style = border_style,  rows = 2:nrow(sheet1), cols = 1:6, gridExpand = TRUE)
+addStyle(wb, sheet = 2, style = border_style,  rows = 2:nrow(sheet2), cols = 1:6, gridExpand = TRUE)
+
+# Set column widths
 setColWidths(wb, sheet = 1, cols = 4, widths = 59.43)
+setColWidths(wb, sheet = 1, cols = 6, widths = 20)
+setColWidths(wb, sheet = 2, cols = 1:2, widths = 13)
+setColWidths(wb, sheet = 2, cols = 4:6, widths = 20)
 
-
+# Save output
 output <- glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/ZipSubregion2023.xlsx")
 saveWorkbook(wb, output, overwrite = TRUE)
