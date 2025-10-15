@@ -2633,7 +2633,7 @@ ifelse(nrow(check_plant_capfac) == 0, "Status: PASS - No plants have capacity fa
         glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_capfac)} plants have capacity factor greater than 1."))
 
 knitr::kable(check_plant_capfac %>% 
-               select(plant_id, plant_name, primary_fuel_category, primary_fuel_type, capfac, nameplate_capacity, generation_ann))
+               select(plant_id, plant_name, primary_fuel_category, primary_fuel_type, capfac, nameplate_capacity, generation))
 
 ```
 
@@ -10296,15 +10296,15 @@ if (params$temporal_res == "annual") {
     ungroup()}
 
 check_plant_gen_sum_ann <- gen_plant_sum %>%
-  full_join(plant_file %>% select("plant_id", "generation_ann"), join_by("plant_id")) %>%
-  mutate(sum_diff = round(generation_ann - plant_ann_sum, 5),
-         perc_diff = (sum_diff)/((generation_ann + plant_ann_sum)/2)*100) %>%
+  full_join(plant_file %>% select("plant_id", "generation"), join_by("plant_id")) %>%
+  mutate(sum_diff = round(generation - plant_ann_sum, 5),
+         perc_diff = (sum_diff)/((generation + plant_ann_sum)/2)*100) %>%
   filter(sum_diff != 0) %>%
   arrange(desc(sum_diff))
 
 ifelse(nrow(check_plant_gen_sum_ann) == 0, "Status: PASS - All annual generation values between plant and generation files are equal.",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum_ann)} plants do not have the same annual plant generation values between plant and generation files."))
 
-knitr::kable(check_plant_gen_sum_ann %>% select(plant_id, sum_diff, generation_ann, plant_ann_sum, perc_diff))
+knitr::kable(check_plant_gen_sum_ann %>% select(plant_id, sum_diff, generation, plant_ann_sum, perc_diff))
 ```
 
 ### Plant by plant comparison - ozone season generation
@@ -10335,12 +10335,12 @@ if (params$temporal_res == "annual") {
 if (params$temporal_res == "annual") {
   plant_gen_sum <- 
     plant_file %>% 
-    summarize(gen_total = sum(generation_ann, na.rm = TRUE), 
+    summarize(gen_total = sum(generation, na.rm = TRUE), 
               gen_oz_total = sum(generation_oz, na.rm = TRUE))
   
   generator_gen_sum <- 
     generator_file %>% 
-    summarize(gen_total = sum(generation_ann, na.rm = TRUE),
+    summarize(gen_total = sum(generation, na.rm = TRUE),
               gen_oz_total = sum(generation_oz, na.rm = TRUE))
 } else { 
   plant_gen_sum <- 
