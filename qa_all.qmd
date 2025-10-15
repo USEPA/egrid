@@ -5582,7 +5582,7 @@ knitr::kable(nerc_fuel_zscore %>%
 #### N2O input rate
 
 ```{r}
-#| label: nerc-n2o-output-gas-outliers    
+#| label: nerc-n2o-input-gas-outliers    
 
 knitr::kable(nerc_fuel_zscore %>%                                
                filter(n2o_output_gas_zscore > 3 | n2o_output_gas_zscore < -3) %>%                                
@@ -6400,7 +6400,7 @@ knitr::kable(ba_fuel_zscore %>%
 #### N2O input rate
 
 ```{r}
-#| label: ba-n2o-output-gas-outliers    
+#| label: ba-n2o-input-gas-outliers    
 
 knitr::kable(ba_fuel_zscore %>%                                
                filter(n2o_output_gas_zscore > 3 | n2o_output_gas_zscore < -3) %>%                                
@@ -7219,7 +7219,7 @@ knitr::kable(us_fuel_zscore %>%
 #### N2O input rate
 
 ```{r}
-#| label: us-n2o-output-gas-outliers    
+#| label: us-n2o-input-gas-outliers    
 
 knitr::kable(us_fuel_zscore %>%                                
                filter(n2o_output_gas_zscore > 3 | n2o_output_gas_zscore < -3) %>%                                
@@ -8037,7 +8037,7 @@ knitr::kable(state_fuel_zscore %>%
 #### N2O input rate
 
 ```{r}
-#| label: state-n2o-output-gas-outliers    
+#| label: state-n2o-input-gas-outliers    
 
 knitr::kable(state_fuel_zscore %>%                                
                filter(n2o_output_gas_zscore > 3 | n2o_output_gas_zscore < -3) %>%                                
