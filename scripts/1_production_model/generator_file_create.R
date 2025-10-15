@@ -70,7 +70,8 @@ eia_860_combined <- eia_860$combined %>%
 # Load crosswalks and static tables -------------------------
 
 xwalk_fuel_codes <- # xwalk for specific changes made to certain generator fuel types
-  read_csv("data/1_production_model/static_tables/og_oth_units_to_change_fuel_type.csv",            col_types = "cccccccc") %>% 
+  read_csv("data/1_production_model/static_tables/og_oth_units_to_change_fuel_type.csv", 
+           col_types = "cccccccc") %>% 
   select(plant_id, fuel_code) %>% distinct()
 
 xwalk_eia_epa <- # xwalk for updating certain plants to EPA plant names and ids
