@@ -36,8 +36,8 @@ if (!exists("params")) {
   print("eGRID year and temporal resolution parameters are already defined.")
 }
 
-# Load in data
-sheet1 <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_utility_subregion.RDS")) %>%
+# Load in power profiler data ----
+zip_utility_subregion <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_utility_subregion.RDS")) %>%
           rename("Zip code" = "zip",
                  "State" = "state",
                  "Utility ID " = "eiaid",
@@ -45,7 +45,7 @@ sheet1 <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year
                  "Subregion" = "subregion",
                  "Predominant utility" = "predominant_utility") 
 
-sheet2 <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_subregion_assignments.RDS")) %>%
+zip_subregion_assignment <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_subregion_assignments.RDS")) %>%
           rename("Zip code" = "zip",
                  "State" = "state",
                  "Subregion 1" = "subregion_1",
@@ -71,12 +71,12 @@ addWorksheet(wb, "ZipSubregion for Excel Tool")
 # Write data
 writeData(wb, 
           sheet = 1, 
-          sheet1, 
+          x = zip_utility_subregion, 
           startRow = 1)
 
 writeData(wb, 
           sheet = 2, 
-          sheet2, 
+          x = zip_subregion_assignment, 
           startRow = 1)
 
 # Add header styles
@@ -84,8 +84,8 @@ addStyle(wb, sheet = 1, style = header_style,  rows = 1, cols = 1:6, gridExpand 
 addStyle(wb, sheet = 2, style = header_style,  rows = 1, cols = 1:5, gridExpand = TRUE)
 
 # Add border styles
-addStyle(wb, sheet = 1, style = border_style,  rows = 2:nrow(sheet1), cols = 1:6, gridExpand = TRUE)
-addStyle(wb, sheet = 2, style = border_style,  rows = 2:nrow(sheet2), cols = 1:5, gridExpand = TRUE)
+addStyle(wb, sheet = 1, style = border_style,  rows = 2:nrow(zip_utility_subregion), cols = 1:6, gridExpand = TRUE)
+addStyle(wb, sheet = 2, style = border_style,  rows = 2:nrow(zip_subregion_assignment), cols = 1:5, gridExpand = TRUE)
 
 # Set column widths
 setColWidths(wb, sheet = 1, cols = 4, widths = 59.43)
@@ -94,5 +94,5 @@ setColWidths(wb, sheet = 2, cols = 1, widths = 13)
 setColWidths(wb, sheet = 2, cols = 3:5, widths = 20)
 
 # Save output
-output <- glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/ZipSubregion{params$eGRID_year}.xlsx")
-saveWorkbook(wb, output, overwrite = TRUE)
+output_path <- glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/ZipSubregion{params$eGRID_year}.xlsx")
+saveWorkbook(wb, output_path, overwrite = TRUE)
