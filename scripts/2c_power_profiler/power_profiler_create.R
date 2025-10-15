@@ -91,12 +91,13 @@ xwalk_ba_transmission <-
   janitor::clean_names() %>%
   rename(ba_code = balancing_authority_code, transmission = transmission_or_distribution_system_owner_id, subregion = subrgn)
 
-# Crosswalk for missing utility ids
+# Crosswalk for utility ids not in plant file
 xwalk_add_utilityid <-
   read_csv(glue::glue("data/2c_power_profiler/static_tables/xwalk_additional_utilityid.csv"),
            col_types = "cccc") %>%
   janitor::clean_names()
 
+# Crosswalk for utility ids missing from zipcodes
 xwalk_missing_utilityid <-
   read_csv(glue::glue("data/2c_power_profiler/static_tables/xwalk_missing_zip_utilityid.csv"),
            col_types = "cccc") %>%
