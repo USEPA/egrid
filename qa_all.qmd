@@ -4763,7 +4763,7 @@ knitr::kable(subregion_fuel_zscore %>%
 #### N2O input rate
 
 ```{r}
-#| label: subregion-n2o-output-gas-outliers    
+#| label: subregion-n2o-input-gas-outliers    
 
 knitr::kable(subregion_fuel_zscore %>%                                
                filter(n2o_output_gas_zscore > 3 | n2o_output_gas_zscore < -3) %>%                                
