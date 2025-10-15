@@ -10361,6 +10361,33 @@ if (params$temporal_res == "annual") {
   glue::glue("Difference (plant - generator): {plant_gen_sum$gen_oz_total - generator_gen_sum$gen_oz_total}")}
 
 ```
+### Total generation comaprisons - Plant file vs Generator file
+
+```{r}
+#| label: plant-generator-total-generation
+
+plant_generation <- 
+  plant_file %>%
+  group_by(plant_id, year) %>%
+  summarize(plant_gen_total = sum(generation, na.rm = TRUE))
+
+generator_generation <- 
+  generator_file %>%
+  group_by(plant_id, year) %>%
+  summarize(generator_gen_total = sum(generation, na.rm = TRUE))
+
+compare_plant_generator_gen <- 
+  left_join(plant_generation, generator_generation, by = c("year", "plant_id")) %>%
+  mutate(gen_diff_plant_file = ifelse(plant_gen_total == generator_gen_total, "N", "Y")) %>%
+  filter(gen_diff_plant_file == "Y")
+
+ifelse(nrow(compare_plant_generator_gen) == 0, "Status: PASS - All annual generation values between plant and generation files are equal.",
+       glue::glue("Status: NEEDS CHECKED - {nrow(compare_plant_generator_gen)} plants do not have the same annual plant generation values between plant and generator files. The generation values in the generator file for these plants were overwritten."))
+
+knitr::kable(compare_plant_generator_gen %>% select(plant_id, plant_gen_total, generator_gen_total, gen_diff_plant_file))
+
+
+```
 
 ## Sum of emissions
 
