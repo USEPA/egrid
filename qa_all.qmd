@@ -10037,6 +10037,201 @@ knitr::kable(us_combustion_zscore %>%
 
 ```
 
+# Subregion Negative Emissions
+
+## Negative emission values
+```{r}
+#| label: subregion-negative-emissions
+
+if (params$temporal_res == "annaul") {
+  check_subregion_neg_emissions <- 
+    subrgn_agg %>%
+    filter((subregion_nox_mass < 0) | (subregion_nox_oz_mass < 0) | (subregion_so2_mass < 0),
+           (subregion_co2_mass < 0) | (subregion_ch4_mass < 0) | (subregion_n2o_mass < 0))
+  
+  ifelse(nrow(check_subregion_neg_emissions) == 0, "Status: PASS - No subregions have negative emission values.",
+         glue::glue("Status: NEEDS CHECKED - {nrow(check_subregion_neg_emissions)} subregions have negative emission values."))
+  
+  knitr::kable(check_subregion_neg_emissions %>%
+                 select(subregion, subregion_nox_mass, 
+                        subregion_nox_oz_mass, subregion_so2_mass,
+                        subregion_co2_mass, subregion_ch4_mass, 
+                        subregion_n2o_mass))
+  
+} else {
+  check_subregion_neg_emissions <- 
+    subrgn_agg %>%
+    filter((subregion_nox_mass < 0) | (subregion_nox_oz_mass < 0) | (subregion_so2_mass < 0),
+           (subregion_co2_mass < 0) | (subregion_ch4_mass < 0) | (subregion_n2o_mass < 0))
+  
+  ifelse(nrow(check_subregion_neg_emissions) == 0, "Status: PASS - No subregions have negative emission values.",
+         glue::glue("Status: NEEDS CHECKED - {nrow(check_subregion_neg_emissions)} subregions have negative emission values."))
+  
+  knitr::kable(check_subregion_neg_emissions %>%
+                 select(subregion, subregion_nox_mass, 
+                        subregion_nox_oz_mass, subregion_so2_mass,
+                        subregion_co2_mass, subregion_ch4_mass, 
+                        subregion_n2o_mass))
+  
+}
+```
+
+# BA Negative Emissions
+
+## Negative emission values
+```{r}
+#| label: ba-negative-emissions
+
+if (params$temporal_res == "annaul") {
+  check_ba_neg_emissions <- 
+    ba_agg %>%
+    filter((ba_nox_mass < 0) | (ba_nox_oz_mass < 0) | (ba_so2_mass < 0),
+           (ba_co2_mass < 0) | (ba_ch4_mass < 0) | (ba_n2o_mass < 0))
+  
+  ifelse(nrow(check_ba_neg_emissions) == 0, "Status: PASS - No bas have negative emission values.",
+         glue::glue("Status: NEEDS CHECKED - {nrow(check_ba_neg_emissions)} bas have negative emission values."))
+  
+  knitr::kable(check_ba_neg_emissions %>%
+                 select(ba_code, ba_nox_mass, 
+                        ba_nox_oz_mass, ba_so2_mass,
+                        ba_co2_mass, ba_ch4_mass, 
+                        ba_n2o_mass))
+  
+} else {
+  check_ba_neg_emissions <- 
+    ba_agg %>%
+    filter((ba_nox_mass < 0) | (ba_nox_oz_mass < 0) | (ba_so2_mass < 0),
+           (ba_co2_mass < 0) | (ba_ch4_mass < 0) | (ba_n2o_mass < 0))
+  
+  ifelse(nrow(check_ba_neg_emissions) == 0, "Status: PASS - No bas have negative emission values.",
+         glue::glue("Status: NEEDS CHECKED - {nrow(check_ba_neg_emissions)} bas have negative emission values."))
+  
+  knitr::kable(check_ba_neg_emissions %>%
+                 select(ba_code, ba_nox_mass, 
+                        ba_nox_oz_mass, ba_so2_mass,
+                        ba_co2_mass, ba_ch4_mass, 
+                        ba_n2o_mass))
+  
+}
+```
+
+# NERC Negative Emissions
+
+## Negative emission values
+```{r}
+#| label: nerc-negative-emissions
+
+if (params$temporal_res == "annaul") {
+  check_nerc_neg_emissions <- 
+    nerc_agg %>%
+    filter((nerc_nox_mass < 0) | (nerc_nox_oz_mass < 0) | (nerc_so2_mass < 0),
+           (nerc_co2_mass < 0) | (nerc_ch4_mass < 0) | (nerc_n2o_mass < 0))
+  
+  ifelse(nrow(check_nerc_neg_emissions) == 0, "Status: PASS - No nercs have negative emission values.",
+         glue::glue("Status: NEEDS CHECKED - {nrow(check_nerc_neg_emissions)} nercs have negative emission values."))
+  
+  knitr::kable(check_nerc_neg_emissions %>%
+                 select(nerc, nerc_nox_mass, 
+                        nerc_nox_oz_mass, nerc_so2_mass,
+                        nerc_co2_mass, nerc_ch4_mass, 
+                        nerc_n2o_mass))
+  
+} else {
+  check_nerc_neg_emissions <- 
+    nerc_agg %>%
+    filter((nerc_nox_mass < 0) | (nerc_nox_oz_mass < 0) | (nerc_so2_mass < 0),
+           (nerc_co2_mass < 0) | (nerc_ch4_mass < 0) | (nerc_n2o_mass < 0))
+  
+  ifelse(nrow(check_nerc_neg_emissions) == 0, "Status: PASS - No nercs have negative emission values.",
+         glue::glue("Status: NEEDS CHECKED - {nrow(check_nerc_neg_emissions)} nercs have negative emission values."))
+  
+  knitr::kable(check_nerc_neg_emissions %>%
+                 select(nerc, nerc_nox_mass, 
+                        nerc_nox_oz_mass, nerc_so2_mass,
+                        nerc_co2_mass, nerc_ch4_mass, 
+                        nerc_n2o_mass))
+  
+}
+```
+
+# State Negative Emissions
+
+## Negative emission values
+```{r}
+#| label: state-negative-emissions
+
+if (params$temporal_res == "annaul") {
+  check_state_neg_emissions <- 
+    state_agg %>%
+    filter((state_nox_mass < 0) | (state_nox_oz_mass < 0) | (state_so2_mass < 0),
+           (state_co2_mass < 0) | (state_ch4_mass < 0) | (state_n2o_mass < 0))
+  
+  ifelse(nrow(check_state_neg_emissions) == 0, "Status: PASS - No states have negative emission values.",
+         glue::glue("Status: NEEDS CHECKED - {nrow(check_state_neg_emissions)} states have negative emission values."))
+  
+  knitr::kable(check_state_neg_emissions %>%
+                 select(state, state_nox_mass, 
+                        state_nox_oz_mass, state_so2_mass,
+                        state_co2_mass, state_ch4_mass, 
+                        state_n2o_mass))
+  
+} else {
+  check_state_neg_emissions <- 
+    state_agg %>%
+    filter((state_nox_mass < 0) | (state_nox_oz_mass < 0) | (state_so2_mass < 0),
+           (state_co2_mass < 0) | (state_ch4_mass < 0) | (state_n2o_mass < 0))
+  
+  ifelse(nrow(check_state_neg_emissions) == 0, "Status: PASS - No states have negative emission values.",
+         glue::glue("Status: NEEDS CHECKED - {nrow(check_state_neg_emissions)} states have negative emission values."))
+  
+  knitr::kable(check_state_neg_emissions %>%
+                 select(state, state_nox_mass, 
+                        state_nox_oz_mass, state_so2_mass,
+                        state_co2_mass, state_ch4_mass, 
+                        state_n2o_mass))
+  
+}
+```
+
+# US Negative Emissions
+
+## Negative emission values
+```{r}
+#| label: us-negative-emissions
+
+if (params$temporal_res == "annaul") {
+  check_us_neg_emissions <- 
+    us_agg %>%
+    filter((us_nox_mass < 0) | (us_nox_oz_mass < 0) | (us_so2_mass < 0),
+           (us_co2_mass < 0) | (us_ch4_mass < 0) | (us_n2o_mass < 0))
+  
+  ifelse(nrow(check_us_neg_emissions) == 0, "Status: PASS - No uss have negative emission values.",
+         glue::glue("Status: NEEDS CHECKED - {nrow(check_us_neg_emissions)} uss have negative emission values."))
+  
+  knitr::kable(check_us_neg_emissions %>%
+                 select(us_nox_mass, 
+                        us_nox_oz_mass, us_so2_mass,
+                        us_co2_mass, us_ch4_mass, 
+                        us_n2o_mass))
+  
+} else {
+  check_us_neg_emissions <- 
+    us_agg %>%
+    filter((us_nox_mass < 0) | (us_nox_oz_mass < 0) | (us_so2_mass < 0),
+           (us_co2_mass < 0) | (us_ch4_mass < 0) | (us_n2o_mass < 0))
+  
+  ifelse(nrow(check_us_neg_emissions) == 0, "Status: PASS - No uss have negative emission values.",
+         glue::glue("Status: NEEDS CHECKED - {nrow(check_us_neg_emissions)} uss have negative emission values."))
+  
+  knitr::kable(check_us_neg_emissions %>%
+                 select(us_nox_mass, 
+                        us_nox_oz_mass, us_so2_mass,
+                        us_co2_mass, us_ch4_mass, 
+                        us_n2o_mass))
+  
+}
+```
+
 # All file QA
 
 ## Count of plants in generator, unit, and plant file are equivalent
