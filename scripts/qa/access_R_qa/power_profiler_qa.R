@@ -25,25 +25,19 @@ library(readr)
 library(readxl)
 library(stringr)
 
+# Load necessary functions -----
+source("scripts/functions/function_check_params.R")
 
-# Define eGRID year parameter ----------------
-# define parameter year if no one is currently assigned using prompted user input
-if (exists("params")) {
-  if ("eGRID_year" %in% names(params)) { # if params() and params$eGRID_year exist, do not re-define
-    print("eGRID year parameter is already defined.")
-  } else { # if params() is defined, but eGRID_year is not, define it here
-    params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-    params$eGRID_year <- as.character(params$eGRID_year)
-  }
-} else { # if params() and eGRID_year are not defined, define them here
-  params <- list()
-  params$eGRID_year <- readline(prompt = "Input eGRID_year: ")
-  params$eGRID_year <- as.character(params$eGRID_year)
+# Create and check parameters 
+if (!exists("params")) {
+  params <- check_params()
+} else {
+  print("eGRID year and temporal resolution parameters are already defined.")
 }
 
 # Create save directory for QA outputs -----
 
-save_dir <- glue::glue("data/2c_power_profiler/outputs/qa/{params$eGRID_year}/power_profiler_differences/")
+save_dir <- glue::glue("data/2c_power_profiler/outputs/qa/{params$eGRID_year}/")
 
 if(dir.exists(save_dir)) {
   print(glue::glue("Folder {save_dir} already exists."))
@@ -101,7 +95,7 @@ save_diffs(check_zip_utility_records_missing_from_r)
 
 check_missing_r_values <-
   inner_join(check_zip_utility_records_missing_from_r, r_zip_utility, by = c('zip_access' = 'zip_r')) %>%
-  glimpse()
+  print()
 save_diffs(check_missing_r_values)
 
 # Records in R not in Access

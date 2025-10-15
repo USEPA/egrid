@@ -40,23 +40,14 @@ if (!exists("params")) {
 # Load necessary data -----
 
 # load in eGRID plant data
-# plant_file <-
-#   readRDS(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
-
 plant_file <-
-  read_csv(glue::glue("data/2c_power_profiler/static_tables/qa/{params$eGRID_year}/plant_access.csv")) %>%
-  janitor::clean_names() %>%
-  mutate(transmission_or_distribution_system_owner_id = as.character(transmission_or_distribution_system_owner_id),
-         utility_id = as.character(utility_id)) %>%
-  rename(egrid_subregion = subrgn,
-         system_owner_id = transmission_or_distribution_system_owner_id,
-         plant_state = state)
+  readRDS(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
 
 # load in previous power profiler data which has zip, utility code, predominant utility, etc.
 power_profiler_old <-
   read_csv(glue::glue("data/2c_power_profiler/inputs/{params$eGRID_year}/power_profiler_old.csv"),
            col_types = "cccccc") %>%
-  janitor::clean_names()
+  janitor::clean_names() 
 
 # load utility zipcode data
 utility_zipcodes <-
@@ -101,10 +92,27 @@ xwalk_ba_transmission <-
   rename(ba_code = balancing_authority_code, transmission = transmission_or_distribution_system_owner_id, subregion = subrgn)
 
 # Crosswalk for missing utility ids
-xwalk_missing_utilityid <-
-  read_csv(glue::glue("data/2c_power_profiler/static_tables/xwalk_missing_utilityid.csv"),
+xwalk_add_utilityid <-
+  read_csv(glue::glue("data/2c_power_profiler/static_tables/xwalk_additional_utilityid.csv"),
            col_types = "cccc") %>%
   janitor::clean_names()
+
+xwalk_missing_utilityid <-
+  read_csv(glue::glue("data/2c_power_profiler/static_tables/xwalk_missing_zip_utilityid.csv"),
+           col_types = "cccc") %>%
+  janitor::clean_names()
+
+# Revise old power profiler data with new updates -----
+power_profiler_old_rev <-
+  power_profiler_old %>%
+  left_join(xwalk_missing_utilityid, by = "zip") %>%
+  # add missing utility IDs for zips
+  mutate(eiaid = if_else(is.na(eiaid.x) & !is.na(eiaid.y), eiaid.y, eiaid.x),
+         utility_name = if_else(is.na(utility_name.x) & !is.na(utility_name.y), utility_name.y, utility_name.x),
+         # update subregion assigment for utility ID 16196
+         subregion = if_else(eiaid == "16196", "RFCW", subregion)) %>%
+  select(-contains(".")) %>%
+  glimpse()
 
 # Create zipcode dataset ------
 
@@ -121,7 +129,7 @@ zip_utility_subregion_1 <-
 
 # select zip codes in old power profiler not in utility_zipcodes
 zip_codes_from_old_power_profiler_to_add <- 
-  power_profiler_old %>%
+  power_profiler_old_rev %>%
   anti_join(utility_zipcodes, by = "zip") %>%
   mutate(old_zip_code = "yes", 
          method = "old power profiler")
@@ -278,9 +286,9 @@ zip_utility_subregion_7 <-
 # update subregions for utility IDs not in eGRID
 zip_utility_subregion_8 <-
   zip_utility_subregion_7 %>%
-  left_join(xwalk_missing_utilityid %>%
-              select(utility_number, subregion),
-            by = c("eiaid" = "utility_number")) %>%
+  left_join(xwalk_add_utilityid %>%
+              select(eiaid, subregion),
+            by = "eiaid") %>%
   mutate(method = if_else(is.na(subregion.x) & !is.na(subregion.y), "crosswalk for missing utility ID", method),
          subregion = coalesce(subregion.x, subregion.x = subregion.y)) %>%
   select(-contains(".")) %>% distinct()
@@ -321,7 +329,7 @@ zip_utility_subregion_10 <-
 # override subregion assignments from old power profiler
 zip_utility_subregion_11 <-
   zip_utility_subregion_10 %>%
-  left_join(power_profiler_old %>%
+  left_join(power_profiler_old_rev %>%
               select(zip, eiaid, subregion),
             by = c("zip", "eiaid")) %>%
   mutate(method = if_else(!is.na(subregion.y), "from old power profiler", method),
@@ -358,7 +366,7 @@ no_predominant_utility <-
   select(zip) %>% distinct() %>%
   ungroup() %>%
   # gather old power profiler assignment
-  inner_join(power_profiler_old, by = "zip") %>%
+  inner_join(power_profiler_old_rev, by = "zip") %>%
   select(zip, eiaid, predominant_utility)
 
 # update predominant utility assignment
@@ -430,7 +438,7 @@ subregions_to_update_from_old_pp <-
   zip_utility_subregion_15 %>%
   filter(is.na(subregion)) %>%
   select(zip, subregion) %>% distinct() %>%
-  inner_join(power_profiler_old, by = "zip") %>%
+  inner_join(power_profiler_old_rev, by = "zip") %>%
   group_by(zip) %>%
   filter(n_distinct(subregion.y) == 1) %>% distinct() %>%
   ungroup() %>%
