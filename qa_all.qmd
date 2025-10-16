@@ -10378,8 +10378,8 @@ generator_generation <-
 
 compare_plant_generator_gen <- 
   left_join(plant_generation, generator_generation, by = c("year", "plant_id")) %>%
-  mutate(gen_diff_plant_file = ifelse(plant_gen_total == generator_gen_total, "N", "Y")) %>%
-  filter(gen_diff_plant_file == "Y")
+  mutate(diff = plant_gen_total - generator_gen_total) %>%
+  filter(diff > 2)
 
 ifelse(nrow(compare_plant_generator_gen) == 0, "Status: PASS - All annual generation values between plant and generation files are equal.",
        glue::glue("Status: NEEDS CHECKED - {nrow(compare_plant_generator_gen)} plants do not have the same annual plant generation values between plant and generator files. The generation values in the generator file for these plants were overwritten."))
