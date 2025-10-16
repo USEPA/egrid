@@ -31,7 +31,7 @@ if (!exists("params")) {
 }
 # Set years to evaluate ---------
 
-cur_year <- as.numeric(params$eGRID_year)
+cur_year <- as.numeric(params$year)
 prev_yr1 <- as.character(cur_year - 1)
 prev_yr2 <- as.character(cur_year - 2)
 prev_yr3 <- as.character(cur_year - 3)
@@ -89,7 +89,7 @@ subregion_prev_yr1 <-
   select(any_of(subregion_nonmetric_annual), -contains("hg"))
 
 subregion_cur_yr <- 
-  read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/outputs/{params$year}/egrid{params$year}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(cur_year) %% 1000}"),
                         skip = 1) %>% 
   select(any_of(subregion_nonmetric_annual), -contains("hg"))
@@ -129,7 +129,7 @@ state_prev_yr1 <-
   select(any_of(state_nonmetric_annual), -contains("hg"))
 
 state_cur_yr <- 
-  read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/outputs/{params$year}/egrid{params$year}_data.xlsx"), 
              sheet = glue::glue("ST{as.numeric(cur_year) %% 1000}"),
              skip = 1) %>% 
   select(any_of(state_nonmetric_annual), -contains("hg"))
@@ -167,7 +167,7 @@ us_prev_yr1 <-
   select(any_of(us_nonmetric_annual), contains("rate"), contains("netgen"), -contains("hg"))
 
 us_cur_yr <- 
-  read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/outputs/{params$year}/egrid{params$year}_data.xlsx"), 
              sheet = glue::glue("US{as.numeric(cur_year) %% 1000}"),
              skip = 1) %>% 
   select(any_of(us_nonmetric_annual), contains("rate"), contains("netgen"), -contains("hg"))
@@ -212,16 +212,16 @@ subregion_rate_comparison <-
                   (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . > 0) ~ 100), 
                 .names = "{sub('_netgen.*', '', .col)}_pct")) %>% 
   select(-contains("gen")) %>% 
-  mutate(generation_notes = paste(sprintf("Coal: %+.1f%%,", coal_pct), # add summary of net generation changes
-                                  sprintf("Oil: %+.1f%%,", oil_pct), 
-                                  sprintf("Gas: %+.1f%%,", gas_pct), 
-                                  sprintf("Other fossil: %+.1f%%,", other_ff_pct), 
-                                  sprintf("Nuclear: %+.1f%%,", nuclear_pct), 
-                                  sprintf("Hydro: %+.1f%%,", hydro_pct), 
-                                  sprintf("Biomass: %+.1f%%,", biomass_pct), 
-                                  sprintf("Wind: %+.1f%%,", wind_pct),
-                                  sprintf("Solar: %+.1f%%,", solar_pct), 
-                                  sprintf("Geothermal: %+.1f%%,", geothermal_pct)))
+  mutate(coal_note = paste(sprintf("%+.1f%%,", coal_pct)),
+         oil_note = paste(sprintf("%+.1f%%,", oil_pct)),
+         gas_note = paste(sprintf("%+.1f%%,", gas_pct)),
+         other_fossil_note = paste(sprintf("%+.1f%%,", other_ff_pct)),
+         nuclear_note = paste(sprintf("%+.1f%%,", nuclear_pct)),
+         hydro_note = paste(sprintf("%+.1f%%,", hydro_pct)),
+         biomass_note = paste(sprintf("%+.1f%%,", biomass_pct)),
+         wind_note = paste(sprintf("%+.1f%%,", wind_pct)),
+         solar_note = paste(sprintf("%+.1f%%,", solar_pct)),
+         geothermal_note = paste(sprintf("%+.1f%%,", geothermal_pct)))
   
 
 ## Emission rate comparison across eGRID states -------
@@ -244,16 +244,16 @@ state_rate_comparison <-
                   (get(str_replace(cur_column(), cur_year, prev_yr1)) == 0 & . > 0) ~ 100), 
                 .names = "{sub('_netgen.*', '', .col)}_pct")) %>% 
   select(-contains("netgen")) %>% 
-  mutate(generation_notes = paste(sprintf("Coal: %+.1f%%,", coal_pct), # add summary of net generation changes
-                                  sprintf("Oil: %+.1f%%,", oil_pct), 
-                                  sprintf("Gas: %+.1f%%,", gas_pct), 
-                                  sprintf("Other fossil: %+.1f%%,", other_ff_pct), 
-                                  sprintf("Nuclear: %+.1f%%,", nuclear_pct), 
-                                  sprintf("Hydro: %+.1f%%,", hydro_pct), 
-                                  sprintf("Biomass: %+.1f%%,", biomass_pct), 
-                                  sprintf("Wind: %+.1f%%,", wind_pct),
-                                  sprintf("Solar: %+.1f%%,", solar_pct), 
-                                  sprintf("Geothermal: %+.1f%%,", geothermal_pct)))
+  mutate(coal_note = paste(sprintf("%+.1f%%,", coal_pct)),
+         oil_note = paste(sprintf("%+.1f%%,", oil_pct)),
+         gas_note = paste(sprintf("%+.1f%%,", gas_pct)),
+         other_fossil_note = paste(sprintf("%+.1f%%,", other_ff_pct)),
+         nuclear_note = paste(sprintf("%+.1f%%,", nuclear_pct)),
+         hydro_note = paste(sprintf("%+.1f%%,", hydro_pct)),
+         biomass_note = paste(sprintf("%+.1f%%,", biomass_pct)),
+         wind_note = paste(sprintf("%+.1f%%,", wind_pct)),
+         solar_note = paste(sprintf("%+.1f%%,", solar_pct)),
+         geothermal_note = paste(sprintf("%+.1f%%,", geothermal_pct)))
 
 # eGRID subregion and US resource mix -----
 
