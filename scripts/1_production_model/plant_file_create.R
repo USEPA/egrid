@@ -32,7 +32,7 @@ source("scripts/functions/function_paste_concat.R")
 source("scripts/functions/function_update_source.R")
 source("scripts/functions/function_check_file_exists.R")
 source("scripts/functions/function_save_output_data.R")
-source("scripts/functions/function_download_historic_egrid.R")
+source("scripts/functions/function_download_historical_egrid.R")
 
 # Define flag whether or not to include biomass_units_to_add table
 # we do this because we need to run a version of the unit and plant file without this table to identify which units need to be added 

@@ -39,7 +39,7 @@ plant_data_pm_nh3_voc <- function(emission_type){
   require(readxl)
   
   # Load functions ------
-  source("scripts/functions/function_download_historic_egrid.R")
+  source("scripts/functions/function_download_historical_egrid.R")
   
   # Set emission type label for data columns ----
   if (emission_type == "pm") {

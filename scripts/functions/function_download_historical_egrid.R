@@ -12,7 +12,7 @@
 ##
 ## -------------------------------
 
-download_historical_egrid <- function(year, egrid_dir) {
+download_historical_egrid <- function(year, file_path) {
   
   #' @name download_historical_egrid
   #' 
@@ -43,15 +43,15 @@ download_historical_egrid <- function(year, egrid_dir) {
   assign("egrid_urls", urls, envir = .GlobalEnv)
   
   # set name of previous year's file
-  file_path <- glue::glue("{egrid_dir}egrid{year}_data.xlsx")
+  output_file_path <- glue::glue("{file_path}egrid{year}_data.xlsx")
   
   # check if historical data file does not exist
-  if (!file.exists(file_path)) {
+  if (!file.exists(output_file_path)) {
     print(glue::glue("eGRID {year} historical data does not exist. Downloading..."))
     
     # check for presence of output directory and create if doesn't exist
-    if (!dir.exists(egrid_dir)) {
-      dir.create(egrid_dir, recursive = TRUE)
+    if (!dir.exists(file_path)) {
+      dir.create(file_path, recursive = TRUE)
     }
     
     # check if year is in URLs
@@ -84,7 +84,7 @@ download_historical_egrid <- function(year, egrid_dir) {
     print(glue::glue("eGRID {year} historical data already exists in {file_path}"))
   }
  
-  return(file_path)
+  return(output_file_path)
 }
   
 
