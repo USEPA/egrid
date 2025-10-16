@@ -27,6 +27,7 @@ library(stringr)
 source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_save_output_data.R")
 source("scripts/functions/function_check_valid_url.R")
+source("scripts/functions/function_download_historic_egrid.R")
 
 # Create and check parameters 
 if (!exists("params")) {
@@ -41,31 +42,16 @@ if(!dir.exists("data/1_production_model/static_tables/historical_egrid")) {
 
 # Download historical eGRID years ------------------------
 
-urls <- ### Note: check for updates or changes each data year ###
-  c("2018" = "https://www.epa.gov/sites/default/files/2020-03/egrid2018_data_v2.xlsx", 
-    "2019" = "https://www.epa.gov/sites/default/files/2021-02/egrid2019_data.xlsx", 
-    "2020" = "https://www.epa.gov/system/files/documents/2022-09/eGRID2020_Data_v2.xlsx", 
-    "2021" = "https://www.epa.gov/system/files/documents/2023-01/eGRID2021_data.xlsx",
-    "2022" = "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx") # add previous data year to this list every year 
+years <- 2018:as.numeric(params$eGRID_year) # years to add to data explorer
 
-for(i in 1:length(urls)) { # download files online if they have not already been downloaded. 
-  file_path = glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{names(urls[i])}_data.xlsx")
-  if(!file.exists(file_path)) { 
-    if(check_valid_url(urls[i])) {
-      download.file(url = urls[i], 
-                    destfile = file_path, 
-                    mode = "wb")
-    } else {print(glue::glue("URL {urls[i]} is not valid. Check and update URL."))}
-    } else {
-    print(glue::glue("Stopping. File {file_path} already downloaded."))
-  }}
+for(year in years) { # download files online if they have not already been downloaded. 
+  download_historic_egrid(year, "data/1_production_model/static_tables/historical_egrid/")
+}
 
 # Load historical eGRID years --------------------------
 
-years <- 2018:as.numeric(params$eGRID_year) # years to add to data explorer
-
-for(year in years) { ### Note: check for updates or changes each data year ### Add previous data year here
-  if(year %in% names(urls)) { 
+for(year in years) { ### Note: check for updates or changes each data year 
+  if(year %in% names(egrid_urls)) { 
     plant <- read_excel(glue::glue("data/1_production_model/static_tables/historical_egrid/egrid{as.character(year)}_data.xlsx"), 
                         sheet = glue::glue("PLNT{year %% 1000}"),
                         skip = 1)

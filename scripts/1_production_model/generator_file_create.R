@@ -171,7 +171,7 @@ eia_923_gen_dups <- # check for duplicates in EIA-923 Generator File
          combined_heat_and_power_plant == "Y") %>%  # default to generators with "Y" CHP plant flag
   ungroup() %>%
   left_join(eia_923_gen_r) # add back in generation data
-  
+
 eia_923_gen_r_2 <- 
   eia_923_gen_r %>% 
   filter(!(paste0(plant_id, "_", generator_id) %in% eia_923_gen_dups$id)) %>% # filter out duplicate plants 

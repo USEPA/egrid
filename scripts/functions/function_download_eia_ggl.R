@@ -25,6 +25,11 @@ download_eia_ggl <- function(year) {
   #' @examples
   #' download_eia_files(2022) # Downloads all data and summarizes all states for year 2022
   
+  ## data and file organization set up ----
+  # ensure that input is character for script to correctly run
+  year <- as.character(year) 
+  
+  # create and clean lists for state name cleaning
   state_lower <- gsub(" ", "", tolower(datasets::state.name))
   state_title <- datasets::state.name
   state_abbr <- tolower(datasets::state.abb)
@@ -41,7 +46,6 @@ download_eia_ggl <- function(year) {
   if (!dir.exists(new_folder)) {
     dir.create(new_folder, recursive = TRUE)
   }
-  
   
   if (!dir.exists(new_folder2)) {
     dir.create(new_folder2, recursive = TRUE)
@@ -62,12 +66,13 @@ download_eia_ggl <- function(year) {
   # file name for file checking
   ggl_file <- glue::glue("{new_folder2}/ggl_{year}.xlsx")
   
-  ## if there are no files in the raw_data/eia_ggl folder, download data from EIA website
+  ## download data from EIA website-----
+  ## if all 51 files are not in the raw_data/eia_ggl folder, download data from EIA website
   # files contain data for all previous data years
   # therefore, only needs one round of downloading
   # when there is a new data update, please re-download all files (ex. new release of 2024 data after running 2023 data)
   
-  if (length(existing_files) < 1) {
+  if (length(existing_files) < 51) {
     
     for (i in 1:length(state_abbr)){
       
@@ -86,14 +91,20 @@ download_eia_ggl <- function(year) {
     
   } else {
     
-    print(glue::glue("Files already exist in folder:{new_folder}. Skipping file download."))
+    print(glue::glue("Files already exist in folder: {new_folder}. Skipping file download."))
     
   }
   
-  ## if the ggl file does not exist, aggregate the downloaded data to create a ggl file
+  ## create clean GGL data source for year -----
+  # test if there is the correct year in the data
+  raw_data_files <- list.files(new_folder)
+  test_table <- read_excel(paste0(new_folder,"/",raw_data_files[1]), 
+                             sheet = 11,
+                             skip = 3)
+  colnames(test_table) <- gsub("Year", "", colnames(test_table)) 
   
-  if (!file.exists(ggl_file)) {
-  
+  ## if eGRID year is present in data, aggregate the downloaded data to create a ggl file
+  if (any(grepl(year, colnames(test_table)))) {
   
     # initialize list of tables and workbook
     ggl_data <- list()
@@ -115,7 +126,9 @@ download_eia_ggl <- function(year) {
       dest_file <- glue::glue("{new_folder}/{abbr}.xlsx")
       
       # select table needed for GGL calculation (Table 10: Supply and disposition of energy)
-      select_table <- read_excel(dest_file, sheet = 11)
+      select_table <- read_excel(dest_file, 
+                                 sheet = 11,
+                                 skip = 3)
       ggl_data[[i]] <- select_table
       
       # add table to workbook as a sheet
@@ -123,8 +136,6 @@ download_eia_ggl <- function(year) {
       writeData(ggl_wb, sheet = toupper(abbr), ggl_data[[i]])
       
       # clean up select table for easier data extraction
-      new_header <- select_table[3,]
-      colnames(select_table) <- new_header # changes header to be by year
       colnames(select_table) <- gsub("Year", "", colnames(select_table)) # removes extra spaces in header for easy extraction
       colnames(select_table) <- gsub("\r\n", "", colnames(select_table))
       
@@ -173,9 +184,7 @@ download_eia_ggl <- function(year) {
       
     }
     
-    
     # adding formatted table
-    
     formatted_table <- do.call(rbind, ggl_summary_data)
     formatted_table <- as.data.frame(formatted_table)
     colnames(formatted_table) <- c("State Postal Code", 
@@ -205,10 +214,10 @@ download_eia_ggl <- function(year) {
                    sum(formatted_table$`Net Interstate Exports`),
                    sum(formatted_table$`Total Disposition-Exports`))
     
-    # add row to FormattedTable
+    # add row to formatted_table
     formatted_table <- rbind(formatted_table, total_row)
     
-    # write FormattedTable to Excel file
+    # write formatted_table to Excel file
     writeData(ggl_wb, sheet = summary_sheet_name, formatted_table)
     
     # save file as ggl_r_(year).xlsx
@@ -216,8 +225,15 @@ download_eia_ggl <- function(year) {
   
   } else {
     
-    print(glue::glue("File already exists in folder:{new_folder2}. Skipping file aggregation."))
+    stop(glue::glue("Data is not found for eGRID year {year}. Please check if the latest data is downloaded or {year} data may not be currently available."))
 
+  }
+  
+  ## check if file was created ----
+  if (file.exists(ggl_file)) {
+    print(glue::glue("GGL data file successfully created."))
+  } else {
+    print("GGL data file not successfully created. Please check code or data sources for any errors.")
   }
   
 }
