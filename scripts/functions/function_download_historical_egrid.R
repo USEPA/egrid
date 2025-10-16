@@ -12,7 +12,7 @@
 ##
 ## -------------------------------
 
-download_historical_egrid <- function(year, file_path) {
+download_historical_egrid <- function(year) {
   
   #' @name download_historical_egrid
   #' 
@@ -20,13 +20,12 @@ download_historical_egrid <- function(year, file_path) {
   #' it doesn't exist
   #' 
   #' @param year eGRID data year to download
-  #' @param file_path eGRID data URL where online data is available
   #' @return Downloaded eGRID data file path to be temporarily stored in repository and
   #'         is available to load in scripts
   #'         
   #' @examples 
   #' # Download 2022 eGRID historical data
-  #' egrid_historical_path <- download_historical_egrid(2022, "data/1_production_model/static_tables/historical_egrid/")
+  #' egrid_historical_path <- download_historical_egrid(2022)
   
   source("scripts/functions/function_check_valid_url.R")
   
@@ -42,16 +41,19 @@ download_historical_egrid <- function(year, file_path) {
   # save URLs as a callable variable
   assign("egrid_urls", urls, envir = .GlobalEnv)
   
+  # set file path
+  egrid_dir <- "data/1_production_model/static_tables/historical_egrid/"
+  
   # set name of previous year's file
-  output_file_path <- glue::glue("{file_path}egrid{year}_data.xlsx")
+  file_path <- glue::glue("{egrid_dir}egrid{year}_data.xlsx")
   
   # check if historical data file does not exist
-  if (!file.exists(output_file_path)) {
+  if (!file.exists(file_path)) {
     print(glue::glue("eGRID {year} historical data does not exist. Downloading..."))
     
     # check for presence of output directory and create if doesn't exist
-    if (!dir.exists(file_path)) {
-      dir.create(file_path, recursive = TRUE)
+    if (!dir.exists(egrid_dir)) {
+      dir.create(egrid_dir, recursive = TRUE)
     }
     
     # check if year is in URLs
@@ -84,7 +86,7 @@ download_historical_egrid <- function(year, file_path) {
     print(glue::glue("eGRID {year} historical data already exists in {file_path}"))
   }
  
-  return(output_file_path)
+  return(file_path)
 }
   
 
