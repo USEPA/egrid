@@ -119,7 +119,7 @@ manual_corrections <-
 # previous eGRID year CHP plants
 prev_egrid_year <- as.numeric(params$eGRID_year) - 1
 
-prev_egrid_file <- download_historic_egrid(prev_egrid_year, "data/1_production_model/static_tables/historical_egrid/")
+prev_egrid_file <- download_historical_egrid(prev_egrid_year, "data/1_production_model/static_tables/historical_egrid/")
 
 plant_chp_prev_year <- # plant file of previous year
     read_xlsx(glue::glue(prev_egrid_file),
