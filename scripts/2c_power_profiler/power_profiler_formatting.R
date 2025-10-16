@@ -26,15 +26,18 @@ library(openxlsx)
 
 # Define eGRID year parameter ----------------
 
-# Load necessary functions
+# Load necessary functions -----
 source("scripts/functions/function_check_params.R")
 
-# Create and check parameters 
+# Create and check parameters -----
 if (!exists("params")) {
-  params <- check_params()
-} else {
-  print("eGRID year and temporal resolution parameters are already defined.")
+  params <- list()
+  # set temporal resolution to annual for power profiler
+  params$temporal_res <- "annual"
 }
+
+# check all other parameters
+params <- check_params()
 
 # Load in power profiler data ----
 zip_utility_subregion <- read_rds(glue::glue("data/2c_power_profiler/outputs/{params$eGRID_year}/zip_utility_subregion.RDS")) %>%
