@@ -21,6 +21,7 @@ data/1_production_model/static_tables/qa/
 data/2a_pm_nh3_voc/static_tables_formatting/
 data/2a_pm_nh3_voc/static_tables/qa/
 data/2b_web_updates/
+data/2c_power_profiler/static_tables/qa/
 data/2c_api/
 data/clean_data/
 data/outputs/
@@ -34,3 +35,4 @@ data/1_production_model/shapefiles/
 data/1_production_model/clean_data/
 data/2a_pm_nh3_voc/static_tables/formatting/
 !data/2a_pm_nh3_voc/static_tables/formatting/egrid_pm_nh3_voc_architecture.png
+data/2c_power_profiler/outputs/
