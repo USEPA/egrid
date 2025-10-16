@@ -27,23 +27,30 @@ library(readxl)
 library(stringr)
 library(tidyr)
 
-# Load necessary functions
+# Load necessary functions -----
 source("scripts/functions/function_check_params.R")
 
-# Create and check parameters 
+# Create and check parameters -----
 if (!exists("params")) {
-  params <- check_params()
-} else {
-  print("eGRID year and temporal resolution parameters are already defined.")
+  params <- list()
+  # set temporal resolution to annual for power profiler
+  params$temporal_res <- "annual"
 }
+
+# check all other parameters
+params <- check_params()
 
 # Load necessary data -----
 
-# load in eGRID plant data
+# load in eGRID plant annual data
 plant_file <-
-  readRDS(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/plant_file.RDS"))
+  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/plant_file_annual.RDS"))
 
 # load in previous power profiler data which has zip, utility code, predominant utility, etc.
+#'  NOTE: This dataset contains the power profiler data for the previous year
+#'    (e.g. for a 2023 data run, this will be the 2022 power profiler data)
+#'    This data must be updated annually to account for any new changes to zip codes,
+#'    utilities, and subregion assignments.
 power_profiler_old <-
   read_csv(glue::glue("data/2c_power_profiler/inputs/{params$eGRID_year}/power_profiler_old.csv"),
            col_types = "cccccc") %>%
