@@ -24,7 +24,9 @@ params:
   eGRID_year: "2023"
   version: "1.0.2"
   temporal_res: "annual" # temporal resolution of output either: 
-                          # "annual" or "monthly"
+                         # "annual" or "monthly"
+                         # NOTE: annual MUST be run before monthly to 
+                         #       obtain all necessary data for formatting
 editor: visual
 project: 
   execute_dir: project
