@@ -40,7 +40,7 @@ unit_data_pm_nh3_voc <- function(emission_type){
   require(readxl)
   
   # Load functions ------
-  source("scripts/functions/function_download_historical_egrid_pm_nh3_voc.R")
+  source("scripts/functions/function_download_historical_egrid.R")
   
   # Load necessary data --------------------
   
@@ -81,10 +81,8 @@ unit_data_pm_nh3_voc <- function(emission_type){
   
   # eGRID production model data - unit file (2022)
   if(params$eGRID_year == "2022") {
-    # set url to download eGRID data if not available
-    egrid_url <- "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx"
     # download eGRID data if doesn't already exist
-    egrid_historic_path <- download_egrid_historic(params$eGRID_year, egrid_url)
+    egrid_historic_path <- download_historical_egrid(params$eGRID_year)
 
     # load eGRID unit data
     unit_file_raw <- read_excel(egrid_historic_path,
