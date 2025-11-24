@@ -23,6 +23,7 @@ library(readr)
 
 source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_temporal_res_cols.R")
+source("scripts/functions/function_save_output_data.R")
 
 # check if parameters for eGRID data year need to be defined
 if (!exists("params")) {

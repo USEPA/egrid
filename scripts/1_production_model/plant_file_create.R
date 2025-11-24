@@ -857,7 +857,7 @@ if (bio_units_to_add_flag) {
     ungroup() %>% 
     filter(co2_mass < -1)  
   
-  write_csv(negative_co2_mass, "data/1_production_model/static_tables/qa/check_biomass_units.csv")
+  write_csv(negative_co2_mass, glue::glue("data/1_production_model/static_tables/qa/check_biomass_units_{params$eGRID_year}.csv"))
   
   stop("Stopping plant file. Identified plants with negative CO2 mass after biomass adjustments. Check for biomass units that need to be added in unit file.")
 } 
