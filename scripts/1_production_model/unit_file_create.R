@@ -98,11 +98,12 @@ eia_923 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/
 
 ## Generator file -------
 
-gen_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/generator_file_{params$temporal_res}.RDS")) %>%
-            group_by(plant_id, generator_id, prime_mover, nameplate_capacity) %>% 
-            summarize(generation = sum(generation, na.rm = TRUE)) %>% 
-            distinct() %>% 
-            ungroup()
+gen_file <- 
+  check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/generator_file_{params$temporal_res}.RDS")) %>%
+  group_by(plant_id, generator_id, prime_mover, nameplate_capacity) %>% 
+  summarize(generation = sum(generation, na.rm = TRUE)) %>% 
+  distinct() %>% 
+  ungroup()
 
   
 ## Crosswalks and static tables ---------
@@ -113,15 +114,16 @@ source("scripts/1_production_model/name_matching.R")
 
 # Power Sector Data Crosswalk matches units between EPA and EIA data sets
 # this will be used to help update Coal units in EPA and assign correct primary fuel type
-xwalk_eia_epa <- read_csv("data/1_production_model/static_tables/xwalk_epa_eia_power_sector.csv",
-                          col_types = cols_only(EPA_PLANT_ID = "c", 
-                                                EPA_UNIT_ID = "c", 
-                                                EPA_FUEL_TYPE = "c", 
-                                                EIA_PLANT_ID = "c", 
-                                                EIA_GENERATOR_ID = "c", 
-                                                EIA_FUEL_TYPE = "c", 
-                                                EIA_UNIT_TYPE = "c")) %>% # define col_types to all be characters
-                 janitor::clean_names() 
+xwalk_eia_epa <- 
+  read_csv("data/1_production_model/static_tables/xwalk_epa_eia_power_sector.csv",
+            col_types = cols_only(EPA_PLANT_ID = "c", 
+                                  EPA_UNIT_ID = "c", 
+                                  EPA_FUEL_TYPE = "c", 
+                                  EIA_PLANT_ID = "c", 
+                                  EIA_GENERATOR_ID = "c", 
+                                  EIA_FUEL_TYPE = "c", 
+                                  EIA_UNIT_TYPE = "c")) %>% # define col_types to all be characters
+   janitor::clean_names() 
 
 # Boiler Firing Type Crosswalk
 xwalk_botfirty <- read_csv("data/1_production_model/static_tables/xwalk_boiler_firing_type.csv", 
@@ -149,12 +151,13 @@ if (bio_units_to_add_flag) {
 
 # Some plants in EPA are not connected to the grid or are retired, so they are excluded from eGRID
 ### Note: check for updates or changes each data year ###
-epa_plants_to_delete <- read_csv("data/1_production_model/static_tables/epa_plants_to_delete.csv", 
-                                  col_types = "ic") %>% 
-                        janitor::clean_names() %>% 
-                        select("year",
-                               "plant_id" = "oris_code") %>% 
-                        filter(year <= params$eGRID_year)
+epa_plants_to_delete <- 
+  read_csv("data/1_production_model/static_tables/epa_plants_to_delete.csv", 
+            col_types = "ic") %>% 
+  janitor::clean_names() %>% 
+  select("year",
+         "plant_id" = "oris_code") %>% 
+  filter(year <= params$eGRID_year)
 
 
 # Emission factors 
@@ -207,9 +210,12 @@ eia_plants_to_delete <- read_csv("data/1_production_model/static_tables/xwalk_or
 # there are some units and plants that need manual changes 
 # we document them in this Excel sheet 
 ### Note: check for updates or changes each data year ### 
-manual_corrections <- read_excel("data/1_production_model/static_tables/manual_corrections.xlsx", 
-                                 sheet = "unit_file", 
-                                 col_types = c("text", "text", "text", "text", "text"))
+manual_corrections <- 
+  read_excel("data/1_production_model/static_tables/manual_corrections.xlsx", 
+             sheet = "unit_file", 
+             col_types = c("numeric", "text", "text", "text", "text", "text")) %>% 
+  filter(year >= as.numeric(params$eGRID_year)) %>% 
+  select(-year)
 
 # Fuel types by category 
 fuel_type_category <- read_csv("data/1_production_model/static_tables/fuel_type_categories.csv", 

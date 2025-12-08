@@ -114,7 +114,9 @@ fuel_type_categories <-
 manual_corrections <- 
   read_xlsx("data/1_production_model/static_tables/manual_corrections.xlsx", 
             sheet = "plant_file", 
-            col_types = c("text", "text", "text"))
+            col_types = c("numeric", "text", "text", "text")) %>% 
+  filter(year >= as.numeric(params$eGRID_year)) %>% 
+  select(-year)
 
 # previous eGRID year CHP plants
 prev_egrid_year <- as.numeric(params$eGRID_year) - 1

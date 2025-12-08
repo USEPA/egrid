@@ -628,8 +628,8 @@ heat_input_and_generation <- eia_923$generation_and_fuel_combined %>%
   summarize(
     heat_input_ann_923 = sum(total_fuel_consumption_mmbtu, na.rm = TRUE), # consumption in mmbtus is referred to as "heat input"
     generation_ann = sum(net_generation_megawatthours, na.rm = TRUE)
-    ) %>% ungroup() %>%
-  mutate(plant_id = as.numeric(plant_id))
+    ) %>% ungroup() #%>%
+  #mutate(plant_id = as.numeric(plant_id))
 
 check_unit_blanks <- 
   unit_file %>% 
@@ -817,7 +817,8 @@ plant_file_prev_hist <-
          "subrgn_prev" = "subrgn",
          "ba_name_prev" = "baname",
          "nerc_prev" = "nerc",
-         "utlsrvid_prev" = "utlsrvid")
+         "utlsrvid_prev" = "utlsrvid") %>% 
+  mutate(plant_id = as.character(plant_id))
 
 # read in plant file data from 2 years prior
 plant_file_prev2_hist <- 
@@ -826,7 +827,8 @@ plant_file_prev2_hist <-
   janitor::clean_names() %>% 
   rename("plant_id" = "orispl", 
          "subrgn_prev2" = "subrgn") %>%
-  select(plant_id, subrgn_prev2)
+  select(plant_id, subrgn_prev2) %>% 
+  mutate(plant_id = as.character(plant_id))
 
 plant_subregion_hist <-  plant_file %>% 
   left_join(plant_file_prev_hist, by = c("plant_id")) %>% 
@@ -2225,7 +2227,7 @@ if (params$temporal_res == "annual") {
   check_plant_biomass_emissions <- 
     plant_file %>% 
     filter((nox_biomass > unadj_nox_mass) |
-             (nox_bio_oz > unadj_nox_oz_mass) |
+             #(nox_bio_oz > unadj_nox_oz_mass) |
              (so2_biomass > unadj_so2_mass) | 
              (co2_biomass > unadj_co2_mass) | 
              (ch4_biomass > unadj_ch4_mass) |
@@ -2236,7 +2238,7 @@ if (params$temporal_res == "annual") {
   
   knitr::kable(check_plant_biomass_emissions %>% 
                  select(plant_id, plant_name, unadj_nox_mass, 
-                        nox_biomass, unadj_nox_oz_mass, nox_bio_oz, 
+                        nox_biomass, unadj_nox_oz_mass, #nox_bio_oz, 
                         unadj_so2_mass, so2_biomass, unadj_co2_mass, co2_biomass, 
                         unadj_ch4_mass, ch4_biomass, unadj_n2o_mass, n2o_biomass))
 } else { 
@@ -4702,6 +4704,7 @@ knitr::kable(subregion_fuel_zscore %>%
                arrange(desc(n2o_output_oil_zscore)))
 ```
 :::
+
 ### Gas input rates
 
 ::: panel-tabset
@@ -5310,9 +5313,9 @@ knitr::kable(nerc_fuel_zscore %>%
                arrange(desc(n2o_input_coal_zscore)))
 ```
 :::
-  
+
 ### Coal output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -5380,9 +5383,9 @@ knitr::kable(nerc_fuel_zscore %>%
                arrange(desc(n2o_output_coal_zscore)))
 ```
 :::
-  
+
 ### Oil input rates
-  
+
 ::: panel-tabset
 #### NOx input rate
 
@@ -5450,9 +5453,9 @@ knitr::kable(nerc_fuel_zscore %>%
                arrange(desc(n2o_input_oil_zscore)))
 ```
 :::
-  
+
 ### Oil Output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -5522,7 +5525,7 @@ knitr::kable(nerc_fuel_zscore %>%
 :::
 
 ### Gas input rates
-  
+
 ::: panel-tabset
 #### NOx input rate
 
@@ -5590,9 +5593,9 @@ knitr::kable(nerc_fuel_zscore %>%
                arrange(desc(n2o_output_gas_zscore)))
 ```
 :::
-  
+
 ### Gas output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -5660,9 +5663,9 @@ knitr::kable(nerc_fuel_zscore %>%
                arrange(desc(n2o_output_gas_zscore)))
 ```
 :::
-  
+
 ### Fossil Fuel input rates
-  
+
 ::: panel-tabset
 #### NOx input rate
 
@@ -5730,9 +5733,9 @@ knitr::kable(nerc_fuel_zscore %>%
                arrange(desc(n2o_input_fossil_zscore)))
 ```
 :::
-  
+
 ### Fossil Fuel output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -5804,6 +5807,7 @@ knitr::kable(nerc_fuel_zscore %>%
 # BA File Fuel Specific QA
 
 ## Outlier check for fuel emissions rate
+
 ```{r}
 #| label: calculate-ba-fuel-outliers
 
@@ -6128,9 +6132,9 @@ knitr::kable(ba_fuel_zscore %>%
                arrange(desc(n2o_input_coal_zscore)))
 ```
 :::
-  
+
 ### Coal output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -6198,9 +6202,9 @@ knitr::kable(ba_fuel_zscore %>%
                arrange(desc(n2o_output_coal_zscore)))
 ```
 :::
-  
+
 ### Oil input rates
-  
+
 ::: panel-tabset
 #### NOx input rate
 
@@ -6268,9 +6272,9 @@ knitr::kable(ba_fuel_zscore %>%
                arrange(desc(n2o_input_oil_zscore)))
 ```
 :::
-  
+
 ### Oil Output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -6338,9 +6342,9 @@ knitr::kable(ba_fuel_zscore %>%
                arrange(desc(n2o_output_oil_zscore)))
 ```
 :::
-  
+
 ### Gas input rates
-  
+
 ::: panel-tabset
 #### NOx input rate
 
@@ -6408,9 +6412,9 @@ knitr::kable(ba_fuel_zscore %>%
                arrange(desc(n2o_output_gas_zscore)))
 ```
 :::
-  
+
 ### Gas output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -6478,9 +6482,9 @@ knitr::kable(ba_fuel_zscore %>%
                arrange(desc(n2o_output_gas_zscore)))
 ```
 :::
-  
+
 ### Fossil Fuel input rates
-  
+
 ::: panel-tabset
 #### NOx input rate
 
@@ -6548,9 +6552,9 @@ knitr::kable(ba_fuel_zscore %>%
                arrange(desc(n2o_input_fossil_zscore)))
 ```
 :::
-  
+
 ### Fossil Fuel output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -6947,9 +6951,9 @@ knitr::kable(us_fuel_zscore %>%
                arrange(desc(n2o_input_coal_zscore)))
 ```
 :::
-  
+
 ### Coal output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -7017,9 +7021,9 @@ knitr::kable(us_fuel_zscore %>%
                arrange(desc(n2o_output_coal_zscore)))
 ```
 :::
-  
+
 ### Oil input rates
-  
+
 ::: panel-tabset
 #### NOx input rate
 
@@ -7087,9 +7091,9 @@ knitr::kable(us_fuel_zscore %>%
                arrange(desc(n2o_input_oil_zscore)))
 ```
 :::
-  
+
 ### Oil Output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -7157,9 +7161,9 @@ knitr::kable(us_fuel_zscore %>%
                arrange(desc(n2o_output_oil_zscore)))
 ```
 :::
-  
+
 ### Gas input rates
-  
+
 ::: panel-tabset
 #### NOx input rate
 
@@ -7227,9 +7231,9 @@ knitr::kable(us_fuel_zscore %>%
                arrange(desc(n2o_output_gas_zscore)))
 ```
 :::
-  
+
 ### Gas output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -7297,9 +7301,9 @@ knitr::kable(us_fuel_zscore %>%
                arrange(desc(n2o_output_gas_zscore)))
 ```
 :::
-  
+
 ### Fossil Fuel input rates
-  
+
 ::: panel-tabset
 #### NOx input rate
 
@@ -7367,9 +7371,9 @@ knitr::kable(us_fuel_zscore %>%
                arrange(desc(n2o_input_fossil_zscore)))
 ```
 :::
-  
+
 ### Fossil Fuel output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -7441,6 +7445,7 @@ knitr::kable(us_fuel_zscore %>%
 # State File Fuel Specific QA
 
 ## Outlier check for fuel emissions rate
+
 ```{r}
 #| label: calculate-state-fuel-outliers
 
@@ -7765,9 +7770,9 @@ knitr::kable(state_fuel_zscore %>%
                arrange(desc(n2o_input_coal_zscore)))
 ```
 :::
-  
+
 ### Coal output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -7835,9 +7840,9 @@ knitr::kable(state_fuel_zscore %>%
                arrange(desc(n2o_output_coal_zscore)))
 ```
 :::
-  
+
 ### Oil input rates
-  
+
 ::: panel-tabset
 #### NOx input rate
 
@@ -7905,9 +7910,9 @@ knitr::kable(state_fuel_zscore %>%
                arrange(desc(n2o_input_oil_zscore)))
 ```
 :::
-  
+
 ### Oil Output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -7975,9 +7980,9 @@ knitr::kable(state_fuel_zscore %>%
                arrange(desc(n2o_output_oil_zscore)))
 ```
 :::
-  
+
 ### Gas input rates
-  
+
 ::: panel-tabset
 #### NOx input rate
 
@@ -8045,9 +8050,9 @@ knitr::kable(state_fuel_zscore %>%
                arrange(desc(n2o_output_gas_zscore)))
 ```
 :::
-  
+
 ### Gas output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -8115,9 +8120,9 @@ knitr::kable(state_fuel_zscore %>%
                arrange(desc(n2o_output_gas_zscore)))
 ```
 :::
-  
+
 ### Fossil Fuel input rates
-  
+
 ::: panel-tabset
 #### NOx input rate
 
@@ -8185,9 +8190,9 @@ knitr::kable(state_fuel_zscore %>%
                arrange(desc(n2o_input_fossil_zscore)))
 ```
 :::
-  
+
 ### Fossil Fuel output rates
-  
+
 ::: panel-tabset
 #### NOx output rate
 
@@ -8349,7 +8354,7 @@ if (params$temporal_res == "annual") {
 
 ### Nonbaseload output rates
 
-::: panel-tabset
+:::::::::::: panel-tabset
 #### NOx output rate
 
 ```{r}
@@ -8527,7 +8532,7 @@ if (params$temporal_res == "annual") {
 
 ### Nonbaseload output rates
 
-::: panel-tabset
+::::::::::: panel-tabset
 #### NOx output rate
 
 ```{r}
@@ -8705,7 +8710,7 @@ if (params$temporal_res == "annual") {
 
 ### Nonbaseload output rates
 
-::: panel-tabset
+:::::::::: panel-tabset
 #### NOx output rate
 
 ```{r}
@@ -8883,7 +8888,7 @@ if (params$temporal_res == "annual") {
 
 ### Nonbaseload output rates
 
-::: panel-tabset
+::::::::: panel-tabset
 #### NOx output rate
 
 ```{r}
@@ -9061,7 +9066,7 @@ if (params$temporal_res == "annual") {
 
 ### Nonbaseload output rates
 
-::: panel-tabset
+:::::::: panel-tabset
 #### NOx output rate
 
 ```{r}
@@ -9239,7 +9244,7 @@ if (params$temporal_res == "annual") {
 
 ### Combustion output rates
 
-::: panel-tabset
+::::::: panel-tabset
 #### NOx output rate
 
 ```{r}
@@ -9323,7 +9328,6 @@ knitr::kable(subregion_combustion_zscore %>%
                arrange(desc(co2e_combustion_output_zscore)))
 
 ```
-
 
 # BA Combustion QA
 
@@ -9418,7 +9422,7 @@ if (params$temporal_res == "annual") {
 
 ### Combustion output rates
 
-::: panel-tabset
+:::::: panel-tabset
 #### NOx output rate
 
 ```{r}
@@ -9596,7 +9600,7 @@ if (params$temporal_res == "annual") {
 
 ### Combustion output rates
 
-::: panel-tabset
+::::: panel-tabset
 #### NOx output rate
 
 ```{r}
@@ -9774,7 +9778,7 @@ if (params$temporal_res == "annual") {
 
 ### Combustion output rates
 
-::: panel-tabset
+:::: panel-tabset
 #### NOx output rate
 
 ```{r}
@@ -10040,6 +10044,7 @@ knitr::kable(us_combustion_zscore %>%
 # Subregion Negative Emissions
 
 ## Negative emission values
+
 ```{r}
 #| label: subregion-negative-emissions
 
@@ -10079,6 +10084,7 @@ if (params$temporal_res == "annaul") {
 # BA Negative Emissions
 
 ## Negative emission values
+
 ```{r}
 #| label: ba-negative-emissions
 
@@ -10118,6 +10124,7 @@ if (params$temporal_res == "annaul") {
 # NERC Negative Emissions
 
 ## Negative emission values
+
 ```{r}
 #| label: nerc-negative-emissions
 
@@ -10157,6 +10164,7 @@ if (params$temporal_res == "annaul") {
 # State Negative Emissions
 
 ## Negative emission values
+
 ```{r}
 #| label: state-negative-emissions
 
@@ -10196,6 +10204,7 @@ if (params$temporal_res == "annaul") {
 # US Negative Emissions
 
 ## Negative emission values
+
 ```{r}
 #| label: us-negative-emissions
 
@@ -10361,6 +10370,7 @@ if (params$temporal_res == "annual") {
   glue::glue("Difference (plant - generator): {plant_gen_sum$gen_oz_total - generator_gen_sum$gen_oz_total}")}
 
 ```
+
 ### Total generation comaprisons - Plant file vs Generator file
 
 ```{r}
@@ -10498,3 +10508,13 @@ ifelse(nrow(plant_file) == nrow(plant_excel),"Status: PASS - Excel and R Plant f
 ifelse(nrow(generator_file) == nrow(gen_excel),"Status: PASS - Excel and R Generator files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R Generator files differ by {nrow(generator_file) - nrow(gen_excel)} units."))
   
 ```
+:::
+::::
+:::::
+::::::
+:::::::
+::::::::
+:::::::::
+::::::::::
+:::::::::::
+::::::::::::

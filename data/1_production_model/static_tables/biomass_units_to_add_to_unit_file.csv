@@ -83,3 +83,29 @@ year,plant_code,unit_id,prime_mover,fuel_type,plant_state,plant_name
 2023,54099,RB1,ST,BLQ,NY,Ticonderoga Mill
 2023,54638,RB01,ST,BLQ,PA,"Domtar Paper Company, LLC"
 2023,59035,NA,ST,WDS,HI,"Biomass to Energy Facility, Kauai"
+2024,2123,DAN1,IC,DFO,MO    ,Columbia
+2024,2123,LF1,IC,LFG,MO    ,Columbia
+2024,2123,LF2,IC,LFG,MO    ,Columbia
+2024,2123,LF3,IC,LFG,MO    ,Columbia
+2024,2123,SF1,IC,DFO,MO    ,Columbia
+2024,2123,SF2,IC,DFO,MO    ,Columbia
+2024,2123,SH1,IC,DFO,MO    ,Columbia
+2024,2123,SH2,IC,DFO,MO    ,Columbia
+2024,2123,WTP1,IC,DFO,MO    ,Columbia
+2024,2123,WTP2,IC,DFO,MO    ,Columbia
+2024,4005,1,ST,WDS,WI,French Island
+2024,4005,2,ST,WDS,WI,French Island
+2024,4125,5,ST,WDS,WI,Manitowoc
+2024,4125,6,ST,WDS,WI,Manitowoc
+2024,10252,THB,ST,NG,TN,"Domtar Paper Co., LLC - Kingsport Mill"
+2024,10823,B101,ST,OBG,MA    ,Deer Island Treatment
+2024,10823,B201,ST,OBG,MA    ,Deer Island Treatment
+2024,50397,REC037,ST,BLQ,PA    ,Pixelle Specialty Solutions
+2024,50472,BLR3,ST,MSB,NY    ,Covanta Niagara
+2024,50472,BLR4,ST,MSB,NY    ,Covanta Niagara
+2024,50900,2RB,ST,BLQ,VA    ,WestRock Virginia Corp Covington Ops
+2024,50900,1PB,ST,NG,VA    ,WestRock Virginia Corp Covington Ops
+2024,50900,1RB,ST,NG,VA    ,WestRock Virginia Corp Covington Ops
+2024,54099,RB1,ST,BLQ,NY,Ticonderoga Mill
+2024,54638,RB01,ST,BLQ,PA,"Domtar Paper Company, LLC"
+2024,59035,NA,ST,WDS,HI,"Biomass to Energy Facility, Kauai"
