@@ -3,6 +3,8 @@ title: "Monthly Production Model QA"
 format: html
 editor: source
 table-of-contents: true
+params: 
+  eGRID_year: 2024
 ---
 
 NOTE: This script was used for internal QA and data validation of the monthly production model. This script compares the original annual eGRID version to the updated monthly / annual methodology version that is on this branch. This quarto document can only run correctly when in the root directory of this repository to access the folders it needs. 
@@ -38,7 +40,7 @@ base::load("data/1_production_model/static_tables/name_matches.RData")
 
 # load in unit data, format, and merge
 unit_monthly <- 
-  read_rds("data/1_production_model/outputs/2023/monthly/unit_file_monthly.RDS")
+  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/unit_file_monthly.RDS"))
 
 colnames(unit_monthly) <- paste0(colnames(unit_monthly), "_monthly")
 unit_monthly <- unit_monthly %>% 
@@ -50,7 +52,7 @@ unit_monthly <- unit_monthly %>%
   mutate(month = as.character(month))
 
 unit_annual <- 
-  read_rds("data/1_production_model/outputs/2023/unit_file.RDS")
+  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/unit_file_annual.RDS"))
 
 colnames(unit_annual) <- paste0(colnames(unit_annual), "_annual")
 unit_annual <- unit_annual %>% 
@@ -62,7 +64,7 @@ unit_annual <- unit_annual %>%
 
 # load in generator data, format, and merge
 generator_monthly <- 
-  read_rds("data/1_production_model/outputs/2023/monthly/generator_file_monthly.RDS")
+  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/generator_file_monthly.RDS"))
 
 colnames(generator_monthly) <- paste0(colnames(generator_monthly), "_monthly")
 generator_monthly <- generator_monthly %>% 
@@ -74,20 +76,19 @@ generator_monthly <- generator_monthly %>%
   mutate(month = as.character(month))
 
 generator_annual <- 
-  read_rds("data/1_production_model/outputs/2023/generator_file.RDS")
+  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/generator_file_annual.RDS"))
 
 colnames(generator_annual) <- paste0(colnames(generator_annual), "_annual")
 generator_annual <- generator_annual %>% 
   rename("plant_id" = "plant_id_annual",
          "generator_id" = "generator_id_annual", 
          "prime_mover" = "prime_mover_annual",  
-         "generation_annual" = "generation_ann_annual",
          "year" = "year_annual") %>% 
   mutate(month = "annual")
 
 # load in plant data, format, and merge
 plant_monthly <- 
-  read_rds("data/1_production_model/outputs/2023/monthly/plant_file_monthly.RDS") %>% 
+  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/plant_file_monthly.RDS")) %>% 
   mutate(month = as.character(month))
 
 plant_monthly_2 <- plant_monthly
@@ -100,7 +101,7 @@ plant_monthly_2 <-
   mutate(month = as.character(month))
 
 plant_annual <- 
-  read_rds("data/1_production_model/outputs/2023/plant_file.RDS") 
+  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/plant_file_annual.RDS"))
 
 # rename to new version of column names
 new_vars <- 
@@ -137,14 +138,14 @@ In the tabset below, we list what units have a difference greater than 0.01 for 
 
 # read in EPA data to identify OS reporters
 epa <- 
-  read_rds("data/1_production_model/clean_data/epa/2023/epa_clean_monthly.RDS") %>% 
+  read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")) %>% 
   select(plant_id, unit_id, reporting_frequency) %>% 
   distinct() %>% 
   tidyr::drop_na()
 
 # read in EIA data to identify Annual reporters (which may not represent monthly version well)
 eia_923 <- 
-  read_rds("data/1_production_model/clean_data/eia/2023/eia_923_clean.RDS") 
+  read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 
 annual_reporters <-
   eia_923$boiler_fuel_data %>% 
@@ -454,7 +455,7 @@ In the tabset below, we list what units have a difference greater than 0.01 for 
 
 # read in EIA data to identify Annual reporters (which may not represent monthly version well)
 eia_923 <- 
-  read_rds("data/clean_data/eia/2023/eia_923_clean.RDS") 
+  read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_923_clean.RDS"))
 
 annual_reporters <-
   eia_923$boiler_fuel_data %>% 

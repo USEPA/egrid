@@ -71,7 +71,7 @@ Check if any plants are only in the EPA data and not EIA data. These plants will
 
 # load in cleaned epa and eia data
 epa <- 
-  read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$year}/epa_clean_monthly.RDS"))
+  read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$year}/epa_clean.RDS"))
 
 eia_860 <- 
   read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$year}/eia_860_clean.RDS")) 
