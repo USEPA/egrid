@@ -36,7 +36,7 @@ source("scripts/functions/function_download_historical_egrid.R")
 
 # Define flag whether or not to include biomass_units_to_add table
 # we do this because we need to run a version of the unit and plant file without this table to identify which units need to be added 
-bio_units_to_add_flag <- TRUE
+bio_units_to_add_flag <- FALSE
 
 # check if parameters need to be defined
 if (!exists("params")) {
@@ -46,7 +46,8 @@ if (!exists("params")) {
 }
 
 # Specify grouping columns based on temporal_res parameter
-temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
+# for the plant file, we use the monthly level for both annual and monthly temporal_res and aggregate to annual version at the end if applicable
+temporal_res_cols <- create_temporal_res_cols("monthly")
 
 # Load necessary data ----------
 
@@ -65,11 +66,11 @@ eia_923 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/
 ### Load lower-level eGRID files (unit and generator files) ------------
 
 # load generator file
-generator_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/generator_file_{params$temporal_res}.RDS"))
+generator_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/generator_file_monthly.RDS"))
 
 # load unit file
 if (bio_units_to_add_flag) { 
-  unit_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/unit_file_{params$temporal_res}.RDS"))
+  unit_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/unit_file_monthly.RDS"))
 } else { 
   unit_file <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/{params$temporal_res}/unit_file_no_bio_added_{params$temporal_res}.RDS"))}
   
@@ -249,20 +250,6 @@ plant_unit <-
          unadj_hg_source = "--") %>% 
   ungroup()
 
-if(params$temporal_res == "annual") { 
-  plant_unit_oz <- # if annual version, calculate ozone values
-    unit_file %>% 
-    group_by(pick(all_of(temporal_res_cols)), plant_id, plant_state, plant_name) %>%
-    summarize(unadj_heat_input_oz = if_else(all(is.na(heat_input_oz)), NA_real_, sum(heat_input_oz, na.rm = TRUE)), # units: MMBtu
-              unadj_heat_input_oz_source = paste_concat(heat_input_oz_source),
-              unadj_nox_oz_mass = if_else(all(is.na(nox_oz_mass)), NA_real_, sum(nox_oz_mass, na.rm = TRUE)), # units: tons
-              unadj_nox_oz_source = paste_concat(nox_oz_source)) %>% 
-    ungroup()
-  
-  plant_unit <- 
-    plant_unit %>% 
-    full_join(plant_unit_oz)}
-
 # Aggregate generator file to plant level----------------------------
 
 plant_gen <- 
@@ -277,19 +264,6 @@ plant_gen <-
             generation = if_else(all(is.na(generation)), 
                                  NA_real_, sum(generation, na.rm = TRUE))) %>% # units: MWh 
   ungroup()
-
-if(params$temporal_res == "annual") { 
-  plant_gen_oz <- 
-    generator_file %>% 
-    filter(!is.na(plant_id)) %>% 
-    group_by(pick(all_of(temporal_res_cols)), plant_id, plant_state, plant_name) %>% 
-    summarize(generation_oz = if_else(all(is.na(generation_oz)), 
-                                      NA_real_, sum(generation_oz, na.rm = TRUE))) %>% 
-    ungroup()
-  
-  plant_gen <- 
-    plant_gen %>% 
-    full_join(plant_gen_oz)}
 
 # Combustion heat input ---------------------------------------
 # calculate heat input from combustion fuels
@@ -308,27 +282,6 @@ combust_heat_input <-
   summarize(# unadjusted combustion heat input 
             unadj_combust_heat_input = sum(unadj_heat_input, na.rm = TRUE)) %>% # sum heat input for combustion fuels
   ungroup()
-
-if(params$temporal_res == "annual") { # if annual temporal_res, calculate ozone values
-  unit_heat_input_oz <- 
-    unit_file %>% 
-    group_by(pick(all_of(temporal_res_cols)), plant_id, prime_mover, primary_fuel_type) %>%
-    summarize(unadj_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% 
-    ungroup()
-  
-  combust_heat_input_oz <- 
-    unit_heat_input_oz %>% 
-    filter(primary_fuel_type %in% fuel_type_categories[["combustion_fuels"]], 
-           prime_mover != "FC") %>%
-    group_by(pick(all_of(temporal_res_cols)), plant_id) %>% 
-    summarize(# unadjusted combustion heat input 
-              unadj_combust_heat_input_oz = sum(unadj_heat_input_oz, na.rm = TRUE)) %>% 
-    ungroup()
-  
-  combust_heat_input <- 
-    combust_heat_input %>% 
-    full_join(combust_heat_input_oz)
-  }
 
 # join with aggregated unit file
 plant_unit_2 <- 
@@ -864,17 +817,6 @@ if (bio_units_to_add_flag) {
   stop("Stopping plant file. Identified plants with negative CO2 mass after biomass adjustments. Check for biomass units that need to be added in unit file.")
 } 
 
-if(params$temporal_res == "annual") { 
-  define_nox_oz_mass <- 
-    plant_file_13 %>% 
-    mutate(nox_oz_biomass = 0, 
-           nox_oz_mass = unadj_nox_mass) %>% 
-    select(plant_id, nox_oz_biomass, nox_oz_mass)
-  
-  plant_file_14 <- 
-    plant_file_14 %>% 
-    full_join(define_nox_oz_mass)}
-
 # Calculate generation by fuel type  ------------------
 
 # use generator file to summarize generation by fuel type 
@@ -1153,27 +1095,6 @@ plant_chp <-
          chp_co2e = if_else(chp_co2e > unadj_co2e_mass | chp_co2e < 0, unadj_co2e_mass, chp_co2e)) %>% 
   select(-contains("bio_adj"))
 
-if(params$temporal_res == "annual") { 
-  plant_chp_oz <- 
-    plant_file_16 %>% 
-    filter(chp_flag == "Yes") %>% 
-    # rename adjusted emission masses to include biomass adjustments, since we are now applying CHP adjustments
-    rename("nox_oz_mass_bio_adj" = nox_oz_mass) %>%  
-    mutate(# calculate adjusted values 
-      heat_input_oz = (elec_allocation * unadj_combust_heat_input_oz) + (unadj_heat_input_oz - unadj_combust_heat_input_oz),
-      combust_heat_input_oz = elec_allocation * unadj_combust_heat_input_oz, 
-      nox_oz_mass = elec_allocation * nox_oz_mass_bio_adj, 
-      # calculate CHP adjustment values
-      chp_combust_heat_input_oz = unadj_combust_heat_input_oz - combust_heat_input_oz,
-      chp_nox_oz = nox_oz_mass_bio_adj - nox_oz_mass,
-      # check if CHP emission masses are greater than unadjusted values, and assign unadjusted values if TRUE
-      chp_nox_oz = if_else(chp_nox_oz > unadj_nox_oz_mass | chp_nox_oz < 0, unadj_nox_oz_mass, chp_nox_oz)) %>% 
-    select(-contains("bio_adj"))
-  
-  plant_chp <- 
-    plant_chp %>% 
-    full_join(plant_chp_oz)}
-
 plant_file_17 <- 
   plant_file_16 %>% 
   filter(is.na(chp_flag)) %>% # filter out CHP flags to easily join in new CHP data
@@ -1185,12 +1106,6 @@ plant_file_17 <-
          nominal_heat_rate = if_else((combust_flag == 1 | combust_flag == 0.5) & !is.na(combust_netgen) & combust_netgen != 0, 
                                       combust_heat_input * 1000 / combust_netgen,
                                       NA_real_))
-
-if(params$temporal_res == "annual") { 
-  plant_file_17 <- 
-    plant_file_17 %>% 
-    mutate(heat_input_oz = if_else(is.na(heat_input_oz), unadj_heat_input_oz, heat_input_oz), 
-           combust_heat_input_oz = if_else(is.na(combust_heat_input_oz), unadj_combust_heat_input_oz, combust_heat_input_oz))}
 
 # Update negative emissions values ----------------------------------------
 
@@ -1220,13 +1135,6 @@ plant_file_19 <-
          # assign NAs to Hg combustion output rate
          hg_combust_out_rate = NA_real_)
 
-if(params$temporal_res == "annual") { 
-  plant_file_19 <- 
-    plant_file_19 %>% 
-    mutate(# calculate NOx ozone combustion output rate
-           nox_oz_combust_out_rate = if_else(combust_netgen * (generation_oz / generation) <= 0 | is.na(combust_netgen), 
-                                             NA_real_, 2000 * nox_oz_mass / (combust_netgen * (generation_oz / generation))))}
-
 ### Input emission rates ----------------------------------------
   
 plant_file_20 <- 
@@ -1246,13 +1154,6 @@ plant_file_20 <-
          # assign NAs to Hg combustion output rate
          hg_input_rate = NA_real_)
 
-if(params$temporal_res == "annual") { 
-  plant_file_20 <- 
-    plant_file_20 %>% 
-    mutate( # calculate NOx ozone input rate
-           nox_oz_input_rate = if_else(heat_input_oz <= 0 | is.na(heat_input_oz), NA_real_, 
-                                       2000 * nox_oz_mass / heat_input_oz),)}
-
 ### Output emission rates ----------------------------------------
 
 plant_file_21 <- 
@@ -1271,13 +1172,6 @@ plant_file_21 <-
                 .names = "{str_replace(.col, 'mass', 'output_rate')}"),
          # assign NAs to Hg combustion output rate
          hg_output_rate = NA_real_) 
-
-if(params$temporal_res == "annual") { 
-  plant_file_21 <- 
-    plant_file_21 %>% 
-    mutate(# calculate NOx ozone output rate
-           nox_oz_output_rate = if_else(generation_oz <= 0 | is.na(generation_oz), NA_real_, 
-                                        2000 * nox_oz_mass / generation_oz))}
 
 # Calculate nonbaseload factor and generation ---------------------------------
 
@@ -1308,17 +1202,6 @@ unit_source_heat_input <-
 stopifnot(all(unit_source_heat_input$unadj_heat_input_source %in% check_source_list))
 
 
-### Update heat_input_oz_source ----------
-
-if(params$temporal_res == "annual") { 
-  unit_source_heat_input_oz <-
-    update_source(x = "heat_input_oz_source", unit_f = unit_file) %>%
-    rename(unadj_heat_input_oz_source = heat_input_oz_source) # rename to match plant file
-  
-  # check if sources updated correctly, stop if not
-  stopifnot(all(unit_source_heat_input_oz$unadj_heat_input_oz_source %in% check_source_list))}
-
-
 ### Update nox_source ---------
 
 unit_source_nox <- update_source(x = "nox_source", unit_f = unit_file) %>% 
@@ -1326,17 +1209,6 @@ unit_source_nox <- update_source(x = "nox_source", unit_f = unit_file) %>%
 
 # check if sources updated correctly, stop if not
 stopifnot(all(unit_source_nox$unadj_nox_source %in% check_source_list))
-
-
-### Update nox_oz_source --------
-
-if(params$temporal_res == "annual") { 
-  unit_source_nox_oz <- 
-    update_source(x = "nox_oz_source", unit_f = unit_file) %>% 
-    rename(unadj_nox_oz_source = nox_oz_source) # rename to match plant file
-  
-  # check if sources updated correctly, stop if not
-  stopifnot(all(unit_source_nox_oz$unadj_nox_oz_source %in% check_source_list))}
 
 
 ### Update co2_source ---------
@@ -1369,11 +1241,123 @@ plant_file_23 <-
   mutate(unadj_ch4_source = if_else(!is.na(ch4_mass), "EIA", NA_character_), 
          unadj_n2o_source = if_else(!is.na(n2o_mass), "EIA", NA_character_))
 
+
+# Aggregate to annual level ------------------------------------------------------
+
 if(params$temporal_res == "annual") { 
+  
+  # load annual level unit file for ozone values
+  unit_file_annual <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/unit_file_annual.RDS"))
+  
+  # load annual level generator file for ozone values
+  generator_file_annual <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/generator_file_annual.RDS"))
+  
+  # calculate plant ozone values 
+  plant_unit_oz <- # if annual version, calculate ozone values
+    unit_file_annual %>% 
+    group_by(plant_id, plant_state, plant_name) %>%
+    summarize(unadj_heat_input_oz = if_else(all(is.na(heat_input_oz)), NA_real_, sum(heat_input_oz, na.rm = TRUE)), # units: MMBtu
+              unadj_heat_input_oz_source = paste_concat(heat_input_oz_source),
+              unadj_nox_oz_mass = if_else(all(is.na(nox_oz_mass)), NA_real_, sum(nox_oz_mass, na.rm = TRUE)), # units: tons
+              unadj_nox_oz_source = paste_concat(nox_oz_source)) %>% 
+    ungroup()
+
+  plant_gen_oz <- 
+    generator_file_annual %>% 
+    filter(!is.na(plant_id)) %>% 
+    group_by(plant_id, plant_state, plant_name) %>% 
+    summarize(generation_oz = if_else(all(is.na(generation_oz)), 
+                                      NA_real_, sum(generation_oz, na.rm = TRUE))) %>% 
+    ungroup()
+  
+  plant_file_23 <- 
+    plant_file_23 %>% 
+    full_join(plant_unit_oz)
+  
+  # calculate ozone combustion heat input
+  unit_heat_input_oz <- 
+    unit_file_annual %>% 
+    group_by(plant_id, prime_mover, primary_fuel_type) %>%
+    summarize(unadj_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% 
+    ungroup()
+  
+  combust_heat_input_oz <- 
+    unit_heat_input_oz %>% 
+    filter(primary_fuel_type %in% fuel_type_categories[["combustion_fuels"]], 
+           prime_mover != "FC") %>%
+    group_by(plant_id) %>% 
+    summarize(# unadjusted combustion heat input 
+      unadj_combust_heat_input_oz = sum(unadj_heat_input_oz, na.rm = TRUE)) %>% 
+    ungroup()
+  
+  define_nox_oz_mass <- 
+    plant_file_13 %>% 
+    mutate(nox_oz_biomass = 0, 
+           nox_oz_mass = unadj_nox_mass) %>% 
+    select(plant_id, nox_oz_biomass, nox_oz_mass)
+
+  plant_chp_oz <- 
+    plant_file_16 %>% 
+    filter(chp_flag == "Yes") %>% 
+    # rename adjusted emission masses to include biomass adjustments, since we are now applying CHP adjustments
+    rename("nox_oz_mass_bio_adj" = nox_oz_mass) %>%  
+    mutate(# calculate adjusted values 
+      heat_input_oz = (elec_allocation * unadj_combust_heat_input_oz) + (unadj_heat_input_oz - unadj_combust_heat_input_oz),
+      combust_heat_input_oz = elec_allocation * unadj_combust_heat_input_oz, 
+      nox_oz_mass = elec_allocation * nox_oz_mass_bio_adj, 
+      # calculate CHP adjustment values
+      chp_combust_heat_input_oz = unadj_combust_heat_input_oz - combust_heat_input_oz,
+      chp_nox_oz = nox_oz_mass_bio_adj - nox_oz_mass,
+      # check if CHP emission masses are greater than unadjusted values, and assign unadjusted values if TRUE
+      chp_nox_oz = if_else(chp_nox_oz > unadj_nox_oz_mass | chp_nox_oz < 0, unadj_nox_oz_mass, chp_nox_oz)) %>% 
+    select(-contains("bio_adj"))
+  
+  plant_file_17 <- 
+    plant_file_17 %>% 
+    mutate(heat_input_oz = if_else(is.na(heat_input_oz), unadj_heat_input_oz, heat_input_oz), 
+           combust_heat_input_oz = if_else(is.na(combust_heat_input_oz), unadj_combust_heat_input_oz, combust_heat_input_oz))
+
+  plant_file_19 <- 
+    plant_file_19 %>% 
+    mutate(# calculate NOx ozone combustion output rate
+      nox_oz_combust_out_rate = if_else(combust_netgen * (generation_oz / generation) <= 0 | is.na(combust_netgen), 
+                                        NA_real_, 2000 * nox_oz_mass / (combust_netgen * (generation_oz / generation))))
+
+  plant_file_20 <- 
+    plant_file_20 %>% 
+    mutate( # calculate NOx ozone input rate
+      nox_oz_input_rate = if_else(heat_input_oz <= 0 | is.na(heat_input_oz), NA_real_, 
+                                  2000 * nox_oz_mass / heat_input_oz))
+
+  plant_file_21 <- 
+    plant_file_21 %>% 
+    mutate(# calculate NOx ozone output rate
+      nox_oz_output_rate = if_else(generation_oz <= 0 | is.na(generation_oz), NA_real_, 
+                                   2000 * nox_oz_mass / generation_oz))
+
+  ### Update heat_input_oz_source ----------
+
+  unit_source_heat_input_oz <-
+    update_source(x = "heat_input_oz_source", unit_f = unit_file) %>%
+    rename(unadj_heat_input_oz_source = heat_input_oz_source) # rename to match plant file
+  
+  # check if sources updated correctly, stop if not
+  stopifnot(all(unit_source_heat_input_oz$unadj_heat_input_oz_source %in% check_source_list))
+
+  ### Update nox_oz_source --------
+  unit_source_nox_oz <- 
+    update_source(x = "nox_oz_source", unit_f = unit_file) %>% 
+    rename(unadj_nox_oz_source = nox_oz_source) # rename to match plant file
+  
+  # check if sources updated correctly, stop if not
+  stopifnot(all(unit_source_nox_oz$unadj_nox_oz_source %in% check_source_list))
+
   plant_file_23 <- 
     plant_file_23 %>% 
     rows_update(unit_source_heat_input_oz, by = c(temporal_res_cols, "plant_id"), unmatched = "ignore") %>% 
-    rows_update(unit_source_nox_oz, by = c(temporal_res_cols, "plant_id"), unmatched = "ignore")}
+    rows_update(unit_source_nox_oz, by = c(temporal_res_cols, "plant_id"), unmatched = "ignore")
+}
+
 
 # Final modifications --------------------
 ### Round columns -------------------------
