@@ -38,7 +38,8 @@ if (!exists("params")) {
 manual_corrections <- 
   read_xlsx("data/1_production_model/static_tables/manual_corrections.xlsx", 
             sheet = "eia_clean", 
-            col_types = c("text", "text", "text"))
+            col_types = c("numeric", "text", "text", "text")) %>% 
+  filter(year >= as.numeric(params$eGRID_year))
 
 # Create month mapping from month name to number -----------------
 month_name_map <- # creating map to recode numeric monthly names to values

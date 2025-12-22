@@ -21,7 +21,7 @@ execute:
   message: false
   warning: false
 params:
-  eGRID_year: "2023"
+  eGRID_year: "2024"
   version: "1.0.2"
   temporal_res: "annual" # temporal resolution of output either: 
                          # "annual" or "monthly"

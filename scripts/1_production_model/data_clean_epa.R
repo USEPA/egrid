@@ -23,6 +23,7 @@ library(readr)
 
 source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_temporal_res_cols.R")
+source("scripts/functions/function_save_output_data.R")
 
 # check if parameters for eGRID data year need to be defined
 if (!exists("params")) {
@@ -81,28 +82,30 @@ unit_abbs <- # abbreviation crosswalk for unit types
 manual_corrections <- 
   read_xlsx("data/1_production_model/static_tables/manual_corrections.xlsx", 
             sheet = "epa_clean", 
-            col_types = c("text", "text", "text"))
+            col_types = c("numeric", "text", "text", "text")) %>% 
+  filter(year >= as.numeric(params$eGRID_year))
 
 plant_id_corrections <- # plant ID corrections
   manual_corrections %>% 
   filter(column_to_update == "plant_id") %>% 
-  select(-column_to_update) %>% 
-  mutate(plant_id = as.numeric(plant_id), 
-         update = as.numeric(update))
+  select(plant_id, plant_id_update = update) 
 
 op_status_corrections <- # operating status corrections
   manual_corrections %>% 
   filter(column_to_update == "operating_status") %>% 
-  select(plant_id, operating_status = update)
+  select(plant_id, operating_status_update = update)
 
 epa_r <- 
   epa_raw %>% 
   rename(any_of(rename_cols)) %>%
   filter((!operating_status %in% c("Future", "Retired", "Long-term Cold Storage") | plant_id %in% manual_corrections$plant_id), # removing plants that are listed as future, retired, or long-term cold storage
          (plant_id < 880000 | plant_id %in% manual_corrections$plant_id)) %>% # removing plant with plant ids above 880000
+  mutate(plant_id = as.character(plant_id)) %>% 
+  left_join(op_status_corrections, by = "plant_id") %>% 
+  left_join(plant_id_corrections, by = "plant_id") %>% 
   mutate(
     plant_id = case_when(
-      plant_id %in% plant_id_corrections$plant_id ~ plant_id_corrections$update, 
+      !is.na(plant_id_update) ~ plant_id_update, 
       TRUE ~ plant_id), 
     heat_input_source = if_else(is.na(heat_input_mmbtu), NA_character_, "EPA/CAPD"), # creating source variables based on emissions data
     nox_source = if_else(is.na(nox_mass_short_tons), NA_character_, "EPA/CAPD"),
@@ -115,9 +118,10 @@ epa_r <-
       operating_status == "Operating" ~ "OP",
       startsWith(operating_status, "Operating") ~ "OP", # Units that started operating in current year have "Operating" plus the date of operation.
       operating_status == "Retired" ~ "RE",
-      plant_id %in% op_status_corrections$plant_id ~ op_status_corrections$operating_status,
+      !is.na(operating_status_update) ~ operating_status_update,
       TRUE ~ operating_status),
-    unit_type = str_replace(unit_type, "\\(.*?\\)", "") %>% str_trim(), # removing notes about start dates and getting rid of extra white space
+    #unit_type = str_replace(unit_type, "\\(.*?\\)", "") %>% str_trim(), # removing notes about start dates and getting rid of extra white space
+    unit_type = sub("\\(.*", "", unit_type) %>% str_trim(),
     unit_type_abb = recode(unit_type, !!!unit_abbs), ## Recoding values based on lookup table. need to looking into cases with multiple types (SB 3/28/2024)
     year_online = lubridate::year(commercial_operation_date)
     ) 

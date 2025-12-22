@@ -4,6 +4,8 @@ format:
   html: 
     css: styles.css
 editor: source
+params: 
+  eGRID_year: 2024
 ---
 
 NOTE: This script was used for internal QA and data validation of the monthly production model. This script compares the original annual eGRID version to the updated monthly / annual methodology version that is on this branch. This quarto document can only run correctly when in the root directory of this repository to access the folders it needs. 
@@ -40,7 +42,7 @@ base::load("data/1_production_model/static_tables/name_matches.RData")
 
 # load in plant data, format, and merge
 plant_monthly <- 
-  read_rds("data/1_production_model/outputs/2023/monthly/plant_file_monthly.RDS") %>% 
+  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/plant_file_monthly.RDS")) %>% 
   mutate(month = as.character(month))
 
 plant_monthly_2 <- plant_monthly
@@ -53,12 +55,12 @@ plant_monthly_2 <-
   mutate(month = as.character(month))
 
 plant_annual <- 
-  read_rds("data/1_production_model/outputs/2023/plant_file.RDS") 
+  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/plant_file_annual.RDS")) 
 
 # rename to new version of column names
-new_vars <- 
-  plant_nonmetric_annual
-colnames(plant_annual) <- new_vars
+# new_vars <- 
+#   plant_nonmetric_annual
+# colnames(plant_annual) <- new_vars
   
 plant_annual_2 <- plant_annual
 colnames(plant_annual_2) <- paste0(colnames(plant_annual_2), "_annual")
@@ -77,23 +79,23 @@ plant_merged$month <- factor(plant_merged$month,
 
 # load in subregion data, format, and merge
 subregion_monthly <- 
-  read_rds("data/1_production_model/outputs/2023/monthly/subregion_aggregation_monthly.RDS") %>% 
+  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/monthly/subregion_aggregation_monthly.RDS")) %>% 
   mutate(month = as.character(month))
 
 subregion_annual <- 
-  read_rds("data/1_production_model/outputs/2023/subregion_aggregation.RDS") %>% 
-  mutate(month = "annual") %>% 
-  rename(subregion_coal_resource_mix = subregion_ann_resource_mix_coal, 
-         subregion_oil_resource_mix = subregion_ann_resource_mix_oil,
-         subregion_gas_resource_mix = subregion_ann_resource_mix_gas, 
-         subregion_nuclear_resource_mix = subregion_ann_resource_mix_nuclear,
-         subregion_hydro_resource_mix = subregion_ann_resource_mix_hydro,
-         subregion_biomass_resource_mix = subregion_ann_resource_mix_biomass, 
-         subregion_wind_resource_mix = subregion_ann_resource_mix_wind, 
-         subregion_solar_resource_mix = subregion_ann_resource_mix_solar, 
-         subregion_geothermal_resource_mix = subregion_ann_resource_mix_geothermal, 
-         subregion_other_ff_resource_mix = subregion_ann_resource_mix_other_ff, 
-         subregion_other_resource_mix = subregion_ann_resource_mix_other)
+  read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/subregion_aggregation_annual.RDS")) %>% 
+  mutate(month = "annual") #%>% 
+  # rename(subregion_coal_resource_mix = subregion_ann_resource_mix_coal, 
+  #        subregion_oil_resource_mix = subregion_ann_resource_mix_oil,
+  #        subregion_gas_resource_mix = subregion_ann_resource_mix_gas, 
+  #        subregion_nuclear_resource_mix = subregion_ann_resource_mix_nuclear,
+  #        subregion_hydro_resource_mix = subregion_ann_resource_mix_hydro,
+  #        subregion_biomass_resource_mix = subregion_ann_resource_mix_biomass, 
+  #        subregion_wind_resource_mix = subregion_ann_resource_mix_wind, 
+  #        subregion_solar_resource_mix = subregion_ann_resource_mix_solar, 
+  #        subregion_geothermal_resource_mix = subregion_ann_resource_mix_geothermal, 
+  #        subregion_other_ff_resource_mix = subregion_ann_resource_mix_other_ff, 
+  #        subregion_other_resource_mix = subregion_ann_resource_mix_other)
 
 subregion_merged <-
   subregion_monthly %>% 
@@ -1624,7 +1626,7 @@ subregion_total_annual_sum <-
   summarize(subregion_combust_heat_input = 
               sum(subregion_combust_heat_input, na.rm = TRUE), 
             subregion_heat_input = sum(subregion_heat_input, na.rm = TRUE), 
-            subregion_generation = sum(subregion_generation_ann, na.rm = TRUE),
+            subregion_generation = sum(subregion_generation, na.rm = TRUE),
             subregion_nox_mass = sum(subregion_nox_mass, na.rm = TRUE), 
             subregion_so2_mass = sum(subregion_so2_mass, na.rm = TRUE), 
             subregion_co2_mass = sum(subregion_co2_mass, na.rm = TRUE), 
@@ -1714,7 +1716,7 @@ knitr::kable(subregion_heat_input,
 subregion_generation <- 
   subregion_annual %>% 
   select(subregion, 
-         "subregion_generation_annual" = subregion_generation_ann) %>% 
+         "subregion_generation_annual" = subregion_generation) %>% 
   full_join(subregion_monthly_sum %>% 
               select(subregion, subregion_generation_monthly)) %>% 
   mutate(difference = subregion_generation_annual -

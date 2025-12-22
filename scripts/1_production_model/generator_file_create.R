@@ -87,7 +87,8 @@ epa_plants_to_delete <-
 manual_corrections <- # manual corrections needed for generator file
   read_xlsx("data/1_production_model/static_tables/manual_corrections.xlsx", 
             sheet = "generator_file", 
-            col_types = c("text", "text", "text", "text", "text"))
+            col_types = c("numeric", "text", "text", "text", "text", "text")) %>% 
+  filter(year >= as.numeric(params$eGRID_year))
 
 # Load EPA data to update plant names to EPA versions
 epa <- check_file_exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS")) %>%

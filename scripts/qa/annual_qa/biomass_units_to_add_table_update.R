@@ -45,7 +45,7 @@ eia_923 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/
 eia_860 <- check_file_exists(glue::glue("data/1_production_model/clean_data/eia/{params$eGRID_year}/eia_860_clean.RDS"))
 
 # EPA data
-epa <- check_file_exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean_monthly.RDS"))
+epa <- check_file_exists(glue::glue("data/1_production_model/clean_data/epa/{params$eGRID_year}/epa_clean.RDS"))
 
 # unit file
 unit_file <- 
@@ -59,18 +59,6 @@ bio_fuels <-
   read_csv("data/1_production_model/static_tables/fuel_type_categories.csv", 
             col_types = cols_only(biomass_fuel_adj = "c")) %>% 
   tidyr::drop_na()
-
-# previous year of biomass units 
-prev_year_bio_units <- 
-  read_csv("data/1_production_model/static_tables/biomass_units_to_add_to_unit_file.csv") %>% 
-  filter(year == as.numeric(params$eGRID_year) - 1) %>% 
-  mutate(unit_id = tidyr::replace_na(unit_id, "NA"))
-
-# EPA-EIA crosswalk
-xwalk_epa_eia <- 
-  read_csv("data/1_production_model/static_tables/xwalk_oris_epa.csv") %>% 
-  mutate(eia_plant_id = as.character(eia_plant_id), 
-         epa_plant_id = as.character(epa_plant_id))
 
 # EIA Boiler data --------------------------------
 
@@ -96,7 +84,7 @@ check_923_plants_all_biomass <-
   filter(all(fuel_type %in% bio_fuels$biomass_fuel_adj)) %>% 
   ungroup()
   
-write_csv(eia_923_boiler_bio_plants, "data/1_production_model/static_tables/qa/eia_923_biomass_units.csv")
+write_csv(eia_923_boiler_bio_plants, glue::glue("data/1_production_model/static_tables/qa/eia_923_biomass_units_{params$eGRID_year}.csv"))
 
 # EIA 860 Generator data ---------------------------
 
@@ -107,13 +95,11 @@ eia_860_gen_bio_plants <-
   right_join(plants_negative_co2 %>% select(plant_id), by = "plant_id") %>% # only include plants with negative CO2
   mutate(id = paste0(plant_id, "_", generator_id),
          id_pm = paste0(plant_id, "_", generator_id, "_", prime_mover)) %>% 
-  #filter(#!id %in% eia_923_boiler_bio_plants$id, # exclude generators in EIA-923 biomass unit list already
-  #       #!id %in% eia_860_boil_gen_ids) %>% # exclude generators that match to boilers in EIA-923
-  select(plant_id, generator_id, prime_mover, energy_source_1)
+  select(plant_id, generator_id, prime_mover, energy_source_1, nameplate_capacity)
 
 count_860_bio_plants <- nrow(eia_860_gen_bio_plants %>% select(plant_id) %>% distinct())
 
-write_csv(eia_860_gen_bio_plants, "data/1_production_model/static_tables/qa/eia_860_biomass_units.csv")
+write_csv(eia_860_gen_bio_plants, glue::glue("data/1_production_model/static_tables/qa/eia_860_biomass_units_{params$eGRID_year}.csv"))
 
 # EPA data ------------------------------
 
@@ -134,31 +120,5 @@ test_epa_plants_all_biomass <-
   group_by(plant_id) %>% 
   filter(all(primary_fuel_type == "Wood"))
 
-write_csv(epa_bio_plants, "data/1_production_model/static_tables/qa/epa_biomass_units.csv")
-
-# EPA-EIA direct unit matches ------------------
-
-epa_eia_biomass_units_direct_match <- 
-  epa_bio_plants %>% 
-  inner_join(eia_923_boiler_bio_plants, by = c("plant_id", "unit_id" = "boiler_id"))
-
-## add in check of previous year
-## use crosswalk to match between EIA and EPA
-
-# create biomass units to add 
-# first check the previous year and see if any plants are showing up again 
-
-match_prev_year <- 
-  prev_year_bio_units %>% 
-  mutate(plant_code = as.character(plant_code)) %>% 
-  inner_join(plants_negative_co2, by = c("plant_code" = "plant_id"))
-
-# Check if EPA/EIA crosswalk has any matches ------------------ 
-# join crosswalk to EIA and see if any match to EPA
-
-check_xwalk_eia <- 
-  eia_923_boiler_bio_plants %>% 
-  left_join(xwalk_epa_eia, by = c("plant_id" = "eia_plant_id")) %>% 
-  filter(!is.na(epa_plant_id))
-
+write_csv(epa_bio_plants, glue::glue("data/1_production_model/static_tables/qa/epa_biomass_units_{params$eGRID_year}.csv"))
 
