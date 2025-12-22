@@ -61,11 +61,16 @@ ggl_file <- glue::glue("data/1_production_model/clean_data/eia_ggl/ggl_{params$e
 try(download_eia_ggl(params$eGRID_year)) # try function to download
 
 # if data is not available, try next most recent year 
+# if (!file.exists(ggl_file)) {
+#   prev_year <- as.numeric(params$eGRID_year) - 1
+#   download_eia_ggl(prev_year)
+#   ggl_file <- glue::glue("data/1_production_model/clean_data/eia_ggl/ggl_{prev_year}.xlsx")
+# }
+
 if (!file.exists(ggl_file)) {
-  prev_year <- as.numeric(params$eGRID_year) - 1
-  download_eia_ggl(prev_year)
-  ggl_file <- glue::glue("data/1_production_model/clean_data/eia_ggl/ggl_{prev_year}.xlsx")
+  stop(glue::glue("Necessary data from EIA is not available for {params$eGRID_year}. Please check if the latest data is downloaded or {params$eGRID_year} data may not be currently available."))
 }
+
 
 ### Load in datasets ----
 

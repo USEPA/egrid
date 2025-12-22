@@ -43,6 +43,8 @@ if (exists("params")){
   }
 }
 
+ggl_file_exists <- file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+demo_file_exists <- file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))
 
 # Load in data ------------------------------
 
@@ -55,9 +57,13 @@ ba_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID
 srl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/subregion_aggregation_annual.RDS"))
 nrl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/nerc_aggregation_annual.RDS"))
 us_file    <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/us_aggregation_annual.RDS"))
-ggl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+# ggl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
 
-if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
+if(ggl_file_exists){
+  ggl_file   <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+}
+
+if(demo_file_exists) {
   demo_file  <- read_rds(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/demographics_file.RDS"))
 }
 
@@ -1005,68 +1011,71 @@ format_region(us)
 
 # GGL Formatting --------------------------------------------
 
-## create "GGL" sheet
-ggl <- glue::glue("GGL{year}")
-addWorksheet(wb, ggl)
+if(ggl_file_exists){
 
-# convert year to numeric value
-ggl_file <- ggl_file %>%
-            mutate(year = as.numeric(year))
+  ## create "GGL" sheet
+  ggl <- glue::glue("GGL{year}")
+  addWorksheet(wb, ggl)
+  
+  # convert year to numeric value
+  ggl_file <- ggl_file %>%
+              mutate(year = as.numeric(year))
+  
+  
+  ## column names and descriptions
+  ggl_labels <- c("YEAR"     = "Data Year",
+                  "REGION"   = "One of the three interconnect power grids in the U.S. (plus Alaska, Hawaii, and the entire U.S.)",
+                  "ESTLOSS"  = "Estimated losses (MWh)",
+                  "TOTDISP"  = "Total disposition (MWh) without exports",
+                  "DIRCTUSE" = "Direct use (MWh)",
+                  "GGRSLOSS" = "Grid gross loss [Estimated losses/(Total disposition without exports - Direct use)]")
+  
+  
+  ggl_header <- names(ggl_labels)  # column names
+  ggl_desc   <- unname(ggl_labels) # description of column names
+  
+  # check if shorthand names match name_matching.R and stop if not. 
+  check_var_names("GGL", ggl_header, ggl_nonmetric, "annual")
+  
+  # add new column names
+  ggl_file <- rename_variables(ggl_file, ggl_nonmetric)
+  
+  ## write data
+  # write data for first row only
+  writeData(wb, 
+            sheet = ggl, 
+            t(ggl_desc), 
+            startRow = 1, 
+            colNames = FALSE)
+  
+  # write data to sheet
+  writeData(wb, 
+            sheet = ggl, 
+            ggl_file,
+            startRow = 2)
+  
+  ## add styles to document
+  format_sheet(df_ann = ggl_file,
+               file_name = "GGL",
+               temporal_res = params$temporal_res,
+               default_style_map = ggl_style_map,
+               text_style_map = ggl_text_style_map)
+  
+  # add number styles (bold)
+  addStyle(wb, sheet = ggl, style = s[['integer_bold']], rows = 8, cols = 3:5, gridExpand = TRUE)
+  addStyle(wb, sheet = ggl, style = s[['percent_bold']], rows = 8, cols = 6,   gridExpand = TRUE)
+  
+  # add text styles
+  addStyle(wb, sheet = ggl, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpand = TRUE)
+  addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
+  
+  # set column widths
+  setColWidths(wb, sheet = ggl, cols = 1,   widths = 10)
+  setColWidths(wb, sheet = ggl, cols = 2,   widths = 21.29)
+  setColWidths(wb, sheet = ggl, cols = 3:5, widths = 11.14)
+  setColWidths(wb, sheet = ggl, cols = 6,   widths = 23)
 
-
-## column names and descriptions
-ggl_labels <- c("YEAR"     = "Data Year",
-                "REGION"   = "One of the three interconnect power grids in the U.S. (plus Alaska, Hawaii, and the entire U.S.)",
-                "ESTLOSS"  = "Estimated losses (MWh)",
-                "TOTDISP"  = "Total disposition (MWh) without exports",
-                "DIRCTUSE" = "Direct use (MWh)",
-                "GGRSLOSS" = "Grid gross loss [Estimated losses/(Total disposition without exports - Direct use)]")
-
-
-ggl_header <- names(ggl_labels)  # column names
-ggl_desc   <- unname(ggl_labels) # description of column names
-
-# check if shorthand names match name_matching.R and stop if not. 
-check_var_names("GGL", ggl_header, ggl_nonmetric, "annual")
-
-# add new column names
-ggl_file <- rename_variables(ggl_file, ggl_nonmetric)
-
-## write data
-# write data for first row only
-writeData(wb, 
-          sheet = ggl, 
-          t(ggl_desc), 
-          startRow = 1, 
-          colNames = FALSE)
-
-# write data to sheet
-writeData(wb, 
-          sheet = ggl, 
-          ggl_file,
-          startRow = 2)
-
-## add styles to document
-format_sheet(df_ann = ggl_file,
-             file_name = "GGL",
-             temporal_res = params$temporal_res,
-             default_style_map = ggl_style_map,
-             text_style_map = ggl_text_style_map)
-
-# add number styles (bold)
-addStyle(wb, sheet = ggl, style = s[['integer_bold']], rows = 8, cols = 3:5, gridExpand = TRUE)
-addStyle(wb, sheet = ggl, style = s[['percent_bold']], rows = 8, cols = 6,   gridExpand = TRUE)
-
-# add text styles
-addStyle(wb, sheet = ggl, style = s[['basic']], rows = 3:7, cols = 1:2, gridExpand = TRUE)
-addStyle(wb, sheet = ggl, style = s[['bold']],  rows = 8,   cols = 1:2, gridExpand = TRUE)
-
-# set column widths
-setColWidths(wb, sheet = ggl, cols = 1,   widths = 10)
-setColWidths(wb, sheet = ggl, cols = 2,   widths = 21.29)
-setColWidths(wb, sheet = ggl, cols = 3:5, widths = 11.14)
-setColWidths(wb, sheet = ggl, cols = 6,   widths = 23)
-
+}
 
 # DEMO Formatting -------------------------------------------
 # only build demographics file if the file exists in outputs
@@ -1235,7 +1244,10 @@ add_hyperlink(glue::glue("BA{year}"),   row_link = 1, col_link = 1, loc = c(3, 1
 add_hyperlink(glue::glue("SRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 14), text_to_show = glue::glue("SRL{year}"))
 add_hyperlink(glue::glue("NRL{year}"),  row_link = 1, col_link = 1, loc = c(3, 15), text_to_show = glue::glue("NRL{year}"))
 add_hyperlink(glue::glue("US{year}"),   row_link = 1, col_link = 1, loc = c(3, 16), text_to_show = glue::glue("US{year}"))
-add_hyperlink(glue::glue("GGL{year}"),  row_link = 1, col_link = 1, loc = c(3, 17), text_to_show = glue::glue("GGL{year}"))
+
+if(ggl_file_exists){
+  add_hyperlink(glue::glue("GGL{year}"),  row_link = 1, col_link = 1, loc = c(3, 17), text_to_show = glue::glue("GGL{year}"))
+}
 
 if(file.exists(glue::glue("data/outputs/{params$eGRID_year}/demographics_file.RDS"))) {
   add_hyperlink(glue::glue("DEMO{year}"),  row_link = 1, col_link = 1, loc = c(3, 18), text_to_show = glue::glue("DEMO{year}"))

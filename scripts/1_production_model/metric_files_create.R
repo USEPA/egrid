@@ -43,8 +43,13 @@ filenames_orig <- c("unit" = "unit_file",
                     "ba" = "ba_aggregation",
                     "subregion" = "subregion_aggregation",
                     "nerc" = "nerc_aggregation",
-                    "us" = "us_aggregation",
-                    "ggl" = "grid_gross_loss")
+                    "us" = "us_aggregation")
+
+if(file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))){
+  filenames_orig <- c(filenames_orig,
+                      "ggl" = "grid_gross_loss")
+}
+
 
 # Load ordered variable names and conversion factors ---------
 
