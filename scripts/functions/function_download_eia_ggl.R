@@ -81,12 +81,15 @@ download_eia_ggl <- function(year) {
       label <- state_title[i]
       abbr <- state_abbr[i]
       
-      # download file for corresponding state i from EIA
-      url <- glue::glue("https://www.eia.gov/electricity/state/{name}/xls/SEP%20Tables%20for%20{toupper(abbr)}.xlsx")
-      dest_file <- glue::glue("{new_folder}/{abbr}.xlsx")
-      
-      download_file(url, dest_file, new_folder) 
-      
+      if(check_valid_url(glue::glue("https://www.eia.gov/electricity/state/xls/SEP%20Tables%20for%20{toupper(abbr)}.xlsx"))) {
+        
+        # download file for corresponding state i from EIA
+        url <- glue::glue("https://www.eia.gov/electricity/state/xls/SEP%20Tables%20for%20{toupper(abbr)}.xlsx")
+        dest_file <- glue::glue("{new_folder}/{abbr}.xlsx")
+        download_file(url, dest_file, new_folder)
+                      
+      } else {
+        stop("URL not valid. Check download URL at https://www.eia.gov/electricity/.")}
     }
     
   } else {
@@ -98,8 +101,9 @@ download_eia_ggl <- function(year) {
   ## create clean GGL data source for year -----
   # test if there is the correct year in the data
   raw_data_files <- list.files(new_folder)
+  supply_sheet <- 12
   test_table <- read_excel(paste0(new_folder,"/",raw_data_files[1]), 
-                             sheet = 11,
+                             sheet = supply_sheet,
                              skip = 3)
   colnames(test_table) <- gsub("Year", "", colnames(test_table)) 
   
@@ -127,7 +131,7 @@ download_eia_ggl <- function(year) {
       
       # select table needed for GGL calculation (Table 10: Supply and disposition of energy)
       select_table <- read_excel(dest_file, 
-                                 sheet = 11,
+                                 sheet = supply_sheet,
                                  skip = 3)
       ggl_data[[i]] <- select_table
       
