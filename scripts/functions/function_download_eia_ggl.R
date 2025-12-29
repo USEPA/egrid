@@ -92,7 +92,6 @@ download_eia_ggl <- function(year) {
       
       } else { 
         stop("GGL URL not valid. Check download URL at https://www.eia.gov/electricity/state.")}
-      
     }
     
   } else {
@@ -104,8 +103,9 @@ download_eia_ggl <- function(year) {
   ## create clean GGL data source for year -----
   # test if there is the correct year in the data
   raw_data_files <- list.files(new_folder)
+  supply_sheet <- 12
   test_table <- read_excel(paste0(new_folder,"/",raw_data_files[1]), 
-                             sheet = 11,
+                             sheet = supply_sheet,
                              skip = 3)
   colnames(test_table) <- gsub("Year", "", colnames(test_table)) 
   
@@ -133,7 +133,7 @@ download_eia_ggl <- function(year) {
       
       # select table needed for GGL calculation (Table 10: Supply and disposition of energy)
       select_table <- read_excel(dest_file, 
-                                 sheet = 11,
+                                 sheet = supply_sheet,
                                  skip = 3)
       ggl_data[[i]] <- select_table
       

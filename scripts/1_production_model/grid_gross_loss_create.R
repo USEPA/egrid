@@ -32,6 +32,8 @@ source("scripts/functions/function_check_params.R")
 source("scripts/functions/function_temporal_res_cols.R")
 source("scripts/functions/function_save_output_data.R")
 source("scripts/functions/function_check_file_exists.R")
+source("scripts/functions/function_check_valid_url.R")
+
 
 # Create and check parameters 
 if (!exists("params")) {
@@ -62,12 +64,10 @@ source("scripts/functions/function_download_eia_ggl.R")
 ggl_file <- glue::glue("data/1_production_model/clean_data/eia_ggl/ggl_{params$eGRID_year}.xlsx") # data file name
 try(download_eia_ggl(params$eGRID_year)) # try function to download
 
-# if data is not available, try next most recent year 
 if (!file.exists(ggl_file)) {
-  prev_year <- as.numeric(params$eGRID_year) - 1
-  download_eia_ggl(prev_year)
-  ggl_file <- glue::glue("data/1_production_model/clean_data/eia_ggl/ggl_{prev_year}.xlsx")
+  stop(glue::glue("Necessary data from EIA is not available for {params$eGRID_year}. Please check if the latest data is downloaded or {params$eGRID_year} data may not be currently available."))
 }
+
 
 ### Load in datasets ----
 

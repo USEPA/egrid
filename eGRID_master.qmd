@@ -1552,14 +1552,21 @@ Crosswalk used in this file:
 #| label: grid-gross-loss-create
 #| file: "scripts/1_production_model/grid_gross_loss_create.R"
 #| results: hold
+#| error: true
 ```
 
 ```{r}
 #| label: ggl-file-table
 #| include: false
+#| error: true
 
-ggl_file <- readr::read_rds(
-           glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+
+ggl_file_exists <- file.exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+
+if(ggl_file_exists){
+  ggl_file <- readr::read_rds(
+             glue::glue("data/1_production_model/outputs/{params$eGRID_year}/grid_gross_loss.RDS"))
+}
 ```
 
 ## View Grid Gross Loss File Data
@@ -1573,68 +1580,72 @@ ggl_file <- readr::read_rds(
 
 ```{r}
 #| label: ggl-file-summary
+if(ggl_file_exists){
+  create_summary_gt_table(ggl_file)
+}
 
-create_summary_gt_table(ggl_file)
 ```
 
 #### View Plots
 
 ```{r}
 #| label: ggl-file-plots
+#| 
+if(ggl_file_exists){
+  ggl_plot <- ggl_file %>%
+                ggplot(aes(x = interconnect, y = ggl*100)) +
+                geom_bar(stat="identity") +
+                geom_text(aes(label = sprintf("%.1f%%", ggl*100)), vjust = +1.5, colour = "white") + 
+                theme_minimal() +
+                labs(
+                  title = "Grid Gross Loss",
+                  y = "Percentage",
+                  x = "Interconnect"
+                  )
+  
+  est_losses_plot <- ggl_file %>%
+                      ggplot(aes(x = interconnect, y = est_losses_sum)) +
+                      geom_bar(stat="identity") +
+                      theme_minimal() +
+                      theme(
+                        axis.text.x = element_text(angle = 45, hjust = 1)
+                      ) +
+                      labs(
+                        title = "Estimated Losses",
+                        y = "MWh",
+                        x = "Interconnect"
+                        )
+  
+  tot_disp_sub_ex_plot <- ggl_file %>%
+                            ggplot(aes(x = interconnect, y = tot_disp_sub_ex_sum)) +
+                            geom_bar(stat = "identity") +
+                            theme_minimal() +
+                            theme(
+                              axis.text.x = element_text(angle = 45, hjust = 1)
+                             ) +
+                            labs(
+                              title = "Total Disposition - Exports",
+                              y = "MWh",
+                              x = "Interconnect"
+                              )
+  
+  
+  direct_use_plot <- ggl_file %>%
+                      ggplot(aes(x = interconnect, y = direct_use_sum)) +
+                      geom_bar(stat = "identity") +
+                      theme_minimal() +
+                      theme(
+                        axis.text.x = element_text(angle = 45, hjust = 1)
+                      ) +
+                      labs(
+                        title = "Direct Use",
+                        y = "MWh",
+                        x = "Interconnect"
+                        )
+  
+  (ggl_plot) / (est_losses_plot + tot_disp_sub_ex_plot + direct_use_plot) + plot_layout(heights = c(2,1))
 
-ggl_plot <- ggl_file %>%
-              ggplot(aes(x = interconnect, y = ggl*100)) +
-              geom_bar(stat="identity") +
-              geom_text(aes(label = sprintf("%.1f%%", ggl*100)), vjust = +1.5, colour = "white") + 
-              theme_minimal() +
-              labs(
-                title = "Grid Gross Loss",
-                y = "Percentage",
-                x = "Interconnect"
-                )
-
-est_losses_plot <- ggl_file %>%
-                    ggplot(aes(x = interconnect, y = est_losses_sum)) +
-                    geom_bar(stat="identity") +
-                    theme_minimal() +
-                    theme(
-                      axis.text.x = element_text(angle = 45, hjust = 1)
-                    ) +
-                    labs(
-                      title = "Estimated Losses",
-                      y = "MWh",
-                      x = "Interconnect"
-                      )
-
-tot_disp_sub_ex_plot <- ggl_file %>%
-                          ggplot(aes(x = interconnect, y = tot_disp_sub_ex_sum)) +
-                          geom_bar(stat = "identity") +
-                          theme_minimal() +
-                          theme(
-                            axis.text.x = element_text(angle = 45, hjust = 1)
-                           ) +
-                          labs(
-                            title = "Total Disposition - Exports",
-                            y = "MWh",
-                            x = "Interconnect"
-                            )
-
-
-direct_use_plot <- ggl_file %>%
-                    ggplot(aes(x = interconnect, y = direct_use_sum)) +
-                    geom_bar(stat = "identity") +
-                    theme_minimal() +
-                    theme(
-                      axis.text.x = element_text(angle = 45, hjust = 1)
-                    ) +
-                    labs(
-                      title = "Direct Use",
-                      y = "MWh",
-                      x = "Interconnect"
-                      )
-
-
-(ggl_plot) / (est_losses_plot + tot_disp_sub_ex_plot + direct_use_plot) + plot_layout(heights = c(2,1))
+}
 ```
 :::
 
@@ -1734,10 +1745,12 @@ A summary tables document is produced to provide a synopsis of the eGRID informa
 ```{r}
 #| label: summary-tables-create
 #| results: false
-
-if(params$temporal_res == "annual"){
+if (ggl_file_exists) { 
+  if(params$temporal_res == "annual"){
   source("scripts/1_production_model/summary_tables_create.R")
-} 
+  } 
+}
+  
 ```
 
 ### Summary Tables Data
@@ -1748,11 +1761,14 @@ Below are the names of the summary tables included in the document.
 #| label: summary-tables-list
 #| echo: false
 
-if(params$temporal_res == "annual"){
-kbl(names(table_data), col.names = "Summary Table Names") %>%
-  kable_styling()
+if(ggl_file_exists){
+  if(params$temporal_res == "annual"){
+    kbl(names(table_data), col.names = "Summary Table Names") %>%
+    kable_styling()
 } else if(params$temporal_res == "monthly"){
   print(glue::glue("No summary tables produced for eGRID monthly version. View egrid{params$eGRID_year}_monthly.xlsx for a data summary."))
+}
+
 }
 
 ```
