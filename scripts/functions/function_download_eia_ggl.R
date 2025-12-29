@@ -17,13 +17,15 @@ download_eia_ggl <- function(year) {
   
   #' download_eia_ggl
   #' 
-  #' Function to download data from EIA website (https://www.eia.gov/electricity/) for all states. 
+  #' Function to download data from EIA website (https://www.eia.gov/electricity/state) for all states. 
   #' Each states' data is stored in a Excel file on the EIA website. This function extracts all of the tables and combines it into one and creates a summary table.
   
   #' @year Year desired for formatted table
   #' @return Unzipped Excel file
   #' @examples
   #' download_eia_files(2022) # Downloads all data and summarizes all states for year 2022
+  
+  source("scripts/functions/function_check_valid_url.R")
   
   ## data and file organization set up ----
   # ensure that input is character for script to correctly run
@@ -81,11 +83,15 @@ download_eia_ggl <- function(year) {
       label <- state_title[i]
       abbr <- state_abbr[i]
       
-      # download file for corresponding state i from EIA
-      url <- glue::glue("https://www.eia.gov/electricity/state/{name}/xls/SEP%20Tables%20for%20{toupper(abbr)}.xlsx")
-      dest_file <- glue::glue("{new_folder}/{abbr}.xlsx")
+      if(check_valid_url(glue::glue("https://www.eia.gov/electricity/state/xls/SEP%20Tables%20for%20{toupper(abbr)}.xlsx"))) {
+        # download file for corresponding state i from EIA
+        url <- glue::glue("https://www.eia.gov/electricity/state/xls/SEP%20Tables%20for%20{toupper(abbr)}.xlsx")
+        dest_file <- glue::glue("{new_folder}/{abbr}.xlsx")
+        
+        download_file(url, dest_file, new_folder) 
       
-      download_file(url, dest_file, new_folder) 
+      } else { 
+        stop("GGL URL not valid. Check download URL at https://www.eia.gov/electricity/state.")}
       
     }
     

@@ -7,6 +7,8 @@
 ## This file creates the grid gross loss calculation for eGRID. 
 ## This includes all operating units for the specified eGRID data year
 ##
+## Confirm the URL for downloading GGL files in function_download_eia_ggl.R, line 86 
+##
 ## For data or manual changes that need to be checked every year, they are denoted with this note:
 ## ### Note: check for updates or changes each data year ###
 ##

@@ -854,7 +854,7 @@ if (bio_units_to_add_flag) {
   
   negative_co2_mass <- 
     plant_file_14 %>% 
-    group_by(plant_id) %>% 
+    group_by(pick(all_of(temporal_res_cols)), plant_id) %>% 
     summarize(co2_mass = sum(co2_mass, na.rm = TRUE)) %>% 
     ungroup() %>% 
     filter(co2_mass < -1)  
