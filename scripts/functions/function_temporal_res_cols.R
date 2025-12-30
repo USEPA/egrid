@@ -117,7 +117,8 @@ capfac_hours <- function(temporal_res, eGRID_year) {
                  hours = c(744, 672, 744, 720, 744, 720, 744, 744, 720, 744, 720, 744))
     if ((as.numeric(eGRID_year) %% 4 == 0 & as.numeric(eGRID_year) %% 100 != 0) | 
         (as.numeric(eGRID_year) %% 400 == 0)) { 
-      hours <- hours %>% mutate(hours = case_when(month == 2 ~ 696))}} # if it is a leap year, assign hours of 29 days to february
+      hours <- hours %>% mutate(hours = case_when(month == 2 ~ 696, 
+                                                  TRUE ~ hours))}} # if it is a leap year, assign hours of 29 days to february
   
   return(hours)
 }

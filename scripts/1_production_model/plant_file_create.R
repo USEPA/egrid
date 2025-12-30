@@ -36,7 +36,7 @@ source("scripts/functions/function_download_historical_egrid.R")
 
 # Define flag whether or not to include biomass_units_to_add table
 # we do this because we need to run a version of the unit and plant file without this table to identify which units need to be added 
-bio_units_to_add_flag <- FALSE
+bio_units_to_add_flag <- TRUE
 
 # check if parameters need to be defined
 if (!exists("params")) {
@@ -290,8 +290,8 @@ plant_unit_2 <-
 
 # Update capacity factor  -----------------------------------------------
 
-# # create dataframe of number of hours in each year or month
-hours <- capfac_hours(params$temporal_res, params$eGRID_year)
+# create dataframe of number of hours in each year or month
+hours <- capfac_hours("monthly", params$eGRID_year)
 
 plant_gen_2 <- 
   plant_gen %>% 
@@ -1151,7 +1151,7 @@ plant_file_20 <-
                                  NA_real_, 
                                  .x / heat_input), 
                 .names = "{str_replace(.col, 'mass', 'input_rate')}"),
-         # assign NAs to Hg combustion output rate
+         # assign NAs to Hg input rate
          hg_input_rate = NA_real_)
 
 ### Output emission rates ----------------------------------------
@@ -1170,7 +1170,7 @@ plant_file_21 <-
                                  NA_real_, 
                                  .x / generation), 
                 .names = "{str_replace(.col, 'mass', 'output_rate')}"),
-         # assign NAs to Hg combustion output rate
+         # assign NAs to Hg output rate
          hg_output_rate = NA_real_) 
 
 # Calculate nonbaseload factor and generation ---------------------------------
@@ -1246,116 +1246,311 @@ plant_file_23 <-
 
 if(params$temporal_res == "annual") { 
   
-  # load annual level unit file for ozone values
+  temporal_res_cols <- create_temporal_res_cols(params$temporal_res)
+  
+  # identify columns to sum to annual level
+  cols_to_sum <- 
+    c("generation",
+      "unadj_heat_input", 
+      "unadj_nox_mass",          
+      "unadj_so2_mass", 
+      "unadj_co2_mass",
+      "unadj_hg_mass",
+      "unadj_combust_heat_input",
+      "unadj_ch4_mass",
+      "unadj_n2o_mass",            
+      "unadj_co2e_mass",
+      "co2_biomass",
+      "nox_biomass",
+      "so2_biomass",
+      "ch4_biomass",
+      "n2o_biomass",               
+      "nox_mass",
+      "so2_mass",
+      "co2_mass",
+      "ch4_mass",                  
+      "n2o_mass", 
+      "hg_mass",
+      "co2e_biomass",
+      "co2e_mass",
+      "coal_netgen",               
+      "oil_netgen",
+      "gas_netgen",
+      "nuclear_netgen",
+      "hydro_netgen",
+      "biomass_netgen",           
+      "wind_netgen",
+      "solar_netgen",
+      "geothermal_netgen",
+      "other_ff_netgen",
+      "other_netgen",              
+      "nonrenew_netgen",
+      "renew_netgen",
+      "renew_nonhydro_netgen",
+      "nonrenew_other_netgen",
+      "combust_netgen",         
+      "noncombust_netgen",
+      "noncombust_other_netgen",
+      "heat_input",                
+      "combust_heat_input",
+      "chp_combust_heat_input",
+      "chp_nox",
+      "chp_so2",
+      "chp_co2",
+      "chp_ch4",
+      "chp_n2o",
+      "chp_co2e",
+      "generation_nonbaseload")
+  
+  ozone_months <- c(5:9)
+  
+  # sum values to annual level
+  plants_annual <- 
+    plant_file_23 %>% 
+    group_by(year, plant_id, plant_state, num_generators, nameplate_capacity, 
+             plant_name, capd_flag, num_units, lat, lon, utility_name, utility_id, 
+             system_owner, system_owner_id, ba_name, ba_code, sector_name, nerc,                       
+             fips_state_code, fips_county_code, county, egrid_subregion, egrid_subregion_name, isorto,                    
+             primary_fuel_type, primary_fuel_category, coal_flag, combust_flag, ps_flag, chp_flag
+             ) %>% 
+    summarize(
+      generation_oz = if_else(all(is.na(generation[month %in% ozone_months])), NA_real_, 
+                              sum(generation[month %in% ozone_months], na.rm = TRUE)),
+      unadj_heat_input_oz = if_else(all(is.na(unadj_heat_input[month %in% ozone_months])), NA_real_, 
+                                    sum(unadj_heat_input[month %in% ozone_months], na.rm = TRUE)),
+      unadj_combust_heat_input_oz = if_else(all(is.na(unadj_combust_heat_input[month %in% ozone_months])), NA_real_, 
+                                    sum(unadj_combust_heat_input[month %in% ozone_months], na.rm = TRUE)),
+      unadj_nox_oz_mass = if_else(all(is.na(unadj_nox_mass[month %in% ozone_months])), NA_real_, 
+                                  sum(unadj_nox_mass[month %in% ozone_months], na.rm = TRUE)),
+      heat_input_oz = if_else(all(is.na(heat_input[month %in% ozone_months])), NA_real_, 
+                              sum(heat_input[month %in% ozone_months], na.rm = TRUE)),
+      combust_heat_input_oz = if_else(all(is.na(combust_heat_input[month %in% ozone_months])), NA_real_, 
+                                      sum(combust_heat_input[month %in% ozone_months], na.rm = TRUE)),
+      nox_oz_mass = if_else(all(is.na(nox_mass[month %in% ozone_months])), NA_real_, 
+                            sum(nox_mass[month %in% ozone_months], na.rm = TRUE)),
+      nox_oz_biomass = if_else(all(is.na(nox_biomass[month %in% ozone_months])), NA_real_, 
+                            sum(nox_biomass[month %in% ozone_months], na.rm = TRUE)),
+      chp_combust_heat_input_oz = if_else(all(is.na(chp_combust_heat_input[month %in% ozone_months])), NA_real_, 
+                                          sum(chp_combust_heat_input[month %in% ozone_months], na.rm = TRUE)),
+      chp_nox_oz = if_else(all(is.na(chp_nox[month %in% ozone_months])), NA_real_, 
+                              sum(chp_nox[month %in% ozone_months], na.rm = TRUE)),
+      across(all_of(cols_to_sum), 
+             ~if_else(all(is.na(.x)), NA_real_, sum(.x, na.rm = TRUE))),
+      unadj_heat_input_source = paste_concat(unadj_heat_input_source),
+      unadj_nox_source = paste_concat(unadj_nox_source), 
+      unadj_so2_source = paste_concat(unadj_so2_source),
+      unadj_co2_source = paste_concat(unadj_co2_source), 
+      unadj_hg_source = paste_concat(unadj_hg_source), 
+      unadj_co2e_source = paste_concat(unadj_co2e_source),
+      unadj_ch4_source = paste_concat(unadj_ch4_source), 
+      unadj_n2o_source = paste_concat(unadj_n2o_source),
+      ch4_source = paste_concat(ch4_source),
+      n2o_source = paste_concat(n2o_source),
+      biomass_adj_flag = paste_concat(biomass_adj_flag)
+    ) %>% 
+    ungroup() 
+  
+  hours_annual <- capfac_hours("annual", params$eGRID_year)
+  
+  # calculate values at the annual level
+  plants_annual_2 <- 
+    plants_annual %>% 
+    left_join(hours_annual, by = "year") %>% 
+    mutate(
+      # calculate capacity factor
+      capfac = if_else(generation / (nameplate_capacity * hours) < 0, 0, # some generation values may be negative, set to 0 if so
+                       generation / (nameplate_capacity * hours)),
+      
+      # Combustion rates 
+      # calculate NOx, SO2, CO2, and CO2e combustion output rate
+      across(.cols = all_of(c("nox_mass", "so2_mass", "co2_mass", "co2e_mass")), 
+             .fns = ~ if_else(combust_netgen <= 0 | is.na(combust_netgen), 
+                              NA_real_, 
+                              2000 * .x / combust_netgen), 
+             .names = "{str_replace(.col, 'mass', 'combust_out_rate')}"), 
+      # calculate CH4 and N2O combustion output rate
+      across(.cols = all_of(c("ch4_mass", "n2o_mass")),  
+             .fns = ~ if_else(combust_netgen <= 0 | is.na(combust_netgen), 
+                              NA_real_, 
+                              .x / combust_netgen), 
+             .names = "{str_replace(.col, 'mass', 'combust_out_rate')}"),
+      # assign NAs to Hg combustion output rate
+      hg_combust_out_rate = NA_real_,
+      
+      # Input rates 
+      # calculate NOx, SO2, CO2, and CO2e input rate
+      across(.cols = all_of(c("nox_mass", "so2_mass", "co2_mass", "co2e_mass")), 
+             .fns = ~ if_else(heat_input <= 0 | is.na(heat_input), 
+                              NA_real_, 
+                              2000 * .x / heat_input), 
+             .names = "{str_replace(.col, 'mass', 'input_rate')}"),
+      # calculate CH4 and N2O input rate
+      across(.cols = all_of(c("ch4_mass", "n2o_mass")), 
+             .fns = ~ if_else(heat_input <= 0 | is.na(heat_input), 
+                              NA_real_, 
+                              .x / heat_input), 
+             .names = "{str_replace(.col, 'mass', 'input_rate')}"),
+      # assign NAs to Hg input rate
+      hg_input_rate = NA_real_,
+      
+      # Output rates 
+      # calculate NOx, SO2, CO2, and CO2e output rate
+      across(.cols = all_of(c("nox_mass", "so2_mass", "co2_mass", "co2e_mass")), 
+             .fns = ~ if_else(generation <= 0 | is.na(generation), 
+                              NA_real_, 
+                              2000 * .x / generation), 
+             .names = "{str_replace(.col, 'mass', 'output_rate')}"),
+      # calculate CH4 and N2O output rate
+      across(.cols = all_of(c("ch4_mass", "n2o_mass")), 
+             .fns = ~ if_else(generation <= 0 | is.na(generation), 
+                              NA_real_, 
+                              .x / generation), 
+             .names = "{str_replace(.col, 'mass', 'output_rate')}"),
+      # assign NAs to Hg output rate
+      hg_output_rate = NA_real_,
+      
+      # Ozone rates 
+      # calculate NOx ozone rates
+      nox_oz_combust_out_rate = if_else(combust_netgen * (generation_oz / generation) <= 0 | is.na(combust_netgen), 
+                                        NA_real_, 2000 * nox_oz_mass / (combust_netgen * (generation_oz / generation))), 
+      nox_oz_input_rate = if_else(heat_input_oz <= 0 | is.na(heat_input_oz), NA_real_, 
+                                  2000 * nox_oz_mass / heat_input_oz), 
+      nox_oz_output_rate = if_else(generation_oz <= 0 | is.na(generation_oz), NA_real_, 
+                                   2000 * nox_oz_mass / generation_oz), 
+      
+      # Resoure mix
+      coal_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                coal_netgen < 0 ~ 0, 
+                                TRUE ~ coal_netgen / generation), 
+      oil_perc_gen = case_when(generation == 0 ~ NA_real_,
+                               oil_netgen < 0 ~ 0, 
+                               TRUE ~ oil_netgen / generation), 
+      gas_perc_gen = case_when(generation == 0 ~ NA_real_,
+                               gas_netgen < 0 ~ 0, 
+                               TRUE ~ gas_netgen / generation), 
+      nuclear_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                   nuclear_netgen < 0 ~ 0, 
+                                   TRUE ~ nuclear_netgen / generation), 
+      hydro_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                 hydro_netgen < 0 ~ 0, 
+                                 TRUE ~ hydro_netgen / generation), 
+      biomass_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                   biomass_netgen < 0 ~ 0, 
+                                   TRUE ~ biomass_netgen / generation), 
+      wind_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                wind_netgen < 0 ~ 0, 
+                                TRUE ~ wind_netgen / generation),
+      solar_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                 solar_netgen < 0 ~ 0, 
+                                 TRUE ~ solar_netgen / generation),
+      geothermal_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                      geothermal_netgen < 0 ~ 0, 
+                                      TRUE ~ geothermal_netgen / generation),
+      other_ff_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                    other_ff_netgen < 0 ~ 0, 
+                                    TRUE ~ other_ff_netgen / generation),
+      other_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                 other_netgen < 0 ~ 0, 
+                                 TRUE ~ other_netgen / generation),
+      nonrenew_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                    nonrenew_netgen < 0 ~ 0, 
+                                    TRUE ~ nonrenew_netgen / generation),
+      renew_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                 renew_netgen < 0 ~ 0, 
+                                 TRUE ~ renew_netgen / generation),
+      renew_nonhydro_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                          renew_nonhydro_netgen < 0 ~ 0, 
+                                          TRUE ~ renew_nonhydro_netgen / generation),
+      nonrenew_other_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                          nonrenew_other_netgen < 0 ~ 0, 
+                                          TRUE ~ nonrenew_other_netgen / generation),
+      combust_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                   combust_netgen < 0 ~ 0, 
+                                   TRUE ~ combust_netgen / generation),
+      noncombust_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                      noncombust_netgen < 0 ~ 0, 
+                                      TRUE ~ noncombust_netgen / generation),
+      noncombust_other_perc_gen = case_when(generation == 0 ~ NA_real_,
+                                            noncombust_other_netgen < 0 ~ 0, 
+                                              TRUE ~ noncombust_other_netgen / generation), 
+      
+      # calculate nominal heat rate
+      nominal_heat_rate = if_else((combust_flag == 1 | combust_flag == 0.5) & !is.na(combust_netgen) & combust_netgen != 0, 
+                                  combust_heat_input * 1000 / combust_netgen,
+                                  NA_real_)
+      ) %>% 
+    mutate(
+      # Assign resource mix to 0 if negative 
+      across(contains("perc"), 
+                  ~ if_else(.x < 0, 0, .x)), 
+           
+     # Nonbaseload factor and generation
+     nonbaseload = if_else(!primary_fuel_type %in% c("GEO", "MWH", "NUC", "PUR", "SUN", "WAT", "WND"), 
+                           case_when(capfac > 0 & capfac < 0.2 ~ 1,
+                                     capfac > 0.8 ~ 0,
+                                     capfac == 0 ~ NA_real_,
+                                     TRUE ~ (-5/3 * capfac) + 4/3),
+                           NA_real_), 
+     generation_nonbaseload_calc = nonbaseload * generation) 
+  
+  # sum total fuel consumption and electric fuel consumption to the plant level
+  eia_923_thermal_output_annual <- 
+    eia_923_thermal_output %>% 
+    group_by(year, plant_id) %>%
+    summarize(tot_mmbtu = sum(tot_mmbtu, na.rm = TRUE),
+              elec_mmbtu = sum(elec_mmbtu, na.rm = TRUE)) %>% 
+    ungroup()
+  
+  # CHP calculations
+  annual_chp_calc <- 
+    plants_annual_2 %>% 
+    filter(chp_flag == "Yes") %>% 
+    left_join(eia_923_thermal_output_annual) %>% 
+    mutate(
+     # Calculate power to heat ratio, useful thermal output, and electricity allocation ratio
+     useful_thermal_output = 0.8 * (tot_mmbtu - elec_mmbtu),
+     
+     # calculate power to heat ratio
+     power_heat_ratio = if_else(useful_thermal_output == 0 | is.na(useful_thermal_output), 
+                                NA_real_,
+                                3.413 * generation / useful_thermal_output), # calculate power to heat ratio, 3.413 converts MWh to MMBtu
+     # calculate electric allocation
+     elec_allocation = if_else(useful_thermal_output != 0, # calculate electric allocation
+                               3.413 * generation / (0.75 * useful_thermal_output + 3.413 * generation), 
+                               # 0.75 is an efficiency factor that accounts for once the fuel is combusted, about 75% of useful thermal output can be used for other purposes
+                               1), 
+     elec_allocation = if_else(elec_allocation < 0, 0, elec_allocation),  
+     elec_allocation = if_else(elec_allocation > 1, 1, elec_allocation)
+    ) %>% 
+  select(plant_id, power_heat_ratio, useful_thermal_output, elec_allocation)
+
+  # load annual unit file for ozone source 
   unit_file_annual <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/unit_file_annual.RDS"))
   
-  # load annual level generator file for ozone values
-  generator_file_annual <- check_file_exists(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/generator_file_annual.RDS"))
-  
-  # calculate plant ozone values 
-  plant_unit_oz <- # if annual version, calculate ozone values
-    unit_file_annual %>% 
-    group_by(plant_id, plant_state, plant_name) %>%
-    summarize(unadj_heat_input_oz = if_else(all(is.na(heat_input_oz)), NA_real_, sum(heat_input_oz, na.rm = TRUE)), # units: MMBtu
-              unadj_heat_input_oz_source = paste_concat(heat_input_oz_source),
-              unadj_nox_oz_mass = if_else(all(is.na(nox_oz_mass)), NA_real_, sum(nox_oz_mass, na.rm = TRUE)), # units: tons
-              unadj_nox_oz_source = paste_concat(nox_oz_source)) %>% 
-    ungroup()
-
-  plant_gen_oz <- 
-    generator_file_annual %>% 
-    filter(!is.na(plant_id)) %>% 
-    group_by(plant_id, plant_state, plant_name) %>% 
-    summarize(generation_oz = if_else(all(is.na(generation_oz)), 
-                                      NA_real_, sum(generation_oz, na.rm = TRUE))) %>% 
-    ungroup()
-  
-  plant_file_23 <- 
-    plant_file_23 %>% 
-    full_join(plant_unit_oz)
-  
-  # calculate ozone combustion heat input
-  unit_heat_input_oz <- 
-    unit_file_annual %>% 
-    group_by(plant_id, prime_mover, primary_fuel_type) %>%
-    summarize(unadj_heat_input_oz = sum(heat_input_oz, na.rm = TRUE)) %>% 
-    ungroup()
-  
-  combust_heat_input_oz <- 
-    unit_heat_input_oz %>% 
-    filter(primary_fuel_type %in% fuel_type_categories[["combustion_fuels"]], 
-           prime_mover != "FC") %>%
-    group_by(plant_id) %>% 
-    summarize(# unadjusted combustion heat input 
-      unadj_combust_heat_input_oz = sum(unadj_heat_input_oz, na.rm = TRUE)) %>% 
-    ungroup()
-  
-  define_nox_oz_mass <- 
-    plant_file_13 %>% 
-    mutate(nox_oz_biomass = 0, 
-           nox_oz_mass = unadj_nox_mass) %>% 
-    select(plant_id, nox_oz_biomass, nox_oz_mass)
-
-  plant_chp_oz <- 
-    plant_file_16 %>% 
-    filter(chp_flag == "Yes") %>% 
-    # rename adjusted emission masses to include biomass adjustments, since we are now applying CHP adjustments
-    rename("nox_oz_mass_bio_adj" = nox_oz_mass) %>%  
-    mutate(# calculate adjusted values 
-      heat_input_oz = (elec_allocation * unadj_combust_heat_input_oz) + (unadj_heat_input_oz - unadj_combust_heat_input_oz),
-      combust_heat_input_oz = elec_allocation * unadj_combust_heat_input_oz, 
-      nox_oz_mass = elec_allocation * nox_oz_mass_bio_adj, 
-      # calculate CHP adjustment values
-      chp_combust_heat_input_oz = unadj_combust_heat_input_oz - combust_heat_input_oz,
-      chp_nox_oz = nox_oz_mass_bio_adj - nox_oz_mass,
-      # check if CHP emission masses are greater than unadjusted values, and assign unadjusted values if TRUE
-      chp_nox_oz = if_else(chp_nox_oz > unadj_nox_oz_mass | chp_nox_oz < 0, unadj_nox_oz_mass, chp_nox_oz)) %>% 
-    select(-contains("bio_adj"))
-  
-  plant_file_17 <- 
-    plant_file_17 %>% 
-    mutate(heat_input_oz = if_else(is.na(heat_input_oz), unadj_heat_input_oz, heat_input_oz), 
-           combust_heat_input_oz = if_else(is.na(combust_heat_input_oz), unadj_combust_heat_input_oz, combust_heat_input_oz))
-
-  plant_file_19 <- 
-    plant_file_19 %>% 
-    mutate(# calculate NOx ozone combustion output rate
-      nox_oz_combust_out_rate = if_else(combust_netgen * (generation_oz / generation) <= 0 | is.na(combust_netgen), 
-                                        NA_real_, 2000 * nox_oz_mass / (combust_netgen * (generation_oz / generation))))
-
-  plant_file_20 <- 
-    plant_file_20 %>% 
-    mutate( # calculate NOx ozone input rate
-      nox_oz_input_rate = if_else(heat_input_oz <= 0 | is.na(heat_input_oz), NA_real_, 
-                                  2000 * nox_oz_mass / heat_input_oz))
-
-  plant_file_21 <- 
-    plant_file_21 %>% 
-    mutate(# calculate NOx ozone output rate
-      nox_oz_output_rate = if_else(generation_oz <= 0 | is.na(generation_oz), NA_real_, 
-                                   2000 * nox_oz_mass / generation_oz))
-
-  ### Update heat_input_oz_source ----------
-
+  # Update heat_input_oz_source
   unit_source_heat_input_oz <-
-    update_source(x = "heat_input_oz_source", unit_f = unit_file) %>%
+    update_source(x = "heat_input_oz_source", unit_f = unit_file_annual) %>%
     rename(unadj_heat_input_oz_source = heat_input_oz_source) # rename to match plant file
   
   # check if sources updated correctly, stop if not
   stopifnot(all(unit_source_heat_input_oz$unadj_heat_input_oz_source %in% check_source_list))
 
-  ### Update nox_oz_source --------
+  # Update nox_oz_source 
   unit_source_nox_oz <- 
-    update_source(x = "nox_oz_source", unit_f = unit_file) %>% 
+    update_source(x = "nox_oz_source", unit_f = unit_file_annual) %>% 
     rename(unadj_nox_oz_source = nox_oz_source) # rename to match plant file
   
   # check if sources updated correctly, stop if not
   stopifnot(all(unit_source_nox_oz$unadj_nox_oz_source %in% check_source_list))
 
-  plant_file_23 <- 
-    plant_file_23 %>% 
-    rows_update(unit_source_heat_input_oz, by = c(temporal_res_cols, "plant_id"), unmatched = "ignore") %>% 
-    rows_update(unit_source_nox_oz, by = c(temporal_res_cols, "plant_id"), unmatched = "ignore")
+  # update annual plant file
+  plants_annual_3 <- 
+    plants_annual_2 %>% 
+    left_join(annual_chp_calc) %>% 
+    left_join(unit_source_heat_input_oz, by = c(temporal_res_cols, "plant_id")) %>% 
+    left_join(unit_source_nox_oz, by = c(temporal_res_cols, "plant_id"))
+  
+  plant_file_23 <- plants_annual_3
 }
 
 
