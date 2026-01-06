@@ -6,12 +6,13 @@ format:
     toc-expand: true
     toc-depth: 5
     toc-location: left
+    css: styles.css
 execute: 
   echo: false
   warning: false
 editor: visual
 params: 
-  eGRID_year: 2023
+  eGRID_year: 2024
 ---
 
 ```{r}

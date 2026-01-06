@@ -15,8 +15,8 @@ editor: source
 project: 
   execute_dir: project
 params:
-  year: 2023
-  year_abbrev: 23
+  year: 2024
+  year_abbrev: 24
   temporal_res: "annual" # annual or monthly
 ---
 
@@ -266,7 +266,7 @@ knitr::kable(missing_from_ef %>%
 ```{r}
 #| label: unit-boiler-firing-type
 
-epa <- read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$year}/epa_clean_monthly.RDS")) 
+epa <- read_rds(glue::glue("data/1_production_model/clean_data/epa/{params$year}/epa_clean.RDS")) 
 
 xwalk_botfirty <- 
   read_csv("data/1_production_model/static_tables/xwalk_boiler_firing_type.csv") %>% 
@@ -13350,7 +13350,7 @@ excel_load <- function(filename) {
   return (all_sheets)
 }
 
-data_excel <- excel_load(glue::glue("data/1_production_model/outputs/{params$year}/egrid{params$year}_data.xlsx"))
+data_excel <- excel_load(glue::glue("data/1_production_model/outputs/{params$year}/{params$temporal_res}/egrid{params$year}_data.xlsx"))
 unit_excel <- data_excel[[glue::glue("UNT{params$year_abbrev}")]]
 plant_excel <- data_excel[[glue::glue("PLNT{params$year_abbrev}")]]
 gen_excel <- data_excel[[glue::glue("GEN{params$year_abbrev}")]]

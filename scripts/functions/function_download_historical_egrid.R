@@ -48,7 +48,7 @@ download_historical_egrid <- function(year) {
   file_path <- glue::glue("{egrid_dir}egrid{year}_data.xlsx")
   
   # check if historical data file does not exist
-  if (!file.exists(file_path)) {
+  if(!file.exists(file_path)) {
     print(glue::glue("eGRID {year} historical data does not exist. Downloading..."))
     
     # check for presence of output directory and create if doesn't exist

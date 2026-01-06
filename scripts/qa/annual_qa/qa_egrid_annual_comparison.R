@@ -21,6 +21,7 @@ library(stringr)
 
 # Load necessary functions and name matches
 source("scripts/functions/function_check_params.R")
+source("scripts/functions/function_download_historical_egrid.R")
 source("scripts/1_production_model/name_matching.R")
 
 # Create and check parameters 
@@ -41,28 +42,9 @@ cur_year <- as.character(cur_year)
 
 ## Download historical eGRID years ------------------------
 
-file_paths <- 
-  c("data/1_production_model/static_tables/historical_egrid/egrid2018_data.xlsx", 
-    "data/1_production_model/static_tables/historical_egrid/egrid2019_data.xlsx",
-    "data/1_production_model/static_tables/historical_egrid/egrid2020_data.xlsx",
-    "data/1_production_model/static_tables/historical_egrid/egrid2021_data.xlsx",
-    "data/1_production_model/static_tables/historical_egrid/egrid2022_data.xlsx") # add previous data year to this list every year 
-
-urls <- ### Note: check for updates or changes each data year ###
-  c("https://www.epa.gov/sites/default/files/2020-03/egrid2018_data_v2.xlsx", 
-    "https://www.epa.gov/sites/default/files/2021-02/egrid2019_data.xlsx", 
-    "https://www.epa.gov/system/files/documents/2022-09/eGRID2020_Data_v2.xlsx", 
-    "https://www.epa.gov/system/files/documents/2023-01/eGRID2021_data.xlsx",
-    "https://www.epa.gov/system/files/documents/2024-01/egrid2022_data.xlsx") # add previous data year to this list every year 
-
-for(i in 1:length(urls)) { # download files online if they have not already been downloaded. 
-  if(!file.exists(file_paths[i])) { 
-    download.file(url = urls[i], 
-                  destfile = file_paths[i], 
-                  mode = "wb")
-  } else {
-    print(glue::glue("Stopping. File {file_paths[i]} already downloaded."))
-  }}
+download_historical_egrid(prev_yr3)
+download_historical_egrid(prev_yr2)
+download_historical_egrid(prev_yr1)
 
 ## Load and combine eGRID subregion data -----
 
@@ -89,7 +71,7 @@ subregion_prev_yr1 <-
   select(any_of(subregion_nonmetric_annual), -contains("hg"))
 
 subregion_cur_yr <- 
-  read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/egrid{params$eGRID_year}_data.xlsx"), 
                         sheet = glue::glue("SRL{as.numeric(cur_year) %% 1000}"),
                         skip = 1) %>% 
   select(any_of(subregion_nonmetric_annual), -contains("hg"))
@@ -129,7 +111,7 @@ state_prev_yr1 <-
   select(any_of(state_nonmetric_annual), -contains("hg"))
 
 state_cur_yr <- 
-  read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/egrid{params$eGRID_year}_data.xlsx"), 
              sheet = glue::glue("ST{as.numeric(cur_year) %% 1000}"),
              skip = 1) %>% 
   select(any_of(state_nonmetric_annual), -contains("hg"))
@@ -167,7 +149,7 @@ us_prev_yr1 <-
   select(any_of(us_nonmetric_annual), contains("rate"), contains("netgen"), -contains("hg"))
 
 us_cur_yr <- 
-  read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/egrid{params$eGRID_year}_data.xlsx"), 
+  read_excel(glue::glue("data/1_production_model/outputs/{params$eGRID_year}/annual/egrid{params$eGRID_year}_data.xlsx"), 
              sheet = glue::glue("US{as.numeric(cur_year) %% 1000}"),
              skip = 1) %>% 
   select(any_of(us_nonmetric_annual), contains("rate"), contains("netgen"), -contains("hg"))
