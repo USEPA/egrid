@@ -224,8 +224,15 @@ emission_factors_pu <-
 emission_factors_hi <- 
   read_csv("data/1_production_model/static_tables/emission_factors_heatinput.csv")
 
-emission_factors <- 
-  rbind(emission_factors_pu, emission_factors_hi) %>% distinct()
+emission_factors_so2 <- 
+  rbind(emission_factors_pu %>% select(prime_mover, botfirty, primary_fuel_type, contains("so2")),
+        emission_factors_hi %>% select(prime_mover, botfirty, primary_fuel_type, contains("so2"))) %>%
+  distinct()
+
+emission_factors_nox <- 
+  rbind(emission_factors_pu %>% select(prime_mover, botfirty, primary_fuel_type, contains("nox")),
+        emission_factors_hi %>% select(prime_mover, botfirty, primary_fuel_type, contains("nox"))) %>%
+  distinct()
 
 fuel_type_category <- 
   read_csv("data/1_production_model/static_tables/fuel_type_categories.csv", 
@@ -239,19 +246,41 @@ unit_pm_botfirty_fuel <-
   filter(primary_fuel_type %in% c(combustion_fuels, "OTH")) %>% 
   distinct()
 
-ef_pm_botfirty_fuel <- 
-  emission_factors %>% 
+ef_pm_botfirty_fuel_nox <- 
+  emission_factors_nox %>% 
   select(prime_mover, botfirty, primary_fuel_type) %>% 
   mutate(botfirty = if_else(botfirty %in% c("N/A", "null"), NA_character_, botfirty)) %>% 
   distinct()
 
-missing_from_ef <- 
-  unit_pm_botfirty_fuel %>% anti_join(ef_pm_botfirty_fuel)
+ef_pm_botfirty_fuel_so2 <- 
+  emission_factors_so2 %>% 
+  select(prime_mover, botfirty, primary_fuel_type) %>% 
+  mutate(botfirty = if_else(botfirty %in% c("N/A", "null"), NA_character_, botfirty)) %>% 
+  distinct()
 
-knitr::kable(missing_from_ef %>% 
+missing_from_ef_nox <- 
+  unit_pm_botfirty_fuel %>% anti_join(ef_pm_botfirty_fuel_nox)
+
+missing_from_ef_so2 <- 
+  unit_pm_botfirty_fuel %>% anti_join(ef_pm_botfirty_fuel_so2)
+
+knitr::kable(missing_from_ef_nox %>% 
                select(prime_mover, botfirty, primary_fuel_type) %>% 
                distinct() %>% 
-               arrange(primary_fuel_type)) %>% 
+               arrange(primary_fuel_type), 
+             caption = "Missing NOx EF") %>% 
+  kable_styling() %>% 
+  scroll_box(
+    height = "300px",   # Vertical scroll height
+    box_css = "border: 1px solid #ddd; padding: 5px; ",
+    fixed_thead = TRUE  # Keep header fixed while scrolling
+  )
+
+knitr::kable(missing_from_ef_so2 %>% 
+               select(prime_mover, botfirty, primary_fuel_type) %>% 
+               distinct() %>% 
+               arrange(primary_fuel_type), 
+             caption = "Missing SO2 EF") %>% 
   kable_styling() %>% 
   scroll_box(
     height = "300px",   # Vertical scroll height
