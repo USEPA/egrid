@@ -1780,7 +1780,7 @@ geo_emissions <-
             by = "plant_id") %>% 
   rows_patch(nrel_geo_type %>% filter(table_flag == "old"), # gap fill with old geothermal data for units that do not have a geo_code in newest data table
                 by = "plant_id", unmatched = "ignore") %>% 
-  left_join(geo_emission_factors , by = "geo_type_code") %>% 
+  left_join(geo_emission_factors , by = c("prime_mover" = "geo_type_code")) %>% 
   mutate(# calculate geothermal emissions 
          nox_mass = heat_input * nox_ef_lb_mmbtu / 2000, 
          so2_mass = heat_input * so2_ef_lb_mmbtu / 2000, 

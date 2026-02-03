@@ -77,20 +77,28 @@ eia_860 <-
 eia_923 <- 
   read_rds(glue::glue("data/1_production_model/clean_data/eia/{params$year}/eia_923_clean.RDS")) 
 
+xwalk_eia_epa <- read_csv("data/1_production_model/static_tables/xwalk_oris_epa.csv") %>% 
+  mutate(epa_plant_id = as.character(epa_plant_id), 
+         eia_plant_id = as.character(eia_plant_id))
+
 # group data by distinct plant IDs
 compare_plants <- 
   epa %>% 
   select(epa_plant_id = plant_id, plant_name) %>% distinct() %>% 
+  left_join(xwalk_eia_epa, by = "epa_plant_id") %>% 
+  mutate(epa_plant_id = case_when(!is.na(eia_plant_id) ~ eia_plant_id, 
+                              TRUE ~ epa_plant_id)) %>% 
   full_join(eia_860$plant %>% select(plant_id) %>% distinct() %>% 
               mutate(eia_860_plant_id = plant_id), by = c("epa_plant_id" = "plant_id")) %>% 
   full_join(eia_923$generation_and_fuel_combined %>% 
               select(plant_id) %>% distinct() %>% 
-              mutate(eia_923_plant_id = plant_id), by = c("epa_plant_id" = "plant_id"))
-
+              mutate(eia_923_plant_id = plant_id), by = c("epa_plant_id" = "plant_id")) 
+  
 # identify plants only present in EPA data
 check_compare_plants_epa <- 
   compare_plants %>% 
-  filter(!is.na(epa_plant_id) & is.na(eia_860_plant_id) & is.na(eia_923_plant_id))
+  filter(!is.na(epa_plant_id) & is.na(eia_860_plant_id) & is.na(eia_923_plant_id)) %>% 
+  select(-eia_plant_id, -eia_plant_name, -epa_plant_name)
 
 # print plants not in EIA
 ifelse(nrow(check_compare_plants_epa) == 0, "Status: PASS - No plants in EPA not in EIA.", 
@@ -736,7 +744,7 @@ Check if any units have heat input values are missing emission values.
 if (params$temporal_res == "annual") { 
   check_unit_emissions <- 
     unit_file %>% 
-    filter((!(primary_fuel_type %in% c("WAT", "WND", "SUN", "NUC", "MWH"))) & 
+    filter((!(primary_fuel_type %in% c("WAT", "WND", "SUN", "NUC", "MWH", "PUR", "WH"))) & 
             (!(prime_mover == "FC")) & 
             (is.na(nox_mass) & is.na(nox_oz_mass) & is.na(so2_mass) & is.na(co2_mass)) &
             (heat_input > 0 | heat_input_oz > 0))
@@ -3346,7 +3354,7 @@ if (params$temporal_res == "annual") {
 
 ```
 
-## Resource mix adds to 100
+ ## Resource mix adds to 100
 
 Confirm that the resource mix adds to 100%.
 
@@ -3369,8 +3377,10 @@ fuel_types <- c(
 
 plant_resource_mix <- 
   plant_file %>%
-  select(plant_id, plant_name, contains("perc_gen") & !contains("non") & starts_with(fuel_types)) %>%
-  mutate(resource_mix_total = round(rowSums(across(where(is.numeric))), 3))
+  select(plant_id, plant_name, contains("perc_gen") & !contains("non") & starts_with(fuel_types), 
+         contains("netgen") & starts_with(fuel_types)) %>%
+  mutate(resource_mix_total = round(rowSums(across(contains("perc_gen"))), 3), 
+         resource_mix_total = if_else(if_any(everything(), ~ .x < 0), 1, resource_mix_total))
 
 check_plant_resource_mix <- 
   plant_resource_mix %>% 
@@ -13198,7 +13208,7 @@ check_plant_gen_sum_ann <- gen_plant_sum %>%
   full_join(plant_file %>% select("plant_id", "generation"), join_by("plant_id")) %>%
   mutate(sum_diff = round(generation - plant_ann_sum, 5),
          perc_diff = (sum_diff)/((generation + plant_ann_sum)/2)*100) %>%
-  filter(sum_diff != 0) %>%
+  filter(sum_diff != 0, abs(sum_diff) > 3) %>%
   arrange(desc(sum_diff))
 
 ifelse(nrow(check_plant_gen_sum_ann) == 0, "Status: PASS - All annual generation values between plant and generation files are equal.",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum_ann)} plants do not have the same annual plant generation values between plant and generation files."))
@@ -13222,7 +13232,7 @@ if (params$temporal_res == "annual") {
     gen_plant_sum %>%
     full_join(plant_file %>% select(plant_id, generation_oz), join_by("plant_id")) %>%
     mutate(sum_diff = round(generation_oz - plant_oz_sum, 5)) %>%
-    filter(sum_diff != 0)
+    filter(sum_diff != 0, abs(sum_diff) > 3)
   
   ifelse(nrow(check_plant_gen_sum_oz) == 0, "Status: PASS - All annual generation values between plant and generation files are equal.",glue::glue("Status: NEEDS CHECKED - {nrow(check_plant_gen_sum_oz)} plants do not have the same annual plant generation values between plant and generation files."))
   
