@@ -20,6 +20,21 @@ params:
   temporal_res: "annual" # annual or monthly
 ---
 
+<!-- Note - if you want to run this quarto document and save it with a different file name, run the following in Console:
+
+quarto_render(
+     input = "qa_all.qmd",
+     execute_params = list(
+         year = year,
+         year_abbrev = year_abbrev,
+         temporal_res = temporal_res
+     ),
+     output_file = "INSERT_FILE_NAME"
+ )
+ 
+This is especially helpful when running multiple temporal resolutions (annual and monthly) -->
+
+
 This markdown file performs QA on the following files:
 
 -   Master database
@@ -403,9 +418,7 @@ knitr::kable(check_unit_retired_values %>%
 
 ## EPA ozone season reporter outliers
 
-FLAG: This needs to be updated to match new monthly methodology.
-
-Some EPA units only report their ozone season emissions, so we try to gap fill the remaining months with EIA data. In the source columns, we have an option that states this (i.e. "EIA non-ozone season distributed and EPA ozone season" for heat input and "Estimated using emissions factor and EIA data for non-ozone season and EPA ozone season emissions" or "Estimated based on unit-level NOx emission rates and EPA ozone season emissions" for annual NOx). We want to make sure that the NOx emissions we've assigned for these aren't extremely large outliers - especially compared to the ozone season values for NOx at the plant. So you'd filter the NOx source for these sources and then filter the NOx annual emissions from largest to smallest and see how those large ones compare to the ozone season NOx value. If super high we want to note that we need to look into that plant/unit.
+We want to make sure that the NOx emissions we've assigned for ozone reporters aren't extremely large outliers - especially compared to the ozone season values for NOx at the plant. So you'd filter the NOx source for these sources and then filter the NOx annual emissions from largest to smallest and see how those large ones compare to the ozone season NOx value. If super high we want to note that we need to look into that plant/unit.
 
 ```{r}
 #| label: unit-nox-outliers
@@ -653,14 +666,24 @@ check_unit_primary_fuel <-
 ifelse(nrow(check_unit_primary_fuel) == 0, "Status: PASS - No units have blank primary fuels.", 
         glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_primary_fuel)} units have blank primary fuels."))
 
-knitr::kable(check_unit_primary_fuel %>% 
-               select(plant_name, plant_id, unit_id, primary_fuel_type, heat_input, heat_input_oz, first_year_reporting)) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(check_unit_primary_fuel %>% 
+                 select(plant_name, plant_id, unit_id, primary_fuel_type, heat_input, heat_input_oz, first_year_reporting)) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )
+} else { 
+  knitr::kable(check_unit_primary_fuel %>% 
+                 select(plant_name, plant_id, unit_id, primary_fuel_type, heat_input, first_year_reporting)) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 
 ```
 
@@ -798,28 +821,50 @@ heat_input_and_generation <- eia_923$generation_and_fuel_combined %>%
   summarize(
     heat_input_ann_923 = sum(total_fuel_consumption_mmbtu, na.rm = TRUE), # consumption in mmbtus is referred to as "heat input"
     generation_ann = sum(net_generation_megawatthours, na.rm = TRUE)
-    ) %>% ungroup() #%>%
-  #mutate(plant_id = as.numeric(plant_id))
+    ) %>% ungroup() 
 
-check_unit_blanks <- 
-  unit_file %>% 
-  filter((is.na(heat_input) | is.na(heat_input_oz)) & (is.na(nox_mass) | is.na(nox_oz_mass) 
-         | is.na(so2_mass) | is.na(co2_mass))) %>%
-  group_by(plant_id) %>%
-  mutate(count_units = n_distinct(unit_id)) %>%
-  left_join(heat_input_and_generation)
-
-ifelse(nrow(check_unit_blanks) == 0, "Status: PASS - No units are missing both heat inputs and emission values.", 
-        glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_blanks)} units are missing both heat and emission values."))
-
-knitr::kable(check_unit_blanks %>% 
-               select(plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, operating_status, capd_flag,  heat_input, heat_input_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, heat_input_ann_923, generation_ann)) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  check_unit_blanks <- 
+    unit_file %>% 
+    filter((is.na(heat_input) | is.na(heat_input_oz)) & (is.na(nox_mass) | is.na(nox_oz_mass) 
+           | is.na(so2_mass) | is.na(co2_mass))) %>%
+    group_by(plant_id) %>%
+    mutate(count_units = n_distinct(unit_id)) %>%
+    left_join(heat_input_and_generation)
+  
+  ifelse(nrow(check_unit_blanks) == 0, "Status: PASS - No units are missing both heat inputs and emission values.", 
+          glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_blanks)} units are missing both heat and emission values."))
+  
+  knitr::kable(check_unit_blanks %>% 
+                 select(plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, operating_status, capd_flag,  heat_input, heat_input_oz, nox_mass,
+                        nox_oz_mass, so2_mass, co2_mass, heat_input_ann_923, generation_ann)) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )
+} else { 
+  check_unit_blanks <- 
+    unit_file %>% 
+    filter((is.na(heat_input)) & (is.na(nox_mass) 
+           | is.na(so2_mass) | is.na(co2_mass))) %>%
+    group_by(plant_id) %>%
+    mutate(count_units = n_distinct(unit_id)) %>%
+    left_join(heat_input_and_generation)
+  
+  ifelse(nrow(check_unit_blanks) == 0, "Status: PASS - No units are missing both heat inputs and emission values.", 
+          glue::glue("Status: NEEDS CHECKED - {nrow(check_unit_blanks)} units are missing both heat and emission values."))
+  
+  knitr::kable(check_unit_blanks %>% 
+                 select(plant_name, plant_id, unit_id, primary_fuel_type, prime_mover, operating_status, capd_flag, heat_input, nox_mass,
+                        so2_mass, co2_mass, heat_input_ann_923, generation_ann)) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 
 ```
 
@@ -2765,18 +2810,31 @@ if (params$temporal_res == "annual") {
 # output rates that are negative are typically zeroed out 
 # here, we recalculate them and keep the negatives to identify outliers 
 
-plant_rates <- 
-  plant_file %>% 
-  #select(plant_id, net_gen, heat_input, heat_input_oz, contains("rate")) # filter this way if using R plant file output
-  select(plant_id, plant_name, primary_fuel_type, capfac, heat_input, heat_input_oz, generation, generation_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, ch4_mass,
-         n2o_mass, co2e_mass, contains("ra"), contains("ro"), contains("perc_gen"), co2e_combust_out_rate) %>% 
-  mutate(nox_output_rate = nox_mass / generation * 2000, 
-         nox_oz_output_rate = nox_oz_mass / generation_oz * 2000, 
-         so2_output_rate = so2_mass / generation * 2000, 
-         co2_output_rate = co2_mass/ generation * 2000, 
-         ch4_output_rate = ch4_mass / generation, 
-         n2o_output_rate = n2o_mass / generation,
-         co2e_output_rate = co2e_mass / generation * 2000) 
+if(params$temporal_res == "annual") { 
+  plant_rates <- 
+    plant_file %>% 
+    #select(plant_id, net_gen, heat_input, heat_input_oz, contains("rate")) # filter this way if using R plant file output
+    select(plant_id, plant_name, primary_fuel_type, capfac, heat_input, heat_input_oz, generation, 
+           generation_oz, nox_mass, nox_oz_mass, so2_mass, co2_mass, ch4_mass,
+           n2o_mass, co2e_mass, contains("ra"), contains("ro"), contains("perc_gen"), co2e_combust_out_rate) %>% 
+    mutate(nox_output_rate = nox_mass / generation * 2000, 
+           nox_oz_output_rate = nox_oz_mass / generation_oz * 2000, 
+           so2_output_rate = so2_mass / generation * 2000, 
+           co2_output_rate = co2_mass/ generation * 2000, 
+           ch4_output_rate = ch4_mass / generation, 
+           n2o_output_rate = n2o_mass / generation,
+           co2e_output_rate = co2e_mass / generation * 2000) 
+} else { 
+  plant_rates <- 
+    plant_file %>% 
+    select(plant_id, plant_name, primary_fuel_type, capfac, heat_input, generation, nox_mass, so2_mass, co2_mass, ch4_mass,
+           n2o_mass, co2e_mass, contains("ra"), contains("ro"), contains("perc_gen"), co2e_combust_out_rate) %>% 
+    mutate(nox_output_rate = nox_mass / generation * 2000, 
+           so2_output_rate = so2_mass / generation * 2000, 
+           co2_output_rate = co2_mass/ generation * 2000, 
+           ch4_output_rate = ch4_mass / generation, 
+           n2o_output_rate = n2o_mass / generation,
+           co2e_output_rate = co2e_mass / generation * 2000)}
 
 plant_rates[sapply(plant_rates, is.infinite)] <- NA
 
@@ -2828,16 +2886,17 @@ knitr::kable(plant_zscore %>%
 #| label: plant-nox_oz_mass-input-outliers
 
 if (params$temporal_res == "annual") { 
-knitr::kable(plant_zscore %>% 
-               filter(nox_oz_input_rate_zscore > 3 | nox_oz_input_rate_zscore < -3) %>% 
-               arrange(desc(nox_oz_input_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, heat_input_oz, nox_oz_mass, nox_oz_input_rate_zscore, nox_oz_input_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen)) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+  knitr::kable(plant_zscore %>% 
+                 filter(nox_oz_input_rate_zscore > 3 | nox_oz_input_rate_zscore < -3) %>% 
+                 arrange(desc(nox_oz_input_rate_zscore)) %>% 
+                 select(plant_id, plant_name, primary_fuel_type, heat_input_oz, nox_oz_mass, nox_oz_input_rate_zscore, 
+                        nox_oz_input_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen)) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )
 }
 ```
 
@@ -2921,16 +2980,18 @@ knitr::kable(plant_zscore %>%
 ```{r}
 #| label: plant-nox_oz_mass-output-outliers
 
-knitr::kable(plant_zscore %>% 
-               filter(nox_oz_output_rate_zscore > 3 | nox_oz_output_rate_zscore < -3) %>% 
-               arrange(desc(nox_oz_output_rate_zscore)) %>% 
-               select(plant_id, plant_name, primary_fuel_type, generation_oz, nox_oz_mass, capfac, nox_oz_output_rate_zscore, nox_oz_output_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen)) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(plant_zscore %>% 
+                 filter(nox_oz_output_rate_zscore > 3 | nox_oz_output_rate_zscore < -3) %>% 
+                 arrange(desc(nox_oz_output_rate_zscore)) %>% 
+                 select(plant_id, plant_name, primary_fuel_type, generation_oz, nox_oz_mass, capfac, nox_oz_output_rate_zscore, 
+                        nox_oz_output_rate, coal_perc_gen, oil_perc_gen, gas_perc_gen, biomass_perc_gen, other_ff_perc_gen)) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 
 ```
 
@@ -3050,6 +3111,7 @@ knitr::kable(plant_zscore %>%
 ```{r}
 #| label: plant-nox_oz_combustion-output-outliers
 
+if(params$temporal_res == "annual") { 
 knitr::kable(plant_zscore %>% 
                filter(nox_oz_combust_out_rate_zscore > 3 | nox_oz_combust_out_rate_zscore < -3) %>% 
                arrange(desc(nox_oz_combust_out_rate_zscore)) %>% 
@@ -3059,7 +3121,7 @@ knitr::kable(plant_zscore %>%
     height = "300px",   # Vertical scroll height
     box_css = "border: 1px solid #ddd; padding: 5px; ",
     fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+  )}
 
 ```
 
@@ -3379,8 +3441,8 @@ plant_resource_mix <-
   plant_file %>%
   select(plant_id, plant_name, contains("perc_gen") & !contains("non") & starts_with(fuel_types), 
          contains("netgen") & starts_with(fuel_types)) %>%
-  mutate(resource_mix_total = round(rowSums(across(contains("perc_gen"))), 3), 
-         resource_mix_total = if_else(if_any(everything(), ~ .x < 0), 1, resource_mix_total))
+  mutate(resource_mix_total = round(rowSums(across(contains("perc_gen"))), 3))#, 
+         #resource_mix_total = if_else(if_any(everything(), ~ .x < 0), 1, resource_mix_total))
 
 check_plant_resource_mix <- 
   plant_resource_mix %>% 
@@ -4075,62 +4137,60 @@ ba_stats_summary <- bind_cols(plant_stats_summary, ba_stats)
 
 ba_zscore <- 
   ba_agg %>% 
-  mutate(nox_output_zscore = (ba_nox_output_rate - 
+  mutate(
+    nox_output_zscore = (ba_nox_output_rate - 
                         ba_stats_summary$nox_output_rate_average)/ 
-  ba_stats_summary$nox_output_rate_sd, 
-  
-  nox_oz_output_zscore = (ba_nox_oz_output_rate - 
-                            ba_stats_summary$nox_oz_output_rate_average)/ 
-  ba_stats_summary$nox_oz_output_rate_sd, 
-  
+                        ba_stats_summary$nox_output_rate_sd, 
   so2_output_zscore = (ba_so2_output_rate - 
-                         ba_stats_summary$so2_output_rate_average)/ 
-  ba_stats_summary$so2_output_rate_sd,
-  
+                        ba_stats_summary$so2_output_rate_average)/ 
+                        ba_stats_summary$so2_output_rate_sd,
   co2_output_zscore = (ba_co2_output_rate - 
-                         ba_stats_summary$co2_output_rate_average)/ 
-  ba_stats_summary$co2_output_rate_sd,
-  
+                        ba_stats_summary$co2_output_rate_average)/ 
+                        ba_stats_summary$co2_output_rate_sd,
   ch4_output_zscore = (ba_ch4_output_rate - 
                          ba_stats_summary$ch4_output_rate_average)/ 
-  ba_stats_summary$ch4_output_rate_sd,
-  
+                        ba_stats_summary$ch4_output_rate_sd,
   n2o_output_zscore = (ba_n2o_output_rate - 
                          ba_stats_summary$n2o_output_rate_average)/ 
-  ba_stats_summary$n2o_output_rate_sd,
-  
+                        ba_stats_summary$n2o_output_rate_sd,
   co2e_output_zscore = (ba_co2e_output_rate - 
                           ba_stats_summary$co2e_output_rate_average)/ 
-  ba_stats_summary$co2e_output_rate_sd,
-  
+                          ba_stats_summary$co2e_output_rate_sd,
   nox_input_zscore = (ba_nox_input_rate - 
                         ba_stats_summary$nox_input_rate_average)/ 
-  ba_stats_summary$nox_input_rate_sd, 
-  
-  nox_oz_input_zscore = (ba_nox_oz_input_rate - 
-                           ba_stats_summary$nox_oz_input_rate_average)/ 
-  ba_stats_summary$nox_oz_input_rate_sd, 
-  
+                        ba_stats_summary$nox_input_rate_sd, 
   so2_input_zscore = (ba_so2_input_rate - 
                         ba_stats_summary$so2_input_rate_average)/ 
-  ba_stats_summary$so2_input_rate_sd,
-  
+                        ba_stats_summary$so2_input_rate_sd,
   co2_input_zscore = (ba_co2_input_rate - 
                         ba_stats_summary$co2_input_rate_average)/ 
-  ba_stats_summary$co2_input_rate_sd,
-  
+                        ba_stats_summary$co2_input_rate_sd,
   ch4_input_zscore = (ba_ch4_input_rate - 
                         ba_stats_summary$ch4_input_rate_average)/ 
-  ba_stats_summary$ch4_input_rate_sd,
-  
+                        ba_stats_summary$ch4_input_rate_sd,
   n2o_input_zscore = (ba_n2o_input_rate - 
                         ba_stats_summary$n2o_input_rate_average)/ 
-  ba_stats_summary$n2o_input_rate_sd,
-  
+                        ba_stats_summary$n2o_input_rate_sd,
   co2e_input_zscore = (ba_co2e_input_rate - 
                          ba_stats_summary$co2e_input_rate_average)/ 
-  ba_stats_summary$co2e_input_rate_sd) %>% 
+                          ba_stats_summary$co2e_input_rate_sd) 
+
+if(params$temporal_res == "annual") { 
+  ba_zscore <- 
+    ba_zscore %>% 
+    mutate(
+      nox_oz_output_zscore = (ba_nox_oz_output_rate - 
+                            ba_stats_summary$nox_oz_output_rate_average)/ 
+                            ba_stats_summary$nox_oz_output_rate_sd, 
+      nox_oz_input_zscore = (ba_nox_oz_input_rate - 
+                            ba_stats_summary$nox_oz_input_rate_average)/ 
+                            ba_stats_summary$nox_oz_input_rate_sd, 
+    )}
+
+ba_zscore <- 
+  ba_zscore %>% 
   select(ba_name, ba_code, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+
 ```
 
 ### Overall input rates
@@ -4160,6 +4220,7 @@ knitr::kable(ba_zscore %>%
 ```{r}
 #| label: ba-nox-oz-input-outliers  
 
+if(params$temporal_res == "annual") { 
 knitr::kable(ba_zscore %>%           
                filter(nox_oz_input_zscore > 3 | nox_oz_input_zscore < -3) %>% 
                select(ba_name, ba_code, ba_nox_oz_input_rate, nox_oz_input_zscore) %>%               
@@ -4169,7 +4230,7 @@ knitr::kable(ba_zscore %>%
     height = "300px",   # Vertical scroll height
     box_css = "border: 1px solid #ddd; padding: 5px; ",
     fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+  )}
 ```
 
 #### SO2 input rate
@@ -4268,6 +4329,7 @@ knitr::kable(ba_zscore %>%
 ```{r}
 #| label: ba-nox-oz-output-outliers  
 
+if(params$temporal_res == "annual") { 
 knitr::kable(ba_zscore %>%
              filter(nox_oz_output_zscore > 3 | nox_oz_output_zscore < -3) %>%
              select(ba_name, ba_code, ba_nox_oz_output_rate, nox_oz_output_zscore) %>%      
@@ -4277,7 +4339,7 @@ knitr::kable(ba_zscore %>%
     height = "300px",   # Vertical scroll height
     box_css = "border: 1px solid #ddd; padding: 5px; ",
     fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+  )}
 ```
 
 #### SO2 output rate
@@ -4380,10 +4442,6 @@ nerc_zscore <-
                                 nerc_stats_summary$nox_output_rate_average)/ 
            nerc_stats_summary$nox_output_rate_sd, 
          
-         nox_oz_output_zscore = (nerc_nox_oz_output_rate - 
-                                   nerc_stats_summary$nox_oz_output_rate_average)/ 
-           nerc_stats_summary$nox_oz_output_rate_sd, 
-         
          so2_output_zscore = (nerc_so2_output_rate - 
                                 nerc_stats_summary$so2_output_rate_average)/ 
            nerc_stats_summary$so2_output_rate_sd,
@@ -4408,10 +4466,6 @@ nerc_zscore <-
                                nerc_stats_summary$nox_input_rate_average)/ 
            nerc_stats_summary$nox_input_rate_sd, 
          
-         nox_oz_input_zscore = (nerc_nox_oz_input_rate - 
-                                  nerc_stats_summary$nox_oz_input_rate_average)/ 
-           nerc_stats_summary$nox_oz_input_rate_sd, 
-         
          so2_input_zscore = (nerc_so2_input_rate - 
                                nerc_stats_summary$so2_input_rate_average)/ 
            nerc_stats_summary$so2_input_rate_sd,
@@ -4430,8 +4484,24 @@ nerc_zscore <-
          
          co2e_input_zscore = (nerc_co2e_input_rate - 
                                 nerc_stats_summary$co2e_input_rate_average)/ 
-           nerc_stats_summary$co2e_input_rate_sd) %>% 
+           nerc_stats_summary$co2e_input_rate_sd) 
+
+if(params$temporal_res == "annual") { 
+  nerc_zscore <- 
+    nerc_zscore %>% 
+    mutate(
+      nox_oz_output_zscore = (nerc_nox_oz_output_rate - 
+                            nerc_stats_summary$nox_oz_output_rate_average)/ 
+                            nerc_stats_summary$nox_oz_output_rate_sd, 
+      nox_oz_input_zscore = (nerc_nox_oz_input_rate - 
+                            nerc_stats_summary$nox_oz_input_rate_average)/ 
+                            nerc_stats_summary$nox_oz_input_rate_sd, 
+    )}
+
+nerc_zscore <- 
+  nerc_zscore %>% 
   select(nerc, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+
 ```
 
 ### Overall input rates
@@ -4462,16 +4532,17 @@ knitr::kable(nerc_zscore %>%
 ```{r}
 #| label: nerc-nox-oz-input-outliers    
 
-knitr::kable(nerc_zscore %>%
-             filter(nox_oz_input_zscore > 3 | nox_oz_input_zscore < -3) %>%
-             select(nerc, nerc_nox_oz_input_rate, nox_oz_input_zscore) %>%
-             arrange(desc(nox_oz_input_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(nerc_zscore %>%
+               filter(nox_oz_input_zscore > 3 | nox_oz_input_zscore < -3) %>%
+               select(nerc, nerc_nox_oz_input_rate, nox_oz_input_zscore) %>%
+               arrange(desc(nox_oz_input_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -4571,16 +4642,17 @@ knitr::kable(nerc_zscore %>%
 ```{r}
 #| label: nerc-nox-oz-output-outliers      
 
-knitr::kable(nerc_zscore %>%
-             filter(nox_oz_output_zscore > 3 | nox_oz_output_zscore < -3) %>%
-             select(nerc, nerc_nox_oz_output_rate, nox_oz_output_zscore) %>%
-             arrange(desc(nox_oz_output_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(nerc_zscore %>%
+               filter(nox_oz_output_zscore > 3 | nox_oz_output_zscore < -3) %>%
+               select(nerc, nerc_nox_oz_output_rate, nox_oz_output_zscore) %>%
+               arrange(desc(nox_oz_output_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+  )}
 ```
 
 #### SO2 output rate
@@ -4657,7 +4729,6 @@ knitr::kable(nerc_zscore %>%
 ## Outlier check for emission rate
 
 ```{r}
-
 #| label: calculate-us-outliers  
 
 plant_stats_summary <- 
@@ -4684,10 +4755,6 @@ us_zscore <-
                                 us_stats_summary$nox_output_rate_average)/ 
            us_stats_summary$nox_output_rate_sd, 
          
-         nox_oz_output_zscore = (us_nox_oz_output_rate - 
-                                   us_stats_summary$nox_oz_output_rate_average)/ 
-           us_stats_summary$nox_oz_output_rate_sd, 
-         
          so2_output_zscore = (us_so2_output_rate - 
                                 us_stats_summary$so2_output_rate_average)/ 
            us_stats_summary$so2_output_rate_sd,
@@ -4710,11 +4777,7 @@ us_zscore <-
          
          nox_input_zscore = (us_nox_input_rate - 
                                us_stats_summary$nox_input_rate_average)/ 
-           us_stats_summary$nox_input_rate_sd, 
-         
-         nox_oz_input_zscore = (us_nox_oz_input_rate - 
-                                  us_stats_summary$nox_oz_input_rate_average)/ 
-           us_stats_summary$nox_oz_input_rate_sd, 
+           us_stats_summary$nox_input_rate_sd,
          
          so2_input_zscore = (us_so2_input_rate - 
                                us_stats_summary$so2_input_rate_average)/ 
@@ -4734,7 +4797,22 @@ us_zscore <-
          
          co2e_input_zscore = (us_co2e_input_rate - 
                                 us_stats_summary$co2e_input_rate_average)/ 
-           us_stats_summary$co2e_input_rate_sd) %>% 
+           us_stats_summary$co2e_input_rate_sd) 
+
+if(params$temporal_res == "annual") { 
+  us_zscore <- 
+    us_zscore %>% 
+    mutate(
+      nox_oz_output_zscore = (us_nox_oz_output_rate - 
+                            us_stats_summary$nox_oz_output_rate_average)/ 
+                            us_stats_summary$nox_oz_output_rate_sd, 
+      nox_oz_input_zscore = (us_nox_oz_input_rate - 
+                            us_stats_summary$nox_oz_input_rate_average)/ 
+                            us_stats_summary$nox_oz_input_rate_sd, 
+    )}
+
+us_zscore <- 
+  us_zscore %>% 
   select(contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 ```
 
@@ -4765,16 +4843,17 @@ knitr::kable(us_zscore %>%
 ```{r}
 #| label: us-nox-oz-input-outliers      
 
-knitr::kable(us_zscore %>%
-             filter(nox_oz_input_zscore > 3 | nox_oz_input_zscore < -3) %>%
-             select(us_nox_oz_input_rate, nox_oz_input_zscore) %>%
-             arrange(desc(nox_oz_input_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(us_zscore %>%
+               filter(nox_oz_input_zscore > 3 | nox_oz_input_zscore < -3) %>%
+               select(us_nox_oz_input_rate, nox_oz_input_zscore) %>%
+               arrange(desc(nox_oz_input_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -4874,16 +4953,17 @@ knitr::kable(us_zscore %>%
 ```{r}
 #| label: us-nox-oz-output-outliers      
 
-knitr::kable(us_zscore %>%
-             filter(nox_oz_output_zscore > 3 | nox_oz_output_zscore < -3) %>%
-             select(us_nox_oz_output_rate, nox_oz_output_zscore) %>%
-             arrange(desc(nox_oz_output_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(us_zscore %>%
+               filter(nox_oz_output_zscore > 3 | nox_oz_output_zscore < -3) %>%
+               select(us_nox_oz_output_rate, nox_oz_output_zscore) %>%
+               arrange(desc(nox_oz_output_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -4976,7 +5056,8 @@ state_stats <-
                           -contains("average") & where(is.numeric)), 
                 .fns = ~ sd(.x, na.rm = TRUE), 
                 .names =  "{.col}_sd")) %>% 
-  select(contains("average") & where(is.numeric), 
+  select(state, 
+         contains("average") & where(is.numeric), 
          contains("sd") & where(is.numeric)) %>% distinct
 
 state_stats_summary <- bind_cols(plant_stats_summary, state_stats) 
@@ -4986,10 +5067,6 @@ state_zscore <-
   mutate(nox_output_zscore = (state_nox_output_rate - 
                                 state_stats_summary$nox_output_rate_average)/ 
            state_stats_summary$nox_output_rate_sd, 
-         
-         nox_oz_output_zscore = (state_nox_oz_output_rate - 
-                                   state_stats_summary$nox_oz_output_rate_average)/ 
-           state_stats_summary$nox_oz_output_rate_sd, 
          
          so2_output_zscore = (state_so2_output_rate - 
                                 state_stats_summary$so2_output_rate_average)/ 
@@ -5015,10 +5092,6 @@ state_zscore <-
                                state_stats_summary$nox_input_rate_average)/ 
            state_stats_summary$nox_input_rate_sd, 
          
-         nox_oz_input_zscore = (state_nox_oz_input_rate - 
-                                  state_stats_summary$nox_oz_input_rate_average)/ 
-           state_stats_summary$nox_oz_input_rate_sd, 
-         
          so2_input_zscore = (state_so2_input_rate - 
                                state_stats_summary$so2_input_rate_average)/ 
            state_stats_summary$so2_input_rate_sd,
@@ -5037,8 +5110,24 @@ state_zscore <-
          
          co2e_input_zscore = (state_co2e_input_rate - 
                                 state_stats_summary$co2e_input_rate_average)/ 
-           state_stats_summary$co2e_input_rate_sd) %>% 
+           state_stats_summary$co2e_input_rate_sd) 
+
+if(params$temporal_res == "annual") { 
+  state_stats <- 
+    state_stats %>% 
+    mutate(
+      nox_oz_output_zscore = (state_nox_oz_output_rate - 
+                                   state_stats_summary$nox_oz_output_rate_average)/ 
+           state_stats_summary$nox_oz_output_rate_sd, 
+      nox_oz_input_zscore = (state_nox_oz_input_rate - 
+                                  state_stats_summary$nox_oz_input_rate_average)/ 
+           state_stats_summary$nox_oz_input_rate_sd
+    )}
+
+state_stats <- 
+  state_stats %>% 
   select(state, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+  
 ```
 
 ### Overall input rates
@@ -5068,15 +5157,16 @@ knitr::kable(state_zscore %>%
 ```{r}
 #| label: state-nox-oz-input-outliers        
 
-knitr::kable(state_zscore %>%              
-               filter(nox_oz_input_zscore > 3 | nox_oz_input_zscore < -3) %>%   
-               select(state, state_nox_oz_input_rate, nox_oz_input_zscore) %>%                     arrange(desc(nox_oz_input_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(state_zscore %>%              
+                 filter(nox_oz_input_zscore > 3 | nox_oz_input_zscore < -3) %>%   
+                 select(state, state_nox_oz_input_rate, nox_oz_input_zscore) %>%                     arrange(desc(nox_oz_input_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -5179,10 +5269,6 @@ subregion_fuel_zscore <-
                                      subregion_stats$subregion_coal_nox_output_rate_average)/ 
            subregion_stats$subregion_coal_nox_output_rate_sd, 
          
-         nox_oz_output_coal_zscore = (subregion_coal_nox_oz_output_rate - 
-                                        subregion_stats$subregion_coal_nox_oz_output_rate_average)/ 
-           subregion_stats$subregion_coal_nox_oz_output_rate_sd, 
-         
          so2_output_coal_zscore = (subregion_coal_so2_output_rate - 
                                      subregion_stats$subregion_coal_so2_output_rate_average)/ 
            subregion_stats$subregion_coal_so2_output_rate_sd,
@@ -5206,10 +5292,6 @@ subregion_fuel_zscore <-
          nox_input_coal_zscore = (subregion_coal_nox_input_rate - 
                                     subregion_stats$subregion_coal_nox_input_rate_average)/ 
            subregion_stats$subregion_coal_nox_input_rate_sd, 
-         
-         nox_oz_input_coal_zscore = (subregion_coal_nox_oz_input_rate - 
-                                       subregion_stats$subregion_coal_nox_oz_input_rate_average)/ 
-           subregion_stats$subregion_coal_nox_oz_input_rate_sd, 
          
          so2_input_coal_zscore = (subregion_coal_so2_input_rate - 
                                     subregion_stats$subregion_coal_so2_input_rate_average)/ 
@@ -5237,10 +5319,6 @@ subregion_fuel_zscore <-
                                      subregion_stats$subregion_oil_nox_output_rate_average)/ 
            subregion_stats$subregion_oil_nox_output_rate_sd, 
          
-         nox_oz_output_oil_zscore = (subregion_oil_nox_oz_output_rate - 
-                                        subregion_stats$subregion_oil_nox_oz_output_rate_average)/ 
-           subregion_stats$subregion_oil_nox_oz_output_rate_sd, 
-         
          so2_output_oil_zscore = (subregion_oil_so2_output_rate - 
                                      subregion_stats$subregion_oil_so2_output_rate_average)/ 
            subregion_stats$subregion_oil_so2_output_rate_sd,
@@ -5264,10 +5342,6 @@ subregion_fuel_zscore <-
          nox_input_oil_zscore = (subregion_oil_nox_input_rate - 
                                     subregion_stats$subregion_oil_nox_input_rate_average)/ 
            subregion_stats$subregion_oil_nox_input_rate_sd, 
-         
-         nox_oz_input_oil_zscore = (subregion_oil_nox_oz_input_rate - 
-                                       subregion_stats$subregion_oil_nox_oz_input_rate_average)/ 
-           subregion_stats$subregion_oil_nox_oz_input_rate_sd, 
          
          so2_input_oil_zscore = (subregion_oil_so2_input_rate - 
                                     subregion_stats$subregion_oil_so2_input_rate_average)/ 
@@ -5295,10 +5369,6 @@ subregion_fuel_zscore <-
                                      subregion_stats$subregion_gas_nox_output_rate_average)/ 
            subregion_stats$subregion_gas_nox_output_rate_sd, 
          
-         nox_oz_output_gas_zscore = (subregion_gas_nox_oz_output_rate - 
-                                        subregion_stats$subregion_gas_nox_oz_output_rate_average)/ 
-           subregion_stats$subregion_gas_nox_oz_output_rate_sd, 
-         
          so2_output_gas_zscore = (subregion_gas_so2_output_rate - 
                                      subregion_stats$subregion_gas_so2_output_rate_average)/ 
            subregion_stats$subregion_gas_so2_output_rate_sd,
@@ -5322,10 +5392,6 @@ subregion_fuel_zscore <-
          nox_input_gas_zscore = (subregion_gas_nox_input_rate - 
                                     subregion_stats$subregion_gas_nox_input_rate_average)/ 
            subregion_stats$subregion_gas_nox_input_rate_sd, 
-         
-         nox_oz_input_gas_zscore = (subregion_gas_nox_oz_input_rate - 
-                                       subregion_stats$subregion_gas_nox_oz_input_rate_average)/ 
-           subregion_stats$subregion_gas_nox_oz_input_rate_sd, 
          
          so2_input_gas_zscore = (subregion_gas_so2_input_rate - 
                                     subregion_stats$subregion_gas_so2_input_rate_average)/ 
@@ -5353,10 +5419,6 @@ subregion_fuel_zscore <-
                                      subregion_stats$subregion_fossil_nox_output_rate_average)/ 
            subregion_stats$subregion_fossil_nox_output_rate_sd, 
          
-         nox_oz_output_fossil_zscore = (subregion_fossil_nox_oz_output_rate - 
-                                        subregion_stats$subregion_fossil_nox_oz_output_rate_average)/ 
-           subregion_stats$subregion_fossil_nox_oz_output_rate_sd, 
-         
          so2_output_fossil_zscore = (subregion_fossil_so2_output_rate - 
                                      subregion_stats$subregion_fossil_so2_output_rate_average)/ 
            subregion_stats$subregion_fossil_so2_output_rate_sd,
@@ -5381,10 +5443,6 @@ subregion_fuel_zscore <-
                                     subregion_stats$subregion_fossil_nox_input_rate_average)/ 
            subregion_stats$subregion_fossil_nox_input_rate_sd, 
          
-         nox_oz_input_fossil_zscore = (subregion_fossil_nox_oz_input_rate - 
-                                       subregion_stats$subregion_fossil_nox_oz_input_rate_average)/ 
-           subregion_stats$subregion_fossil_nox_oz_input_rate_sd, 
-         
          so2_input_fossil_zscore = (subregion_fossil_so2_input_rate - 
                                     subregion_stats$subregion_fossil_so2_input_rate_average)/ 
            subregion_stats$subregion_fossil_so2_input_rate_sd,
@@ -5403,8 +5461,42 @@ subregion_fuel_zscore <-
          
          co2e_input_fossil_zscore = (subregion_fossil_co2e_input_rate - 
                                      subregion_stats$subregion_fossil_co2e_input_rate_average)/ 
-           subregion_stats$subregion_fossil_co2e_input_rate_sd) %>%
-  select(subregion, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+           subregion_stats$subregion_fossil_co2e_input_rate_sd) 
+
+if(params$temporal_res == "annual") { 
+  subregion_fuel_zscore <- 
+    subregion_fuel_zscore %>% 
+    mutate(
+      nox_oz_output_coal_zscore = (subregion_coal_nox_oz_output_rate - 
+                                        subregion_stats$subregion_coal_nox_oz_output_rate_average)/ 
+           subregion_stats$subregion_coal_nox_oz_output_rate_sd, 
+      nox_oz_input_coal_zscore = (subregion_coal_nox_oz_input_rate - 
+                                       subregion_stats$subregion_coal_nox_oz_input_rate_average)/ 
+           subregion_stats$subregion_coal_nox_oz_input_rate_sd, 
+      nox_oz_output_oil_zscore = (subregion_oil_nox_oz_output_rate - 
+                                        subregion_stats$subregion_oil_nox_oz_output_rate_average)/ 
+           subregion_stats$subregion_oil_nox_oz_output_rate_sd, 
+      nox_oz_input_gas_zscore = (subregion_gas_nox_oz_input_rate - 
+                                       subregion_stats$subregion_gas_nox_oz_input_rate_average)/ 
+           subregion_stats$subregion_gas_nox_oz_input_rate_sd, 
+      nox_oz_input_oil_zscore = (subregion_oil_nox_oz_input_rate - 
+                                       subregion_stats$subregion_oil_nox_oz_input_rate_average)/ 
+           subregion_stats$subregion_oil_nox_oz_input_rate_sd, 
+      nox_oz_output_gas_zscore = (subregion_gas_nox_oz_output_rate - 
+                                        subregion_stats$subregion_gas_nox_oz_output_rate_average)/ 
+           subregion_stats$subregion_gas_nox_oz_output_rate_sd, 
+      nox_oz_output_fossil_zscore = (subregion_fossil_nox_oz_output_rate - 
+                                        subregion_stats$subregion_fossil_nox_oz_output_rate_average)/ 
+           subregion_stats$subregion_fossil_nox_oz_output_rate_sd, 
+      nox_oz_input_fossil_zscore = (subregion_fossil_nox_oz_input_rate - 
+                                       subregion_stats$subregion_fossil_nox_oz_input_rate_average)/ 
+           subregion_stats$subregion_fossil_nox_oz_input_rate_sd
+    )}
+
+subregion_fuel_zscore <- 
+  subregion_fuel_zscore %>%
+  select(subregion, contains("rate"), contains("ra"), contains("ro"), contains("zscore")) 
+  
 ```
 
 ### Coal input rates
@@ -5432,16 +5524,17 @@ knitr::kable(subregion_fuel_zscore %>%
 ```{r}
 #| label: subregion-nox-oz-input-coal-outliers        
 
-knitr::kable(subregion_fuel_zscore %>% 
-               filter(nox_oz_input_coal_zscore > 3 | nox_oz_input_coal_zscore < -3) %>%             
-               select(subregion, subregion_coal_nox_oz_input_rate, nox_oz_input_coal_zscore) %>%
-               arrange(desc(nox_oz_input_coal_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(subregion_fuel_zscore %>% 
+                 filter(nox_oz_input_coal_zscore > 3 | nox_oz_input_coal_zscore < -3) %>%             
+                 select(subregion, subregion_coal_nox_oz_input_rate, nox_oz_input_coal_zscore) %>%
+                 arrange(desc(nox_oz_input_coal_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -5538,16 +5631,17 @@ knitr::kable(subregion_fuel_zscore %>%
 ```{r}
 #| label: subregion-nox-oz-output-coal-outliers        
 
-knitr::kable(subregion_fuel_zscore %>%                 
-               filter(nox_oz_output_coal_zscore > 3 | nox_oz_output_coal_zscore < -3) %>%                             
-               select(subregion, subregion_coal_nox_oz_output_rate, nox_oz_output_coal_zscore) %>%                
-               arrange(desc(nox_oz_output_coal_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(subregion_fuel_zscore %>%                 
+                 filter(nox_oz_output_coal_zscore > 3 | nox_oz_output_coal_zscore < -3) %>%                             
+                 select(subregion, subregion_coal_nox_oz_output_rate, nox_oz_output_coal_zscore) %>%                
+                 arrange(desc(nox_oz_output_coal_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -5644,16 +5738,17 @@ knitr::kable(subregion_fuel_zscore %>%
 ```{r}
 #| label: subregion-nox-oz-input-oil-outliers        
 
-knitr::kable(subregion_fuel_zscore %>% 
-               filter(nox_oz_input_oil_zscore > 3 | nox_oz_input_oil_zscore < -3) %>%             
-               select(subregion, subregion_oil_nox_oz_input_rate, nox_oz_input_oil_zscore) %>%
-               arrange(desc(nox_oz_input_oil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(subregion_fuel_zscore %>% 
+                 filter(nox_oz_input_oil_zscore > 3 | nox_oz_input_oil_zscore < -3) %>%             
+                 select(subregion, subregion_oil_nox_oz_input_rate, nox_oz_input_oil_zscore) %>%
+                 arrange(desc(nox_oz_input_oil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -5750,16 +5845,17 @@ knitr::kable(subregion_fuel_zscore %>%
 ```{r}
 #| label: subregion-nox-oz-output-oil-outliers          
 
-knitr::kable(subregion_fuel_zscore %>%                                 
-               filter(nox_oz_output_oil_zscore > 3 | nox_oz_output_oil_zscore < -3) %>%                                             
-               select(subregion, subregion_oil_nox_oz_output_rate, nox_oz_output_oil_zscore) %>%                                
-               arrange(desc(nox_oz_output_oil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(subregion_fuel_zscore %>%                                 
+                 filter(nox_oz_output_oil_zscore > 3 | nox_oz_output_oil_zscore < -3) %>%                                           
+                 select(subregion, subregion_oil_nox_oz_output_rate, nox_oz_output_oil_zscore) %>%                                
+                 arrange(desc(nox_oz_output_oil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -5856,16 +5952,17 @@ knitr::kable(subregion_fuel_zscore %>%
 ```{r}
 #| label: subregion-nox-oz-input-gas-outliers        
 
-knitr::kable(subregion_fuel_zscore %>% 
-               filter(nox_oz_input_gas_zscore > 3 | nox_oz_input_gas_zscore < -3) %>%             
-               select(subregion, subregion_gas_nox_oz_input_rate, nox_oz_input_gas_zscore) %>%
-               arrange(desc(nox_oz_input_gas_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(subregion_fuel_zscore %>% 
+                 filter(nox_oz_input_gas_zscore > 3 | nox_oz_input_gas_zscore < -3) %>%             
+                 select(subregion, subregion_gas_nox_oz_input_rate, nox_oz_input_gas_zscore) %>%
+                 arrange(desc(nox_oz_input_gas_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -5962,16 +6059,17 @@ knitr::kable(subregion_fuel_zscore %>%
 ```{r}
 #| label: subregion-nox-oz-output-gas-outliers        
 
-knitr::kable(subregion_fuel_zscore %>%                 
-               filter(nox_oz_output_gas_zscore > 3 | nox_oz_output_gas_zscore < -3) %>%                             
-               select(subregion, subregion_gas_nox_oz_output_rate, nox_oz_output_gas_zscore) %>%                
-               arrange(desc(nox_oz_output_gas_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(subregion_fuel_zscore %>%                 
+                 filter(nox_oz_output_gas_zscore > 3 | nox_oz_output_gas_zscore < -3) %>%                             
+                 select(subregion, subregion_gas_nox_oz_output_rate, nox_oz_output_gas_zscore) %>%                
+                 arrange(desc(nox_oz_output_gas_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -6068,16 +6166,17 @@ knitr::kable(subregion_fuel_zscore %>%
 ```{r}
 #| label: subregion-nox-oz-input-fossil-outliers          
 
-knitr::kable(subregion_fuel_zscore %>%
-               filter(nox_oz_input_fossil_zscore > 3 | nox_oz_input_fossil_zscore < -3) %>%             
-               select(subregion, subregion_fossil_nox_oz_input_rate, nox_oz_input_fossil_zscore) %>%
-               arrange(desc(nox_oz_input_fossil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(subregion_fuel_zscore %>%
+                 filter(nox_oz_input_fossil_zscore > 3 | nox_oz_input_fossil_zscore < -3) %>%             
+                 select(subregion, subregion_fossil_nox_oz_input_rate, nox_oz_input_fossil_zscore) %>%
+                 arrange(desc(nox_oz_input_fossil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -6174,16 +6273,17 @@ knitr::kable(subregion_fuel_zscore %>%
 ```{r}
 #| label: subregion-nox-oz-output-fossil-outliers        
 
-knitr::kable(subregion_fuel_zscore %>%                 
-               filter(nox_oz_output_fossil_zscore > 3 | nox_oz_output_fossil_zscore < -3) %>%      
-               select(subregion, subregion_fossil_nox_oz_output_rate, nox_oz_output_fossil_zscore) %>%                
-               arrange(desc(nox_oz_output_fossil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(subregion_fuel_zscore %>%                 
+                 filter(nox_oz_output_fossil_zscore > 3 | nox_oz_output_fossil_zscore < -3) %>%      
+                 select(subregion, subregion_fossil_nox_oz_output_rate, nox_oz_output_fossil_zscore) %>%                
+                 arrange(desc(nox_oz_output_fossil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -6286,10 +6386,6 @@ nerc_fuel_zscore <-
                                      nerc_stats$nerc_coal_nox_output_rate_average)/ 
            nerc_stats$nerc_coal_nox_output_rate_sd, 
          
-         nox_oz_output_coal_zscore = (nerc_coal_nox_oz_output_rate - 
-                                        nerc_stats$nerc_coal_nox_oz_output_rate_average)/ 
-           nerc_stats$nerc_coal_nox_oz_output_rate_sd, 
-         
          so2_output_coal_zscore = (nerc_coal_so2_output_rate - 
                                      nerc_stats$nerc_coal_so2_output_rate_average)/ 
            nerc_stats$nerc_coal_so2_output_rate_sd,
@@ -6313,10 +6409,6 @@ nerc_fuel_zscore <-
          nox_input_coal_zscore = (nerc_coal_nox_input_rate - 
                                     nerc_stats$nerc_coal_nox_input_rate_average)/ 
            nerc_stats$nerc_coal_nox_input_rate_sd, 
-         
-         nox_oz_input_coal_zscore = (nerc_coal_nox_oz_input_rate - 
-                                       nerc_stats$nerc_coal_nox_oz_input_rate_average)/ 
-           nerc_stats$nerc_coal_nox_oz_input_rate_sd, 
          
          so2_input_coal_zscore = (nerc_coal_so2_input_rate - 
                                     nerc_stats$nerc_coal_so2_input_rate_average)/ 
@@ -6344,10 +6436,6 @@ nerc_fuel_zscore <-
                                     nerc_stats$nerc_oil_nox_output_rate_average)/ 
            nerc_stats$nerc_oil_nox_output_rate_sd, 
          
-         nox_oz_output_oil_zscore = (nerc_oil_nox_oz_output_rate - 
-                                       nerc_stats$nerc_oil_nox_oz_output_rate_average)/ 
-           nerc_stats$nerc_oil_nox_oz_output_rate_sd, 
-         
          so2_output_oil_zscore = (nerc_oil_so2_output_rate - 
                                     nerc_stats$nerc_oil_so2_output_rate_average)/ 
            nerc_stats$nerc_oil_so2_output_rate_sd,
@@ -6371,10 +6459,6 @@ nerc_fuel_zscore <-
          nox_input_oil_zscore = (nerc_oil_nox_input_rate - 
                                    nerc_stats$nerc_oil_nox_input_rate_average)/ 
            nerc_stats$nerc_oil_nox_input_rate_sd, 
-         
-         nox_oz_input_oil_zscore = (nerc_oil_nox_oz_input_rate - 
-                                      nerc_stats$nerc_oil_nox_oz_input_rate_average)/ 
-           nerc_stats$nerc_oil_nox_oz_input_rate_sd, 
          
          so2_input_oil_zscore = (nerc_oil_so2_input_rate - 
                                    nerc_stats$nerc_oil_so2_input_rate_average)/ 
@@ -6402,10 +6486,6 @@ nerc_fuel_zscore <-
                                     nerc_stats$nerc_gas_nox_output_rate_average)/ 
            nerc_stats$nerc_gas_nox_output_rate_sd, 
          
-         nox_oz_output_gas_zscore = (nerc_gas_nox_oz_output_rate - 
-                                       nerc_stats$nerc_gas_nox_oz_output_rate_average)/ 
-           nerc_stats$nerc_gas_nox_oz_output_rate_sd, 
-         
          so2_output_gas_zscore = (nerc_gas_so2_output_rate - 
                                     nerc_stats$nerc_gas_so2_output_rate_average)/ 
            nerc_stats$nerc_gas_so2_output_rate_sd,
@@ -6429,11 +6509,7 @@ nerc_fuel_zscore <-
          nox_input_gas_zscore = (nerc_gas_nox_input_rate - 
                                    nerc_stats$nerc_gas_nox_input_rate_average)/ 
            nerc_stats$nerc_gas_nox_input_rate_sd, 
-         
-         nox_oz_input_gas_zscore = (nerc_gas_nox_oz_input_rate - 
-                                      nerc_stats$nerc_gas_nox_oz_input_rate_average)/ 
-           nerc_stats$nerc_gas_nox_oz_input_rate_sd, 
-         
+        
          so2_input_gas_zscore = (nerc_gas_so2_input_rate - 
                                    nerc_stats$nerc_gas_so2_input_rate_average)/ 
            nerc_stats$nerc_gas_so2_input_rate_sd,
@@ -6460,10 +6536,6 @@ nerc_fuel_zscore <-
                                        nerc_stats$nerc_fossil_nox_output_rate_average)/ 
            nerc_stats$nerc_fossil_nox_output_rate_sd, 
          
-         nox_oz_output_fossil_zscore = (nerc_fossil_nox_oz_output_rate - 
-                                          nerc_stats$nerc_fossil_nox_oz_output_rate_average)/ 
-           nerc_stats$nerc_fossil_nox_oz_output_rate_sd, 
-         
          so2_output_fossil_zscore = (nerc_fossil_so2_output_rate - 
                                        nerc_stats$nerc_fossil_so2_output_rate_average)/ 
            nerc_stats$nerc_fossil_so2_output_rate_sd,
@@ -6488,10 +6560,6 @@ nerc_fuel_zscore <-
                                       nerc_stats$nerc_fossil_nox_input_rate_average)/ 
            nerc_stats$nerc_fossil_nox_input_rate_sd, 
          
-         nox_oz_input_fossil_zscore = (nerc_fossil_nox_oz_input_rate - 
-                                         nerc_stats$nerc_fossil_nox_oz_input_rate_average)/ 
-           nerc_stats$nerc_fossil_nox_oz_input_rate_sd, 
-         
          so2_input_fossil_zscore = (nerc_fossil_so2_input_rate - 
                                       nerc_stats$nerc_fossil_so2_input_rate_average)/ 
            nerc_stats$nerc_fossil_so2_input_rate_sd,
@@ -6510,7 +6578,40 @@ nerc_fuel_zscore <-
          
          co2e_input_fossil_zscore = (nerc_fossil_co2e_input_rate - 
                                        nerc_stats$nerc_fossil_co2e_input_rate_average)/ 
-           nerc_stats$nerc_fossil_co2e_input_rate_sd) %>%
+           nerc_stats$nerc_fossil_co2e_input_rate_sd) 
+
+if(params$temporal_res == "annual") { 
+  nerc_fuel_zscore <- 
+    nerc_fuel_zscore %>% 
+    mutate(
+       nox_oz_output_coal_zscore = (nerc_coal_nox_oz_output_rate - 
+                                        nerc_stats$nerc_coal_nox_oz_output_rate_average)/ 
+           nerc_stats$nerc_coal_nox_oz_output_rate_sd, 
+       nox_oz_input_coal_zscore = (nerc_coal_nox_oz_input_rate - 
+                                       nerc_stats$nerc_coal_nox_oz_input_rate_average)/ 
+           nerc_stats$nerc_coal_nox_oz_input_rate_sd, 
+       nox_oz_output_oil_zscore = (nerc_oil_nox_oz_output_rate - 
+                                       nerc_stats$nerc_oil_nox_oz_output_rate_average)/ 
+           nerc_stats$nerc_oil_nox_oz_output_rate_sd, 
+       nox_oz_input_oil_zscore = (nerc_oil_nox_oz_input_rate - 
+                                      nerc_stats$nerc_oil_nox_oz_input_rate_average)/ 
+           nerc_stats$nerc_oil_nox_oz_input_rate_sd, 
+       nox_oz_output_gas_zscore = (nerc_gas_nox_oz_output_rate - 
+                                       nerc_stats$nerc_gas_nox_oz_output_rate_average)/ 
+           nerc_stats$nerc_gas_nox_oz_output_rate_sd, 
+       nox_oz_input_gas_zscore = (nerc_gas_nox_oz_input_rate - 
+                                      nerc_stats$nerc_gas_nox_oz_input_rate_average)/ 
+           nerc_stats$nerc_gas_nox_oz_input_rate_sd, 
+       nox_oz_output_fossil_zscore = (nerc_fossil_nox_oz_output_rate - 
+                                          nerc_stats$nerc_fossil_nox_oz_output_rate_average)/ 
+           nerc_stats$nerc_fossil_nox_oz_output_rate_sd, 
+       nox_oz_input_fossil_zscore = (nerc_fossil_nox_oz_input_rate - 
+                                         nerc_stats$nerc_fossil_nox_oz_input_rate_average)/ 
+           nerc_stats$nerc_fossil_nox_oz_input_rate_sd
+    )}
+
+nerc_fuel_zscore <- 
+  nerc_fuel_zscore %>%
   select(nerc, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 ```
 
@@ -6539,16 +6640,17 @@ knitr::kable(nerc_fuel_zscore %>%
 ```{r}
 #| label: nerc-nox-oz-input-coal-outliers        
 
-knitr::kable(nerc_fuel_zscore %>% 
-               filter(nox_oz_input_coal_zscore > 3 | nox_oz_input_coal_zscore < -3) %>%             
-               select(nerc, nerc_coal_nox_oz_input_rate, nox_oz_input_coal_zscore) %>%
-               arrange(desc(nox_oz_input_coal_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(nerc_fuel_zscore %>% 
+                 filter(nox_oz_input_coal_zscore > 3 | nox_oz_input_coal_zscore < -3) %>%             
+                 select(nerc, nerc_coal_nox_oz_input_rate, nox_oz_input_coal_zscore) %>%
+                 arrange(desc(nox_oz_input_coal_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -6639,16 +6741,17 @@ knitr::kable(nerc_fuel_zscore %>%
 ```{r}
 #| label: nerc-nox-oz-output-coal-outliers        
 
-knitr::kable(nerc_fuel_zscore %>%                 
-               filter(nox_oz_output_coal_zscore > 3 | nox_oz_output_coal_zscore < -3) %>%                             
-               select(nerc, nerc_coal_nox_oz_output_rate, nox_oz_output_coal_zscore) %>%                
-               arrange(desc(nox_oz_output_coal_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(nerc_fuel_zscore %>%                 
+                 filter(nox_oz_output_coal_zscore > 3 | nox_oz_output_coal_zscore < -3) %>%                             
+                 select(nerc, nerc_coal_nox_oz_output_rate, nox_oz_output_coal_zscore) %>%                
+                 arrange(desc(nox_oz_output_coal_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -6745,16 +6848,17 @@ knitr::kable(nerc_fuel_zscore %>%
 ```{r}
 #| label: nerc-nox-oz-input-oil-outliers        
 
-knitr::kable(nerc_fuel_zscore %>% 
-               filter(nox_oz_input_oil_zscore > 3 | nox_oz_input_oil_zscore < -3) %>%             
-               select(nerc, nerc_oil_nox_oz_input_rate, nox_oz_input_oil_zscore) %>%
-               arrange(desc(nox_oz_input_oil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(nerc_fuel_zscore %>% 
+                 filter(nox_oz_input_oil_zscore > 3 | nox_oz_input_oil_zscore < -3) %>%             
+                 select(nerc, nerc_oil_nox_oz_input_rate, nox_oz_input_oil_zscore) %>%
+                 arrange(desc(nox_oz_input_oil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -6845,16 +6949,17 @@ knitr::kable(nerc_fuel_zscore %>%
 ```{r}
 #| label: nerc-nox-oz-output-oil-outliers          
 
-knitr::kable(nerc_fuel_zscore %>%                                 
-               filter(nox_oz_output_oil_zscore > 3 | nox_oz_output_oil_zscore < -3) %>%                                             
-               select(nerc, nerc_oil_nox_oz_output_rate, nox_oz_output_oil_zscore) %>%                                
-               arrange(desc(nox_oz_output_oil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(nerc_fuel_zscore %>%                                 
+                 filter(nox_oz_output_oil_zscore > 3 | nox_oz_output_oil_zscore < -3) %>%               
+                 select(nerc, nerc_oil_nox_oz_output_rate, nox_oz_output_oil_zscore) %>%                                
+                 arrange(desc(nox_oz_output_oil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -6951,16 +7056,17 @@ knitr::kable(nerc_fuel_zscore %>%
 ```{r}
 #| label: nerc-nox-oz-input-gas-outliers        
 
-knitr::kable(nerc_fuel_zscore %>% 
-               filter(nox_oz_input_gas_zscore > 3 | nox_oz_input_gas_zscore < -3) %>%             
-               select(nerc, nerc_gas_nox_oz_input_rate, nox_oz_input_gas_zscore) %>%
-               arrange(desc(nox_oz_input_gas_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(nerc_fuel_zscore %>% 
+                 filter(nox_oz_input_gas_zscore > 3 | nox_oz_input_gas_zscore < -3) %>%             
+                 select(nerc, nerc_gas_nox_oz_input_rate, nox_oz_input_gas_zscore) %>%
+                 arrange(desc(nox_oz_input_gas_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -7057,16 +7163,17 @@ knitr::kable(nerc_fuel_zscore %>%
 ```{r}
 #| label: nerc-nox-oz-output-gas-outliers        
 
-knitr::kable(nerc_fuel_zscore %>%                 
-               filter(nox_oz_output_gas_zscore > 3 | nox_oz_output_gas_zscore < -3) %>%                             
-               select(nerc, nerc_gas_nox_oz_output_rate, nox_oz_output_gas_zscore) %>%                
-               arrange(desc(nox_oz_output_gas_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(nerc_fuel_zscore %>%                 
+                 filter(nox_oz_output_gas_zscore > 3 | nox_oz_output_gas_zscore < -3) %>%                             
+                 select(nerc, nerc_gas_nox_oz_output_rate, nox_oz_output_gas_zscore) %>%                
+                 arrange(desc(nox_oz_output_gas_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -7163,16 +7270,17 @@ knitr::kable(nerc_fuel_zscore %>%
 ```{r}
 #| label: nerc-nox-oz-input-fossil-outliers          
 
-knitr::kable(nerc_fuel_zscore %>%
-               filter(nox_oz_input_fossil_zscore > 3 | nox_oz_input_fossil_zscore < -3) %>%             
-               select(nerc, nerc_fossil_nox_oz_input_rate, nox_oz_input_fossil_zscore) %>%
-               arrange(desc(nox_oz_input_fossil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(nerc_fuel_zscore %>%
+                 filter(nox_oz_input_fossil_zscore > 3 | nox_oz_input_fossil_zscore < -3) %>%             
+                 select(nerc, nerc_fossil_nox_oz_input_rate, nox_oz_input_fossil_zscore) %>%
+                 arrange(desc(nox_oz_input_fossil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -7269,16 +7377,17 @@ knitr::kable(nerc_fuel_zscore %>%
 ```{r}
 #| label: nerc-nox-oz-output-fossil-outliers        
 
-knitr::kable(nerc_fuel_zscore %>%                 
-               filter(nox_oz_output_fossil_zscore > 3 | nox_oz_output_fossil_zscore < -3) %>%      
-               select(nerc, nerc_fossil_nox_oz_output_rate, nox_oz_output_fossil_zscore) %>%                
-               arrange(desc(nox_oz_output_fossil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(nerc_fuel_zscore %>%                 
+                 filter(nox_oz_output_fossil_zscore > 3 | nox_oz_output_fossil_zscore < -3) %>%      
+                 select(nerc, nerc_fossil_nox_oz_output_rate, nox_oz_output_fossil_zscore) %>%                
+                 arrange(desc(nox_oz_output_fossil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -7379,11 +7488,7 @@ ba_fuel_zscore <-
   ba_agg %>% 
   mutate(nox_output_coal_zscore = (ba_coal_nox_output_rate - 
                                      ba_stats$ba_coal_nox_output_rate_average)/ 
-           ba_stats$ba_coal_nox_output_rate_sd, 
-         
-         nox_oz_output_coal_zscore = (ba_coal_nox_oz_output_rate - 
-                                        ba_stats$ba_coal_nox_oz_output_rate_average)/ 
-           ba_stats$ba_coal_nox_oz_output_rate_sd, 
+           ba_stats$ba_coal_nox_output_rate_sd,
          
          so2_output_coal_zscore = (ba_coal_so2_output_rate - 
                                      ba_stats$ba_coal_so2_output_rate_average)/ 
@@ -7408,10 +7513,6 @@ ba_fuel_zscore <-
          nox_input_coal_zscore = (ba_coal_nox_input_rate - 
                                     ba_stats$ba_coal_nox_input_rate_average)/ 
            ba_stats$ba_coal_nox_input_rate_sd, 
-         
-         nox_oz_input_coal_zscore = (ba_coal_nox_oz_input_rate - 
-                                       ba_stats$ba_coal_nox_oz_input_rate_average)/ 
-           ba_stats$ba_coal_nox_oz_input_rate_sd, 
          
          so2_input_coal_zscore = (ba_coal_so2_input_rate - 
                                     ba_stats$ba_coal_so2_input_rate_average)/ 
@@ -7439,10 +7540,6 @@ ba_fuel_zscore <-
                                     ba_stats$ba_oil_nox_output_rate_average)/ 
            ba_stats$ba_oil_nox_output_rate_sd, 
          
-         nox_oz_output_oil_zscore = (ba_oil_nox_oz_output_rate - 
-                                       ba_stats$ba_oil_nox_oz_output_rate_average)/ 
-           ba_stats$ba_oil_nox_oz_output_rate_sd, 
-         
          so2_output_oil_zscore = (ba_oil_so2_output_rate - 
                                     ba_stats$ba_oil_so2_output_rate_average)/ 
            ba_stats$ba_oil_so2_output_rate_sd,
@@ -7466,10 +7563,6 @@ ba_fuel_zscore <-
          nox_input_oil_zscore = (ba_oil_nox_input_rate - 
                                    ba_stats$ba_oil_nox_input_rate_average)/ 
            ba_stats$ba_oil_nox_input_rate_sd, 
-         
-         nox_oz_input_oil_zscore = (ba_oil_nox_oz_input_rate - 
-                                      ba_stats$ba_oil_nox_oz_input_rate_average)/ 
-           ba_stats$ba_oil_nox_oz_input_rate_sd, 
          
          so2_input_oil_zscore = (ba_oil_so2_input_rate - 
                                    ba_stats$ba_oil_so2_input_rate_average)/ 
@@ -7497,10 +7590,6 @@ ba_fuel_zscore <-
                                     ba_stats$ba_gas_nox_output_rate_average)/ 
            ba_stats$ba_gas_nox_output_rate_sd, 
          
-         nox_oz_output_gas_zscore = (ba_gas_nox_oz_output_rate - 
-                                       ba_stats$ba_gas_nox_oz_output_rate_average)/ 
-           ba_stats$ba_gas_nox_oz_output_rate_sd, 
-         
          so2_output_gas_zscore = (ba_gas_so2_output_rate - 
                                     ba_stats$ba_gas_so2_output_rate_average)/ 
            ba_stats$ba_gas_so2_output_rate_sd,
@@ -7524,10 +7613,6 @@ ba_fuel_zscore <-
          nox_input_gas_zscore = (ba_gas_nox_input_rate - 
                                    ba_stats$ba_gas_nox_input_rate_average)/ 
            ba_stats$ba_gas_nox_input_rate_sd, 
-         
-         nox_oz_input_gas_zscore = (ba_gas_nox_oz_input_rate - 
-                                      ba_stats$ba_gas_nox_oz_input_rate_average)/ 
-           ba_stats$ba_gas_nox_oz_input_rate_sd, 
          
          so2_input_gas_zscore = (ba_gas_so2_input_rate - 
                                    ba_stats$ba_gas_so2_input_rate_average)/ 
@@ -7555,10 +7640,6 @@ ba_fuel_zscore <-
                                        ba_stats$ba_fossil_nox_output_rate_average)/ 
            ba_stats$ba_fossil_nox_output_rate_sd, 
          
-         nox_oz_output_fossil_zscore = (ba_fossil_nox_oz_output_rate - 
-                                          ba_stats$ba_fossil_nox_oz_output_rate_average)/ 
-           ba_stats$ba_fossil_nox_oz_output_rate_sd, 
-         
          so2_output_fossil_zscore = (ba_fossil_so2_output_rate - 
                                        ba_stats$ba_fossil_so2_output_rate_average)/ 
            ba_stats$ba_fossil_so2_output_rate_sd,
@@ -7583,10 +7664,6 @@ ba_fuel_zscore <-
                                       ba_stats$ba_fossil_nox_input_rate_average)/ 
            ba_stats$ba_fossil_nox_input_rate_sd, 
          
-         nox_oz_input_fossil_zscore = (ba_fossil_nox_oz_input_rate - 
-                                         ba_stats$ba_fossil_nox_oz_input_rate_average)/ 
-           ba_stats$ba_fossil_nox_oz_input_rate_sd, 
-         
          so2_input_fossil_zscore = (ba_fossil_so2_input_rate - 
                                       ba_stats$ba_fossil_so2_input_rate_average)/ 
            ba_stats$ba_fossil_so2_input_rate_sd,
@@ -7605,8 +7682,42 @@ ba_fuel_zscore <-
          
          co2e_input_fossil_zscore = (ba_fossil_co2e_input_rate - 
                                        ba_stats$ba_fossil_co2e_input_rate_average)/ 
-           ba_stats$ba_fossil_co2e_input_rate_sd) %>%
+           ba_stats$ba_fossil_co2e_input_rate_sd)
+
+if(params$temporal_res == "annual") { 
+  ba_fuel_zscore <- 
+    ba_fuel_zscore %>% 
+    mutate(
+      nox_oz_output_coal_zscore = (ba_coal_nox_oz_output_rate - 
+                                        ba_stats$ba_coal_nox_oz_output_rate_average)/ 
+           ba_stats$ba_coal_nox_oz_output_rate_sd, 
+      nox_oz_input_coal_zscore = (ba_coal_nox_oz_input_rate - 
+                                       ba_stats$ba_coal_nox_oz_input_rate_average)/ 
+           ba_stats$ba_coal_nox_oz_input_rate_sd, 
+      nox_oz_output_oil_zscore = (ba_oil_nox_oz_output_rate - 
+                                       ba_stats$ba_oil_nox_oz_output_rate_average)/ 
+           ba_stats$ba_oil_nox_oz_output_rate_sd, 
+      nox_oz_input_oil_zscore = (ba_oil_nox_oz_input_rate - 
+                                      ba_stats$ba_oil_nox_oz_input_rate_average)/ 
+           ba_stats$ba_oil_nox_oz_input_rate_sd, 
+      nox_oz_output_gas_zscore = (ba_gas_nox_oz_output_rate - 
+                                       ba_stats$ba_gas_nox_oz_output_rate_average)/ 
+           ba_stats$ba_gas_nox_oz_output_rate_sd, 
+      nox_oz_input_gas_zscore = (ba_gas_nox_oz_input_rate - 
+                                      ba_stats$ba_gas_nox_oz_input_rate_average)/ 
+           ba_stats$ba_gas_nox_oz_input_rate_sd, 
+      nox_oz_output_fossil_zscore = (ba_fossil_nox_oz_output_rate - 
+                                          ba_stats$ba_fossil_nox_oz_output_rate_average)/ 
+           ba_stats$ba_fossil_nox_oz_output_rate_sd, 
+      nox_oz_input_fossil_zscore = (ba_fossil_nox_oz_input_rate - 
+                                         ba_stats$ba_fossil_nox_oz_input_rate_average)/ 
+           ba_stats$ba_fossil_nox_oz_input_rate_sd
+    )}
+
+ba_fuel_zscore <- 
+  ba_fuel_zscore  %>%
   select(ba_code, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+
 ```
 
 ### Coal input rates
@@ -7634,16 +7745,17 @@ knitr::kable(ba_fuel_zscore %>%
 ```{r}
 #| label: ba-nox-oz-input-coal-outliers        
 
-knitr::kable(ba_fuel_zscore %>% 
-               filter(nox_oz_input_coal_zscore > 3 | nox_oz_input_coal_zscore < -3) %>%             
-               select(ba_code, ba_coal_nox_oz_input_rate, nox_oz_input_coal_zscore) %>%
-               arrange(desc(nox_oz_input_coal_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(ba_fuel_zscore %>% 
+                 filter(nox_oz_input_coal_zscore > 3 | nox_oz_input_coal_zscore < -3) %>%             
+                 select(ba_code, ba_coal_nox_oz_input_rate, nox_oz_input_coal_zscore) %>%
+                 arrange(desc(nox_oz_input_coal_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -7740,16 +7852,17 @@ knitr::kable(ba_fuel_zscore %>%
 ```{r}
 #| label: ba-nox-oz-output-coal-outliers        
 
-knitr::kable(ba_fuel_zscore %>%                 
-               filter(nox_oz_output_coal_zscore > 3 | nox_oz_output_coal_zscore < -3) %>%                             
-               select(ba_code, ba_coal_nox_oz_output_rate, nox_oz_output_coal_zscore) %>%                
-               arrange(desc(nox_oz_output_coal_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(ba_fuel_zscore %>%                 
+                 filter(nox_oz_output_coal_zscore > 3 | nox_oz_output_coal_zscore < -3) %>%                             
+                 select(ba_code, ba_coal_nox_oz_output_rate, nox_oz_output_coal_zscore) %>%                
+                 arrange(desc(nox_oz_output_coal_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -7846,16 +7959,17 @@ knitr::kable(ba_fuel_zscore %>%
 ```{r}
 #| label: ba-nox-oz-input-oil-outliers        
 
-knitr::kable(ba_fuel_zscore %>% 
-               filter(nox_oz_input_oil_zscore > 3 | nox_oz_input_oil_zscore < -3) %>%             
-               select(ba_code, ba_oil_nox_oz_input_rate, nox_oz_input_oil_zscore) %>%
-               arrange(desc(nox_oz_input_oil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(ba_fuel_zscore %>% 
+                 filter(nox_oz_input_oil_zscore > 3 | nox_oz_input_oil_zscore < -3) %>%             
+                 select(ba_code, ba_oil_nox_oz_input_rate, nox_oz_input_oil_zscore) %>%
+                 arrange(desc(nox_oz_input_oil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -7952,16 +8066,17 @@ knitr::kable(ba_fuel_zscore %>%
 ```{r}
 #| label: ba-nox-oz-output-oil-outliers          
 
-knitr::kable(ba_fuel_zscore %>%                                 
-               filter(nox_oz_output_oil_zscore > 3 | nox_oz_output_oil_zscore < -3) %>%                                             
-               select(ba_code, ba_oil_nox_oz_output_rate, nox_oz_output_oil_zscore) %>%                                
-               arrange(desc(nox_oz_output_oil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(ba_fuel_zscore %>%                                 
+                 filter(nox_oz_output_oil_zscore > 3 | nox_oz_output_oil_zscore < -3) %>%                           
+                 select(ba_code, ba_oil_nox_oz_output_rate, nox_oz_output_oil_zscore) %>%                                
+                 arrange(desc(nox_oz_output_oil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -8058,16 +8173,17 @@ knitr::kable(ba_fuel_zscore %>%
 ```{r}
 #| label: ba-nox-oz-input-gas-outliers        
 
-knitr::kable(ba_fuel_zscore %>% 
-               filter(nox_oz_input_gas_zscore > 3 | nox_oz_input_gas_zscore < -3) %>%             
-               select(ba_code, ba_gas_nox_oz_input_rate, nox_oz_input_gas_zscore) %>%
-               arrange(desc(nox_oz_input_gas_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(ba_fuel_zscore %>% 
+                 filter(nox_oz_input_gas_zscore > 3 | nox_oz_input_gas_zscore < -3) %>%             
+                 select(ba_code, ba_gas_nox_oz_input_rate, nox_oz_input_gas_zscore) %>%
+                 arrange(desc(nox_oz_input_gas_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -8164,16 +8280,17 @@ knitr::kable(ba_fuel_zscore %>%
 ```{r}
 #| label: ba-nox-oz-output-gas-outliers        
 
-knitr::kable(ba_fuel_zscore %>%                 
-               filter(nox_oz_output_gas_zscore > 3 | nox_oz_output_gas_zscore < -3) %>%                             
-               select(ba_code, ba_gas_nox_oz_output_rate, nox_oz_output_gas_zscore) %>%                
-               arrange(desc(nox_oz_output_gas_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(ba_fuel_zscore %>%                 
+                 filter(nox_oz_output_gas_zscore > 3 | nox_oz_output_gas_zscore < -3) %>%                             
+                 select(ba_code, ba_gas_nox_oz_output_rate, nox_oz_output_gas_zscore) %>%                
+                 arrange(desc(nox_oz_output_gas_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -8270,16 +8387,17 @@ knitr::kable(ba_fuel_zscore %>%
 ```{r}
 #| label: ba-nox-oz-input-fossil-outliers          
 
-knitr::kable(ba_fuel_zscore %>%
-               filter(nox_oz_input_fossil_zscore > 3 | nox_oz_input_fossil_zscore < -3) %>%             
-               select(ba_code, ba_fossil_nox_oz_input_rate, nox_oz_input_fossil_zscore) %>%
-               arrange(desc(nox_oz_input_fossil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(ba_fuel_zscore %>%
+                 filter(nox_oz_input_fossil_zscore > 3 | nox_oz_input_fossil_zscore < -3) %>%             
+                 select(ba_code, ba_fossil_nox_oz_input_rate, nox_oz_input_fossil_zscore) %>%
+                 arrange(desc(nox_oz_input_fossil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -8376,16 +8494,17 @@ knitr::kable(ba_fuel_zscore %>%
 ```{r}
 #| label: ba-nox-oz-output-fossil-outliers        
 
-knitr::kable(ba_fuel_zscore %>%                 
-               filter(nox_oz_output_fossil_zscore > 3 | nox_oz_output_fossil_zscore < -3) %>%      
-               select(ba_code, ba_fossil_nox_oz_output_rate, nox_oz_output_fossil_zscore) %>%                
-               arrange(desc(nox_oz_output_fossil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(ba_fuel_zscore %>%                 
+                 filter(nox_oz_output_fossil_zscore > 3 | nox_oz_output_fossil_zscore < -3) %>%      
+                 select(ba_code, ba_fossil_nox_oz_output_rate, nox_oz_output_fossil_zscore) %>%                
+                 arrange(desc(nox_oz_output_fossil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -8488,10 +8607,6 @@ us_fuel_zscore <-
                                      us_stats$us_coal_nox_output_rate_average)/ 
            us_stats$us_coal_nox_output_rate_sd, 
          
-         nox_oz_output_coal_zscore = (us_coal_nox_oz_output_rate - 
-                                        us_stats$us_coal_nox_oz_output_rate_average)/ 
-           us_stats$us_coal_nox_oz_output_rate_sd, 
-         
          so2_output_coal_zscore = (us_coal_so2_output_rate - 
                                      us_stats$us_coal_so2_output_rate_average)/ 
            us_stats$us_coal_so2_output_rate_sd,
@@ -8515,10 +8630,6 @@ us_fuel_zscore <-
          nox_input_coal_zscore = (us_coal_nox_input_rate - 
                                     us_stats$us_coal_nox_input_rate_average)/ 
            us_stats$us_coal_nox_input_rate_sd, 
-         
-         nox_oz_input_coal_zscore = (us_coal_nox_oz_input_rate - 
-                                       us_stats$us_coal_nox_oz_input_rate_average)/ 
-           us_stats$us_coal_nox_oz_input_rate_sd, 
          
          so2_input_coal_zscore = (us_coal_so2_input_rate - 
                                     us_stats$us_coal_so2_input_rate_average)/ 
@@ -8546,10 +8657,6 @@ us_fuel_zscore <-
                                     us_stats$us_oil_nox_output_rate_average)/ 
            us_stats$us_oil_nox_output_rate_sd, 
          
-         nox_oz_output_oil_zscore = (us_oil_nox_oz_output_rate - 
-                                       us_stats$us_oil_nox_oz_output_rate_average)/ 
-           us_stats$us_oil_nox_oz_output_rate_sd, 
-         
          so2_output_oil_zscore = (us_oil_so2_output_rate - 
                                     us_stats$us_oil_so2_output_rate_average)/ 
            us_stats$us_oil_so2_output_rate_sd,
@@ -8573,10 +8680,6 @@ us_fuel_zscore <-
          nox_input_oil_zscore = (us_oil_nox_input_rate - 
                                    us_stats$us_oil_nox_input_rate_average)/ 
            us_stats$us_oil_nox_input_rate_sd, 
-         
-         nox_oz_input_oil_zscore = (us_oil_nox_oz_input_rate - 
-                                      us_stats$us_oil_nox_oz_input_rate_average)/ 
-           us_stats$us_oil_nox_oz_input_rate_sd, 
          
          so2_input_oil_zscore = (us_oil_so2_input_rate - 
                                    us_stats$us_oil_so2_input_rate_average)/ 
@@ -8604,10 +8707,6 @@ us_fuel_zscore <-
                                     us_stats$us_gas_nox_output_rate_average)/ 
            us_stats$us_gas_nox_output_rate_sd, 
          
-         nox_oz_output_gas_zscore = (us_gas_nox_oz_output_rate - 
-                                       us_stats$us_gas_nox_oz_output_rate_average)/ 
-           us_stats$us_gas_nox_oz_output_rate_sd, 
-         
          so2_output_gas_zscore = (us_gas_so2_output_rate - 
                                     us_stats$us_gas_so2_output_rate_average)/ 
            us_stats$us_gas_so2_output_rate_sd,
@@ -8631,10 +8730,6 @@ us_fuel_zscore <-
          nox_input_gas_zscore = (us_gas_nox_input_rate - 
                                    us_stats$us_gas_nox_input_rate_average)/ 
            us_stats$us_gas_nox_input_rate_sd, 
-         
-         nox_oz_input_gas_zscore = (us_gas_nox_oz_input_rate - 
-                                      us_stats$us_gas_nox_oz_input_rate_average)/ 
-           us_stats$us_gas_nox_oz_input_rate_sd, 
          
          so2_input_gas_zscore = (us_gas_so2_input_rate - 
                                    us_stats$us_gas_so2_input_rate_average)/ 
@@ -8660,11 +8755,7 @@ us_fuel_zscore <-
          
          nox_output_fossil_zscore = (us_fossil_nox_output_rate - 
                                        us_stats$us_fossil_nox_output_rate_average)/ 
-           us_stats$us_fossil_nox_output_rate_sd, 
-         
-         nox_oz_output_fossil_zscore = (us_fossil_nox_oz_output_rate - 
-                                          us_stats$us_fossil_nox_oz_output_rate_average)/ 
-           us_stats$us_fossil_nox_oz_output_rate_sd, 
+           us_stats$us_fossil_nox_output_rate_sd,
          
          so2_output_fossil_zscore = (us_fossil_so2_output_rate - 
                                        us_stats$us_fossil_so2_output_rate_average)/ 
@@ -8690,10 +8781,6 @@ us_fuel_zscore <-
                                       us_stats$us_fossil_nox_input_rate_average)/ 
            us_stats$us_fossil_nox_input_rate_sd, 
          
-         nox_oz_input_fossil_zscore = (us_fossil_nox_oz_input_rate - 
-                                         us_stats$us_fossil_nox_oz_input_rate_average)/ 
-           us_stats$us_fossil_nox_oz_input_rate_sd, 
-         
          so2_input_fossil_zscore = (us_fossil_so2_input_rate - 
                                       us_stats$us_fossil_so2_input_rate_average)/ 
            us_stats$us_fossil_so2_input_rate_sd,
@@ -8712,8 +8799,42 @@ us_fuel_zscore <-
          
          co2e_input_fossil_zscore = (us_fossil_co2e_input_rate - 
                                        us_stats$us_fossil_co2e_input_rate_average)/ 
-           us_stats$us_fossil_co2e_input_rate_sd) %>%
+           us_stats$us_fossil_co2e_input_rate_sd) 
+
+if(params$temporal_res == "annual") { 
+  us_fuel_zscore <- 
+    us_fuel_zscore %>% 
+    mutate(
+      nox_oz_output_coal_zscore = (us_coal_nox_oz_output_rate - 
+                                        us_stats$us_coal_nox_oz_output_rate_average)/ 
+           us_stats$us_coal_nox_oz_output_rate_sd, 
+      nox_oz_input_coal_zscore = (us_coal_nox_oz_input_rate - 
+                                       us_stats$us_coal_nox_oz_input_rate_average)/ 
+           us_stats$us_coal_nox_oz_input_rate_sd, 
+      nox_oz_output_oil_zscore = (us_oil_nox_oz_output_rate - 
+                                       us_stats$us_oil_nox_oz_output_rate_average)/ 
+           us_stats$us_oil_nox_oz_output_rate_sd, 
+      nox_oz_input_oil_zscore = (us_oil_nox_oz_input_rate - 
+                                      us_stats$us_oil_nox_oz_input_rate_average)/ 
+           us_stats$us_oil_nox_oz_input_rate_sd, 
+      nox_oz_output_gas_zscore = (us_gas_nox_oz_output_rate - 
+                                       us_stats$us_gas_nox_oz_output_rate_average)/ 
+           us_stats$us_gas_nox_oz_output_rate_sd, 
+      nox_oz_input_gas_zscore = (us_gas_nox_oz_input_rate - 
+                                      us_stats$us_gas_nox_oz_input_rate_average)/ 
+           us_stats$us_gas_nox_oz_input_rate_sd, 
+      nox_oz_output_fossil_zscore = (us_fossil_nox_oz_output_rate - 
+                                          us_stats$us_fossil_nox_oz_output_rate_average)/ 
+           us_stats$us_fossil_nox_oz_output_rate_sd, 
+      nox_oz_input_fossil_zscore = (us_fossil_nox_oz_input_rate - 
+                                         us_stats$us_fossil_nox_oz_input_rate_average)/ 
+           us_stats$us_fossil_nox_oz_input_rate_sd
+    )}
+
+us_fuel_zscore <- 
+  us_fuel_zscore %>%
   select(contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+
 ```
 
 ### Coal input rates
@@ -8741,16 +8862,17 @@ knitr::kable(us_fuel_zscore %>%
 ```{r}
 #| label: us-nox-oz-input-coal-outliers        
 
-knitr::kable(us_fuel_zscore %>% 
-               filter(nox_oz_input_coal_zscore > 3 | nox_oz_input_coal_zscore < -3) %>%             
-               select(us_coal_nox_oz_input_rate, nox_oz_input_coal_zscore) %>%
-               arrange(desc(nox_oz_input_coal_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(us_fuel_zscore %>% 
+                 filter(nox_oz_input_coal_zscore > 3 | nox_oz_input_coal_zscore < -3) %>%             
+                 select(us_coal_nox_oz_input_rate, nox_oz_input_coal_zscore) %>%
+                 arrange(desc(nox_oz_input_coal_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -8847,16 +8969,17 @@ knitr::kable(us_fuel_zscore %>%
 ```{r}
 #| label: us-nox-oz-output-coal-outliers        
 
-knitr::kable(us_fuel_zscore %>%                 
-               filter(nox_oz_output_coal_zscore > 3 | nox_oz_output_coal_zscore < -3) %>%                             
-               select(us_coal_nox_oz_output_rate, nox_oz_output_coal_zscore) %>%                
-               arrange(desc(nox_oz_output_coal_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(us_fuel_zscore %>%                 
+                 filter(nox_oz_output_coal_zscore > 3 | nox_oz_output_coal_zscore < -3) %>%                             
+                 select(us_coal_nox_oz_output_rate, nox_oz_output_coal_zscore) %>%                
+                 arrange(desc(nox_oz_output_coal_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -8953,16 +9076,17 @@ knitr::kable(us_fuel_zscore %>%
 ```{r}
 #| label: us-nox-oz-input-oil-outliers        
 
-knitr::kable(us_fuel_zscore %>% 
-               filter(nox_oz_input_oil_zscore > 3 | nox_oz_input_oil_zscore < -3) %>%             
-               select(us_oil_nox_oz_input_rate, nox_oz_input_oil_zscore) %>%
-               arrange(desc(nox_oz_input_oil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(us_fuel_zscore %>% 
+                 filter(nox_oz_input_oil_zscore > 3 | nox_oz_input_oil_zscore < -3) %>%             
+                 select(us_oil_nox_oz_input_rate, nox_oz_input_oil_zscore) %>%
+                 arrange(desc(nox_oz_input_oil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -9059,16 +9183,17 @@ knitr::kable(us_fuel_zscore %>%
 ```{r}
 #| label: us-nox-oz-output-oil-outliers          
 
-knitr::kable(us_fuel_zscore %>%                                 
-               filter(nox_oz_output_oil_zscore > 3 | nox_oz_output_oil_zscore < -3) %>%                                             
-               select(us_oil_nox_oz_output_rate, nox_oz_output_oil_zscore) %>%                                
-               arrange(desc(nox_oz_output_oil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(us_fuel_zscore %>%                                 
+                 filter(nox_oz_output_oil_zscore > 3 | nox_oz_output_oil_zscore < -3) %>%             
+                 select(us_oil_nox_oz_output_rate, nox_oz_output_oil_zscore) %>%                                
+                 arrange(desc(nox_oz_output_oil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -9165,16 +9290,17 @@ knitr::kable(us_fuel_zscore %>%
 ```{r}
 #| label: us-nox-oz-input-gas-outliers        
 
-knitr::kable(us_fuel_zscore %>% 
-               filter(nox_oz_input_gas_zscore > 3 | nox_oz_input_gas_zscore < -3) %>%             
-               select(us_gas_nox_oz_input_rate, nox_oz_input_gas_zscore) %>%
-               arrange(desc(nox_oz_input_gas_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(us_fuel_zscore %>% 
+                 filter(nox_oz_input_gas_zscore > 3 | nox_oz_input_gas_zscore < -3) %>%             
+                 select(us_gas_nox_oz_input_rate, nox_oz_input_gas_zscore) %>%
+                 arrange(desc(nox_oz_input_gas_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -9271,16 +9397,17 @@ knitr::kable(us_fuel_zscore %>%
 ```{r}
 #| label: us-nox-oz-output-gas-outliers        
 
-knitr::kable(us_fuel_zscore %>%                 
-               filter(nox_oz_output_gas_zscore > 3 | nox_oz_output_gas_zscore < -3) %>%                             
-               select(us_gas_nox_oz_output_rate, nox_oz_output_gas_zscore) %>%                
-               arrange(desc(nox_oz_output_gas_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(us_fuel_zscore %>%                 
+                 filter(nox_oz_output_gas_zscore > 3 | nox_oz_output_gas_zscore < -3) %>%                             
+                 select(us_gas_nox_oz_output_rate, nox_oz_output_gas_zscore) %>%                
+                 arrange(desc(nox_oz_output_gas_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -9377,16 +9504,17 @@ knitr::kable(us_fuel_zscore %>%
 ```{r}
 #| label: us-nox-oz-input-fossil-outliers          
 
-knitr::kable(us_fuel_zscore %>%
-               filter(nox_oz_input_fossil_zscore > 3 | nox_oz_input_fossil_zscore < -3) %>%             
-               select(us_fossil_nox_oz_input_rate, nox_oz_input_fossil_zscore) %>%
-               arrange(desc(nox_oz_input_fossil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(us_fuel_zscore %>%
+                 filter(nox_oz_input_fossil_zscore > 3 | nox_oz_input_fossil_zscore < -3) %>%             
+                 select(us_fossil_nox_oz_input_rate, nox_oz_input_fossil_zscore) %>%
+                 arrange(desc(nox_oz_input_fossil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -9483,16 +9611,17 @@ knitr::kable(us_fuel_zscore %>%
 ```{r}
 #| label: us-nox-oz-output-fossil-outliers        
 
-knitr::kable(us_fuel_zscore %>%                 
-               filter(nox_oz_output_fossil_zscore > 3 | nox_oz_output_fossil_zscore < -3) %>%      
-               select(us_fossil_nox_oz_output_rate, nox_oz_output_fossil_zscore) %>%                
-               arrange(desc(nox_oz_output_fossil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") {
+  knitr::kable(us_fuel_zscore %>%                 
+                 filter(nox_oz_output_fossil_zscore > 3 | nox_oz_output_fossil_zscore < -3) %>%      
+                 select(us_fossil_nox_oz_output_rate, nox_oz_output_fossil_zscore) %>%                
+                 arrange(desc(nox_oz_output_fossil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -9595,10 +9724,6 @@ state_fuel_zscore <-
                                      state_stats$state_coal_nox_output_rate_average)/ 
            state_stats$state_coal_nox_output_rate_sd, 
          
-         nox_oz_output_coal_zscore = (state_coal_nox_oz_output_rate - 
-                                        state_stats$state_coal_nox_oz_output_rate_average)/ 
-           state_stats$state_coal_nox_oz_output_rate_sd, 
-         
          so2_output_coal_zscore = (state_coal_so2_output_rate - 
                                      state_stats$state_coal_so2_output_rate_average)/ 
            state_stats$state_coal_so2_output_rate_sd,
@@ -9622,10 +9747,6 @@ state_fuel_zscore <-
          nox_input_coal_zscore = (state_coal_nox_input_rate - 
                                     state_stats$state_coal_nox_input_rate_average)/ 
            state_stats$state_coal_nox_input_rate_sd, 
-         
-         nox_oz_input_coal_zscore = (state_coal_nox_oz_input_rate - 
-                                       state_stats$state_coal_nox_oz_input_rate_average)/ 
-           state_stats$state_coal_nox_oz_input_rate_sd, 
          
          so2_input_coal_zscore = (state_coal_so2_input_rate - 
                                     state_stats$state_coal_so2_input_rate_average)/ 
@@ -9653,10 +9774,6 @@ state_fuel_zscore <-
                                     state_stats$state_oil_nox_output_rate_average)/ 
            state_stats$state_oil_nox_output_rate_sd, 
          
-         nox_oz_output_oil_zscore = (state_oil_nox_oz_output_rate - 
-                                       state_stats$state_oil_nox_oz_output_rate_average)/ 
-           state_stats$state_oil_nox_oz_output_rate_sd, 
-         
          so2_output_oil_zscore = (state_oil_so2_output_rate - 
                                     state_stats$state_oil_so2_output_rate_average)/ 
            state_stats$state_oil_so2_output_rate_sd,
@@ -9680,10 +9797,6 @@ state_fuel_zscore <-
          nox_input_oil_zscore = (state_oil_nox_input_rate - 
                                    state_stats$state_oil_nox_input_rate_average)/ 
            state_stats$state_oil_nox_input_rate_sd, 
-         
-         nox_oz_input_oil_zscore = (state_oil_nox_oz_input_rate - 
-                                      state_stats$state_oil_nox_oz_input_rate_average)/ 
-           state_stats$state_oil_nox_oz_input_rate_sd, 
          
          so2_input_oil_zscore = (state_oil_so2_input_rate - 
                                    state_stats$state_oil_so2_input_rate_average)/ 
@@ -9711,10 +9824,6 @@ state_fuel_zscore <-
                                     state_stats$state_gas_nox_output_rate_average)/ 
            state_stats$state_gas_nox_output_rate_sd, 
          
-         nox_oz_output_gas_zscore = (state_gas_nox_oz_output_rate - 
-                                       state_stats$state_gas_nox_oz_output_rate_average)/ 
-           state_stats$state_gas_nox_oz_output_rate_sd, 
-         
          so2_output_gas_zscore = (state_gas_so2_output_rate - 
                                     state_stats$state_gas_so2_output_rate_average)/ 
            state_stats$state_gas_so2_output_rate_sd,
@@ -9738,10 +9847,6 @@ state_fuel_zscore <-
          nox_input_gas_zscore = (state_gas_nox_input_rate - 
                                    state_stats$state_gas_nox_input_rate_average)/ 
            state_stats$state_gas_nox_input_rate_sd, 
-         
-         nox_oz_input_gas_zscore = (state_gas_nox_oz_input_rate - 
-                                      state_stats$state_gas_nox_oz_input_rate_average)/ 
-           state_stats$state_gas_nox_oz_input_rate_sd, 
          
          so2_input_gas_zscore = (state_gas_so2_input_rate - 
                                    state_stats$state_gas_so2_input_rate_average)/ 
@@ -9769,10 +9874,6 @@ state_fuel_zscore <-
                                        state_stats$state_fossil_nox_output_rate_average)/ 
            state_stats$state_fossil_nox_output_rate_sd, 
          
-         nox_oz_output_fossil_zscore = (state_fossil_nox_oz_output_rate - 
-                                          state_stats$state_fossil_nox_oz_output_rate_average)/ 
-           state_stats$state_fossil_nox_oz_output_rate_sd, 
-         
          so2_output_fossil_zscore = (state_fossil_so2_output_rate - 
                                        state_stats$state_fossil_so2_output_rate_average)/ 
            state_stats$state_fossil_so2_output_rate_sd,
@@ -9797,10 +9898,6 @@ state_fuel_zscore <-
                                       state_stats$state_fossil_nox_input_rate_average)/ 
            state_stats$state_fossil_nox_input_rate_sd, 
          
-         nox_oz_input_fossil_zscore = (state_fossil_nox_oz_input_rate - 
-                                         state_stats$state_fossil_nox_oz_input_rate_average)/ 
-           state_stats$state_fossil_nox_oz_input_rate_sd, 
-         
          so2_input_fossil_zscore = (state_fossil_so2_input_rate - 
                                       state_stats$state_fossil_so2_input_rate_average)/ 
            state_stats$state_fossil_so2_input_rate_sd,
@@ -9819,8 +9916,42 @@ state_fuel_zscore <-
          
          co2e_input_fossil_zscore = (state_fossil_co2e_input_rate - 
                                        state_stats$state_fossil_co2e_input_rate_average)/ 
-           state_stats$state_fossil_co2e_input_rate_sd) %>%
+           state_stats$state_fossil_co2e_input_rate_sd) 
+
+if(params$temporal_res == "annual") { 
+  state_fuel_zscore <- 
+    state_fuel_zscore %>% 
+    mutate(
+      nox_oz_output_coal_zscore = (state_coal_nox_oz_output_rate - 
+                                        state_stats$state_coal_nox_oz_output_rate_average)/ 
+           state_stats$state_coal_nox_oz_output_rate_sd, 
+      nox_oz_input_coal_zscore = (state_coal_nox_oz_input_rate - 
+                                       state_stats$state_coal_nox_oz_input_rate_average)/ 
+           state_stats$state_coal_nox_oz_input_rate_sd, 
+      nox_oz_output_oil_zscore = (state_oil_nox_oz_output_rate - 
+                                       state_stats$state_oil_nox_oz_output_rate_average)/ 
+           state_stats$state_oil_nox_oz_output_rate_sd, 
+      nox_oz_input_oil_zscore = (state_oil_nox_oz_input_rate - 
+                                      state_stats$state_oil_nox_oz_input_rate_average)/ 
+           state_stats$state_oil_nox_oz_input_rate_sd, 
+      nox_oz_output_gas_zscore = (state_gas_nox_oz_output_rate - 
+                                       state_stats$state_gas_nox_oz_output_rate_average)/ 
+           state_stats$state_gas_nox_oz_output_rate_sd, 
+      nox_oz_input_gas_zscore = (state_gas_nox_oz_input_rate - 
+                                      state_stats$state_gas_nox_oz_input_rate_average)/ 
+           state_stats$state_gas_nox_oz_input_rate_sd, 
+      nox_oz_input_fossil_zscore = (state_fossil_nox_oz_input_rate - 
+                                         state_stats$state_fossil_nox_oz_input_rate_average)/ 
+           state_stats$state_fossil_nox_oz_input_rate_sd, 
+      nox_oz_output_fossil_zscore = (state_fossil_nox_oz_output_rate - 
+                                          state_stats$state_fossil_nox_oz_output_rate_average)/ 
+           state_stats$state_fossil_nox_oz_output_rate_sd
+    )}
+
+state_fuel_zscore <- 
+  state_fuel_zscore %>%
   select(state, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
+
 ```
 
 ### Coal input rates
@@ -9848,16 +9979,17 @@ knitr::kable(state_fuel_zscore %>%
 ```{r}
 #| label: state-nox-oz-input-coal-outliers        
 
-knitr::kable(state_fuel_zscore %>% 
-               filter(nox_oz_input_coal_zscore > 3 | nox_oz_input_coal_zscore < -3) %>%             
-               select(state, state_coal_nox_oz_input_rate, nox_oz_input_coal_zscore) %>%
-               arrange(desc(nox_oz_input_coal_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(state_fuel_zscore %>% 
+                 filter(nox_oz_input_coal_zscore > 3 | nox_oz_input_coal_zscore < -3) %>%             
+                 select(state, state_coal_nox_oz_input_rate, nox_oz_input_coal_zscore) %>%
+                 arrange(desc(nox_oz_input_coal_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -9954,16 +10086,17 @@ knitr::kable(state_fuel_zscore %>%
 ```{r}
 #| label: state-nox-oz-output-coal-outliers        
 
-knitr::kable(state_fuel_zscore %>%                 
-               filter(nox_oz_output_coal_zscore > 3 | nox_oz_output_coal_zscore < -3) %>%                             
-               select(state, state_coal_nox_oz_output_rate, nox_oz_output_coal_zscore) %>%                
-               arrange(desc(nox_oz_output_coal_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(state_fuel_zscore %>%                 
+                 filter(nox_oz_output_coal_zscore > 3 | nox_oz_output_coal_zscore < -3) %>%                             
+                 select(state, state_coal_nox_oz_output_rate, nox_oz_output_coal_zscore) %>%                
+                 arrange(desc(nox_oz_output_coal_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -10060,16 +10193,17 @@ knitr::kable(state_fuel_zscore %>%
 ```{r}
 #| label: state-nox-oz-input-oil-outliers        
 
-knitr::kable(state_fuel_zscore %>% 
-               filter(nox_oz_input_oil_zscore > 3 | nox_oz_input_oil_zscore < -3) %>%             
-               select(state, state_oil_nox_oz_input_rate, nox_oz_input_oil_zscore) %>%
-               arrange(desc(nox_oz_input_oil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(state_fuel_zscore %>% 
+                 filter(nox_oz_input_oil_zscore > 3 | nox_oz_input_oil_zscore < -3) %>%             
+                 select(state, state_oil_nox_oz_input_rate, nox_oz_input_oil_zscore) %>%
+                 arrange(desc(nox_oz_input_oil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -10166,16 +10300,17 @@ knitr::kable(state_fuel_zscore %>%
 ```{r}
 #| label: state-nox-oz-output-oil-outliers          
 
-knitr::kable(state_fuel_zscore %>%                                 
-               filter(nox_oz_output_oil_zscore > 3 | nox_oz_output_oil_zscore < -3) %>%                                             
-               select(state, state_oil_nox_oz_output_rate, nox_oz_output_oil_zscore) %>%                                
-               arrange(desc(nox_oz_output_oil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(state_fuel_zscore %>%                                 
+                 filter(nox_oz_output_oil_zscore > 3 | nox_oz_output_oil_zscore < -3) %>%                           
+                 select(state, state_oil_nox_oz_output_rate, nox_oz_output_oil_zscore) %>%                                
+                 arrange(desc(nox_oz_output_oil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -10272,16 +10407,17 @@ knitr::kable(state_fuel_zscore %>%
 ```{r}
 #| label: state-nox-oz-input-gas-outliers        
 
-knitr::kable(state_fuel_zscore %>% 
-               filter(nox_oz_input_gas_zscore > 3 | nox_oz_input_gas_zscore < -3) %>%             
-               select(state, state_gas_nox_oz_input_rate, nox_oz_input_gas_zscore) %>%
-               arrange(desc(nox_oz_input_gas_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(state_fuel_zscore %>% 
+                 filter(nox_oz_input_gas_zscore > 3 | nox_oz_input_gas_zscore < -3) %>%             
+                 select(state, state_gas_nox_oz_input_rate, nox_oz_input_gas_zscore) %>%
+                 arrange(desc(nox_oz_input_gas_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -10378,16 +10514,17 @@ knitr::kable(state_fuel_zscore %>%
 ```{r}
 #| label: state-nox-oz-output-gas-outliers        
 
-knitr::kable(state_fuel_zscore %>%                 
-               filter(nox_oz_output_gas_zscore > 3 | nox_oz_output_gas_zscore < -3) %>%                             
-               select(state, state_gas_nox_oz_output_rate, nox_oz_output_gas_zscore) %>%                
-               arrange(desc(nox_oz_output_gas_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(state_fuel_zscore %>%                 
+                 filter(nox_oz_output_gas_zscore > 3 | nox_oz_output_gas_zscore < -3) %>%                             
+                 select(state, state_gas_nox_oz_output_rate, nox_oz_output_gas_zscore) %>%                
+                 arrange(desc(nox_oz_output_gas_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -10484,16 +10621,17 @@ knitr::kable(state_fuel_zscore %>%
 ```{r}
 #| label: state-nox-oz-input-fossil-outliers          
 
-knitr::kable(state_fuel_zscore %>%
-               filter(nox_oz_input_fossil_zscore > 3 | nox_oz_input_fossil_zscore < -3) %>%             
-               select(state, state_fossil_nox_oz_input_rate, nox_oz_input_fossil_zscore) %>%
-               arrange(desc(nox_oz_input_fossil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(state_fuel_zscore %>%
+                 filter(nox_oz_input_fossil_zscore > 3 | nox_oz_input_fossil_zscore < -3) %>%             
+                 select(state, state_fossil_nox_oz_input_rate, nox_oz_input_fossil_zscore) %>%
+                 arrange(desc(nox_oz_input_fossil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 input rate
@@ -10590,16 +10728,17 @@ knitr::kable(state_fuel_zscore %>%
 ```{r}
 #| label: state-nox-oz-output-fossil-outliers        
 
-knitr::kable(state_fuel_zscore %>%                 
-               filter(nox_oz_output_fossil_zscore > 3 | nox_oz_output_fossil_zscore < -3) %>%      
-               select(state, state_fossil_nox_oz_output_rate, nox_oz_output_fossil_zscore) %>%                
-               arrange(desc(nox_oz_output_fossil_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(state_fuel_zscore %>%                 
+                 filter(nox_oz_output_fossil_zscore > 3 | nox_oz_output_fossil_zscore < -3) %>%      
+                 select(state, state_fossil_nox_oz_output_rate, nox_oz_output_fossil_zscore) %>%                
+                 arrange(desc(nox_oz_output_fossil_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -10697,7 +10836,6 @@ subregion_stats <-
 stats_summary <- bind_cols(plant_stats_summary, subregion_stats) 
 
 if (params$temporal_res == "annual") { 
-  
   subregion_nonbaseload_zscore <- 
     subrgn_agg %>% 
     mutate(nox_nonbaseload_output_zscore = (subregion_nox_output_rate_nonbaseload -
@@ -10734,10 +10872,6 @@ if (params$temporal_res == "annual") {
     mutate(nox_nonbaseload_output_zscore = (subregion_nox_output_rate_nonbaseload -
                                               stats_summary$subregion_nox_output_rate_nonbaseload_average)/
              stats_summary$subregion_nox_output_rate_nonbaseload_sd,
-           
-           nox_oz_nonbaseload_output_zscore = (subregion_nox_output_rate_nonbaseload - 
-                                                 stats_summary$subregion_nox_oz_output_rate_nonbaseload_average)/
-             stats_summary$subregion_nox_oz_output_rate_nonbaseload_sd,
            
            so2_nonbaseload_output_zscore = (subregion_so2_output_rate_nonbaseload -
                                               stats_summary$subregion_so2_output_rate_nonbaseload_average)/
@@ -10788,16 +10922,17 @@ knitr::kable(subregion_nonbaseload_zscore %>%
 ```{r}
 #| label: subregion-nox_oz-nonbaseload-outlier    
 
-knitr::kable(subregion_nonbaseload_zscore %>%
-               filter(nox_oz_nonbaseload_output_zscore > 3 | nox_oz_nonbaseload_output_zscore < -3) %>%
-               select(subregion, subregion_nox_oz_output_rate_nonbaseload, nox_oz_nonbaseload_output_zscore) %>%
-               arrange(desc(nox_oz_nonbaseload_output_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(subregion_nonbaseload_zscore %>%
+                 filter(nox_oz_nonbaseload_output_zscore > 3 | nox_oz_nonbaseload_output_zscore < -3) %>%
+                 select(subregion, subregion_nox_oz_output_rate_nonbaseload, nox_oz_nonbaseload_output_zscore) %>%
+                 arrange(desc(nox_oz_nonbaseload_output_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 
 ```
 
@@ -10951,14 +11086,10 @@ if (params$temporal_res == "annual") {
     select(ba_code, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 } else { 
   ba_nonbaseload_zscore <- 
-    subrgn_agg %>% 
+    ba_agg %>% 
     mutate(nox_nonbaseload_output_zscore = (ba_nox_output_rate_nonbaseload -
                                               ba_stats_summary$ba_nox_output_rate_nonbaseload_average)/
              ba_stats_summary$ba_nox_output_rate_nonbaseload_sd,
-           
-           nox_oz_nonbaseload_output_zscore = (ba_nox_output_rate_nonbaseload - 
-                                                 ba_stats_summary$ba_nox_oz_output_rate_nonbaseload_average)/
-             ba_stats_summary$ba_nox_oz_output_rate_nonbaseload_sd,
            
            so2_nonbaseload_output_zscore = (ba_so2_output_rate_nonbaseload -
                                               ba_stats_summary$ba_so2_output_rate_nonbaseload_average)/
@@ -11009,16 +11140,17 @@ knitr::kable(ba_nonbaseload_zscore %>%
 ```{r}
 #| label: ba-nox_oz-nonbaseload-outlier    
 
-knitr::kable(ba_nonbaseload_zscore %>%
-               filter(nox_oz_nonbaseload_output_zscore > 3 | nox_oz_nonbaseload_output_zscore < -3) %>%
-               select(ba_code, ba_nox_oz_output_rate_nonbaseload, nox_oz_nonbaseload_output_zscore) %>%
-               arrange(desc(nox_oz_nonbaseload_output_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(ba_nonbaseload_zscore %>%
+                 filter(nox_oz_nonbaseload_output_zscore > 3 | nox_oz_nonbaseload_output_zscore < -3) %>%
+                 select(ba_code, ba_nox_oz_output_rate_nonbaseload, nox_oz_nonbaseload_output_zscore) %>%
+                 arrange(desc(nox_oz_nonbaseload_output_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 
 ```
 
@@ -11177,10 +11309,6 @@ if (params$temporal_res == "annual") {
                                               stats_summary$nerc_nox_output_rate_nonbaseload_average)/
              stats_summary$nerc_nox_output_rate_nonbaseload_sd,
            
-           nox_oz_nonbaseload_output_zscore = (nerc_nox_output_rate_nonbaseload - 
-                                                 stats_summary$nerc_nox_oz_output_rate_nonbaseload_average)/
-             stats_summary$nerc_nox_oz_output_rate_nonbaseload_sd,
-           
            so2_nonbaseload_output_zscore = (nerc_so2_output_rate_nonbaseload -
                                               stats_summary$nerc_so2_output_rate_nonbaseload_average)/
              stats_summary$nerc_so2_output_rate_nonbaseload_sd,
@@ -11230,16 +11358,17 @@ knitr::kable(nerc_nonbaseload_zscore %>%
 ```{r}
 #| label: nerc-nox_oz-nonbaseload-outlier    
 
-knitr::kable(nerc_nonbaseload_zscore %>%
-               filter(nox_oz_nonbaseload_output_zscore > 3 | nox_oz_nonbaseload_output_zscore < -3) %>%
-               select(nerc, nerc_nox_oz_output_rate_nonbaseload, nox_oz_nonbaseload_output_zscore) %>%
-               arrange(desc(nox_oz_nonbaseload_output_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(nerc_nonbaseload_zscore %>%
+                 filter(nox_oz_nonbaseload_output_zscore > 3 | nox_oz_nonbaseload_output_zscore < -3) %>%
+                 select(nerc, nerc_nox_oz_output_rate_nonbaseload, nox_oz_nonbaseload_output_zscore) %>%
+                 arrange(desc(nox_oz_nonbaseload_output_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 
 ```
 
@@ -11398,10 +11527,6 @@ if (params$temporal_res == "annual") {
                                               stats_summary$state_nox_output_rate_nonbaseload_average)/
              stats_summary$state_nox_output_rate_nonbaseload_sd,
            
-           nox_oz_nonbaseload_output_zscore = (state_nox_output_rate_nonbaseload - 
-                                                 stats_summary$state_nox_oz_output_rate_nonbaseload_average)/
-             stats_summary$state_nox_oz_output_rate_nonbaseload_sd,
-           
            so2_nonbaseload_output_zscore = (state_so2_output_rate_nonbaseload -
                                               stats_summary$state_so2_output_rate_nonbaseload_average)/
              stats_summary$state_so2_output_rate_nonbaseload_sd,
@@ -11451,16 +11576,17 @@ knitr::kable(state_nonbaseload_zscore %>%
 ```{r}
 #| label: state-nox_oz-nonbaseload-outlier    
 
-knitr::kable(state_nonbaseload_zscore %>%
-               filter(nox_oz_nonbaseload_output_zscore > 3 | nox_oz_nonbaseload_output_zscore < -3) %>%
-               select(state, state_nox_oz_output_rate_nonbaseload, nox_oz_nonbaseload_output_zscore) %>%
-               arrange(desc(nox_oz_nonbaseload_output_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(state_nonbaseload_zscore %>%
+                 filter(nox_oz_nonbaseload_output_zscore > 3 | nox_oz_nonbaseload_output_zscore < -3) %>%
+                 select(state, state_nox_oz_output_rate_nonbaseload, nox_oz_nonbaseload_output_zscore) %>%
+                 arrange(desc(nox_oz_nonbaseload_output_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 
 ```
 
@@ -11619,10 +11745,6 @@ if (params$temporal_res == "annual") {
                                               us_stats_summary$us_nox_output_rate_nonbaseload_average)/
              us_stats_summary$us_nox_output_rate_nonbaseload_sd,
            
-           nox_oz_nonbaseload_output_zscore = (us_nox_output_rate_nonbaseload - 
-                                                 us_stats_summary$us_nox_oz_output_rate_nonbaseload_average)/
-             us_stats_summary$us_nox_oz_output_rate_nonbaseload_sd,
-           
            so2_nonbaseload_output_zscore = (us_so2_output_rate_nonbaseload -
                                               us_stats_summary$us_so2_output_rate_nonbaseload_average)/
              us_stats_summary$us_so2_output_rate_nonbaseload_sd,
@@ -11672,17 +11794,17 @@ knitr::kable(us_nonbaseload_zscore %>%
 ```{r}
 #| label: us-nox_oz-nonbaseload-outlier    
 
-knitr::kable(us_nonbaseload_zscore %>%
-               filter(nox_oz_nonbaseload_output_zscore > 3 | nox_oz_nonbaseload_output_zscore < -3) %>%
-               select(us_nox_oz_output_rate_nonbaseload, nox_oz_nonbaseload_output_zscore) %>%
-               arrange(desc(nox_oz_nonbaseload_output_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
-
+if(params$temporal_res == "annual") { 
+  knitr::kable(us_nonbaseload_zscore %>%
+                 filter(nox_oz_nonbaseload_output_zscore > 3 | nox_oz_nonbaseload_output_zscore < -3) %>%
+                 select(us_nox_oz_output_rate_nonbaseload, nox_oz_nonbaseload_output_zscore) %>%
+                 arrange(desc(nox_oz_nonbaseload_output_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 ```
 
 #### SO2 output rate
@@ -11806,7 +11928,7 @@ if (params$temporal_res == "annual") {
   subregion_combustion_zscore <- 
     subrgn_agg %>% 
     mutate(nox_combustion_output_zscore = (subregion_nox_combustion_rate -
-                                             subregion_combustion_stats_summary$subregion_nox_combustion_rate_average)/
+            subregion_combustion_stats_summary$subregion_nox_combustion_rate_average)/
              subregion_combustion_stats_summary$subregion_nox_combustion_rate_sd,
            
            nox_oz_combustion_output_zscore = (subregion_nox_combustion_rate - 
@@ -11834,30 +11956,26 @@ if (params$temporal_res == "annual") {
              subregion_combustion_stats_summary$subregion_co2e_combustion_rate_sd) %>%
     select(subregion, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 } else { 
-  subregion_nonbaseload_zscore <- 
+  subregion_combustion_zscore <- 
     subrgn_agg %>% 
-    mutate(nox_combustion_output_zscore = (subregion_nox_combustion_rate -
-                                             subregion_combustion_stats_summary$subregion_nox_combustion_rate_average)/
+    mutate(nox_combustion_output_zscore = (subregion_nox_combustion_rate -                       
+            subregion_combustion_stats_summary$subregion_nox_combustion_rate_average)/
              subregion_combustion_stats_summary$subregion_nox_combustion_rate_sd,
-           
-           nox_oz_combustion_output_zscore = (subregion_nox_combustion_rate - 
-                                                subregion_combustion_stats_summary$subregion_nox_oz_combustion_rate_average)/
-             subregion_combustion_stats_summary$subregion_nox_oz_combustion_rate_sd,
-           
-           so2_combustion_output_zscore = (subregion_so2_combustion_rate -
-                                             subregion_combustion_stats_summary$subregion_so2_combustion_rate_average)/
+          
+           so2_combustion_output_zscore = (subregion_so2_combustion_rate -                        
+                                          subregion_combustion_stats_summary$subregion_so2_combustion_rate_average)/
              subregion_combustion_stats_summary$subregion_so2_combustion_rate_sd,
            
            co2_combustion_output_zscore = (subregion_co2_combustion_rate -
-                                             subregion_combustion_stats_summary$subregion_co2_combustion_rate_average)/
+                                      subregion_combustion_stats_summary$subregion_co2_combustion_rate_average)/
              subregion_combustion_stats_summary$subregion_co2_combustion_rate_sd,
            
            ch4_combustion_output_zscore = (subregion_ch4_combustion_rate -
-                                             subregion_combustion_stats_summary$subregion_ch4_combustion_rate_average)/
+                                          subregion_combustion_stats_summary$subregion_ch4_combustion_rate_average)/
              subregion_combustion_stats_summary$subregion_ch4_combustion_rate_sd,
            
            n2o_combustion_output_zscore = (subregion_n2o_combustion_rate -
-                                             subregion_combustion_stats_summary$subregion_n2o_combustion_rate_average)/
+                                          subregion_combustion_stats_summary$subregion_n2o_combustion_rate_average)/
              subregion_combustion_stats_summary$subregion_n2o_combustion_rate_sd,
            
            co2e_combustion_output_zscore = (subregion_co2e_combustion_rate -
@@ -11893,16 +12011,17 @@ knitr::kable(subregion_combustion_zscore %>%
 ```{r}
 #| label: subregion-nox_oz-combustion-outlier    
 
-knitr::kable(subregion_combustion_zscore %>%
-               filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
-               select(subregion, subregion_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
-               arrange(desc(nox_oz_combustion_output_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(subregion_combustion_zscore %>%
+                 filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
+                 select(subregion, subregion_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
+                 arrange(desc(nox_oz_combustion_output_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 
 ```
 
@@ -12055,15 +12174,11 @@ if (params$temporal_res == "annual") {
              ba_combustion_stats_summary$ba_co2e_combustion_rate_sd) %>%
     select(ba_code, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 } else { 
-  ba_nonbaseload_zscore <- 
-    subrgn_agg %>% 
+  ba_combustion_zscore <- 
+    ba_agg %>% 
     mutate(nox_combustion_output_zscore = (ba_nox_combustion_rate -
                                              ba_combustion_stats_summary$ba_nox_combustion_rate_average)/
              ba_combustion_stats_summary$ba_nox_combustion_rate_sd,
-           
-           nox_oz_combustion_output_zscore = (ba_nox_combustion_rate - 
-                                                ba_combustion_stats_summary$ba_nox_oz_combustion_rate_average)/
-             ba_combustion_stats_summary$ba_nox_oz_combustion_rate_sd,
            
            so2_combustion_output_zscore = (ba_so2_combustion_rate -
                                              ba_combustion_stats_summary$ba_so2_combustion_rate_average)/
@@ -12114,16 +12229,17 @@ knitr::kable(ba_combustion_zscore %>%
 ```{r}
 #| label: ba-nox_oz-combustion-outlier    
 
-knitr::kable(ba_combustion_zscore %>%
-               filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
-               select(ba_code, ba_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
-               arrange(desc(nox_oz_combustion_output_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(ba_combustion_zscore %>%
+                 filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
+                 select(ba_code, ba_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
+                 arrange(desc(nox_oz_combustion_output_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 
 ```
 
@@ -12276,16 +12392,12 @@ if (params$temporal_res == "annual") {
              nerc_combustion_stats_summary$nerc_co2e_combustion_rate_sd) %>%
     select(nerc, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 } else { 
-  nerc_nonbaseload_zscore <- 
-    subrgn_agg %>% 
+  nerc_combustion_zscore <- 
+    nerc_agg %>% 
     mutate(nox_combustion_output_zscore = (nerc_nox_combustion_rate -
                                              nerc_combustion_stats_summary$nerc_nox_combustion_rate_average)/
              nerc_combustion_stats_summary$nerc_nox_combustion_rate_sd,
-           
-           nox_oz_combustion_output_zscore = (nerc_nox_combustion_rate - 
-                                                nerc_combustion_stats_summary$nerc_nox_oz_combustion_rate_average)/
-             nerc_combustion_stats_summary$nerc_nox_oz_combustion_rate_sd,
-           
+          
            so2_combustion_output_zscore = (nerc_so2_combustion_rate -
                                              nerc_combustion_stats_summary$nerc_so2_combustion_rate_average)/
              nerc_combustion_stats_summary$nerc_so2_combustion_rate_sd,
@@ -12335,16 +12447,17 @@ knitr::kable(nerc_combustion_zscore %>%
 ```{r}
 #| label: nerc-nox_oz-combustion-outlier    
 
-knitr::kable(nerc_combustion_zscore %>%
-               filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
-               select(nerc, nerc_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
-               arrange(desc(nox_oz_combustion_output_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(nerc_combustion_zscore %>%
+                 filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
+                 select(nerc, nerc_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
+                 arrange(desc(nox_oz_combustion_output_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 
 ```
 
@@ -12497,15 +12610,11 @@ if (params$temporal_res == "annual") {
              state_combustion_stats_summary$state_co2e_combustion_rate_sd) %>%
     select(state, contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 } else { 
-  state_nonbaseload_zscore <- 
-    subrgn_agg %>% 
+  state_combustion_zscore <- 
+    state_agg %>% 
     mutate(nox_combustion_output_zscore = (state_nox_combustion_rate -
                                              state_combustion_stats_summary$state_nox_combustion_rate_average)/
              state_combustion_stats_summary$state_nox_combustion_rate_sd,
-           
-           nox_oz_combustion_output_zscore = (state_nox_combustion_rate - 
-                                                state_combustion_stats_summary$state_nox_oz_combustion_rate_average)/
-             state_combustion_stats_summary$state_nox_oz_combustion_rate_sd,
            
            so2_combustion_output_zscore = (state_so2_combustion_rate -
                                              state_combustion_stats_summary$state_so2_combustion_rate_average)/
@@ -12556,16 +12665,17 @@ knitr::kable(state_combustion_zscore %>%
 ```{r}
 #| label: state-nox_oz-combustion-outlier    
 
-knitr::kable(state_combustion_zscore %>%
-               filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
-               select(state, state_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
-               arrange(desc(nox_oz_combustion_output_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(state_combustion_zscore %>%
+                 filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
+                 select(state, state_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
+                 arrange(desc(nox_oz_combustion_output_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 
 ```
 
@@ -12718,16 +12828,12 @@ if (params$temporal_res == "annual") {
              us_combustion_stats_summary$us_co2e_combustion_rate_sd) %>%
     select(contains("rate"), contains("ra"), contains("ro"), contains("zscore"))
 } else { 
-  us_nonbaseload_zscore <- 
-    subrgn_agg %>% 
+  us_combustion_zscore <- 
+    us_agg %>% 
     mutate(nox_combustion_output_zscore = (us_nox_combustion_rate -
                                              us_combustion_stats_summary$us_nox_combustion_rate_average)/
              us_combustion_stats_summary$us_nox_combustion_rate_sd,
-           
-           nox_oz_combustion_output_zscore = (us_nox_combustion_rate - 
-                                                us_combustion_stats_summary$us_nox_oz_combustion_rate_average)/
-             us_combustion_stats_summary$us_nox_oz_combustion_rate_sd,
-           
+          
            so2_combustion_output_zscore = (us_so2_combustion_rate -
                                              us_combustion_stats_summary$us_so2_combustion_rate_average)/
              us_combustion_stats_summary$us_so2_combustion_rate_sd,
@@ -12777,16 +12883,17 @@ knitr::kable(us_combustion_zscore %>%
 ```{r}
 #| label: us-nox_oz-combustion-outlier    
 
-knitr::kable(us_combustion_zscore %>%
-               filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
-               select(us_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
-               arrange(desc(nox_oz_combustion_output_zscore))) %>% 
-  kable_styling() %>% 
-  scroll_box(
-    height = "300px",   # Vertical scroll height
-    box_css = "border: 1px solid #ddd; padding: 5px; ",
-    fixed_thead = TRUE  # Keep header fixed while scrolling
-  )
+if(params$temporal_res == "annual") { 
+  knitr::kable(us_combustion_zscore %>%
+                 filter(nox_oz_combustion_output_zscore > 3 | nox_oz_combustion_output_zscore < -3) %>%
+                 select(us_nox_oz_combustion_rate, nox_oz_combustion_output_zscore) %>%
+                 arrange(desc(nox_oz_combustion_output_zscore))) %>% 
+    kable_styling() %>% 
+    scroll_box(
+      height = "300px",   # Vertical scroll height
+      box_css = "border: 1px solid #ddd; padding: 5px; ",
+      fixed_thead = TRUE  # Keep header fixed while scrolling
+    )}
 
 ```
 
@@ -12912,7 +13019,7 @@ if (params$temporal_res == "annual") {
 } else {
   check_subregion_neg_emissions <- 
     subrgn_agg %>%
-    filter((subregion_nox_mass < 0) | (subregion_nox_oz_mass < 0) | (subregion_so2_mass < 0),
+    filter((subregion_nox_mass < 0) | (subregion_so2_mass < 0),
            (subregion_co2_mass < 0) | (subregion_ch4_mass < 0) | (subregion_n2o_mass < 0))
   
   ifelse(nrow(check_subregion_neg_emissions) == 0, "Status: PASS - No subregions have negative emission values.",
@@ -12920,7 +13027,7 @@ if (params$temporal_res == "annual") {
   
   knitr::kable(check_subregion_neg_emissions %>%
                  select(subregion, subregion_nox_mass, 
-                        subregion_nox_oz_mass, subregion_so2_mass,
+                        subregion_so2_mass,
                         subregion_co2_mass, subregion_ch4_mass, 
                         subregion_n2o_mass)) %>% 
   kable_styling() %>% 
@@ -12964,7 +13071,7 @@ if (params$temporal_res == "annual") {
 } else {
   check_ba_neg_emissions <- 
     ba_agg %>%
-    filter((ba_nox_mass < 0) | (ba_nox_oz_mass < 0) | (ba_so2_mass < 0),
+    filter((ba_nox_mass < 0) | (ba_so2_mass < 0),
            (ba_co2_mass < 0) | (ba_ch4_mass < 0) | (ba_n2o_mass < 0))
   
   ifelse(nrow(check_ba_neg_emissions) == 0, "Status: PASS - No bas have negative emission values.",
@@ -12972,7 +13079,7 @@ if (params$temporal_res == "annual") {
   
   knitr::kable(check_ba_neg_emissions %>%
                  select(ba_code, ba_nox_mass, 
-                        ba_nox_oz_mass, ba_so2_mass,
+                        ba_so2_mass,
                         ba_co2_mass, ba_ch4_mass, 
                         ba_n2o_mass)) %>% 
   kable_styling() %>% 
@@ -13016,7 +13123,7 @@ if (params$temporal_res == "annual") {
 } else {
   check_nerc_neg_emissions <- 
     nerc_agg %>%
-    filter((nerc_nox_mass < 0) | (nerc_nox_oz_mass < 0) | (nerc_so2_mass < 0),
+    filter((nerc_nox_mass < 0) | (nerc_so2_mass < 0),
            (nerc_co2_mass < 0) | (nerc_ch4_mass < 0) | (nerc_n2o_mass < 0))
   
   ifelse(nrow(check_nerc_neg_emissions) == 0, "Status: PASS - No nercs have negative emission values.",
@@ -13024,7 +13131,7 @@ if (params$temporal_res == "annual") {
   
   knitr::kable(check_nerc_neg_emissions %>%
                  select(nerc, nerc_nox_mass, 
-                        nerc_nox_oz_mass, nerc_so2_mass,
+                        nerc_so2_mass,
                         nerc_co2_mass, nerc_ch4_mass, 
                         nerc_n2o_mass)) %>% 
   kable_styling() %>% 
@@ -13068,7 +13175,7 @@ if (params$temporal_res == "annual") {
 } else {
   check_state_neg_emissions <- 
     state_agg %>%
-    filter((state_nox_mass < 0) | (state_nox_oz_mass < 0) | (state_so2_mass < 0),
+    filter((state_nox_mass < 0) | (state_so2_mass < 0),
            (state_co2_mass < 0) | (state_ch4_mass < 0) | (state_n2o_mass < 0))
   
   ifelse(nrow(check_state_neg_emissions) == 0, "Status: PASS - No states have negative emission values.",
@@ -13076,7 +13183,7 @@ if (params$temporal_res == "annual") {
   
   knitr::kable(check_state_neg_emissions %>%
                  select(state, state_nox_mass, 
-                        state_nox_oz_mass, state_so2_mass,
+                        state_so2_mass,
                         state_co2_mass, state_ch4_mass, 
                         state_n2o_mass)) %>% 
   kable_styling() %>% 
@@ -13120,7 +13227,7 @@ if (params$temporal_res == "annual") {
 } else {
   check_us_neg_emissions <- 
     us_agg %>%
-    filter((us_nox_mass < 0) | (us_nox_oz_mass < 0) | (us_so2_mass < 0),
+    filter((us_nox_mass < 0) | (us_so2_mass < 0),
            (us_co2_mass < 0) | (us_ch4_mass < 0) | (us_n2o_mass < 0))
   
   ifelse(nrow(check_us_neg_emissions) == 0, "Status: PASS - No uss have negative emission values.",
@@ -13128,7 +13235,7 @@ if (params$temporal_res == "annual") {
   
   knitr::kable(check_us_neg_emissions %>%
                  select(us_nox_mass, 
-                        us_nox_oz_mass, us_so2_mass,
+                        us_so2_mass,
                         us_co2_mass, us_ch4_mass, 
                         us_n2o_mass)) %>% 
   kable_styling() %>% 
@@ -13389,28 +13496,42 @@ excel_load <- function(filename) {
   return (all_sheets)
 }
 
-data_excel <- excel_load(glue::glue("data/1_production_model/outputs/{params$year}/{params$temporal_res}/egrid{params$year}_data.xlsx"))
-unit_excel <- data_excel[[glue::glue("UNT{params$year_abbrev}")]]
-plant_excel <- data_excel[[glue::glue("PLNT{params$year_abbrev}")]]
-gen_excel <- data_excel[[glue::glue("GEN{params$year_abbrev}")]]
+if(params$temporal_res == "annual") { 
+  data_excel <- excel_load(glue::glue("data/1_production_model/outputs/{params$year}/{params$temporal_res}/egrid{params$year}_data.xlsx"))
+  
+  unit_excel <- data_excel[[glue::glue("UNT{params$year_abbrev}")]]
+  plant_excel <- data_excel[[glue::glue("PLNT{params$year_abbrev}")]]
+  gen_excel <- data_excel[[glue::glue("GEN{params$year_abbrev}")]]
+} else if(params$temporal_res == "monthly") { 
+  data_excel <- excel_load(glue::glue("data/1_production_model/outputs/{params$year}/{params$temporal_res}/egrid{params$year}_monthly_data.xlsx"))}
 ```
 
 ```{r}
 #| label: excel-output-year
 
-years_check <-
-  rbind(unit_excel["YEAR"],
-        plant_excel["YEAR"],
-        gen_excel["YEAR"],
-        data_excel[[glue::glue("ST{params$year_abbrev}")]]["YEAR"],
-        data_excel[[glue::glue("BA{params$year_abbrev}")]]["YEAR"],
-        data_excel[[glue::glue("SRL{params$year_abbrev}")]]["YEAR"],
-        data_excel[[glue::glue("NRL{params$year_abbrev}")]]["YEAR"],
-        data_excel[[glue::glue("US{params$year_abbrev}")]]["YEAR"]) %>%
-  filter(YEAR != params$year)
-
-
-ifelse(nrow(years_check) == 0, "Status: PASS - Excel data year is correct in all instances.", glue::glue("Status: NEEDS CHECKED - Excel data year is not correct in {sum(c(nrow(unit_years_check),nrow(plant_years_check),nrow(generator_years_check)))} instances."))
+if(params$temporal_res == "annual") { 
+  years_check <-
+    rbind(unit_excel["YEAR"],
+          plant_excel["YEAR"],
+          gen_excel["YEAR"],
+          data_excel[[glue::glue("ST{params$year_abbrev}")]]["YEAR"],
+          data_excel[[glue::glue("BA{params$year_abbrev}")]]["YEAR"],
+          data_excel[[glue::glue("SRL{params$year_abbrev}")]]["YEAR"],
+          data_excel[[glue::glue("NRL{params$year_abbrev}")]]["YEAR"],
+          data_excel[[glue::glue("US{params$year_abbrev}")]]["YEAR"]) %>%
+    filter(YEAR != params$year)
+  
+  ifelse(nrow(years_check) == 0, "Status: PASS - Excel data year is correct in all instances.", glue::glue("Status: NEEDS CHECKED - Excel data year is not correct in {nrow(years_check)} instances."))
+} else { 
+  years_check <-
+    rbind(data_excel[[glue::glue("ST{params$year_abbrev}")]]["YEAR"],
+          data_excel[[glue::glue("BA{params$year_abbrev}")]]["YEAR"],
+          data_excel[[glue::glue("SRL{params$year_abbrev}")]]["YEAR"],
+          data_excel[[glue::glue("NRL{params$year_abbrev}")]]["YEAR"],
+          data_excel[[glue::glue("US{params$year_abbrev}")]]["YEAR"]) %>%
+    filter(YEAR != params$year)
+  
+  ifelse(nrow(years_check) == 0, "Status: PASS - Excel data year is correct in all instances.", glue::glue("Status: NEEDS CHECKED - Excel data year is not correct in {nrow(years_check)} instances."))}
 
 ```
 
@@ -13419,11 +13540,14 @@ ifelse(nrow(years_check) == 0, "Status: PASS - Excel data year is correct in all
 ```{r}
 #| label: unit-count-comparison
 
-ifelse(nrow(unit_file) == nrow(unit_excel),"Status: PASS - Excel and R Unit files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R unit files differ by {nrow(unit_file) - nrow(unit_excel)} units."))
-
-ifelse(nrow(plant_file) == nrow(plant_excel),"Status: PASS - Excel and R Plant files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R Plant files differ by {nrow(plant_file) - nrow(plant_excel)} units."))
-
-ifelse(nrow(generator_file) == nrow(gen_excel),"Status: PASS - Excel and R Generator files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R Generator files differ by {nrow(generator_file) - nrow(gen_excel)} units."))
+if(params$temporal_res == "annual") { 
+  ifelse(nrow(unit_file) == nrow(unit_excel),"Status: PASS - Excel and R Unit files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R unit files differ by {nrow(unit_file) - nrow(unit_excel)} units."))
   
+  ifelse(nrow(plant_file) == nrow(plant_excel),"Status: PASS - Excel and R Plant files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R Plant files differ by {nrow(plant_file) - nrow(plant_excel)} units."))
+  
+  ifelse(nrow(generator_file) == nrow(gen_excel),"Status: PASS - Excel and R Generator files match in number of units.",glue::glue("Status: NEEDS CHECKED - Excel and R Generator files differ by {nrow(generator_file) - nrow(gen_excel)} units."))
+} else { 
+  print("This is only checked in annual version.")}
+    
 ```
 

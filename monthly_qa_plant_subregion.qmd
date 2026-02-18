@@ -8,7 +8,7 @@ params:
   eGRID_year: 2024
 ---
 
-NOTE: This script was used for internal QA and data validation of the monthly production model. This script compares the original annual eGRID version to the updated monthly / annual methodology version that is on this branch. This quarto document can only run correctly when in the root directory of this repository to access the folders it needs. 
+<!-- NOTE: This script was used for internal QA and data validation of the monthly production model. This script compares the original annual eGRID version to the updated monthly version that is on this branch. This quarto document can only run correctly when in the root directory of this repository to access the folders it needs. -->
 
 
 ```{r}

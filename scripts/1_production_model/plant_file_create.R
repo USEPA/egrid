@@ -135,12 +135,15 @@ plant_chp_prev_year <- # plant file of previous year
     filter(prev_egrid_chp == "Yes")
 
 # EPA CHP database
-chp_file <- glue::glue("data/1_production_model/static_tables/chp_database_{params$eGRID_year}.csv")
+### Note: check for updates or changes each data year ###
 
-# default to 2023 CHP database if eGRID year CHP database does not exist
-if (!file.exists(chp_file)){
-  chp_file <- glue::glue("data/1_production_model/static_tables/chp_database_2023.csv")
-}
+chp_file_year <- glue::glue("data/1_production_model/static_tables/chp_database_{params$eGRID_year}.csv")
+
+# default to 2024 CHP database if eGRID year CHP database does not exist
+if (!file.exists(chp_file_year)){
+  chp_file <- glue::glue("data/1_production_model/static_tables/chp_database_2024.csv")
+} else { 
+  chp_file <- chp_file_year}
 
 chp_database <- 
   read_csv(chp_file, 
@@ -716,7 +719,7 @@ update_coal <-
 
 plant_file_11 <- 
   plant_file_10 %>% 
-  mutate(coal_flag = if_else(plant_id %in% update_coal$plant_id, "Yes", NA_character_))
+  mutate(coal_flag = if_else(plant_id %in% update_coal$plant_id, "Yes", coal_flag))
 
 ### Create combustion flag --------------------
 
@@ -872,7 +875,7 @@ gen_by_fuel <-
   distinct() 
 
 ## Calculate resource mix generation by fuel type and % resource mix by fuel type ------------
-
+ 
 # calculate generation by non-renewables, renewables (and non-hydro renewables), combustion fuels, and non-combustion fuels
 gen_by_fuel_2 <- 
   gen_by_fuel %>% 
@@ -1356,6 +1359,10 @@ if(params$temporal_res == "annual") {
   plants_annual_2 <- 
     plants_annual %>% 
     left_join(hours_annual, by = "year") %>% 
+    rowwise() %>% 
+    mutate(non_negative_netgen = sum(c_across(c(contains("netgen"), -contains("renew"), -contains("combust")))[c_across(contains("netgen")) >= 0], 
+                                     na.rm = TRUE)) %>% 
+    ungroup() %>% 
     mutate(
       # calculate capacity factor
       capfac = if_else(generation / (nameplate_capacity * hours) < 0, 0, # some generation values may be negative, set to 0 if so
@@ -1421,58 +1428,58 @@ if(params$temporal_res == "annual") {
       # Resoure mix
       coal_perc_gen = case_when(generation == 0 ~ NA_real_,
                                 coal_netgen < 0 ~ 0, 
-                                TRUE ~ coal_netgen / generation), 
+                                TRUE ~ coal_netgen / non_negative_netgen), 
       oil_perc_gen = case_when(generation == 0 ~ NA_real_,
                                oil_netgen < 0 ~ 0, 
-                               TRUE ~ oil_netgen / generation), 
+                               TRUE ~ oil_netgen / non_negative_netgen), 
       gas_perc_gen = case_when(generation == 0 ~ NA_real_,
                                gas_netgen < 0 ~ 0, 
-                               TRUE ~ gas_netgen / generation), 
+                               TRUE ~ gas_netgen / non_negative_netgen), 
       nuclear_perc_gen = case_when(generation == 0 ~ NA_real_,
                                    nuclear_netgen < 0 ~ 0, 
-                                   TRUE ~ nuclear_netgen / generation), 
+                                   TRUE ~ nuclear_netgen / non_negative_netgen), 
       hydro_perc_gen = case_when(generation == 0 ~ NA_real_,
                                  hydro_netgen < 0 ~ 0, 
-                                 TRUE ~ hydro_netgen / generation), 
+                                 TRUE ~ hydro_netgen / non_negative_netgen), 
       biomass_perc_gen = case_when(generation == 0 ~ NA_real_,
                                    biomass_netgen < 0 ~ 0, 
-                                   TRUE ~ biomass_netgen / generation), 
+                                   TRUE ~ biomass_netgen / non_negative_netgen), 
       wind_perc_gen = case_when(generation == 0 ~ NA_real_,
                                 wind_netgen < 0 ~ 0, 
-                                TRUE ~ wind_netgen / generation),
+                                TRUE ~ wind_netgen / non_negative_netgen),
       solar_perc_gen = case_when(generation == 0 ~ NA_real_,
                                  solar_netgen < 0 ~ 0, 
-                                 TRUE ~ solar_netgen / generation),
+                                 TRUE ~ solar_netgen / non_negative_netgen),
       geothermal_perc_gen = case_when(generation == 0 ~ NA_real_,
                                       geothermal_netgen < 0 ~ 0, 
-                                      TRUE ~ geothermal_netgen / generation),
+                                      TRUE ~ geothermal_netgen / non_negative_netgen),
       other_ff_perc_gen = case_when(generation == 0 ~ NA_real_,
                                     other_ff_netgen < 0 ~ 0, 
-                                    TRUE ~ other_ff_netgen / generation),
+                                    TRUE ~ other_ff_netgen / non_negative_netgen),
       other_perc_gen = case_when(generation == 0 ~ NA_real_,
                                  other_netgen < 0 ~ 0, 
-                                 TRUE ~ other_netgen / generation),
+                                 TRUE ~ other_netgen / non_negative_netgen),
       nonrenew_perc_gen = case_when(generation == 0 ~ NA_real_,
                                     nonrenew_netgen < 0 ~ 0, 
-                                    TRUE ~ nonrenew_netgen / generation),
+                                    TRUE ~ nonrenew_netgen / non_negative_netgen),
       renew_perc_gen = case_when(generation == 0 ~ NA_real_,
                                  renew_netgen < 0 ~ 0, 
-                                 TRUE ~ renew_netgen / generation),
+                                 TRUE ~ renew_netgen / non_negative_netgen),
       renew_nonhydro_perc_gen = case_when(generation == 0 ~ NA_real_,
                                           renew_nonhydro_netgen < 0 ~ 0, 
-                                          TRUE ~ renew_nonhydro_netgen / generation),
+                                          TRUE ~ renew_nonhydro_netgen / non_negative_netgen),
       nonrenew_other_perc_gen = case_when(generation == 0 ~ NA_real_,
                                           nonrenew_other_netgen < 0 ~ 0, 
-                                          TRUE ~ nonrenew_other_netgen / generation),
+                                          TRUE ~ nonrenew_other_netgen / non_negative_netgen),
       combust_perc_gen = case_when(generation == 0 ~ NA_real_,
                                    combust_netgen < 0 ~ 0, 
-                                   TRUE ~ combust_netgen / generation),
+                                   TRUE ~ combust_netgen / non_negative_netgen),
       noncombust_perc_gen = case_when(generation == 0 ~ NA_real_,
                                       noncombust_netgen < 0 ~ 0, 
-                                      TRUE ~ noncombust_netgen / generation),
+                                      TRUE ~ noncombust_netgen / non_negative_netgen),
       noncombust_other_perc_gen = case_when(generation == 0 ~ NA_real_,
                                             noncombust_other_netgen < 0 ~ 0, 
-                                              TRUE ~ noncombust_other_netgen / generation), 
+                                              TRUE ~ noncombust_other_netgen / non_negative_netgen), 
       
       # calculate nominal heat rate
       nominal_heat_rate = if_else((combust_flag == 1 | combust_flag == 0.5) & !is.na(combust_netgen) & combust_netgen != 0, 
