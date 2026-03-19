@@ -310,10 +310,10 @@ plant_gen_2 <-
 emissions_ch4_n2o <- 
   eia_923$generation_and_fuel_combined %>% 
   filter(prime_mover != "FC") %>% 
-  select(all_of(temporal_res_cols), plant_id, fuel_type, tot_mmbtu) %>%
+  select(all_of(temporal_res_cols), plant_id, fuel_type, tot_mmbtu, netgen) %>%
   left_join(ef_co2_ch4_n2o, by = c("fuel_type" = "eia_fuel_code")) %>%
-  mutate(unadj_ch4_mass = ch4_ef * tot_mmbtu, # calculate CH4 mass by fuel type
-         unadj_n2o_mass = n2o_ef * tot_mmbtu) %>%
+  mutate(unadj_ch4_mass = if_else(netgen == 0, NA_real_, ch4_ef * tot_mmbtu), # calculate CH4 mass by fuel type
+         unadj_n2o_mass = if_else(netgen == 0, NA_real_, n2o_ef * tot_mmbtu)) %>%
   group_by(pick(all_of(temporal_res_cols)), plant_id) %>%
   summarize(unadj_ch4_mass = if_else(all(is.na(unadj_ch4_mass)), NA_real_, sum(unadj_ch4_mass, na.rm = TRUE)), 
             unadj_n2o_mass = if_else(all(is.na(unadj_n2o_mass)), NA_real_, sum(unadj_n2o_mass, na.rm = TRUE)), 

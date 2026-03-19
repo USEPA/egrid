@@ -249,9 +249,9 @@ epa <-
 ## Harmonizing fields with EIA ----------
 
 # vectors of unit types matched to their respective EIA prime mover values
-pm_st <- c("BFB", "C", "CB", "CFB", "DB", "DTF", "DVF", "IGC", "KLN", "OB", "PRH", "S", "T", "WBF", "WBT")
+pm_st <- c("BFB", "C", "CB", "CFB", "DB", "DTF", "DVF", "KLN", "OB", "PRH", "S", "T", "WBF", "WBT")
 pm_gt <- c("AF", "CT")
-pm_ct <- c("CC")
+pm_ct <- c("CC", "IGC")
 pm_ot <- c("OT")
 
 epa_2 <- 
@@ -1974,7 +1974,28 @@ all_units_11 <-
   mutate(across(c(starts_with("heat_input"), -contains("source")), ~ round(.x, 3)), 
          across(contains("_mass"), ~ round(.x, 3))) 
 
-# Aggregate the data to annual level if running annual version --------------------
+# Format unit file --------------
+
+# creating named vector of final variable order and variable name included in unit file
+# load names from name_matches.R
+final_vars_monthly <- unit_nonmetric_monthly
+
+units_formatted_monthly <-
+  all_units_11 %>%
+  arrange(plant_state, plant_name) %>% 
+  mutate(sequnt = row_number(), 
+         year = params$eGRID_year) %>% 
+  select(as_tibble(final_vars_monthly)$value) %>% # keeping columns with tidy names for QA steps
+  drop_na(plant_id, unit_id)
+
+# Export monthly unit file -------------
+if(bio_units_to_add_flag) {
+  save_output_data(units_formatted_monthly, "data/1_production_model/outputs", glue::glue("unit_file_monthly.RDS"))
+} else { 
+  save_output_data(units_formatted_monthly, "data/1_production_model/outputs", glue::glue("unit_file_no_bio_added_monthly.RDS"))}
+
+# Aggregate the data to annual level and export if running annual version --------------------
+
 if(params$temporal_res == "annual") { 
   ozone_months <- c(5:9)
   
@@ -2016,33 +2037,22 @@ if(params$temporal_res == "annual") {
     mutate(nox_oz_mass = case_when(nox_oz_mass > nox_mass ~ nox_mass, # check for nox_oz_mass greater than nox_mass
                                    TRUE ~ nox_oz_mass)) 
   
-   all_units_11 <- 
-     all_units_annual 
+  # creating named vector of final variable order and variable name included in unit file
+  # load names from name_matches.R
+  final_vars_annual <- unit_nonmetric_annual
+  
+  units_formatted_annual <-
+    all_units_annual %>%
+    arrange(plant_state, plant_name) %>% 
+    mutate(sequnt = row_number(), 
+           year = params$eGRID_year) %>% 
+    select(as_tibble(final_vars_annual)$value) %>% # keeping columns with tidy names for QA steps
+    drop_na(plant_id, unit_id)
+  
+  # Export annual unit file -------------
+  if(bio_units_to_add_flag) {
+    save_output_data(units_formatted_annual, "data/1_production_model/outputs", glue::glue("unit_file_annual.RDS"))
+  } else { 
+    save_output_data(units_formatted_annual, "data/1_production_model/outputs", glue::glue("unit_file_no_bio_added_annual.RDS"))}
 }
 
-
-# Format unit file --------------
-
-# specify final columns in output depending on temporal_res parameter
-
-# creating named vector of final variable order and variable name included in unit file
-# load names from name_matches.R
-if(params$temporal_res == "annual") {
-  final_vars <- unit_nonmetric_annual
-} else if(params$temporal_res == "monthly") {
-   final_vars <- unit_nonmetric_monthly}
-
-units_formatted <-
-  all_units_11 %>%
-  arrange(plant_state, plant_name) %>% 
-  mutate(sequnt = row_number(), 
-         year = params$eGRID_year) %>% 
-  select(as_tibble(final_vars)$value) %>% # keeping columns with tidy names for QA steps
-  drop_na(plant_id, unit_id)
-
-
-# Export unit file -------------
-if(bio_units_to_add_flag) {
-  save_output_data(units_formatted, "data/1_production_model/outputs", glue::glue("unit_file_{params$temporal_res}.RDS"))
-} else { 
-  save_output_data(units_formatted, "data/1_production_model/outputs", glue::glue("unit_file_no_bio_added_{params$temporal_res}.RDS"))}

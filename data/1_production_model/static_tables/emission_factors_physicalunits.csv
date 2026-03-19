@@ -60,7 +60,6 @@ ST,OTHER BOILER,DFO,5.964,S,lb,barrels,PhysicalUnits,AP-42,,1.008,lb,barrels,Phy
 ST,TANGENTIAL,DFO,6.3,S,lb,barrels,PhysicalUnits,AP-42,,1.008,lb,barrels,PhysicalUnits,EIA Electricity Annual,
 ST,WALL,DFO,6.3,S,lb,barrels,PhysicalUnits,AP-42,,1.008,lb,barrels,PhysicalUnits,EIA Electricity Annual,
 ST,WET TANGENTIAL,DFO,6.3,S,lb,barrels,PhysicalUnits,AP-42,,1.008,lb,barrels,PhysicalUnits,EIA Electricity Annual,
-IC,null,DFO,5.88,,lb,barrels,PhysicalUnits,EIA Electricity Annual,Assumes 1 barrel = 42 US gallons,,,,,,
 ,null,JF,0.003021,,lb,barrels,PhysicalUnits,AP-42,assumes 600 ppm sulfur content,,,,,,
 GT,CT,JF,0.003021,,lb,barrels,PhysicalUnits,AP-42,assumes 600 ppm sulfur content,4.9896,lb,barrels,PhysicalUnits,EIA Electricity Annual,
 GT,null,JF,0.003021,,lb,barrels,PhysicalUnits,AP-42,assumes 600 ppm sulfur content,4.9896,lb,barrels,PhysicalUnits,EIA Electricity Annual,

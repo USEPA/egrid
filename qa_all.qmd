@@ -5040,7 +5040,6 @@ knitr::kable(us_zscore %>%
 ## Outlier check for emission rate
 
 ```{r}
-
 #| label: calculate-state-outliers  
 
 plant_stats_summary <- 
@@ -5113,8 +5112,8 @@ state_zscore <-
            state_stats_summary$co2e_input_rate_sd) 
 
 if(params$temporal_res == "annual") { 
-  state_stats <- 
-    state_stats %>% 
+  state_zscore <- 
+    state_zscore %>% 
     mutate(
       nox_oz_output_zscore = (state_nox_oz_output_rate - 
                                    state_stats_summary$nox_oz_output_rate_average)/ 

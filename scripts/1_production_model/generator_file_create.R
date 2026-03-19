@@ -505,31 +505,13 @@ if(nrow(generators_combined) > nrow(generation_df)) { # check if there are any u
   print("The number of rows in generators_combined matches the sum of generators that are overwritten, generators that use December generation, and all other generators.")
 }
 
-# If running the annual version, aggregate the data to annual level --------------------
-if (params$temporal_res == "annual") {
-  ozone_months <- c(5:9)
-  
-  generators_combined <-
-    generators_combined %>%
-    group_by(pick(-c(month, generation, gen_data_source))) %>%  # group by everything except month and generation
-    mutate(generation_oz = sum(generation[month %in% ozone_months], na.rm = TRUE),
-           generation = sum(generation, na.rm = TRUE),
-           gen_data_source = paste(unique(gen_data_source), collapse = ", ")) %>% # add together data sources from all months 
-    ungroup() %>%
-    select(-month) %>%
-    distinct(plant_id, generator_id, prime_mover, .keep_all = TRUE) %>%
-    mutate(gen_data_source = if_else(gen_data_source == "NA", NA_character_, gen_data_source))
-}
-
 # Calculate capacity factor  -----------------------------------------------
 
-hours <- capfac_hours(params$temporal_res, params$eGRID_year)
-
-temporal_res_cols_2 <- create_temporal_res_cols(params$temporal_res) # reset temporal_res_cols to correctly calculate capfact
+hours <- capfac_hours("monthly", params$eGRID_year)
 
 generators_combined_2 <-
   generators_combined %>%
-  left_join(hours, by = temporal_res_cols_2) %>%
+  left_join(hours, by = temporal_res_cols) %>%
   mutate(capfact = if_else(nameplate_capacity != 0, 
                            generation / (nameplate_capacity * hours), 
                            0)) %>%
@@ -540,7 +522,7 @@ generators_combined_2 <-
 lookup_eia_id_epa_id <- with(xwalk_eia_epa, setNames(epa_plant_id, eia_plant_id))
 lookup_epa_id_name <- with(xwalk_eia_epa, setNames(epa_plant_name, epa_plant_id))
 
-generators_edits <- 
+generators_edits_monthly <- 
   generators_combined_2 %>% 
   left_join(xwalk_fuel_codes %>% rename(fuel_code_update = fuel_code), by = c("plant_id")) %>% 
   mutate(id = paste0(plant_id, "_", generator_id), 
@@ -556,19 +538,83 @@ generators_edits <-
   rows_delete(epa_plants_to_delete, by = c("plant_id"), unmatched = "ignore")
 
 # creating named vector of final variable order and variable name included in generator file
-if(params$temporal_res == "annual") {
-  final_vars <- generator_nonmetric_annual}
-if(params$temporal_res == "monthly") {
-  final_vars <- generator_nonmetric_monthly}
+  final_vars_monthly <- generator_nonmetric_monthly
 
-generators_formatted <-
-  generators_edits %>%
+generators_formatted_monthly <-
+  generators_edits_monthly %>%
   arrange(plant_state, plant_name, fuel_code) %>%
   mutate(seqgen = row_number()) %>%
-  select(as_tibble(final_vars)$value) %>% # keeping columns with tidy names since the rename is done in the final formatting script
+  select(as_tibble(final_vars_monthly)$value) %>% # keeping columns with tidy names since the rename is done in the final formatting script
   tidyr::drop_na(plant_id, generator_id) %>%
   mutate(across(c(starts_with("capfac"), starts_with("generation")), ~ round(.x, 3)))
 
-# Export generator file -----------
+# Export monthly generator file -----------
 
-save_output_data(generators_formatted, "data/1_production_model/outputs", glue::glue("generator_file_{params$temporal_res}.RDS"))
+save_output_data(generators_formatted_monthly, "data/1_production_model/outputs", glue::glue("generator_file_monthly.RDS"))
+
+
+# If running the annual version, aggregate the data to annual level --------------------
+if (params$temporal_res == "annual") {
+  ozone_months <- c(5:9)
+  
+  generators_combined <-
+    generators_combined %>%
+    group_by(pick(-c(month, generation, gen_data_source))) %>%  # group by everything except month and generation
+    mutate(generation_oz = sum(generation[month %in% ozone_months], na.rm = TRUE),
+           generation = sum(generation, na.rm = TRUE),
+           gen_data_source = paste(unique(gen_data_source), collapse = ", ")) %>% # add together data sources from all months 
+    ungroup() %>%
+    select(-month) %>%
+    distinct(plant_id, generator_id, prime_mover, .keep_all = TRUE) %>%
+    mutate(gen_data_source = if_else(gen_data_source == "NA", NA_character_, gen_data_source))
+
+  # Calculate capacity factor  -----------------------------------------------
+  
+  hours <- capfac_hours("annual", params$eGRID_year)
+  
+  temporal_res_cols_2 <- create_temporal_res_cols("annual") # reset temporal_res_cols to correctly calculate capfact
+  
+  generators_combined_2 <-
+    generators_combined %>%
+    left_join(hours, by = temporal_res_cols_2) %>%
+    mutate(capfact = if_else(nameplate_capacity != 0, 
+                             generation / (nameplate_capacity * hours), 
+                             0)) %>%
+    select(-hours)
+  
+  # Final modifications to generator file -----------
+  
+  lookup_eia_id_epa_id <- with(xwalk_eia_epa, setNames(epa_plant_id, eia_plant_id))
+  lookup_epa_id_name <- with(xwalk_eia_epa, setNames(epa_plant_name, epa_plant_id))
+  
+  generators_edits_annual <- 
+    generators_combined_2 %>% 
+    left_join(xwalk_fuel_codes %>% rename(fuel_code_update = fuel_code), by = c("plant_id")) %>% 
+    mutate(id = paste0(plant_id, "_", generator_id), 
+           fuel_code = if_else(plant_id %in% xwalk_fuel_codes$plant_id & energy_source_1 %in% c("OG", "OTH"), fuel_code_update, energy_source_1),
+           generator_id = recode(id, !!!lookup_860_leading_zeroes, .default = generator_id), # updating generator ID to add back in leading zeroes
+           generator_id = recode(id, !!!lookup_923_leading_zeroes, .default = generator_id), # updating generator ID to add back in leading zeroes
+           plant_id = recode(plant_id, !!!lookup_eia_id_epa_id), # updating plant_id to corresponding EPA IDs with lookup table
+           plant_name = recode(plant_id, !!!lookup_epa_id_name, .default = plant_name), # updating plant_name for specific plant_ids with lookup table
+           gen_data_source = if_else(is.na(generation), NA_character_, gen_data_source), # updating generation source to missing if annual generation is missing
+           year = params$eGRID_year) %>%
+    left_join(eia_860_boiler_count) %>% 
+    rows_update(epa, by = c("plant_id"), unmatched = "ignore") %>% 
+    rows_delete(epa_plants_to_delete, by = c("plant_id"), unmatched = "ignore")
+  
+  # creating named vector of final variable order and variable name included in generator file
+  final_vars_annual <- generator_nonmetric_annual
+  
+  generators_formatted_annual <-
+    generators_edits_annual %>%
+    arrange(plant_state, plant_name, fuel_code) %>%
+    mutate(seqgen = row_number()) %>%
+    select(as_tibble(final_vars_annual)$value) %>% # keeping columns with tidy names since the rename is done in the final formatting script
+    tidyr::drop_na(plant_id, generator_id) %>%
+    mutate(across(c(starts_with("capfac"), starts_with("generation")), ~ round(.x, 3)))
+  
+  # Export annual generator file -----------
+  
+  save_output_data(generators_formatted_annual, "data/1_production_model/outputs", glue::glue("generator_file_annual.RDS"))
+
+} 

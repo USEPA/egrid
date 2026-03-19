@@ -565,46 +565,16 @@ region_aggregation <- function(region, region_cols) {
     region_resource_mix <- 
       region_gen %>% 
       select(-region_generation_nonbaseload) %>% 
+      rowwise() %>% 
+      mutate(non_negative_gen = sum(c_across(c(contains("netgen"), -contains("renew"), -contains("combust")))[c_across(contains("netgen")) >= 0], 
+                                       na.rm = TRUE)) %>% 
+      ungroup() %>% 
       mutate(#calculate resource mix percentage for each fuel type
              across(.cols = contains("netgen"), 
-                    .fns = ~ if_else(get(str_replace_all(cur_column(), c("coal_netgen" = "generation", 
-                                                                         "oil_netgen" = "generation", 
-                                                                         "gas_netgen" = "generation", 
-                                                                         "nuclear_netgen" = "generation",
-                                                                         "biomass_netgen" = "generation", 
-                                                                         "wind_netgen" = "generation", 
-                                                                         "solar_netgen" = "generation",
-                                                                         "geothermal_netgen" = "generation",
-                                                                         "other_ff_netgen" = "generation",
-                                                                         "nonrenew_other_netgen" = "generation",
-                                                                         "nonrenew_netgen" = "generation",
-                                                                         "renew_netgen" = "generation",
-                                                                         "renew_nonhydro_netgen" = "generation",
-                                                                         "noncombust_netgen" = "generation",
-                                                                         "noncombust_other_netgen" = "generation",
-                                                                         "combust_netgen" = "generation",
-                                                                         "other_netgen" = "generation",
-                                                                         "hydro_netgen" = "generation"))) != 0, 
-                                     .x / get(str_replace_all(cur_column(), c("coal_netgen" = "generation", 
-                                                                              "oil_netgen" = "generation", 
-                                                                              "gas_netgen" = "generation", 
-                                                                              "nuclear_netgen" = "generation",
-                                                                              "biomass_netgen" = "generation", 
-                                                                              "wind_netgen" = "generation", 
-                                                                              "solar_netgen" = "generation",
-                                                                              "geothermal_netgen" = "generation",
-                                                                              "other_ff_netgen" = "generation",
-                                                                              "nonrenew_other_netgen" = "generation",
-                                                                              "nonrenew_netgen" = "generation",
-                                                                              "renew_netgen" = "generation",
-                                                                              "renew_nonhydro_netgen" = "generation",
-                                                                              "noncombust_netgen" = "generation",
-                                                                              "noncombust_other_netgen" = "generation",
-                                                                              "combust_netgen" = "generation",
-                                                                              "other_netgen" = "generation",
-                                                                              "hydro_netgen" = "generation"))), 
-                                     NA_real_), # convert to percentage 
-                    .names = "{str_replace(.col, 'netgen', 'resource_mix')}")) %>% 
+                    .fns = ~ if_else(non_negative_gen != 0, 
+                                     .x / non_negative_gen, 
+                                     NA_real_), 
+                    .names ="{str_replace(.col, 'netgen', 'resource_mix')}")) %>% 
       mutate(across(contains("resource_mix"), ~ if_else(.x < 0, 0, .x))) %>% 
       select(all_of(temporal_res_cols), {{ region_cols }}, contains("resource_mix"))
     
@@ -631,43 +601,9 @@ region_aggregation <- function(region, region_cols) {
       left_join(region_agg %>% select(all_of(temporal_res_cols), {{ region_cols }}, region_generation_nonbaseload)) %>% 
       mutate(# calculate nonbaseload resource mix for each fuel type 
              across(.cols = c(contains("nonbaseload"), -"region_generation_nonbaseload"), 
-                    .fns = ~ if_else(get(str_replace_all(cur_column(), c("_coal" = "", 
-                                                                         "_oil" = "", 
-                                                                         "_gas" = "", 
-                                                                         "_nuclear" = "",
-                                                                         "_hydro" = "", 
-                                                                         "_biomass" = "", 
-                                                                         "_wind" = "", 
-                                                                         "_solar" = "",
-                                                                         "_geothermal" = "",
-                                                                         "_other_ff" = "",
-                                                                         "_other" = "",
-                                                                         "_nonrenew" = "",
-                                                                         "_renew" = "",
-                                                                         "_nonrenew_other" = "",
-                                                                         "_renew_nonhydro" = "",
-                                                                         "_combust" = "",
-                                                                         "_noncombust" = "",
-                                                                         "_noncombust_other" = ""))) != 0, 
-                                     .x / get(str_replace_all(cur_column(), c("_coal" = "", 
-                                                                              "_oil" = "", 
-                                                                              "_gas" = "", 
-                                                                              "_nuclear" = "",
-                                                                              "_hydro" = "", 
-                                                                              "_biomass" = "", 
-                                                                              "_wind" = "", 
-                                                                              "_solar" = "",
-                                                                              "_geothermal" = "",
-                                                                              "_other_ff" = "",
-                                                                              "_other" = "",
-                                                                              "_nonrenew" = "",
-                                                                              "_renew" = "",
-                                                                              "_nonrenew_other" = "",
-                                                                              "_renew_nonhydro" = "",
-                                                                              "_combust" = "",
-                                                                              "_noncombust" = "",
-                                                                              "_noncombust_other" = ""))), 
-                                     NA_real_), 
+                    .fns = ~ if_else(region_generation_nonbaseload != 0, 
+                                     .x / region_generation_nonbaseload, 
+                                     NA_real_),
                     .names = "{str_replace(.col, 'generation', 'resource_mix')}")) %>% 
       select(all_of(temporal_res_cols), {{ region_cols }}, contains("resource_mix"))
     
@@ -1206,46 +1142,16 @@ region_aggregation <- function(region, region_cols) {
     region_resource_mix <- 
       region_gen %>% 
       select(-region_generation_nonbaseload) %>% 
+      rowwise() %>% 
+      mutate(non_negative_gen = sum(c_across(c(contains("netgen"), -contains("renew"), -contains("combust")))[c_across(contains("netgen")) >= 0], 
+                                    na.rm = TRUE)) %>%
+      ungroup() %>% 
       mutate(#calculate resource mix percentage for each fuel type
         across(.cols = contains("netgen"), 
-               .fns = ~ if_else(get(str_replace_all(cur_column(), c("coal_netgen" = "generation", 
-                                                                    "oil_netgen" = "generation", 
-                                                                    "gas_netgen" = "generation", 
-                                                                    "nuclear_netgen" = "generation",
-                                                                    "biomass_netgen" = "generation", 
-                                                                    "wind_netgen" = "generation", 
-                                                                    "solar_netgen" = "generation",
-                                                                    "geothermal_netgen" = "generation",
-                                                                    "other_ff_netgen" = "generation",
-                                                                    "nonrenew_other_netgen" = "generation",
-                                                                    "nonrenew_netgen" = "generation",
-                                                                    "renew_netgen" = "generation",
-                                                                    "renew_nonhydro_netgen" = "generation",
-                                                                    "noncombust_netgen" = "generation",
-                                                                    "noncombust_other_netgen" = "generation",
-                                                                    "combust_netgen" = "generation",
-                                                                    "other_netgen" = "generation",
-                                                                    "hydro_netgen" = "generation"))) != 0, 
-                                .x / get(str_replace_all(cur_column(), c("coal_netgen" = "generation", 
-                                                                         "oil_netgen" = "generation", 
-                                                                         "gas_netgen" = "generation", 
-                                                                         "nuclear_netgen" = "generation",
-                                                                         "biomass_netgen" = "generation", 
-                                                                         "wind_netgen" = "generation", 
-                                                                         "solar_netgen" = "generation",
-                                                                         "geothermal_netgen" = "generation",
-                                                                         "other_ff_netgen" = "generation",
-                                                                         "nonrenew_other_netgen" = "generation",
-                                                                         "nonrenew_netgen" = "generation",
-                                                                         "renew_netgen" = "generation",
-                                                                         "renew_nonhydro_netgen" = "generation",
-                                                                         "noncombust_netgen" = "generation",
-                                                                         "noncombust_other_netgen" = "generation",
-                                                                         "combust_netgen" = "generation",
-                                                                         "other_netgen" = "generation",
-                                                                         "hydro_netgen" = "generation"))), 
-                                NA_real_), # convert to percentage 
-               .names = "{str_replace(.col, 'netgen', 'resource_mix')}")) %>% 
+               .fns = ~ if_else(non_negative_gen != 0, 
+                                .x / non_negative_gen, 
+                                NA_real_), 
+               .names ="{str_replace(.col, 'netgen', 'resource_mix')}")) %>% 
       mutate(across(contains("resource_mix"), ~ if_else(.x < 0, 0, .x))) %>% 
       select(all_of(temporal_res_cols), contains("resource_mix"))
     
@@ -1271,45 +1177,10 @@ region_aggregation <- function(region, region_cols) {
       region_nonbaseload_gen %>% 
       left_join(region_agg %>% select(all_of(temporal_res_cols), region_generation_nonbaseload)) %>% 
       mutate(# calculate nonbaseload resource mix for each fuel type 
-        across(.cols = -any_of(c(temporal_res_cols, 
-                                 "region_generation_nonbaseload")), 
-               .fns = ~ if_else(get(str_replace_all(cur_column(), c("_coal" = "", 
-                                                                    "_oil" = "", 
-                                                                    "_gas" = "", 
-                                                                    "_nuclear" = "",
-                                                                    "_hydro" = "", 
-                                                                    "_biomass" = "", 
-                                                                    "_wind" = "", 
-                                                                    "_solar" = "",
-                                                                    "_geothermal" = "",
-                                                                    "_other_ff" = "",
-                                                                    "_other" = "",
-                                                                    "_nonrenew" = "",
-                                                                    "_renew" = "",
-                                                                    "_nonrenew_other" = "",
-                                                                    "_renew_nonhydro" = "",
-                                                                    "_combust" = "",
-                                                                    "_noncombust" = "",
-                                                                    "_noncombust_other" = ""))) != 0, 
-                                .x / get(str_replace_all(cur_column(), c("_coal" = "", 
-                                                                         "_oil" = "", 
-                                                                         "_gas" = "", 
-                                                                         "_nuclear" = "",
-                                                                         "_hydro" = "", 
-                                                                         "_biomass" = "", 
-                                                                         "_wind" = "", 
-                                                                         "_solar" = "",
-                                                                         "_geothermal" = "",
-                                                                         "_other_ff" = "",
-                                                                         "_other" = "",
-                                                                         "_nonrenew" = "",
-                                                                         "_renew" = "",
-                                                                         "_nonrenew_other" = "",
-                                                                         "_renew_nonhydro" = "",
-                                                                         "_combust" = "",
-                                                                         "_noncombust" = "",
-                                                                         "_noncombust_other" = ""))), 
-                                NA_real_), 
+        across(.cols = c(contains("nonbaseload"), -"region_generation_nonbaseload"), 
+               .fns = ~ if_else(region_generation_nonbaseload != 0, 
+                                .x / region_generation_nonbaseload, 
+                                NA_real_),
                .names = "{str_replace(.col, 'generation', 'resource_mix')}")) %>% 
       select(all_of(temporal_res_cols), contains("resource_mix"))
     
