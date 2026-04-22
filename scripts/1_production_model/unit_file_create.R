@@ -175,12 +175,15 @@ co2_ef <- read_csv("data/1_production_model/static_tables/co2_ch4_n2o_ef.csv",
 
 # OG fuel types  
 ### Note: check for updates or changes each data year ###
-og_fuel_types_update <- read_csv("data/1_production_model/static_tables/og_oth_units_to_change_fuel_type.csv", 
-                                 col_types = cols_only(plant_id = "c", 
-                                                       unit_id = "c", 
-                                                       prime_mover = "c",
-                                                       primary_fuel_type = "c",
-                                                       fuel_code = "c")) 
+og_fuel_types_update <- 
+  read_csv("data/1_production_model/static_tables/og_oth_units_to_change_fuel_type.csv", 
+           col_types = cols_only(year = "c",
+                                 plant_id = "c", 
+                                 unit_id = "c", 
+                                 prime_mover = "c",
+                                 primary_fuel_type = "c",
+                                 fuel_code = "c")) %>% 
+  filter(year == params$eGRID_year)
 
 # NREL geothermal plants
 ### Note: check for updates or changes each data year ###
