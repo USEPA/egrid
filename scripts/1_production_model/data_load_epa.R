@@ -56,7 +56,8 @@ if (res$status_code > 399){
 }
 
 # converting the content from json format to a data frame
-bulk_files <- fromJSON(rawToChar(res$content))
+# NOTE (4/22/2026): Updated to extract $items due to change in bulk_files call from EPA API. Check if this changes in the future. 
+bulk_files <- fromJSON(rawToChar(res$content))$items
 
 ## Get facility data --------
 
